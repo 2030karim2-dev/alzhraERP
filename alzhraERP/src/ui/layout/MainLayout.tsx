@@ -100,13 +100,6 @@ const MainLayout: React.FC = () => {
         ></div>
       )}
 
-      <div className={cn(
-        "no-print",
-        isMobileSidebarOpen ? "block" : "hidden"
-      )}>
-        {/* ... existing sidebar code ... */}
-      </div>
-
       <Sidebar
         className="no-print"
         isCollapsed={isSidebarCollapsed}

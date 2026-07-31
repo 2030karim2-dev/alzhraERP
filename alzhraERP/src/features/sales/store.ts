@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
@@ -20,7 +19,7 @@ export interface SalesCartItem {
   price: number;     // Converted price based on current exchange rate
   discount: number;
   costPrice: number;
-  warehouse_distribution?: Array<{ warehouse_id: string; warehouse_name: string; quantity: number }>;
+  warehouse_distribution?: Array<{ warehouse_id: string; warehouse_name: string; quantity: number }> | undefined;
 }
 
 export interface SalesSummary {

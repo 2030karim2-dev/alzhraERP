@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { Settings, Building, Palette, Database, ShieldCheck, Bell, Banknote, Users, FileText, Calculator, Package, Printer, Link, Globe, Search, ChevronLeft, User, GitBranch } from 'lucide-react';
+import { Settings, Building, ShieldCheck, Banknote, Users, FileText, Calculator, Package, Link, Search, ChevronLeft, User, GitBranch } from 'lucide-react';
 import CompanyProfile from './components/CompanyProfile';
 import BranchManager from './components/branches/BranchManager';
 import PersonalProfile from './components/PersonalProfile';
@@ -86,7 +85,7 @@ const SettingsPage: React.FC = () => {
       case 'company': return <CompanyProfile />;
       case 'branches': return <BranchManager />;
       case 'financial': return <FinancialSettings />;
-      case 'preferences': 
+      case 'preferences':
         return (
           <div className="space-y-8">
             <AppearancePage />
@@ -94,7 +93,7 @@ const SettingsPage: React.FC = () => {
             <div className="px-4"><NotificationSettings /></div>
           </div>
         );
-      case 'invoice': 
+      case 'invoice':
         return (
           <div className="space-y-8">
             <InvoiceSettings />
@@ -104,7 +103,7 @@ const SettingsPage: React.FC = () => {
       case 'pos': return <POSSettings />;
       case 'inventory': return <InventorySettings />;
       case 'integrations': return <IntegrationsSettings />;
-      case 'team': 
+      case 'team':
         return (
           <div className="space-y-8">
             <TeamManager />

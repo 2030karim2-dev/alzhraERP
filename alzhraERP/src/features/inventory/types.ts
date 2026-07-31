@@ -1,4 +1,3 @@
-
 export type InventoryView = 'products' | 'warehouses' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
 
 export interface CarCompatibility {
@@ -8,7 +7,7 @@ export interface CarCompatibility {
 }
 
 export interface warehouseStock {
-  warehouse_id: string; // Added warehouse_id
+  warehouse_id: string;
   warehouse_name: string;
   quantity: number;
   location: string;
@@ -91,24 +90,23 @@ export interface Product {
   name_en?: string | null | undefined;
   sku: string;
   part_number: string | null;
-  alternative_numbers: string | null; // Added for Cross-Reference
+  alternative_numbers: string | null;
   brand: string | null;
-  manufacturer?: string | undefined; // Potential alias for brand
-  supplier_id?: string | null | undefined; // Foreign Key
-  supplier_name?: string | null | undefined; // Added to fix build error
+  manufacturer?: string | undefined;
+  supplier_id?: string | null | undefined;
+  supplier_name?: string | null | undefined;
   category: string | null;
   category_id?: string | null | undefined;
   size: string | null;
   specifications: string | null;
   cost_price: number;
   sale_price: number;
-  selling_price?: number; // Alias for sale_price (deprecated)
+  selling_price?: number;
   purchase_price?: number;
-  stock_quantity: number; // Computed from product_stock aggregation
+  stock_quantity: number;
   min_stock_level: number;
   unit: string;
   image_url?: string | null | undefined;
-  warehouse_distribution?: Array<{ warehouse_id: string; warehouse_name: string; quantity: number }>;
 
   // Auto Parts Specific Features
   is_kit?: boolean | undefined;
@@ -123,12 +121,12 @@ export interface Product {
   last_invoice_date?: string | undefined;
   isLowStock?: boolean | undefined;
 
-  // Relations
+  // Relations - merged warehouse_distribution (location is optional for backward compatibility)
   warehouse_distribution?: Array<{
     warehouse_id: string;
     warehouse_name: string;
     quantity: number;
-    location: string;
+    location?: string;
   }> | undefined;
 
   created_at: string;
@@ -153,7 +151,7 @@ export interface Product {
 export interface ProductFormData {
   name: string;
   name_ar?: string | undefined;
-  name_en?: string | undefined;
+  name_en?: string | null | undefined;
   sku?: string | null | undefined;
   part_number?: string | null | undefined;
   brand?: string | null | undefined;
