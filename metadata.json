@@ -1,0 +1,20 @@
+{
+  "name": "Al-Zahra Smart ERP",
+  "short_name": "Al-Zahra",
+  "description": "النظام الذكي المتكامل لإدارة قطع غيار السيارات والمحاسبة",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#10b981",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
