@@ -1,0 +1,114 @@
+/* Financial Reports Pro Max Design System */
+
+:root {
+    --report-navy: #0F172A;
+    --report-navy-light: #1E293B;
+    --report-gold: #CA8A04;
+    --report-emerald: #10B981;
+    --report-rose: #EF4444;
+    --report-blue: #2563EB;
+    --report-glass: rgba(255, 255, 255, 0.7);
+    --report-glass-dark: rgba(15, 23, 42, 0.8);
+}
+
+.dark {
+    --report-glass: rgba(15, 23, 42, 0.6);
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: var(--report-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+    background: var(--report-glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.dark .glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Bento Grid Layouts */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+}
+
+.bento-item {
+    border-radius: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes pulse-soft {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+}
+
+.pulse-soft {
+    animation: pulse-soft 3s infinite ease-in-out;
+}
+
+.number-reveal {
+    animation: slide-up 0.5s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Financial Specific Accents */
+.stat-value-profit {
+    color: var(--report-emerald);
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.stat-value-loss {
+    color: var(--report-rose);
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.category-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

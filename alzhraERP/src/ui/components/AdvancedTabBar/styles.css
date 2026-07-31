@@ -1,0 +1,580 @@
+/* ============================================================
+   AdvancedTabBar - CSS Animation System
+   نظام الرسوم المتحركة المتقدم لشريط التبويبات
+   ============================================================ */
+
+/* ============================================
+   CSS Custom Properties - Dynamic Theme Variables
+   ============================================ */
+:root {
+  /* Light Mode - Dynamic Gradient Colors */
+  --tab-gradient-start: #3b82f6;
+  --tab-gradient-end: #8b5cf6;
+  --tab-gradient-hover-start: #60a5fa;
+  --tab-gradient-hover-end: #a78bfa;
+  --tab-gradient-active-start: #2563eb;
+  --tab-gradient-active-end: #7c3aed;
+
+  /* Glow & Shadow Colors */
+  --tab-glow-color: rgba(59, 130, 246, 0.5);
+  --tab-glow-color-strong: rgba(59, 130, 246, 0.8);
+  --tab-shadow-color: rgba(59, 130, 246, 0.3);
+  --tab-ambient-glow: rgba(139, 92, 246, 0.15);
+
+  /* Glassmorphism */
+  --tab-glass-bg: rgba(255, 255, 255, 0.7);
+  --tab-glass-border: rgba(255, 255, 255, 0.3);
+  --tab-glass-blur: 20px;
+
+  /* Text Colors */
+  --tab-text-default: #64748b;
+  --tab-text-hover: #1e293b;
+  --tab-text-active: #ffffff;
+
+  /* Animation Timing */
+  --tab-transition-fast: 150ms;
+  --tab-transition-normal: 300ms;
+  --tab-transition-slow: 500ms;
+  --tab-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --tab-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --tab-easing-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --tab-gradient-start: #60a5fa;
+  --tab-gradient-end: #a78bfa;
+  --tab-gradient-hover-start: #93c5fd;
+  --tab-gradient-hover-end: #c4b5fd;
+  --tab-gradient-active-start: #3b82f6;
+  --tab-gradient-active-end: #8b5cf6;
+
+  --tab-glow-color: rgba(96, 165, 250, 0.6);
+  --tab-glow-color-strong: rgba(96, 165, 250, 0.9);
+  --tab-shadow-color: rgba(96, 165, 250, 0.4);
+  --tab-ambient-glow: rgba(167, 139, 250, 0.2);
+
+  --tab-glass-bg: rgba(30, 41, 59, 0.7);
+  --tab-glass-border: rgba(255, 255, 255, 0.1);
+
+  --tab-text-default: #94a3b8;
+  --tab-text-hover: #f1f5f9;
+  --tab-text-active: #ffffff;
+}
+
+/* ============================================
+   Keyframe Animations - Rhythmic Pulsing & Effects
+   ============================================ */
+
+/* Rhythmic Pulsing for Active Tab */
+@keyframes rhythmicPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--tab-glow-color), 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.05), 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Gentle Floating Animation */
+@keyframes gentleFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Shimmer Effect for Active State */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Glow Pulse Animation */
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Slide In Animation for Indicator */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scaleX(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+/* Bounce In Animation */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Fade Scale Animation */
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   Main Container Styles
+   ============================================ */
+
+.advanced-tab-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  isolation: isolate;
+  contain: style;
+}
+
+.advanced-tab-bar__container {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--tab-glass-bg);
+  backdrop-filter: blur(var(--tab-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tab-glass-blur));
+  border: 1px solid var(--tab-glass-border);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.advanced-tab-bar__container::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Individual Tab Styles
+   ============================================ */
+
+.advanced-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tab-text-default);
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* Hardware acceleration */
+  transform: translateZ(0);
+
+  /* Smooth transitions */
+  transition:
+    color var(--tab-transition-fast) var(--tab-easing-smooth),
+    transform var(--tab-transition-normal) var(--tab-easing-elastic),
+    box-shadow var(--tab-transition-normal) var(--tab-easing-smooth),
+    background var(--tab-transition-fast) var(--tab-easing-smooth);
+}
+
+/* Tab Hover State */
+.advanced-tab:hover:not(:disabled):not(.advanced-tab--active) {
+  color: var(--tab-text-hover);
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.05));
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 0 20px var(--tab-ambient-glow);
+}
+
+/* Tab Active State with Gradient & Animation */
+.advanced-tab--active {
+  color: var(--tab-text-active);
+  background: linear-gradient(135deg,
+      var(--tab-gradient-active-start),
+      var(--tab-gradient-active-end));
+  background-size: 200% auto;
+  will-change: transform, box-shadow, background;
+  animation:
+    rhythmicPulse 3s ease-in-out infinite,
+    shimmer 3s linear infinite;
+  transform: translateY(-1px);
+  z-index: 1;
+}
+
+/* Tab Active - Enhanced Glow Layer */
+.advanced-tab--active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg,
+      var(--tab-gradient-start),
+      var(--tab-gradient-end),
+      var(--tab-gradient-start));
+  background-size: 200% 200%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(8px);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* Tab Focus State (Keyboard Navigation) */
+.advanced-tab:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--tab-glow-color),
+    0 0 0 6px rgba(59, 130, 246, 0.1);
+}
+
+.advanced-tab--active:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.5),
+    0 0 0 6px var(--tab-glow-color);
+}
+
+/* Tab Disabled State */
+.advanced-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* ============================================
+   Tab Icon Styles
+   ============================================ */
+
+.advanced-tab__icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  transition:
+    transform var(--tab-transition-normal) var(--tab-easing-elastic),
+    filter var(--tab-transition-fast) var(--tab-easing-smooth);
+}
+
+.advanced-tab:hover .advanced-tab__icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.advanced-tab--active .advanced-tab__icon {
+  transform: scale(1.15);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* ============================================
+   Tab Label Styles
+   ============================================ */
+
+.advanced-tab__label {
+  position: relative;
+  letter-spacing: 0.025em;
+  transition: transform var(--tab-transition-fast) var(--tab-easing-smooth);
+}
+
+.advanced-tab:hover .advanced-tab__label {
+  transform: translateX(2px);
+}
+
+/* RTL: reverse label shift direction */
+[dir="rtl"] .advanced-tab:hover .advanced-tab__label {
+  transform: translateX(-2px);
+}
+
+/* ============================================
+   Tab Badge Styles
+   ============================================ */
+
+.advanced-tab__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  animation: fadeScale 0.3s var(--tab-easing-elastic);
+}
+
+.advanced-tab--active .advanced-tab__badge {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   Sliding Indicator Styles
+   ============================================ */
+
+.advanced-tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--tab-glow-color-strong),
+      transparent);
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    left var(--tab-transition-slow) var(--tab-easing-elastic),
+    width var(--tab-transition-slow) var(--tab-easing-elastic),
+    opacity var(--tab-transition-normal) var(--tab-easing-smooth);
+  will-change: left, width, opacity;
+}
+
+.advanced-tab-indicator--visible {
+  opacity: 1;
+}
+
+/* ============================================
+   Drag & Drop Styles
+   ============================================ */
+
+.advanced-tab--dragging {
+  opacity: 0.8;
+  cursor: grabbing !important;
+  transform: scale(1.05) rotate(2deg) !important;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    0 0 30px var(--tab-glow-color) !important;
+  z-index: 1000;
+}
+
+.advanced-tab--dragging * {
+  pointer-events: none;
+}
+
+.advanced-tab--drop-target {
+  position: relative;
+}
+
+.advanced-tab--drop-target::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.1),
+      rgba(139, 92, 246, 0.1));
+  border: 2px dashed var(--tab-glow-color);
+  border-radius: inherit;
+  animation: fadeScale 0.2s var(--tab-easing-smooth);
+}
+
+/* Drop Indicator Line */
+.advanced-tab-bar__drop-indicator {
+  position: absolute;
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(180deg,
+      var(--tab-gradient-start),
+      var(--tab-gradient-end));
+  border-radius: 3px;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--tab-transition-fast) var(--tab-easing-smooth);
+  pointer-events: none;
+}
+
+.advanced-tab-bar__drop-indicator--visible {
+  opacity: 1;
+}
+
+/* ============================================
+   Size Variants
+   ============================================ */
+
+.advanced-tab-bar--sm .advanced-tab {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  gap: 0.375rem;
+  border-radius: 0.625rem;
+}
+
+.advanced-tab-bar--micro .advanced-tab {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.65rem;
+  gap: 0.25rem;
+  border-radius: 0.45rem;
+}
+
+.advanced-tab-bar--micro .advanced-tab__icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.advanced-tab-bar--micro .advanced-tab__badge {
+  min-width: 0.9rem;
+  height: 0.9rem;
+  font-size: 0.55rem;
+}
+
+.advanced-tab-bar--sm .advanced-tab__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.advanced-tab-bar--lg .advanced-tab {
+  padding: 1.25rem 2.5rem;
+  font-size: 1.125rem;
+  gap: 1rem;
+}
+
+.advanced-tab-bar--lg .advanced-tab__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* ============================================
+   3D Transform Effects
+   ============================================ */
+
+.advanced-tab-bar--3d {
+  perspective: 1000px;
+}
+
+.advanced-tab-bar--3d .advanced-tab {
+  transform-style: preserve-3d;
+}
+
+.advanced-tab-bar--3d .advanced-tab:hover:not(:disabled):not(.advanced-tab--active) {
+  transform: translateY(-2px) translateZ(10px) rotateX(5deg);
+}
+
+.advanced-tab-bar--3d .advanced-tab--active {
+  transform: translateY(-2px) translateZ(20px);
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+
+@media (max-width: 640px) {
+  .advanced-tab-bar__container {
+    padding: 0.2rem;
+    gap: 0.125rem;
+    border-radius: 0.625rem;
+  }
+
+  .advanced-tab {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.625rem;
+    gap: 0.25rem;
+    border-radius: 0.375rem;
+  }
+
+  .advanced-tab__icon {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .advanced-tab__badge {
+    min-width: 1rem;
+    height: 1rem;
+    font-size: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .advanced-tab,
+  .advanced-tab__icon,
+  .advanced-tab__label,
+  .advanced-tab-indicator {
+    transition: none;
+    animation: none;
+  }
+
+  .advanced-tab--active {
+    animation: none;
+  }
+}
+
+/* ============================================
+   High Contrast Mode Support
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  .advanced-tab {
+    border: 1px solid transparent;
+  }
+
+  .advanced-tab:focus-visible {
+    border-color: currentColor;
+    box-shadow: none;
+  }
+
+  .advanced-tab--active {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .advanced-tab-bar {
+    display: none;
+  }
+}

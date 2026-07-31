@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 301ec714e55caee3f7e9effea7033d5e2153cd3c Seens <seens@example.com> 1785357081 +0300	clone: from https://github.com/2030karim2-dev/alzhraERP.git
+301ec714e55caee3f7e9effea7033d5e2153cd3c a6397b21b1e98a1fbc44e8a23304a4d0b3833ae9 Seens <seens@example.com> 1785373302 +0300	commit: Add updates and new files
+a6397b21b1e98a1fbc44e8a23304a4d0b3833ae9 4480093f451acee2771e0d2074787c0d3a62bcc2 Seens <seens@example.com> 1785374454 +0300	commit: Fix runtime error: o?.filter is not a function in POS components
+4480093f451acee2771e0d2074787c0d3a62bcc2 d9df0702b3466e33fa693500784c87ea5c913826 Seens <seens@example.com> 1785437735 +0300	commit: Implement inventory session data loss prevention (3-layer persistence)

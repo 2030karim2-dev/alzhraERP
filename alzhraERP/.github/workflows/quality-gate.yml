@@ -1,0 +1,182 @@
+name: Quality Gate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+jobs:
+  # ============================================
+  # 1. Type Check & Lint
+  # ============================================
+  type-check-and-lint:
+    name: Type Check & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type Check (Strict)
+        run: npm run type-check:strict
+        continue-on-error: false
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Check for console.log
+        run: |
+          echo "Checking for console.log statements..."
+          if grep -r "console\.log\|console\.warn\|console\.error" --include="*.ts" --include="*.tsx" src/ | grep -v "logger.ts" | grep -v ".test."; then
+            echo "❌ Found console.log statements. Please use the logger utility instead."
+            exit 1
+          else
+            echo "✅ No console.log statements found"
+          fi
+
+  # ============================================
+  # 2. Security Scan
+  # ============================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ============================================
+  # 3. Unit Tests
+  # ============================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [type-check-and-lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:ci
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  # ============================================
+  # 4. Build Test
+  # ============================================
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs: [type-check-and-lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Analyze bundle size
+        run: |
+          echo "Bundle size analysis:"
+          ls -lh dist/assets/*.js | awk '{print $5, $9}'
+
+  # ============================================
+  # 5. Quality Report
+  # ============================================
+  quality-report:
+    name: Generate Quality Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, build-test]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate quality report
+        run: npm run quality:report
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: reports/
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('reports/quality-summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });

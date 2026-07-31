@@ -1,0 +1,44 @@
+name: Enterprise CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Strict Type Check
+        run: npx tsc --noEmit
+
+      - name: Run Unit Tests
+        run: npx vitest run
+
+      - name: Build Application
+        run: npm run build
+        env:
+          # Ensure any warnings during build are exposed, and CI fails on critical errors
+          CI: true
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alzhra-dist
+          path: dist/
+          retention-days: 7
