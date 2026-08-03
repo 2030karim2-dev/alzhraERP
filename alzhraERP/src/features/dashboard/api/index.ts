@@ -16,6 +16,44 @@ function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: any }
     return fallback;
 }
 
+// Shapes returned by the dashboard RPCs (single-row aggregations arrive as [row]).
+interface SummaryRow {
+    total_sales?: number | string;
+    total_purchases?: number | string;
+    total_expenses?: number | string;
+    receipt_bonds?: number | string;
+    payment_bonds?: number | string;
+    total_debts?: number | string;
+    total_supplier_debts?: number | string;
+    invoice_count?: number | string;
+}
+
+interface RawTopProduct {
+    id?: string;
+    sku?: string;
+    name?: string;
+    name_ar?: string;
+    total_revenue?: number;
+    revenue?: number;
+    total_quantity?: number;
+    quantity?: number;
+}
+
+interface RawTopCustomer {
+    id?: string;
+    customer_id?: string;
+    name?: string;
+    total_revenue?: number;
+    total?: number;
+    invoice_count?: number;
+    invoices?: number;
+}
+
+interface RawTopPayload {
+    top_products?: RawTopProduct[] | null;
+    top_customers?: RawTopCustomer[] | null;
+}
+
 export const dashboardApi = {
     /**
      * Fetches the core dashboard raw data in parallel (resilient to individual failures)
@@ -79,9 +117,19 @@ export const dashboardApi = {
             } as any).abortSignal(signal as any),
         ]);
 
-        const summary = safeData(summaryRes, {});
+        // RPCs that return a single aggregated row arrive as a one-element array
+        // (e.g. [{ total_sales: ... }]). Unwrap the first element so consumers can
+        // access fields directly. This previously left every stat at 0 / empty.
+        // These aggregation RPCs always return exactly one row; the safeData
+        // fallback (a plain object) takes the non-array branch.
+        const rawSummary = safeData<SummaryRow | SummaryRow[]>(summaryRes, {});
+        const summary: SummaryRow = Array.isArray(rawSummary) ? rawSummary[0] : rawSummary;
+
         const salesChart = safeData(chartRes, []);
-        const topData = safeData(topRes, { top_products: [], top_customers: [] });
+
+        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(topRes, { top_products: [], top_customers: [] });
+        const topDataObj: RawTopPayload = Array.isArray(rawTop) ? rawTop[0] : rawTop;
+
         const rawLowStock = safeData(lowStockRes, []) as any[];
         const rawCategories = safeData(categoryRes, []) as any[];
         const trialBalanceData = safeData(trialBalanceRes, []);
@@ -89,7 +137,23 @@ export const dashboardApi = {
         return {
             summary,
             salesChart,
-            topData: (topData && typeof topData === 'object') ? topData : { top_products: [], top_customers: [] },
+            // Map RPC field names (total_revenue/total_quantity/invoice_count)
+            // to the shape expected by TopPerformers ({ id, name, revenue, quantity } /
+            // { id, name, total, invoices }).
+            topData: {
+                top_products: (topDataObj.top_products ?? []).map((p: RawTopProduct, i: number) => ({
+                    id: p.id ?? p.sku ?? `prod-${String(i)}`,
+                    name: p.name ?? p.name_ar ?? 'غير معروف',
+                    revenue: p.total_revenue ?? p.revenue ?? 0,
+                    quantity: p.total_quantity ?? p.quantity ?? 0,
+                })),
+                top_customers: (topDataObj.top_customers ?? []).map((cu: RawTopCustomer, i: number) => ({
+                    id: cu.id ?? cu.customer_id ?? `cust-${String(i)}`,
+                    name: cu.name ?? 'غير معروف',
+                    total: cu.total_revenue ?? cu.total ?? 0,
+                    invoices: cu.invoice_count ?? cu.invoices ?? 0,
+                })),
+            },
             lowStockProducts: rawLowStock.map((p: any) => ({
                 id: p.id,
                 name: p.name_ar,
