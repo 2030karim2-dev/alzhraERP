@@ -1,0 +1,17 @@
+{
+  "name": "ظ†ط¸ط§ظ… ط§ظ„ط²ظ‡ط±ط§ط، ط§ظ„ط°ظƒظٹ",
+  "short_name": "ط§ظ„ط²ظ‡ط±ط§ط، ERP",
+  "description": "ظ†ط¸ط§ظ… ط¥ط¯ط§ط±ط© ط§ظ„ظ…ط¨ظٹط¹ط§طھ ظˆط§ظ„ظ…ط®ط²ظˆظ† ظˆط§ظ„ظ…ط­ط§ط³ط¨ط© ط§ظ„ط°ظƒظٹ",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

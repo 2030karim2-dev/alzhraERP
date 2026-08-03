@@ -49,9 +49,10 @@ const SalesAnalyticsView: React.FC = () => {
     const formatCurrency = (value: number) => formatCurrencyUtil(value, 'SAR');
     const formatNumber = (value: number) => formatNumberDisplay(value);
 
-    // Calculate growth percentages (mock data for demo)
-    const salesGrowth = 12.5;
-    const returnsGrowth = -3.2;
+    // TODO: Fetch actual growth from backend if available in the future.
+    // For now, default to 0 to avoid showing mock data.
+    const salesGrowth = 0;
+    const returnsGrowth = 0;
 
     // Calculate cash ratio
     const totalPaymentAmount = salesByPaymentMethod.reduce((sum, p) => sum + p.amount, 0);

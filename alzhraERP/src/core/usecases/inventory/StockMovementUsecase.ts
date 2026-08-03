@@ -19,19 +19,9 @@ export class StockMovementUsecase {
       throw new Error("لم يتم تحديدرقم مرجعي للمنتج (Product ID missing)");
     }
 
-    // 1. إذا كانت الحركة توريد (IN)، نقوم بتحديث متوسط التكلفة أولاً
-    if (params.type === 'IN' && params.unitPrice !== undefined && params.quantity > 0) {
-      // Execute Atomic Database RPC instead of calculating in JS memory to prevent race conditions
-      const { error: wacError } = await supabase.rpc('calculate_and_update_wac', {
-          p_product_id: params.productId,
-          p_added_qty: params.quantity,
-          p_unit_price: params.unitPrice
-      });
-      if (wacError) {
-        console.error("RPC calculate_and_update_wac error:", wacError);
-        throw new Error("فشل في تقييم متوسط التكلفة الآلي للمخزون");
-      }
-    }
+    // WAC (Weighted Average Cost) is automatically updated by the
+    // fn_update_weighted_avg_cost trigger on inventory_transactions.
+    // No manual RPC call is needed here.
 
     // 2. تسجيل العملية في سجل الحركات (Transactions)
     // Fix: Corrected method name from 'adjustStock' to 'createInventoryTransactions' and wrapped payload in an array.

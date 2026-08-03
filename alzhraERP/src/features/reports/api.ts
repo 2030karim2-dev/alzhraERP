@@ -52,19 +52,34 @@ export const reportsApi = {
    * Fetch accounting data with journal lines
    */
   getAccountingData: async (companyId: string) => {
-    return await supabase.from('active_accounts')
-      .select(`
-        id, code, name_ar, type, balance,
-        journal_entry_lines (
-          debit_amount, credit_amount,
-          journal_entries!inner ( entry_date, status )
-        )
-      `)
-      .eq('company_id', companyId)
-      .eq('journal_entry_lines.journal_entries.status', 'posted') as unknown as {
-        data: AccountWithLines[] | null;
-        error: { message: string } | null;
-      };
+    const [{ data: accounts }, { data: balances }] = await Promise.all([
+      supabase.from('accounts')
+        .select(`
+          id, code, name_ar, type,
+          journal_entry_lines (
+            debit_amount, credit_amount,
+            journal_entries!inner ( entry_date, status )
+          )
+        `)
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .eq('journal_entry_lines.journal_entries.status', 'posted'),
+      supabase.from('account_balances').select('account_id, balance').eq('company_id', companyId)
+    ]);
+
+    if (!accounts) return { data: null, error: { message: 'Failed to fetch accounts' } };
+
+    const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
+
+    const merged = accounts.map((a: any) => ({
+      ...a,
+      balance: balanceMap.get(a.id) || 0
+    }));
+
+    return {
+      data: merged as AccountWithLines[],
+      error: null
+    };
   },
 
   // استخدام دالة SQL المحسنة لجلب ميزان المراجعة
@@ -114,9 +129,21 @@ export const reportsApi = {
   },
 
   getPartiesWithBalances: async (companyId: string) => {
-    return await supabase.from('active_parties')
-      .select('id, name, type, balance')
-      .eq('company_id', companyId) as unknown as { data: PartyWithBalance[] | null; error: { message: string } | null };
+    const [{ data: parties }, { data: balances }] = await Promise.all([
+      supabase.from('parties').select('id, name, type').eq('company_id', companyId).is('deleted_at', null),
+      supabase.from('party_balances').select('party_id, balance').eq('company_id', companyId)
+    ]);
+    
+    if (!parties) return { data: null, error: { message: 'Failed to fetch parties' } };
+    
+    const balanceMap = new Map((balances || []).map((b: any) => [b.party_id, Number(b.balance)]));
+    
+    const merged = parties.map((p: any) => ({
+      ...p,
+      balance: balanceMap.get(p.id) || 0
+    }));
+    
+    return { data: merged as PartyWithBalance[], error: null };
   },
 
   getCompanyCurrency: async (companyId: string) => {

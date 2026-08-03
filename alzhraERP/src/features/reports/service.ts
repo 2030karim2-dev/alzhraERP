@@ -148,11 +148,19 @@ export const reportsService = {
     const baseCurrency = company?.base_currency || 'SAR';
 
     // 2. Fetch all foreign currency accounts with their balances
-    const { data: accounts } = await supabase.from('active_accounts')
-      .select('id, name_ar, currency_code, balance')
-      .eq('company_id', companyId)
-      .not('currency_code', 'is', null)
-      .neq('currency_code', baseCurrency);
+    const [{ data: accounts }, { data: balances }] = await Promise.all([
+      supabase.from('accounts')
+        .select('id, name_ar, currency_code')
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .not('currency_code', 'is', null)
+        .neq('currency_code', baseCurrency),
+      supabase.from('account_balances')
+        .select('account_id, balance')
+        .eq('company_id', companyId)
+    ]);
+
+    const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
 
     // 3. Map into the format expected by CurrencyDiffView
     // ⚡ unrealizedGain is now 0 — will be calculated from real exchange rates when implemented
@@ -161,7 +169,7 @@ export const reportsService = {
       id: a.id,
       name: a.name_ar,
       currency_code: a.currency_code,
-      balance: Math.abs(a.balance || 0),
+      balance: Math.abs(balanceMap.get(a.id) || 0),
       unrealizedGain: 0 // ⚡ Previously Math.random() — now 0 until revaluation is implemented
     }));
   },
@@ -201,14 +209,14 @@ export const reportsService = {
    * ⚡ Fetch detailed transactions for a specific account (Drill-down capability)
    */
   getAccountTransactions: async (companyId: string, accountId: string, fromDate?: string, toDate?: string) => {
-    let query = supabase.from('journal_lines')
+    let query = supabase.from('journal_entry_lines')
       .select(`
         id,
-        debit,
-        credit,
+        debit_amount,
+        credit_amount,
         journal_entries!inner(
           id,
-          date,
+          entry_date,
           description,
           reference_type,
           reference_id
@@ -216,13 +224,13 @@ export const reportsService = {
       `)
       .eq('account_id', accountId)
       .eq('journal_entries.company_id', companyId)
-      .order('journal_entries(date)', { ascending: false });
+      .order('journal_entries(entry_date)', { ascending: false });
 
     if (fromDate) {
-      query = query.gte('journal_entries.date', fromDate);
+      query = query.gte('journal_entries.entry_date', fromDate);
     }
     if (toDate) {
-      query = query.lte('journal_entries.date', toDate);
+      query = query.lte('journal_entries.entry_date', toDate);
     }
 
     const { data, error } = await query;
@@ -230,12 +238,12 @@ export const reportsService = {
     
     return (data || []).map((line: any) => ({
       id: line.id,
-      date: line.journal_entries?.date,
+      date: line.journal_entries?.entry_date,
       description: line.journal_entries?.description,
       referenceType: line.journal_entries?.reference_type,
       referenceId: line.journal_entries?.reference_id,
-      debit: Number(line.debit) || 0,
-      credit: Number(line.credit) || 0,
+      debit: Number(line.debit_amount) || 0,
+      credit: Number(line.credit_amount) || 0,
       journalId: line.journal_entries?.id
     }));
   }

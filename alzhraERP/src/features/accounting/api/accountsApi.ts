@@ -5,7 +5,7 @@ type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
 
 export const accountsApi = {
   getAccounts: async (companyId: string) => {
-    return await supabase.from('active_accounts')
+    return await supabase.from('accounts')
       .select('*')
       .eq('company_id', companyId)
       .is('deleted_at', null)

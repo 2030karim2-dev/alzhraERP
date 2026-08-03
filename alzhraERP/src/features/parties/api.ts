@@ -10,10 +10,11 @@ import { mapToInsert, mapToUpdate } from '../../core/utils/supabaseMappers';
  */
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType) => {
-    return await supabase.from('active_parties')
+    return await supabase.from('parties')
       .select('*, party_categories(id, name)')
       .eq('company_id', companyId)
       .eq('type', type)
+      .is('deleted_at', null)
       .order('name', { ascending: true });
   },
 
@@ -87,7 +88,7 @@ export const partiesApi = {
     if (invError) throw invError;
 
     const { data: payments, error: payError } = await supabase.from('payments')
-      .select('id, payment_number, payment_date, amount, type, notes, currency_code, exchange_rate')
+      .select('id, payment_number, payment_date, amount, type, notes, currency_code, exchange_rate, payment_method')
       .eq('party_id', partyId)
       .neq('status', 'void')
       .is('deleted_at', null)

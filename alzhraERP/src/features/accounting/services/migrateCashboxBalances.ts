@@ -3,21 +3,23 @@ import { supabase } from '../../../lib/supabaseClient';
 export const migrateCashboxBalances = async (companyId: string) => {
     // 1. Get Main Cashbox
     const { data: mainCashbox, error: err1 } = await supabase
-        .from('active_accounts')
+        .from('accounts')
         .select('*')
         .eq('company_id', companyId)
         .eq('code', '1010')
+        .is('deleted_at', null)
         .single();
 
     if (err1 || !mainCashbox) throw new Error("لم يتم العثور على الصندوق الرئيسي");
 
     // 2. Get SAR Sub-Cashbox
     const { data: sarCashbox, error: err2 } = await supabase
-        .from('active_accounts')
+        .from('accounts')
         .select('*')
         .eq('company_id', companyId)
         .eq('parent_id', mainCashbox.id!)
         .eq('currency_code', 'SAR')
+        .is('deleted_at', null)
         .single();
 
     if (err2 || !sarCashbox) throw new Error("لم يتم العثور على صندوق الكاش السعودي. قم بتقسيم الصندوق أولاً.");

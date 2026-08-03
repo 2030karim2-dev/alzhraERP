@@ -81,7 +81,7 @@ export const dashboardApi = {
                 value: Number(c.total_amount),
                 color: ['#f43f5e','#fb923c','#facc15','#4ade80','#38bdf8','#a78bfa'][i % 6]
             })),
-            trialBalanceRows: (trialBalanceRes.data as any)?.rows || []
+            trialBalanceRows: Array.isArray(trialBalanceRes.data) ? trialBalanceRes.data : []
         };
     }
 };
