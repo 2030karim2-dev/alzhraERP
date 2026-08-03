@@ -13,12 +13,12 @@
     ]
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:analyze": "npm run build && npx vite-bundle-visualizer",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --fix",
-    "preview": "vite preview",
+    "dev": "cd alzhraERP && vite",
+    "build": "node build.js",
+    "build:analyze": "cd alzhraERP && npm run build && npx vite-bundle-visualizer",
+    "lint": "cd alzhraERP && eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "cd alzhraERP && eslint . --fix",
+    "preview": "cd alzhraERP && vite preview",
     "clean": "chmod +x cleanup.sh && ./cleanup.sh",
     "scan:types": "tsx scripts/type-safety-scanner.ts",
     "type-check": "tsc --noEmit",
