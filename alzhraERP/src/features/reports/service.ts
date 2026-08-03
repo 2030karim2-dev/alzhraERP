@@ -31,15 +31,20 @@ interface MonthlyCashFlow {
   net: number;
 }
 
+// Helper to get current year date range
+const getYearDateRange = () => {
+  const now = new Date();
+  return {
+    from: `${now.getFullYear()}-01-01`,
+    to: now.toISOString().split('T')[0],
+  };
+};
+
 
 export const reportsService = {
   getTrialBalance: async (companyId: string): Promise<TrialBalanceItem[]> => {
-    // Use server-side RPC which correctly handles account types
-    const now = new Date();
-    const fromDate = `${now.getFullYear()}-01-01`;
-    const toDate = now.toISOString().split('T')[0];
-
-    const { data, error } = await reportsApi.getTrialBalanceRPC(companyId, fromDate, toDate);
+    const { from, to } = getYearDateRange();
+    const { data, error } = await reportsApi.getTrialBalanceRPC(companyId, from, to);
     if (error) throw error;
 
     return (data || []).map((acc: { account_id: string; account_code: string; account_name: string; account_type: string; total_debit: number; total_credit: number; balance: number }) => ({
@@ -49,13 +54,13 @@ export const reportsService = {
       type: acc.account_type,
       totalDebit: Number(acc.total_debit) || 0,
       totalCredit: Number(acc.total_credit) || 0,
-      // Server-side already computes balance based on account type
       netBalance: Number(acc.balance) || 0
     }));
   },
 
   /**
-   * ⚡ Server-side P&L via RPC — no frontend aggregation
+   * ⚡ Server-side P&L via RPC
+   * RPC returns TABLE rows: {category, amount, type}
    */
   getProfitAndLoss: async (companyId: string): Promise<{
     revenues: TrialBalanceItem[];
@@ -64,35 +69,43 @@ export const reportsService = {
     totalExpenses: number;
     netProfit: number;
   }> => {
+    const { from, to } = getYearDateRange();
+
     const { data, error } = await supabase.rpc('report_profit_loss', {
-      p_company_id: companyId
+      p_company_id: companyId,
+      p_from: from,
+      p_to: to
     });
     if (error) throw error;
 
-    const result = data as {
-      revenues: { id: string; code: string; name: string; netBalance: number }[],
-      expenses: { id: string; code: string; name: string; netBalance: number }[],
-      totalRevenues: number,
-      totalExpenses: number,
-      netProfit: number
-    };
+    // RPC returns rows: [{category, amount, type}]
+    const rows = (data || []) as { category: string; amount: number; type: string }[];
+    const revenueRow = rows.find(r => r.type === 'revenue');
+    const expenseRow = rows.find(r => r.type === 'expense');
+    const netRow = rows.find(r => r.type === 'net_profit');
+
+    const totalRevenues = Number(revenueRow?.amount) || 0;
+    const totalExpenses = Number(expenseRow?.amount) || 0;
+    const netProfit = Number(netRow?.amount) || (totalRevenues - totalExpenses);
+
     return {
-      revenues: (result.revenues || []).map((r) => ({
-        id: r.id, code: r.code, name: r.name, type: 'revenue',
-        totalDebit: 0, totalCredit: 0, netBalance: r.netBalance
-      })),
-      expenses: (result.expenses || []).map((e) => ({
-        id: e.id, code: e.code, name: e.name, type: 'expense',
-        totalDebit: 0, totalCredit: 0, netBalance: e.netBalance
-      })),
-      totalRevenues: result.totalRevenues || 0,
-      totalExpenses: result.totalExpenses || 0,
-      netProfit: result.netProfit || 0
+      revenues: revenueRow ? [{
+        id: 'revenue', code: '4', name: revenueRow.category, type: 'revenue',
+        totalDebit: 0, totalCredit: 0, netBalance: totalRevenues
+      }] : [],
+      expenses: expenseRow ? [{
+        id: 'expense', code: '5', name: expenseRow.category, type: 'expense',
+        totalDebit: 0, totalCredit: 0, netBalance: totalExpenses
+      }] : [],
+      totalRevenues,
+      totalExpenses,
+      netProfit
     };
   },
 
   /**
-   * ⚡ Server-side Balance Sheet via RPC — no frontend aggregation
+   * ⚡ Server-side Balance Sheet via RPC
+   * RPC returns TABLE rows: {category, amount, type}
    */
   getBalanceSheet: async (companyId: string): Promise<{
     assets: TrialBalanceItem[];
@@ -101,28 +114,45 @@ export const reportsService = {
     totalAssets: number;
     totalLiabEquity: number;
   }> => {
+    const today = new Date().toISOString().split('T')[0];
+
     const { data, error } = await supabase.rpc('report_balance_sheet', {
-      p_company_id: companyId
+      p_company_id: companyId,
+      p_as_of_date: today
     });
     if (error) throw error;
 
-    const result = data as any;
-    const mapItems = (items: any[], type: string) => (items || []).map((a: any) => ({
-      id: a.id, code: a.code, name: a.name, type,
-      totalDebit: 0, totalCredit: 0, netBalance: a.netBalance
-    }));
+    // RPC returns rows: [{category, amount, type}]
+    const rows = (data || []) as { category: string; amount: number; type: string }[];
+    const assetRow = rows.find(r => r.type === 'asset');
+    const liabilityRow = rows.find(r => r.type === 'liability');
+    const equityRow = rows.find(r => r.type === 'equity');
+
+    const totalAssets = Number(assetRow?.amount) || 0;
+    const totalLiabilities = Number(liabilityRow?.amount) || 0;
+    const totalEquity = Number(equityRow?.amount) || 0;
 
     return {
-      assets: mapItems(result.assets, 'asset'),
-      liabilities: mapItems(result.liabilities, 'liability'),
-      equity: mapItems(result.equity, 'equity'),
-      totalAssets: result.totalAssets || 0,
-      totalLiabEquity: result.totalLiabEquity || 0
+      assets: assetRow ? [{
+        id: 'asset', code: '1', name: assetRow.category, type: 'asset',
+        totalDebit: 0, totalCredit: 0, netBalance: totalAssets
+      }] : [],
+      liabilities: liabilityRow ? [{
+        id: 'liability', code: '2', name: liabilityRow.category, type: 'liability',
+        totalDebit: 0, totalCredit: 0, netBalance: totalLiabilities
+      }] : [],
+      equity: equityRow ? [{
+        id: 'equity', code: '3', name: equityRow.category, type: 'equity',
+        totalDebit: 0, totalCredit: 0, netBalance: totalEquity
+      }] : [],
+      totalAssets,
+      totalLiabEquity: totalLiabilities + totalEquity
     };
   },
 
   /**
-   * ⚡ Server-side Debt Report via RPC — no frontend aggregation
+   * ⚡ Server-side Debt Report via RPC
+   * RPC returns TABLE rows: {customer_name, total, days_0_30, ...}
    */
   getDebtReport: async (companyId: string): Promise<ReportsStats> => {
     const { data, error } = await supabase.rpc('report_debt_aging', {
@@ -130,16 +160,26 @@ export const reportsService = {
     });
     if (error) throw error;
 
-    const result = data as any;
+    const rows = (data || []) as { customer_name: string; total: number; days_0_30: number; days_31_60: number; days_61_90: number; days_90_plus: number }[];
+    const totalDebt = rows.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
+
+    const debts: PartyDebt[] = rows.map(r => ({
+      name: r.customer_name,
+      total: Number(r.total) || 0,
+      days_0_30: Number(r.days_0_30) || 0,
+      days_31_60: Number(r.days_31_60) || 0,
+      days_61_90: Number(r.days_61_90) || 0,
+      days_90_plus: Number(r.days_90_plus) || 0,
+    }));
+
     return {
-      summary: result.summary,
-      debts: (result.debts || []) as PartyDebt[]
+      summary: { totalDebt },
+      debts
     };
   },
 
-  // ⚡ Fix: Removed Math.random() — unrealized gain is now set to 0 until proper exchange rate revaluation is implemented
+  // ⚡ Fix: Removed Math.random() — unrealized gain is now 0
   getCurrencyDiffs: async (companyId: string): Promise<CurrencyAccount[]> => {
-    // 1. Fetch company base currency
     const { data: company } = await supabase
       .from('companies')
       .select('base_currency')
@@ -147,7 +187,6 @@ export const reportsService = {
       .single();
     const baseCurrency = company?.base_currency || 'SAR';
 
-    // 2. Fetch all foreign currency accounts with their balances
     const [{ data: accounts }, { data: balances }] = await Promise.all([
       supabase.from('accounts')
         .select('id, name_ar, currency_code')
@@ -162,41 +201,44 @@ export const reportsService = {
 
     const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
 
-    // 3. Map into the format expected by CurrencyDiffView
-    // ⚡ unrealizedGain is now 0 — will be calculated from real exchange rates when implemented
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (accounts || []).map((a: any): CurrencyAccount => ({
       id: a.id,
       name: a.name_ar,
       currency_code: a.currency_code,
       balance: Math.abs(balanceMap.get(a.id) || 0),
-      unrealizedGain: 0 // ⚡ Previously Math.random() — now 0 until revaluation is implemented
+      unrealizedGain: 0
     }));
   },
 
-  // ⚡ Optimized: Uses server-side RPCs instead of fetching all journal lines
+  /**
+   * ⚡ Cash Flow via RPC
+   * RPC returns TABLE rows: {category, inflow, outflow}
+   */
   getCashFlow: async (companyId: string): Promise<{
     currentLiquidity: number;
     monthlyTrend: MonthlyCashFlow[];
   }> => {
-    // 1. Get monthly cash flow from RPC (server-side aggregation)
-    const { data: monthlyData, error } = await supabase.rpc('report_cash_flow', {
-      p_company_id: companyId
-    });
-    if (error) throw error;
+    const { from, to } = getYearDateRange();
 
-    // 2. Get current liquidity from RPC
-    const { data: liquidity, error: liqError } = await supabase.rpc('get_cash_liquidity', {
-      p_company_id: companyId
-    });
-    if (liqError) throw liqError;
+    const [{ data: cashFlowData, error }, { data: liquidity, error: liqError }] = await Promise.all([
+      supabase.rpc('report_cash_flow', {
+        p_company_id: companyId,
+        p_from: from,
+        p_to: to
+      }),
+      supabase.rpc('get_cash_liquidity', { p_company_id: companyId })
+    ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const monthlyTrend = ((monthlyData || []) as Array<{ month: string, inflow: number, outflow: number, net: number }>).map(d => ({
-      month: d.month,
-      in: Math.max(0, Number(d.inflow) || 0),
-      out: Math.max(0, Number(d.outflow) || 0),
-      net: Number(d.net) || 0
+    if (error) console.warn('[reports] report_cash_flow error:', error?.message);
+    if (liqError) console.warn('[reports] get_cash_liquidity error:', liqError?.message);
+
+    // RPC returns rows: [{category, inflow, outflow}]
+    const rows = (cashFlowData || []) as { category: string; inflow: number; outflow: number }[];
+    const monthlyTrend: MonthlyCashFlow[] = rows.map(r => ({
+      month: r.category,
+      in: Math.max(0, Number(r.inflow) || 0),
+      out: Math.max(0, Number(r.outflow) || 0),
+      net: (Number(r.inflow) || 0) - (Number(r.outflow) || 0)
     }));
 
     return {
@@ -206,7 +248,7 @@ export const reportsService = {
   },
 
   /**
-   * ⚡ Fetch detailed transactions for a specific account (Drill-down capability)
+   * ⚡ Fetch detailed transactions for a specific account (Drill-down)
    */
   getAccountTransactions: async (companyId: string, accountId: string, fromDate?: string, toDate?: string) => {
     let query = supabase.from('journal_entry_lines')

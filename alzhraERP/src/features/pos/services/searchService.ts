@@ -181,6 +181,7 @@ export const posSearchService = {
                 p_offset: 0,
                 p_sort_key: 'updated_at',
                 p_sort_dir: 'desc',
+                p_branch_id: null,
             });
 
             if (error) {

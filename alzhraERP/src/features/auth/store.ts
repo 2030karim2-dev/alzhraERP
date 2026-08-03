@@ -144,12 +144,32 @@ export const useAuthStore = create<AuthState>()(
               });
               queryClient.invalidateQueries();
             } else if (!persistedUser) {
+              // ⚡ Profile RPC failed — try direct query to get company_id before giving up
+              let recoveredCompanyId: string | undefined;
+              let recoveredRole = 'viewer';
+              let recoveredBranchId: string | null = null;
+              try {
+                const { data: roleRow } = await supabase
+                  .from('user_company_roles')
+                  .select('role, company_id, branch_id, companies(name_ar)')
+                  .eq('user_id', session.user.id)
+                  .limit(1)
+                  .single();
+                if (roleRow) {
+                  recoveredCompanyId = (roleRow as any).company_id;
+                  recoveredRole = (roleRow as any).role || 'viewer';
+                  recoveredBranchId = (roleRow as any).branch_id ?? null;
+                }
+              } catch (_) { /* ignore — best effort */ }
+
               set({
                 user: {
                   id: session.user.id,
                   email: session.user.email || '',
                   full_name: session.user.user_metadata?.full_name || '',
-                  role: 'viewer',
+                  role: recoveredRole,
+                  company_id: recoveredCompanyId,
+                  branch_id: recoveredBranchId,
                 },
                 isAuthenticated: true,
                 isLoading: false,
@@ -157,6 +177,7 @@ export const useAuthStore = create<AuthState>()(
               });
               queryClient.invalidateQueries();
             }
+
           } else if (!persistedUser) {
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           } else {
