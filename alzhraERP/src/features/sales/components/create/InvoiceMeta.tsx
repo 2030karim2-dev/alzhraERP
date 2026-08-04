@@ -1,6 +1,5 @@
 
 import React from 'react';
-// Force rebuild
 import { Calendar, Hash, CreditCard, Warehouse, Wallet, Coins } from 'lucide-react';
 import { useSalesStore } from '../../store';
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
@@ -101,13 +100,13 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
             }
         }
 
-        // 3. Handle Auto-Warehouse Selection (Once on load or when at default)
+        // [FIX] إصلاح منطق اختيار المستودع الافتراضي - كان يكتب نفس القيمة القديمة
         if (warehouses && warehouses.length > 0 && (warehouseId === 'wh_main' || !warehouseId)) {
             const castWarehouses = warehouses as Record<string, unknown>[];
             const primary = castWarehouses.find((w) => w.is_primary);
             const target = primary || castWarehouses[0];
-            if (target && warehouseId) {
-                setMetadata('warehouseId', warehouseId as string);
+            if (target?.id) {
+                setMetadata('warehouseId', target.id as string);
             }
         }
 

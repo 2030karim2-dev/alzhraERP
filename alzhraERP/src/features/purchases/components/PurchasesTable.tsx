@@ -65,7 +65,7 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView
                             width: 'w-40'
                         },
                         { header: 'التاريخ', accessor: (row: any) => <span dir="ltr" className="text-gray-500 font-mono font-bold">{row.issue_date}</span>, width: 'w-32' },
-                        { header: 'المورد المستلم', accessor: (row: any) => <span className="font-bold text-gray-800 dark:text-slate-200">{row.party?.name || 'مورد عام'}</span> },
+                        { header: 'المورد', accessor: (row: any) => <span className="font-bold text-gray-800 dark:text-slate-200">{row.party?.name || 'مورد عام'}</span> },
                         {
                             header: 'طريقة الدفع',
                             accessor: (row: any) => (
@@ -100,27 +100,31 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView
                         },
                         {
                             header: 'إجراءات',
-                            accessor: (row: any) => (
-                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button title="عرض التفاصيل" onClick={() => onView(row.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18} /></button>
-                                    <button title="طباعة الفاتورة" className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"><Printer size={18} /></button>
-                                    <button title="القيد المحاسبي" className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"><FileText size={18} /></button>
-                                    <button title="تعديل" className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><Edit size={18} /></button>
-                                    <button
-                                        title="حذف"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (window.confirm('هل أنت متأكد من حذف هذه الفاتورة؟ سيتم إلغاء أثرها المالي والمخزني.')) {
-                                                deletePurchase(row.id);
-                                            }
-                                        }}
-                                        disabled={isDeleting}
-                                        className="p-1.5 text-rose-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            ),
+                            accessor: (row: any) => {
+                                const isLocked = row.status === 'posted' || row.status === 'paid';
+                                return (
+                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button title="عرض التفاصيل / طباعة" onClick={() => onView(row.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18} /></button>
+                                        <button
+                                            title={isLocked ? "لا يمكن حذف فاتورة معتمدة أو مدفوعة" : "حذف"}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isLocked) {
+                                                    alert('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء فاتورة مرتجع بدلاً من ذلك.');
+                                                    return;
+                                                }
+                                                if (window.confirm('هل أنت متأكد من حذف هذه الفاتورة؟ سيتم إلغاء أثرها المالي والمخزني.')) {
+                                                    deletePurchase(row.id);
+                                                }
+                                            }}
+                                            disabled={isDeleting || isLocked}
+                                            className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-gray-300 cursor-not-allowed' : 'text-rose-500 hover:bg-red-50'}`}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                );
+                            },
                             width: 'w-48',
                             className: 'text-center group' // Added group class for hover effect if supported
                         }

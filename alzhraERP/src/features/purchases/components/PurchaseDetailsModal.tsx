@@ -14,13 +14,12 @@ interface PurchaseDetailsModalProps {
     onReturn?: (invoiceId: string, items: any[]) => void;
 }
 
-const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, onClose }) => {
+const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, onClose, onReturn }) => {
     const { data: _invoice, isLoading } = usePurchaseDetails(invoiceId);
     const invoice = _invoice as any;
     const { user } = useAuth();
     const { showToast } = useFeedbackStore();
     const printRef = useRef<HTMLDivElement>(null);
-    const [_isResizable, _setIsResizable] = useState(true);
     const [modalSize, setModalSize] = useState<'lg' | 'xl' | '2xl' | '3xl' | 'full'>('3xl');
 
 
@@ -60,12 +59,12 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
             const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import('../../../core/utils/invoiceExcelExporter');
             
             const data = {
-                companyName: 'الزهراء لقطع الغيار', // Ideally from context
+                companyName: user?.company_name || 'شركتي',
                 companyAddress: '',
                 taxNumber: '',
                 invoiceNumber: invoice.invoice_number,
                 issueDate: invoice.issue_date,
-                customerName: invoice.parties?.name || '---',
+                customerName: invoice.parties?.name || invoice.party?.name || '---',
                 issuedBy: 'النظام',
                 items: (invoice.invoice_items || []).map((it: any) => ({
                     name: it.product?.name_ar || it.description || '---',
@@ -96,7 +95,15 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
             }
         } catch (err) {
             console.error('Share via WhatsApp failed', err);
+            showToast('فشل في مشاركة الفاتورة', 'error');
         }
+    };
+
+    // إنشاء مرتجع من تفاصيل الفاتورة
+    const handleCreateReturn = () => {
+        if (!invoice) return;
+        onReturn?.(invoice.id, invoice.invoice_items || []);
+        onClose();
     };
 
     if (!invoiceId) return null;
@@ -175,16 +182,6 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 rounded-b-[2rem] flex justify-end gap-3 transition-colors">
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold rounded-xl border border-gray-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm"
-                    >
-                        <Printer size={18} />
-                        <span>طباعة</span>
-                    </button>
-
-                    <button
                         onClick={async () => {
                             if (!user) {
                                 showToast('Please login first to use debug features', 'warning');

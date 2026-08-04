@@ -7,6 +7,8 @@ import { Wallet } from 'lucide-react';
 
 const InvoiceTotals: React.FC = () => {
     const { summary, currency } = useSalesStore();
+    // [FIX] استخدام hook بدلاً من getState() لضمان التحديث التفاعلي عند تغيير الإعدادات
+    const { discountEnabled } = useDiscountStore();
 
     return (
         <div className="p-2 md:p-3 bg-white dark:bg-slate-900 border-t-2 border-gray-100 dark:border-slate-800">
@@ -20,12 +22,12 @@ const InvoiceTotals: React.FC = () => {
                 </div>
 
                 <div className="w-full md:w-80 flex flex-col border-l dark:border-slate-800">
-                    <div className={cn("grid", useDiscountStore.getState().discountEnabled ? "grid-cols-2" : "grid-cols-1")}>
+                    <div className={cn("grid", discountEnabled ? "grid-cols-2" : "grid-cols-1")}>
                         <div className="p-3 border-b dark:border-slate-800 text-right">
                             <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest block">المجموع الفرعي</span>
                             <span dir="ltr" className="text-sm font-bold font-mono text-gray-700 dark:text-slate-300">{formatCurrency(summary.subtotal, currency)}</span>
                         </div>
-                        {useDiscountStore.getState().discountEnabled && (
+                        {discountEnabled && (
                             <div className="p-3 border-b border-l dark:border-slate-800 text-right">
                                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest block">إجمالي الخصم</span>
                                 <span dir="ltr" className="text-sm font-bold font-mono text-rose-500">{formatCurrency(summary.discountAmount, currency)}</span>

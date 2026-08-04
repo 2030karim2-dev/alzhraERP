@@ -12,6 +12,7 @@ import InteractivePurchaseTable from './create/InteractivePurchaseTable';
 import { formatCurrency } from '../../../core/utils';
 import { Save, Printer, Wallet } from 'lucide-react';
 import Button from '../../../ui/base/Button';
+import { useReactToPrint } from 'react-to-print';
 
 interface Props {
   onSuccess: () => void;
@@ -27,6 +28,12 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   const { mutate: createPurchase, isPending } = useCreatePurchase();
   const { invoice: invoiceSettings } = useSettingsStore();
   const { showToast } = useFeedbackStore();
+  
+  const printRef = React.useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+      contentRef: printRef,
+      documentTitle: `مسودة_فاتورة_مشتريات`,
+  });
 
   useEffect(() => {
     initializeItems(6);
@@ -41,8 +48,20 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   }, [initializeItems, invoiceSettings]);
 
   const handleSave = () => {
-    const validItems = items.filter(i => i.productId && i.quantity > 0);
-    if (validItems.length === 0 || !supplier) return;
+    const validItems = items.filter(i => i.productId && i.quantity > 0 && i.costPrice > 0);
+    
+    if (!supplier) {
+      showToast('يرجى اختيار مورد أولاً', 'error');
+      return;
+    }
+    if (validItems.length === 0) {
+      showToast('يرجى إضافة صنف واحد على الأقل بكمية وسعر صحيحين', 'error');
+      return;
+    }
+    if (!issueDate) {
+      showToast('يرجى تحديد تاريخ الفاتورة', 'error');
+      return;
+    }
 
     // Validate: Cash purchases require a real cashbox account
     if (invoiceType === 'cash' && !cashboxId) {
@@ -80,21 +99,24 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
 
   return (
     <div className="max-w-none mx-auto space-y-3 animate-in fade-in duration-500 pt-2 pb-24 px-1 md:px-2">
-      <div className="bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
+      <div ref={printRef} className="bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
         {company && <InvoiceHeader company={company} />}
         <PurchaseMeta />
         <InteractivePurchaseTable />
 
         {/* Totals Section */}
-        <div className="p-2 md:p-3 bg-white dark:bg-slate-900 border-t-2 border-gray-200 dark:border-slate-800">
+        <div className="p-2 md:p-3 bg-white dark:bg-slate-900 border-t-2 border-gray-200 dark:border-slate-800 print:break-inside-avoid">
           <div className="flex justify-end">
             <div className="w-full md:w-80 flex flex-col">
               <div className="grid grid-cols-2 border dark:border-slate-800">
-                <div className="p-2 border-l dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
-                  <span className="text-[7px] font-bold text-gray-400 uppercase tracking-widest block">إجمالي الفاتورة</span>
-                  <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-700 dark:text-slate-300">{formatCurrency(totals.grandTotal)}</span>
+                <div className="p-2 border-l border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
+                  <span className="text-[7px] font-bold text-gray-400 uppercase tracking-widest block">المجموع قبل الخصم</span>
+                  <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-600 dark:text-slate-400">{formatCurrency(totals.subTotal || 0)}</span>
                 </div>
-
+                <div className="p-2 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
+                  <span className="text-[7px] font-bold text-rose-400 uppercase tracking-widest block">إجمالي الخصومات</span>
+                  <span dir="ltr" className="text-[11px] font-bold font-mono text-rose-600 dark:text-rose-400">{formatCurrency(totals.totalDiscount || 0)}</span>
+                </div>
               </div>
               <div className="bg-slate-950 text-white p-4 flex justify-between items-center relative overflow-hidden">
                 <div className="relative z-10">
@@ -110,8 +132,8 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" className="border-gray-200 text-gray-500" leftIcon={<Printer size={14} />}>طباعة المستند</Button>
+      <div className="flex justify-end gap-2 print:hidden">
+        <Button onClick={() => handlePrint()} variant="outline" className="border-gray-200 text-gray-500" leftIcon={<Printer size={14} />}>طباعة المستند</Button>
         <Button onClick={handleSave} isLoading={isPending} className="min-w-[140px]" leftIcon={<Save size={14} />}>اعتماد التوريد</Button>
       </div>
     </div>

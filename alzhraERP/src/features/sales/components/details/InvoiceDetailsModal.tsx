@@ -54,8 +54,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const handleExportExcel = () => {
     if (!invoice || !company) return;
     const comp = company as Record<string, unknown>;
+    // [FIX] استخدام بيانات الشركة الحقيقية من الإعدادات
+    const companyName = (comp?.name_ar || comp?.name || (company as any)?.company_name || 'الشركة') as string;
     exportInvoiceToExcel({
-      companyName: (comp?.name || comp?.name_ar || 'الزهراء سمارت') as string,
+      companyName,
       companyAddress: (comp?.address || '') as string,
       taxNumber: (comp?.tax_number || '') as string,
       invoiceNumber: invoice.invoice_number || '',
@@ -95,9 +97,11 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     setIsExporting(true);
     try {
       const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import('../../../../core/utils/invoiceExcelExporter');
-      const comp = company || { name: 'الزهراء لقطع الغيار' };
+      // [FIX] استخدام بيانات الشركة الحقيقية
+      const comp = (company || {}) as Record<string, unknown>;
+      const companyName = (comp?.name_ar || comp?.name || (company as any)?.company_name || 'الشركة') as string;
       const data = {
-        companyName: (comp?.name || 'الزهراء لقطع الغيار') as string,
+        companyName,
         companyAddress: (comp?.address || '') as string,
         taxNumber: (comp?.tax_number || '') as string,
         invoiceNumber: invoice.invoice_number || '',
@@ -228,7 +232,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                 <strong>التاريخ:</strong> {invoice.issue_date}
               </div>
               <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
-                <strong>الحالة:</strong> {invoice.status}
+                {/* [FIX] ترجمة حالة الفاتورة للعربية */}
+                <strong>الحالة:</strong> {invoice.status === 'posted' ? 'مرحّل' : invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'draft' ? 'مسودة' : invoice.status}
               </div>
             </div>
 

@@ -6,13 +6,14 @@ import { usePurchaseStore } from '../../store';
 // Fix: Corrected import path to point to the barrel file.
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
 import { useCurrencies } from '../../../settings/hooks';
+import { useWarehouses } from '../../inventory/hooks/useInventoryManagement';
 // import { cn } from '../../../../core/utils';
 
 const PurchaseMeta: React.FC = () => {
     const {
         supplier, setSupplier,
         invoiceNumber, issueDate, currency, exchangeRate, warehouseId,
-        invoiceType, cashboxId,
+        invoiceType, cashboxId, notes,
         setMetadata
     } = usePurchaseStore();
 
@@ -21,6 +22,7 @@ const PurchaseMeta: React.FC = () => {
     const { data: suppliers } = useSupplierSearch(query);
     const { data: cashAccounts } = usePaymentAccounts();
     const { currencies, rates } = useCurrencies();
+    const { data: warehouses } = useWarehouses();
     const prevCurrency = React.useRef(currency);
     const ratesLoaded = React.useRef(false);
 
@@ -58,7 +60,7 @@ const PurchaseMeta: React.FC = () => {
         }
 
         prevCurrency.current = currency;
-    }, [currency, cashAccounts, rates.data]);
+    }, [currency, cashAccounts, rates.data, setMetadata]);
 
     const currencyObj = currencies.data?.find((c: any) => c.code === currency);
     const isDivide = currencyObj?.exchange_operator === 'divide';
@@ -131,9 +133,9 @@ const PurchaseMeta: React.FC = () => {
                 <MetaBlock label="نوع الفاتورة" field="invoiceType" value={invoiceType} icon={CreditCard} isSelect
                     options={[{ id: 'cash', label: 'نقدي (Cash)' }, { id: 'credit', label: 'آجل (Credit)' }]} />
                 <MetaBlock label="الصندوق / البنك" field="cashboxId" value={cashboxId} icon={Wallet} isSelect
-                    options={cashAccounts.map(a => ({ id: a.id, label: a.name }))} />
+                    options={cashAccounts?.map((a: any) => ({ id: a.id, label: a.name })) || []} />
                 <MetaBlock label="المستودع المستلم" field="warehouseId" value={warehouseId} icon={Warehouse} isSelect
-                    options={[{ id: 'wh_main', label: 'المستودع الرئيسي' }]} />
+                    options={warehouses?.map((w: any) => ({ id: w.id, label: w.name })) || [{ id: 'wh_main', label: 'المستودع الرئيسي' }]} />
                 <MetaBlock label="العملة" field="currency" value={currency} icon={Coins} isSelect
                     options={currencies.data?.map((c: any) => ({ id: c.code, label: c.code })) || [{ id: 'SAR', label: 'SAR' }]} />
                 
@@ -165,7 +167,12 @@ const PurchaseMeta: React.FC = () => {
 
                 <div className="bg-gray-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 p-2 col-span-2 md:col-span-1 lg:col-span-1">
                     <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">ملاحظات التوريد</span>
-                    <input className="w-full bg-transparent outline-none text-[10px] font-bold mt-1" placeholder="ملاحظات..." />
+                    <input 
+                        className="w-full bg-transparent outline-none text-[10px] font-bold mt-1" 
+                        placeholder="ملاحظات..." 
+                        value={notes}
+                        onChange={(e) => setMetadata('notes', e.target.value)}
+                    />
                 </div>
             </div>
         </div>

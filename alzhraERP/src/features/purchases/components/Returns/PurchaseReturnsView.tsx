@@ -64,7 +64,7 @@ const PurchaseReturnsView: React.FC<PurchaseReturnsViewProps> = ({ searchTerm: p
                 returnCount={stats?.returnCount || 0}
                 totalReturns={stats?.totalReturns || 0}
                 avgReturn={stats?.returnCount ? ((stats?.totalReturns || 0) / stats.returnCount) : 0}
-                pendingCount={stats?.returnCount || 0}
+                pendingCount={stats?.pendingCount || 0}
                 type="purchase"
             />
 
@@ -137,7 +137,7 @@ const PurchaseReturnsView: React.FC<PurchaseReturnsViewProps> = ({ searchTerm: p
                                         </p>
                                         {returnItem.reference_invoice && (
                                             <p className="text-xs text-blue-600">
-                                                فاتورة أصلية: {returnItem.reference_invoice_id}
+                                                فاتورة أصلية: {returnItem.reference_invoice.invoice_number || returnItem.reference_invoice_id}
                                             </p>
                                         )}
                                         {returnItem.notes && (

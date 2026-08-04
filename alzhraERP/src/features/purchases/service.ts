@@ -11,12 +11,26 @@ import { supabase } from '../../lib/supabaseClient';
 export { purchasesApi };
 
 export const purchasesService = {
+  /**
+   * يجلب قائمة فواتير المشتريات الرئيسية.
+   * @param companyId معرّف الشركة
+   * @param branchId معرّف الفرع (اختياري)
+   * @returns قائمة الفواتير
+   */
   getPurchases: async (companyId: string, branchId?: string | null) => {
     const { data, error } = await purchasesApi.getPurchases(companyId, branchId);
     if (error) throw error;
     return data || [];
   },
 
+  /**
+   * يعالج عملية حفظ فاتورة الشراء ويتأكد من إنشاء القيود المحاسبية وإرسال الإشعارات.
+   * @param data بيانات الفاتورة للإضافة
+   * @param companyId معرّف الشركة
+   * @param userId معرّف المستخدم
+   * @returns المعرّف الخاص بالفاتورة المنشأة
+   * @throws خطأ في حال فشل إنشاء القيود المحاسبية
+   */
   processPurchase: async (data: CreatePurchaseDTO, companyId: string, userId: string) => {
     // Validate before sending to RPC
     assertValid(validatePurchasePayload({
@@ -129,9 +143,11 @@ export const purchasesService = {
       currency_code: r.currency_code || 'SAR',
       exchange_rate: r.exchange_rate || 1
     }), 0);
+    const pendingCount = returns.filter((r: any) => r.status === 'draft' || r.status === 'pending').length;
     return {
       returnCount: returns.length,
-      totalReturns
+      totalReturns,
+      pendingCount
     };
   }
 };

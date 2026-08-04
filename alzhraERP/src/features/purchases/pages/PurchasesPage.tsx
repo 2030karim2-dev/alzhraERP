@@ -111,46 +111,58 @@ const PurchasesPage: React.FC = () => {
     }
   };
 
+
+
   const headerActions = (
     <div className="flex gap-3">
-      {/* Remove Duplicates Button */}
-      <button
-        onClick={async () => {
-          if (!window.confirm('هل أنت متأكد من حذف القيود المكررة؟ سيتم الاحتفاظ بأقدم قيد فقط لكل فاتورة.')) return;
-          if (!user?.company_id) return;
-          setIsRepairing(true);
-          try {
-            const result = await purchaseFixesService.removeDuplicatePurchaseEntries(user.company_id);
-            showToast(result.message, 'success');
-          } catch (e: unknown) {
-            const err = e as Error;
-            showToast(`Error: ${err.message}`, 'error');
-          } finally {
-            setIsRepairing(false);
-          }
-        }}
-        disabled={isRepairing}
-        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-bold disabled:opacity-50"
-      >
-        <Sparkles size={20} className={isRepairing ? 'animate-spin' : ''} />
-        <span className="hidden md:inline">حذف التكرار</span>
-      </button>
+      {/* Remove Duplicates Button - Admin Only */}
+      {user?.role === 'admin' && (
+        <button
+          onClick={async () => {
+            if (!window.confirm('هل أنت متأكد من حذف القيود المكررة؟ سيتم الاحتفاظ بأقدم قيد فقط لكل فاتورة.')) return;
+            if (!user?.company_id) return;
+            setIsRepairing(true);
+            try {
+              const result = await purchaseFixesService.removeDuplicatePurchaseEntries(user.company_id);
+              showToast(result.message, 'success');
+            } catch (e: unknown) {
+              const err = e as Error;
+              showToast(`خطأ: ${err.message}`, 'error');
+            } finally {
+              setIsRepairing(false);
+            }
+          }}
+          disabled={isRepairing}
+          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-bold disabled:opacity-50"
+        >
+          <Sparkles size={20} className={isRepairing ? 'animate-spin' : ''} />
+          <span className="hidden md:inline">حذف التكرار</span>
+        </button>
+      )}
 
-      <button
-        onClick={handleRepairLedger}
-        disabled={isRepairing}
-        className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors font-bold disabled:opacity-50"
-      >
-        <Wrench size={20} className={isRepairing ? 'animate-spin' : ''} />
-        <span className="hidden md:inline">{isRepairing ? 'جاري التصحيح...' : 'تصحيح القيود'}</span>
-      </button>
-      <button
-        onClick={() => setIsAuditOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors font-bold"
-      >
-        <ShieldCheck size={20} />
-        <span className="hidden md:inline">فحص النظام</span>
-      </button>
+      {/* Repair Ledger Button - Admin Only */}
+      {user?.role === 'admin' && (
+        <button
+          onClick={handleRepairLedger}
+          disabled={isRepairing}
+          className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors font-bold disabled:opacity-50"
+        >
+          <Wrench size={20} className={isRepairing ? 'animate-spin' : ''} />
+          <span className="hidden md:inline">{isRepairing ? 'جاري التصحيح...' : 'تصحيح القيود'}</span>
+        </button>
+      )}
+
+      {/* System Audit Button - Admin Only */}
+      {user?.role === 'admin' && (
+        <button
+          onClick={() => setIsAuditOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors font-bold"
+        >
+          <ShieldCheck size={20} />
+          <span className="hidden md:inline">فحص النظام</span>
+        </button>
+      )}
+
       <button
         onClick={() => setIsPaymentModalOpen(true)}
         className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg active:scale-95 shadow-lg shadow-purple-500/20 text-[10px] font-bold uppercase tracking-widest">

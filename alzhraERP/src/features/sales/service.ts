@@ -96,7 +96,7 @@ export const salesService = {
       const typedResult = result as InvoiceResponse;
       messagingService.notify(companyId, 'sale', {
         invoiceNumber: typedResult.invoice_number || '',
-        customerName: CASH_CUSTOMER_LABEL, // Target refactoring to extract party name from DB result later
+        customerName: payload.customerName || CASH_CUSTOMER_LABEL, // [FIX] استخدام اسم العميل المُمرر
         amount: itemsTotal,
         currency: payload.currency || 'SAR',
         date: new Date().toLocaleDateString('en-GB'),
@@ -110,18 +110,47 @@ export const salesService = {
 
   // ⚡ Server-side stats via RPC — no frontend aggregation
   getStats: async (companyId: string) => {
+    const today = new Date();
+    const startOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0];
+    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0).toISOString().split('T')[0];
+
+    // جلب إحصائيات الشهر الحالي
     const { data, error } = await supabase.rpc('get_sales_stats', {
-      p_company_id: companyId
+      p_company_id: companyId,
+      p_start_date: startOfThisMonth,
+      p_end_date: today.toISOString().split('T')[0],
     });
     if (error) {
       logger.error('SalesService', 'Failed to fetch sales stats', { companyId, error });
       throw error;
     }
-    const result = data as Record<string, number>;
+
+    // جلب إحصائيات الشهر الماضي للمقارنة
+    const { data: lastMonthData } = await supabase.rpc('get_sales_stats', {
+      p_company_id: companyId,
+      p_start_date: startOfLastMonth,
+      p_end_date: endOfLastMonth,
+    });
+
+    // [FIX] أسماء الحقول صحيحة (snake_case من RPC)
+    const result = (Array.isArray(data) ? data[0] : data) as Record<string, number>;
+    const lastResult = (Array.isArray(lastMonthData) ? lastMonthData[0] : lastMonthData) as Record<string, number> | null;
+
+    const totalSales = Number(result?.total_sales) || 0;
+    const lastMonthSales = Number(lastResult?.total_sales) || 0;
+
+    // [FIX] حساب النمو الحقيقي مقارنةً بالشهر الماضي
+    let monthlyGrowth: number | null = null;
+    if (lastMonthSales > 0) {
+      monthlyGrowth = ((totalSales - lastMonthSales) / lastMonthSales) * 100;
+    }
+
     return {
-      totalSales: result.totalSales || 0,
-      invoiceCount: result.invoiceCount || 0,
-      avgSale: result.avgSale || 0
+      totalSales,
+      invoiceCount: Number(result?.invoice_count) || 0,
+      avgSale: Number(result?.avg_sale) || 0,
+      monthlyGrowth, // null يعني لا يوجد بيانات شهر سابق
     };
   }
 };

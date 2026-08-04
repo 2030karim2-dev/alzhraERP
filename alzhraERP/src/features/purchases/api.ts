@@ -5,6 +5,12 @@ import { CreatePurchaseDTO, SupplierPaymentData } from './types';
 
 
 export const purchasesApi = {
+  /**
+   * يجلب قائمة فواتير المشتريات والمرتجعات للشركة المحددة، مع دعم التصفية حسب الفرع.
+   * @param companyId معرّف الشركة
+   * @param branchId معرّف الفرع (اختياري)
+   * @returns قائمة الفواتير مرتبة حسب تاريخ الإصدار تنازلياً
+   */
   getPurchases: async (companyId: string, branchId?: string | null) => {
     let query = supabase
       .from('invoices')
@@ -32,6 +38,11 @@ export const purchasesApi = {
     return await query.order('issue_date', { ascending: false });
   },
 
+  /**
+   * يجلب تفاصيل فاتورة شراء واحدة مع الأصناف المرتبطة بها وبيانات المورد.
+   * @param purchaseId معرّف فاتورة الشراء
+   * @returns تفاصيل الفاتورة
+   */
   getPurchaseDetails: async (purchaseId: string) => {
     const { data, error } = await supabase
       .from('invoices')
@@ -49,6 +60,13 @@ export const purchasesApi = {
     return { data, error };
   },
 
+  /**
+   * ينشئ فاتورة شراء جديدة في النظام مع معالجة القيود المحاسبية عبر RPC.
+   * @param companyId معرّف الشركة
+   * @param userId معرّف المستخدم المنشئ
+   * @param data بيانات الفاتورة (الأصناف، المورد، الإجماليات، إلخ)
+   * @returns نتيجة العملية (معرّف الفاتورة المنشأة أو خطأ)
+   */
   createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
     const rpcParams = {

@@ -20,7 +20,7 @@ export interface PurchaseInvoiceItem {
 interface PurchaseState {
   items: PurchaseInvoiceItem[];
   supplier: { id: string, name: string } | null;
-  totals: { grandTotal: number };
+  totals: { grandTotal: number, subTotal: number, totalDiscount: number };
   invoiceNumber: string;
   issueDate: string;
   currency: string;
@@ -28,6 +28,7 @@ interface PurchaseState {
   warehouseId: string;
   invoiceType: 'cash' | 'credit';
   cashboxId: string;
+  notes: string;
 
   // UI Settings
 
@@ -63,7 +64,7 @@ const createNewItem = (): PurchaseInvoiceItem => ({
 export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   items: [],
   supplier: null,
-  totals: { grandTotal: 0 },
+  totals: { grandTotal: 0, subTotal: 0, totalDiscount: 0 },
   invoiceNumber: '',
   issueDate: new Date().toISOString().split('T')[0],
   currency: 'SAR',
@@ -71,6 +72,7 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   warehouseId: 'wh_main',
   invoiceType: 'cash',
   cashboxId: '',
+  notes: '',
 
   showDiscount: false,
 
@@ -164,13 +166,20 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   calculateTotals: () => {
     const { discountEnabled } = useDiscountStore.getState(); // Read outside set() to avoid race condition
     set(state => {
+      let subTotal = 0;
+      let totalDiscount = 0;
+      
       const grandTotal = state.items.reduce((acc, item) => {
         const sub = (Number(item.quantity) * Number(item.costPrice));
         const discount = (discountEnabled && state.showDiscount) ? (Number(item.discount) || 0) : 0;
         const afterDiscount = sub - discount;
+        
+        subTotal += sub;
+        totalDiscount += discount;
+        
         return acc + afterDiscount;
       }, 0);
-      return { totals: { grandTotal } };
+      return { totals: { grandTotal, subTotal, totalDiscount } };
     });
   },
 

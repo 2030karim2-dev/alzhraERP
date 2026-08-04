@@ -78,7 +78,8 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   exchangeRate: 1,
   exchangeOperator: 'multiply',
   warehouseId: 'wh_main',
-  cashboxId: 'box_1',
+  // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
+  cashboxId: '',
   showDiscount: false,
 
   initializeItems: (count) => set({ items: Array.from({ length: count }, createNewItem) }),

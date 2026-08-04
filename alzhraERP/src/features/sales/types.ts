@@ -55,10 +55,10 @@ export interface CreateInvoiceDTO {
   treasuryAccountId?: string;
   currency?: string;
   exchangeRate?: number;
-  // Return-specific fields
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
   branchId?: string | null;
+  customerName?: string;
 }
 
 export interface InvoiceResponse {

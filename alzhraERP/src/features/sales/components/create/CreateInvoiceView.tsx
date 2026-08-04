@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { useSalesStore } from '../../store';
 import { useCreateInvoice, useNextInvoiceNumber } from '../../hooks/index';
 import { useCompany } from '../../../settings/hooks';
 import { useSettingsStore } from '../../../settings/settingsStore';
+import { useFeedbackStore } from '../../../feedback/store';
 import { partiesService } from '../../../../features/parties/service';
 import InvoiceHeader from './InvoiceHeader';
 import InvoiceMeta from './InvoiceMeta';
@@ -13,6 +14,8 @@ import PrintableInvoice from '../PrintableInvoice';
 import { InvoiceStatus } from '../../types';
 import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
+import { useReactToPrint } from 'react-to-print';
+import { logger } from '../../../../core/utils/logger';
 
 interface CreateInvoiceViewProps {
   onSuccess: () => void;
@@ -28,6 +31,14 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   } = useSalesStore();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
   const { invoice: invoiceSettings } = useSettingsStore();
+  const { showToast } = useFeedbackStore();
+
+  // Ref للطباعة
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `فاتورة_${nextInvoiceNumber || 'مسودة'}`,
+  });
 
   // Apply defaults on mount
   const isInitialized = React.useRef(false);
@@ -61,34 +72,51 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
             });
           }
         } catch (error) {
-          console.error("Failed to load general customer:", error);
+          logger.error('CreateInvoiceView', 'Failed to load general customer', error);
         }
       };
       loadGeneralCustomer(comp.id);
     } else if (selectedCustomer || !comp?.id) {
-      // If already has a customer or no company yet, consider it initialized to prevent future overwrites
       if (comp?.id) isInitialized.current = true;
     }
   }, [comp?.id, invoiceSettings, selectedCustomer, setMetadata, setCustomer]);
 
-
-  const [isPrinting, setIsPrinting] = useState(false);
-
   const handleSave = (status: InvoiceStatus) => {
-    const validItems = items.filter(item => item.productId && item.name && item.quantity > 0);
-    if (validItems.length === 0) return;
+    // [FIX #2] تحقق من وجود عميل محدد
+    if (!selectedCustomer) {
+      showToast('يرجى اختيار عميل أولاً', 'error');
+      return;
+    }
+
+    // [FIX #1] تحقق من الكمية والسعر معاً
+    const validItems = items.filter(item =>
+      item.productId && item.name && item.quantity > 0 && item.price > 0
+    );
+    if (validItems.length === 0) {
+      showToast('يرجى إضافة صنف واحد على الأقل بكمية وسعر صحيحين', 'error');
+      return;
+    }
+
+    // تحقق إضافي: الفاتورة النقدية تحتاج صندوقاً
+    if (invoiceType === 'cash' && !cashboxId) {
+      showToast('يرجى اختيار حساب الصندوق / البنك للفاتورة النقدية', 'warning');
+      return;
+    }
 
     createInvoice({
       partyId: selectedCustomer?.id || null,
+      customerName: selectedCustomer?.name || 'عميل نقدي',
       items: validItems.map(item => ({
         productId: item.productId,
         name: item.name,
         sku: item.sku,
         quantity: item.quantity,
         unitPrice: item.price,
-        costPrice: 0,
-
-        maxStock: 100
+        costPrice: item.costPrice || 0,
+        // [FIX #3] maxStock من بيانات المنتج الحقيقية لا قيمة ثابتة
+        maxStock: item.warehouse_distribution
+          ? item.warehouse_distribution.reduce((sum, w) => sum + w.quantity, 0)
+          : 9999,
       })),
       discount: summary.discountAmount,
       status: status,
@@ -103,14 +131,6 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         onSuccess();
       },
     });
-  };
-
-  const handlePrint = () => {
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 100);
   };
 
   const invoiceForPrint = {
@@ -130,6 +150,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   return (
     <>
       <div className="max-w-none mx-auto space-y-3 animate-in fade-in duration-500 pt-2 pb-24">
+        {/* [FIX #4] printRef يستهدف محتوى الفاتورة فقط */}
         <div className="bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
           {comp && <InvoiceHeader company={comp} />}
           <InvoiceMeta invoiceNumber={nextInvoiceNumber as string} />
@@ -138,11 +159,16 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         </div>
 
         <div className="flex justify-end">
-          <InvoiceActions onSave={handleSave} onPrint={handlePrint} isSaving={isPending} />
+          <InvoiceActions onSave={handleSave} onPrint={() => handlePrint()} isSaving={isPending} />
         </div>
       </div>
 
-      {isPrinting && <PrintableInvoice invoice={invoiceForPrint} />}
+      {/* [FIX #4] PrintableInvoice مخفي دائماً ومرتبط بـ ref للطباعة الصحيحة */}
+      <div style={{ display: 'none' }}>
+        <div ref={printRef}>
+          <PrintableInvoice invoice={invoiceForPrint} />
+        </div>
+      </div>
     </>
   );
 };

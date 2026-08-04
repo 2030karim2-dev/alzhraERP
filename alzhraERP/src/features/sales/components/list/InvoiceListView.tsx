@@ -33,10 +33,15 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
     }, [invoices, searchTerm, viewType]);
 
     const handleViewDetails = useCallback((id: string) => onViewDetails(id), [onViewDetails]);
-    const handleDelete = useCallback((e: React.MouseEvent, id: string) => {
+    const handleDelete = useCallback((e: React.MouseEvent, row: InvoiceListItem) => {
         e.stopPropagation();
+        // [FIX] حماية الفواتير المرحّلة/المدفوعة من الحذف
+        if (row.status === 'posted' || row.status === 'paid') {
+            alert('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء مرتجع بدلاً من ذلك.');
+            return;
+        }
         if (window.confirm('هل أنت متأكد من حذف هذه الفاتورة؟ سيتم إلغاء أثرها المالي والمخزني.')) {
-            deleteInvoice(id);
+            deleteInvoice(row.id);
         }
     }, [deleteInvoice]);
 
@@ -107,26 +112,32 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
         },
         {
             header: 'إجراءات',
-            accessor: (row: InvoiceListItem) => (
-                <div className="flex items-center gap-0.5">
-                    <ShareButton
-                        size="sm"
-                        eventType="sale_invoice"
-                        title={`مشاركة فاتورة #${row.invoiceNumber}`}
-                        message={`🧾 فاتورة #${row.invoiceNumber}\n━━━━━━━━━━━━━━\n👤 ${row.customerName}\n💰 ${formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}\n📅 ${row.date}\n💳 ${row.paymentMethod === 'cash' ? 'نقدي' : 'آجل'}`}
-                    />
-                    <button onClick={() => handleViewDetails(row.id)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 rounded transition-colors">
-                        <Eye size={16} />
-                    </button>
-                    <button
-                        onClick={(e) => handleDelete(e, row.id)}
-                        disabled={isDeleting}
-                        className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded transition-colors"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
-            ),
+            accessor: (row: InvoiceListItem) => {
+                const isLocked = row.status === 'posted' || row.status === 'paid';
+                return (
+                    <div className="flex items-center gap-0.5">
+                        <ShareButton
+                            size="sm"
+                            eventType="sale_invoice"
+                            title={`مشاركة فاتورة #${row.invoiceNumber}`}
+                            message={`🧾 فاتورة #${row.invoiceNumber}\n━━━━━━━━━━━━━━\n👤 ${row.customerName}\n💰 ${formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}\n📅 ${row.date}\n💳 ${row.paymentMethod === 'cash' ? 'نقدي' : 'آجل'}`}
+                        />
+                        <button onClick={() => handleViewDetails(row.id)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 rounded transition-colors">
+                            <Eye size={16} />
+                        </button>
+                        <button
+                            onClick={(e) => handleDelete(e, row)}
+                            disabled={isDeleting}
+                            title={isLocked ? 'لا يمكن حذف فاتورة معتمدة أو مدفوعة' : 'حذف الفاتورة'}
+                            className={`p-1.5 rounded transition-colors ${isLocked
+                                ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed'
+                                : 'hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400'}`}
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                );
+            },
             width: 'w-24',
             className: 'text-center'
         }

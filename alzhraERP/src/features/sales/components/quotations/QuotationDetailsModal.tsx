@@ -6,6 +6,8 @@ import { formatCurrency } from '../../../../core/utils';
 import type { QuotationStatus } from '../../types/quotation';
 import { useSalesStore } from '../../store';
 import { exportQuotationToExcel } from '../../../../core/utils/quotationExcelExporter';
+import { useCompany } from '../../../settings/hooks';
+import { useAuthStore } from '../../../auth/store';
 
 interface Props {
   quotationId: string;
@@ -40,6 +42,9 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
   const [quotation, setQuotation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  // [FIX] جلب بيانات الشركة من قاعدة البيانات بدلاً من ترميز الاسم
+  const { data: company } = useCompany();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     const fetch = async () => {
@@ -107,13 +112,16 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
     try {
       const { generateQuotationExcelBlob, exportQuotationToExcel } = await import('../../../../core/utils/quotationExcelExporter');
       
+      const comp = (company || {}) as Record<string, unknown>;
+      const resolvedCompanyName = (comp?.name_ar || comp?.name || 'الشركة') as string;
+      const resolvedIssuedBy = user?.full_name || user?.email || 'النظام';
       const data = {
-        companyName: 'الزهراء لقطع الغيار', // Ideally from context/settings
+        companyName: resolvedCompanyName,
         quotationNumber: quotation.quotation_number,
         issueDate: quotation.issue_date,
         validUntil: quotation.valid_until,
         customerName: quotation.party?.name || 'عميل نقدي',
-        issuedBy: 'النظام',
+        issuedBy: resolvedIssuedBy,
         items: quotation.quotation_items.map((it: any) => ({
           name: it.product?.name_ar || it.description,
           quantity: it.quantity,
@@ -171,13 +179,14 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
           <button 
             onClick={() => {
               if (quotation) {
+                const comp2 = (company || {}) as Record<string, unknown>;
                 exportQuotationToExcel({
-                  companyName: 'الزهراء لقطع الغيار', // Ideally from context/settings
+                  companyName: (comp2?.name_ar || comp2?.name || 'الشركة') as string,
                   quotationNumber: quotation.quotation_number,
                   issueDate: quotation.issue_date,
                   validUntil: quotation.valid_until,
                   customerName: quotation.party?.name || 'عميل نقدي',
-                  issuedBy: 'النظام',
+                  issuedBy: user?.full_name || user?.email || 'النظام',
                   items: quotation.quotation_items.map((it: any) => ({
                     name: it.product?.name_ar || it.description,
                     quantity: it.quantity,
@@ -255,16 +264,17 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
           <div className="print-only mb-6 border-b-2 border-[#1F4E78] pb-4">
               <div className="flex justify-between items-center mb-4">
                   <div className="text-right flex-1">
-                      <h1 className="text-xl font-bold text-[#1F4E78]">الزهراء لقطع الغيار</h1>
+                      {/* [FIX] استخدام اسم الشركة الحقيقي */}
+                      <h1 className="text-xl font-bold text-[#1F4E78]">{(company as any)?.name_ar || (company as any)?.name || 'الشركة'}</h1>
                       <div className="flex flex-col gap-1 mt-1 text-xs font-bold text-gray-700">
-                          <span>هاتف: 0555555555</span>
+                          <span>{(company as any)?.phone ? `هاتف: ${(company as any).phone}` : ''}</span>
                       </div>
                   </div>
                   <div className="flex-1 text-center">
                       <h2 className="text-xl font-bold text-gray-800 mt-2 bg-gray-100 inline-block px-4 py-1 rounded">عرض سعر</h2>
                   </div>
                   <div className="text-left flex-1" dir="ltr">
-                      <h1 className="text-xl font-bold text-[#1F4E78]">Al-Zahra Spare Parts</h1>
+                      <h1 className="text-xl font-bold text-[#1F4E78]">{(company as any)?.name_en || (company as any)?.name || 'Company'}</h1>
                       <h2 className="text-md font-bold mt-2 text-gray-800">Quotation</h2>
                   </div>
               </div>

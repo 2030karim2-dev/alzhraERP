@@ -14,10 +14,10 @@ interface CreatePaymentModalProps {
 
 const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose }) => {
     const { mutate: createPayment, isPending } = useCreatePayment();
-    const { } = useAuthStore();
 
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [method, setMethod] = useState<'cash' | 'bank'>('cash');
     const [notes, setNotes] = useState('');
     const [selectedSupplier, setSelectedSupplier] = useState<Party | null>(null);
 
@@ -33,7 +33,7 @@ const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose
             supplierId: selectedSupplier.id,
             amount: parseFloat(amount),
             date: date,
-            method: 'cash',
+            method: method,
             notes: notes
         }, {
             onSuccess: () => {
@@ -42,6 +42,7 @@ const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose
                 setSelectedSupplier(null);
                 setSupplierQuery('');
                 setNotes('');
+                setMethod('cash');
             }
         });
     };
@@ -120,7 +121,7 @@ const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose
                         )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">المبلغ المدفوع</label>
                             <div className="relative">
@@ -136,6 +137,17 @@ const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose
                                 />
                                 <div className="absolute right-3.5 top-4 text-gray-400 dark:text-slate-500 text-[10px] font-bold">SAR</div>
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">طريقة الدفع</label>
+                            <select
+                                value={method}
+                                onChange={(e) => setMethod(e.target.value as 'cash' | 'bank')}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:text-slate-100 font-bold transition-all"
+                            >
+                                <option value="cash">نقداً</option>
+                                <option value="bank">تحويل بنكي</option>
+                            </select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">تاريخ السند</label>

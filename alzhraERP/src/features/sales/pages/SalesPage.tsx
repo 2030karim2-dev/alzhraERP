@@ -65,7 +65,7 @@ const SalesPage: React.FC = () => {
       }
       setActiveTab('create');
     }
-  }, [consumePrefill]);
+  }, [consumePrefill, useSalesStore, setActiveTab]);
 
   const handleReturnAction = async (invoice: any, items: any[]) => {
     if (!invoice || items.length === 0) return;

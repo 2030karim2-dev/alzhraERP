@@ -1,4 +1,5 @@
-import { DollarSign, FileText, BarChart, TrendingUp } from 'lucide-react';
+import React from 'react';
+import { DollarSign, FileText, BarChart, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import StatCard from '../../../../ui/common/StatCard';
 import { useSalesStats } from '../../hooks/index';
 import { formatCurrency, formatNumberDisplay } from '../../../../core/utils';
@@ -22,11 +23,21 @@ const SalesStats: React.FC = () => {
 
   if (!stats) return null;
 
+  // [FIX] عرض النمو الحقيقي من البيانات
+  const growth = stats.monthlyGrowth;
+  const growthLabel = growth === null
+    ? 'لا توجد بيانات'
+    : `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  const GrowthIcon = growth === null ? Minus : growth >= 0 ? TrendingUp : TrendingDown;
+  const growthColor = growth === null ? 'text-gray-400' : growth >= 0 ? 'text-amber-500' : 'text-rose-500';
+  const growthBg = growth === null ? 'bg-gray-400' : growth >= 0 ? 'bg-amber-500' : 'bg-rose-500';
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
       <StatCard
         title="إجمالي المبيعات"
         value={formatCurrency(stats.totalSales)}
+        subtitle="الشهر الحالي"
         icon={DollarSign}
         colorClass="text-emerald-500"
         iconBgClass="bg-emerald-500"
@@ -34,6 +45,7 @@ const SalesStats: React.FC = () => {
       <StatCard
         title="عدد الفواتير"
         value={formatNumberDisplay(stats.invoiceCount)}
+        subtitle="الشهر الحالي"
         icon={FileText}
         colorClass="text-blue-500"
         iconBgClass="bg-blue-500"
@@ -41,16 +53,18 @@ const SalesStats: React.FC = () => {
       <StatCard
         title="متوسط الفاتورة"
         value={formatCurrency(stats.avgSale)}
+        subtitle="الشهر الحالي"
         icon={BarChart}
         colorClass="text-indigo-500"
         iconBgClass="bg-indigo-500"
       />
       <StatCard
         title="النمو الشهري"
-        value="+12.5%"
-        icon={TrendingUp}
-        colorClass="text-amber-500"
-        iconBgClass="bg-amber-500"
+        value={growthLabel}
+        subtitle="مقارنةً بالشهر الماضي"
+        icon={GrowthIcon}
+        colorClass={growthColor}
+        iconBgClass={growthBg}
       />
     </div>
   );

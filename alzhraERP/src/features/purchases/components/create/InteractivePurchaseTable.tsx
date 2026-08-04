@@ -27,6 +27,7 @@ const InteractivePurchaseTable: React.FC = () => {
         items, initializeItems, addItem, updateItem, setProductForRow, removeItem,
         showDiscount, toggleColumn
     } = usePurchaseStore();
+    const { discountEnabled } = useDiscountStore();
 
     const tableRef = useRef<HTMLTableElement>(null);
     const [modalState, setModalState] = useState<{ isOpen: boolean; rowIndex: number; query: string }>({
@@ -127,7 +128,7 @@ const InteractivePurchaseTable: React.FC = () => {
             {/* Table Toolbar */}
             <div className="p-1.5 flex justify-end gap-2 bg-blue-600 dark:bg-slate-950 border-b dark:border-slate-800">
                 <div className="flex bg-white/10 p-0.5 rounded-none border border-white/20">
-                    {useDiscountStore.getState().discountEnabled && (
+                    {discountEnabled && (
                         <button
                             onClick={() => toggleColumn('showDiscount')}
                             className={cn("px-3 py-1 text-[9px] font-bold uppercase transition-all", showDiscount ? "bg-white text-blue-600" : "text-blue-100")}
