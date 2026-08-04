@@ -61,15 +61,14 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
 
     if (!financials) return <div className="p-8 text-center text-gray-500">لا توجد بيانات مالية متاحة</div>;
 
-    const { assets, liabilities, equity, netIncome } = financials.balanceSheet;
+    const { assets, liabilities, equity, netIncome, isBalanced, difference, totals } = financials.balanceSheet;
 
-    const totalAssets = assets.reduce((s: number, x: any) => s + x.net_balance, 0);
-    const totalLiabilities = Math.abs(liabilities.reduce((s: number, x: any) => s + x.net_balance, 0));
-    const baseEquity = Math.abs(equity.reduce((s: number, x: any) => s + x.net_balance, 0));
-    const totalEquity = baseEquity + netIncome;
-
-    const totalLiabEquity = totalLiabilities + totalEquity;
-    const isBalanced = Math.abs(totalAssets - totalLiabEquity) < 1;
+    const totalAssets = totals.assets;
+    const totalLiabilities = Math.abs(totals.liabilities);
+    const totalEquity = Math.abs(totals.equity);
+    
+    // Server already computes difference accurately
+    const differenceAmount = difference || 0;
 
     return (
         <div className="max-w-none mx-auto space-y-4 pb-12 print-area animate-in slide-in-from-bottom-4 duration-500">
@@ -108,7 +107,7 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
             )}>
                 <ShieldCheck size={20} />
                 <span className="text-sm uppercase tracking-widest">
-                    {isBalanced ? 'الميزانية متزنة (Balanced)' : `غير متزنة - الفرق ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}
+                    {isBalanced ? 'الميزانية متزنة (Balanced)' : `غير متزنة - الفرق ${formatCurrency(Math.abs(differenceAmount))}`}
                 </span>
             </div>
         </div>

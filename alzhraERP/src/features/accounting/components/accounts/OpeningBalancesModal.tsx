@@ -41,7 +41,9 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
 
     useEffect(() => {
         if (isOpen && accounts) {
-            replace(accounts.map(acc => ({
+            // Only show leaf accounts (accounts without children)
+            const leafAccounts = accounts.filter(acc => !accounts.some(a => a.parent_id === acc.id));
+            replace(leafAccounts.map(acc => ({
                 account_id: acc.id,
                 debit_amount: 0,
                 credit_amount: 0

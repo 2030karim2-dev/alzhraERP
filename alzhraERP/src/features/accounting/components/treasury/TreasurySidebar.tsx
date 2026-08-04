@@ -102,8 +102,8 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
 
     const treasuryTree = useMemo(() => {
         // We only want Asset accounts starting with 10 for treasury, BUT exclude the root '1000' (Assets) 
-        // to make 1010 (Cash), 1020 (Bank), 1030 (Exchange) appear as roots.
-        const treasuryAccounts = accounts?.filter(acc => acc.code.startsWith('10') && acc.code !== '1000') || [];
+        const treasuryAccounts = (accounts?.filter(acc => acc.code.startsWith('10') && acc.code !== '1000') || [])
+            .sort((a, b) => a.code.localeCompare(b.code));
 
         // Build Map
         const map = new Map<string, any>();

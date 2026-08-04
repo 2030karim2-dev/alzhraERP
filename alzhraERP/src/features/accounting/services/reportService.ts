@@ -18,8 +18,8 @@ export const reportService = {
         const result = data as any;
         return (result.entries || []).map((line: any) => ({
             date: line.entry_date,
-            journal_id: '',
-            journal_entry_id: '',
+            journal_id: line.journal_entry_id || line.journal_id || '',
+            journal_entry_id: line.journal_entry_id || line.journal_id || '',
             entry_number: line.entry_number,
             description: line.description || '',
             debit_amount: Number(line.debit_amount) || 0,

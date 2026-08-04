@@ -9,6 +9,7 @@ import PageLoader from '../../ui/base/PageLoader';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import FullscreenContainer from '../../ui/base/FullscreenContainer';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '../../core/utils';
 
 // Lazy loading for components
@@ -22,6 +23,7 @@ const BalanceSheet = lazy(() => import('./components/reports/BalanceSheet'));
 const AddJournalEntryModal = lazy(() => import('./components/journals/AddJournalEntryModal'));
 
 const AccountingPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const {
     activeView,
     setActiveView,
@@ -34,11 +36,18 @@ const AccountingPage: React.FC = () => {
   const { t } = useTranslation();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { createJournal, isCreating } = useJournalMutation();
 
   const handleCreate = (data: any) => {
     createJournal(data, { onSuccess: () => closeJournalModal() });
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries();
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const TABS: { id: AccountingView; label: string; icon: any }[] = [
@@ -97,12 +106,16 @@ const AccountingPage: React.FC = () => {
             />
           </div>
         </div>
-        <button className="p-1 text-blue-400 hover:text-blue-600 transition-colors">
-          <RefreshCw size={12} />
+        <button 
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-1 text-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
         </button>
       </div>
     );
-  }, [activeView, dateRange, setDateRange, t]);
+  }, [activeView, dateRange, setDateRange, t, isRefreshing]);
 
   const renderContent = () => {
     switch (activeView) {

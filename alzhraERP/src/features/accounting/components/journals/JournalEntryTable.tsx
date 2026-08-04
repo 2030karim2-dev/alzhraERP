@@ -73,12 +73,14 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                                {...register(`lines.${index}.debit_amount` as const, { valueAsNumber: true })}
+                                {...register(`lines.${index}.debit_amount` as const, { 
+                                    valueAsNumber: true,
+                                    onChange: (e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (val > 0) setValue(`lines.${index}.credit_amount`, 0, { shouldValidate: true });
+                                    }
+                                })}
                                 className="w-full px-2 py-2 bg-emerald-50/10 dark:bg-emerald-900/5 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/30 rounded-xl text-sm dark:text-emerald-400 focus:border-accent outline-none text-left font-mono"
-                                onChange={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (val > 0) setValue(`lines.${index}.credit_amount`, 0);
-                                }}
                                 dir="ltr"
                             />
                         </div>
@@ -89,12 +91,14 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                                {...register(`lines.${index}.credit_amount` as const, { valueAsNumber: true })}
+                                {...register(`lines.${index}.credit_amount` as const, { 
+                                    valueAsNumber: true,
+                                    onChange: (e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (val > 0) setValue(`lines.${index}.debit_amount`, 0, { shouldValidate: true });
+                                    }
+                                })}
                                 className="w-full px-2 py-2 bg-red-50/10 dark:bg-red-900/5 border border-transparent hover:border-red-200 dark:hover:border-red-900/30 rounded-xl text-sm dark:text-red-400 focus:border-accent outline-none text-left font-mono"
-                                onChange={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (val > 0) setValue(`lines.${index}.debit_amount`, 0);
-                                }}
                                 dir="ltr"
                             />
                             <button

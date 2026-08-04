@@ -33,7 +33,7 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
         if (fetchError) {
             console.error('Audit failed:', fetchError);
             const err = fetchError as Error;
-            showToast('Audit Failed: ' + err.message, 'error');
+            showToast('فشل التدقيق: ' + err.message, 'error');
             setIsAuditing(false);
             return;
         }
@@ -59,22 +59,22 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
                 auditResults.push({
                     id: entry.id,
                     date: entry.entry_date,
-                    description: entry.description || 'No Description',
+                    description: entry.description || 'بدون بيان',
                     debit_amount: totalDebit,
                     credit_amount: totalCredit,
                     status: 'unbalanced',
-                    message: `Difference: ${formatCurrency(diff)}`
+                    message: `الفرق: ${formatCurrency(diff)}`
                 });
             } else if (totalDebit === 0 && totalCredit === 0) {
                 errorCount++;
                 auditResults.push({
                     id: entry.id,
                     date: entry.entry_date,
-                    description: entry.description || 'No Description',
+                    description: entry.description || 'بدون بيان',
                     debit_amount: 0,
                     credit_amount: 0,
                     status: 'error',
-                    message: 'Empty Entry (Zero Value)'
+                    message: 'قيد فارغ (بقيمة صفر)'
                 });
             }
         });

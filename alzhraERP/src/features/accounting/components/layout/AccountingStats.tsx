@@ -20,10 +20,10 @@ const AccountingStats: React.FC = () => {
   }
 
   const netIncome = financials?.incomeStatement?.netIncome || 0;
-  const totalRevenue = financials?.incomeStatement?.revenues?.reduce((s: number, r: any) => s + Math.abs(r.net_balance), 0) || 0;
-  const totalExpenses = financials?.incomeStatement?.expenses?.reduce((s: number, r: any) => s + r.net_balance, 0) || 0;
-  const totalAssets = financials?.balanceSheet?.assets?.reduce((s: number, r: any) => s + r.net_balance, 0) || 0;
-  const totalLiabilities = Math.abs(financials?.balanceSheet?.liabilities?.reduce((s: number, r: any) => s + r.net_balance, 0) || 0);
+  const totalRevenue = financials?.incomeStatement?.totalRevenue || 0;
+  const totalExpenses = financials?.incomeStatement?.totalExpense || 0;
+  const totalAssets = financials?.balanceSheet?.totals?.assets || 0;
+  const totalLiabilities = Math.abs(financials?.balanceSheet?.totals?.liabilities || 0);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0.5 transition-colors duration-300">

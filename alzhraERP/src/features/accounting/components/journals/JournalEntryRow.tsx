@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import {  formatNumberDisplay } from '../../../../core/utils';
 import Badge from '../../../../ui/base/Badge';
 
@@ -89,6 +89,11 @@ const JournalEntryRow: React.FC<JournalEntryRowProps> = ({ entry }) => {
                         <div className="flex items-center justify-center gap-1 text-emerald-600 text-xs font-bold">
                             <CheckCircle2 size={14} />
                             <span>مرحل</span>
+                        </div>
+                    ) : entry.status === 'void' ? (
+                        <div className="flex items-center justify-center gap-1 text-red-500 text-xs font-bold">
+                            <XCircle size={14} />
+                            <span>ملغى</span>
                         </div>
                     ) : (
                         <div className="flex items-center justify-center gap-1 text-gray-500 text-xs font-bold">
