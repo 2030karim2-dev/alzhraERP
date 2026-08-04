@@ -8,7 +8,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' *.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google.com *.googleapis.com *.gstatic.com *.vercel.live; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com; img-src 'self' data: *.supabase.co *.google.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com; frame-src 'self' *.google.com;"
+          "value": "default-src 'self' *.supabase.co *.vercel.com *.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google.com *.googleapis.com *.gstatic.com *.vercel.live; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com; img-src 'self' data: *.supabase.co *.google.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com; frame-src 'self' *.google.com;"
         }
       ]
     }
