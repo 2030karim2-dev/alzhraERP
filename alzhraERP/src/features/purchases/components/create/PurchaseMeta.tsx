@@ -6,7 +6,7 @@ import { usePurchaseStore } from '../../store';
 // Fix: Corrected import path to point to the barrel file.
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
 import { useCurrencies } from '../../../settings/hooks';
-import { useWarehouses } from '../../inventory/hooks/useInventoryManagement';
+import { useWarehouses } from '../../../inventory/hooks/useWarehouses';
 // import { cn } from '../../../../core/utils';
 
 const PurchaseMeta: React.FC = () => {
