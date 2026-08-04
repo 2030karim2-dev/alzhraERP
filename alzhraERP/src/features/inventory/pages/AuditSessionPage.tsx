@@ -220,7 +220,7 @@ const AuditSessionPage: React.FC = () => {
         const existingProductIds = new Set(currentItems.map((i: any) => i.product_id));
 
         const { products: allProducts } = await import('../service').then(async (m) => {
-            const result = await m.inventoryService.getProducts({ pageSize: 9999, page: 1, search: '' } as any);
+            const result = await m.inventoryService.getProducts(data?.session?.company_id, 1, 99999);
             return { products: Array.isArray(result) ? result : (result as any).data ?? [] };
         }).catch(() => ({ products: [] as any[] }));
 

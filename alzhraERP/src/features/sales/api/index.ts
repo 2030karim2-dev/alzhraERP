@@ -119,10 +119,10 @@ export const salesApi = {
       .select(`
         *,
         parties:party_id(*),
-        payment_allocations:invoice_payments(
+        payment_allocations(
           payments:payment_id(amount, created_at, payment_method)
         ),
-        invoice_items:invoice_items(
+        invoice_items(
           *,
           product:product_id(name_ar, sku, cost_price, part_number, brand)
         )

@@ -23,9 +23,10 @@ export const useInvoices = () => {
 export const useSalesStats = () => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['sales_stats', companyId],
-    queryFn: () => companyId ? salesService.getStats(companyId) : Promise.resolve(null),
+    queryKey: ['sales_stats', companyId, branchId],
+    queryFn: () => companyId ? salesService.getStats(companyId, branchId) : Promise.resolve(null),
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
   });
