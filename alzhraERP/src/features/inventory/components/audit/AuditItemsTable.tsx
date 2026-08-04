@@ -11,9 +11,10 @@ interface Props {
     category?: string | null;
     isCompleted: boolean;
     onRemoveItem?: (itemId: string) => void;
+    onSave?: () => void;
 }
 
-const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, isCompleted, onRemoveItem }) => {
+const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, isCompleted, onRemoveItem, onSave }) => {
 
     const filteredFields = items.map((item, index) => ({ ...item, index })).filter(field => {
         const product = field.products;
@@ -122,7 +123,12 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                     <td className="p-2 text-center border-l dark:border-slate-800 bg-emerald-50/20 dark:bg-emerald-900/5">
                                         <input
                                             type="number"
-                                            {...register(`items.${field.index}.counted_quantity`, { valueAsNumber: true })}
+                                            {...register(`items.${field.index}.counted_quantity`, { 
+                                                valueAsNumber: true,
+                                                onBlur: () => {
+                                                    if (onSave) onSave();
+                                                }
+                                            })}
                                             className="w-full h-14 bg-white dark:bg-slate-950 border-2 border-emerald-200 dark:border-emerald-900/50 rounded-xl text-center font-mono font-black text-2xl text-gray-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-sm"
                                             readOnly={isCompleted}
                                             placeholder="0"

@@ -92,34 +92,16 @@ const AuditSessionPage: React.FC = () => {
 
     // Periodically sync form → session (for counted_quantity persistence)
     // This is what enables auto-save of user-entered quantities
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const formItems = getValues('items');
-            if (formItems && formItems.length > 0) {
-                const serialized = JSON.stringify(formItems);
-                if (serialized !== lastSyncedRef.current) {
-                    lastSyncedRef.current = serialized;
-                    updateItems(formItems as any[]);
-                }
-            }
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [getValues, updateItems]);
-
     // Sync on blur (when user leaves a quantity field)
-    useEffect(() => {
-        const handleBlur = () => {
-            const formItems = getValues('items');
-            if (formItems && formItems.length > 0) {
-                const serialized = JSON.stringify(formItems);
-                if (serialized !== lastSyncedRef.current) {
-                    lastSyncedRef.current = serialized;
-                    updateItems(formItems as any[]);
-                }
+    const handleSaveProgress = useCallback(() => {
+        const formItems = getValues('items');
+        if (formItems && formItems.length > 0) {
+            const serialized = JSON.stringify(formItems);
+            if (serialized !== lastSyncedRef.current) {
+                lastSyncedRef.current = serialized;
+                updateItems(formItems as any[]);
             }
-        };
-        window.addEventListener('focusin', handleBlur);
-        return () => window.removeEventListener('focusin', handleBlur);
+        }
     }, [getValues, updateItems]);
 
     // On page unload, force-save current form state
@@ -203,7 +185,9 @@ const AuditSessionPage: React.FC = () => {
         if (!sessionId) return;
 
         const stockInfo = product.warehouse_distribution?.find((w: any) => w.warehouse_id === data?.session?.warehouse_id);
-        const expectedQuantity = stockInfo ? stockInfo.quantity : (product.stock_quantity || 0);
+        // [CRITICAL FIX]: Do NOT fallback to product.stock_quantity (which is the TOTAL stock across all warehouses).
+        // If it's not in the current warehouse distribution, the expected quantity for THIS warehouse is exactly 0.
+        const expectedQuantity = stockInfo ? stockInfo.quantity : 0;
 
         addItemToAudit({ sessionId, productId: product.id, expectedQuantity }, {
             onSuccess: () => {
@@ -254,7 +238,8 @@ const AuditSessionPage: React.FC = () => {
         for (let i = 0; i < newProducts.length; i++) {
             const p = newProducts[i];
             const stockInfo = p.warehouse_distribution?.find((w: any) => w.warehouse_id === warehouseId_val);
-            const expectedQuantity = stockInfo ? stockInfo.quantity : (p.stock_quantity || 0);
+            // [CRITICAL FIX]: Prevent warehouse leak by defaulting to 0 instead of global stock.
+            const expectedQuantity = stockInfo ? stockInfo.quantity : 0;
             await new Promise<void>((resolve) => {
                 addItemToAudit(
                     { sessionId, productId: p.id, expectedQuantity },
@@ -415,10 +400,11 @@ const AuditSessionPage: React.FC = () => {
                     <AuditItemsTable
                         items={sessionItems.length > 0 ? sessionItems : watchedItems}
                         register={register}
-                        filter={""}
+                        filter={debouncedFilter}
                         category={selectedCategory}
                         isCompleted={session?.status === 'completed'}
                         onRemoveItem={setItemToDelete}
+                        onSave={handleSaveProgress}
                     />
                 </div>
             </div>

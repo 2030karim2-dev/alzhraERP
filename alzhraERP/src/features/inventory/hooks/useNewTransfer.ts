@@ -34,6 +34,17 @@ export const useNewTransfer = (onSuccess: () => void) => {
             return;
         }
         
+        const invalidItems = selectedItems.filter(i => {
+            const stockInfo = i.product.warehouse_distribution?.find((w: any) => w.warehouse_id === fromWh);
+            const availableQty = stockInfo ? Number(stockInfo.quantity) : 0;
+            return i.qty > availableQty;
+        });
+
+        if (invalidItems.length > 0) {
+            showToast(`عذراً، الكمية غير متوفرة في المستودع المصدر لـ: ${invalidItems.map(i => i.product.name_ar || i.product.name).join('، ')}`, 'error');
+            return;
+        }
+
         createTransfer({
             from_warehouse_id: fromWh,
             to_warehouse_id: toWh,

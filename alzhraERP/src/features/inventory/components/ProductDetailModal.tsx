@@ -39,6 +39,23 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
         }, 200);
     };
 
+    const handlePrint = () => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @media print {
+                body * { visibility: hidden !important; }
+                #print-area, #print-area * { visibility: visible !important; }
+                #print-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+                .no-print { display: none !important; }
+            }
+        `;
+        document.head.appendChild(style);
+        window.print();
+        setTimeout(() => {
+            document.head.removeChild(style);
+        }, 1000);
+    };
+
     if (!product) return null;
 
     return (
@@ -51,6 +68,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
             style={{ animation: isClosing ? 'none' : undefined }}
         >
             <div
+                id="print-area"
                 onClick={e => e.stopPropagation()}
                 className={cn(
                     "bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl flex flex-col border transition-all duration-300 shadow-2xl overflow-hidden",
@@ -61,7 +79,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                 )}
             >
                 {/* Glass Header */}
-                <div className="flex justify-between items-center px-4 py-2.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 relative z-20">
+                <div className="flex justify-between items-center px-4 py-2.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 relative z-20 no-print">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="w-9 h-9 shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <Box size={16} />
@@ -114,7 +132,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
 
                         {/* Quick Actions */}
                         <button
-                            onClick={() => window.print()}
+                            onClick={handlePrint}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all active:scale-95 hidden md:flex"
                             title="طباعة"
                         >

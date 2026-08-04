@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import {  ClipboardCheck, Database,  CheckCircle2,  Info } from 'lucide-react';
-import { useWarehouses, useInventoryMutations } from '../hooks/index';
+import { useWarehouses, useInventoryMutations, useAuditSessions } from '../hooks/index';
 import Button from '../../../ui/base/Button';
 import Modal from '../../../ui/base/Modal';
 import { cn } from '../../../core/utils';
@@ -15,6 +15,7 @@ interface StartAuditModalProps {
 const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) => {
     const { data: warehouses } = useWarehouses();
     const { startAudit, isStartingAudit } = useInventoryMutations();
+    const { data: auditSessions } = useAuditSessions();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -27,6 +28,14 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
 
     const handleStart = () => {
         if (!formData.warehouse_id || !formData.title) return;
+        
+        const hasActiveSession = auditSessions?.some((s: any) => s.warehouse_id === formData.warehouse_id && s.status === 'active');
+        if (hasActiveSession) {
+            if (!window.confirm('تنبيه: يوجد جلسة جرد نشطة مسبقاً لهذا المستودع. بدء جلسة جديدة قد يسبب تضارباً في الأرصدة. هل أنت متأكد من رغبتك في المتابعة؟')) {
+                return;
+            }
+        }
+
         startAudit(formData, { 
             onSuccess: (session: any) => {
                 onClose();

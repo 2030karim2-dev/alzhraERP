@@ -242,32 +242,10 @@ export const productService = {
 
             logger.debug('ProductService', `Product metadata updated successfully`, product);
 
-            // Update stock in default warehouse
-            if (data.stock_quantity !== undefined) {
-                logger.debug('ProductService', `Checking for default warehouse to update stock`);
-                const { data: warehouses, error: whError } = await supabase
-                    .from('warehouses')
-                    .select('id')
-                    .eq('company_id', companyId)
-                    .limit(1);
-
-                if (whError) {
-                    logger.error('ProductService', `Failed to fetch warehouses`, whError);
-                } else if (warehouses && warehouses.length > 0) {
-                    const warehouse = warehouses[0] as { id: string };
-                    logger.debug('ProductService', `Updating stock in warehouse ${warehouse.id} to ${data.stock_quantity}`);
-                    try {
-                        // Pass null for userId if not available in this context, or we could pass current user if tracked in store
-                        await inventoryApi.updateStock(companyId, id, warehouse.id, Number(data.stock_quantity));
-                        logger.debug('ProductService', `Stock updated successfully via transaction`);
-                    } catch (stockErr) {
-                        logger.error('ProductService', `Failed to update stock, but metadata was saved`, stockErr);
-                        // We don't throw here to avoid failing the whole operation if only stock fails
-                    }
-                } else {
-                    logger.warn('ProductService', `No default warehouse found for stock initialization`);
-                }
-            }
+            // [CRITICAL FIX]: Do NOT update stock during product edit.
+            // data.stock_quantity contains the TOTAL stock across all warehouses.
+            // If we update the default warehouse with the total stock, we corrupt the isolated quantities.
+            // Stock should only be updated via dedicated inventory transactions (purchases, transfers, audits, sales).
 
             return product;
         } catch (err: any) {
