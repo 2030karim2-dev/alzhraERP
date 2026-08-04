@@ -182,40 +182,44 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
                 </div>
 
                 {/* Footer Actions */}
-                        onClick={async () => {
-                            if (!user) {
-                                showToast('Please login first to use debug features', 'warning');
-                                return;
-                            }
-                            try {
-                                console.info('Debugging Accounting for Invoice:', invoice.invoice_number);
-                                const { purchaseAccountingService } = await import('../services/purchaseAccounting');
-                                await purchaseAccountingService.handleNewPurchase(
-                                    invoice.id,
-                                    {
-                                        supplierId: invoice.party_id,
-                                        invoiceNumber: invoice.invoice_number,
-                                        items: [],
-                                        issueDate: invoice.issue_date,
-                                        status: 'posted',
-                                        paymentMethod: invoice.payment_method,
-                                        cashAccountId: undefined
-                                    },
-                                    invoice.company_id,
-                                    user.id,
-                                    invoice.total_amount
-                                );
-                                showToast('Accounting Run Successfully! Check Ledger.', 'success');
-                            } catch (err: unknown) {
-                                const e = err as Error;
-                                showToast(`Error: ${e.message}`, 'error');
-                                console.error(err);
-                            }
-                        }}
-                        className="px-6 py-2.5 text-rose-600 font-bold hover:bg-rose-50 rounded-xl transition-all"
-                    >
-                        Debug Accounting
-                    </button>
+                <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
+                    {import.meta.env.DEV && (
+                        <button
+                            onClick={async () => {
+                                if (!user) {
+                                    showToast('Please login first to use debug features', 'warning');
+                                    return;
+                                }
+                                try {
+                                    console.info('Debugging Accounting for Invoice:', invoice.invoice_number);
+                                    const { purchaseAccountingService } = await import('../services/purchaseAccounting');
+                                    await purchaseAccountingService.handleNewPurchase(
+                                        invoice.id,
+                                        {
+                                            supplierId: invoice.party_id,
+                                            invoiceNumber: invoice.invoice_number,
+                                            items: [],
+                                            issueDate: invoice.issue_date,
+                                            status: 'posted',
+                                            paymentMethod: invoice.payment_method,
+                                            cashAccountId: undefined
+                                        },
+                                        invoice.company_id,
+                                        user.id,
+                                        invoice.total_amount
+                                    );
+                                    showToast('Accounting Run Successfully! Check Ledger.', 'success');
+                                } catch (err: unknown) {
+                                    const e = err as Error;
+                                    showToast(`Error: ${e.message}`, 'error');
+                                    console.error(err);
+                                }
+                            }}
+                            className="px-6 py-2.5 text-rose-600 font-bold hover:bg-rose-50 rounded-xl transition-all"
+                        >
+                            Debug Accounting
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="px-6 py-2.5 bg-gray-900 dark:bg-slate-700 text-white font-bold hover:bg-black dark:hover:bg-slate-600 rounded-xl transition-all shadow-lg shadow-gray-900/10"
