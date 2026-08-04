@@ -31,6 +31,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const [isExporting, setIsExporting] = useState(false);
   const [showReturnSection, setShowReturnSection] = useState(false);
   const [showAlert, setShowAlert] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'preview'>('details');
 
   const printRef = React.useRef<HTMLDivElement>(null);
   const paymentInfo = useInvoicePaymentStatus(invoice);
@@ -170,7 +171,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           onClose={onClose}
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
-          onShareWhatsApp={handleShareWhatsApp}
+          onShare={handleShareWhatsApp}
           onToggleReturn={() => setShowReturnSection(!showReturnSection)}
           isExporting={isExporting}
           issuedByName={issuedByName}
@@ -208,53 +209,78 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           <div className="p-20 text-center flex justify-center"><Loader2 className="animate-spin text-blue-500" /></div>
         ) : invoice ? (
           <div className="p-4 space-y-4">
-            <CompanyInfoSection company={company} user={user} />
+            <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+                <button 
+                  onClick={() => setActiveTab('details')}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'details' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  تفاصيل الفاتورة
+                </button>
+                <button 
+                  onClick={() => setActiveTab('preview')}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'preview' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  معاينة الطباعة
+                </button>
+            </div>
 
-            {showReturnSection && (
-              <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 animate-in slide-in-from-top-4 duration-300">
-                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 mb-2">
-                  <RotateCcw size={20} />
-                  <h3 className="font-bold">إرجاع جزئي - بنفس السعر</h3>
+            {activeTab === 'details' ? (
+              <>
+                <CompanyInfoSection company={company} user={user} />
+
+                {showReturnSection && (
+                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 mb-2">
+                      <RotateCcw size={20} />
+                      <h3 className="font-bold">إرجاع جزئي - بنفس السعر</h3>
+                    </div>
+                    <p className="text-sm text-rose-600 dark:text-rose-300">
+                      يمكنك اختيار أصناف وكميات محددة للإرجاع. سيتم استخدام سعر الفاتورة الأصلي.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <CustomerInfoSection party={invoice.parties} />
+                  <PaymentInfoSection paymentInfo={paymentInfo} currencyCode={invoice.currency_code} />
                 </div>
-                <p className="text-sm text-rose-600 dark:text-rose-300">
-                  يمكنك اختيار أصناف وكميات محددة للإرجاع. سيتم استخدام سعر الفاتورة الأصلي.
-                </p>
-              </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CustomerInfoSection party={invoice.parties} />
-              <PaymentInfoSection paymentInfo={paymentInfo} currencyCode={invoice.currency_code} />
-            </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
+                    <strong>التاريخ:</strong> {invoice.issue_date}
+                  </div>
+                  <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
+                    {/* [FIX] ترجمة حالة الفاتورة للعربية */}
+                    <strong>الحالة:</strong> {invoice.status === 'posted' ? 'مرحّل' : invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'draft' ? 'مسودة' : invoice.status}
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
-                <strong>التاريخ:</strong> {invoice.issue_date}
-              </div>
-              <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
-                {/* [FIX] ترجمة حالة الفاتورة للعربية */}
-                <strong>الحالة:</strong> {invoice.status === 'posted' ? 'مرحّل' : invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'draft' ? 'مسودة' : invoice.status}
-              </div>
-            </div>
+                <InvoiceHealthBadge invoice={{
+                  number: invoice.invoice_number || '',
+                  total: invoice.total_amount || 0,
+                  itemCount: invoice.invoice_items?.length || 0,
+                  customerName: (invoice.parties as any)?.name || 'غير محدد',
+                  customerDebt: 0,
+                  avgInvoiceTotal: 0
+                }} />
 
-            <InvoiceHealthBadge invoice={{
-              number: invoice.invoice_number || '',
-              total: invoice.total_amount || 0,
-              itemCount: invoice.invoice_items?.length || 0,
-              customerName: (invoice.parties as any)?.name || 'غير محدد',
-              customerDebt: 0,
-              avgInvoiceTotal: 0
-            }} />
-
-            {showReturnSection ? (
-              <ReturnWizard 
-                invoice={invoice} 
-                onReturn={handleReturnSubmit} 
-                onCancel={() => setShowReturnSection(false)}
-                onAlert={handleAlert}
-              />
+                {showReturnSection ? (
+                  <ReturnWizard 
+                    invoice={invoice} 
+                    onReturn={handleReturnSubmit} 
+                    onCancel={() => setShowReturnSection(false)}
+                    onAlert={handleAlert}
+                  />
+                ) : (
+                  <InvoiceItemsTable invoice={invoice} />
+                )}
+              </>
             ) : (
-              <InvoiceItemsTable invoice={invoice} />
+              <div className="bg-gray-200 dark:bg-slate-800 p-4 rounded-xl overflow-auto flex justify-center custom-scrollbar max-h-[65vh]">
+                <div className="bg-white shadow-lg border border-gray-300 w-full max-w-4xl shrink-0">
+                  <PrintableInvoice invoice={fullInvoiceData} />
+                </div>
+              </div>
             )}
 
             <div style={{ display: 'none' }}>

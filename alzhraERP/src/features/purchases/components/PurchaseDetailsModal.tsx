@@ -90,8 +90,7 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
             } else {
                 // Fallback
                 exportInvoiceToExcel(data);
-                const text = encodeURIComponent(`مرفق فاتورة شراء رقم ${invoice.invoice_number}.`);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
+                alert('تم تنزيل الفاتورة بنجاح. يمكنك الآن إرسالها للجهة المطلوبة.');
             }
         } catch (err) {
             console.error('Share via WhatsApp failed', err);

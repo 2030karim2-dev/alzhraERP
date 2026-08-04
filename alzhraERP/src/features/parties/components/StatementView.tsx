@@ -1,22 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParties, useStatement } from '../hooks';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { formatCurrency, cn } from '../../../core/utils';
 import { tafqeet } from '../../../core/utils/tafqeet';
-import { Printer, TrendingUp, TrendingDown, Wallet, Share2 } from 'lucide-react';
+import { Printer, TrendingUp, TrendingDown, Wallet, Share2, FileDown } from 'lucide-react';
 import { PartyType } from '../types';
 import Button from '../../../ui/base/Button';
-import ShareButton from '../../../ui/common/ShareButton';
 import { exportStatementToExcel } from '../utils/statementExcelExporter';
 import { partiesService, StatementMovement } from '../service';
 import { useAuthStore } from '../../auth/store';
-import { FileDown } from 'lucide-react';
 import { useCompany } from '../../settings/hooks';
 import { useInvoiceSettings } from '../../settings/settingsStore';
 
 const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   const [selectedPartyId, setSelectedPartyId] = useState<string>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const { data: parties } = useParties(partyType);
   const { data: statement, isLoading } = useStatement(selectedPartyId, partyType);
   const [isExporting, setIsExporting] = useState(false);
@@ -24,6 +24,20 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
+
+  const filteredStatement = useMemo(() => {
+    if (!statement) return [];
+    return statement.filter(row => {
+      if (!startDate && !endDate) return true;
+      const rowDate = new Date(row.date);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      
+      if (start && rowDate < start) return false;
+      if (end && rowDate > end) return false;
+      return true;
+    });
+  }, [statement, startDate, endDate]);
 
   const selectedParty = parties?.find(p => p.id === selectedPartyId);
 
@@ -120,8 +134,8 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         .print-only { display: none; }
       `}</style>
       
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border dark:border-slate-800 flex gap-4 items-center no-print">
-        <div className="flex-1">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border dark:border-slate-800 flex flex-wrap gap-4 items-end no-print">
+        <div className="flex-1 min-w-[200px]">
           <label className="text-xs font-bold text-gray-500">اختر {partyType === 'customer' ? 'العميل' : 'المورد'}</label>
           <select
             value={selectedPartyId}
@@ -131,6 +145,14 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
             <option value="">-- اختر من القائمة --</option>
             {parties?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+        </div>
+        <div className="w-36">
+          <label className="text-xs font-bold text-gray-500">من تاريخ</label>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-1 bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-gray-700 dark:text-gray-300" />
+        </div>
+        <div className="w-36">
+          <label className="text-xs font-bold text-gray-500">إلى تاريخ</label>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-1 bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-gray-700 dark:text-gray-300" />
         </div>
         {selectedPartyId && selectedParty && (
           <div className="flex gap-2 mt-auto">
@@ -166,11 +188,10 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                   } else {
                     // Fallback to downloading if native share isn't supported (e.g. desktop Chrome)
                     const { exportStatementToExcel } = await import('../utils/statementExcelExporter');
-                    exportStatementToExcel(company, selectedParty.name, statement as any);
+                    exportStatementToExcel(company, selectedParty.name, filteredStatement as any);
                     
-                    // Open wa.me link with a message
-                    const text = encodeURIComponent(`مرفق كشف حساب ${selectedParty.name}. يرجى الاطلاع على الملف المرفق.`);
-                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                    // Show a toast or just let the download happen
+                    alert('تم تنزيل ملف الإكسل. يمكنك الآن إرساله عبر واتساب ويب.');
                   }
                 } catch (err) {
                   console.error('Share failed', err);
@@ -220,40 +241,40 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         selectedPartyId ? (
           isLoading ? <div className="p-20 text-center">جاري تحميل الكشف...</div> :
             <>
-              {/* Professional Print Header */}
-              <div className="print-only mb-6 border-b-2 border-[#1F4E78] pb-4">
+              {/* Professional Header - Visible on screen and print */}
+              <div className="mb-6 border-b-2 border-[#1F4E78] pb-4 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                       <div className="text-right flex-1">
                           <h1 className="text-xl font-bold text-[#1F4E78]">{company.nameAr}</h1>
                           {company.specialization && <p className="text-sm font-bold text-blue-800">{company.specialization}</p>}
-                          <p className="text-sm mt-1">{company.address}</p>
-                          <div className="flex flex-col gap-1 mt-1 text-xs font-bold text-gray-700">
+                          <p className="text-sm mt-1 dark:text-gray-300">{company.address}</p>
+                          <div className="flex flex-col gap-1 mt-1 text-xs font-bold text-gray-700 dark:text-gray-400">
                               {company.phone && <span>هاتف: {company.phone}</span>}
                               {company.taxNumber && <span>الرقم الضريبي: {company.taxNumber}</span>}
                           </div>
                       </div>
                       <div className="flex-1 text-center">
                           {company.headerText && <p className="text-sm font-bold text-gray-500">{company.headerText}</p>}
-                          <h2 className="text-xl font-bold text-gray-800 mt-2 bg-gray-100 inline-block px-4 py-1 rounded">كشف حساب</h2>
+                          <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-2 bg-gray-100 dark:bg-slate-800 inline-block px-4 py-1 rounded">كشف حساب</h2>
                       </div>
                       <div className="text-left flex-1" dir="ltr">
                           <h1 className="text-xl font-bold text-[#1F4E78]">{company.nameEn}</h1>
-                          <h2 className="text-md font-bold mt-2 text-gray-800">Statement of Account</h2>
+                          <h2 className="text-md font-bold mt-2 text-gray-800 dark:text-gray-300">Statement of Account</h2>
                       </div>
                   </div>
-                  <div className="border border-[#1F4E78] bg-[#FAFAFA] p-3 rounded flex justify-between">
-                      <div className="text-sm">
+                  <div className="border border-[#1F4E78] bg-[#FAFAFA] dark:bg-slate-800 p-3 rounded flex justify-between">
+                      <div className="text-sm dark:text-gray-200">
                           <strong>اسم {partyType === 'customer' ? 'العميل' : 'المورد'}:</strong> {selectedParty?.name}
                       </div>
-                      <div className="text-sm">
+                      <div className="text-sm dark:text-gray-200">
                           <strong>تاريخ الاستخراج:</strong> <span dir="ltr">{new Date().toLocaleDateString('en-GB')}</span>
                       </div>
                   </div>
               </div>
 
-              <ExcelTable columns={columns} data={statement || []} title={`كشف حساب: ${selectedParty?.name}`} colorTheme={partyType === 'customer' ? 'green' : 'blue'} />
+              <ExcelTable columns={columns} data={filteredStatement || []} title={`كشف حساب: ${selectedParty?.name}`} colorTheme={partyType === 'customer' ? 'green' : 'blue'} />
 
-              {statement && statement.length > 0 && (
+              {filteredStatement && filteredStatement.length > 0 && (
                 <div className="mt-6 p-6 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl shadow-xl shadow-blue-500/5 overflow-hidden relative group">
                   {/* Background Accent */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-blue-500/10 transition-colors no-print" />
@@ -261,7 +282,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                   <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
                     {/* Status Indicator */}
                     {(() => {
-                      const lastEntry = statement[statement.length - 1];
+                      const lastEntry = filteredStatement[filteredStatement.length - 1];
                       const finalBalance = lastEntry.balance || 0;
                       const isDebit = finalBalance > 0;
                       const isCredit = finalBalance < 0;

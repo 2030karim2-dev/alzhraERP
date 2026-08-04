@@ -1,16 +1,15 @@
-
 import React, { useMemo, useCallback } from 'react';
 import SalesStats from './SalesStats';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { useInvoices, useDeleteInvoice } from '../../hooks/index';
 import { formatCurrency } from '../../../../core/utils';
 import type { CurrencyCode } from '../../../../core/utils/currencyUtils';
-import { Eye, Trash2 } from 'lucide-react';
-import ShareButton from '../../../../ui/common/ShareButton';
+import { Eye, Trash2, ArrowLeftRight, FileSpreadsheet } from 'lucide-react';
 import EmptyState from '../../../../ui/base/EmptyState';
 import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 import { InvoiceListItem, InvoiceType } from '../../types';
+import { useFeedbackStore } from '../../../feedback/store';
 
 interface InvoiceListViewProps {
     viewType: InvoiceType;
@@ -18,9 +17,16 @@ interface InvoiceListViewProps {
     onViewDetails: (id: string) => void;
 }
 
+const statusLabel = (status: string) => {
+    if (status === 'paid') return { label: 'مدفوع', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
+    if (status === 'posted') return { label: 'مرحّل', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' };
+    return { label: 'مسودة', cls: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400' };
+};
+
 const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm, onViewDetails }) => {
     const { data: invoices, isLoading, error, refetch } = useInvoices();
     const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+    const { showToast } = useFeedbackStore();
 
     const filteredData = useMemo(() => {
         if (!invoices) return [];
@@ -35,7 +41,6 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
     const handleViewDetails = useCallback((id: string) => onViewDetails(id), [onViewDetails]);
     const handleDelete = useCallback((e: React.MouseEvent, row: InvoiceListItem) => {
         e.stopPropagation();
-        // [FIX] حماية الفواتير المرحّلة/المدفوعة من الحذف
         if (row.status === 'posted' || row.status === 'paid') {
             alert('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء مرتجع بدلاً من ذلك.');
             return;
@@ -45,11 +50,51 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
         }
     }, [deleteInvoice]);
 
+    const handleShareExcel = useCallback(async (e: React.MouseEvent, row: InvoiceListItem) => {
+        e.stopPropagation();
+        try {
+            const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import('../../../../core/utils/invoiceExcelExporter');
+            const data = {
+                companyName: '',
+                companyAddress: '',
+                taxNumber: '',
+                invoiceNumber: row.invoiceNumber || '',
+                issueDate: row.date,
+                customerName: row.customerName || 'عميل نقدي',
+                issuedBy: '',
+                items: [],
+                subtotal: row.total,
+                totalAmount: row.total,
+            };
+            const blob = generateInvoiceExcelBlob(data);
+            const file = new File([blob], `فاتورة_${row.invoiceNumber}.xlsx`, {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: `فاتورة ${row.invoiceNumber}` });
+            } else {
+                exportInvoiceToExcel(data);
+                showToast('تم تنزيل ملف Excel بنجاح', 'success');
+            }
+        } catch {
+            showToast('فشل في مشاركة الفاتورة', 'error');
+        }
+    }, [showToast]);
+
     const columns = useMemo(() => [
         {
-            header: 'العملية',
+            header: 'رقم الفاتورة',
             accessorKey: 'invoiceNumber' as keyof InvoiceListItem,
-            accessor: (row: InvoiceListItem) => <span dir="ltr" className="font-mono font-bold text-blue-600">#{row.invoiceNumber}</span>,
+            accessor: (row: InvoiceListItem) => (
+                <div className="flex items-center gap-1.5">
+                    {row.type === 'return_sale' && (
+                        <ArrowLeftRight size={13} className="text-rose-500 shrink-0" />
+                    )}
+                    <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-blue-600'}`}>
+                        #{row.invoiceNumber}
+                    </span>
+                </div>
+            ),
             width: 'w-32'
         },
         {
@@ -78,11 +123,11 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
             className: 'text-center'
         },
         {
-            header: 'الإجمالي (الأساسي)',
+            header: 'الإجمالي',
             sortKey: 'total' as keyof InvoiceListItem,
             accessor: (row: InvoiceListItem) => (
                 <div className="flex flex-col items-end leading-tight">
-                    <span dir="ltr" className="font-mono font-bold text-emerald-600">
+                    <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}
                     </span>
                     {(row.currencyCode && row.currencyCode !== 'SAR') && (
@@ -99,14 +144,14 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
             header: 'الحالة',
             accessorKey: 'status' as keyof InvoiceListItem,
             sortKey: 'status' as keyof InvoiceListItem,
-            accessor: (row: InvoiceListItem) => (
-                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${row.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                    row.status === 'posted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
-                    }`}>
-                    {row.status === 'paid' ? 'مدفوع' : row.status === 'posted' ? 'مرحل' : 'مسودة'}
-                </span>
-            ),
+            accessor: (row: InvoiceListItem) => {
+                const s = statusLabel(row.status || '');
+                return (
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${s.cls}`}>
+                        {s.label}
+                    </span>
+                );
+            },
             width: 'w-24',
             className: 'text-center'
         },
@@ -115,15 +160,16 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
             accessor: (row: InvoiceListItem) => {
                 const isLocked = row.status === 'posted' || row.status === 'paid';
                 return (
-                    <div className="flex items-center gap-0.5">
-                        <ShareButton
-                            size="sm"
-                            eventType="sale_invoice"
-                            title={`مشاركة فاتورة #${row.invoiceNumber}`}
-                            message={`🧾 فاتورة #${row.invoiceNumber}\n━━━━━━━━━━━━━━\n👤 ${row.customerName}\n💰 ${formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}\n📅 ${row.date}\n💳 ${row.paymentMethod === 'cash' ? 'نقدي' : 'آجل'}`}
-                        />
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={(e) => handleShareExcel(e, row)}
+                            className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded transition-colors"
+                            title="تنزيل / مشاركة Excel"
+                        >
+                            <FileSpreadsheet size={15} />
+                        </button>
                         <button onClick={() => handleViewDetails(row.id)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 rounded transition-colors">
-                            <Eye size={16} />
+                            <Eye size={15} />
                         </button>
                         <button
                             onClick={(e) => handleDelete(e, row)}
@@ -133,20 +179,18 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
                                 ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed'
                                 : 'hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400'}`}
                         >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                         </button>
                     </div>
                 );
             },
-            width: 'w-24',
+            width: 'w-28',
             className: 'text-center'
         }
-    ], [handleViewDetails, handleDelete, isDeleting]);
+    ], [handleViewDetails, handleDelete, handleShareExcel, isDeleting]);
 
     if (isLoading) return <PageLoader />;
-
     if (error) return <ErrorDisplay error={error?.message || 'فشل في تحميل البيانات'} onRetry={refetch} />;
-
     if (filteredData.length === 0) {
         return <EmptyState title="لا توجد فواتير" description="لم يتم العثور على سجلات مطابقة لمعايير البحث." />;
     }

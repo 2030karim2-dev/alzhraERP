@@ -32,11 +32,14 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView
                         title={item.party?.name || 'مورد عام'}
                         subtitle={`#${item.invoice_number} | ${item.issue_date}`}
                         onClick={() => onView(item.id)}
-                        tags={[{ label: item.status, color: item.status === 'posted' ? 'emerald' : 'slate' }]}
+                        tags={[{ 
+                            label: item.status === 'paid' ? 'مدفوع' : item.status === 'posted' ? 'مرحّل' : 'مسودة', 
+                            color: item.status === 'paid' ? 'emerald' : item.status === 'posted' ? 'blue' : 'slate' 
+                        }]}
                         actions={
                             <div className="flex flex-col items-end gap-1">
                                 <div className="flex items-center gap-2">
-                                    <button className="p-1 text-gray-500"><Printer size={16} /></button>
+                                    <button className="p-1 text-gray-500 hover:text-blue-600"><Printer size={16} /></button>
                                     <p dir="ltr" className="font-mono font-bold text-sm">{formatCurrency(item.total_amount, item.currency_code)}</p>
                                 </div>
                                 {item.currency_code && item.currency_code !== 'SAR' && (
@@ -99,12 +102,26 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView
                             className: 'text-left'
                         },
                         {
+                            header: 'الحالة',
+                            accessor: (row: any) => {
+                                const isPaid = row.status === 'paid';
+                                const isPosted = row.status === 'posted';
+                                return (
+                                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${isPaid ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : isPosted ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                        {isPaid ? 'مدفوع' : isPosted ? 'مرحّل' : 'مسودة'}
+                                    </span>
+                                );
+                            },
+                            width: 'w-24',
+                            className: 'text-center'
+                        },
+                        {
                             header: 'إجراءات',
                             accessor: (row: any) => {
                                 const isLocked = row.status === 'posted' || row.status === 'paid';
                                 return (
-                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button title="عرض التفاصيل / طباعة" onClick={() => onView(row.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18} /></button>
+                                    <div className="flex items-center justify-center gap-2">
+                                        <button title="عرض التفاصيل / طباعة" onClick={() => onView(row.id)} className="p-1.5 text-blue-600 rounded-lg transition-colors"><Eye size={18} /></button>
                                         <button
                                             title={isLocked ? "لا يمكن حذف فاتورة معتمدة أو مدفوعة" : "حذف"}
                                             onClick={(e) => {
@@ -118,15 +135,15 @@ const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView
                                                 }
                                             }}
                                             disabled={isDeleting || isLocked}
-                                            className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-gray-300 cursor-not-allowed' : 'text-rose-500 hover:bg-red-50'}`}
+                                            className={`p-1.5 rounded-lg transition-colors ${isLocked ? 'text-gray-300 cursor-not-allowed' : 'text-rose-500'}`}
                                         >
                                             <Trash2 size={18} />
                                         </button>
                                     </div>
                                 );
                             },
-                            width: 'w-48',
-                            className: 'text-center group' // Added group class for hover effect if supported
+                            width: 'w-24',
+                            className: 'text-center'
                         }
                     ]}
                     data={data}
