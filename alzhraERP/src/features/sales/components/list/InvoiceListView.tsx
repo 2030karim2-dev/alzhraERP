@@ -20,6 +20,10 @@ interface InvoiceListViewProps {
 const statusLabel = (status: string) => {
     if (status === 'paid') return { label: 'مدفوع', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
     if (status === 'posted') return { label: 'مرحّل', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' };
+    if (status === 'partially_paid') return { label: 'مدفوع جزئياً', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' };
+    if (status === 'pending') return { label: 'قيد الانتظار', cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' };
+    if (status === 'cancelled') return { label: 'ملغاة', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' };
+    if (status === 'confirmed') return { label: 'مؤكد', cls: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' };
     return { label: 'مسودة', cls: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400' };
 };
 
@@ -30,25 +34,25 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
 
     const filteredData = useMemo(() => {
         if (!invoices) return [];
+        // API already filters by type='sale' — no need to re-filter client-side
         return (invoices as InvoiceListItem[]).filter(item => {
-            const matchesType = item.type === viewType;
             const matchesSearch = (item.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (item.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
-            return matchesType && matchesSearch;
+            return matchesSearch;
         });
-    }, [invoices, searchTerm, viewType]);
+    }, [invoices, searchTerm]);
 
     const handleViewDetails = useCallback((id: string) => onViewDetails(id), [onViewDetails]);
     const handleDelete = useCallback((e: React.MouseEvent, row: InvoiceListItem) => {
         e.stopPropagation();
-        if (row.status === 'posted' || row.status === 'paid') {
-            alert('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء مرتجع بدلاً من ذلك.');
+        if (row.status === 'posted' || row.status === 'paid' || row.status === 'partially_paid') {
+            showToast('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء مرتجع بدلاً من ذلك.', 'error');
             return;
         }
         if (window.confirm('هل أنت متأكد من حذف هذه الفاتورة؟ سيتم إلغاء أثرها المالي والمخزني.')) {
             deleteInvoice(row.id);
         }
-    }, [deleteInvoice]);
+    }, [deleteInvoice, showToast]);
 
     const handleShareExcel = useCallback(async (e: React.MouseEvent, row: InvoiceListItem) => {
         e.stopPropagation();

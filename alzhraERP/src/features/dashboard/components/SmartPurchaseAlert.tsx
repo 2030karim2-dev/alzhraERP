@@ -4,7 +4,7 @@ import { ShoppingCart, Loader2,  ChevronDown, ChevronUp, Package } from 'lucide-
 import { aiService } from '../../ai/service';
 
 interface Props {
-    lowStockItems: { name: string; current: number; minStock: number; avgMonthlyUsage: number }[];
+    lowStockItems: { id?: string; name: string; quantity: number; min_quantity: number; avgMonthlyUsage?: number }[];
 }
 
 const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {

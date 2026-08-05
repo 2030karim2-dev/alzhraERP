@@ -37,7 +37,7 @@ const SalesStats: React.FC = () => {
       <StatCard
         title="إجمالي المبيعات"
         value={formatCurrency(stats.totalSales)}
-        subtitle="الشهر الحالي"
+        subtitle="آخر 30 يوماً"
         icon={DollarSign}
         colorClass="text-emerald-500"
         iconBgClass="bg-emerald-500"
@@ -45,7 +45,7 @@ const SalesStats: React.FC = () => {
       <StatCard
         title="عدد الفواتير"
         value={formatNumberDisplay(stats.invoiceCount)}
-        subtitle="الشهر الحالي"
+        subtitle="آخر 30 يوماً"
         icon={FileText}
         colorClass="text-blue-500"
         iconBgClass="bg-blue-500"
@@ -53,7 +53,7 @@ const SalesStats: React.FC = () => {
       <StatCard
         title="متوسط الفاتورة"
         value={formatCurrency(stats.avgSale)}
-        subtitle="الشهر الحالي"
+        subtitle="آخر 30 يوماً"
         icon={BarChart}
         colorClass="text-indigo-500"
         iconBgClass="bg-indigo-500"

@@ -87,7 +87,7 @@ const DashboardPage: React.FC = () => {
     return (
         <div className="flex flex-col h-full bg-[var(--app-bg)] font-cairo relative">
             {/* Cinematic Grain Texture - Optimized Opacity and fixed positioning */}
-            <div className="fixed inset-0 opacity-[0.015] pointer-events-none z-[1] will-change-transform" style={{
+            <div className="fixed inset-0 opacity-5 pointer-events-none z-[1] will-change-transform" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'repeat'
             }} />
@@ -134,7 +134,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </Suspense>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5 gap-3 mt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3 mt-3">
                         <Suspense fallback={<ChartSkeleton />}>
                             <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-4 rounded-2xl relative overflow-hidden group hover:border-[var(--accent)]/30 transition-all duration-500">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] group-hover:bg-emerald-400/20 transition-all duration-700 pointer-events-none"></div>
@@ -157,7 +157,7 @@ const DashboardPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="relative z-10">
-                                    <SalesFlowChart data={salesData as any} showPeriodSelector={true} />
+                                    <SalesFlowChart data={salesData} showPeriodSelector={true} />
                                 </div>
                             </div>
                         </Suspense>
@@ -171,7 +171,7 @@ const DashboardPage: React.FC = () => {
                         <Suspense fallback={<div className="h-40 min-h-[160px] animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
                             <PerformanceGauge
                                 value={salesValue}
-                                target={100000}
+                                target={Math.max(100000, salesValue * 1.2)}
                                 title="هدف المبيعات الشهري"
                             />
                         </Suspense>
@@ -192,7 +192,7 @@ const DashboardPage: React.FC = () => {
                             <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl p-4 h-[350px]">
                                 <h3 className="text-xs font-bold text-[var(--app-text)] mb-4">التصنيفات الأكثر حركة</h3>
                                 <div className="flex flex-col h-full items-center p-2">
-                                    <CategoriesChart data={categoryData as any} />
+                                    <CategoriesChart data={categoryData} />
                                 </div>
                             </div>
                         </Suspense>

@@ -109,59 +109,69 @@ export const salesService = {
   },
 
   // ⚡ Client-side stats computation via direct query
+  // [FIX] Uses rolling 30-day window instead of current calendar month to prevent
+  // stats showing all-zero when the month just started. Also filters voided invoices.
   getStats: async (companyId: string, branchId?: string | null) => {
     const today = new Date();
-    const startOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
-    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString();
-    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0).toISOString();
+    // Rolling 30-day window
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const isoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const startOfThisWindow = isoDate(thirtyDaysAgo);
+    const startOfPrevWindow = isoDate(new Date(today.getFullYear(), today.getMonth() - 1, today.getDate() - 29));
+    const endOfPrevWindow = isoDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30));
 
     try {
-      // Query this month's invoices
-      let queryThisMonth = supabase
+      // Query this period's invoices (last 30 days) — exclude voided and deleted
+      let queryThisWindow = supabase
         .from('invoices')
         .select('total_amount, currency_code, exchange_rate')
         .eq('company_id', companyId)
         .eq('type', 'sale')
-        .gte('issue_date', startOfThisMonth);
-      
+        .neq('status', 'void')
+        .is('deleted_at', null)
+        .gte('issue_date', startOfThisWindow);
+
       if (branchId) {
-        queryThisMonth = queryThisMonth.eq('branch_id', branchId);
+        queryThisWindow = queryThisWindow.eq('branch_id', branchId);
       }
 
-      const { data: thisMonthData, error: thisMonthError } = await queryThisMonth;
-      if (thisMonthError) throw thisMonthError;
+      const { data: thisWindowData, error: thisWindowError } = await queryThisWindow;
+      if (thisWindowError) throw thisWindowError;
 
-      // Query last month's invoices for growth
-      let queryLastMonth = supabase
+      // Query previous 30-day period for growth comparison — also exclude voided
+      let queryPrevWindow = supabase
         .from('invoices')
         .select('total_amount, currency_code, exchange_rate')
         .eq('company_id', companyId)
         .eq('type', 'sale')
-        .gte('issue_date', startOfLastMonth)
-        .lte('issue_date', endOfLastMonth);
+        .neq('status', 'void')
+        .is('deleted_at', null)
+        .gte('issue_date', startOfPrevWindow)
+        .lte('issue_date', endOfPrevWindow);
 
       if (branchId) {
-        queryLastMonth = queryLastMonth.eq('branch_id', branchId);
+        queryPrevWindow = queryPrevWindow.eq('branch_id', branchId);
       }
 
-      const { data: lastMonthData, error: lastMonthError } = await queryLastMonth;
-      if (lastMonthError) throw lastMonthError;
+      const { data: prevWindowData, error: prevWindowError } = await queryPrevWindow;
+      if (prevWindowError) throw prevWindowError;
 
       // Calculate totals, converting to base currency if necessary
-      // [FIX] Use shared toBaseCurrency to stay consistent with fetchSalesLog
       const calcTotal = (data: any[]) => data.reduce((sum, inv) => {
         return sum + toBaseCurrency(inv);
       }, 0);
 
-      const totalSales = calcTotal(thisMonthData || []);
-      const invoiceCount = (thisMonthData || []).length;
+      const totalSales = calcTotal(thisWindowData || []);
+      const invoiceCount = (thisWindowData || []).length;
       const avgSale = invoiceCount > 0 ? totalSales / invoiceCount : 0;
 
-      const lastMonthSales = calcTotal(lastMonthData || []);
+      const prevWindowSales = calcTotal(prevWindowData || []);
 
       let monthlyGrowth: number | null = null;
-      if (lastMonthSales > 0) {
-        monthlyGrowth = ((totalSales - lastMonthSales) / lastMonthSales) * 100;
+      if (prevWindowSales > 0) {
+        monthlyGrowth = ((totalSales - prevWindowSales) / prevWindowSales) * 100;
       }
 
       return {

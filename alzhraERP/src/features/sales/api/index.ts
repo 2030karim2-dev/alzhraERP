@@ -51,7 +51,7 @@ export const salesApi = {
         reference_invoice_id
       `)
       .eq('company_id', companyId)
-      .in('type', ['sale', 'return_sale'])
+      .eq('type', 'sale')
       .neq('status', 'void')
       .is('deleted_at', null)
       .order('issue_date', { ascending: false })

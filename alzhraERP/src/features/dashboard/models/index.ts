@@ -4,13 +4,13 @@
  */
 
 export interface DashboardStats {
-    sales: string;
-    purchases: string;
-    expenses: string;
-    debts: string;
-    invoices: string;
-    profit: string;
-    netCash: string;
+    sales: number;
+    purchases: number;
+    expenses: number;
+    debts: number;
+    invoices: number;
+    profit: number;
+    netCash: number;
     salesTrend: number;
     purchasesTrend: number;
     expensesTrend: number;
@@ -46,15 +46,20 @@ export interface TargetProgress {
 
 export interface DashboardAlert {
     id: string;
-    type: 'critical' | 'warning' | 'info';
-    title: string;
-    description: string;
+    type: 'critical' | 'warning' | 'info' | 'urgent';
+    message: string;
+    time?: string;
+    title?: string;
+    description?: string;
 }
 
 export interface DashboardInsight {
     id: string;
-    title: string;
-    description: string;
+    type?: 'success' | 'warning' | 'info' | 'error' | 'target';
+    message: string;
+    detail?: string;
+    title?: string;
+    description?: string;
     metric?: string;
     trend?: 'up' | 'down' | 'neutral';
 }

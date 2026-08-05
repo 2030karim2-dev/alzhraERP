@@ -12,9 +12,9 @@ interface SmartAlert {
 
 interface AISmartNotificationsProps {
     stats?: {
-        sales: string;
-        expenses: string;
-        debts: string;
+        sales: number;
+        expenses: number;
+        debts: number;
     } | undefined;
     lowStockProducts?: any[] | undefined;
     alerts?: any[] | undefined;
@@ -25,17 +25,12 @@ const AISmartNotifications: React.FC<AISmartNotificationsProps> = ({ stats, lowS
     const [currentIndex, setCurrentIndex] = useState(0);
     const [dismissed, setDismissed] = useState(false);
 
-    const parseValue = (str?: string) => {
-        if (!str) return 0;
-        return parseFloat(str.replace(/[^0-9.-]/g, '')) || 0;
-    };
-
     // Auto-generate smart alerts from props data
     useEffect(() => {
         const localAlerts: SmartAlert[] = [];
-        const sales = parseValue(stats?.sales);
-        const expenses = parseValue(stats?.expenses);
-        const debts = parseValue(stats?.debts);
+        const sales = stats?.sales || 0;
+        const expenses = stats?.expenses || 0;
+        const debts = stats?.debts || 0;
         const lowStockCount = lowStockProducts?.length || 0;
 
         // Low stock alert

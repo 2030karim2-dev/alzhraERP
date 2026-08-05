@@ -5,13 +5,17 @@
 
 import { supabase } from '@/lib/supabaseClient';
 
-// Helper to safely extract data from a settled promise
-function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: any }>, fallback: T): T {
-    if (result.status === 'fulfilled' && !result.value.error && result.value.data !== null) {
-        return result.value.data;
-    }
+// Helper to extract data or throw error on failure
+function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: any }>, fallback: T, name: string = 'RPC'): T {
     if (result.status === 'fulfilled' && result.value.error) {
-        console.warn('[Dashboard API] RPC error:', result.value.error?.message);
+        console.error(`[Dashboard API] ${name} error:`, result.value.error.message);
+        throw new Error(`فشل في جلب بيانات (${name}): ${result.value.error.message}`);
+    }
+    if (result.status === 'rejected') {
+        throw new Error(`فشل في جلب بيانات (${name}): ${result.reason}`);
+    }
+    if (result.status === 'fulfilled' && result.value.data !== null) {
+        return result.value.data;
     }
     return fallback;
 }
@@ -56,13 +60,12 @@ interface RawTopPayload {
 
 export const dashboardApi = {
     /**
-     * Fetches the core dashboard raw data in parallel (resilient to individual failures)
+     * Fetches the core dashboard raw data in parallel
      * @param companyId The current active company ID
-     * @param _dateLimit Unused (kept for API compatibility)
      * @param signal AbortSignal for cancellation
      * @param branchId Optional branch UUID for branch-level filtering
      */
-    async fetchRawDashboardData(companyId: string, _dateLimit: string, signal?: AbortSignal, branchId?: string | null) {
+    async fetchRawDashboardData(companyId: string, signal?: AbortSignal, branchId?: string | null) {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
@@ -77,7 +80,7 @@ export const dashboardApi = {
                 p_branch_id: branchParam,
                 p_date_from: dateFrom,
                 p_date_to: dateTo
-            }).abortSignal(signal as any),
+            }).abortSignal(signal as AbortSignal),
 
             // 2. Sales Chart Data
             supabase.rpc('get_sales_chart_data', {
@@ -85,20 +88,20 @@ export const dashboardApi = {
                 p_branch_id: branchParam,
                 p_date_from: dateFrom,
                 p_date_to: dateTo
-            }).abortSignal(signal as any),
+            }).abortSignal(signal as AbortSignal),
 
             // 3. Top Products & Customers
             supabase.rpc('get_top_products_and_customers', {
                 p_company_id: companyId,
                 p_branch_id: branchParam,
                 p_limit: 5
-            }).abortSignal(signal as any),
+            }).abortSignal(signal as AbortSignal),
 
             // 4. Low Stock Products
             supabase.rpc('get_low_stock_products', {
                 p_company_id: companyId,
                 p_branch_id: branchParam
-            }).abortSignal(signal as any),
+            }).abortSignal(signal as AbortSignal),
 
             // 5. Expense Categories Summary
             supabase.rpc('get_expense_categories_summary', {
@@ -106,7 +109,7 @@ export const dashboardApi = {
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 p_branch_id: branchParam
-            }).abortSignal(signal as any),
+            }).abortSignal(signal as AbortSignal),
 
             // 6. Trial Balance for Net Profit
             supabase.rpc('report_trial_balance', {
@@ -122,17 +125,18 @@ export const dashboardApi = {
         // access fields directly. This previously left every stat at 0 / empty.
         // These aggregation RPCs always return exactly one row; the safeData
         // fallback (a plain object) takes the non-array branch.
-        const rawSummary = safeData<SummaryRow | SummaryRow[]>(summaryRes, {});
+        // Handle results and throw if critical errors exist
+        const rawSummary = safeData<SummaryRow | SummaryRow[]>(summaryRes, {}, 'get_dashboard_summary');
         const summary: SummaryRow = Array.isArray(rawSummary) ? rawSummary[0] : rawSummary;
 
-        const salesChart = safeData(chartRes, []);
+        const salesChart = safeData(chartRes, [], 'get_sales_chart_data');
 
-        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(topRes, { top_products: [], top_customers: [] });
+        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(topRes, { top_products: [], top_customers: [] }, 'get_top_products_and_customers');
         const topDataObj: RawTopPayload = Array.isArray(rawTop) ? rawTop[0] : rawTop;
 
-        const rawLowStock = safeData(lowStockRes, []) as any[];
-        const rawCategories = safeData(categoryRes, []) as any[];
-        const trialBalanceData = safeData(trialBalanceRes, []);
+        const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
+        const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
+        const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
 
         return {
             summary,
@@ -154,18 +158,18 @@ export const dashboardApi = {
                     invoices: cu.invoice_count ?? cu.invoices ?? 0,
                 })),
             },
-            lowStockProducts: rawLowStock.map((p: any) => ({
+            lowStockProducts: lowStockProducts.map((p: any) => ({
                 id: p.id,
                 name: p.name_ar,
                 quantity: Number(p.quantity),
                 min_quantity: Number(p.min_quantity)
             })),
-            categoryData: rawCategories.map((c: any, i: number) => ({
+            categoryData: categoryData.map((c: any, i: number) => ({
                 name: c.category_name,
                 value: Number(c.total_amount),
                 color: ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'][i % 6]
             })),
-            trialBalanceRows: Array.isArray(trialBalanceData) ? trialBalanceData : []
+            trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : []
         };
     }
 };

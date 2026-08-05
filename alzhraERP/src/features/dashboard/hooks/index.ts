@@ -14,15 +14,7 @@ import type {
 } from '../models';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 
-// Re-export specific hooks from the old structure for backwards compatibility
-export {
-  useSalesChart,
-  useInventoryChart,
-  useRecentActivity,
-  useTopProducts,
-  useTopCustomers,
-  useDashboardAlerts,
-} from './useDashboard';
+// Realtime logic is now handled in useDashboardData hook
 
 // ------------------------------------------
 // Type definitions for raw RPC data
@@ -92,7 +84,11 @@ const sumTrialBalance = (rows: RawTrialBalanceRow[], prefix: string): number => 
   return rows.reduce((sum, row) => {
     const code = getAccountCode(row);
     if (code.startsWith(prefix)) {
-      return sum + Math.abs(toNumber(row.netBalance ?? row.balance));
+      // Revenues (4) are naturally credit (negative in our logic usually, or positive depending on entry)
+      // Since it's Trial Balance, normally Debit = Positive, Credit = Negative.
+      // Net Profit = (Credit Balance of 4) - (Debit Balance of 5).
+      // We will keep the raw number (no Math.abs) so signs reflect properly.
+      return sum + toNumber(row.netBalance ?? row.balance);
     }
     return sum;
   }, 0);
@@ -119,6 +115,42 @@ export const useDashboardData = (): UseDashboardDataResult => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
+
+  // Realtime channel for dashboard stats
+  const queryClient = useQueryClient();
+  const { showToast } = useFeedbackStore();
+  
+  import('react').then(({ useEffect }) => {
+    useEffect(() => {
+        if (!companyId) return;
+        const channelKey = `dashboard_sales_${companyId}`;
+        const globalAny = window as any;
+        if (!globalAny.__ALZ_DASHBOARD_CHANNELS__) {
+            globalAny.__ALZ_DASHBOARD_CHANNELS__ = new Map<string, any>();
+        }
+        const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
+
+        if (!registry.has(channelKey)) {
+            const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
+               const ch = supabase
+                .channel(channelKey)
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
+                    (payload: any) => {
+                        if (payload.new.type === 'sale') {
+                            showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
+                            queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
+                        }
+                    }
+                )
+                .subscribe();
+               registry.set(channelKey, ch);
+            });
+        }
+        return () => { /* no-op */ };
+    }, [companyId, queryClient, showToast]);
+  });
 
   // 1. Fetch Raw Data using React Query
   const rawDataQuery = useQuery({
@@ -200,8 +232,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       netProfit,
       totalDebts: toNumber(summary.total_debts),
       totalSupplierDebts: toNumber(summary.total_supplier_debts),
-      invoicesData: [],
-      expensesData: [],
+      salesChartData: safeSalesChart,
       lowStockProducts: safeLowStockProducts,
       overdueInvoices: [],
     });
@@ -209,15 +240,13 @@ export const useDashboardData = (): UseDashboardDataResult => {
     // Assemble final payload directly from RPC data
     const payload: DashboardDataPayload = {
       stats: {
-        sales: formatCurrency(toNumber(summary.total_sales)),
-        purchases: formatCurrency(toNumber(summary.total_purchases)),
-        expenses: formatCurrency(toNumber(summary.total_expenses)),
-        debts: formatCurrency(
-          toNumber(summary.total_debts) + toNumber(summary.total_supplier_debts),
-        ),
-        invoices: '0',
-        profit: formatCurrency(netProfit),
-        netCash: formatCurrency(netCashPosition),
+        sales: toNumber(summary.total_sales),
+        purchases: toNumber(summary.total_purchases),
+        expenses: toNumber(summary.total_expenses),
+        debts: toNumber(summary.total_debts) + toNumber(summary.total_supplier_debts),
+        invoices: toNumber(summary.invoice_count),
+        profit: netProfit,
+        netCash: netCashPosition,
         salesTrend: Math.round(insightsResult.salesTrend * 10) / 10,
         purchasesTrend: Math.round(insightsResult.purchasesTrend * 10) / 10,
         expensesTrend: Math.round(insightsResult.expensesTrend * 10) / 10,
@@ -239,24 +268,23 @@ export const useDashboardData = (): UseDashboardDataResult => {
         outflow: toNumber(summary.payment_bonds),
         net: netCashPosition,
       },
-      alerts: insightsResult.alerts as unknown as DashboardAlert[],
-      insights: insightsResult.insights as unknown as DashboardInsight[],
+      alerts: insightsResult.alerts,
+      insights: insightsResult.insights,
       lowStockProducts: safeLowStockProducts,
     };
 
     return payload;
   }, [rawDataQuery.data]);
 
-  // Provide fallback empty data if still loading or errored
   const fallbackData: DashboardDataPayload = {
     stats: {
-      sales: '0',
-      purchases: '0',
-      expenses: '0',
-      debts: '0',
-      invoices: '0',
-      profit: '0',
-      netCash: '0',
+      sales: 0,
+      purchases: 0,
+      expenses: 0,
+      debts: 0,
+      invoices: 0,
+      profit: 0,
+      netCash: 0,
       salesTrend: 0,
       purchasesTrend: 0,
       expensesTrend: 0,
@@ -285,6 +313,36 @@ export const useDashboardData = (): UseDashboardDataResult => {
 export const useDashboardStats = () => {
   const { stats, isLoading, error } = useDashboardData();
   return { stats, isLoading, error };
+};
+
+export const useSalesChart = (period: 'today' | 'week' | 'month' | 'year' = 'week') => {
+    const { salesData, isLoading } = useDashboardData();
+    return { chartData: salesData, isLoading };
+};
+
+export const useInventoryChart = () => {
+    const { categoryData, isLoading } = useDashboardData();
+    return { chartData: categoryData, isLoading };
+};
+
+export const useRecentActivity = (limit: number = 5) => {
+    const { recentActivities, isLoading } = useDashboardData();
+    return { activities: recentActivities.slice(0, limit), isLoading };
+};
+
+export const useTopProducts = (limit: number = 5) => {
+    const { topProducts, isLoading } = useDashboardData();
+    return { products: topProducts.slice(0, limit), isLoading };
+};
+
+export const useTopCustomers = (limit: number = 5) => {
+    const { topCustomers, isLoading } = useDashboardData();
+    return { customers: topCustomers.slice(0, limit), isLoading };
+};
+
+export const useDashboardAlerts = () => {
+    const { alerts, isLoading } = useDashboardData();
+    return { alerts, isLoading, hasAlerts: alerts.length > 0 };
 };
 
 export default useDashboardData;

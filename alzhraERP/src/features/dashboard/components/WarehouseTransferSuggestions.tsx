@@ -20,8 +20,8 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
     const suggestions = useMemo(() => {
         if (!products || !warehouses || warehouses.length < 2) return [];
 
-        const mainWarehouse = warehouses.find((w: Warehouse) =>
-            w.name_ar?.includes('رئيسي') || w.name_ar?.includes('متجر') || w.name_ar?.includes('محل')
+        const mainWarehouse = warehouses.find((w: any) =>
+            w.is_main === true || w.name_ar?.includes('رئيسي') || w.name_ar?.includes('متجر') || w.name_ar?.includes('محل')
         ) || warehouses[0];
 
         const results: TransferSuggestion[] = [];
@@ -35,18 +35,19 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
             );
             const mainQty = mainStock?.quantity || 0;
 
-            if (mainQty === 0) {
-                // Product is missing from main warehouse — find it in branches
+            const threshold = product.min_quantity || 3;
+            if (mainQty <= threshold) {
+                // Product is low or missing from main warehouse — find it in branches
                 product.warehouse_distribution.forEach((wd) => {
-                    if (wd.warehouse_id !== mainWarehouse?.id && wd.quantity > 0) {
-                        const fromWh = warehouses.find((w: Warehouse) => w.id === wd.warehouse_id);
+                    if (wd.warehouse_id !== mainWarehouse?.id && wd.quantity > threshold) {
+                        const fromWh = warehouses.find((w: any) => w.id === wd.warehouse_id);
                         if (fromWh && mainWarehouse) {
                             results.push({
                                 product,
                                 fromWarehouse: fromWh,
                                 toWarehouse: mainWarehouse,
                                 availableQty: wd.quantity,
-                                reason: mainQty === 0 ? 'غير متوفر في المتجر الرئيسي' : 'مخزون منخفض'
+                                reason: mainQty === 0 ? 'غير متوفر في المتجر الرئيسي' : 'مخزون منخفض بالمتجر الرئيسي'
                             });
                         }
                     }

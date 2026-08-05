@@ -241,7 +241,7 @@ export const useSalesInvoicesForReturn = (customerId?: string | null) => {
         `)
                 .eq('company_id', user.company_id)
                 .eq('type', 'sale')
-                .eq('status', 'posted')
+                .in('status', ['posted', 'paid'])
                 .is('deleted_at', null);
 
             if (customerId) {

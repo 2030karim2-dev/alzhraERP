@@ -8,7 +8,7 @@ const QuickActions: React.FC<{ className?: string }> = ({ className }) => {
   const navigate = useNavigate();
 
   const actions = [
-    { label: 'فاتورة بيع', icon: ShoppingCart, color: '#3b82f6', bg: 'bg-blue-500/10 border-blue-500/20' },
+    { label: 'فاتورة بيع', icon: ShoppingCart, color: '#3b82f6', bg: 'bg-blue-500/10 border-blue-500/20', path: ROUTES.DASHBOARD.SALES },
     { label: 'سند قبض', icon: FileText, color: '#10b981', bg: 'bg-emerald-500/10 border-emerald-500/20', path: ROUTES.DASHBOARD.BONDS },
     { label: 'إضافة عميل', icon: UserPlus, color: '#8b5cf6', bg: 'bg-violet-500/10 border-violet-500/20', path: ROUTES.DASHBOARD.CLIENTS },
     { label: 'مصروف', icon: Receipt, color: '#f43f5e', bg: 'bg-rose-500/10 border-rose-500/20', path: ROUTES.DASHBOARD.EXPENSES },

@@ -33,9 +33,18 @@ const useCountUp = (end: number, duration: number = 1500) => {
             const progress = Math.min(elapsed / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
             setCount(Math.round(end * eased));
-            if (progress < 1) requestAnimationFrame(animate);
+        let animationFrameId: number;
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.round(end * eased));
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
         };
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
     }, [end, duration]);
     return count;
 };
@@ -43,14 +52,10 @@ const useCountUp = (end: number, duration: number = 1500) => {
 const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
     stats, cashFlow, targets, className
 }) => {
-    const parseValue = (str?: string) => {
-        if (!str) return 0;
-        return parseFloat(str.replace(/[^0-9.-]/g, '')) || 0;
-    };
-
-    const sales = parseValue(stats?.sales);
-    const expenses = parseValue(stats?.expenses);
-    const debts = parseValue(stats?.debts);
+    // Stats are now numbers directly from the models
+    const sales = stats?.sales || 0;
+    const expenses = stats?.expenses || 0;
+    const debts = stats?.debts || 0;
 
     const profitMargin = sales > 0 ? Math.max(-100, Math.min(100, ((sales - expenses) / sales) * 100)) : 0;
     const profitScore = Math.max(0, Math.min(30, (profitMargin > 0 ? profitMargin * 0.3 : 0)));
