@@ -6,9 +6,9 @@ export const useDashboardMetrics = () => {
     const dashboardData = useDashboardData();
     const { stats, salesData } = dashboardData;
 
-    const extractNumericValue = (formatted: string) => {
-        if (!formatted) return 0;
-        const numeric = formatted.replace(/[^0-9.-]/g, '');
+    const extractNumericValue = (formatted: string | number) => {
+        if (formatted === null || formatted === undefined) return 0;
+        const numeric = String(formatted).replace(/[^0-9.-]/g, '');
         const val = parseFloat(numeric) || 0;
         return Math.max(0, val);
     };
