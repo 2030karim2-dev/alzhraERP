@@ -129,21 +129,27 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
         {
             header: 'الإجمالي',
             sortKey: 'total' as keyof InvoiceListItem,
-            accessor: (row: InvoiceListItem) => (
-                <div className="flex flex-col items-end leading-tight">
-                    <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}
-                    </span>
-                    {(row.currencyCode && row.currencyCode !== 'SAR') && (
-                        <span dir="ltr" className="text-[10px] font-bold text-blue-500 mt-0.5">
-                            {formatCurrency(row.baseTotal)}
+            accessor: (row: InvoiceListItem) => {
+                const hasForeignCurrency = row.currencyCode && row.currencyCode !== 'SAR';
+                const rateIsNotOne = row.exchangeRate && row.exchangeRate !== 1;
+                const showBaseLine = hasForeignCurrency && rateIsNotOne && Math.abs(row.baseTotal - row.total) > 0.01;
+                return (
+                    <div className="flex flex-col items-end leading-tight">
+                        <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                            {formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}
                         </span>
-                    )}
-                </div>
-            ),
+                        {showBaseLine && (
+                            <span dir="ltr" className="text-[10px] font-bold text-blue-500 mt-0.5">
+                                ≈ {formatCurrency(row.baseTotal)}
+                            </span>
+                        )}
+                    </div>
+                );
+            },
             width: 'w-32',
             className: 'text-left'
         },
+
         {
             header: 'الحالة',
             accessorKey: 'status' as keyof InvoiceListItem,

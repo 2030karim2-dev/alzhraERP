@@ -313,7 +313,6 @@ export const posSearchService = {
 
             const { data, error } = await supabase.rpc('get_popular_products', {
                 p_company_id: companyId,
-                p_days: 30,
                 p_limit: limit,
             });
 

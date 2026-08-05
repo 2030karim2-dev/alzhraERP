@@ -38,15 +38,17 @@ export const useTrialBalance = (fromDate?: string, toDate?: string, options: { e
     });
 };
 
-export const useProfitAndLoss = (options: { enabled?: boolean } = {}) => {
+export const useProfitAndLoss = (fromDate?: string, toDate?: string, options: { enabled?: boolean } = {}) => {
     const { user } = useAuthStore();
     return useQuery({
-        queryKey: ['profit_loss', user?.company_id],
+        queryKey: ['profit_loss', user?.company_id, fromDate, toDate],
         queryFn: async () => {
             if (!user?.company_id) return null;
             // ⚡ Server-side P&L via RPC — no frontend account code filtering
             const { data, error } = await supabase.rpc('report_profit_loss', {
-                p_company_id: user.company_id
+                p_company_id: user.company_id,
+                p_from: fromDate || '2000-01-01',
+                p_to: toDate || new Date().toISOString().split('T')[0]
             });
 
             if (error) {

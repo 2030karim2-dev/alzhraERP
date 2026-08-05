@@ -4,6 +4,7 @@ import { dashboardApi } from '../api/index';
 import { calculateDashboardInsights } from '../services/dashboardInsights';
 import { useMemo } from 'react';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
+import { useFeedbackStore } from '../../feedback/store';
 import type {
   DashboardDataPayload,
   ChartDataPoint,
