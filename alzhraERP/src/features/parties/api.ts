@@ -10,12 +10,35 @@ import { mapToInsert, mapToUpdate } from '../../core/utils/supabaseMappers';
  */
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType) => {
-    return await supabase.from('parties')
-      .select('*, party_categories(id, name), party_balances(balance, type)')
+    const { data: partiesData, error: partiesError } = await supabase.from('parties')
+      .select('*, party_categories(id, name)')
       .eq('company_id', companyId)
       .eq('type', type)
       .is('deleted_at', null)
       .order('name', { ascending: true });
+
+    if (partiesError) return { data: null, error: partiesError };
+    if (!partiesData || partiesData.length === 0) return { data: [], error: null };
+
+    const partyIds = partiesData.map(p => p.id);
+    
+    // Fetch balances separately to avoid PostgREST foreign key relationship errors on views
+    const { data: balancesData, error: balancesError } = await supabase.from('party_balances')
+      .select('party_id, balance, type')
+      .eq('company_id', companyId)
+      .in('party_id', partyIds);
+
+    const balancesMap = new Map();
+    if (!balancesError && balancesData) {
+      balancesData.forEach(b => balancesMap.set(b.party_id, b));
+    }
+
+    const mergedData = partiesData.map(p => ({
+      ...p,
+      party_balances: balancesMap.has(p.id) ? [balancesMap.get(p.id)] : []
+    }));
+
+    return { data: mergedData, error: null };
   },
 
   createParty: async (data: PartyFormData, companyId: string) => {

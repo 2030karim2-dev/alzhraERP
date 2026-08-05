@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { dashboardApi } from '../api/index';
 import { calculateDashboardInsights } from '../services/dashboardInsights';
