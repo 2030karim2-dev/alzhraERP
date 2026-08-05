@@ -32,7 +32,7 @@ export const reportService = {
         }));
     },
 
-    // DB: report_trial_balance(p_company_id, p_from, p_to, p_branch_id) → TABLE rows
+    // DB: report_trial_balance(p_company_id, p_from, p_to, p_branch_id) → TABLE rows with correct column names
     getTrialBalance: async (companyId: string, branchId?: string | null, fromDate?: string, toDate?: string): Promise<TrialBalanceItem[]> => {
         const now = new Date();
         const from = fromDate || `${now.getFullYear()}-01-01`;
@@ -59,64 +59,80 @@ export const reportService = {
     },
 
     // ⚡ Server-side financials
-    // DB report_profit_loss(p_company_id, p_from, p_to, p_branch_id) → jsonb {
-    //   revenues: [{id, code, name, netBalance}], expenses: [{...}],
-    //   totalRevenues, totalExpenses, netProfit }
-    // DB report_balance_sheet(p_company_id, p_from, p_to, p_branch_id) → jsonb {
-    //   assets: [{id, code, name, netBalance}], liabilities: [...], equity: [...],
-    //   totalAssets, totalLiabilities, totalEquity, netProfit, isBalanced, difference }
+    // DB report_profit_loss(p_company_id, p_from, p_to) → TABLE rows: { category, amount, type }
+    //    where type ∈ ('revenue', 'expense', 'net_profit')
+    // DB report_balance_sheet(p_company_id, p_as_of_date) → TABLE rows: { category, amount, type }
+    //    where type ∈ ('asset', 'liability', 'equity')
     getFinancials: async (companyId: string, branchId?: string | null, fromDate?: string, toDate?: string) => {
         const now = new Date();
         const from = fromDate || `${now.getFullYear()}-01-01`;
         const to = toDate || now.toISOString().split('T')[0];
 
         // ── P&L ──────────────────────────────────────────────────────────────
-        const { data: plData, error: plError } = await supabase.rpc('report_profit_loss', {
+        // report_profit_loss signature: (p_company_id uuid, p_from date, p_to date)
+        // NO p_branch_id parameter in DB – omit it to avoid error
+        const { data: plRows, error: plError } = await supabase.rpc('report_profit_loss', {
             p_company_id: companyId,
             p_from: from,
-            p_to: to,
-            p_branch_id: branchId || null
+            p_to: to
         });
         if (plError) throw plError;
 
-        const pl = (plData || {}) as any;
-        const totalRevenue = Number(pl.totalRevenues) || 0;
-        const totalExpense = Number(pl.totalExpenses) || 0;
-        const netIncome = Number(pl.netProfit) || (totalRevenue - totalExpense);
+        const plData = (plRows || []) as Array<{ category: string; amount: number; type: string }>;
+        const revenueRow = plData.find(r => r.type === 'revenue');
+        const expenseRow = plData.find(r => r.type === 'expense');
+        const netRow     = plData.find(r => r.type === 'net_profit');
 
-        // Map per-account rows into TrialBalanceItem lists for the report UI.
-        const mapToTBI = (items: any[], type: string, typeCode: string): TrialBalanceItem[] =>
-            (items || []).map((a: any) => ({
-                account_id: a.id,
-                code: a.code && a.code !== '' ? a.code : typeCode,
-                name: a.name || '',
-                type,
-                total_debit: 0,
-                total_credit: 0,
-                net_balance: Number(a.netBalance) || 0,
-                currency_code: 'SAR'
-            }));
+        const totalRevenue = Number(revenueRow?.amount) || 0;
+        const totalExpense = Number(expenseRow?.amount) || 0;
+        const netIncome    = Number(netRow?.amount)     || (totalRevenue - totalExpense);
 
-        const revenueTBI = mapToTBI(pl.revenues, 'revenue', '4');
-        const expenseTBI = mapToTBI(pl.expenses, 'expense', '5');
+        // Build mock list items so existing components can iterate
+        const revenueTBI: TrialBalanceItem[] = revenueRow ? [{
+            account_id: 'revenue-total', code: '4', name: revenueRow.category,
+            type: 'revenue', total_debit: 0, total_credit: totalRevenue,
+            net_balance: totalRevenue, currency_code: 'SAR'
+        }] : [];
+        const expenseTBI: TrialBalanceItem[] = expenseRow ? [{
+            account_id: 'expense-total', code: '5', name: expenseRow.category,
+            type: 'expense', total_debit: totalExpense, total_credit: 0,
+            net_balance: totalExpense, currency_code: 'SAR'
+        }] : [];
 
         // ── Balance Sheet ─────────────────────────────────────────────────────
-        const { data: bsRaw, error: bsError } = await supabase.rpc('report_balance_sheet', {
+        // report_balance_sheet signature: (p_company_id uuid, p_as_of_date date DEFAULT NULL)
+        const { data: bsRows, error: bsError } = await supabase.rpc('report_balance_sheet', {
             p_company_id: companyId,
-            p_from: from,
-            p_to: to,
-            p_branch_id: branchId || null
+            p_as_of_date: to
         });
         if (bsError) throw bsError;
 
-        const bs = (bsRaw || {}) as any;
-        const totalAssets = Number(bs.totalAssets) || 0;
-        const totalLiabilities = Number(bs.totalLiabilities) || 0;
-        const totalEquity = Number(bs.totalEquity) || 0;
+        const bsData = (bsRows || []) as Array<{ category: string; amount: number; type: string }>;
+        const assetRow     = bsData.find(r => r.type === 'asset');
+        const liabilityRow = bsData.find(r => r.type === 'liability');
+        const equityRow    = bsData.find(r => r.type === 'equity');
 
-        const assetTBI = mapToTBI(bs.assets, 'asset', '1');
-        const liabilityTBI = mapToTBI(bs.liabilities, 'liability', '2');
-        const equityTBI = mapToTBI(bs.equity, 'equity', '3');
+        const totalAssets      = Number(assetRow?.amount)     || 0;
+        const totalLiabilities = Number(liabilityRow?.amount) || 0;
+        const totalEquity      = Number(equityRow?.amount)    || 0;
+
+        const assetTBI: TrialBalanceItem[] = assetRow ? [{
+            account_id: 'asset-total', code: '1', name: assetRow.category,
+            type: 'asset', total_debit: totalAssets, total_credit: 0,
+            net_balance: totalAssets, currency_code: 'SAR'
+        }] : [];
+        const liabilityTBI: TrialBalanceItem[] = liabilityRow ? [{
+            account_id: 'liability-total', code: '2', name: liabilityRow.category,
+            type: 'liability', total_debit: 0, total_credit: totalLiabilities,
+            net_balance: totalLiabilities, currency_code: 'SAR'
+        }] : [];
+        const equityTBI: TrialBalanceItem[] = equityRow ? [{
+            account_id: 'equity-total', code: '3', name: equityRow.category,
+            type: 'equity', total_debit: 0, total_credit: totalEquity,
+            net_balance: totalEquity, currency_code: 'SAR'
+        }] : [];
+
+        const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1;
 
         return {
             incomeStatement: {
@@ -130,14 +146,14 @@ export const reportService = {
                 assets: assetTBI,
                 liabilities: liabilityTBI,
                 equity: equityTBI,
-                netIncome: Number(bs.netProfit) || netIncome,
+                netIncome,
                 totals: {
                     assets: totalAssets,
                     liabilities: totalLiabilities,
                     equity: totalEquity
                 },
-                isBalanced: Boolean(bs.isBalanced ?? (Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1)),
-                difference: Number(bs.difference) || (totalAssets - (totalLiabilities + totalEquity))
+                isBalanced,
+                difference: totalAssets - (totalLiabilities + totalEquity)
             }
         };
     },
