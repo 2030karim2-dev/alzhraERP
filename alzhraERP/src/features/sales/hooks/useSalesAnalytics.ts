@@ -42,6 +42,66 @@ interface SalesAnalytics {
     }[];
 }
 
+/**
+ * Coerce an unknown value to a finite number, falling back to 0 for
+ * null/undefined/NaN/strings so no downstream component renders `NaN`.
+ */
+const toNum = (value: unknown): number => {
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) ? n : 0;
+};
+
+/**
+ * Defensively map raw RPC output. The `get_sales_analytics` RPC return is
+ * untyped JSON; its sibling RPCs (e.g. get_top_customers_by_revenue) return
+ * snake_case fields (name/total_revenue/invoice_count). We accept both
+ * camelCase and snake_case so a mismatch never surfaces as `NaN`.
+ */
+const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
+    if (!raw) return null;
+
+    const numberField = (name: string, snakeName?: string): number =>
+        toNum(raw[name] ?? raw[snakeName]);
+
+    const listField = (key: string, snakeKey: string): any[] =>
+        Array.isArray(raw[key]) ? raw[key]
+        : Array.isArray(raw[snakeKey]) ? raw[snakeKey]
+        : [];
+
+    return {
+        totalSales: numberField('totalSales', 'total_sales'),
+        totalReturns: numberField('totalReturns', 'total_returns'),
+        netSales: numberField('netSales', 'net_sales'),
+        invoiceCount: numberField('invoiceCount', 'invoice_count'),
+        averageInvoiceValue: numberField('averageInvoiceValue', 'average_invoice_value'),
+
+        topProducts: listField('topProducts', 'top_products').map((p: any, i: number) => ({
+            productId: p.productId ?? p.product_id ?? p.id ?? `prod-${i}`,
+            productName: p.productName ?? p.product_name ?? p.name ?? p.name_ar ?? 'غير معروف',
+            quantity: toNum(p.quantity ?? p.total_quantity),
+            revenue: toNum(p.revenue ?? p.total_revenue),
+        })),
+
+        topCustomers: listField('topCustomers', 'top_customers').map((c: any, i: number) => ({
+            customerId: c.customerId ?? c.customer_id ?? c.id ?? `cust-${i}`,
+            customerName: c.customerName ?? c.customer_name ?? c.name ?? 'غير معروف',
+            totalAmount: toNum(c.totalAmount ?? c.total_revenue ?? c.total_amount ?? c.total),
+            invoiceCount: toNum(c.invoiceCount ?? c.invoice_count ?? c.invoices),
+        })),
+
+        salesByDay: listField('salesByDay', 'sales_by_day').map((d: any) => ({
+            date: String(d.date ?? d.label ?? ''),
+            sales: toNum(d.sales ?? d.total_sales ?? d.amount),
+            returns: toNum(d.returns ?? d.return_amount),
+        })),
+
+        salesByPaymentMethod: listField('salesByPaymentMethod', 'sales_by_payment_method').map((m: any) => ({
+            method: String(m.method ?? m.payment_method ?? 'unknown'),
+            amount: toNum(m.amount ?? m.total_amount ?? m.value),
+        })),
+    };
+};
+
 export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
     const { companyId, startDate, endDate, period = 'month' } = params;
 
@@ -77,7 +137,7 @@ export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
                 throw new Error(error.message || 'Failed to fetch sales analytics');
             }
 
-            return analytics as unknown as SalesAnalytics;
+            return normalizeAnalytics(analytics);
         },
         enabled: !!companyId,
     });

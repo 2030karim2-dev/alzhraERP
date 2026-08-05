@@ -41,7 +41,7 @@ export const generateStatementExcelWorkbook = (
     rows.push([]);
 
     // --- Table Header ---
-    const tableHeader = ['التاريخ', 'نوع العملية', 'البيان', 'مدين', 'دائن', 'الرصيد'];
+    const tableHeader = ['التاريخ', 'نوع العملية', 'البيان', 'مدين (عليه)', 'دائن (له)', 'الرصيد'];
     rows.push(tableHeader);
 
     // --- Data Rows ---

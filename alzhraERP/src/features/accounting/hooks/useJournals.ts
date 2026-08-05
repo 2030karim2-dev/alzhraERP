@@ -21,8 +21,9 @@ export const useJournals = () => {
       try {
         const result = await journalService.formatJournalsForUI(companyId, branchId, pageParam);
         return Array.isArray(result) ? result : [];
-      } catch {
-        return [];
+      } catch (error) {
+        console.error("useJournals fetch error:", error);
+        throw error;
       }
     },
     initialPageParam: 0,

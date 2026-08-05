@@ -5,6 +5,28 @@ import {
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18nStore';
 
+interface GrowthBadgeProps {
+    value: number | null;
+}
+
+const GrowthBadge: React.FC<GrowthBadgeProps> = ({ value }) => {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    const isPositive = value >= 0;
+    const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
+    const color = isPositive ? 'text-emerald-600' : 'text-rose-600';
+    const sign = isPositive ? '+' : '';
+
+    return (
+        <span className={`flex items-center gap-1 text-xs font-bold ${color}`}>
+            <Icon size={12} />
+            {sign}{value.toFixed(1)}%
+        </span>
+    );
+};
+
 interface SalesKPIsProps {
     totalSales: number;
     netSales: number;
@@ -15,8 +37,8 @@ interface SalesKPIsProps {
     topProduct: { productName: string; quantity: number } | undefined;
     cashRatio: number;
     cashAmount: number;
-    salesGrowth: number;
-    returnsGrowth: number;
+    salesGrowth: number | null;
+    returnsGrowth: number | null;
     periodLabel: string;
     isLoading: boolean;
     formatCurrency: (value: number) => string;
@@ -54,10 +76,14 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                                 <DollarSign size={24} className="text-white" />
                             </div>
-                            <span className="flex items-center gap-1 text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
-                                <ArrowUpRight size={12} />
-                                +{salesGrowth}%
-                            </span>
+                            {salesGrowth !== null && salesGrowth !== undefined && (
+                                <span className="flex items-center gap-1 text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
+                                    {salesGrowth >= 0
+                                        ? <ArrowUpRight size={12} />
+                                        : <ArrowDownRight size={12} />}
+                                    {salesGrowth >= 0 ? '+' : ''}{salesGrowth.toFixed(1)}%
+                                </span>
+                            )}
                         </div>
                         <p className="text-blue-100 text-xs font-bold uppercase tracking-wider mb-1">{t.total_sales_amount}</p>
                         <p className="text-3xl font-bold tracking-tight">
@@ -73,18 +99,12 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <TrendingUp size={24} className="text-emerald-600" />
                         </div>
-                        <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
-                            <ArrowUpRight size={12} />
-                            +8.2%
-                        </span>
+                        <GrowthBadge value={salesGrowth} />
                     </div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{t.net_sales}</p>
                     <p className="text-2xl font-bold text-slate-800 dark:text-white">
                         {isLoading ? '...' : formatCurrency(netSales)}
                     </p>
-                    <div className="mt-3 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '75%' }}></div>
-                    </div>
                 </div>
 
                 {/* Invoice Count */}
@@ -98,7 +118,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                     <p className="text-2xl font-bold text-slate-800 dark:text-white">
                         {isLoading ? '...' : formatNumber(invoiceCount)}
                     </p>
-                    <p className="text-slate-400 text-xs mt-2">+15 {periodLabel}</p>
+                    <p className="text-slate-400 text-xs mt-2">{periodLabel}</p>
                 </div>
 
                 {/* Average Invoice */}
@@ -107,10 +127,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                         <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <BarChart3 size={24} className="text-amber-600" />
                         </div>
-                        <span className="flex items-center gap-1 text-xs font-bold text-amber-600">
-                            <ArrowUpRight size={12} />
-                            +5.3%
-                        </span>
+                        <GrowthBadge value={salesGrowth} />
                     </div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{t.average_invoice}</p>
                     <p className="text-2xl font-bold text-slate-800 dark:text-white">
@@ -127,7 +144,9 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                     <div className="flex items-center gap-2 mb-2">
                         <ArrowDownRight size={16} className="text-rose-600" />
                         <span className="text-xs font-bold text-rose-600 uppercase">{t.returns}</span>
-                        <span className="text-xs text-rose-400 mr-auto">{returnsGrowth}%</span>
+                        <span className="text-xs text-rose-400 mr-auto">
+                            {returnsGrowth === null || returnsGrowth === undefined ? '' : `${returnsGrowth >= 0 ? '+' : ''}${returnsGrowth.toFixed(1)}%`}
+                        </span>
                     </div>
                     <p className="text-xl font-bold text-rose-700 dark:text-rose-400">
                         {isLoading ? '...' : formatCurrency(totalReturns)}

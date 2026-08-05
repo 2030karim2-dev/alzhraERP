@@ -148,10 +148,9 @@ export const salesService = {
       if (lastMonthError) throw lastMonthError;
 
       // Calculate totals, converting to base currency if necessary
+      // [FIX] Use shared toBaseCurrency to stay consistent with fetchSalesLog
       const calcTotal = (data: any[]) => data.reduce((sum, inv) => {
-        const amount = Number(inv.total_amount) || 0;
-        const rate = Number(inv.exchange_rate) || 1;
-        return sum + (inv.currency_code === 'SAR' ? amount : amount * rate);
+        return sum + toBaseCurrency(inv);
       }, 0);
 
       const totalSales = calcTotal(thisMonthData || []);

@@ -6,23 +6,47 @@ import { supabase } from '../../../lib/supabaseClient';
 
 // Verification point
 export const accountsService = {
-  getAccounts: async (companyId: string): Promise<Account[]> => {
+  getAccounts: async (companyId: string, options?: { includeBalances?: boolean }): Promise<Account[]> => {
+    // Fetch account metadata
     const { data, error } = await accountsApi.getAccounts(companyId);
     if (error) throw error;
 
-    // تحويل البيانات من السكيما (snake_case) إلى النموذج المطلوب في الواجهة
+    // Balances are fetched from the trial-balance RPC (the accounts table has no
+    // balance column). This aggregation scans the whole current year, so it is
+    // only run when balances are actually needed (e.g. the accounts list view).
+    // Callers that only route by account metadata (id/code/type) skip it entirely.
+    let balanceMap = new Map<string, number>();
+    if (options?.includeBalances) {
+      const now = new Date();
+      const { data: balances, error: balancesError } = await supabase.rpc('report_trial_balance', {
+        p_company_id: companyId,
+        p_from: `${now.getFullYear()}-01-01`,
+        p_to: now.toISOString().split('T')[0],
+        p_branch_id: null
+      });
+      // Fail loudly rather than silently zeroing every account balance.
+      if (balancesError) throw balancesError;
+
+      for (const row of (balances || []) as any[]) {
+        balanceMap.set(row.account_id, Number(row.balance) || 0);
+      }
+    }
+
+    // Map to Account model
     return (data || []).map((acc: any) => ({
       id: acc.id,
       company_id: acc.company_id,
       code: acc.code,
-      name: acc.name_ar, // استخدام الحقل العربي
+      name: acc.name_ar,
       type: acc.type as Account['type'],
-      balance: acc.balance || 0, // الحقل الصحيح في السكيما هو balance وليس current_balance
+      balance: balanceMap.get(acc.id) ?? 0,
       currency_code: acc.currency_code || 'SAR',
       is_system: acc.is_system,
-      parent_id: acc.parent_id ?? undefined
+      parent_id: acc.parent_id ?? undefined,
+      allow_posting: acc.allow_posting ?? true
     }));
   },
+
 
   createAccount: async (data: AccountFormData, companyId: string): Promise<Account> => {
     const { data: account, error } = await accountsApi.createAccount({

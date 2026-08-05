@@ -3,6 +3,7 @@ import { useSalesAnalytics } from '../../hooks/useSalesAnalytics';
 import { useAuthStore } from '../../../auth/store';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { formatCurrency as formatCurrencyUtil, formatNumberDisplay } from '../../../../core/utils';
+import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 
 // Extracted components
 import {
@@ -14,6 +15,44 @@ import {
 } from './components';
 
 type PeriodType = 'today' | 'week' | 'month' | 'quarter' | 'year';
+
+/**
+ * Resolve a period enum to an inclusive [start, end] date range so the
+ * period selector actually filters the backend query (the RPC accepts
+ * p_start_date / p_end_date). Returns null when the range cannot be computed.
+ */
+const resolvePeriodRange = (period: PeriodType): { startDate: string | null; endDate: string | null } => {
+    const now = new Date();
+    // Format in LOCAL time to avoid toISOString() shifting local-midnight dates
+    // a day back in UTC+ timezones.
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    switch (period) {
+        case 'today': {
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            return { startDate: iso(start), endDate: iso(now) };
+        }
+        case 'week': {
+            const dow = (now.getDay() + 6) % 7; // Monday = 0
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+            return { startDate: iso(start), endDate: iso(now) };
+        }
+        case 'month': {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            return { startDate: iso(start), endDate: iso(now) };
+        }
+        case 'quarter': {
+            const qs = [0, 3, 6, 9];
+            const q = now.getMonth() < 3 ? 0 : now.getMonth() < 6 ? 1 : now.getMonth() < 9 ? 2 : 3;
+            const start = new Date(now.getFullYear(), qs[q], 1);
+            return { startDate: iso(start), endDate: iso(now) };
+        }
+        case 'year': {
+            const start = new Date(now.getFullYear(), 0, 1);
+            return { startDate: iso(start), endDate: iso(now) };
+        }
+    }
+};
 
 const SalesAnalyticsView: React.FC = () => {
     const { t } = useTranslation();
@@ -29,30 +68,43 @@ const SalesAnalyticsView: React.FC = () => {
         year: t('year')
     };
 
+    // [FIX] Bind the selected period to actual date bounds so the KPI data
+    // changes when the user switches today/week/month/quarter/year.
+    const { startDate, endDate } = resolvePeriodRange(period);
+
     const {
         isLoading,
+        isError,
+        error,
+        refetch,
         totalSales,
         totalReturns,
         netSales,
         invoiceCount,
-        averageInvoiceValue,
         topProducts,
         topCustomers,
         salesByDay,
         salesByPaymentMethod
     } = useSalesAnalytics({
         companyId: user?.company_id || '',
-        period
+        startDate: startDate || undefined,
+        endDate: endDate || undefined
     });
 
     // Use shared utility functions
     const formatCurrency = (value: number) => formatCurrencyUtil(value, 'SAR');
     const formatNumber = (value: number) => formatNumberDisplay(value);
 
-    // TODO: Fetch actual growth from backend if available in the future.
-    // For now, default to 0 to avoid showing mock data.
-    const salesGrowth = 0;
-    const returnsGrowth = 0;
+    // Derive the average from the SAME period-filtered totals the page shows,
+    // so the value stays internally consistent when the RPC aggregate differs.
+    const consistentAvgInvoice = invoiceCount > 0 ? totalSales / invoiceCount : 0;
+
+    // NOTE: The current `get_sales_analytics` RPC does not return prior-period
+    // totals, so true cross-period growth cannot be computed client-side without
+    // fabricating data. `null` hides growth badges instead of showing misleading
+    // numbers. Extend the RPC to return a previous-period comparison to enable this.
+    const salesGrowth: number | null = null;
+    const returnsGrowth: number | null = null;
 
     // Calculate cash ratio
     const totalPaymentAmount = salesByPaymentMethod.reduce((sum, p) => sum + p.amount, 0);
@@ -91,12 +143,20 @@ const SalesAnalyticsView: React.FC = () => {
                 </div>
             </div>
 
+            {isError && (
+                <ErrorDisplay
+                    error={error?.message || 'تعذّر تحميل بيانات التحليلات'}
+                    onRetry={refetch}
+                    variant="inline"
+                />
+            )}
+
             {/* KPI Cards */}
             <SalesKPIs
                 totalSales={totalSales}
                 netSales={netSales}
                 invoiceCount={invoiceCount}
-                averageInvoiceValue={averageInvoiceValue}
+                averageInvoiceValue={consistentAvgInvoice}
                 totalReturns={totalReturns}
                 topCustomer={topCustomers[0]}
                 topProduct={topProducts[0]}

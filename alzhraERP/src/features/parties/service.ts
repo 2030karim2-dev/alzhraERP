@@ -20,13 +20,20 @@ export const partiesService = {
   getParties: async (companyId: string, type: PartyType): Promise<Party[]> => {
     const { data, error } = await partiesApi.getParties(companyId, type);
     if (error) throw error;
-    return (data || []).map((p: Record<string, unknown>) => ({
-      ...p,
-      category_id: p.category_id,
-      category: (p.party_categories as Record<string, unknown>)?.name || 'عام',
-      balance: Number(p.balance) || 0,
-      status: p.status || 'active'
-    })) as Party[];
+    return (data || []).map((p: Record<string, unknown>) => {
+      // party_balances is a joined array — take the first record's balance
+      const balanceRecords = p.party_balances as Array<{ balance: number; type: string }> | null;
+      const balance = balanceRecords && balanceRecords.length > 0
+        ? Number(balanceRecords[0].balance) || 0
+        : 0;
+      return {
+        ...p,
+        category_id: p.category_id,
+        category: (p.party_categories as Record<string, unknown>)?.name || 'عام',
+        balance,
+        status: p.status || 'active'
+      };
+    }) as Party[];
   },
 
   // ⚡ Server-side party statement via RPC — no frontend aggregation

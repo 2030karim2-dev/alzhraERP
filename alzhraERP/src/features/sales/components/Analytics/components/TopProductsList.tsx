@@ -75,8 +75,8 @@ export const TopProductsList: React.FC<TopProductsListProps> = ({
                                 <p className="text-sm font-bold text-slate-800 dark:text-white">
                                     {formatCurrency(product.revenue)}
                                 </p>
-                                <p className="text-xs text-emerald-500">
-                                    +{Math.round(product.revenue / (totalSales || 1) * 100)}%
+                                <p className="text-xs text-blue-500">
+                                    {totalSales > 0 ? `${Math.round(product.revenue / totalSales * 100)}% من الإجمالي` : ''}
                                 </p>
                             </div>
                         </div>

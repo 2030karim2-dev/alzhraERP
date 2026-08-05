@@ -7,14 +7,22 @@ import { Activity, BarChart2, AreaChart as AreaChartIcon, TrendingUp } from 'luc
 import { useI18nStore } from '@/lib/i18nStore';
 import { cn } from '@/core/utils';
 
+interface SalesByDayPoint {
+    date: string;
+    sales: number;
+    returns?: number;
+}
+
 interface SalesTrendChartProps {
-    salesByDay: Array<{ date: string; sales: number }>;
+    salesByDay: Array<SalesByDayPoint>;
     periodLabel: string;
     formatCurrency: (value: number) => string;
 }
 
 const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
     if (active && payload && payload.length) {
+        const point = payload[0]?.payload as SalesByDayPoint | undefined;
+        const returns = point?.returns ?? 0;
         return (
             <div className="p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
                 <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -29,6 +37,17 @@ const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
                         {formatCurrency(payload[0].value)}
                     </span>
                 </div>
+                {returns > 0 && (
+                    <div className="flex items-center justify-between gap-6 mt-1">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.returns}</span>
+                        </div>
+                        <span className="text-sm font-bold text-rose-500 dark:text-rose-400 font-mono">
+                            {formatCurrency(returns)}
+                        </span>
+                    </div>
+                )}
             </div>
         );
     }
@@ -113,6 +132,17 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                             filter="url(#areaGlow)"
                             activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, fill: '#3b82f6' }}
                         />
+                        <Area
+                            type="monotone"
+                            dataKey="returns"
+                            stroke="#f43f5e"
+                            strokeWidth={2}
+                            strokeDasharray="5 4"
+                            fillOpacity={0.08}
+                            fill="#f43f5e"
+                            connectNulls
+                            dot={false}
+                        />
                     </AreaChart>
                 );
             case 'bar':
@@ -129,6 +159,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                         {yAxis}
                         {tooltip}
                         <Bar dataKey="sales" fill="url(#barGrad)" radius={[6, 6, 0, 0]} barSize={24} minPointSize={1} />
+                        <Bar dataKey="returns" fill="#f43f5e" radius={[6, 6, 0, 0]} barSize={10} opacity={0.35} />
                     </BarChart>
                 );
             case 'line':
@@ -145,6 +176,15 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                             strokeWidth={4}
                             dot={{ fill: '#3b82f6', stroke: '#fff', strokeWidth: 2, r: 4 }}
                             activeDot={{ r: 8, stroke: '#fff', strokeWidth: 3, fill: '#3b82f6' }}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="returns"
+                            stroke="#f43f5e"
+                            strokeWidth={2}
+                            strokeDasharray="5 4"
+                            connectNulls
+                            dot={false}
                         />
                     </LineChart>
                 );
@@ -194,9 +234,19 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                     </button>
                 </div>
             </div>
+            <div className="flex items-center gap-4 mt-1 px-1">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="w-3 h-1 rounded-full bg-blue-500" />
+                    {t.sales}
+                </span>
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="w-3 h-1 rounded-full bg-rose-500" />
+                    {t.returns}
+                </span>
+            </div>
             <div 
                 ref={containerRef}
-                className="h-72 w-full mt-6" 
+                className="h-72 w-full mt-4" 
                 dir="ltr"
             >
                 {isMounted ? (

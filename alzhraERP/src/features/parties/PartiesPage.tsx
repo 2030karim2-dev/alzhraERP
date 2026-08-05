@@ -122,7 +122,8 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                 return (
                     <span dir="ltr" className={cn(
                         "text-sm font-bold font-mono tracking-tighter",
-                        val > 0 ? "text-emerald-600" : val < 0 ? "text-rose-600" : "text-gray-400"
+                        val === 0 ? "text-gray-400" :
+                            (val > 0 ? "text-emerald-600" : "text-rose-600")
                     )}>
                         {formatCurrency(val)}
                     </span>

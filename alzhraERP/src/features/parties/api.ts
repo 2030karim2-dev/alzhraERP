@@ -11,7 +11,7 @@ import { mapToInsert, mapToUpdate } from '../../core/utils/supabaseMappers';
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType) => {
     return await supabase.from('parties')
-      .select('*, party_categories(id, name)')
+      .select('*, party_categories(id, name), party_balances(balance, type)')
       .eq('company_id', companyId)
       .eq('type', type)
       .is('deleted_at', null)

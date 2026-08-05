@@ -306,7 +306,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                                   "bg-gray-50 text-gray-600 border-gray-100"
                             )}>
                               {isDebit ? <TrendingUp size={14} className="no-print" /> : isCredit ? <TrendingDown size={14} className="no-print" /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-current no-print" />}
-                              {isDebit ? "رصيد مدين (له)" : isCredit ? "رصيد دائن (عليه)" : "الرصيد مصفر"}
+                              {isDebit ? "رصيد مدين (عليه)" : isCredit ? "رصيد دائن (له)" : "الرصيد مصفر"}
                             </div>
                           </div>
 

@@ -12,7 +12,7 @@ export const useAccounts = () => {
 
   return useQuery({
     queryKey: ['accounts', user?.company_id],
-    queryFn: () => user?.company_id ? accountingService.getAccounts(user.company_id) : Promise.resolve([]),
+    queryFn: () => user?.company_id ? accountingService.getAccounts(user.company_id, { includeBalances: true }) : Promise.resolve([]),
     enabled: !!user?.company_id
   });
 };
