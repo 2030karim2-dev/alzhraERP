@@ -12,9 +12,26 @@ export const useNewTransfer = (onSuccess: () => void) => {
     const [selectedItems, setSelectedItems] = useState<{ product: any, qty: number }[]>([]);
     const [productQuery, setProductQuery] = useState('');
 
-    const handleAddItem = (p: any) => {
+    const handleAddItem = async (p: any) => {
         if (selectedItems.find(i => i.product.id === p.id)) return;
-        setSelectedItems([...selectedItems, { product: p, qty: 1 }]);
+        
+        let fullProduct = p;
+        if (!fullProduct.warehouse_distribution) {
+            try {
+                const { inventoryService } = await import('../service');
+                const res = await inventoryService.getProductById(p.id);
+                if (res && res.data) {
+                    const mapped = (await import('./../services/productService')).productService.mapRawProducts([res.data]);
+                    if (mapped && mapped.length > 0) {
+                        fullProduct = mapped[0];
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch full product details", e);
+            }
+        }
+        
+        setSelectedItems(prev => [...prev, { product: fullProduct, qty: 1 }]);
         setProductQuery('');
     };
 

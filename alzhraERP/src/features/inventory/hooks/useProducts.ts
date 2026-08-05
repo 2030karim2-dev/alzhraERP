@@ -16,14 +16,14 @@ if (!globalAny.__ALZ_PRODUCT_CHANNELS__) {
 }
 const channelRegistry: Map<string, any> = globalAny.__ALZ_PRODUCT_CHANNELS__;
 
-export const useProducts = (searchTerm: string = '', options: { limitNum?: number, enabled?: boolean } = {}) => {
+export const useProducts = (searchTerm: string = '', options: { limitNum?: number, enabled?: boolean, warehouseId?: string } = {}) => {
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const companyId = user?.company_id;
 
     const query = useQuery({
-        queryKey: ['products', companyId, options.limitNum],
-        queryFn: () => companyId ? inventoryService.getProducts(companyId, 1, options.limitNum || 10000) : Promise.resolve([]),
+        queryKey: ['products', companyId, options.limitNum, options.warehouseId],
+        queryFn: () => companyId ? inventoryService.getProducts(companyId, 1, options.limitNum || 10000, options.warehouseId) : Promise.resolve([]),
         enabled: (options.enabled !== undefined ? options.enabled : true) && !!companyId,
         staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent tab-switching lag
     });

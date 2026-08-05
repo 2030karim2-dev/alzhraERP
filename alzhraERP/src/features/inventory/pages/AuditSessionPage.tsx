@@ -164,7 +164,7 @@ const AuditSessionPage: React.FC = () => {
         setIsScannerOpen(false);
     };
 
-    const handleAddItem = (product: any) => {
+    const handleAddItem = async (product: any) => {
         if (data?.session?.status === 'completed') return;
 
         const currentItems = getValues('items');
@@ -184,10 +184,32 @@ const AuditSessionPage: React.FC = () => {
 
         if (!sessionId) return;
 
-        const stockInfo = product.warehouse_distribution?.find((w: any) => w.warehouse_id === data?.session?.warehouse_id);
-        // [CRITICAL FIX]: Do NOT fallback to product.stock_quantity (which is the TOTAL stock across all warehouses).
-        // If it's not in the current warehouse distribution, the expected quantity for THIS warehouse is exactly 0.
-        const expectedQuantity = stockInfo ? stockInfo.quantity : 0;
+        let fullProduct = product;
+        if (!fullProduct.warehouse_distribution) {
+            try {
+                const { inventoryService } = await import('../service');
+                const res = await inventoryService.getProductById(product.id);
+                // Map the raw product to our domain model to get warehouse_distribution
+                if (res && res.data) {
+                    const mapped = (await import('./../services/productService')).productService.mapRawProducts([res.data], data?.session?.warehouse_id);
+                    if (mapped && mapped.length > 0) {
+                        fullProduct = mapped[0];
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch full product details", e);
+            }
+        }
+
+        // Since we passed warehouse_id to mapRawProducts above, fullProduct.stock_quantity is already isolated!
+        // If it came from elsewhere, we check warehouse_distribution.
+        let expectedQuantity = 0;
+        if (fullProduct.warehouse_distribution) {
+             const stockInfo = fullProduct.warehouse_distribution.find((w: any) => w.warehouse_id === data?.session?.warehouse_id);
+             expectedQuantity = stockInfo ? stockInfo.quantity : 0;
+        } else if (fullProduct.stock_quantity !== undefined) {
+             expectedQuantity = fullProduct.stock_quantity;
+        }
 
         addItemToAudit({ sessionId, productId: product.id, expectedQuantity }, {
             onSuccess: () => {
@@ -220,7 +242,8 @@ const AuditSessionPage: React.FC = () => {
         const existingProductIds = new Set(currentItems.map((i: any) => i.product_id));
 
         const { products: allProducts } = await import('../service').then(async (m) => {
-            const result = await m.inventoryService.getProducts(data?.session?.company_id, 1, 99999);
+            // [CRITICAL FIX]: Pass warehouseId_val to getProducts to ensure stock is isolated to this warehouse
+            const result = await m.inventoryService.getProducts(data?.session?.company_id, 1, 99999, warehouseId_val);
             return { products: Array.isArray(result) ? result : (result as any).data ?? [] };
         }).catch(() => ({ products: [] as any[] }));
 
@@ -237,9 +260,8 @@ const AuditSessionPage: React.FC = () => {
 
         for (let i = 0; i < newProducts.length; i++) {
             const p = newProducts[i];
-            const stockInfo = p.warehouse_distribution?.find((w: any) => w.warehouse_id === warehouseId_val);
-            // [CRITICAL FIX]: Prevent warehouse leak by defaulting to 0 instead of global stock.
-            const expectedQuantity = stockInfo ? stockInfo.quantity : 0;
+            // Since getProducts was called with warehouseId, p.stock_quantity is already the isolated quantity
+            const expectedQuantity = p.stock_quantity || 0;
             await new Promise<void>((resolve) => {
                 addItemToAudit(
                     { sessionId, productId: p.id, expectedQuantity },

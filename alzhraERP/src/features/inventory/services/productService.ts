@@ -40,22 +40,29 @@ export const productService = {
     /**
      * Get all products for a company
      */
-    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000): Promise<Product[]> => {
+    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000, warehouseId?: string): Promise<Product[]> => {
         const { data, error } = await inventoryApi.getProducts(companyId, page, limitNum);
         if (error) throw error;
-        return productService.mapRawProducts(data || []);
+        return productService.mapRawProducts(data || [], warehouseId);
     },
 
     /**
      * Maps raw DB rows (any shape) to the Product domain type.
      * Used both internally and by the paginated hook.
+     * @param warehouseId Optional. If provided, `stock_quantity` will reflect ONLY this warehouse's stock.
      */
-    mapRawProducts: (rows: unknown[]): Product[] => {
+    mapRawProducts: (rows: unknown[], warehouseId?: string): Product[] => {
         return (rows as RawProduct[]).map((prod) => {
             if (!prod || !prod.id) return null;
 
             const stockList = Array.isArray(prod.stock) ? prod.stock : [];
-            const totalStock = stockList.reduce((sum: number, s: RawStock) => {
+            
+            // Warehouse Isolation Fix: Calculate total stock based on warehouseId if provided
+            const relevantStockList = warehouseId 
+                ? stockList.filter(s => s.warehouse_id === warehouseId) 
+                : stockList;
+
+            const totalStock = relevantStockList.reduce((sum: number, s: RawStock) => {
                 const qty = Number(s.quantity);
                 return sum + (isNaN(qty) ? 0 : qty);
             }, 0);

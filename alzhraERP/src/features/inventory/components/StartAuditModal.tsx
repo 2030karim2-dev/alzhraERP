@@ -31,9 +31,8 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
         
         const hasActiveSession = auditSessions?.some((s: any) => s.warehouse_id === formData.warehouse_id && s.status === 'active');
         if (hasActiveSession) {
-            if (!window.confirm('تنبيه: يوجد جلسة جرد نشطة مسبقاً لهذا المستودع. بدء جلسة جديدة قد يسبب تضارباً في الأرصدة. هل أنت متأكد من رغبتك في المتابعة؟')) {
-                return;
-            }
+            alert('تنبيه: يوجد جلسة جرد نشطة مسبقاً لهذا المستودع. لا يمكنك بدء جلسة جديدة قبل إنهاء الجلسة الحالية لتجنب تضارب الأرصدة.');
+            return;
         }
 
         startAudit(formData, { 
