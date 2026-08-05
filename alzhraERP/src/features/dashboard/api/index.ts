@@ -71,6 +71,9 @@ export const dashboardApi = {
         const dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
         const dateTo = new Date().toISOString().split('T')[0];
         const branchParam = branchId || null;
+        
+        // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
+        const activeSignal = signal || new AbortController().signal;
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
         const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes] = await Promise.allSettled([
@@ -80,7 +83,7 @@ export const dashboardApi = {
                 p_branch_id: branchParam,
                 p_date_from: dateFrom,
                 p_date_to: dateTo
-            }).abortSignal(signal as AbortSignal),
+            }).abortSignal(activeSignal),
 
             // 2. Sales Chart Data
             supabase.rpc('get_sales_chart_data', {
@@ -88,20 +91,20 @@ export const dashboardApi = {
                 p_branch_id: branchParam,
                 p_date_from: dateFrom,
                 p_date_to: dateTo
-            }).abortSignal(signal as AbortSignal),
+            }).abortSignal(activeSignal),
 
             // 3. Top Products & Customers
             supabase.rpc('get_top_products_and_customers', {
                 p_company_id: companyId,
                 p_branch_id: branchParam,
                 p_limit: 5
-            }).abortSignal(signal as AbortSignal),
+            }).abortSignal(activeSignal),
 
             // 4. Low Stock Products
             supabase.rpc('get_low_stock_products', {
                 p_company_id: companyId,
                 p_branch_id: branchParam
-            }).abortSignal(signal as AbortSignal),
+            }).abortSignal(activeSignal),
 
             // 5. Expense Categories Summary
             supabase.rpc('get_expense_categories_summary', {
@@ -109,7 +112,7 @@ export const dashboardApi = {
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 p_branch_id: branchParam
-            }).abortSignal(signal as AbortSignal),
+            }).abortSignal(activeSignal),
 
             // 6. Trial Balance for Net Profit
             supabase.rpc('report_trial_balance', {
@@ -117,7 +120,7 @@ export const dashboardApi = {
                 p_from: '2000-01-01',
                 p_to: dateTo,
                 p_branch_id: branchParam
-            } as any).abortSignal(signal as any),
+            } as any).abortSignal(activeSignal as any),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array
