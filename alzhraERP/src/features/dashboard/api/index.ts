@@ -71,9 +71,12 @@ export const dashboardApi = {
         const dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
         const dateTo = new Date().toISOString().split('T')[0];
         const branchParam = branchId || null;
-        
+
         // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
-        const activeSignal = signal || new AbortController().signal;
+        const activeSignal =
+            signal && typeof (signal as any).addEventListener === 'function'
+                ? signal
+                : new AbortController().signal;
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
         const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes] = await Promise.allSettled([

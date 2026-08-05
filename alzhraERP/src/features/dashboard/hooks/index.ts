@@ -120,36 +120,36 @@ export const useDashboardData = (): UseDashboardDataResult => {
   // Realtime channel for dashboard stats
   const queryClient = useQueryClient();
   const { showToast } = useFeedbackStore();
-  
+
   import('react').then(({ useEffect }) => {
     useEffect(() => {
-        if (!companyId) return;
-        const channelKey = `dashboard_sales_${companyId}`;
-        const globalAny = window as any;
-        if (!globalAny.__ALZ_DASHBOARD_CHANNELS__) {
-            globalAny.__ALZ_DASHBOARD_CHANNELS__ = new Map<string, any>();
-        }
-        const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
+      if (!companyId) return;
+      const channelKey = `dashboard_sales_${companyId}`;
+      const globalAny = window as any;
+      if (!globalAny.__ALZ_DASHBOARD_CHANNELS__) {
+        globalAny.__ALZ_DASHBOARD_CHANNELS__ = new Map<string, any>();
+      }
+      const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
 
-        if (!registry.has(channelKey)) {
-            const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
-               const ch = supabase
-                .channel(channelKey)
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
-                    (payload: any) => {
-                        if (payload.new.type === 'sale') {
-                            showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
-                            queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
-                        }
-                    }
-                )
-                .subscribe();
-               registry.set(channelKey, ch);
-            });
-        }
-        return () => { /* no-op */ };
+      if (!registry.has(channelKey)) {
+        const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
+          const ch = supabase
+            .channel(channelKey)
+            .on(
+              'postgres_changes',
+              { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
+              (payload: any) => {
+                if (payload.new.type === 'sale') {
+                  showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
+                  queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
+                }
+              }
+            )
+            .subscribe();
+          registry.set(channelKey, ch);
+        });
+      }
+      return () => { /* no-op */ };
     }, [companyId, queryClient, showToast]);
   });
 
@@ -161,12 +161,8 @@ export const useDashboardData = (): UseDashboardDataResult => {
         return null;
       }
       try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const dateLimit = thirtyDaysAgo.toISOString().split('T')[0];
         const result = await dashboardApi.fetchRawDashboardData(
           companyId,
-          dateLimit,
           signal,
           branchId,
         );
@@ -317,33 +313,33 @@ export const useDashboardStats = () => {
 };
 
 export const useSalesChart = (period: 'today' | 'week' | 'month' | 'year' = 'week') => {
-    const { salesData, isLoading } = useDashboardData();
-    return { chartData: salesData, isLoading };
+  const { salesData, isLoading } = useDashboardData();
+  return { chartData: salesData, isLoading };
 };
 
 export const useInventoryChart = () => {
-    const { categoryData, isLoading } = useDashboardData();
-    return { chartData: categoryData, isLoading };
+  const { categoryData, isLoading } = useDashboardData();
+  return { chartData: categoryData, isLoading };
 };
 
 export const useRecentActivity = (limit: number = 5) => {
-    const { recentActivities, isLoading } = useDashboardData();
-    return { activities: recentActivities.slice(0, limit), isLoading };
+  const { recentActivities, isLoading } = useDashboardData();
+  return { activities: recentActivities.slice(0, limit), isLoading };
 };
 
 export const useTopProducts = (limit: number = 5) => {
-    const { topProducts, isLoading } = useDashboardData();
-    return { products: topProducts.slice(0, limit), isLoading };
+  const { topProducts, isLoading } = useDashboardData();
+  return { products: topProducts.slice(0, limit), isLoading };
 };
 
 export const useTopCustomers = (limit: number = 5) => {
-    const { topCustomers, isLoading } = useDashboardData();
-    return { customers: topCustomers.slice(0, limit), isLoading };
+  const { topCustomers, isLoading } = useDashboardData();
+  return { customers: topCustomers.slice(0, limit), isLoading };
 };
 
 export const useDashboardAlerts = () => {
-    const { alerts, isLoading } = useDashboardData();
-    return { alerts, isLoading, hasAlerts: alerts.length > 0 };
+  const { alerts, isLoading } = useDashboardData();
+  return { alerts, isLoading, hasAlerts: alerts.length > 0 };
 };
 
 export default useDashboardData;
