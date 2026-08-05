@@ -116,13 +116,18 @@ BEGIN
     FOR v_line IN SELECT * FROM jsonb_array_elements(p_lines)
     LOOP
         INSERT INTO public.journal_entry_lines (
-            journal_entry_id, account_id, description, debit_amount, credit_amount
+            journal_entry_id, account_id, description, debit_amount, credit_amount,
+            party_id, currency_code, foreign_amount, exchange_rate
         ) VALUES (
             v_journal_id,
             (v_line->>'account_id')::uuid,
             v_line->>'description',
             COALESCE((v_line->>'debit_amount')::numeric, 0),
-            COALESCE((v_line->>'credit_amount')::numeric, 0)
+            COALESCE((v_line->>'credit_amount')::numeric, 0),
+            (v_line->>'party_id')::uuid,
+            v_line->>'currency_code',
+            (v_line->>'foreign_amount')::numeric,
+            (v_line->>'exchange_rate')::numeric
         );
 
         -- Update Account Balance (Assuming debit increases assets/expenses, credit increases liabilities/equity/revenue)
@@ -341,9 +346,22 @@ BEGIN
             jel.description,
             jel.debit_amount,
             jel.credit_amount,
+            jel.party_id,
+            COALESCE(
+                p_jel.name,
+                p_direct.name,
+                p_inv.name,
+                p_pay.name
+            ) as party_name,
             SUM(jel.debit_amount - jel.credit_amount) OVER (ORDER BY je.entry_date, je.entry_number ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + v_opening_balance as balance
         FROM public.journal_entry_lines jel
         JOIN public.journal_entries je ON jel.journal_entry_id = je.id
+        LEFT JOIN public.parties p_jel ON jel.party_id = p_jel.id
+        LEFT JOIN public.parties p_direct ON je.reference_type IN ('party', 'customer', 'supplier', 'receipt_bond', 'payment_bond', 'manual') AND je.reference_id = p_direct.id
+        LEFT JOIN public.invoices inv ON je.reference_type IN ('sales_invoice', 'invoice', 'purchase_invoice', 'purchase', 'return_sale', 'return_purchase') AND je.reference_id = inv.id
+        LEFT JOIN public.parties p_inv ON inv.party_id = p_inv.id
+        LEFT JOIN public.payments pay ON je.reference_type IN ('payment', 'receipt', 'payment_voucher', 'receipt_voucher') AND je.reference_id = pay.id
+        LEFT JOIN public.parties p_pay ON pay.party_id = p_pay.id
         WHERE je.company_id = p_company_id AND jel.account_id = p_account_id 
           AND je.status = 'posted' AND je.entry_date BETWEEN p_from AND p_to
         ORDER BY je.entry_date, je.entry_number

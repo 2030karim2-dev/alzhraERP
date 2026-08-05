@@ -17,7 +17,7 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
   accounts,
   selectedId,
   onSelect,
-  placeholder = "اختر حساباً...",
+  placeholder = "ابحث برقم أو اسم الحساب...",
   className
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,14 +30,25 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
     [accounts, selectedId]
   );
 
+  useEffect(() => {
+    if (selectedAccount && !isOpen) {
+      setSearch(`${selectedAccount.code} - ${selectedAccount.name}`);
+    } else if (!selectedAccount && !isOpen) {
+      setSearch('');
+    }
+  }, [selectedAccount, isOpen]);
+
   const filteredAccounts = useMemo(() => {
-    if (!search.trim()) return accounts;
     const s = search.toLowerCase();
+    // If search is exactly the selected item's text, show all
+    const isSearchSelected = selectedAccount && s === `${selectedAccount.code} - ${selectedAccount.name}`.toLowerCase();
+    if (!search.trim() || isSearchSelected) return accounts;
+    
     return accounts.filter(a => 
       a.name.toLowerCase().includes(s) || 
       a.code.toLowerCase().includes(s)
     );
-  }, [accounts, search]);
+  }, [accounts, search, selectedAccount]);
 
   const rowVirtualizer = useVirtualizer({
     count: filteredAccounts.length,
@@ -59,40 +70,45 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
 
   return (
     <div className={cn("relative z-30", className)} ref={containerRef}>
-      {/* Trigger Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300 font-cairo",
-          isOpen 
-            ? "border-blue-500 ring-4 ring-blue-500/10 bg-white dark:bg-slate-900 shadow-lg" 
-            : "border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-900"
-        )}
-      >
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className={cn(
-            "p-1.5 rounded-lg shrink-0",
-            selectedAccount ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" : "bg-gray-200 text-gray-400 dark:bg-slate-800"
-          )}>
-            <Building2 size={16} />
-          </div>
-          <div className="flex flex-col items-start truncate overflow-hidden">
-            {selectedAccount ? (
-              <>
-                <span className="text-xs font-black dark:text-blue-100 truncate">{selectedAccount.name}</span>
-                <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-slate-400">{selectedAccount.code}</span>
-              </>
-            ) : (
-              <span className="text-xs font-bold text-gray-400 dark:text-slate-500">{placeholder}</span>
-            )}
-          </div>
-        </div>
-        <ChevronDown 
-          size={16} 
-          className={cn("text-gray-400 transition-transform duration-300", isOpen && "rotate-180")} 
+      <div className="relative group flex items-center">
+        <Search size={16} className="absolute right-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+        <input
+          type="text"
+          value={search}
+          onFocus={() => setIsOpen(true)}
+          onChange={(e) => {
+             setSearch(e.target.value);
+             setIsOpen(true);
+             if (selectedId) {
+               onSelect(''); // Clear selection on type
+             }
+          }}
+          placeholder={placeholder}
+          className={cn(
+            "w-full bg-white dark:bg-slate-900 border py-2.5 pr-11 pl-10 text-sm font-bold outline-none transition-all font-cairo rounded-xl",
+            isOpen ? "border-blue-500 ring-4 ring-blue-500/10 shadow-lg" : "border-gray-200 dark:border-slate-800 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10"
+          )}
         />
-      </button>
+        {selectedId && !isOpen && (
+           <button 
+             onClick={(e) => {
+               e.stopPropagation();
+               onSelect('');
+               setSearch('');
+               setIsOpen(true);
+             }}
+             className="absolute left-10 text-gray-400 hover:text-red-500 transition-colors p-1"
+           >
+             <X size={14} />
+           </button>
+        )}
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute left-3 text-gray-400 hover:text-blue-500 p-1 transition-colors"
+        >
+          <ChevronDown size={16} className={cn("transition-transform duration-300", isOpen && "rotate-180")} />
+        </button>
+      </div>
 
       {/* Dropdown Panel */}
       <AnimatePresence>
@@ -104,29 +120,6 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
             transition={{ duration: 0.2 }}
             className="absolute top-full mt-2 left-0 right-0 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95 flex flex-col max-h-[400px]"
           >
-            {/* Search Input */}
-            <div className="p-3 border-b border-gray-100 dark:border-slate-800 sticky top-0 bg-inherit z-10">
-              <div className="relative group">
-                <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                <input
-                  autoFocus
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ابحث برقم أو اسم الحساب..."
-                  className="w-full bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 rounded-xl py-2 px-9 text-xs font-bold outline-none focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10 transition-all font-cairo"
-                />
-                {search && (
-                  <button 
-                    onClick={() => setSearch('')}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-red-500 transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-
             {/* Accounts List (Virtualized) */}
             <div 
               ref={parentRef}
@@ -163,7 +156,7 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
                           onClick={() => {
                             onSelect(acc.id);
                             setIsOpen(false);
-                            setSearch('');
+                            setSearch(`${acc.code} - ${acc.name}`);
                           }}
                           className={cn(
                             "w-full flex items-center justify-between gap-4 px-4 py-2.5 transition-all outline-none text-right font-cairo",
@@ -193,7 +186,7 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
             </div>
             
             <div className="p-2 bg-gray-50/50 dark:bg-slate-800/20 border-t border-gray-100 dark:border-slate-800 text-center">
-               <span className="text-[10px] font-bold text-gray-400">إجمالي الحسابات: {accounts.length}</span>
+               <span className="text-[10px] font-bold text-gray-400">إجمالي الحسابات: {filteredAccounts.length} من {accounts.length}</span>
             </div>
           </motion.div>
         )}

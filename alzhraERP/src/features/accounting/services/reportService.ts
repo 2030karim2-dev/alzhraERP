@@ -28,7 +28,9 @@ export const reportService = {
             balance: Number(line.balance) || 0,
             currency_code: line.currency_code || 'SAR',
             exchange_rate: Number(line.exchange_rate) || 1,
-            foreign_amount: Number(line.foreign_amount) || 0
+            foreign_amount: Number(line.foreign_amount) || 0,
+            party_id: line.party_id,
+            party_name: line.party_name
         }));
     },
 

@@ -33,6 +33,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     { header: 'التاريخ', accessor: (row: any) => <span dir="ltr" className="font-mono text-xs">{row.date}</span>, width: 'w-24' },
     { header: 'رقم القيد', accessor: (row: any) => row.entry_number > 0 ? <span dir="ltr" className="font-mono text-xs text-blue-600 hover:underline cursor-pointer">#{formatNumberDisplay(row.entry_number)}</span> : '-', width: 'w-24' },
     { header: 'البيان', accessor: (row: any) => <span className="text-xs font-semibold">{row.description}</span>, className: 'text-right min-w-[200px]' },
+    { header: 'العميل / المورد', accessor: (row: any) => row.party_name ? <span className="text-xs font-medium text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">{row.party_name}</span> : <span className="text-gray-400">-</span>, className: 'text-right min-w-[150px]' },
     {
       header: 'مدين',
       accessor: () => null,

@@ -10,6 +10,8 @@ export interface LedgerEntry {
   currency_code?: string;
   exchange_rate?: number;
   foreign_amount?: number;
+  party_id?: string;
+  party_name?: string;
 }
 
 export interface TrialBalanceItem {

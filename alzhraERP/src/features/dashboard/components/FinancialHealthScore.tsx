@@ -28,12 +28,8 @@ const useCountUp = (end: number, duration: number = 1500) => {
         if (end === prevEnd.current) return;
         prevEnd.current = end;
         const startTime = Date.now();
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.round(end * eased));
         let animationFrameId: number;
+        
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -43,6 +39,7 @@ const useCountUp = (end: number, duration: number = 1500) => {
                 animationFrameId = requestAnimationFrame(animate);
             }
         };
+        
         animationFrameId = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(animationFrameId);
     }, [end, duration]);
