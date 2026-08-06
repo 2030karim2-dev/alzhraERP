@@ -180,7 +180,9 @@ export const useInventoryMutations = () => {
         mutationFn: (itemId: string) => {
             return inventoryService.deleteAuditItem(itemId);
         },
-        onSuccess: (_, _itemId) => {
+        onSuccess: () => {
+            // Invalidate specific session caches (not all sessions)
+            queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
             queryClient.invalidateQueries({ queryKey: ['audit_session'] });
             showToast("تم إزالة الصنف من الجلسة", 'info');
         },

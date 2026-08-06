@@ -14,7 +14,7 @@ const StockAuditView: React.FC = () => {
     if (!audits) return { total: 0, active: 0, completed: 0 };
     return {
       total: audits.length,
-      active: audits.filter((a: any) => a.status !== 'completed').length,
+      active: audits.filter((a: any) => a.status === 'active').length,
       completed: audits.filter((a: any) => a.status === 'completed').length,
     };
   }, [audits]);
@@ -103,7 +103,7 @@ const StockAuditView: React.FC = () => {
             </p>
           </div>
         ) : (
-          audits.map((ad: any) => {
+          audits.filter((ad: any) => ad.status !== 'cancelled').map((ad: any) => {
             const isCompleted = ad.status === 'completed';
             const progress = ad.progress ?? 0;
             return (

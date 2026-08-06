@@ -47,14 +47,14 @@ const AuditSessionPage: React.FC = () => {
 
     const {
         items: sessionItems,
-        _isRestoring: isRestoring,
+        isRestoring,
         saveStatus,
         updateItems,
         mergeWithServer,
         clearSession,
     } = useInventorySession({
         sessionId: sessionId ?? '',
-        warehouseId: (data?.session?.warehouse_id as string | undefined) ?? undefined,
+        warehouseId: (data?.session?.warehouse_id as string | undefined),
         initialItems: data?.items ?? [],
     });
 
@@ -203,13 +203,25 @@ const AuditSessionPage: React.FC = () => {
         }
 
         // Since we passed warehouse_id to mapRawProducts above, fullProduct.stock_quantity is already isolated!
-        // If it came from elsewhere, we check warehouse_distribution.
+        // If it came from elsewhere, we check warehouse_distribution first (preferred),
+        // and only fall back to stock_quantity if it was mapped with the warehouse context.
         let expectedQuantity = 0;
+        const warehouseId = data?.session?.warehouse_id;
         if (fullProduct.warehouse_distribution) {
-             const stockInfo = fullProduct.warehouse_distribution.find((w: any) => w.warehouse_id === data?.session?.warehouse_id);
-             expectedQuantity = stockInfo ? stockInfo.quantity : 0;
-        } else if (fullProduct.stock_quantity !== undefined) {
-             expectedQuantity = fullProduct.stock_quantity;
+            const stockInfo = fullProduct.warehouse_distribution.find((w: any) => w.warehouse_id === warehouseId);
+            if (stockInfo) {
+                expectedQuantity = Number(stockInfo.quantity) || 0;
+            } else if (warehouseId && fullProduct.warehouse_distribution.length > 0) {
+                // Warehouse-specific info missing but distribution exists — default to 0
+                // to avoid counting global stock for a different warehouse
+                expectedQuantity = 0;
+            } else {
+                expectedQuantity = Number(fullProduct.stock_quantity) || 0;
+            }
+        } else if (warehouseId && fullProduct.stock_quantity !== undefined) {
+            // If we know the warehouse but this product doesn't have distribution data,
+            // we still use the filtered stock_quantity (mapped by mapRawProducts with warehouse_id)
+            expectedQuantity = Number(fullProduct.stock_quantity) || 0;
         }
 
         addItemToAudit({ sessionId, productId: product.id, expectedQuantity }, {
@@ -291,6 +303,7 @@ const AuditSessionPage: React.FC = () => {
                 icon={ClipboardCheck}
                 actions={
                     <div className="flex gap-2">
+                        {isRestoring && <span className="text-xs text-blue-500 self-center ml-2 animate-pulse">جاري استعادة البيانات...</span>}
                         {saveStatus === 'saving' && <span className="text-xs text-amber-500 self-center ml-2">جاري الحفظ...</span>}
                         {saveStatus === 'saved' && <span className="text-xs text-green-500 self-center ml-2">تم الحفظ</span>}
                         {session?.status !== 'completed' && (
