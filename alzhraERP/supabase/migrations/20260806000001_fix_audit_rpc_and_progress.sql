@@ -101,13 +101,15 @@ CREATE TRIGGER trg_audit_items_recalc
     EXECUTE FUNCTION public.trg_audit_items_recalc();
 
 -- ────────────────────────────────────────────────────────────
--- 4. Rebuild finalize_audit_session with p_company_id validation
+-- 4. Rebuild finalize_audit_session (3 parameters for PostgREST RPC)
 -- ────────────────────────────────────────────────────────────
+DROP FUNCTION IF EXISTS public.finalize_audit_session(UUID, UUID, JSONB, UUID);
+DROP FUNCTION IF EXISTS public.finalize_audit_session(UUID, UUID, JSONB);
+
 CREATE OR REPLACE FUNCTION public.finalize_audit_session(
     p_session_id  UUID,
     p_user_id     UUID,
-    p_items       JSONB,   -- Array of {product_id: UUID, counted_quantity: numeric}
-    p_company_id  UUID DEFAULT NULL  -- Optional: validates ownership
+    p_items       JSONB   -- Array of {product_id: UUID, counted_quantity: numeric}
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -116,58 +118,36 @@ AS $$
 DECLARE
     v_session       RECORD;
     v_item          JSONB;
-    v_product       RECORD;
     v_old_qty       NUMERIC;
     v_new_qty       NUMERIC;
-    v_diff          NUMERIC;
     v_adj_count     INT := 0;
-    v_total_value   NUMERIC := 0;
 BEGIN
-    -- ── 0. Lock & validate the session ──────────────────────
     SELECT * INTO v_session
     FROM public.audit_sessions
     WHERE id = p_session_id
     FOR UPDATE;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Audit session % not found', p_session_id;
-    END IF;
-
-    -- Ownership validation if company_id provided
-    IF p_company_id IS NOT NULL AND v_session.company_id <> p_company_id THEN
-        RAISE EXCEPTION 'Access denied: session does not belong to this company';
+        RAISE EXCEPTION 'Audit session not found';
     END IF;
 
     IF v_session.status = 'completed' THEN
-        -- Idempotent: already done, just return success
         RETURN jsonb_build_object('status', 'already_completed', 'adjusted', 0);
     END IF;
 
-    -- ── 1. Process each item ─────────────────────────────────
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
-        -- Skip items with null counted_quantity
         IF (v_item->>'counted_quantity') IS NULL THEN
             CONTINUE;
         END IF;
 
         v_new_qty := GREATEST(0, (v_item->>'counted_quantity')::NUMERIC);
 
-        -- Update audit_item record
         UPDATE public.audit_items
         SET counted_quantity = v_new_qty
         WHERE session_id = p_session_id
           AND product_id = (v_item->>'product_id')::UUID;
 
-        -- Get current stock in this warehouse
-        SELECT COALESCE(ps.quantity, 0) INTO v_old_qty
-        FROM public.product_stock ps
-        WHERE ps.product_id = (v_item->>'product_id')::UUID
-          AND ps.warehouse_id = v_session.warehouse_id;
-
-        v_diff := v_new_qty - COALESCE(v_old_qty, 0);
-
-        -- Upsert product_stock with counted quantity
         INSERT INTO public.product_stock (product_id, warehouse_id, quantity, company_id)
         VALUES (
             (v_item->>'product_id')::UUID,
@@ -178,44 +158,23 @@ BEGIN
         ON CONFLICT (product_id, warehouse_id)
         DO UPDATE SET quantity = EXCLUDED.quantity;
 
-        -- Accumulate adjustment value for journal (using cost_price)
-        SELECT p.purchase_price INTO v_product
-        FROM public.products p
-        WHERE p.id = (v_item->>'product_id')::UUID;
-
-        IF v_product IS NOT NULL THEN
-            v_total_value := v_total_value + (v_diff * COALESCE((v_product).purchase_price::NUMERIC, 0));
-        END IF;
-
         v_adj_count := v_adj_count + 1;
     END LOOP;
 
-    -- ── 2. Mark session as completed ────────────────────────
     UPDATE public.audit_sessions
     SET status       = 'completed',
         completed_at = NOW(),
-        completed_by = p_user_id,
-        progress     = 100
+        completed_by = p_user_id
     WHERE id = p_session_id;
 
     RETURN jsonb_build_object(
         'status',   'completed',
         'adjusted', v_adj_count
     );
-
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE;
 END;
 $$;
 
-COMMENT ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB, UUID) IS
-'Finalizes an inventory audit session. Updates product_stock quantities
-to match counted quantities, then marks the session as completed.
-Accepts optional p_company_id to validate session ownership.
-All changes are atomic — either everything succeeds or nothing is committed.';
-
-GRANT EXECUTE ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB) TO authenticated;
 
 -- ────────────────────────────────────────────────────────────
 -- 5. Backfill progress/accuracy for existing sessions

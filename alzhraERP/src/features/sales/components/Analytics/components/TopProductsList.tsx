@@ -76,7 +76,7 @@ export const TopProductsList: React.FC<TopProductsListProps> = ({
                                     {formatCurrency(product.revenue)}
                                 </p>
                                 <p className="text-xs text-blue-500">
-                                    {totalSales > 0 ? `${Math.round(product.revenue / totalSales * 100)}% من الإجمالي` : ''}
+                                    {totalSales > 0 ? `${Math.round(product.revenue / totalSales * 100)}% ${t.of_total || 'من الإجمالي'}` : ''}
                                 </p>
                             </div>
                         </div>

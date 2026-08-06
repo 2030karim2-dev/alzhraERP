@@ -18,6 +18,7 @@
   "status": "Status",
   "actions": "Actions",
   "total": "Total",
+  "of_total": "of total",
   "quantity": "Quantity",
   "price": "Price",
   "notes": "Notes",

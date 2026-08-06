@@ -81,6 +81,9 @@ const SalesAnalyticsView: React.FC = () => {
         totalReturns,
         netSales,
         invoiceCount,
+        prevTotalSales,
+        prevTotalReturns,
+        prevNetSales,
         topProducts,
         topCustomers,
         salesByDay,
@@ -99,12 +102,14 @@ const SalesAnalyticsView: React.FC = () => {
     // so the value stays internally consistent when the RPC aggregate differs.
     const consistentAvgInvoice = invoiceCount > 0 ? totalSales / invoiceCount : 0;
 
-    // NOTE: The current `get_sales_analytics` RPC does not return prior-period
-    // totals, so true cross-period growth cannot be computed client-side without
-    // fabricating data. `null` hides growth badges instead of showing misleading
-    // numbers. Extend the RPC to return a previous-period comparison to enable this.
-    const salesGrowth: number | null = null;
-    const returnsGrowth: number | null = null;
+    const salesGrowth = prevTotalSales > 0
+        ? ((totalSales - prevTotalSales) / prevTotalSales) * 100
+        : null;
+    const returnsGrowth = prevTotalReturns > 0
+        ? ((totalReturns - prevTotalReturns) / prevTotalReturns) * 100
+        : totalReturns > 0
+            ? 100
+            : null;
 
     // Calculate cash ratio
     const totalPaymentAmount = salesByPaymentMethod.reduce((sum, p) => sum + p.amount, 0);
@@ -117,7 +122,7 @@ const SalesAnalyticsView: React.FC = () => {
         <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`px-4 py-2 text-xs font-bold transition-all rounded-lg ${period === p
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-bold transition-all rounded-lg min-h-[44px] ${period === p
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
@@ -138,7 +143,7 @@ const SalesAnalyticsView: React.FC = () => {
                         {t('track_sales_performance')}
                     </p>
                 </div>
-                <div className="flex gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-wrap gap-1 sm:gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                     {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(renderPeriodButton)}
                 </div>
             </div>
@@ -171,7 +176,7 @@ const SalesAnalyticsView: React.FC = () => {
             />
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Chart */}
                 <SalesTrendChart
                     salesByDay={salesByDay}
@@ -187,7 +192,7 @@ const SalesAnalyticsView: React.FC = () => {
             </div>
 
             {/* Top Products & Customers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Top Products */}
                 <TopProductsList
                     topProducts={topProducts}

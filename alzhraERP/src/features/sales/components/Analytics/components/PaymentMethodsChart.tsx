@@ -89,9 +89,9 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
                 <Wallet size={18} className="text-purple-600" />
                 {t.payment_methods}
             </h4>
-            <div ref={containerRef} className="h-56 relative group w-full" dir="ltr">
+            <div ref={containerRef} className="h-56 sm:h-64 relative group w-full" dir="ltr">
                 {isMounted && (
-                    <ResponsiveContainer width="99%" height={224}>
+                    <ResponsiveContainer width="99%" height="100%">
                         <PieChart>
                             <defs>
                                 {GRADIENTS.map((g, i) => (
@@ -135,7 +135,7 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
                                                     {formatCurrency(data.amount)}
                                                 </div>
                                                 <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                                                    {Math.round((data.amount / total) * 100)}% من الإجمالي
+                                                    {Math.round((data.amount / total) * 100)}% {t.of_total || 'من الإجمالي'}
                                                 </div>
                                             </div>
                                         );

@@ -86,7 +86,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                             )}
                         </div>
                         <p className="text-blue-100 text-xs font-bold uppercase tracking-wider mb-1">{t.total_sales_amount}</p>
-                        <p className="text-3xl font-bold tracking-tight">
+                        <p className="text-2xl sm:text-3xl font-bold tracking-tight">
                             {isLoading ? '...' : formatCurrency(totalSales)}
                         </p>
                         <p className="text-blue-200 text-xs mt-2">{periodLabel}</p>
@@ -138,7 +138,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
             </div>
 
             {/* KPI Cards Row 2 */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Returns */}
                 <div className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 p-4 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">

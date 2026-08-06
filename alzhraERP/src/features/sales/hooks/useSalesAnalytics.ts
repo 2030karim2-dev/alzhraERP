@@ -19,6 +19,9 @@ interface SalesAnalytics {
     netSales: number;
     invoiceCount: number;
     averageInvoiceValue: number;
+    prevTotalSales: number;
+    prevTotalReturns: number;
+    prevNetSales: number;
     topProducts: {
         productId: string;
         productName: string;
@@ -74,6 +77,9 @@ const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
         netSales: numberField('netSales', 'net_sales'),
         invoiceCount: numberField('invoiceCount', 'invoice_count'),
         averageInvoiceValue: numberField('averageInvoiceValue', 'average_invoice_value'),
+        prevTotalSales: numberField('prevTotalSales', 'prev_total_sales'),
+        prevTotalReturns: numberField('prevTotalReturns', 'prev_total_returns'),
+        prevNetSales: numberField('prevNetSales', 'prev_net_sales'),
 
         topProducts: listField('topProducts', 'top_products').map((p: any, i: number) => ({
             productId: p.productId ?? p.product_id ?? p.id ?? `prod-${i}`,
@@ -120,6 +126,8 @@ export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
         isFetching
     } = useQuery({
         queryKey,
+        staleTime: 60_000,
+        refetchOnWindowFocus: true,
         queryFn: async () => {
             if (!companyId) {
                 return null;
@@ -155,6 +163,9 @@ export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
         netSales: data?.netSales ?? 0,
         invoiceCount: data?.invoiceCount ?? 0,
         averageInvoiceValue: data?.averageInvoiceValue ?? 0,
+        prevTotalSales: data?.prevTotalSales ?? 0,
+        prevTotalReturns: data?.prevTotalReturns ?? 0,
+        prevNetSales: data?.prevNetSales ?? 0,
         topProducts: data?.topProducts ?? [],
         topCustomers: data?.topCustomers ?? [],
         salesByDay: data?.salesByDay ?? [],

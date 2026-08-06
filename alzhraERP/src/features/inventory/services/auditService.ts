@@ -80,8 +80,7 @@ export const auditService = {
         const { error } = await supabase.rpc('finalize_audit_session', {
             p_session_id: sessionId,
             p_user_id: userId,
-            p_items: payloadItems,
-            p_company_id: _companyId || null
+            p_items: payloadItems
         });
         if (error) throw error;
     },
