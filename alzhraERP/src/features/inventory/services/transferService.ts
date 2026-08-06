@@ -7,7 +7,7 @@ export const transferService = {
      * Create a new stock transfer
      */
     createTransfer: async (data: CreateTransferDTO) => {
-        const { data: transfer, error } = await supabase.rpc('process_stock_transfer', {
+        const { data: transfer, error } = await supabase.rpc('create_stock_transfer', {
             p_from_warehouse: data.from_warehouse_id,
             p_to_warehouse: data.to_warehouse_id,
             p_items: data.items,

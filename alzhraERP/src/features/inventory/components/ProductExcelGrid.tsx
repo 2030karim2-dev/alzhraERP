@@ -24,6 +24,7 @@ interface Props {
     onCellUpdate?: (rowIndex: number, accessorKey: string, value: any) => void;
     searchValue?: string;
     onSearchChange?: (value: string) => void;
+    visibleColumns?: string[];
 }
 
 const ProductExcelGrid: React.FC<Props> = ({ 
@@ -41,7 +42,8 @@ const ProductExcelGrid: React.FC<Props> = ({
     colorTheme = "indigo",
     onCellUpdate,
     searchValue,
-    onSearchChange
+    onSearchChange,
+    visibleColumns
 }) => {
     const { saveProduct, bulkDeleteProducts } = useProductMutations();
     const { showToast } = useFeedbackStore();
@@ -84,8 +86,9 @@ const ProductExcelGrid: React.FC<Props> = ({
         onEdit,
         onDeleteRequest: onDelete ? (p) => setDeleteConfirm({ id: p.id, type: 'single' }) : undefined,
         hideActions,
-        extraColumns
-    }), [onEdit, onDelete, hideActions, extraColumns]);
+        extraColumns,
+        visibleColumns
+    }), [onEdit, onDelete, hideActions, extraColumns, visibleColumns]);
 
     if (isLoading) return <TableSkeleton rows={10} cols={6} />;
 

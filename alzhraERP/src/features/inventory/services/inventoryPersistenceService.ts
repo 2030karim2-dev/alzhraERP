@@ -38,7 +38,12 @@ class InventoryPersistenceService {
 
     private setStatus(status: SaveStatus) {
         this._status = status;
-        this.statusListeners.forEach(listener => listener(status));
+        // Defer listener notifications to the next macrotask to prevent
+        // React error #321 (setState during render) when listeners are
+        // React state setters triggered from async chains in effects.
+        setTimeout(() => {
+            this.statusListeners.forEach(listener => listener(status));
+        }, 0);
     }
 
     subscribe(listener: (status: SaveStatus) => void) {

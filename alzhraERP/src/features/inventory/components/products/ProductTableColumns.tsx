@@ -8,13 +8,15 @@ interface GetProductColumnsProps {
     onDeleteRequest?: ((p: Product) => void) | undefined;
     hideActions?: boolean;
     extraColumns?: Column<Product>[];
+    visibleColumns?: string[];
 }
 
 export const getProductColumns = ({ 
     onEdit, 
     onDeleteRequest, 
     hideActions = false,
-    extraColumns = [] 
+    extraColumns = [],
+    visibleColumns
 }: GetProductColumnsProps): Column<Product>[] => {
     const baseColumns: Column<Product>[] = [
         {
@@ -118,7 +120,11 @@ export const getProductColumns = ({
         },
     ];
 
-    const finalColumns = [...baseColumns, ...extraColumns];
+    const filteredBaseColumns = visibleColumns
+        ? baseColumns.filter(col => visibleColumns.includes(col.sortKey || col.accessorKey || ''))
+        : baseColumns;
+
+    const finalColumns = [...filteredBaseColumns, ...extraColumns];
 
     if (!hideActions) {
         finalColumns.push({

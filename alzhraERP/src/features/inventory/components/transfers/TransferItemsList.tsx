@@ -144,6 +144,7 @@ const TransferItemsList: React.FC<Props> = ({
                     title="أصناف المناقلة"
                     subtitle="الأصناف المضافة لعملية التحويل الحالية"
                     colorTheme="blue"
+                    visibleColumns={['name', 'part_number', 'brand', 'size']}
                 />
             </div>
         </div>
