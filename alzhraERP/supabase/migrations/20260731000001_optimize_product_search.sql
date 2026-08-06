@@ -60,11 +60,11 @@ DECLARE
     v_fragment_condition text := '';
 BEGIN
     -- Handle exact barcode match quickly
-    IF EXISTS (SELECT 1 FROM products WHERE company_id = p_company_id AND barcode = p_term LIMIT 1) THEN
+    IF EXISTS (SELECT 1 FROM products AS pb WHERE pb.company_id = p_company_id AND pb.barcode = p_term LIMIT 1) THEN
         RETURN QUERY
         SELECT
             p.id, p.name_ar::text, p.sku::text, p.part_number::text, p.brand::text,
-            p.sale_price, p.cost_price, COALESCE(SUM(ps.quantity), 0) AS stock_quantity,
+            p.sale_price, p.purchase_price AS cost_price, COALESCE(SUM(ps.quantity), 0) AS stock_quantity,
             p.alternative_numbers::text, p.size::text, pc.name::text AS category_name,
             p.image_url::text, p.location::text, p.barcode::text, p.status::text,
             100.0::real AS search_score
@@ -72,7 +72,7 @@ BEGIN
         LEFT JOIN product_stock ps ON ps.product_id = p.id
         LEFT JOIN product_categories pc ON pc.id = p.category_id
         WHERE p.company_id = p_company_id AND p.barcode = p_term AND p.deleted_at IS NULL
-        GROUP BY p.id, p.name_ar, p.sku, p.part_number, p.brand, p.sale_price, p.cost_price, p.alternative_numbers, p.size, pc.name, p.image_url, p.location, p.barcode, p.status;
+        GROUP BY p.id, p.name_ar, p.sku, p.part_number, p.brand, p.sale_price, p.purchase_price, p.alternative_numbers, p.size, pc.name, p.image_url, p.location, p.barcode, p.status;
         RETURN;
     END IF;
 
@@ -80,7 +80,7 @@ BEGIN
     RETURN QUERY
     SELECT
         p.id, p.name_ar::text, p.sku::text, p.part_number::text, p.brand::text,
-        p.sale_price, p.cost_price, COALESCE(SUM(ps.quantity), 0) AS stock_quantity,
+        p.sale_price, p.purchase_price AS cost_price, COALESCE(SUM(ps.quantity), 0) AS stock_quantity,
         p.alternative_numbers::text, p.size::text, pc.name::text AS category_name,
         p.image_url::text, p.location::text, p.barcode::text, p.status::text,
         (
@@ -114,7 +114,7 @@ BEGIN
           -- Simple fallback for fragmented words
           (p.global_search_text ILIKE '%' || replace(p_term, ' ', '%') || '%')
       )
-    GROUP BY p.id, p.name_ar, p.sku, p.part_number, p.brand, p.sale_price, p.cost_price, p.alternative_numbers, p.size, pc.name, p.image_url, p.location, p.barcode, p.status, p.global_search_text
+    GROUP BY p.id, p.name_ar, p.sku, p.part_number, p.brand, p.sale_price, p.purchase_price, p.alternative_numbers, p.size, pc.name, p.image_url, p.location, p.barcode, p.status, p.global_search_text
     ORDER BY search_score DESC
     LIMIT 200;
 END;

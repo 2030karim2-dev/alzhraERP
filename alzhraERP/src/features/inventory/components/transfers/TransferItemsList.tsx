@@ -100,32 +100,61 @@ const TransferItemsList: React.FC<Props> = ({
                             </div>
                             <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                                 {searchResults.length > 0 ? (
-                                    searchResults.map((p: any) => (
-                                        <div 
-                                            key={p.id} 
-                                            onClick={() => onAddItem?.(p)} 
-                                            className="p-3 border-b last:border-0 dark:border-slate-800 flex justify-between items-center hover:bg-blue-50 dark:hover:bg-slate-800 cursor-pointer group transition-colors"
-                                        >
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-xs font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                                                    {p.name_ar || p.name}
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    {p.part_number && (
-                                                        <span className="text-[9px] font-black font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded">
-                                                            {p.part_number}
+                                    <table className="w-full text-right border-collapse">
+                                        <thead className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+                                            <tr>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 whitespace-nowrap">اسم المنتج</th>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 whitespace-nowrap">رقم المنتج</th>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 whitespace-nowrap">الشركة الصانعة</th>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 whitespace-nowrap">المقاس</th>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 whitespace-nowrap">الكمية الموجودة</th>
+                                                <th className="px-3 py-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700 text-center whitespace-nowrap w-10">إضافة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {searchResults.map((p: any) => (
+                                                <tr 
+                                                    key={p.id} 
+                                                    onClick={() => onAddItem?.(p)}
+                                                    className="group hover:bg-blue-50/80 dark:hover:bg-blue-900/20 cursor-pointer transition-all duration-150"
+                                                >
+                                                    <td className="px-3 py-2">
+                                                        <p className="text-xs font-black text-slate-800 dark:text-slate-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 truncate max-w-[200px]" title={p.name_ar || p.name}>
+                                                            {p.name_ar || p.name}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-3 py-2">
+                                                        <span className="text-[10px] font-bold font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                                            {p.part_number || p.sku || '-'}
                                                         </span>
-                                                    )}
-                                                    {p.manufacturer && <span className="text-[9px] font-bold text-gray-400 italic">{p.manufacturer}</span>}
-                                                </div>
-                                            </div>
-                                            <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center scale-90 group-hover:scale-100 transition-transform shadow-sm">
-                                                <Plus size={18} className="text-emerald-600" />
-                                            </div>
-                                        </div>
-                                    ))
+                                                    </td>
+                                                    <td className="px-3 py-2">
+                                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[100px] block" title={p.brand || p.manufacturer || '-'}>
+                                                            {p.brand || p.manufacturer || '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-2">
+                                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[80px] block" title={p.size || '-'}>
+                                                            {p.size || '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-2">
+                                                        <div className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 min-w-[40px]">
+                                                            {p.stock_quantity ?? p.quantity ?? 0}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center">
+                                                        <div className="mx-auto w-6 h-6 rounded bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center scale-90 group-hover:scale-100 transition-transform shadow-sm">
+                                                            <Plus size={14} className="text-emerald-600 dark:text-emerald-400" />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 ) : (
-                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-950">
+                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-2">
+                                        <PackageSearch size={32} className="text-gray-300 dark:text-slate-700" />
                                         <p className="text-xs font-black text-gray-400">عذراً، لا توجد نتائج مطابقة لبحثك</p>
                                     </div>
                                 )}
