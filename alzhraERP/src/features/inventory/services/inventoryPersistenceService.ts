@@ -147,7 +147,7 @@ class InventoryPersistenceService {
                 .from('inventory_session_drafts')
                 .select('*')
                 .eq('session_id', sessionId)
-                .single();
+                .maybeSingle();
 
             if (error || !data) return null;
 
