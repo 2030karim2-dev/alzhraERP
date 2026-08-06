@@ -17,23 +17,24 @@ import UpdatePasswordPage from '../features/auth/UpdatePasswordPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 
 // Lazy Loaded Features — each isolated by FeatureBoundary
-const InventoryPage            = lazy(() => import('../features/inventory/InventoryPage'));
-const AuditSessionPage         = lazy(() => import('../features/inventory/pages/AuditSessionPage'));
+const InventoryPage = lazy(() => import('../features/inventory/InventoryPage'));
+const AuditSessionPage = lazy(() => import('../features/inventory/pages/AuditSessionPage'));
+const QuickAuditPage = lazy(() => import('../features/inventory/pages/QuickAuditPage'));
 
-const POSPage                  = lazy(() => import('../features/pos/pages/POSPage'));
-const SalesPage                = lazy(() => import('../features/sales/pages/SalesPage'));
-const AccountingPage           = lazy(() => import('../features/accounting/AccountingPage'));
-const PurchasesPage            = lazy(() => import('../features/purchases/pages/PurchasesPage'));
-const VehiclesPage             = lazy(() => import('../features/vehicles/VehiclesPage'));
+const POSPage = lazy(() => import('../features/pos/pages/POSPage'));
+const SalesPage = lazy(() => import('../features/sales/pages/SalesPage'));
+const AccountingPage = lazy(() => import('../features/accounting/AccountingPage'));
+const PurchasesPage = lazy(() => import('../features/purchases/pages/PurchasesPage'));
+const VehiclesPage = lazy(() => import('../features/vehicles/VehiclesPage'));
 const VehicleCompatibilityPage = lazy(() => import('../features/inventory/pages/VehicleCompatibilityPage'));
-const ExpensesPage             = lazy(() => import('../features/expenses/pages/ExpensesPage'));
-const SettingsPage             = lazy(() => import('../features/settings/SettingsPage'));
-const AppearancePage           = lazy(() => import('../features/appearance/AppearancePage'));
-const BondsPage                = lazy(() => import('../features/bonds/BondsPage'));
-const PartiesPage              = lazy(() => import('../features/parties/PartiesPage'));
-const ReportsPage              = lazy(() => import('../features/reports/ReportsPage'));
-const AICommandCenter          = lazy(() => import('../features/ai/AICommandCenter'));
-const AIBrainPage              = lazy(() => import('../features/ai/AIBrainPage'));
+const ExpensesPage = lazy(() => import('../features/expenses/pages/ExpensesPage'));
+const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
+const AppearancePage = lazy(() => import('../features/appearance/AppearancePage'));
+const BondsPage = lazy(() => import('../features/bonds/BondsPage'));
+const PartiesPage = lazy(() => import('../features/parties/PartiesPage'));
+const ReportsPage = lazy(() => import('../features/reports/ReportsPage'));
+const AICommandCenter = lazy(() => import('../features/ai/AICommandCenter'));
+const AIBrainPage = lazy(() => import('../features/ai/AIBrainPage'));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
@@ -62,9 +63,9 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Auth Routes */}
-      <Route path={ROUTES.AUTH.LANDING}         element={<GuestGuard><LandingPage /></GuestGuard>} />
-      <Route path={ROUTES.AUTH.LOGIN}           element={<Navigate to={ROUTES.AUTH.LANDING} replace />} />
-      <Route path={ROUTES.AUTH.REGISTER}        element={<Navigate to={ROUTES.AUTH.LANDING} replace />} />
+      <Route path={ROUTES.AUTH.LANDING} element={<GuestGuard><LandingPage /></GuestGuard>} />
+      <Route path={ROUTES.AUTH.LOGIN} element={<Navigate to={ROUTES.AUTH.LANDING} replace />} />
+      <Route path={ROUTES.AUTH.REGISTER} element={<Navigate to={ROUTES.AUTH.LANDING} replace />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<GuestGuard><ForgotPasswordPage /></GuestGuard>} />
       <Route path={ROUTES.AUTH.UPDATE_PASSWORD} element={<GuestGuard><UpdatePasswordPage /></GuestGuard>} />
 
@@ -79,6 +80,8 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="inventory"><InventoryPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.INVENTORY_AUDIT_SESSION}
           element={<FeatureBoundary name="audit-session"><AuditSessionPage /></FeatureBoundary>} />
+        <Route path={ROUTES.DASHBOARD.INVENTORY_QUICK_AUDIT}
+          element={<FeatureBoundary name="quick-audit"><QuickAuditPage /></FeatureBoundary>} />
 
 
         {/* Transactional */}
@@ -125,7 +128,7 @@ export const AppRoutes: React.FC = () => {
 
         {/* AI */}
         <Route path="/ai-center"
-          element={<FeatureBoundary name="ai-center"><AICommandCenter isOpen={true} onClose={() => {}} /></FeatureBoundary>} />
+          element={<FeatureBoundary name="ai-center"><AICommandCenter isOpen={true} onClose={() => { }} /></FeatureBoundary>} />
         <Route path="/ai-brain"
           element={<FeatureBoundary name="ai-brain"><AIBrainPage /></FeatureBoundary>} />
 

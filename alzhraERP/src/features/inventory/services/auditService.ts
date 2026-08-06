@@ -48,7 +48,7 @@ export const auditService = {
                 .eq('product_id', productId)
                 .eq('warehouse_id', session.warehouse_id)
                 .maybeSingle();
-                
+
             if (stockData) {
                 calculatedExpectedQuantity = Number(stockData.quantity) || 0;
             } else {
@@ -70,7 +70,7 @@ export const auditService = {
     /**
      * Finalize an audit session
      */
-    finalizeAudit: async (sessionId: string, items: AuditItemInput[], userId: string) => {
+    finalizeAudit: async (sessionId: string, items: AuditItemInput[], userId: string, _companyId?: string) => {
         const payloadItems = items.map(i => {
             let qty = i.counted_quantity;
             if (typeof qty === 'string' && qty === '') qty = null as any;
@@ -81,9 +81,11 @@ export const auditService = {
             p_session_id: sessionId,
             p_user_id: userId,
             p_items: payloadItems
+            // NOTE: p_company_id is NOT a parameter of finalize_audit_session
         });
         if (error) throw error;
     },
+
 
     /**
      * Get all audit sessions for a company
@@ -122,11 +124,11 @@ export const auditService = {
             items: (items || []).map((i: Record<string, unknown>) => {
                 const pRaw = i.products as any;
                 const p = Array.isArray(pRaw) ? pRaw[0] : pRaw;
-                
+
                 return {
                     ...i,
-                    products: { 
-                        name: p?.name_ar || 'بدون اسم', 
+                    products: {
+                        name: p?.name_ar || 'بدون اسم',
                         sku: p?.sku || '---',
                         part_number: p?.part_number || null,
                         brand: p?.brand || null,

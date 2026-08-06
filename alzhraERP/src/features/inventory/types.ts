@@ -1,4 +1,4 @@
-export type InventoryView = 'products' | 'warehouses' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
+export type InventoryView = 'products' | 'categories' | 'warehouses' | 'vehicles' | 'history' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
 
 export interface CarCompatibility {
   make: string;

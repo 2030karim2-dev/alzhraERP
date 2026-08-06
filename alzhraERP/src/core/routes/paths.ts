@@ -11,6 +11,7 @@ export const ROUTES = {
     ROOT: '/',
     INVENTORY: '/inventory',
     INVENTORY_AUDIT_SESSION: '/inventory/audit/:sessionId',
+    INVENTORY_QUICK_AUDIT: '/inventory/quick-audit',
     ACCOUNTING: '/accounting',
     SALES: '/sales',
     PURCHASES: '/purchases',
