@@ -178,7 +178,7 @@ export const reportsService = {
     };
   },
 
-  // ⚡ Fix: Removed Math.random() — unrealized gain is now 0
+  // ⚡ Actual currency gain/loss using exchange_rates table
   getCurrencyDiffs: async (companyId: string): Promise<CurrencyAccount[]> => {
     const { data: company } = await supabase
       .from('companies')
@@ -187,7 +187,7 @@ export const reportsService = {
       .single();
     const baseCurrency = company?.base_currency || 'SAR';
 
-    const [{ data: accounts }, { data: balances }] = await Promise.all([
+    const [{ data: accounts }, { data: balances }, { data: rates }] = await Promise.all([
       supabase.from('accounts')
         .select('id, name_ar, currency_code')
         .eq('company_id', companyId)
@@ -196,18 +196,31 @@ export const reportsService = {
         .neq('currency_code', baseCurrency),
       supabase.from('account_balances')
         .select('account_id, balance')
+        .eq('company_id', companyId),
+      supabase.from('exchange_rates')
+        .select('currency_code, rate')
         .eq('company_id', companyId)
+        .order('date', { ascending: false })
     ]);
 
     const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
+    const rateMap = new Map((rates || []).map((r: any) => [r.currency_code, Number(r.rate)]));
 
-    return (accounts || []).map((a: any): CurrencyAccount => ({
-      id: a.id,
-      name: a.name_ar,
-      currency_code: a.currency_code,
-      balance: Math.abs(balanceMap.get(a.id) || 0),
-      unrealizedGain: 0
-    }));
+    return (accounts || []).map((a: any): CurrencyAccount => {
+      const balance = Math.abs(balanceMap.get(a.id) || 0);
+      const rate = rateMap.get(a.currency_code);
+      // Calculate unrealized gain: balance converted at current rate vs base
+      // If no exchange rate found, show 0 for gain
+      const unrealizedGain = rate ? balance * rate - balance : 0;
+
+      return {
+        id: a.id,
+        name: a.name_ar,
+        currency_code: a.currency_code,
+        balance,
+        unrealizedGain: Math.round(unrealizedGain * 100) / 100
+      };
+    });
   },
 
   /**
@@ -277,7 +290,7 @@ export const reportsService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    
+
     return (data || []).map((line: any) => ({
       id: line.id,
       date: line.journal_entries?.entry_date,

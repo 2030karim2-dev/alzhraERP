@@ -35,6 +35,7 @@ export const useTrialBalance = (fromDate?: string, toDate?: string, options: { e
             }));
         },
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };
 
@@ -66,6 +67,7 @@ export const useProfitAndLoss = (fromDate?: string, toDate?: string, options: { 
             };
         },
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };
 
@@ -75,6 +77,7 @@ export const useDebtReport = (options: { enabled?: boolean } = {}) => {
         queryKey: ['debt_report', user?.company_id],
         queryFn: () => user?.company_id ? reportsService.getDebtReport(user.company_id) : Promise.reject("No Auth"),
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };
 
@@ -84,6 +87,7 @@ export const useBalanceSheet = (options: { enabled?: boolean } = {}) => {
         queryKey: ['balance_sheet', user?.company_id],
         queryFn: () => user?.company_id ? reportsService.getBalanceSheet(user.company_id) : Promise.resolve(null),
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };
 
@@ -93,6 +97,7 @@ export const useCurrencyDiffs = (options: { enabled?: boolean } = {}) => {
         queryKey: ['currency_diffs', user?.company_id],
         queryFn: () => user?.company_id ? reportsService.getCurrencyDiffs(user.company_id) : Promise.resolve([]),
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };
 
@@ -102,5 +107,6 @@ export const useCashFlow = (options: { enabled?: boolean } = {}) => {
         queryKey: ['cash_flow', user?.company_id],
         queryFn: () => user?.company_id ? reportsService.getCashFlow(user.company_id) : Promise.resolve(null),
         enabled: (options.enabled !== false) && !!user?.company_id,
+        staleTime: 5 * 60 * 1000, // 5 min
     });
 };

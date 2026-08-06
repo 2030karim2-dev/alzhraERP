@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import {
   BarChart3, Scale, PieChart, Wallet, History,
   Droplets, ShoppingCart, TrendingDown, Clock,
@@ -9,34 +9,56 @@ import FullscreenContainer from '../../ui/base/FullscreenContainer';
 import { ReportTab } from './types';
 import DebtReportView from './components/DebtReportView';
 import TrialBalanceView from './components/TrialBalanceView';
-import ProfitLossView from './components/ProfitLossView';
 import BalanceSheetView from './components/BalanceSheetView';
 import CurrencyDiffView from './components/CurrencyDiffView';
-import InventoryMovementView from './components/InventoryMovementView';
 import ReturnsReportView from './components/ReturnsReportView';
-import CashFlowView from './components/CashFlowView';
 import DailySalesReport from './components/DailySalesReport';
 import OperationalExpensesReport from './components/OperationalExpensesReport';
 import DebtAgingReport from './components/DebtAgingReport';
+import ReportErrorBoundary from './components/ReportErrorBoundary';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import './reportStyles.css';
 import { cn } from '../../core/utils';
 
-type ReportCategory = 'all' | 'ai' | 'sales' | 'financial' | 'accounting';
+// Lazy-loaded heavy chart components for code splitting
+const ProfitLossView = lazy(() => import('./components/ProfitLossView'));
+const InventoryMovementView = lazy(() => import('./components/InventoryMovementView'));
+const CashFlowView = lazy(() => import('./components/CashFlowView'));
 
-/** Components map — only the active tab renders (no display:none) */
-const ALL_REPORT_COMPONENTS: Partial<Record<ReportTab, React.ReactNode>> = {
-  daily_sales: <DailySalesReport />,
-  returns_report: <ReturnsReportView />,
-  debt_report: <DebtReportView />,
-  debt_aging: <DebtAgingReport />,
-  operational_expenses: <OperationalExpensesReport />,
-  trial_balance: <TrialBalanceView />,
-  p_and_l: <ProfitLossView />,
-  balance_sheet: <BalanceSheetView />,
-  currency_diff: <CurrencyDiffView />,
-  item_movement: <InventoryMovementView />,
-  cash_flow: <CashFlowView />,
+type ReportCategory = 'all' | 'sales' | 'financial' | 'accounting';
+
+const reportLabels: Record<ReportTab, string> = {
+  daily_sales: 'المبيعات اليومي',
+  returns_report: 'تقرير المرتجعات',
+  debt_report: 'debt_report',
+  debt_aging: 'أعمار الديون',
+  operational_expenses: 'المصاريف التشغيلية',
+  trial_balance: 'trial_balance',
+  p_and_l: 'profit_and_loss',
+  balance_sheet: 'balance_sheet',
+  currency_diff: 'currency_differences',
+  item_movement: 'item_movement',
+  cash_flow: 'cash_flow',
+};
+
+/** Lazy render map — components are only created when the tab becomes active */
+const renderReportComponent = (tab: ReportTab): React.ReactNode => {
+  const loadingFallback = <div className="p-10 text-center animate-pulse text-slate-400 text-sm">جاري تحميل التقرير...</div>;
+
+  switch (tab) {
+    case 'daily_sales': return <DailySalesReport />;
+    case 'returns_report': return <ReturnsReportView />;
+    case 'debt_report': return <DebtReportView />;
+    case 'debt_aging': return <DebtAgingReport />;
+    case 'operational_expenses': return <OperationalExpensesReport />;
+    case 'trial_balance': return <TrialBalanceView />;
+    case 'p_and_l': return <Suspense fallback={loadingFallback}><ProfitLossView /></Suspense>;
+    case 'balance_sheet': return <BalanceSheetView />;
+    case 'currency_diff': return <CurrencyDiffView />;
+    case 'item_movement': return <Suspense fallback={loadingFallback}><InventoryMovementView /></Suspense>;
+    case 'cash_flow': return <Suspense fallback={loadingFallback}><CashFlowView /></Suspense>;
+    default: return null;
+  }
 };
 
 const ReportsPage: React.FC = () => {
@@ -63,7 +85,7 @@ const ReportsPage: React.FC = () => {
     { id: 'cash_flow', label: t('cash_flow'), icon: Droplets, category: 'financial' },
     { id: 'currency_diff', label: t('currency_differences'), icon: PieChart, category: 'accounting' },
     { id: 'p_and_l', label: t('profit_and_loss'), icon: PieChart, category: 'financial' },
-    { id: 'balance_sheet', label: t('バランスシート'), icon: Wallet, category: 'financial' },
+    { id: 'balance_sheet', label: t('balance_sheet'), icon: Wallet, category: 'financial' },
   ];
 
   const filteredTabs = useMemo(() => {
@@ -93,10 +115,10 @@ const ReportsPage: React.FC = () => {
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all whitespace-nowrap text-[10px] font-bold uppercase tracking-tight",
+                    "flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap text-xs font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px]",
                     activeCategory === cat.id
                       ? "bg-slate-900 text-white border-slate-900 shadow-lg scale-105"
-                      : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800 hover:border-slate-400"
+                      : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800 hover:border-slate-400 active:scale-95"
                   )}
                 >
                   <cat.icon size={14} className={activeCategory === cat.id ? "text-white" : cat.color} />
@@ -107,10 +129,17 @@ const ReportsPage: React.FC = () => {
           }
         />
 
+        {/* Visible tab count indicator */}
+        <div className="text-center py-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800/50">
+          {activeTab} ({filteredTabs.length}/{allTabs.length})
+        </div>
+
         <div className="flex-1 overflow-hidden flex flex-col relative z-20">
-          <div className="flex-1 overflow-y-auto px-2 md:px-4 pt-5 md:pt-6 pb-24 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-2 md:px-4 pt-4 md:pt-5 pb-24 md:pb-28 custom-scrollbar">
             <div className="max-w-none mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {ALL_REPORT_COMPONENTS[activeTab]}
+              <ReportErrorBoundary reportName={t(reportLabels[activeTab])}>
+                {renderReportComponent(activeTab)}
+              </ReportErrorBoundary>
             </div>
           </div>
         </div>

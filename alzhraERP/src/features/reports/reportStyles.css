@@ -112,3 +112,62 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+
+/* ============ Print Styles ============ */
+@media print {
+
+    /* Hide non-essential UI elements */
+    .no-print,
+    header,
+    nav,
+    .MicroHeader,
+    button,
+    .ShareButton,
+    .extra-row,
+    .category-badge {
+        display: none !important;
+    }
+
+    /* Full-width print layout */
+    body {
+        background: white !important;
+        font-size: 12pt;
+        color: black !important;
+    }
+
+    .glass-card,
+    .glass-panel,
+    .bento-item {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        background: white !important;
+        backdrop-filter: none !important;
+        transform: none !important;
+    }
+
+    .stat-value-profit,
+    .stat-value-loss {
+        text-shadow: none !important;
+    }
+
+    /* Ensure tables fit */
+    table {
+        font-size: 10pt;
+    }
+
+    /* Color-safe accents */
+    .dark .glass-card,
+    .dark .glass-panel {
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Hide animations */
+    .animate-in,
+    .fade-in,
+    .slide-in-from-bottom-4 {
+        animation: none !important;
+    }
+}
