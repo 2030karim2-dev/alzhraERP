@@ -1,8 +1,10 @@
 // ============================================
 // QuickAuditItemsTable — جدول أصناف التسوية السريعة (Excel Style)
+// مع عرض بطاقات متجاوب للهاتف
 // ============================================
 import React from 'react';
 import { ScanBarcode, X } from 'lucide-react';
+import { useBreakpoint } from '../../../../lib/hooks/useBreakpoint';
 
 export interface AdjustedItem {
     product_id: string;
@@ -24,6 +26,8 @@ interface Props {
 }
 
 const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemoveItem }) => {
+    const isDesktop = useBreakpoint('md');
+
     if (items.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 dark:bg-slate-900/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
@@ -36,6 +40,72 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
         );
     }
 
+    // ── Mobile Card View ─────────────────────────────────────────────
+    if (!isDesktop) {
+        return (
+            <div className="space-y-3">
+                {items.map((item) => {
+                    const difference = item.quantity - item.system_quantity;
+                    const diffColor = difference > 0 ? 'text-emerald-500' : difference < 0 ? 'text-rose-500' : 'text-gray-300';
+                    return (
+                        <div key={item.product_id} className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                            {/* Header */}
+                            <div className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b dark:border-slate-700 flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-bold text-sm text-gray-900 dark:text-gray-100 line-clamp-1">{item.name_ar}</p>
+                                    <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 mt-0.5">
+                                        {item.part_number || item.sku}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => onRemoveItem(item.product_id)}
+                                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all active:scale-95"
+                                >
+                                    <X size={16} strokeWidth={3} />
+                                </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-3 space-y-2">
+                                {item.brand && (
+                                    <span className="inline-block bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[9px] font-bold text-slate-600 dark:text-slate-400">
+                                        {item.brand}
+                                    </span>
+                                )}
+
+                                {/* Quantities */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg py-2">
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">المخزون الحالي</p>
+                                        <p className="font-mono font-black text-gray-500 dark:text-gray-300 text-lg leading-none">{item.system_quantity}</p>
+                                    </div>
+                                    <div className="text-center bg-blue-50/50 dark:bg-blue-900/10 rounded-lg py-2">
+                                        <p className="text-[8px] font-bold text-blue-500 uppercase mb-1">الجرد الفعلي</p>
+                                        <input
+                                            type="number"
+                                            value={item.quantity === 0 ? '' : item.quantity}
+                                            onChange={(e) => onUpdateQuantity(item.product_id, e.target.value)}
+                                            onFocus={(e) => { if (item.quantity === 0) e.target.select(); }}
+                                            className="w-full bg-white dark:bg-slate-950 border-2 border-blue-200 dark:border-blue-900/50 rounded-lg py-1 px-1 text-center font-bold font-mono text-blue-600 dark:text-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-colors outline-none leading-none text-lg"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div className="text-center bg-emerald-50/30 dark:bg-emerald-900/5 rounded-lg py-2">
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">الفارق</p>
+                                        <p className={`font-mono font-black text-lg leading-none ${diffColor}`}>
+                                            {difference > 0 ? `+${difference}` : difference}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // ── Desktop Table View ───────────────────────────────────────────
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border-2 border-slate-200 dark:border-slate-800 overflow-hidden max-w-full">
             <div className="overflow-x-auto custom-scrollbar bg-white dark:bg-slate-950">

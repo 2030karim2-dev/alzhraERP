@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
 import { Product } from '../types';
 
 export const useInventoryView = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const isDesktop = useBreakpoint('md');
   const initialSearch = searchParams.get('search') || '';
   const [searchTerm, setSearchTermState] = useState(initialSearch);
   const [activeView, setActiveView] = useState('products');
-  const [displayMode, setDisplayMode] = useState<'table' | 'grid'>('table');
+  const [displayMode, setDisplayMode] = useState<'table' | 'grid'>(isDesktop ? 'table' : 'grid');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,9 +34,9 @@ export const useInventoryView = () => {
     setEditingProduct(null);
     setIsModalOpen(true);
   };
-  
+
   const handleCloseModal = () => {
-      setIsModalOpen(false);
+    setIsModalOpen(false);
   };
 
   return {

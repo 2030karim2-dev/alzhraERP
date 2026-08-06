@@ -12,20 +12,21 @@ type PrefetchFn = () => Promise<unknown>;
 // Map each route path to its dynamic import
 // Must match the lazy() imports in routes.tsx exactly
 const ROUTE_PREFETCH_MAP: Record<string, PrefetchFn> = {
-  '/inventory':            () => import('../../features/inventory/InventoryPage'),
-  '/pos':                  () => import('../../features/pos/pages/POSPage'),
-  '/sales':                () => import('../../features/sales/pages/SalesPage'),
-  '/accounting':           () => import('../../features/accounting/AccountingPage'),
-  '/purchases':            () => import('../../features/purchases/pages/PurchasesPage'),
-  '/expenses':             () => import('../../features/expenses/pages/ExpensesPage'),
-  '/settings':             () => import('../../features/settings/SettingsPage'),
-  '/bonds':                () => import('../../features/bonds/BondsPage'),
-  '/parties':              () => import('../../features/parties/PartiesPage'),
-  '/parties/customers':    () => import('../../features/parties/PartiesPage'),
-  '/parties/suppliers':    () => import('../../features/parties/PartiesPage'),
-  '/reports':              () => import('../../features/reports/ReportsPage'),
-  '/ai-brain':             () => import('../../features/ai/AIBrainPage'),
-  '/vehicles':             () => import('../../features/vehicles/VehiclesPage'),
+  '/inventory': () => import('../../features/inventory/InventoryPage'),
+  '/inventory/quick-audit': () => import('../../features/inventory/pages/QuickAuditPage'),
+  '/pos': () => import('../../features/pos/pages/POSPage'),
+  '/sales': () => import('../../features/sales/pages/SalesPage'),
+  '/accounting': () => import('../../features/accounting/AccountingPage'),
+  '/purchases': () => import('../../features/purchases/pages/PurchasesPage'),
+  '/expenses': () => import('../../features/expenses/pages/ExpensesPage'),
+  '/settings': () => import('../../features/settings/SettingsPage'),
+  '/bonds': () => import('../../features/bonds/BondsPage'),
+  '/parties': () => import('../../features/parties/PartiesPage'),
+  '/parties/customers': () => import('../../features/parties/PartiesPage'),
+  '/parties/suppliers': () => import('../../features/parties/PartiesPage'),
+  '/reports': () => import('../../features/reports/ReportsPage'),
+  '/ai-brain': () => import('../../features/ai/AIBrainPage'),
+  '/vehicles': () => import('../../features/vehicles/VehiclesPage'),
 };
 
 // Track which routes have already been prefetched to avoid duplicate fetches
@@ -66,7 +67,7 @@ export function prefetchRoute(path: string): void {
 export function prefetchCriticalRoutes(): void {
   // Prefetch the most commonly visited pages first
   const criticalRoutes = ['/pos', '/sales', '/inventory', '/accounting'];
-  
+
   // Stagger prefetching to avoid network congestion
   criticalRoutes.forEach((path, index) => {
     setTimeout(() => prefetchRoute(path), index * 300);
