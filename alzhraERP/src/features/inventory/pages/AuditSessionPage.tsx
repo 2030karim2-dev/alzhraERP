@@ -149,7 +149,8 @@ const AuditSessionPage: React.FC = () => {
             }
         }
         if (sessionId) {
-            finalizeAudit({ sessionId, items: sessionItems }, {
+            const currentItems = getValues('items') as any[];
+            finalizeAudit({ sessionId, items: currentItems }, {
                 onSuccess: () => {
                     clearSession();
                     navigate('/inventory');
@@ -361,15 +362,16 @@ const AuditSessionPage: React.FC = () => {
                             className="z-50"
                         >
                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                <table className="w-full text-right text-xs border-collapse">
-                                    <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                                        <tr className="text-slate-600 dark:text-gray-300">
-                                            <th className="py-2 px-4 border-b dark:border-slate-700">الصنف</th>
-                                            <th className="py-2 px-4 border-b dark:border-slate-700 w-32 text-center">رقم القطعة/SKU</th>
-                                            <th className="py-2 px-4 border-b dark:border-slate-700 w-24 text-center">المقاس</th>
+                                <table className="w-full text-right text-xs border-collapse border border-gray-200 dark:border-slate-700">
+                                    <thead className="bg-slate-100 dark:bg-slate-800 sticky top-0 z-10 shadow-sm">
+                                        <tr className="text-slate-700 dark:text-gray-200">
+                                            <th className="py-2 px-4 border border-gray-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 font-bold">الصنف</th>
+                                            <th className="py-2 px-4 border border-gray-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 w-32 text-center font-bold">رقم القطعة/SKU</th>
+                                            <th className="py-2 px-4 border border-gray-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 w-32 text-center font-bold">الشركة الصانعة</th>
+                                            <th className="py-2 px-4 border border-gray-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 w-24 text-center font-bold">المقاس</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                                         {searchResults?.map((p: any) => (
                                             <tr
                                                 key={p.id}
@@ -377,11 +379,12 @@ const AuditSessionPage: React.FC = () => {
                                                     handleAddItem(p);
                                                     setShowResults(false);
                                                 }}
-                                                className="hover:bg-blue-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                                                className="hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
                                             >
-                                                <td className="py-3 px-4 font-bold">{p.name_ar || p.name}</td>
-                                                <td className="py-3 px-4 text-center font-mono text-gray-500">{p.part_number || p.sku || '-'}</td>
-                                                <td className="py-3 px-4 text-center text-blue-500 font-bold">{p.size || '-'}</td>
+                                                <td className="py-3 px-4 font-bold border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">{p.name_ar || p.name}</td>
+                                                <td className="py-3 px-4 text-center font-mono text-gray-500 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.part_number || p.sku || '-'}</td>
+                                                <td className="py-3 px-4 text-center font-bold text-gray-600 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.brand || '-'}</td>
+                                                <td className="py-3 px-4 text-center text-blue-600 dark:text-blue-400 font-bold border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.size || '-'}</td>
                                             </tr>
                                         ))}
                                     </tbody>

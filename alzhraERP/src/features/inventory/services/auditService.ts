@@ -71,10 +71,16 @@ export const auditService = {
      * Finalize an audit session
      */
     finalizeAudit: async (sessionId: string, items: AuditItemInput[], userId: string) => {
+        const payloadItems = items.map(i => {
+            let qty = i.counted_quantity;
+            if (typeof qty === 'string' && qty === '') qty = null as any;
+            return { product_id: i.product_id, counted_quantity: qty };
+        }).filter(i => i.counted_quantity !== null && i.counted_quantity !== undefined);
+
         const { error } = await supabase.rpc('finalize_audit_session', {
             p_session_id: sessionId,
             p_user_id: userId,
-            p_items: items.map(i => ({ product_id: i.product_id, counted_quantity: i.counted_quantity }))
+            p_items: payloadItems
         });
         if (error) throw error;
     },
@@ -136,10 +142,14 @@ export const auditService = {
      * Save audit progress
      */
     saveAuditProgress: async (items: AuditItemInput[]) => {
-        const updates = items.map(i => ({
-            id: i.id,
-            counted_quantity: i.counted_quantity
-        }));
+        const updates = items.map(i => {
+            let qty = i.counted_quantity;
+            if (typeof qty === 'string' && qty === '') qty = null as any;
+            return {
+                id: i.id,
+                counted_quantity: qty
+            };
+        });
         const { error } = await supabase.from('audit_items').upsert(updates as any); // using any for now since upsert requires full type OR we can map it.
         if (error) throw error;
     },

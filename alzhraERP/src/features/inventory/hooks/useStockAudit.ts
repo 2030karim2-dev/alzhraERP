@@ -129,6 +129,10 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
             queryClient.invalidateQueries({ queryKey: ['products'] });
             showToast("تم إغلاق الجرد وترحيل الفروقات", 'success');
+        },
+        onError: (err: any) => {
+            showToast("فشل إنهاء الجرد: " + err.message, 'error');
+            console.error("Finalize Audit Error:", err);
         }
     });
 

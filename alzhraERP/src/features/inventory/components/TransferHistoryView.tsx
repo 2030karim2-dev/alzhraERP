@@ -20,7 +20,7 @@ const TransferHistoryView: React.FC = () => {
             accessor: (row: any) => (
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></div>
-                    <span className="font-black text-[11px] text-rose-600 dark:text-rose-400 uppercase tracking-tight">{row.from_warehouse_name}</span>
+                    <span className="font-black text-[11px] text-rose-600 dark:text-rose-400 uppercase tracking-tight">{row.from_warehouse?.name_ar || row.from_warehouse_name || '-'}</span>
                 </div>
             ), 
             sortKey: 'from_warehouse_name'
@@ -30,7 +30,7 @@ const TransferHistoryView: React.FC = () => {
             accessor: (row: any) => (
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
-                    <span className="font-black text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">{row.to_warehouse_name}</span>
+                    <span className="font-black text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">{row.to_warehouse?.name_ar || row.to_warehouse_name || '-'}</span>
                 </div>
             ), 
             sortKey: 'to_warehouse_name'
@@ -39,7 +39,7 @@ const TransferHistoryView: React.FC = () => {
             header: 'التاريخ', 
             accessor: (row: any) => (
                 <span className="text-gray-600 dark:text-gray-400 font-mono text-[10px]">
-                    {new Date(row.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    {new Date(row.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
             ), 
             width: 'w-32', 
@@ -47,13 +47,25 @@ const TransferHistoryView: React.FC = () => {
         },
         {
             header: 'الأصناف', 
-            accessor: (row: any) => (
-                <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                    {row.item_count} أصناف
-                </span>
-            ), 
-            className: 'text-center', 
-            width: 'w-24'
+            accessor: (row: any) => {
+                const productNames = (row.items || []).map((i: any) => i.product?.name_ar || i.product?.sku || 'صنف غير معروف');
+                const displayNames = productNames.slice(0, 2).join('، ');
+                const remaining = productNames.length - 2;
+                return (
+                    <div className="flex flex-col gap-1 items-start">
+                        <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                            {row.item_count} أصناف
+                        </span>
+                        {displayNames && (
+                            <span className="text-[9px] text-gray-500 truncate max-w-[150px]" title={productNames.join('\n')}>
+                                {displayNames} {remaining > 0 ? ` (+${remaining} أخرى)` : ''}
+                            </span>
+                        )}
+                    </div>
+                );
+            }, 
+            className: 'text-right', 
+            width: 'w-48'
         },
         {
             header: 'الحالة',
