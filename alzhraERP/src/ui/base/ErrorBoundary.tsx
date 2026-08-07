@@ -1,5 +1,25 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 
+/** مفتاح localStorage لتخزين سجل الأخطاء */
+const ERROR_LOG_KEY = 'app_error_log';
+const MAX_ERROR_LOG = 10;
+
+function logErrorToStorage(error: Error, errorInfo: ErrorInfo): void {
+  try {
+    const existing = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]');
+    const entry = {
+      message: error.message,
+      stack: error.stack?.slice(0, 500) || '',
+      componentStack: errorInfo.componentStack?.slice(0, 500) || '',
+      time: new Date().toISOString(),
+      url: window.location.href,
+    };
+    existing.unshift(entry);
+    if (existing.length > MAX_ERROR_LOG) existing.pop();
+    localStorage.setItem(ERROR_LOG_KEY, JSON.stringify(existing));
+  } catch { /* noop - localStorage قد يكون ممتلئاً */ }
+}
+
 interface ErrorBoundaryProps {
   children?: ReactNode;
 }
@@ -9,6 +29,7 @@ interface ErrorBoundaryState {
   error: Error | null;
   errorInfo: ErrorInfo | null;
   copied: boolean;
+  autoReloadSeconds: number;
 }
 
 /**
@@ -21,6 +42,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     error: null,
     errorInfo: null,
     copied: false,
+    autoReloadSeconds: 8,
   };
 
   constructor(props: ErrorBoundaryProps) {
@@ -33,7 +55,23 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("Uncaught error:", error, errorInfo);
-    this.setState({ error, errorInfo });
+    logErrorToStorage(error, errorInfo);
+    this.setState({ error, errorInfo, autoReloadSeconds: 8 });
+
+    // إعادة تحميل تلقائية بعد 8 ثواني للأخطاء الحرجة
+    if (typeof window !== 'undefined') {
+      const countdownInterval = setInterval(() => {
+        this.setState(prev => {
+          const next = prev.autoReloadSeconds - 1;
+          if (next <= 0) {
+            clearInterval(countdownInterval);
+            try { window.location.reload(); } catch { /* noop */ }
+            return { autoReloadSeconds: 0 };
+          }
+          return { autoReloadSeconds: next };
+        });
+      }, 1000);
+    }
   }
 
   private copyErrorDetails(): void {
@@ -134,7 +172,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 cursor: 'pointer'
               }}
             >
-              {texts[lang].button}
+              {texts[lang].button} ({this.state.autoReloadSeconds}s)
             </button>
             <button
               onClick={() => this.copyErrorDetails()}
