@@ -3,7 +3,6 @@ import {
     Layers, 
     FileSearch, 
     Warehouse, 
-    Car, 
     ArrowLeftRight, 
     Archive, 
     TrendingUp, 
@@ -59,7 +58,6 @@ export const getInventoryTabGroups = (t: (key: string, params?: any) => string):
         colorClass: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-400 dark:bg-blue-950/40 dark:border-blue-900/30',
         tabs: [
             { id: 'warehouses', label: t('warehouses'), icon: Warehouse },
-            { id: 'vehicles', label: t('common_vehicles'), icon: Car },
         ]
     }
 ];
@@ -69,7 +67,6 @@ export const getInventoryTabs = (t: (key: string, params?: any) => string) => [
     { id: 'categories', label: t('categories'), icon: Layers },
     { id: 'history', label: t('history'), icon: FileSearch },
     { id: 'warehouses', label: t('warehouses'), icon: Warehouse },
-    { id: 'vehicles', label: t('common_vehicles'), icon: Car },
     { id: 'transfers', label: t('transfers'), icon: ArrowLeftRight },
     { id: 'audit', label: t('audit'), icon: History },
 ];

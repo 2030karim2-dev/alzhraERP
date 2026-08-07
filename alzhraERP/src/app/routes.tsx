@@ -25,8 +25,6 @@ const POSPage = lazy(() => import('../features/pos/pages/POSPage'));
 const SalesPage = lazy(() => import('../features/sales/pages/SalesPage'));
 const AccountingPage = lazy(() => import('../features/accounting/AccountingPage'));
 const PurchasesPage = lazy(() => import('../features/purchases/pages/PurchasesPage'));
-const VehiclesPage = lazy(() => import('../features/vehicles/VehiclesPage'));
-const VehicleCompatibilityPage = lazy(() => import('../features/inventory/pages/VehicleCompatibilityPage'));
 const ExpensesPage = lazy(() => import('../features/expenses/pages/ExpensesPage'));
 const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
 const AppearancePage = lazy(() => import('../features/appearance/AppearancePage'));
@@ -113,12 +111,6 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="parties-customers"><PartiesPage partyType="customer" /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.PARTIES_SUPPLIERS}
           element={<FeatureBoundary name="parties-suppliers"><PartiesPage partyType="supplier" /></FeatureBoundary>} />
-
-        {/* Vehicles */}
-        <Route path="/vehicles"
-          element={<FeatureBoundary name="vehicles"><VehiclesPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.VEHICLE_COMPATIBILITY}
-          element={<FeatureBoundary name="vehicle-compatibility"><VehicleCompatibilityPage /></FeatureBoundary>} />
 
         {/* Settings & Appearance */}
         <Route path={ROUTES.DASHBOARD.SETTINGS}

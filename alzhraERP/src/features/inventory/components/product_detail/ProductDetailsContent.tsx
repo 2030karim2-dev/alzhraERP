@@ -3,13 +3,11 @@ import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Activi
 import { Product } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
 import StatCard from './StatCard';
-import FitmentSection from './FitmentSection';
 import AlternativesSection from './AlternativesSection';
 import HistorySection from './HistorySection';
 import BranchStockBreakdown from './BranchStockBreakdown';
 import SupplierInfoCard from './SupplierInfoCard';
 import ProductAnalyticsChart from './ProductAnalyticsChart';
-import { VehicleCompatibilityList } from '../auto_parts/VehicleCompatibilityList';
 import { ProductKitList } from '../auto_parts/ProductKitList';
 import { SupplierPricesList } from '../auto_parts/SupplierPricesList';
 import { CrossReferenceList } from '../auto_parts/CrossReferenceList';
@@ -23,7 +21,7 @@ interface Props {
     product: Product;
 }
 
-type TabType = 'overview' | 'inventory' | 'specs' | 'relations' | 'history';
+type TabType = 'overview' | 'inventory' | 'relations' | 'history';
 
 const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const { stats, margin, supplierName, selling } = useProductDetails(product);
@@ -63,7 +61,6 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const tabs: { id: TabType; label: string; icon: any }[] = [
         { id: 'overview', label: 'نظرة عامة', icon: Info },
         { id: 'inventory', label: 'المخزون', icon: Box },
-        { id: 'specs', label: 'المواصفات', icon: Settings2 },
         { id: 'relations', label: 'الارتباطات', icon: Link2 },
         { id: 'history', label: 'السجل', icon: FileClock },
     ];
@@ -183,31 +180,6 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                     totalStock={product.stock_quantity}
                                     minStockLevel={product.min_stock_level}
                                 />
-                            </div>
-                        )}
-
-                        {activeTab === 'specs' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-x-reverse divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800 h-full">
-                                <div className="bg-white dark:bg-slate-950 flex flex-col h-full">
-                                    <div className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2 shrink-0">
-                                        <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
-                                            <Settings2 size={12} className="text-indigo-500" /> المواصفات التقنية والملاءمة
-                                        </h4>
-                                    </div>
-                                    <div className="flex-1 overflow-hidden p-0">
-                                        <FitmentSection productId={product.id} />
-                                    </div>
-                                </div>
-                                <div className="bg-white dark:bg-slate-950 flex flex-col h-full border-r border-slate-200 dark:border-slate-800">
-                                    <div className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2 shrink-0">
-                                        <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
-                                            <Activity size={12} className="text-emerald-500" /> المركبات والموديلات المتوافقة
-                                        </h4>
-                                    </div>
-                                    <div className="flex-1 overflow-hidden p-0">
-                                        <VehicleCompatibilityList product={product} />
-                                    </div>
-                                </div>
                             </div>
                         )}
 

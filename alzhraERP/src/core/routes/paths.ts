@@ -27,7 +27,6 @@ export const ROUTES = {
     PARTIES_SUPPLIERS: '/parties/suppliers',
     REPORTS: '/reports',
     AI: '/ai',
-    VEHICLE_COMPATIBILITY: '/vehicle-compatibility',
   },
 } as const;
 

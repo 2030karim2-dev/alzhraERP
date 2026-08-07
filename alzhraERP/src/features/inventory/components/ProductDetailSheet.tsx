@@ -1,8 +1,7 @@
 import React from 'react';
-import { Package, TrendingUp, DollarSign, Hash, Car, Calendar, Warehouse } from 'lucide-react';
+import { Package, TrendingUp, DollarSign, Hash, Calendar, Warehouse } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import OEMNumbersDisplay from './OEMNumbersDisplay';
-import VehicleCompatibilityBadges, { VehicleCompatibility } from '../../vehicles/components/VehicleCompatibilityBadges';
 import SparklineChart from '../../../ui/base/SparklineChart';
 import StockStatusBadge from './product_detail/StockStatusBadge';
 
@@ -13,7 +12,6 @@ interface ProductDetailSheetProps {
     stockQuantity: number; minStockLevel: number; salePrice: number;
     costPrice?: number; lastSalePrice?: number; lastSaleDate?: string;
     warehouse?: string; image?: string;
-    compatibilities?: VehicleCompatibility[];
     stockMovement?: number[];
   };
   className?: string;
@@ -58,17 +56,6 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({ product, classN
         </div>
         <OEMNumbersDisplay partNumber={product.partNumber} alternativeNumbers={product.alternativeNumbers} />
       </div>
-
-      {/* Vehicle Compatibility */}
-      {product.compatibilities && product.compatibilities.length > 0 && (
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <Car size={12} className="text-[var(--app-text-secondary)]" />
-            <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">المركبات المتوافقة</span>
-          </div>
-          <VehicleCompatibilityBadges compatibilities={product.compatibilities} />
-        </div>
-      )}
 
       {/* Pricing Grid */}
       <div className="grid grid-cols-2 gap-2">

@@ -2,7 +2,6 @@ import React from 'react';
 import TransfersView from './TransfersView';
 import StockAuditView from './StockAuditView';
 import WarehousesView from './WarehousesView';
-import VehiclesPage from '../../vehicles/VehiclesPage';
 import AuditLogView from './AuditLogView';
 import CategoriesManagementView from './CategoriesManagementView';
 import ProductExcelGrid from './ProductExcelGrid';
@@ -48,7 +47,6 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
         case 'audit': return <StockAuditView />;
         case 'warehouses': return <WarehousesView />;
 
-        case 'vehicles': return <VehiclesPage />;
         case 'history': return <AuditLogView />;
         case 'categories': return <CategoriesManagementView onFilterProduct={(catName) => {
             setActiveView('products');

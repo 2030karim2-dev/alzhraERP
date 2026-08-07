@@ -18,7 +18,6 @@ import ProductCategory from './product_form/ProductCategory';
 import ProductFinancials from './product_form/ProductFinancials';
 import ProductStockInfo from './product_form/ProductStockInfo';
 import ProductDetails from './product_form/ProductDetails';
-import ProductFitment from './product_form/ProductFitment';
 
 interface Props {
   isOpen: boolean;
@@ -169,9 +168,6 @@ const AddProductModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubmitt
             </div>
           </div>
           <ProductDetails register={register} />
-          <div className="pt-4 border-t dark:border-slate-800">
-            <ProductFitment productId={initialData?.id} />
-          </div>
         </div>
       </div>
     </Modal>

@@ -1,42 +1,10 @@
-export type InventoryView = 'products' | 'categories' | 'warehouses' | 'vehicles' | 'history' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
-
-export interface CarCompatibility {
-  make: string;
-  model: string;
-  years: string[];
-}
+export type InventoryView = 'products' | 'categories' | 'warehouses' | 'history' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
 
 export interface warehouseStock {
   warehouse_id: string;
   warehouse_name: string;
   quantity: number;
   location: string;
-}
-
-export interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  submodel?: string | null;
-  year_start: number;
-  year_end: number;
-  body_type?: string | null;
-  engine?: string | null;
-  fuel_type?: string | null;
-  transmission?: string | null;
-  drive_type?: string | null;
-  vin_prefix?: string | null;
-  region?: string | null;
-}
-
-export interface ProductFitment {
-  id: string;
-  product_id: string;
-  vehicle_id: string;
-  company_id?: string;
-  vehicle?: Vehicle;
-  notes?: string | null;
-  created_at?: string;
 }
 
 export interface ProductCrossReference {
