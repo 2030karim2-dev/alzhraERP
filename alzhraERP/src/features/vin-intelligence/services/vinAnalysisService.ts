@@ -4,13 +4,13 @@ import { mockVinResult, mockHistory } from '../mock';
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const ANALYSIS_STEPS: AnalysisStep[] = [
-  { id: 'validate', label: 'Validating VIN', status: 'PENDING' },
-  { id: 'identify', label: 'Identifying vehicle', status: 'PENDING' },
-  { id: 'config', label: 'Analyzing vehicle configuration', status: 'PENDING' },
-  { id: 'parts', label: 'Finding core parts', status: 'PENDING' },
-  { id: 'oem', label: 'Matching OEM numbers', status: 'PENDING' },
-  { id: 'inventory', label: 'Matching inventory', status: 'PENDING' },
-  { id: 'knowledge', label: 'Building vehicle knowledge', status: 'PENDING' },
+  { id: 'validate', label: 'vin_validating', status: 'PENDING' },
+  { id: 'identify', label: 'vin_identifying', status: 'PENDING' },
+  { id: 'config', label: 'vin_config', status: 'PENDING' },
+  { id: 'parts', label: 'vin_finding_parts', status: 'PENDING' },
+  { id: 'oem', label: 'vin_matching_oem', status: 'PENDING' },
+  { id: 'inventory', label: 'vin_matching_inv', status: 'PENDING' },
+  { id: 'knowledge', label: 'vin_building_knowledge', status: 'PENDING' },
 ];
 
 export class MockVinAnalysisService implements VinAnalysisService {

@@ -1,13 +1,15 @@
 import React from 'react';
 import { TrendingUp, Zap } from 'lucide-react';
 import type { DemandInsight } from '../types';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 const DemandIntelligence: React.FC<{ insights: DemandInsight[] }> = ({ insights }) => {
+  const { t } = useTranslation();
   if (!insights.length) return null;
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
       <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 flex items-center gap-1.5">
-        <TrendingUp size={12} className="text-orange-500" /> Core & High-Demand Parts
+        <TrendingUp size={12} className="text-orange-500" /> {t('vin_demand_intel')}
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full"><thead><tr className="bg-[var(--app-bg)] border-b border-[var(--app-border)]">

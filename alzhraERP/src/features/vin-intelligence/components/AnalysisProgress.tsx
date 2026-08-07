@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Loader2, Circle, XCircle } from 'lucide-react';
 import type { AnalysisStep } from '../types';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface AnalysisProgressProps {
   steps: AnalysisStep[];
@@ -8,12 +9,13 @@ interface AnalysisProgressProps {
 }
 
 const AnalysisProgress: React.FC<AnalysisProgressProps> = ({ steps, isAnalyzing }) => {
+  const { t } = useTranslation();
   if (!isAnalyzing && steps.every(s => s.status === 'PENDING')) return null;
 
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-3 shadow-sm">
       <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] mb-3">
-        Analyzing VIN...
+        {t('vin_analyzing')}
       </h3>
       <div className="space-y-1.5">
         {steps.map((step) => (
@@ -27,7 +29,7 @@ const AnalysisProgress: React.FC<AnalysisProgressProps> = ({ steps, isAnalyzing 
               step.status === 'IN_PROGRESS' ? 'text-blue-600 dark:text-blue-400' :
               'text-[var(--app-text-secondary)]'
             }`}>
-              {step.label}
+              {t(step.label)}
             </span>
           </div>
         ))}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Car, Wrench, CheckCircle2, AlertTriangle, HelpCircle, XCircle } from 'lucide-react';
 import type { VehicleCorePart, VehicleConfiguration } from '../types';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface ExplainabilityDrawerProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface ExplainabilityDrawerProps {
 }
 
 const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onClose, vehicle, part }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -22,13 +24,13 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
 
         <h2 className="text-[11px] font-black uppercase tracking-widest text-[var(--app-text)] mb-4">
           {part.fitmentStatus === 'NOT_COMPATIBLE' 
-            ? 'Why is this part NOT compatible?'
-            : 'Why is this part compatible?'}
+            ? t('vin_why_not_compatible')
+            : t('vin_why_compatible')}
         </h2>
 
         <div className="space-y-3">
           <div className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">Vehicle Configuration</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">{t('vin_vehicle_config')}</p>
             <div className="flex items-center gap-2">
               <Car size={14} className="text-blue-500" />
               <span className="font-bold text-[10px] text-[var(--app-text)]">{vehicle.make} {vehicle.model} {vehicle.year}</span>
@@ -61,10 +63,10 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
               <span className="font-bold text-[10px]">{part.fitmentStatus}</span>
             </div>
             <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">
-              <span className="font-bold">Evidence:</span> {part.evidence || 'No evidence available'}
+              <span className="font-bold">{t('vin_evidence')}:</span> {part.evidence || 'No evidence available'}
             </p>
             <p className="text-[9px] text-[var(--app-text-secondary)]">
-              <span className="font-bold">Source:</span> {part.evidenceSource || 'Unknown'}
+              <span className="font-bold">{t('vin_source')}:</span> {part.evidenceSource || 'Unknown'}
             </p>
           </div>
         </div>

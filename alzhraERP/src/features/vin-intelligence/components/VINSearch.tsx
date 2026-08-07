@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Camera, X, Loader2 } from 'lucide-react';
 import { vinAnalysisService } from '../services/vinAnalysisService';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface VINSearchProps {
   onAnalyze: (vin: string) => void;
@@ -10,6 +11,7 @@ interface VINSearchProps {
 }
 
 const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVins = [], onSelectRecent }) => {
+  const { t } = useTranslation();
   const [vin, setVin] = useState('');
   const [validation, setValidation] = useState<{ valid: boolean; message?: string } | null>(null);
 
@@ -48,7 +50,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
             value={vin}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="VIN / Chassis Number"
+            placeholder={t('vin_search_placeholder')}
             dir="ltr"
             className="w-full h-9 pl-9 pr-16 text-[11px] font-mono font-bold tracking-wider bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)]"
             disabled={isAnalyzing}
@@ -62,7 +64,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
             <button
               onClick={() => {}}
               className="p-1.5 hover:bg-[var(--app-surface-hover)] rounded opacity-40 cursor-not-allowed"
-              title="Coming soon"
+              title={t('vin_camera_coming_soon')}
               disabled
             >
               <Camera size={14} className="text-[var(--app-text-secondary)]" />
@@ -75,7 +77,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
           className="flex items-center gap-1.5 h-9 px-4 bg-blue-600 text-white rounded-lg text-[10px] font-bold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 transition-all"
         >
           {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-          <span>Analyze with AI</span>
+          <span>{t('vin_analyze_btn')}</span>
         </button>
       </div>
       {validation && !validation.valid && (
@@ -83,12 +85,12 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
       )}
       {vin.length > 0 && (
         <p className="text-[9px] text-[var(--app-text-secondary)] px-1 font-mono">
-          {vin.length}/17 characters
+          {t('vin_characters_count', { count: vin.length })}
         </p>
       )}
       {recentVins.length > 0 && !isAnalyzing && (
         <div className="flex flex-wrap gap-1.5 mt-1">
-          <span className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest px-1">Recent:</span>
+          <span className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest px-1">{t('vin_recent')}:</span>
           {recentVins.slice(0, 5).map(rv => (
             <button
               key={rv}

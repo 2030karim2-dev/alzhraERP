@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import { Car, RotateCcw } from 'lucide-react';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 import VINSearch from '../components/VINSearch';
 import AnalysisProgress from '../components/AnalysisProgress';
 import VehicleCard from '../components/VehicleCard';
@@ -16,6 +17,7 @@ import { useVinHistory } from '../hooks/useVinHistory';
 import type { VehicleCorePart } from '../types';
 
 const VINPage: React.FC = () => {
+  const { t } = useTranslation();
   const { result, isAnalyzing, error, steps, analyzeVin, reset } = useVinAnalysis();
   const { history, addToHistory } = useVinHistory();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
@@ -53,13 +55,13 @@ const VINPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <MicroHeader
-        title="AI VIN Intelligence"
+        title={t('vin_title')}
         icon={Car}
         iconColor="text-blue-600"
         actions={
           result && (
             <button onClick={handleReset} className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[var(--app-text-secondary)] rounded-lg text-[9px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95">
-              <RotateCcw size={11} /> New Analysis
+              <RotateCcw size={11} /> {t('vin_new_analysis')}
             </button>
           )
         }
@@ -90,7 +92,7 @@ const VINPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-2 space-y-3">
                 <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 px-1">Core Parts</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 px-1">{t('vin_core_parts')}</h3>
                   <CorePartsTable parts={result.coreParts} onPartClick={handlePartClick} />
                 </div>
               </div>

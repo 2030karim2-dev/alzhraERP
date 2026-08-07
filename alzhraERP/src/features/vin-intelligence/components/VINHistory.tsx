@@ -2,17 +2,19 @@ import React from 'react';
 import { Clock, ChevronRight } from 'lucide-react';
 import type { VinHistoryEntry } from '../types';
 import { format } from 'date-fns';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 const formatDate = (dateStr: string): string => {
   try { return format(new Date(dateStr), 'MMM dd'); } catch { return ''; }
 };
 
 const VINHistory: React.FC<{ history: VinHistoryEntry[]; onSelect: (vin: string) => void }> = ({ history, onSelect }) => {
+  const { t } = useTranslation();
   if (!history.length) return null;
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
       <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 flex items-center gap-1.5">
-        <Clock size={12} className="text-slate-500" /> VIN History
+        <Clock size={12} className="text-slate-500" /> {t('vin_history')}
       </h3>
       <div className="space-y-1">
         {history.map(h => (

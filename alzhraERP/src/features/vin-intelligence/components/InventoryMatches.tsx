@@ -2,13 +2,15 @@ import React from 'react';
 import { Package, MapPin, CheckCircle2 } from 'lucide-react';
 import type { InventoryMatch } from '../types';
 import { formatCurrency } from '@/core/utils';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 const InventoryMatches: React.FC<{ matches: InventoryMatch[] }> = ({ matches }) => {
+  const { t } = useTranslation();
   if (!matches.length) return null;
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
       <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 flex items-center gap-1.5">
-        <Package size={12} className="text-blue-500" /> Matching Inventory
+        <Package size={12} className="text-blue-500" /> {t('vin_matching_inventory')}
       </h3>
       <div className="space-y-1.5">
         {matches.map((m, i) => (
