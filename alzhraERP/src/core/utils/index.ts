@@ -52,3 +52,6 @@ export { shareExcelFile } from './shareUtils';
 
 // ZATCA compliance
 export { generateZatcaBase64 } from './zatca';
+
+// Re-export from parent utils.ts (cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL)
+export { cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL } from '../utils';
