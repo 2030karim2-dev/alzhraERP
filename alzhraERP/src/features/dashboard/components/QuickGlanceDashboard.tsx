@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, AlertTriangle, Package, Wallet } from 'lucide-react';
 import SparklineChart from '../../ui/base/SparklineChart';
-import { cn } from '../../core/utils';
+import { cn } from '../../../core/utils';
 
 export interface GlanceMetric {
   label: string;

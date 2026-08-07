@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../core/utils';
+import { cn } from '../../../core/utils';
 
 interface MobileCardProps {
     children: React.ReactNode;
