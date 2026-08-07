@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Activity, Info, Settings2, FileClock, Link2, Sparkles, Loader2, Building2, Warehouse } from 'lucide-react';
+import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Info, FileClock, Link2, Sparkles, Loader2, Building2, Warehouse } from 'lucide-react';
 import { Product } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
 import StatCard from './StatCard';

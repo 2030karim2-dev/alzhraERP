@@ -150,27 +150,6 @@ export const productsApi = {
             .limit(15);
     },
 
-    searchProductForFitment: async (companyId: string, term: string) => {
-        // 1. Clean and tokenize
-        const sanitized = term.replace(/[^\w\s\u0600-\u06FF]/g, ' '); 
-        const tokens = sanitized.split(/\s+/).filter(word => word.length > 0);
-        
-        if (tokens.length < 1) return [];
-
-        const tsQuery = tokens.map(word => `${word}:*`).join(' & ');
-
-        const { data, error } = await supabase.from('products')
-            .select('id, name_ar, name_en, sku, part_number, brand')
-            .eq('company_id', companyId)
-            .textSearch('search_vector', tsQuery, { 
-                config: 'simple'
-            })
-            .limit(10);
-
-        if (error) throw error;
-        return data || [];
-    },
-
     getSupplier: async (id: string) => {
         return await supabase.from('parties')
             .select('name')
