@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import eslintPluginSecurity from 'eslint-plugin-security';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
     { ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts'] },
@@ -26,6 +27,7 @@ export default tseslint.config(
             'react-hooks': reactHooks,
             'react-refresh': reactRefresh,
             'security': eslintPluginSecurity,
+            'jsx-a11y': jsxA11y,
         },
         rules: {
             // React Hooks
@@ -34,6 +36,30 @@ export default tseslint.config(
                 'warn',
                 { allowConstantExport: true },
             ],
+
+            // ============================================
+            // Accessibility (jsx-a11y) — Critical Rules
+            // ============================================
+            ...jsxA11y.configs.recommended.rules,
+            'jsx-a11y/label-has-associated-control': ['error', {
+                assert: 'either',
+                depth: 3,
+            }],
+            'jsx-a11y/no-autofocus': 'warn',
+            'jsx-a11y/aria-props': 'error',
+            'jsx-a11y/aria-proptypes': 'error',
+            'jsx-a11y/aria-unsupported-elements': 'error',
+            'jsx-a11y/role-has-required-aria-props': 'error',
+            'jsx-a11y/role-supports-aria-props': 'error',
+            'jsx-a11y/alt-text': 'error',
+            'jsx-a11y/anchor-has-content': 'error',
+            'jsx-a11y/aria-role': 'error',
+            'jsx-a11y/click-events-have-key-events': 'warn',
+            'jsx-a11y/no-static-element-interactions': 'warn',
+            'jsx-a11y/interactive-supports-focus': 'warn',
+            'jsx-a11y/media-has-caption': 'warn',
+            'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+            'jsx-a11y/tabindex-no-positive': 'error',
 
             // ============================================
             // Code Quality - Strict Rules
@@ -129,6 +155,9 @@ export default tseslint.config(
             '@typescript-eslint/no-explicit-any': 'off',
             'max-lines-per-function': 'off',
             '@typescript-eslint/explicit-function-return-type': 'off',
+            'jsx-a11y/alt-text': 'off',
+            'jsx-a11y/label-has-associated-control': 'off',
+            'jsx-a11y/no-autofocus': 'off',
         },
     },
     // Scripts and config files

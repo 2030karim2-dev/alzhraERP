@@ -59,11 +59,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={combinedRef}
             onKeyDown={handleKeyDown}
             className={cn(
-              "w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg",
+              "w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)]",
               "font-medium text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] placeholder:opacity-60",
               "focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500",
               "transition-all duration-200",
-              isMicro ? "px-3 py-2.5 text-xs rounded-lg" : "px-4 py-3 text-sm rounded-lg",
+              isMicro ? "px-3 py-2.5 text-xs rounded-[var(--radius)]" : "px-4 py-3 text-sm rounded-[var(--radius)]",
               icon ? (isMicro ? "pr-8" : "pr-10") : "px-3",
               error ? "border-rose-500 ring-rose-500/30 focus:ring-rose-500/30 focus:border-rose-500" : "",
               "focus:shadow-sm",

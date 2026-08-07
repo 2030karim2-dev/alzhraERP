@@ -36,6 +36,14 @@ const FeedbackToast: React.FC = () => {
               </p>
 
               <div className="flex items-center gap-1">
+                {toast.action && (
+                  <button
+                    onClick={() => toast.action!.onClick()}
+                    className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all"
+                  >
+                    {toast.action.label}
+                  </button>
+                )}
                 {toast.details && (
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : toast.id)}

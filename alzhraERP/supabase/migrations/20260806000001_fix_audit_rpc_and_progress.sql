@@ -101,11 +101,12 @@ CREATE TRIGGER trg_audit_items_recalc
     EXECUTE FUNCTION public.trg_audit_items_recalc();
 
 -- ────────────────────────────────────────────────────────────
--- 4. Rebuild finalize_audit_session (3 parameters for PostgREST RPC)
+-- 4. Rebuild finalize_audit_session (Overloads for 3 and 4 parameters)
 -- ────────────────────────────────────────────────────────────
 DROP FUNCTION IF EXISTS public.finalize_audit_session(UUID, UUID, JSONB, UUID);
 DROP FUNCTION IF EXISTS public.finalize_audit_session(UUID, UUID, JSONB);
 
+-- 3-parameter version
 CREATE OR REPLACE FUNCTION public.finalize_audit_session(
     p_session_id  UUID,
     p_user_id     UUID,
@@ -174,7 +175,24 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB) TO authenticated;
+-- 4-parameter version (for compatibility with existing production builds sending p_company_id)
+CREATE OR REPLACE FUNCTION public.finalize_audit_session(
+    p_session_id  UUID,
+    p_user_id     UUID,
+    p_items       JSONB,
+    p_company_id  UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN public.finalize_audit_session(p_session_id, p_user_id, p_items);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB) TO authenticated, anon, public;
+GRANT EXECUTE ON FUNCTION public.finalize_audit_session(UUID, UUID, JSONB, UUID) TO authenticated, anon, public;
 
 -- ────────────────────────────────────────────────────────────
 -- 5. Backfill progress/accuracy for existing sessions

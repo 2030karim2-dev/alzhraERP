@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import StatCard from '../../../ui/common/StatCard';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import ShareButton from '../../../ui/common/ShareButton';
+import { MobileCard, MobileSectionTitle, ResponsiveGrid } from './MobileComponents';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
 
@@ -119,57 +120,53 @@ const OperationalExpensesReport: React.FC = () => {
         },
     ], [data?.totalExpenses]);
 
-    if (isLoading) return <div className="p-20 text-center animate-pulse">جاري تحليل المصروفات التشغيلية...</div>;
+    if (isLoading) return <div className="p-10 text-center animate-pulse text-slate-400 text-sm">جاري تحليل المصروفات التشغيلية...</div>;
 
     const displayExpenses = showAll ? data?.expensesByAccount : data?.expensesByAccount.slice(0, 10);
 
     return (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Header */}
-            <div className="flex items-center gap-2 justify-between">
-                <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                    <Wallet size={16} className="text-rose-600" /> تقرير المصاريف التشغيلية
-                </h3>
-                <div className="flex gap-1">
-                    {[7, 14, 30, 90].map(d => (
-                        <button
-                            key={d}
-                            onClick={() => setDays(d)}
-                            className={cn(
-                                "px-3 py-1 rounded-lg text-[10px] font-bold transition-colors",
-                                days === d
-                                    ? "bg-rose-600 text-white"
-                                    : "bg-gray-100 dark:bg-slate-800 text-gray-500 hover:bg-gray-200"
-                            )}
-                        >
-                            {d} يوم
-                        </button>
-                    ))}
-                </div>
+            <MobileSectionTitle title="تقرير المصاريف التشغيلية" icon={<Wallet size={16} className="text-rose-600" />} />
+            <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+                {[7, 14, 30, 90].map(d => (
+                    <button
+                        key={d}
+                        onClick={() => setDays(d)}
+                        className={cn(
+                            "px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all active:scale-95 min-h-[36px] sm:min-h-[40px] flex-shrink-0",
+                            days === d
+                                ? "bg-rose-600 text-white shadow-md"
+                                : "bg-gray-100 dark:bg-slate-800 text-gray-500 hover:bg-gray-200"
+                        )}
+                    >
+                        {d}
+                    </button>
+                ))}
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <ResponsiveGrid cols={3}>
                 <StatCard title={`إجمالي المصروفات (${days} يوم)`} value={formatCurrency(data?.totalExpenses || 0)} icon={TrendingDown} colorClass="text-rose-500" iconBgClass="bg-rose-500" />
                 <StatCard title="عدد الحركات" value={String(data?.transactionCount || 0)} icon={Calendar} colorClass="text-amber-500" iconBgClass="bg-amber-500" />
                 <StatCard title="عدد أنواع المصروفات" value={String(data?.expensesByAccount.length || 0)} icon={PieIcon} colorClass="text-indigo-500" iconBgClass="bg-indigo-500" />
-            </div>
+            </ResponsiveGrid>
 
             {/* Chart + Table */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                 {/* Pie Chart */}
                 {(data?.chartData.length || 0) > 0 && (
-                    <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 p-4 shadow-sm">
-                        <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">توزيع المصروفات</h4>
-                        <div style={{ width: '100%', height: 250 }}>
-                            <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={250}>
+                    <MobileCard padding="sm" className="lg:col-span-1">
+                        <h4 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-3">توزيع المصروفات</h4>
+                        <div className="w-full h-[180px] sm:h-[200px]">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180}>
                                 <PieChart>
                                     <Pie
                                         data={data?.chartData || []}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={50}
-                                        outerRadius={80}
+                                        innerRadius={40}
+                                        outerRadius={70}
                                         dataKey="value"
                                         paddingAngle={2}
                                     >
@@ -182,13 +179,13 @@ const OperationalExpensesReport: React.FC = () => {
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </MobileCard>
                 )}
 
                 {/* Table */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div className="p-3 border-b dark:border-slate-800 flex justify-between items-center bg-rose-50/50 dark:bg-rose-950/20">
-                        <h4 className="font-bold text-[9px] text-rose-600 uppercase flex items-center gap-2">
+                <MobileCard padding="none" className={cn("lg:col-span-2", (data?.chartData.length || 0) === 0 && "lg:col-span-3")}>
+                    <div className="p-3 sm:p-4 border-b dark:border-slate-800 flex justify-between items-center bg-rose-50/50 dark:bg-rose-950/20">
+                        <h4 className="font-bold text-[10px] sm:text-xs text-rose-600 uppercase flex items-center gap-2">
                             <Wallet size={12} /> تفصيل المصروفات ({data?.expensesByAccount.length || 0})
                         </h4>
                         <ShareButton
@@ -198,18 +195,18 @@ const OperationalExpensesReport: React.FC = () => {
                             message={`💰 تقرير المصاريف التشغيلية\n━━━━━━━━━━━━━━\n📊 إجمالي المصروفات (${days} يوم): ${formatCurrency(data?.totalExpenses || 0)}\n📋 عدد الأنواع: ${data?.expensesByAccount.length || 0}\n\n أعلى المصروفات:\n${(data?.expensesByAccount.slice(0, 5) || []).map((e, i) => `${i + 1}. ${e.name}: ${formatCurrency(Math.abs(e.total))}`).join('\n')}`}
                         />
                     </div>
-                    <div className="p-1">
+                    <div className="overflow-x-auto">
                         <ExcelTable columns={columns} data={displayExpenses || []} colorTheme="orange" isRTL />
                     </div>
                     {(data?.expensesByAccount.length || 0) > 10 && (
                         <button
                             onClick={() => setShowAll(!showAll)}
-                            className="w-full p-2 text-center text-[10px] font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-center gap-1 border-t dark:border-slate-800"
+                            className="w-full p-2 sm:p-3 text-center text-[10px] sm:text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-center gap-1 border-t dark:border-slate-800 active:scale-[0.98] transition-all"
                         >
                             {showAll ? <><ChevronUp size={12} /> إخفاء</> : <><ChevronDown size={12} /> عرض الكل ({data?.expensesByAccount.length})</>}
                         </button>
                     )}
-                </div>
+                </MobileCard>
             </div>
         </div>
     );

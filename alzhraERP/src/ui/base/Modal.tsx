@@ -31,6 +31,8 @@ const Modal: React.FC<ModalProps> = ({
   const [position, setPosition] = useState<Position | null>(null);
   const [customSize, setCustomSize] = useState<Size | null>(null);
   
+  const titleId = `modal-title-${title.replace(/\s/g, '-')}`;
+  const descId = `modal-desc-${title.replace(/\s/g, '-')}`;
   const modalRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ isDragging: boolean; startX: number; startY: number; initialX: number; initialY: number } | null>(null);
   const resizeRef = useRef<{ isResizing: boolean; direction: string; startX: number; startY: number; initialWidth: number; initialHeight: number; initialX: number; initialY: number } | null>(null);
@@ -202,6 +204,10 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descId}
         onClick={e => e.stopPropagation()}
         style={modalStyle}
         className={cn(
@@ -239,8 +245,8 @@ const Modal: React.FC<ModalProps> = ({
               <Icon size={20} className="hidden md:block" />
             </div>
             <div>
-              <h2 className="text-[11px] md:text-sm font-bold text-[var(--app-text)] leading-none">{title}</h2>
-              <p className="text-[10px] md:text-xs font-medium text-[var(--app-text-secondary)] mt-1 opacity-70">{description}</p>
+              <h2 id={titleId} className="text-[11px] md:text-sm font-bold text-[var(--app-text)] leading-none">{title}</h2>
+              <p id={descId} className="text-[10px] md:text-xs font-medium text-[var(--app-text-secondary)] mt-1 opacity-70">{description}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">

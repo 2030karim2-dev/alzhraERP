@@ -138,6 +138,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
                 ref={inputRef}
                 id={id}
                 type={type}
+                aria-label={placeholder || 'بحث'}
                 value={value}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}

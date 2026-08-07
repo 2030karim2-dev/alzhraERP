@@ -62,6 +62,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
             onFocus={() => prefetchRoute(item.path)}
             title={isCollapsed ? t(item.labelKey) : ''}
             aria-label={t(item.labelKey)}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
               'w-full flex items-center gap-2 md:gap-3 px-2 md:px-3 py-1.5 md:py-2.5 rounded-xl text-[10px] md:text-xs font-semibold transition-all duration-300 group active:scale-95',
               isActive

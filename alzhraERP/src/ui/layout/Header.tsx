@@ -79,16 +79,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               )}
             </div>
           ) : (
-            <form onSubmit={handleGlobalSearchSubmit} className="w-full relative">
+            <form role="search" onSubmit={handleGlobalSearchSubmit} className="w-full relative">
               <input
                 type="text"
                 placeholder={t('global_search_placeholder')}
                 value={globalSearchVal}
                 onChange={(e) => setGlobalSearchVal(e.target.value)}
                 autoComplete="off"
+                aria-describedby="global-search-desc"
                 aria-label={t('global_search_placeholder')}
                 className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg py-1.5 ps-9 pe-10 text-xs text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] focus:outline-none focus:ring-1 focus:ring-blue-500/20 transition-all font-bold"
               />
+              <span id="global-search-desc" className="sr-only">{t('global_search_desc') || 'ابحث عن منتج أو فاتورة أو عميل في النظام'}</span>
               <Search className={`absolute top-2.5 text-[var(--app-text-secondary)] group-focus-within:text-blue-500 transition-colors ${dir === 'rtl' ? 'right-3' : 'left-3'}`} size={14} />
               {globalSearchVal && (
                 <button 

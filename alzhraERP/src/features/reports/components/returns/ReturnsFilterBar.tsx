@@ -11,36 +11,40 @@ interface Props {
 
 const ReturnsFilterBar: React.FC<Props> = ({ filters, setFilters, handleExportExcel, handlePrint }) => {
     return (
-        <div className="glass-panel bento-item p-10 bg-white dark:bg-slate-900/50 border-none shadow-2xl relative overflow-visible">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-10">
+        <div className="bg-white dark:bg-slate-900/50 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 md:p-10 relative overflow-visible">
+            <div className="flex flex-col gap-4 sm:gap-6 mb-4 sm:mb-6 md:mb-10">
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-6 bg-rose-500 rounded-full" />
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">تحليل المرتجعات الذكي</h3>
+                    <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                        <div className="w-1.5 h-4 sm:w-2 sm:h-6 bg-rose-500 rounded-full" />
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-tight">تحليل المرتجعات الذكي</h3>
                     </div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Returns & Discrepancies Intelligence Center</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">تحليل المرتجعات</p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <button
                         onClick={handleExportExcel}
-                        className="group flex items-center gap-3 px-6 py-3.5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 font-bold text-xs"
+                        className="group flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-xl sm:rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 font-bold text-xs sm:text-sm active:scale-95 min-h-[44px]"
                     >
-                        <FileSpreadsheet size={16} className="group-hover:scale-110 transition-transform" />
-                        <span>تصدير البيانات</span>
+                        <FileSpreadsheet size={14} className="sm:hidden" />
+                        <FileSpreadsheet size={16} className="hidden sm:block" />
+                        <span className="hidden sm:inline">تصدير البيانات</span>
+                        <span className="sm:hidden">تصدير</span>
                     </button>
                     <button
                         onClick={handlePrint}
-                        className="group flex items-center gap-3 px-6 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all font-bold text-xs"
+                        className="group flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl sm:rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all font-bold text-xs sm:text-sm active:scale-95 min-h-[44px]"
                     >
-                        <Printer size={16} className="group-hover:scale-110 transition-transform" />
-                        <span>طباعة التقرير</span>
+                        <Printer size={14} className="sm:hidden" />
+                        <Printer size={16} className="hidden sm:block" />
+                        <span className="hidden sm:inline">طباعة التقرير</span>
+                        <span className="sm:hidden">طباعة</span>
                     </button>
                 </div>
             </div>
 
             {/* Highly Functional Filter Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 {/* Period Filter */}
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">النطاق الزمني</label>
@@ -49,7 +53,7 @@ const ReturnsFilterBar: React.FC<Props> = ({ filters, setFilters, handleExportEx
                         <select
                             value={filters.dateRange}
                             onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as DateRange })}
-                            className="w-full pl-4 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 rounded-2xl text-sm font-bold outline-none transition-all dark:text-white shadow-inner appearance-none"
+                            className="w-full pl-4 pr-10 sm:pr-12 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 rounded-xl text-xs sm:text-sm font-bold outline-none transition-all dark:text-white shadow-inner appearance-none min-h-[44px]"
                         >
                             <option value="today">اليوم</option>
                             <option value="week">آخر ٧ أيام</option>

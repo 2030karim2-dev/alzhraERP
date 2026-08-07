@@ -5,8 +5,8 @@ import { formatCurrency } from '../../../core/utils';
 import { TrendingUp, TrendingDown, Users } from 'lucide-react';
 import ShareButton from '../../../ui/common/ShareButton';
 import ExcelTable from '../../../ui/common/ExcelTable';
-
 import { cn } from '../../../core/utils';
+import { MobileCard, ResponsiveGrid } from './MobileComponents';
 
 const DebtReportView: React.FC = () => {
   const { data, isLoading } = useDebtReport();
@@ -35,91 +35,91 @@ const DebtReportView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-20">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-20">
 
       {/* High-Impact Summary Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel bento-item p-8 bg-emerald-500/5 dark:bg-emerald-950/5 border-none shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
-            <TrendingUp size={80} className="text-emerald-500" />
+      <ResponsiveGrid cols={3}>
+        <MobileCard padding="lg" className="bg-emerald-500/5 dark:bg-emerald-950/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
+            <TrendingUp size={60} className="text-emerald-500" />
           </div>
-          <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-[0.3em] mb-4">إجمالي مديونيات العملاء</p>
-          <h3 dir="ltr" className="text-4xl font-bold text-slate-900 dark:text-white tracking-tighter mb-2 italic">
+          <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-wider mb-2 sm:mb-3">إجمالي مديونيات العملاء</p>
+          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
             {formatCurrency(data?.summary.receivables || 0)}
           </h3>
-          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold">
+          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold mt-2">
             <Users size={12} />
             <span>{receivables.length} مطالبة نشطة</span>
           </div>
-        </div>
+        </MobileCard>
 
-        <div className="glass-panel bento-item p-8 bg-rose-500/5 dark:bg-rose-950/5 border-none shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
-            <TrendingDown size={80} className="text-rose-500" />
+        <MobileCard padding="lg" className="bg-rose-500/5 dark:bg-rose-950/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
+            <TrendingDown size={60} className="text-rose-500" />
           </div>
-          <p className="text-[10px] font-bold text-rose-600/80 uppercase tracking-[0.3em] mb-4">ديون مستحقة للموردين</p>
-          <h3 dir="ltr" className="text-4xl font-bold text-slate-900 dark:text-white tracking-tighter mb-2 italic">
+          <p className="text-[10px] font-bold text-rose-600/80 uppercase tracking-wider mb-2 sm:mb-3">ديون مستحقة للموردين</p>
+          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
             {formatCurrency(data?.summary.payables || 0)}
           </h3>
-          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold">
+          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold mt-2">
             <Users size={12} />
             <span>{payables.length} فاتورة التزام</span>
           </div>
-        </div>
+        </MobileCard>
 
-        <div className={cn("glass-panel bento-item p-8 border-none shadow-2xl relative overflow-hidden group", netPosition >= 0 ? "bg-blue-500 text-white" : "bg-slate-900 text-white")}>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-all duration-1000" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 mb-4">صافي المركز المالي</p>
-          <h3 dir="ltr" className="text-4xl font-bold tracking-tighter mb-4 drop-shadow-2xl italic">
+        <MobileCard padding="lg" className={cn("relative overflow-hidden group", netPosition >= 0 ? "bg-blue-500 text-white" : "bg-slate-900 text-white")}>
+          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-all duration-1000" />
+          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-2 sm:mb-3">صافي المركز المالي</p>
+          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tighter italic">
             {formatCurrency(Math.abs(netPosition))}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white/20 backdrop-blur-md border border-white/10")}>
+          <div className="flex items-center gap-2 mt-2 sm:mt-3">
+            <span className={cn("px-2 sm:px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white/20 backdrop-blur-md border border-white/10")}>
               {netPosition >= 0 ? 'فائض مستحق' : 'عجز ملتزم'}
             </span>
             <ShareButton
               size="md"
               eventType="debt_report"
               title="مشاركة المركز"
-              className="bg-white/20 hover:bg-white/30 text-white rounded-xl p-2.5 transition-all"
+              className="bg-white/20 hover:bg-white/30 text-white rounded-xl p-2 sm:p-2.5 transition-all"
               message={`📊 تقرير المركز المالي - الزهراء سمارت\n━━━━━━━━━━━━━━\n✅ مستحقات (عملاء): ${formatCurrency(data?.summary.receivables || 0)}\n🔴 التزامات (موردين): ${formatCurrency(data?.summary.payables || 0)}\n📊 صافي المركز: ${formatCurrency(Math.abs(netPosition))} ${netPosition >= 0 ? '(لصالحك)' : '(عليك)'}`}
             />
           </div>
-        </div>
-      </div>
+        </MobileCard>
+      </ResponsiveGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Receivables Details */}
-        <div className="glass-panel bento-item p-8 bg-white dark:bg-slate-900 border-none shadow-2xl">
-          <div className="flex items-center justify-between mb-8 border-b dark:border-slate-800 pb-4">
-            <h4 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20">
-                <TrendingUp size={20} />
+        <MobileCard padding="none">
+          <div className="p-3 sm:p-4 lg:p-6 flex items-center justify-between border-b dark:border-slate-800">
+            <h4 className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20">
+                <TrendingUp size={16} />
               </div>
               كشف مستحقات العملاء
             </h4>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{receivables.length} عميل</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{receivables.length} عميل</span>
           </div>
-          <div className="p-0">
+          <div className="overflow-x-auto">
             <ExcelTable columns={columns} data={receivables} colorTheme="green" />
           </div>
-        </div>
+        </MobileCard>
 
         {/* Payables Details */}
-        <div className="glass-panel bento-item p-8 bg-white dark:bg-slate-900 border-none shadow-2xl">
-          <div className="flex items-center justify-between mb-8 border-b dark:border-slate-800 pb-4">
-            <h4 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-3">
-              <div className="p-2.5 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/20">
-                <TrendingDown size={20} />
+        <MobileCard padding="none">
+          <div className="p-3 sm:p-4 lg:p-6 flex items-center justify-between border-b dark:border-slate-800">
+            <h4 className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-500/20">
+                <TrendingDown size={16} />
               </div>
               كشف التزامات الموردين
             </h4>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{payables.length} مورد</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{payables.length} مورد</span>
           </div>
-          <div className="p-0">
+          <div className="overflow-x-auto">
             <ExcelTable columns={columns} data={payables} colorTheme="orange" />
           </div>
-        </div>
+        </MobileCard>
       </div>
     </div>
   );

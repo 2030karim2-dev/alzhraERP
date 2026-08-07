@@ -16,6 +16,7 @@
     --app-text-secondary: #64748b;
     --accent: #3b82f6;
     --app-font-size: 16px;
+    --radius: 0.5rem;
     /* Responsive scale factor — used by components */
     --scale: 1;
   }
@@ -25,9 +26,9 @@
     --app-bg: #020617;
     --app-surface: #0f172a;
     --app-surface-hover: #1e293b;
-    --app-border: #1e293b;
+    --app-border: #334155;
     --app-text: #f1f5f9;
-    --app-text-secondary: #94a3b8;
+    --app-text-secondary: #cbd5e1;
     --accent: #3b82f6;
   }
 
@@ -661,5 +662,61 @@ a:focus-visible {
 
   .print-break-after {
     page-break-after: always;
+  }
+
+  /* Print-optimized layout */
+  body {
+    background: white !important;
+    color: #1a1a2e !important;
+    font-size: 12pt !important;
+  }
+
+  [data-theme-scope] {
+    background: white !important;
+  }
+
+  /* Ensure all content visible */
+  [class*="overflow-"] {
+    overflow: visible !important;
+  }
+
+  /* Hide scrollbars, shadows, and decorative elements */
+  .custom-scrollbar::-webkit-scrollbar,
+  .shadow-*, .backdrop-blur-*, .animate-* {
+    display: none !important;
+  }
+
+  /* Table improvements */
+  table {
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 6px 8px !important;
+    color: #1a1a2e !important;
+    background: white !important;
+  }
+
+  th {
+    background: #f8fafc !important;
+    font-weight: 700 !important;
+  }
+
+  /* Margins */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  /* Links show URL */
+  a[href]:after {
+    content: none !important;
   }
 }

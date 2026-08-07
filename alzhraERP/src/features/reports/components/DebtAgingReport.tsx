@@ -8,6 +8,7 @@ import StatCard from '../../../ui/common/StatCard';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import ShareButton from '../../../ui/common/ShareButton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { MobileCard, MobileSectionTitle, ResponsiveGrid, MobileEmptyState } from './MobileComponents';
 
 const AGING_COLORS = ['#22c55e', '#eab308', '#f97316', '#ef4444'];
 const AGING_LABELS = ['حالية (0-30)', 'متأخرة (31-60)', 'متأخرة (61-90)', 'حرجة (90+)'];
@@ -140,39 +141,47 @@ const DebtAgingReport: React.FC = () => {
         },
     ], []);
 
-    if (isLoading) return <div className="p-20 text-center animate-pulse">جاري تحليل أعمار الديون...</div>;
+    if (isLoading) return <div className="p-10 text-center animate-pulse text-slate-400 text-sm">جاري تحليل أعمار الديون...</div>;
+
+    const hasData = data && data.partiesList && data.partiesList.length > 0;
 
     return (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Header */}
-            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                <Clock size={16} className="text-amber-600" /> تقرير أعمار الديون (Aging Report)
-            </h3>
+            <MobileSectionTitle title="تقرير أعمار الديون (Aging Report)" icon={<Clock size={16} className="text-amber-600" />} />
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <ResponsiveGrid cols={4}>
                 <StatCard title="إجمالي المستحقات" value={formatCurrency(data?.totalOutstanding || 0)} icon={Users} colorClass="text-blue-500" iconBgClass="bg-blue-500" />
                 <StatCard title="حالية (0-30 يوم)" value={formatCurrency(data?.agingBuckets.current || 0)} icon={ShieldCheck} colorClass="text-emerald-500" iconBgClass="bg-emerald-500" />
                 <StatCard title="متأخرة (31-90 يوم)" value={formatCurrency((data?.agingBuckets.days30 || 0) + (data?.agingBuckets.days60 || 0))} icon={AlertTriangle} colorClass="text-amber-500" iconBgClass="bg-amber-500" />
                 <StatCard title="حرجة (90+ يوم)" value={formatCurrency(data?.agingBuckets.days90 || 0)} icon={AlertTriangle} colorClass="text-rose-500" iconBgClass="bg-rose-500" />
-            </div>
+            </ResponsiveGrid>
 
             {/* Alert for critical debts */}
             {(data?.criticalCount || 0) > 0 && (
-                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg p-3 flex items-center gap-3">
+                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-xl p-3 sm:p-4 flex items-center gap-3">
                     <AlertTriangle size={16} className="text-rose-600 flex-shrink-0" />
-                    <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400">
+                    <span className="text-[10px] sm:text-xs font-bold text-rose-700 dark:text-rose-400">
                         ⚠️ يوجد {data?.criticalCount} عميل لديهم ديون متأخرة أكثر من 90 يوم بإجمالي {formatCurrency(data?.agingBuckets.days90 || 0)}
                     </span>
                 </div>
             )}
 
+            {!hasData && (
+                <MobileEmptyState
+                    icon={<Clock size={48} />}
+                    title="لا توجد ديون مستحقة"
+                    description="لا توجد فواتير غير مدفوعة في الفترة الحالية"
+                />
+            )}
+
             {/* Chart */}
-            {(data?.chartData || []).some(d => d.value > 0) && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 p-4 shadow-sm">
-                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">توزيع الديون حسب العمر</h4>
-                    <div style={{ width: '100%', height: 200 }}>
-                        <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
+            {hasData && (data?.chartData || []).some(d => d.value > 0) && (
+                <MobileCard padding="sm">
+                    <h4 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-3">توزيع الديون حسب العمر</h4>
+                    <div className="w-full h-[180px] sm:h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <BarChart data={data?.chartData || []} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
@@ -186,26 +195,28 @@ const DebtAgingReport: React.FC = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                </div>
+                </MobileCard>
             )}
 
             {/* Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-3 border-b dark:border-slate-800 flex justify-between items-center bg-amber-50/50 dark:bg-amber-950/20">
-                    <h4 className="font-bold text-[9px] text-amber-600 uppercase flex items-center gap-2">
-                        <Clock size={12} /> تفصيل أعمار الديون حسب العميل ({data?.partiesList.length || 0})
-                    </h4>
-                    <ShareButton
-                        size="sm"
-                        eventType="debt_aging"
-                        title="مشاركة تقرير أعمار الديون"
-                        message={`⏰ تقرير أعمار الديون\n━━━━━━━━━━━━━━\n💰 الإجمالي: ${formatCurrency(data?.totalOutstanding || 0)}\n✅ حالية: ${formatCurrency(data?.agingBuckets.current || 0)}\n⚠️ متأخرة (31-60): ${formatCurrency(data?.agingBuckets.days30 || 0)}\n🟠 متأخرة (61-90): ${formatCurrency(data?.agingBuckets.days60 || 0)}\n🔴 حرجة (90+): ${formatCurrency(data?.agingBuckets.days90 || 0)}`}
-                    />
-                </div>
-                <div className="p-1">
-                    <ExcelTable columns={columns} data={data?.partiesList || []} colorTheme="orange" isRTL />
-                </div>
-            </div>
+            {hasData && (
+                <MobileCard padding="none">
+                    <div className="p-3 sm:p-4 border-b dark:border-slate-800 flex justify-between items-center bg-amber-50/50 dark:bg-amber-950/20">
+                        <h4 className="font-bold text-[10px] sm:text-xs text-amber-600 uppercase flex items-center gap-2">
+                            <Clock size={12} /> تفصيل أعمار الديون حسب العميل ({data?.partiesList.length || 0})
+                        </h4>
+                        <ShareButton
+                            size="sm"
+                            eventType="debt_aging"
+                            title="مشاركة تقرير أعمار الديون"
+                            message={`⏰ تقرير أعمار الديون\n━━━━━━━━━━━━━━\n💰 الإجمالي: ${formatCurrency(data?.totalOutstanding || 0)}\n✅ حالية: ${formatCurrency(data?.agingBuckets.current || 0)}\n⚠️ متأخرة (31-60): ${formatCurrency(data?.agingBuckets.days30 || 0)}\n🟠 متأخرة (61-90): ${formatCurrency(data?.agingBuckets.days60 || 0)}\n🔴 حرجة (90+): ${formatCurrency(data?.agingBuckets.days90 || 0)}`}
+                        />
+                    </div>
+                    <div className="overflow-x-auto">
+                        <ExcelTable columns={columns} data={data?.partiesList || []} colorTheme="orange" isRTL />
+                    </div>
+                </MobileCard>
+            )}
         </div>
     );
 };

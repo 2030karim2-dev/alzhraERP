@@ -20,6 +20,14 @@ export const shouldPersistExpandedSidebar = (breakpoint: string): boolean => {
     return isWideDesktop(breakpoint);
 };
 
+export const getTabletSidebarBehavior = ({ isIPad, isTabletLandscape }: { isIPad: boolean; isTabletLandscape: boolean }): 'visible' | 'icons-only' => {
+    // iPad in landscape → keep icons-only (user can toggle)
+    if (isIPad && isTabletLandscape) return 'icons-only';
+    // iPad in portrait → icons-only (screen too narrow)
+    if (isIPad) return 'icons-only';
+    return 'visible';
+};
+
 export const getCollapsedSidebarWidth = ({ breakpoint, isIPad, isTabletLandscape }: SidebarWidthOptions) => {
     if (breakpoint === '5xl') return 'w-40';
     if (breakpoint === '4xl') return 'w-36';

@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import StatCard from '../../../ui/common/StatCard';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import ShareButton from '../../../ui/common/ShareButton';
+import { MobileCard, MobileSectionTitle, ResponsiveGrid, MobileEmptyState } from './MobileComponents';
 
 const useDailySalesReport = (days: number = 30) => {
     const { user } = useAuthStore();
@@ -142,7 +143,16 @@ const DailySalesReport: React.FC = () => {
         },
     ], []);
 
-    if (isLoading) return <div className="p-20 text-center animate-pulse">جاري تحليل بيانات المبيعات...</div>;
+    if (isLoading) return <div className="p-10 text-center animate-pulse text-slate-400 text-sm">جاري تحليل بيانات المبيعات...</div>;
+
+    if (!data || data.invoices.length === 0) {
+        return (
+            <div className="space-y-3">
+                <MobileSectionTitle title="تقرير المبيعات اليومي" icon={<BarChart3 size={16} className="text-blue-600" />} />
+                <MobileEmptyState title="لا توجد مبيعات" description="لا توجد فواتير مبيعات في الفترة المحددة" />
+            </div>
+        );
+    }
 
     const displayInvoices = showAllInvoices ? data?.invoices : data?.invoices.slice(0, 10);
 
@@ -150,42 +160,40 @@ const DailySalesReport: React.FC = () => {
         <div className="space-y-3">
             {/* Period Selector */}
             <div className="flex items-center gap-2 justify-between">
-                <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                    <BarChart3 size={16} className="text-blue-600" /> تقرير المبيعات اليومي
-                </h3>
-                <div className="flex gap-1">
+                <MobileSectionTitle title="تقرير المبيعات اليومي" icon={<BarChart3 size={16} className="text-blue-600" />} />
+                <div className="flex gap-1 flex-shrink-0">
                     {[7, 14, 30, 90].map(d => (
                         <button
                             key={d}
                             onClick={() => setDays(d)}
                             className={cn(
-                                "px-3 py-1 rounded-lg text-[10px] font-bold transition-colors",
+                                "px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all active:scale-95 min-h-[36px]",
                                 days === d
-                                    ? "bg-blue-600 text-white"
+                                    ? "bg-blue-600 text-white shadow-md"
                                     : "bg-gray-100 dark:bg-slate-800 text-gray-500 hover:bg-gray-200"
                             )}
                         >
-                            {d} يوم
+                            {d}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <ResponsiveGrid cols={4}>
                 <StatCard title="مبيعات اليوم" value={formatCurrency(data?.todaySales.total || 0)} icon={Calendar} colorClass="text-blue-500" iconBgClass="bg-blue-500" />
                 <StatCard title="فواتير اليوم" value={String(data?.todaySales.count || 0)} icon={ShoppingCart} colorClass="text-indigo-500" iconBgClass="bg-indigo-500" />
                 <StatCard title={`إجمالي ${days} يوم`} value={formatCurrency(data?.totalSales || 0)} icon={TrendingUp} colorClass="text-emerald-500" iconBgClass="bg-emerald-500" />
                 <StatCard title="متوسط يومي" value={formatCurrency(data?.avgDaily || 0)} icon={BarChart3} colorClass="text-amber-500" iconBgClass="bg-amber-500" />
-            </div>
+            </ResponsiveGrid>
 
             {/* Chart */}
             {(data?.dailyData.length || 0) > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 p-4 shadow-sm">
-                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">اتجاه المبيعات اليومي</h4>
-                    <div className="w-full h-[220px] relative">
+                <MobileCard padding="sm">
+                    <h4 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-3">اتجاه المبيعات اليومي</h4>
+                    <div className="w-full h-[180px] sm:h-[220px]">
                         {isMounted && (
-                            <ResponsiveContainer key="daily-sales-chart" width="100%" height={220} minWidth={1} debounce={1} minHeight={1}>
+                            <ResponsiveContainer key="daily-sales-chart" width="100%" height="100%" minWidth={1} debounce={1} minHeight={1}>
                                 <BarChart data={data?.dailyData || []}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                     <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={(v) => v.slice(5)} />
@@ -200,13 +208,13 @@ const DailySalesReport: React.FC = () => {
                             </ResponsiveContainer>
                         )}
                     </div>
-                </div>
+                </MobileCard>
             )}
 
             {/* Invoices Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-3 border-b dark:border-slate-800 flex justify-between items-center bg-blue-50/50 dark:bg-blue-950/20">
-                    <h4 className="font-bold text-[9px] text-blue-600 uppercase flex items-center gap-2">
+            <MobileCard padding="none">
+                <div className="p-3 sm:p-4 border-b dark:border-slate-800 flex justify-between items-center bg-blue-50/50 dark:bg-blue-950/20">
+                    <h4 className="font-bold text-[10px] sm:text-xs text-blue-600 uppercase flex items-center gap-2">
                         <ShoppingCart size={12} /> آخر الفواتير ({data?.totalInvoices || 0})
                     </h4>
                     <ShareButton
@@ -216,18 +224,20 @@ const DailySalesReport: React.FC = () => {
                         message={`📊 تقرير المبيعات اليومي\n━━━━━━━━━━━━━━\n📅 مبيعات اليوم: ${formatCurrency(data?.todaySales.total || 0)} (${data?.todaySales.count || 0} فاتورة)\n💰 إجمالي ${days} يوم: ${formatCurrency(data?.totalSales || 0)}\n📈 متوسط يومي: ${formatCurrency(data?.avgDaily || 0)}`}
                     />
                 </div>
-                <div className="p-1">
-                    <ExcelTable columns={columns} data={displayInvoices || []} colorTheme="blue" isRTL />
+                <div className="overflow-x-auto -mx-1">
+                    <div className="px-1">
+                        <ExcelTable columns={columns} data={displayInvoices || []} colorTheme="blue" isRTL />
+                    </div>
                 </div>
                 {(data?.invoices.length || 0) > 10 && (
                     <button
                         onClick={() => setShowAllInvoices(!showAllInvoices)}
-                        className="w-full p-2 text-center text-[10px] font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1 border-t dark:border-slate-800"
+                        className="w-full p-2 sm:p-3 text-center text-[10px] sm:text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1 border-t dark:border-slate-800 active:scale-[0.98] transition-all"
                     >
                         {showAllInvoices ? <><ChevronUp size={12} /> إخفاء</> : <><ChevronDown size={12} /> عرض الكل ({data?.invoices.length})</>}
                     </button>
                 )}
-            </div>
+            </MobileCard>
         </div>
     );
 };

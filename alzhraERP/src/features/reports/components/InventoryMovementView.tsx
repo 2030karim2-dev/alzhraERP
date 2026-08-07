@@ -178,86 +178,88 @@ const InventoryMovementView: React.FC = () => {
             </div>
 
             {!selectedProductId ? (
-                <div className="h-[500px] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/20 rounded-[4rem] border-4 border-dashed border-slate-200 dark:border-slate-800 p-20 text-center relative overflow-hidden group">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/20 rounded-2xl sm:rounded-3xl md:rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-blue-500 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-1000" />
-                    <div className="p-12 bg-blue-500/5 dark:bg-blue-500/10 rounded-[3.5rem] mb-10 relative group overflow-visible">
-                        <History size={80} className="text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-blue-500/20 blur-[80px] rounded-full animate-pulse" />
+                    <div className="p-8 sm:p-10 md:p-12 bg-blue-500/5 dark:bg-blue-500/10 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 md:mb-10 relative group overflow-visible">
+                        <History size={48} className="sm:hidden text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
+                        <History size={60} className="hidden sm:block md:hidden text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
+                        <History size={80} className="hidden md:block text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-blue-500/20 blur-[60px] sm:blur-[80px] rounded-full animate-pulse" />
                     </div>
-                    <h3 className="text-3xl font-black text-slate-800 dark:text-white mb-4 tracking-tighter">تحليل التدفق المخزني</h3>
-                    <p className="text-sm font-bold text-slate-400 max-w-md leading-relaxed uppercase tracking-[0.1em]">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-4 tracking-tighter">تحليل التدفق المخزني</h3>
+                    <p className="text-xs sm:text-sm font-bold text-slate-400 max-w-md leading-relaxed">
                         قم بتحديد صنف من مركز التحكم أعلاه لعرض السجل المالي واللوجستي الكامل، بما في ذلك بيانات التوريد والصرف والمناقلات السحابية.
                     </p>
                 </div>
             ) : isLoading ? (
-                <div className="h-[500px] flex flex-col justify-center items-center gap-8 bg-white dark:bg-slate-900 rounded-[4rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col justify-center items-center gap-6 sm:gap-8 bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
                     <div className="relative">
-                        <div className="w-24 h-24 border-8 border-slate-100 border-t-blue-500 rounded-full animate-spin shadow-2xl shadow-blue-500/20" />
-                        <div className="absolute inset-0 flex items-center justify-center font-black text-blue-500 text-[10px]">ERP</div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-4 sm:border-8 border-slate-100 border-t-blue-500 rounded-full animate-spin shadow-xl shadow-blue-500/20" />
                     </div>
                     <div className="text-center space-y-2">
-                        <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">جاري تحليل سلسلة التوريد</span>
-                        <p className="text-[9px] text-slate-300 font-bold uppercase">ALZHRA SMART LOGISTICS ENGINE</p>
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400 animate-pulse">جاري تحليل سلسلة التوريد</span>
                     </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Insights Bento Column */}
-                    <div className="lg:col-span-4 space-y-8 h-full">
-                        <div className="glass-panel bento-item p-10 bg-white dark:bg-slate-900 border-none shadow-2xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-125 transition-transform duration-1000">
-                                <Package size={120} />
+                    <div className="lg:col-span-4 space-y-4 sm:space-y-6 h-full">
+                        <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 md:p-10 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-5 group-hover:scale-125 transition-transform duration-1000">
+                                <Package size={80} className="sm:hidden" />
+                                <Package size={100} className="hidden sm:block md:hidden" />
+                                <Package size={120} className="hidden md:block" />
                             </div>
-                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
-                                <BarChart3 size={16} /> مُؤشرات الكفاءة
+                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-4 sm:mb-6 md:mb-10 flex items-center gap-2 sm:gap-3">
+                                <BarChart3 size={14} /> مُؤشرات الكفاءة
                             </h3>
 
-                            <div className="space-y-8">
+                            <div className="space-y-4 sm:space-y-6 md:space-y-8">
                                 <div className="group">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-slate-400 group-hover:text-blue-500 transition-colors">الرصيد الفعلي الحالي</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-400 group-hover:text-blue-500 transition-colors">الرصيد الفعلي الحالي</p>
                                     <div className="flex items-baseline gap-2">
-                                        <h2 className="text-6xl font-black font-mono tracking-tighter text-slate-900 dark:text-white">{analysis?.currentStock || 0}</h2>
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-tighter text-slate-900 dark:text-white">{analysis?.currentStock || 0}</h2>
                                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Qty</span>
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-slate-900 rounded-3xl text-white shadow-xl relative overflow-hidden border border-slate-800">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-slate-500">معامل الدوران</p>
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-4xl font-black font-mono text-blue-400 italic">{analysis?.turnover || 0}</span>
-                                        <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10">Active Flux</span>
+                                <div className="p-4 sm:p-6 bg-slate-900 rounded-2xl sm:rounded-3xl text-white shadow-xl relative overflow-hidden border border-slate-800">
+                                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full blur-2xl sm:blur-3xl -mr-10 -mt-10 sm:-mr-16 sm:-mt-16" />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-500">معامل الدوران</p>
+                                    <div className="flex items-center gap-3 sm:gap-4">
+                                        <span className="text-2xl sm:text-3xl md:text-4xl font-black font-mono text-blue-400 italic">{analysis?.turnover || 0}</span>
+                                        <span className="px-2 sm:px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 hidden sm:inline-block">Active Flux</span>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl group hover:bg-emerald-500/20 transition-all">
-                                        <ArrowDownRight size={20} className="text-emerald-500 mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">تدفق وارد</p>
-                                        <p className="text-xl font-black font-mono text-emerald-600 tracking-tighter">+{analysis?.totalIn}</p>
+                                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                    <div className="p-3 sm:p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl sm:rounded-3xl group hover:bg-emerald-500/20 transition-all">
+                                        <ArrowDownRight size={16} className="text-emerald-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
+                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق وارد</p>
+                                        <p className="text-lg sm:text-xl font-black font-mono text-emerald-600 tracking-tighter">+{analysis?.totalIn}</p>
                                     </div>
-                                    <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-3xl group hover:bg-rose-500/20 transition-all">
-                                        <ArrowUpRight size={20} className="text-rose-500 mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-widest mb-1">تدفق صادر</p>
-                                        <p className="text-xl font-black font-mono text-rose-600 tracking-tighter">-{analysis?.totalOut}</p>
+                                    <div className="p-3 sm:p-4 md:p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl sm:rounded-3xl group hover:bg-rose-500/20 transition-all">
+                                        <ArrowUpRight size={16} className="text-rose-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
+                                        <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق صادر</p>
+                                        <p className="text-lg sm:text-xl font-black font-mono text-rose-600 tracking-tighter">-{analysis?.totalOut}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-10 pt-8 border-t dark:border-slate-800 flex justify-between items-center opacity-40">
+                            <div className="mt-6 sm:mt-8 md:mt-10 pt-4 sm:pt-6 md:pt-8 border-t dark:border-slate-800 flex justify-between items-center opacity-40">
                                 <span className="text-[9px] font-black uppercase tracking-widest">Global Status</span>
                                 <span className="text-[9px] font-bold font-mono uppercase">SYSLOG_SYNC_OK</span>
                             </div>
                         </div>
 
                         {/* Chart Preview Card */}
-                        <div className="glass-panel bento-item p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden h-[300px]">
-                            <div className="absolute top-0 right-0 p-6">
-                                <div className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-[9px] font-black text-blue-400 uppercase tracking-widest">Live Dynamic Chart</div>
+                        <div className="bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden h-[200px] sm:h-[250px] md:h-[300px]">
+                            <div className="absolute top-0 right-0 p-3 sm:p-4 md:p-6">
+                                <div className="px-2 sm:px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-[9px] font-black text-blue-400 uppercase tracking-widest hidden sm:inline-block">Live Dynamic Chart</div>
                             </div>
-                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-12">اتـجـاه الرصـيـد</h4>
-                            <div className="h-full w-full">
-                                <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
+                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-4 md:mb-12 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6">اتـجـاه الرصـيـد</h4>
+                            <div className="h-full w-full px-2 sm:px-4">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                     <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                                         <XAxis dataKey="entry_date" hide />
                                         <YAxis hide />

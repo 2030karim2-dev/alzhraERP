@@ -44,10 +44,12 @@ export function ExcelTableHeader<T>({
                         />
                     </th>
                 )}
-                <th className="w-10 p-2 text-[10px] text-[var(--app-text-secondary)] font-semibold border-r border-[var(--app-border)] relative">#</th>
+                <th className="w-10 p-2 text-[10px] text-[var(--app-text-secondary)] font-semibold border-r border-[var(--app-border)] relative" scope="col">#</th>
                 {columns.map((col, idx) => (
                     <th
                         key={idx}
+                        scope="col"
+                        aria-sort={sortConfig?.key === (col.sortKey as string) ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
                         style={{ width: columnWidths[idx] ? `${columnWidths[idx]}px` : col.width }}
                         onClick={() => !isLoading && col.sortKey && handleSort(col.sortKey as string)}
                         className={cn(

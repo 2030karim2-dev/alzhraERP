@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { LayoutDashboard, ShoppingBag, Store, Wrench, WifiOff } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Store, Wrench, WifiOff, Ellipsis, Receipt, Users, Truck, BarChart3, Settings, ReceiptText, PackageOpen, DollarSign } from 'lucide-react';
 import { ROUTES } from '../../core/routes/paths';
 import { useI18nStore } from '../../lib/i18nStore';
 import { useThemeStore } from '../../lib/themeStore';
 import { ErrorBoundary } from '../base/ErrorBoundary';
 import PageLoader from '../base/PageLoader';
+import BottomSheet from '../base/BottomSheet';
 import { cn } from '../../core/utils';
 import { getBreakpointValue, useBreakpoint, useCurrentBreakpoint } from '../../lib/hooks/useBreakpoint';
 import { useTranslation } from '../../lib/hooks/useTranslation';
@@ -30,6 +31,7 @@ const MainLayout: React.FC = () => {
   });
   const previousIsDesktop = useRef(isDesktop);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const { isOnline } = useNetworkStatus();
   const { isUnstable } = useConnectionStore();
   const { deviceCategory, isIPad } = useDevice();
@@ -85,12 +87,27 @@ const MainLayout: React.FC = () => {
     { icon: Wrench, label: t('products'), path: ROUTES.DASHBOARD.INVENTORY },
   ];
 
+  const moreItems = [
+    { icon: BarChart3, label: t('reports'), path: '/reports' },
+    { icon: Users, label: t('customers'), path: '/parties' },
+    { icon: Truck, label: t('purchases'), path: '/purchases' },
+    { icon: ReceiptText, label: t('expenses'), path: '/expenses' },
+    { icon: DollarSign, label: t('accounting'), path: '/accounting' },
+    { icon: PackageOpen, label: t('inventory'), path: '/inventory' },
+    { icon: Settings, label: t('settings'), path: '/settings' },
+  ];
+
   return (
-    <div data-theme-scope="app" className="h-screen bg-[var(--app-bg)] overflow-hidden font-sans" dir={dir}>
+    <div data-theme-scope="app" className="h-[100dvh] bg-[var(--app-bg)] overflow-hidden font-sans" dir={dir}>
       {/* Network Alert Overlay */}
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 h-1 bg-rose-500 z-[300] animate-pulse"></div>
       )}
+
+      {/* Skip to Content — Accessibility */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[400] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-bold focus:text-sm focus:shadow-lg">
+        {t('skip_to_content') || 'تخطي إلى المحتوى'}
+      </a>
 
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
@@ -138,7 +155,7 @@ const MainLayout: React.FC = () => {
           </div>
         )}
 
-        <main className={cn(
+        <main id="main-content" className={cn(
           "flex-1 overflow-y-auto custom-scrollbar relative print:!m-0 print:!p-0 print:!w-full print:!overflow-visible print:!block",
           mainPaddingBottom
         )}>
@@ -150,7 +167,7 @@ const MainLayout: React.FC = () => {
         </main>
 
         {/* Tactical Mobile Navigation */}
-        <nav className="no-print md:hidden fixed bottom-0 left-0 right-0 bg-[var(--app-surface)]/95 backdrop-blur-md border-t-2 border-[var(--app-border)] h-16 flex items-center justify-around z-40 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+        <nav role="navigation" aria-label={t('mobile_navigation') || 'التنقل السفلي'} className="no-print md:hidden fixed bottom-0 left-0 right-0 bg-[var(--app-surface)]/95 backdrop-blur-md border-t-2 border-[var(--app-border)] h-16 flex items-center justify-around z-40 px-1 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -164,7 +181,7 @@ const MainLayout: React.FC = () => {
                 )}
               >
                 <div className={cn(
-                  "p-2 rounded-xl transition-all duration-500",
+                  "p-1.5 rounded-xl transition-all duration-500",
                   isActive ? "bg-[var(--accent)] text-white shadow-lg" : "hover:bg-[var(--app-surface-hover)]"
                 )}>
                   <item.icon size={20} strokeWidth={isActive ? 3 : 2} />
@@ -173,7 +190,58 @@ const MainLayout: React.FC = () => {
               </button>
             );
           })}
+          {/* More Button */}
+          <button
+            onClick={() => setIsMoreSheetOpen(true)}
+            aria-label={t('more') || 'المزيد'}
+            className={cn(
+              "flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 active:scale-90",
+              isMoreSheetOpen ? "text-[var(--accent)]" : "text-[var(--app-text-secondary)]"
+            )}
+          >
+            <div className={cn(
+              "p-1.5 rounded-xl transition-all duration-500",
+              isMoreSheetOpen ? "bg-[var(--accent)] text-white shadow-lg" : "hover:bg-[var(--app-surface-hover)]"
+            )}>
+              <Ellipsis size={20} strokeWidth={2} />
+            </div>
+            <span className="text-[8px] font-semibold mt-1 uppercase tracking-widest leading-none">{t('more') || 'المزيد'}</span>
+          </button>
         </nav>
+
+        {/* More Actions BottomSheet */}
+        <BottomSheet
+          isOpen={isMoreSheetOpen}
+          onClose={() => setIsMoreSheetOpen(false)}
+          title={t('quick_actions') || 'إجراءات سريعة'}
+        >
+          <div className="grid grid-cols-3 gap-3">
+            {moreItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => { navigate(item.path); setIsMoreSheetOpen(false); }}
+                  aria-label={item.label}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-200 active:scale-95",
+                    isActive
+                      ? "bg-[var(--accent)]/10 text-[var(--accent)] ring-2 ring-[var(--accent)]/30"
+                      : "bg-[var(--app-bg)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
+                  )}
+                >
+                  <div className={cn(
+                    "p-3 rounded-xl transition-all",
+                    isActive ? "bg-[var(--accent)] text-white" : "bg-[var(--app-surface)]"
+                  )}>
+                    <item.icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
+                  </div>
+                  <span className="text-[10px] font-bold text-center leading-tight">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </BottomSheet>
       </div>
     </div>
   );

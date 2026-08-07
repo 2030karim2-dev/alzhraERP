@@ -541,6 +541,8 @@ function ExcelTable<T>({
             onMouseLeave={() => { setIsMouseDown(false); endSelection(); }}
           >
             <table
+              role="table"
+              aria-label={title || 'جدول البيانات'}
               style={{ fontSize: `${zoomLevel * 11}px` }}
               className={cn(
                 "w-full border-collapse table-auto min-w-[800px] border-l border-t border-[var(--app-border)]",
