@@ -281,7 +281,7 @@ function ExcelTable<T>({
 
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig?.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    if (sortConfig?.key === key && sortConfig?.direction === 'asc') direction = 'desc';
     setSortConfig({ key, direction });
   };
 

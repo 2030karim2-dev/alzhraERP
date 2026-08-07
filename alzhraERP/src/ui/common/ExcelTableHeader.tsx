@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '../../core/utils';
 import { Column } from './ExcelTable';
@@ -49,7 +49,7 @@ export function ExcelTableHeader<T>({
                     <th
                         key={idx}
                         scope="col"
-                        aria-sort={sortConfig?.key === (col.sortKey as string) ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                        aria-sort={sortConfig?.key === (col.sortKey as string) ? (sortConfig?.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
                         style={{ width: columnWidths[idx] ? `${columnWidths[idx]}px` : col.width }}
                         onClick={() => !isLoading && col.sortKey && handleSort(col.sortKey as string)}
                         className={cn(
@@ -67,8 +67,8 @@ export function ExcelTableHeader<T>({
                             <span>{col.header}</span>
                             {col.sortKey && (
                                 <div className="flex flex-col">
-                                    <ChevronUp size={8} className={cn("text-gray-400", sortConfig?.key === col.sortKey && sortConfig.direction === 'asc' ? "text-blue-600" : "opacity-30")} />
-                                    <ChevronDown size={8} className={cn("text-gray-400", sortConfig?.key === col.sortKey && sortConfig.direction === 'desc' ? "text-blue-600" : "opacity-30")} />
+                                    <ChevronUp size={8} className={cn("text-gray-400", sortConfig?.key === col.sortKey && sortConfig?.direction === 'asc' ? "text-blue-600" : "opacity-30")} />
+                                    <ChevronDown size={8} className={cn("text-gray-400", sortConfig?.key === col.sortKey && sortConfig?.direction === 'desc' ? "text-blue-600" : "opacity-30")} />
                                 </div>
                             )}
                         </div>
