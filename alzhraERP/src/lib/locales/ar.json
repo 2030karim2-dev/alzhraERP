@@ -345,5 +345,15 @@
     "phone_number": "رقم الهاتف",
     "email_address": "البريد الإلكتروني",
     "address": "العنوان",
-    "vehicle_compatibility_search": "بحث التوافق مع المركبات"
+    "vehicle_compatibility_search": "بحث التوافق مع المركبات",
+    "cash_flow": "التدفقات النقدية",
+    "debt_aging": "أعمار الديون",
+    "operational_expenses": "المصاريف التشغيلية",
+    "returns_report": "تقرير المرتجعات",
+    "daily_sales_report": "المبيعات اليومية",
+    "reports_all": "الكل",
+    "reports_sales_inventory": "المبيعات والمخزون",
+    "reports_financial": "القوائم المالية",
+    "reports_accounting": "المحاسبة",
+    "report_loading": "جاري تحميل التقرير..."
 }

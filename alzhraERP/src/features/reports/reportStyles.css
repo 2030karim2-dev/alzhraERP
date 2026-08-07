@@ -1,4 +1,4 @@
-/* Financial Reports Pro Max Design System */
+/* Financial Reports Pro Max Design System - Enhanced */
 
 :root {
     --report-navy: #0F172A;
@@ -9,13 +9,14 @@
     --report-blue: #2563EB;
     --report-glass: rgba(255, 255, 255, 0.7);
     --report-glass-dark: rgba(15, 23, 42, 0.8);
+    --report-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark {
     --report-glass: rgba(15, 23, 42, 0.6);
 }
 
-/* Glassmorphism Classes */
+/* ============ Glassmorphism ============ */
 .glass-panel {
     background: var(--report-glass);
     backdrop-filter: blur(12px);
@@ -33,6 +34,7 @@
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    transition: all var(--report-transition);
 }
 
 .dark .glass-card {
@@ -40,7 +42,12 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Bento Grid Layouts */
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.12);
+}
+
+/* ============ Bento Grid ============ */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -50,7 +57,7 @@
 .bento-item {
     border-radius: 1.5rem;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--report-transition);
 }
 
 .bento-item:hover {
@@ -58,7 +65,19 @@
     box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.1);
 }
 
-/* Animations */
+/* ============ Content Transition ============ */
+.report-content-enter {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.report-content-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* ============ Animations ============ */
 @keyframes pulse-soft {
 
     0%,
