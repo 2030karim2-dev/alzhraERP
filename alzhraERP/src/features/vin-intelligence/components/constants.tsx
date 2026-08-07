@@ -2,7 +2,7 @@ import type { FitmentStatus } from '../types';
 import React from 'react';
 import { CheckCircle2, AlertTriangle, HelpCircle, XCircle } from 'lucide-react';
 
-export const CATEGORY_LABELS: Record<string, string> = {
+export const CATEGORY_LABELS_EN: Record<string, string> = {
   'Braking': 'Braking',
   'Cooling': 'Cooling',
   'Electrical': 'Electrical',
@@ -14,7 +14,32 @@ export const CATEGORY_LABELS: Record<string, string> = {
   'Fuel / Intake': 'Fuel / Intake',
   'Drivetrain': 'Drivetrain',
   'Mirrors': 'Mirrors',
+  'Body': 'Body',
+  'Exhaust': 'Exhaust',
+  'Filters': 'Filters',
 };
+
+export const CATEGORY_LABELS_AR: Record<string, string> = {
+  'Braking': 'الفرامل',
+  'Cooling': 'نظام التبريد',
+  'Electrical': 'النظام الكهربائي',
+  'Air Conditioning': 'نظام التكييف',
+  'Steering': 'التوجيه',
+  'Front Suspension': 'التعليق الأمامي',
+  'Rear Suspension': 'التعليق الخلفي',
+  'Engine': 'المحرك',
+  'Fuel / Intake': 'الوقود والسحب',
+  'Drivetrain': 'نظام الدفع',
+  'Mirrors': 'المرايا',
+  'Body': 'الهيكل',
+  'Exhaust': 'العادم',
+  'Filters': 'الفلاتر',
+};
+
+export function getCategoryLabel(cat: string): string {
+  const isArabic = document.documentElement.dir === 'rtl';
+  return (isArabic ? CATEGORY_LABELS_AR[cat] : CATEGORY_LABELS_EN[cat]) || cat;
+}
 
 interface FitmentConfig {
   icon: React.ReactNode;

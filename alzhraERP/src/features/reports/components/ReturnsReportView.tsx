@@ -52,14 +52,14 @@ const ReturnsReportView: React.FC = () => {
             <ReturnsStatsGrid stats={stats} />
 
             {/* Insight Tabs Architecture */}
-            <div className="flex p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl sm:rounded-[1.5rem] w-full sm:w-fit border border-slate-200/50 dark:border-slate-700/50 sm:self-center overflow-x-auto no-scrollbar">
+            <div className="flex p-1 sm:p-1.5 bg-[var(--app-surface-hover)] rounded-xl sm:rounded-[1.5rem] w-full sm:w-fit border border-[var(--app-border)] sm:self-center overflow-x-auto no-scrollbar">
                 <button
                     onClick={() => setReportView('overview')}
                     className={cn(
                         "px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-lg sm:rounded-[1.5rem] transition-all duration-500 whitespace-nowrap min-h-[40px] sm:min-h-[44px]",
                         reportView === 'overview'
-                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xl scale-105'
-                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 opacity-60 hover:opacity-100'
+                            ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-xl scale-105'
+                            : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)] opacity-60 hover:opacity-100'
                     )}
                 >
                     Overview
@@ -69,8 +69,8 @@ const ReturnsReportView: React.FC = () => {
                     className={cn(
                         "px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-lg sm:rounded-[1.5rem] transition-all duration-500 whitespace-nowrap min-h-[40px] sm:min-h-[44px]",
                         reportView === 'sales'
-                            ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-xl scale-105'
-                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 opacity-60 hover:opacity-100'
+                            ? 'bg-[var(--app-surface)] text-rose-600 dark:text-rose-400 shadow-xl scale-105'
+                            : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)] opacity-60 hover:opacity-100'
                     )}
                 >
                     Sales Returns
@@ -80,8 +80,8 @@ const ReturnsReportView: React.FC = () => {
                     className={cn(
                         "px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-lg sm:rounded-[1.5rem] transition-all duration-500 whitespace-nowrap min-h-[40px] sm:min-h-[44px]",
                         reportView === 'purchase'
-                            ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xl scale-105'
-                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 opacity-60 hover:opacity-100'
+                            ? 'bg-[var(--app-surface)] text-emerald-600 dark:text-emerald-400 shadow-xl scale-105'
+                            : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)] opacity-60 hover:opacity-100'
                     )}
                 >
                     Purchase Returns

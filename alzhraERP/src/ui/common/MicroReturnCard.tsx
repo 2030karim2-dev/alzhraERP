@@ -21,7 +21,7 @@ const MicroReturnCard: React.FC<Props> = ({ data, onView }) => {
   const isSale = data.type === 'sale_return';
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-3 rounded-[1.8rem] border border-gray-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-all relative overflow-hidden group">
+    <div className="bg-[var(--app-surface)] p-3 rounded-[1.8rem] border border-[var(--app-border)] shadow-sm active:scale-[0.98] transition-all relative overflow-hidden group">
       {/* Decorative Side Bar */}
       <div className={cn(
         "absolute top-0 right-0 w-1.5 h-full",

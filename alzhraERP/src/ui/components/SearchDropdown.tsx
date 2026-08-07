@@ -66,7 +66,7 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
         <div
             ref={dropdownRef}
             className={cn(
-                'absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 shadow-2xl border-2 border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200',
+                'absolute top-full left-0 right-0 mt-2 z-50 bg-[var(--app-surface)] shadow-2xl border-2 border-[var(--app-border)] rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200',
                 className
             )}
         >

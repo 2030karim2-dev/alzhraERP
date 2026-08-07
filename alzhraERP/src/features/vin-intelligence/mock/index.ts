@@ -26,8 +26,8 @@ export const mockVinResult: VinAnalysisResult = {
   coreParts: MOCK_PARTS,
   inventoryMatches: MOCK_PARTS.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches),
   missingParts: MOCK_PARTS.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'),
-  demandInsights: MOCK_PARTS.filter(p => p.demandLevel === 'HIGH').map(p => ({
-    partId: p.id, partName: p.canonicalPartName, demandLevel: p.demandLevel ?? 'HIGH',
+  demandInsights: MOCK_PARTS.filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM').map(p => ({
+    partId: p.id, partName: p.canonicalPartName, demandLevel: (p.demandLevel === 'UNKNOWN' ? 'LOW' : p.demandLevel) as 'HIGH' | 'MEDIUM' | 'LOW',
     salesCount: p.salesCount ?? 0, vehicleMatches: p.vehicleMatches ?? 0,
     isCorePart: true, isFastMoving: (p.salesCount ?? 0) > 300, recommendedStock: undefined,
   })),
@@ -36,7 +36,7 @@ export const mockVinResult: VinAnalysisResult = {
 };
 
 export const mockHistory: VinHistoryEntry[] = [
-  { vin: 'JTB53AEB1W0025920', make: 'Toyota', model: 'Hilux', year: 2015, analyzedAt: new Date().toISOString(), resultSummary: 'Toyota Hilux 2015 — 20 قطع' },
+  { vin: 'JTB53AEB1W0025920', make: 'Toyota', model: 'Hilux', year: 2015, analyzedAt: new Date().toISOString(), resultSummary: 'Toyota Hilux 2015 — 20 parts' },
   { vin: 'DA62T-349212', make: 'Suzuki', model: 'Carry', year: 2002, analyzedAt: new Date(Date.now() - 86400000).toISOString(), resultSummary: 'Suzuki Carry 2002' },
   { vin: 'JTMHV05J804123456', make: 'Toyota', model: 'Land Cruiser', year: 2020, analyzedAt: new Date(Date.now() - 172800000).toISOString(), resultSummary: 'Toyota Land Cruiser 2020' },
 ];

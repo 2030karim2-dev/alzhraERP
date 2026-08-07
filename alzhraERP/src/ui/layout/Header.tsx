@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Left side: Logo/Title (Mobile) / Page Title (Desktop) */}
       <div className="flex items-center gap-3 flex-1 md:flex-none">
         {/* Mobile Menu Button */}
-        <button onClick={onMenuClick} className="md:hidden p-2 -ms-2 text-gray-500 dark:text-slate-400" aria-label={t('menu') || 'فتح القائمة'}>
+        <button onClick={onMenuClick} className="md:hidden p-2 -ms-2 text-[var(--app-text-secondary)]" aria-label={t('menu') || 'فتح القائمة'}>
           <Menu size={24} />
         </button>
         <div
@@ -96,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <button 
                   type="button"
                   onClick={() => setGlobalSearchVal('')}
-                  className={`absolute top-2.5 text-gray-400 hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-3' : 'right-3'}`}
+                  className={`absolute top-2.5 text-[var(--app-text-secondary)] hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-3' : 'right-3'}`}
                 >
                   <X size={14} />
                 </button>

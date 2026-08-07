@@ -401,5 +401,16 @@
     "vin_fuel_detail": "الوقود:",
     "vin_drive_detail": "الدفع:",
     "vin_part_label": "القطعة",
-    "vin_fitment_label": "التطابق"
+    "vin_fitment_label": "التطابق",
+    "vin_finding_parts": "البحث عن القطع الرئيسية",
+    "vin_matching_oem": "مطابقة أرقام OEM",
+    "vin_matching_inv": "مطابقة المخزون",
+    "vin_building_knowledge": "بناء قاعدة المعرفة",
+    "vin_in_stock": "متوفر",
+    "vin_out_of_stock": "غير متوفر",
+    "vin_why_compatible": "لماذا هذه القطعة متوافقة؟",
+    "vin_why_not_compatible": "لماذا هذه القطعة غير متوافقة؟",
+    "vin_no_evidence": "لا يوجد دليل متاح",
+    "vin_unknown_source": "غير معروف",
+    "vin_coming_backend": "قادم في المرحلة الخلفية"
 }

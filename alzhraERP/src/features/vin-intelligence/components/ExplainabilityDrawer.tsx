@@ -36,9 +36,9 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
               <span className="font-bold text-[10px] text-[var(--app-text)]">{vehicle.make} {vehicle.model} {vehicle.year}</span>
             </div>
             <div className="grid grid-cols-3 gap-1 mt-1.5 text-[9px]">
-              <div><span className="text-[var(--app-text-secondary)]">{t('vin_engine_detail')}</span> <span className="font-bold">{vehicle.engineSize}</span></div>
-              <div><span className="text-[var(--app-text-secondary)]">{t('vin_fuel_detail')}</span> <span className="font-bold">{vehicle.fuelType}</span></div>
-              <div><span className="text-[var(--app-text-secondary)]">{t('vin_drive_detail')}</span> <span className="font-bold">{vehicle.driveType}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_engine_detail')}</span> <span className="font-bold">{vehicle.engineSize ?? t('vin_not_available')}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_fuel_detail')}</span> <span className="font-bold">{vehicle.fuelType ?? t('vin_not_available')}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_drive_detail')}</span> <span className="font-bold">{vehicle.driveType ?? t('vin_not_available')}</span></div>
             </div>
           </div>
 
@@ -63,10 +63,10 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
               <span className="font-bold text-[10px]">{part.fitmentStatus}</span>
             </div>
             <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">
-              <span className="font-bold">{t('vin_evidence')}:</span> {part.evidence || 'No evidence available'}
+              <span className="font-bold">{t('vin_evidence')}:</span> {part.evidence || t('vin_no_evidence')}
             </p>
             <p className="text-[9px] text-[var(--app-text-secondary)]">
-              <span className="font-bold">{t('vin_source')}:</span> {part.evidenceSource || 'Unknown'}
+              <span className="font-bold">{t('vin_source')}:</span> {part.evidenceSource || t('vin_unknown_source')}
             </p>
           </div>
         </div>

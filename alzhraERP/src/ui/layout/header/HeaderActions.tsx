@@ -114,7 +114,7 @@ const HeaderActions: React.FC = () => {
         {isSoundEnabled ? (
           <Volume2 size={14} className="text-emerald-500" />
         ) : (
-          <VolumeX size={14} className="text-gray-400" />
+          <VolumeX size={14} className="text-[var(--app-text-secondary)]" />
         )}
       </button>
 
@@ -189,33 +189,33 @@ const HeaderActions: React.FC = () => {
         {/* Dropdown Menu */}
         {isProfileOpen && (
           <div className={cn(
-            "absolute mt-2 w-56 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
+            "absolute mt-2 w-56 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
             dir === 'rtl' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
           )}>
             {/* User Info Header */}
-            <div className="p-4 bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800">
-              <p className="text-xs font-black text-gray-800 dark:text-white truncate">{user?.full_name}</p>
-              <p className="text-[10px] text-gray-400 dark:text-slate-500 truncate mt-0.5">{user?.email}</p>
+            <div className="p-4 bg-[var(--app-surface-hover)] border-b border-[var(--app-border)]">
+              <p className="text-xs font-black text-[var(--app-text)] truncate">{user?.full_name}</p>
+              <p className="text-[10px] text-[var(--app-text-secondary)] truncate mt-0.5">{user?.email}</p>
             </div>
 
             <div className="p-1.5">
               <button
                 onClick={handleProfileClick}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-[var(--app-text-secondary)] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
               >
                 <UserIcon size={16} />
                 <span>الملف الشخصي</span>
               </button>
               <button
                 onClick={() => { navigate('/settings'); setIsProfileOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-[var(--app-text-secondary)] hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
               >
                 <Building2 size={16} />
                 <span>إعدادات المنشأة</span>
               </button>
             </div>
 
-            <div className="p-1.5 border-t border-gray-100 dark:border-slate-800">
+            <div className="p-1.5 border-t border-[var(--app-border)]">
               <button
                 onClick={handleLogoutClick}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"

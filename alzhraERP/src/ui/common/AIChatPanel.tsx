@@ -48,7 +48,7 @@ const AIChatPanel: React.FC<Props> = ({ isOpen, onClose }) => {
             <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
 
             {/* Panel */}
-            <div className="relative w-full sm:w-[440px] h-[90vh] sm:h-[700px] sm:mr-4 sm:mb-4 bg-white dark:bg-slate-950 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-200/50 dark:border-slate-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-4 duration-300">
+            <div className="relative w-full sm:w-[440px] h-[90vh] sm:h-[700px] sm:mr-4 sm:mb-4 bg-[var(--app-surface)] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[var(--app-border)] flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-4 duration-300">
 
                 {/* Header */}
                 <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-4 flex items-center justify-between text-white">
@@ -79,12 +79,12 @@ const AIChatPanel: React.FC<Props> = ({ isOpen, onClose }) => {
                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                     {messages.length === 0 && (
                         <div className="text-center space-y-4 pt-6">
-                            <div className="w-20 h-20 mx-auto rounded-3xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center relative">
-                                <Bot size={32} className="text-gray-400" />
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-[var(--app-bg)] flex items-center justify-center relative">
+                                <Bot size={32} className="text-[var(--app-text-secondary)]" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-800 dark:text-slate-100 text-lg">تحت الإنشاء 🚧</h4>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                <h4 className="font-bold text-[var(--app-text)] text-lg">تحت الإنشاء 🚧</h4>
+                                <p className="text-xs text-[var(--app-text-secondary)] mt-1 leading-relaxed">
                                     يتم حالياً إعادة بناء المساعد الذكي وتدريبه من الصفر.
                                 </p>
                             </div>
@@ -104,11 +104,11 @@ const AIChatPanel: React.FC<Props> = ({ isOpen, onClose }) => {
                             </div>
                             <div className={`max-w-[80%] rounded-2xl p-3 text-sm leading-relaxed group relative ${msg.role === 'user'
                                 ? 'bg-blue-600 text-white rounded-tr-md'
-                                : 'bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-200 rounded-tl-md border border-gray-200/50 dark:border-slate-800'
+                                : 'bg-[var(--app-surface)] text-[var(--app-text)] rounded-tl-md border border-[var(--app-border)]'
                                 }`}>
                                 <p className="whitespace-pre-wrap text-[13px] font-medium">{msg.content}</p>
                                 <div className={`flex items-center gap-2 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-between'}`}>
-                                    <p className={`text-[9px] font-bold ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-400 dark:text-slate-500'}`}>
+                                    <p className={`text-[9px] font-bold ${msg.role === 'user' ? 'text-blue-200' : 'text-[var(--app-text-secondary)]'}`}>
                                         {msg.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -148,7 +148,7 @@ const AIChatPanel: React.FC<Props> = ({ isOpen, onClose }) => {
                             onKeyDown={handleKeyDown}
                             rows={1}
                             placeholder="اكتب رسالتك..."
-                            className="flex-1 resize-none rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:text-white placeholder:text-gray-400"
+                            className="flex-1 resize-none rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)] text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)]"
                             style={{ minHeight: '44px', maxHeight: '120px' }}
                         />
 

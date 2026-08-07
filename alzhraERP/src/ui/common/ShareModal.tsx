@@ -89,7 +89,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border dark:border-slate-800 overflow-hidden">
+            <div className="bg-[var(--app-surface)] rounded-2xl shadow-2xl w-full max-w-md border border-[var(--app-border)] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-l from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 p-4 border-b dark:border-slate-800">
                     <div className="flex items-center justify-between">

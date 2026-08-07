@@ -3,7 +3,7 @@ import { Wrench, ChevronDown, ChevronRight, Package } from 'lucide-react';
 import type { VehicleCorePart } from '../types';
 import { cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
-import { CATEGORY_LABELS, FITMENT_CONFIG } from './constants';
+import { FITMENT_CONFIG, getCategoryLabel } from './constants';
 import { groupByCategory } from './utils';
 
 interface CorePartsTableProps {
@@ -37,7 +37,7 @@ const CorePartsTable: React.FC<CorePartsTableProps> = ({ parts, onPartClick }) =
               <div className="flex items-center gap-2">
                 {isExp ? <ChevronDown size={12} className="text-[var(--app-text-secondary)]" /> : <ChevronRight size={12} className="text-[var(--app-text-secondary)]" />}
                 <Wrench size={12} className="text-blue-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">{CATEGORY_LABELS[cat] || cat}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">{getCategoryLabel(cat)}</span>
               </div>
               <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">{t('vin_parts_suffix', { count: catParts.length })}</span>
             </button>

@@ -202,12 +202,12 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                     </h4>
                     <p className="text-xs text-slate-400 mt-1">{periodLabel}</p>
                 </div>
-                <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
+                <div className="flex gap-1 bg-[var(--app-surface-hover)] p-1 rounded-xl">
                     <button
                         onClick={() => setActiveChart('area')}
                         className={cn(
                             "p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
-                            activeChart === 'area' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                            activeChart === 'area' ? "bg-[var(--app-surface)] text-[var(--accent)] shadow-sm" : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)]"
                         )}
                         title={t.area_chart || 'Area'}
                     >

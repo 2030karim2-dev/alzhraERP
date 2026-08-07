@@ -35,6 +35,7 @@ export class MockVinAnalysisService implements VinAnalysisService {
     if (clean.length < 5) return { valid: false, message: 'VIN too short (min 5 characters)' };
     if (clean.length > 17) return { valid: false, message: 'VIN exceeds 17 characters' };
     if (/[IOQ]/.test(clean)) return { valid: false, message: 'VIN contains invalid characters (I, O, Q)' };
+    if (clean.length !== 17) return { valid: true, message: 'Non-standard VIN length — analysis may be limited' };
     return { valid: true };
   }
 }

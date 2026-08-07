@@ -395,5 +395,11 @@
     "vin_finding_parts": "Finding core parts",
     "vin_matching_oem": "Matching OEM numbers",
     "vin_matching_inv": "Matching inventory",
-    "vin_building_knowledge": "Building vehicle knowledge"
+    "vin_in_stock": "In Stock",
+    "vin_out_of_stock": "Out of Stock",
+    "vin_why_compatible": "Why is this part compatible?",
+    "vin_why_not_compatible": "Why is this part NOT compatible?",
+    "vin_no_evidence": "No evidence available",
+    "vin_unknown_source": "Unknown",
+    "vin_coming_backend": "Coming in Backend Phase"
 }

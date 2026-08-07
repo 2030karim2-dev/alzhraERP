@@ -71,7 +71,7 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
       dir={isRTL ? 'rtl' : 'ltr'}
       className={cn(
         'flex flex-wrap items-center justify-between gap-3 px-4 py-2.5',
-        'bg-white dark:bg-slate-900 border-t border-[var(--app-border)]',
+        'bg-[var(--app-surface)] border-t border-[var(--app-border)]',
         'text-xs font-bold select-none',
         className
       )}
@@ -160,9 +160,9 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
             }}
             className={cn(
               'h-7 px-2 text-xs font-black rounded-lg border',
-              'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700',
-              'text-gray-700 dark:text-slate-300 outline-none',
-              'focus:border-blue-500 cursor-pointer',
+              'bg-[var(--app-surface)] border-[var(--app-border)]',
+              'text-[var(--app-text)] outline-none',
+              'focus:border-[var(--accent)] cursor-pointer',
             )}
           >
             {pageSizeOptions.map((s) => (

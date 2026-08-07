@@ -85,8 +85,8 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
           }}
           placeholder={placeholder}
           className={cn(
-            "w-full bg-white dark:bg-slate-900 border py-2.5 pr-11 pl-10 text-sm font-bold outline-none transition-all font-cairo rounded-xl",
-            isOpen ? "border-blue-500 ring-4 ring-blue-500/10 shadow-lg" : "border-gray-200 dark:border-slate-800 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/10"
+            "w-full bg-[var(--app-surface)] border py-2.5 pr-11 pl-10 text-sm font-bold outline-none transition-all font-cairo rounded-xl",
+            isOpen ? "border-[var(--accent)] ring-4 ring-[var(--accent)]/10 shadow-lg" : "border-[var(--app-border)] focus:border-[var(--accent)]/30 focus:ring-4 focus:ring-[var(--accent)]/10"
           )}
         />
         {selectedId && !isOpen && (
@@ -118,7 +118,7 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full mt-2 left-0 right-0 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95 flex flex-col max-h-[400px]"
+            className="absolute top-full mt-2 left-0 right-0 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col max-h-[400px]"
           >
             {/* Accounts List (Virtualized) */}
             <div 

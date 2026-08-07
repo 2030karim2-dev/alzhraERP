@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, MapPin, CheckCircle2 } from 'lucide-react';
 import type { InventoryMatch } from '../types';
-import { formatCurrency } from '@/core/utils';
+import { formatCurrency } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 const InventoryMatches: React.FC<{ matches: InventoryMatch[] }> = ({ matches }) => {

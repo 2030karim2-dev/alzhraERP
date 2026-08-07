@@ -112,7 +112,7 @@ const MainLayout: React.FC = () => {
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 md:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-[var(--app-text)]/60 backdrop-blur-sm z-50 md:hidden animate-in fade-in duration-300"
           onClick={() => setIsMobileSidebarOpen(false)}
         ></div>
       )}

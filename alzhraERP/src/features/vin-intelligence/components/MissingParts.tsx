@@ -24,7 +24,7 @@ const MissingParts: React.FC<{ parts: VehicleCorePart[] }> = ({ parts }) => {
               <td className="px-3 py-1.5"><span className="font-mono font-bold text-[9px] text-indigo-600">{p.oemNumbers[0] || '—'}</span></td>
               <td className="px-3 py-1.5 text-center"><span className="font-bold text-[10px] text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-1.5 py-0.5 rounded">0</span></td>
               <td className="px-3 py-1.5 text-center">
-                <button className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[var(--app-text-secondary)] rounded text-[8px] font-bold uppercase tracking-widest opacity-50 cursor-not-allowed" disabled title="Coming in Backend Phase">
+                <button className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[var(--app-text-secondary)] rounded text-[8px] font-bold uppercase tracking-widest opacity-50 cursor-not-allowed" disabled title={t('vin_coming_backend')}>
                   <ShoppingCart size={10} /> {t('vin_add_to_purchase')}
                 </button>
               </td>

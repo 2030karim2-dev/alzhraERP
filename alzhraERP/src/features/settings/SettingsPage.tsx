@@ -124,14 +124,14 @@ const SettingsPage: React.FC = () => {
   // Mobile: horizontal tabs
   if (!isDesktop) {
     return (
-      <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 overflow-hidden font-cairo">
+      <div className="flex flex-col h-full bg-[var(--app-bg)] overflow-hidden font-cairo">
         {/* Mobile Header */}
-        <div className="bg-white dark:bg-slate-900 border-b dark:border-slate-800 px-3 py-2.5 shadow-sm">
+        <div className="bg-[var(--app-surface)] border-b border-[var(--app-border)] px-3 py-2.5 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 bg-slate-900 dark:bg-blue-600 text-white rounded-lg">
               <Settings size={14} />
             </div>
-            <h1 className="text-xs font-bold text-gray-800 dark:text-white uppercase">{t('system_settings')}</h1>
+            <h1 className="text-xs font-bold text-[var(--app-text)] uppercase">{t('system_settings')}</h1>
           </div>
           <div className="overflow-x-auto custom-scrollbar -mx-3 px-3">
             <div className="flex gap-1.5 min-w-max pb-1">

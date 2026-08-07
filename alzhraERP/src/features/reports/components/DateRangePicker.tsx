@@ -27,8 +27,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     value={value}
                     onChange={(e) => onChange(e.target.value as DateRange)}
                     className={cn(
-                        "appearance-none bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-xl pl-3 pr-9",
-                        "text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10",
+                        "appearance-none bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl pl-3 pr-9",
+                        "text-xs sm:text-sm font-bold text-[var(--app-text)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10",
                         "transition-all min-h-[40px] sm:min-h-[44px]",
                         compact && "text-[10px] sm:text-xs py-1.5 sm:py-2"
                     )}

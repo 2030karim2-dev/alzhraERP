@@ -59,7 +59,7 @@ const ExcelTableToolbar: React.FC<ExcelTableToolbarProps> = ({
     return (
         <>
             {/* Table Header Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-center px-1 py-0.5 border-b border-[var(--app-border)] bg-gray-50/50 dark:bg-slate-900/50">
+            <div className="flex flex-col sm:flex-row justify-between items-center px-1 py-0.5 border-b border-[var(--app-border)] bg-[var(--app-surface-hover)]">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     {title && (
                         <div className="flex items-center gap-2">

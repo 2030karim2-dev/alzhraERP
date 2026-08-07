@@ -33,7 +33,7 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
     <div
       onClick={onClick}
       className={cn(
-        "bg-white dark:bg-slate-900 p-2.5 border-b border-gray-100 dark:border-slate-800 flex flex-col gap-2 transition-all hover:bg-gray-50/50 dark:hover:bg-slate-800/50 group",
+        "bg-[var(--app-surface)] p-2.5 border-b border-[var(--app-border)] flex flex-col gap-2 transition-all hover:bg-[var(--app-surface-hover)] group",
         onClick && "cursor-pointer active:scale-[0.99]",
         className
       )}
@@ -44,13 +44,13 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
             <Icon size={14} />
           </div>
           <div className="min-w-0">
-            <h3 className="text-[11px] font-bold text-gray-800 dark:text-slate-100 leading-none truncate uppercase tracking-tight">{title}</h3>
-            <p className="text-[9px] text-gray-400 font-medium mt-1 tracking-tighter truncate">{subtitle}</p>
+            <h3 className="text-[11px] font-bold text-[var(--app-text)] leading-none truncate uppercase tracking-tight">{title}</h3>
+            <p className="text-[9px] text-[var(--app-text-secondary)] font-medium mt-1 tracking-tighter truncate">{subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {actions}
-          {onClick && !actions && <ChevronLeft size={14} className="text-gray-300 dark:text-slate-600" />}
+          {onClick && !actions && <ChevronLeft size={14} className="text-[var(--app-border)]" />}
         </div>
       </div>
 
@@ -67,10 +67,10 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
           )}
           {progress !== undefined && (
             <div className="flex-1 max-w-[100px] flex items-center gap-2">
-              <div className="w-full bg-gray-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+              <div className="w-full bg-[var(--app-border)] h-1 rounded-full overflow-hidden">
                 <div className={cn("h-full transition-all", iconColorClass.replace('text-', 'bg-'))} style={{ width: `${progress}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-gray-400 font-mono">{progress}%</span>
+              <span className="text-[8px] font-bold text-[var(--app-text-secondary)] font-mono">{progress}%</span>
             </div>
           )}
         </div>

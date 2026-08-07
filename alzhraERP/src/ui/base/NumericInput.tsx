@@ -107,7 +107,7 @@ const NumericInput: React.FC<NumericInputProps> = ({
           className={cn(
             'flex-1 bg-[var(--app-bg)] border border-[var(--app-border)]',
             'py-2 px-3 text-sm font-bold text-[var(--app-text)] text-center',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500',
+            'focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)]',
             'transition-all duration-200 font-mono tracking-wide',
             showSteppers ? 'rounded-none' : 'rounded-lg',
             disabled && 'opacity-50 cursor-not-allowed',
