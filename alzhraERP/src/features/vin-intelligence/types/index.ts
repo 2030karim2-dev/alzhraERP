@@ -33,37 +33,14 @@ export interface VehicleConfiguration {
 }
 
 // ============================================================
-// Part Definition (Terminology/Taxonomy)
-// ============================================================
-
-export interface PartDefinition {
-  id: string;
-  canonicalName: string;
-  category: PartCategory;
-  aliases: string[];
-  side?: 'RH' | 'LH' | 'NONE' | 'UNKNOWN';
-  position?: string; // e.g., "Front", "Rear", "Upper", "Lower", "Inner", "Outer"
-}
-
-export type PartCategory =
-  | 'Braking'
-  | 'Cooling'
-  | 'Electrical'
-  | 'Air Conditioning'
-  | 'Steering'
-  | 'Front Suspension'
-  | 'Rear Suspension'
-  | 'Engine'
-  | 'Fuel / Intake'
-  | 'Drivetrain'
-  | 'Mirrors'
-  | 'Body'
-  | 'Exhaust'
-  | 'Filters';
-
-// ============================================================
 // Inventory Match
 // ============================================================
+
+export type PartCategory =
+  | 'Braking' | 'Cooling' | 'Electrical' | 'Air Conditioning'
+  | 'Steering' | 'Front Suspension' | 'Rear Suspension'
+  | 'Engine' | 'Fuel / Intake' | 'Drivetrain' | 'Mirrors'
+  | 'Body' | 'Exhaust' | 'Filters';
 
 export interface InventoryMatch {
   productId: string;
@@ -95,18 +72,6 @@ export interface VehicleCorePart {
   demandLevel?: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
   salesCount?: number;
   vehicleMatches?: number;
-}
-
-// ============================================================
-// OEM Number Entry
-// ============================================================
-
-export interface OEMEntry {
-  partId: string;
-  partName: string;
-  oemNumber: string;
-  source: 'OEM Catalog' | 'Cross Reference' | 'Inferred' | 'User Provided';
-  verification: FitmentStatus;
 }
 
 // ============================================================

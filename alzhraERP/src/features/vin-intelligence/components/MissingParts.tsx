@@ -13,10 +13,10 @@ const MissingParts: React.FC<{ parts: VehicleCorePart[] }> = ({ parts }) => {
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full"><thead><tr className="bg-[var(--app-bg)] border-b border-[var(--app-border)]">
-          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)]">Part</th>
-          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-28">OEM</th>
-          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">Stock</th>
-          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-28">Action</th>
+          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)]">{t('vin_part_col')}</th>
+          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-28">{t('vin_oem_col')}</th>
+          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">{t('vin_stock_col')}</th>
+          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-28">{t('vin_action_col')}</th>
         </tr></thead><tbody>
           {parts.slice(0, 10).map(p => (
             <tr key={p.id} className="border-b border-[var(--app-border)] hover:bg-[var(--app-surface-hover)]">

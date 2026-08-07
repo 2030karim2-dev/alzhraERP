@@ -36,7 +36,7 @@ export const FITMENT_CONFIG: Record<FitmentStatus, FitmentConfig> = {
   UNKNOWN: {
     icon: <HelpCircle size={11} className="text-slate-400" />,
     label: 'Unknown',
-    cls: 'bg-gray-50 text-gray-500 dark:bg-slate-800 dark:text-slate-400',
+    cls: 'bg-slate-50 text-gray-500 dark:bg-slate-800 dark:text-slate-400',
   },
   NOT_COMPATIBLE: {
     icon: <XCircle size={11} className="text-rose-400" />,

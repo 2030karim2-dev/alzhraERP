@@ -35,7 +35,7 @@ const VINPage: React.FC = () => {
         model: result.vehicle.model,
         year: result.vehicle.year,
         analyzedAt: result.analysisTimestamp,
-        resultSummary: `${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.year || ''} — ${result.coreParts.length} قطع`,
+        resultSummary: `${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.year || ''} — ${result.coreParts.length} ${t('vin_parts_count')}`,
       });
     }
   }, [result, addToHistory]);
@@ -107,7 +107,7 @@ const VINPage: React.FC = () => {
 
             {result.warnings && result.warnings.length > 0 && (
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
-                <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">Warnings</p>
+                <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">{t('vin_warnings')}</p>
                 {result.warnings.map((w, i) => (
                   <p key={i} className="text-[9px] text-amber-700 dark:text-amber-400">{w}</p>
                 ))}

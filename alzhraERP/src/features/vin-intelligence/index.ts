@@ -9,9 +9,7 @@ export type {
   VinAnalysisService,
   AnalysisStep,
   DemandInsight,
-  PartDefinition,
   PartCategory,
-  OEMEntry,
 } from './types';
 
 export { vinAnalysisService, MockVinAnalysisService, ANALYSIS_STEPS } from './services/vinAnalysisService';

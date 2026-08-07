@@ -15,12 +15,12 @@ const InventoryMatches: React.FC<{ matches: InventoryMatch[] }> = ({ matches }) 
       <div className="space-y-1.5">
         {matches.map((m, i) => (
           <div key={i} className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
-            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">OEM</span><p className="font-mono font-bold text-indigo-600">{m.sku}</p></div>
-            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">Product</span><p className="font-bold text-[var(--app-text)] truncate">{m.productNameAr || m.productName}</p></div>
-            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">Location</span><p className="font-bold flex items-center gap-1"><MapPin size={10} />{m.warehouse} / {m.location}</p></div>
+            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">{t('vin_oem_col')}</span><p className="font-mono font-bold text-indigo-600">{m.sku}</p></div>
+            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">{t('vin_product_col')}</span><p className="font-bold text-[var(--app-text)] truncate">{m.productNameAr || m.productName}</p></div>
+            <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">{t('vin_location_col')}</span><p className="font-bold flex items-center gap-1"><MapPin size={10} />{m.warehouse} / {m.location}</p></div>
             <div className="flex items-center gap-3">
-              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">Qty</span><p className="font-bold text-emerald-600 text-sm">{m.quantity}</p></div>
-              {m.price && <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">Price</span><p className="font-bold text-blue-600">{formatCurrency(m.price)}</p></div>}
+              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">{t('vin_qty_col')}</span><p className="font-bold text-emerald-600 text-sm">{m.quantity}</p></div>
+              {m.price && <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase tracking-widest">{t('vin_price_col')}</span><p className="font-bold text-blue-600">{formatCurrency(m.price)}</p></div>}
               <CheckCircle2 size={14} className="text-emerald-500 shrink-0 ml-auto" />
             </div>
           </div>

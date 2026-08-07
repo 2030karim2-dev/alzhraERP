@@ -36,14 +36,14 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
               <span className="font-bold text-[10px] text-[var(--app-text)]">{vehicle.make} {vehicle.model} {vehicle.year}</span>
             </div>
             <div className="grid grid-cols-3 gap-1 mt-1.5 text-[9px]">
-              <div><span className="text-[var(--app-text-secondary)]">Engine:</span> <span className="font-bold">{vehicle.engineSize}</span></div>
-              <div><span className="text-[var(--app-text-secondary)]">Fuel:</span> <span className="font-bold">{vehicle.fuelType}</span></div>
-              <div><span className="text-[var(--app-text-secondary)]">Drive:</span> <span className="font-bold">{vehicle.driveType}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_engine_detail')}</span> <span className="font-bold">{vehicle.engineSize}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_fuel_detail')}</span> <span className="font-bold">{vehicle.fuelType}</span></div>
+              <div><span className="text-[var(--app-text-secondary)]">{t('vin_drive_detail')}</span> <span className="font-bold">{vehicle.driveType}</span></div>
             </div>
           </div>
 
           <div className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">Part</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">{t('vin_part_label')}</p>
             <div className="flex items-center gap-2">
               <Wrench size={14} className="text-indigo-500" />
               <span className="font-bold text-[10px] text-[var(--app-text)]">{part.canonicalPartName}</span>
@@ -54,7 +54,7 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
           </div>
 
           <div className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">Fitment</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] mb-1.5">{t('vin_fitment_label')}</p>
             <div className="flex items-center gap-1.5">
               {part.fitmentStatus === 'VERIFIED' && <CheckCircle2 size={14} className="text-emerald-500" />}
               {part.fitmentStatus === 'INFERRED' && <AlertTriangle size={14} className="text-amber-500" />}

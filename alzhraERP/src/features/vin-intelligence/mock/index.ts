@@ -4,10 +4,20 @@ import type { VinAnalysisResult, VinHistoryEntry, VinDashboardMetrics } from '..
 export { mockVehicles, getMockVehicle } from './mockVehicles';
 
 export const MOCK_VEHICLE = {
-  vin: 'JTB53AEB1W0025920', make: 'Toyota', model: 'Hilux', year: 2015,
-  generation: '7th Gen', engineCode: '2TR-FE', engineSize: '2.7L', cylinderCount: 4,
-  fuelType: 'Gasoline' as const, transmission: 'Automatic' as const,
-  driveType: '4WD' as const, market: 'GCC' as const, bodyType: 'Pickup', cabType: 'Double Cab' as const,
+  vin: 'JTB53AEB1W0025920',
+  make: 'Toyota',
+  model: 'Hilux',
+  year: 2015,
+  generation: '7th Gen',
+  engineCode: '2TR-FE',
+  engineSize: '2.7L',
+  cylinderCount: 4,
+  fuelType: 'Gasoline' as const,
+  transmission: 'Automatic' as const,
+  driveType: '4WD' as const,
+  market: 'GCC' as const,
+  bodyType: 'Pickup' as const,
+  cabType: 'Double Cab' as const,
 };
 
 export const mockVinResult: VinAnalysisResult = {
@@ -17,8 +27,8 @@ export const mockVinResult: VinAnalysisResult = {
   inventoryMatches: MOCK_PARTS.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches),
   missingParts: MOCK_PARTS.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'),
   demandInsights: MOCK_PARTS.filter(p => p.demandLevel === 'HIGH').map(p => ({
-    partId: p.id, partName: p.canonicalPartName, demandLevel: p.demandLevel!,
-    salesCount: p.salesCount!, vehicleMatches: p.vehicleMatches!,
+    partId: p.id, partName: p.canonicalPartName, demandLevel: p.demandLevel ?? 'HIGH',
+    salesCount: p.salesCount ?? 0, vehicleMatches: p.vehicleMatches ?? 0,
     isCorePart: true, isFastMoving: (p.salesCount ?? 0) > 300, recommendedStock: undefined,
   })),
   analysisTimestamp: new Date().toISOString(),

@@ -13,10 +13,10 @@ const DemandIntelligence: React.FC<{ insights: DemandInsight[] }> = ({ insights 
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full"><thead><tr className="bg-[var(--app-bg)] border-b border-[var(--app-border)]">
-          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)]">Part</th>
-          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">Demand</th>
-          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-16">Sales</th>
-          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">Matches</th>
+          <th className="px-3 py-1.5 text-left text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)]">{t('vin_part_col')}</th>
+          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">{t('vin_demand_col')}</th>
+          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-16">{t('vin_sales_col')}</th>
+          <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">{t('vin_matches_col')}</th>
         </tr></thead><tbody>
           {insights.map(d => (
             <tr key={d.partId} className="border-b border-[var(--app-border)] hover:bg-[var(--app-surface-hover)]">

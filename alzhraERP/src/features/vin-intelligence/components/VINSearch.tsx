@@ -57,7 +57,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-1 gap-0.5">
             {vin && (
-              <button onClick={handleClear} className="p-1 hover:bg-[var(--app-surface-hover)] rounded" title="Clear">
+              <button onClick={handleClear} className="p-1 hover:bg-[var(--app-surface-hover)] rounded" title={t('vin_clear')}>
                 <X size={12} className="text-[var(--app-text-secondary)]" />
               </button>
             )}

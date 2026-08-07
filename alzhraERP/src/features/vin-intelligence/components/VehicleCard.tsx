@@ -1,26 +1,28 @@
 import React, { useMemo } from 'react';
 import { Car, Gauge, Wrench, Fuel, Cog, Globe } from 'lucide-react';
 import type { VehicleConfiguration } from '../types';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface VehicleCardProps {
   vehicle: VehicleConfiguration;
 }
 
 const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
+  const { t } = useTranslation();
   const rows = useMemo(() => [
-    { icon: <Car size={11} />, label: 'Make', value: vehicle.make },
-    { icon: <Car size={11} />, label: 'Model', value: vehicle.model },
-    { icon: null, label: 'Year', value: vehicle.year ?? 'Not available' },
-    { icon: <Gauge size={11} />, label: 'Engine', value: vehicle.engineSize ?? 'Not available' },
-    { icon: <Wrench size={11} />, label: 'Engine Code', value: vehicle.engineCode ?? 'Not available' },
-    { icon: null, label: 'Cylinders', value: vehicle.cylinderCount ?? 'Not available' },
-    { icon: <Fuel size={11} />, label: 'Fuel', value: vehicle.fuelType ?? 'Not available' },
-    { icon: <Cog size={11} />, label: 'Transmission', value: vehicle.transmission ?? 'Not available' },
-    { icon: null, label: 'Drive', value: vehicle.driveType ?? 'Not available' },
-    { icon: <Globe size={11} />, label: 'Market', value: vehicle.market ?? 'Not available' },
-    { icon: null, label: 'Body', value: vehicle.bodyType ?? 'Not available' },
-    { icon: null, label: 'Cab', value: vehicle.cabType ?? 'Not available' },
-  ], [vehicle]);
+    { icon: <Car size={11} />, label: t('vin_make'), value: vehicle.make },
+    { icon: <Car size={11} />, label: t('vin_model'), value: vehicle.model },
+    { icon: null, label: t('vin_year'), value: vehicle.year ?? t('vin_not_available') },
+    { icon: <Gauge size={11} />, label: t('vin_engine_label'), value: vehicle.engineSize ?? t('vin_not_available') },
+    { icon: <Wrench size={11} />, label: t('vin_engine_code'), value: vehicle.engineCode ?? t('vin_not_available') },
+    { icon: null, label: t('vin_cylinders'), value: vehicle.cylinderCount ?? t('vin_not_available') },
+    { icon: <Fuel size={11} />, label: t('vin_fuel'), value: vehicle.fuelType ?? t('vin_not_available') },
+    { icon: <Cog size={11} />, label: t('vin_transmission'), value: vehicle.transmission ?? t('vin_not_available') },
+    { icon: null, label: t('vin_drive'), value: vehicle.driveType ?? t('vin_not_available') },
+    { icon: <Globe size={11} />, label: t('vin_market'), value: vehicle.market ?? t('vin_not_available') },
+    { icon: null, label: t('vin_body'), value: vehicle.bodyType ?? t('vin_not_available') },
+    { icon: null, label: t('vin_cab'), value: vehicle.cabType ?? t('vin_not_available') },
+  ], [vehicle, t]);
 
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm overflow-hidden">
