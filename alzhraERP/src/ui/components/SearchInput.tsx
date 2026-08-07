@@ -151,7 +151,6 @@ const SearchInput: React.FC<SearchInputProps> = ({
                     v.input,
                     inputClassName
                 )}
-                aria-label={placeholder}
             />
 
             {/* Search Icon */}
