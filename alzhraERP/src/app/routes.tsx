@@ -33,6 +33,7 @@ const PartiesPage = lazy(() => import('../features/parties/PartiesPage'));
 const ReportsPage = lazy(() => import('../features/reports/ReportsPage'));
 const AICommandCenter = lazy(() => import('../features/ai/AICommandCenter'));
 const AIBrainPage = lazy(() => import('../features/ai/AIBrainPage'));
+const VINIntelligencePage = lazy(() => import('../features/vin-intelligence/pages/VINPage'));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
@@ -123,6 +124,10 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="ai-center"><AICommandCenter isOpen={true} onClose={() => { }} /></FeatureBoundary>} />
         <Route path="/ai-brain"
           element={<FeatureBoundary name="ai-brain"><AIBrainPage /></FeatureBoundary>} />
+
+        {/* AI VIN Intelligence */}
+        <Route path={ROUTES.DASHBOARD.VIN_INTELLIGENCE}
+          element={<FeatureBoundary name="vin-intelligence"><VINIntelligencePage /></FeatureBoundary>} />
 
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />
