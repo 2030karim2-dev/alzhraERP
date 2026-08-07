@@ -19,7 +19,6 @@ import DebtAgingReport from './components/DebtAgingReport';
 import ReportErrorBoundary from './components/ReportErrorBoundary';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import './reportStyles.css';
-import { cn } from '../../core/utils';
 
 // Lazy-loaded heavy chart components for code splitting
 const ProfitLossView = lazy(() => import('./components/ProfitLossView'));
@@ -43,6 +42,11 @@ const reportLabelKeys: Record<ReportTab, string> = {
   cash_flow: 'cash_flow',
 };
 
+/** Helper to join class names (inline cn replacement) */
+function cls(...classes: (string | false | undefined | null)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
+
 /** Skeleton loader matching report layout */
 const ReportSkeleton: React.FC<{ type?: 'financial' | 'default' }> = ({ type = 'default' }) => (
   <div className="space-y-4 animate-in fade-in duration-300">
@@ -50,10 +54,7 @@ const ReportSkeleton: React.FC<{ type?: 'financial' | 'default' }> = ({ type = '
       <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
       <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
     </div>
-    <div className={cn(
-      "grid gap-3",
-      type === 'financial' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'
-    )}>
+    <div className={`grid gap-3 ${type === 'financial' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'}`}>
       {Array.from({ length: type === 'financial' ? 4 : 3 }).map((_, i) => (
         <div key={i} className="h-24 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
       ))}
@@ -162,16 +163,14 @@ const ReportsPage: React.FC = () => {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {categories.map((cat) => {
                 const isActive = activeCategory === cat.id;
+                const pillClass = isActive
+                  ? cat.activeClass + " scale-105"
+                  : "bg-[var(--app-surface)] text-[var(--app-text-secondary)] border-[var(--app-border)] hover:border-[var(--app-text-secondary)]/40 active:scale-95";
                 return (
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap text-xs font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px]",
-                      isActive
-                        ? cat.activeClass + " scale-105"
-                        : "bg-[var(--app-surface)] text-[var(--app-text-secondary)] border-[var(--app-border)] hover:border-[var(--app-text-secondary)]/40 active:scale-95"
-                    )}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap text-xs font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px] ${pillClass}`}
                   >
                     <cat.icon size={14} className={isActive ? "text-white" : cat.colorClass} />
                     {cat.label}
