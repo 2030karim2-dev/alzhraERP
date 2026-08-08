@@ -7,6 +7,7 @@ import { useTranslation } from '../lib/hooks/useTranslation';
 import { AuthGuard } from '../features/auth/components/AuthGuard';
 import { GuestGuard } from '../features/auth/components/GuestGuard';
 import { FeatureBoundary } from '../core/components/FeatureBoundary';
+import { isFeatureEnabled } from '../config/featureFlags';
 
 // Auth Pages (Eager Loading — must be instant)
 import LandingPage from '../features/auth/LandingPage';
@@ -126,8 +127,10 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="ai-brain"><AIBrainPage /></FeatureBoundary>} />
 
         {/* AI VIN Intelligence */}
-        <Route path={ROUTES.DASHBOARD.VIN_INTELLIGENCE}
-          element={<FeatureBoundary name="vin-intelligence"><VINIntelligencePage /></FeatureBoundary>} />
+        {isFeatureEnabled('enableVinIntelligence') && (
+          <Route path={ROUTES.DASHBOARD.VIN_INTELLIGENCE}
+            element={<FeatureBoundary name="vin-intelligence"><VINIntelligencePage /></FeatureBoundary>} />
+        )}
 
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />

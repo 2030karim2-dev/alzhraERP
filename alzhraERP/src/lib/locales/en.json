@@ -401,5 +401,12 @@
     "vin_why_not_compatible": "Why is this part NOT compatible?",
     "vin_no_evidence": "No evidence available",
     "vin_unknown_source": "Unknown",
-    "vin_coming_backend": "Coming in Backend Phase"
+    "vin_coming_backend": "Coming in Backend Phase",
+    "vin_not_applicable": "N/A",
+    "vin_not_found": "Vehicle Not Found",
+    "vin_not_found_desc": "VIN \"{{vin}}\" was not found in the knowledge base. The vehicle could not be identified. Try another VIN or check the chassis number.",
+    "vin_fitment_verified": "Verified",
+    "vin_fitment_inferred": "Inferred",
+    "vin_fitment_unknown": "Unknown",
+    "vin_fitment_not_compatible": "Not Compatible"
 }

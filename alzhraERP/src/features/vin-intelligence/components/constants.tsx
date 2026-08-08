@@ -36,36 +36,44 @@ export const CATEGORY_LABELS_AR: Record<string, string> = {
   'Filters': 'الفلاتر',
 };
 
-export function getCategoryLabel(cat: string): string {
-  const isArabic = document.documentElement.dir === 'rtl';
+export function getCategoryLabel(cat: string, lang?: string): string {
+  const isArabic = lang === 'ar' || (!lang && document.documentElement.dir === 'rtl');
   return (isArabic ? CATEGORY_LABELS_AR[cat] : CATEGORY_LABELS_EN[cat]) || cat;
 }
 
 interface FitmentConfig {
   icon: React.ReactNode;
-  label: string;
+  labelKey: string;
   cls: string;
 }
+
+/** Translation keys for fitment status labels */
+export const FITMENT_LABEL_KEYS: Record<FitmentStatus, string> = {
+  VERIFIED: 'vin_fitment_verified',
+  INFERRED: 'vin_fitment_inferred',
+  UNKNOWN: 'vin_fitment_unknown',
+  NOT_COMPATIBLE: 'vin_fitment_not_compatible',
+};
 
 export const FITMENT_CONFIG: Record<FitmentStatus, FitmentConfig> = {
   VERIFIED: {
     icon: <CheckCircle2 size={11} className="text-emerald-500" />,
-    label: 'VERIFIED',
+    labelKey: 'vin_fitment_verified',
     cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
   },
   INFERRED: {
     icon: <AlertTriangle size={11} className="text-amber-500" />,
-    label: 'Inferred',
+    labelKey: 'vin_fitment_inferred',
     cls: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
   },
   UNKNOWN: {
     icon: <HelpCircle size={11} className="text-slate-400" />,
-    label: 'Unknown',
+    labelKey: 'vin_fitment_unknown',
     cls: 'bg-slate-50 text-gray-500 dark:bg-slate-800 dark:text-slate-400',
   },
   NOT_COMPATIBLE: {
     icon: <XCircle size={11} className="text-rose-400" />,
-    label: 'Not Compatible',
+    labelKey: 'vin_fitment_not_compatible',
     cls: 'bg-rose-50 text-rose-500 dark:bg-rose-900/20 dark:text-rose-400',
   },
 };

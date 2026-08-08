@@ -412,5 +412,12 @@
     "vin_why_not_compatible": "لماذا هذه القطعة غير متوافقة؟",
     "vin_no_evidence": "لا يوجد دليل متاح",
     "vin_unknown_source": "غير معروف",
-    "vin_coming_backend": "قادم في المرحلة الخلفية"
+    "vin_coming_backend": "قادم في المرحلة الخلفية",
+    "vin_not_applicable": "غير قابل للتطبيق",
+    "vin_not_found": "المركبة غير موجودة",
+    "vin_not_found_desc": "رقم الشاصي \"{{vin}}\" غير موجود في قاعدة المعرفة. تعذر التعرف على المركبة. جرب رقماً آخر أو تأكد من رقم الهيكل.",
+    "vin_fitment_verified": "متطابق",
+    "vin_fitment_inferred": "مستنتج",
+    "vin_fitment_unknown": "غير معروف",
+    "vin_fitment_not_compatible": "غير متوافق"
 }

@@ -7,6 +7,12 @@ import { IconColor } from '../../../core/types';
 import { cn } from '../../../core/utils';
 import { useAuthStore } from '../../../features/auth/store';
 import { prefetchRoute } from '../../../core/utils/routePrefetcher';
+import { isFeatureEnabled, featureFlags } from '../../../config/featureFlags';
+
+// Map menu item IDs to feature flags
+const MENU_FEATURE_FLAGS: Record<string, keyof typeof featureFlags> = {
+  'vin-intelligence': 'enableVinIntelligence',
+};
 
 // This map contains all the Tailwind classes so they are not purged
 // Premium Gradients & Shadows for Active States
@@ -36,6 +42,10 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
   const { user } = useAuthStore();
 
   const filteredItems = MENU_ITEMS.filter(item => {
+    // Check feature flags first
+    const flag = MENU_FEATURE_FLAGS[item.id];
+    if (flag && !isFeatureEnabled(flag)) return false;
+
     // Only show items if user has permission. 
     // Basic check: if 'isOwner' is true, user must be 'owner'.
     // Can be expanded with AuthorizeActionUsecase if needed for finer grain.

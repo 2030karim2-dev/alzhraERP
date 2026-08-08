@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import { Car, RotateCcw } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
@@ -14,7 +14,8 @@ import VINHistory from '../components/VINHistory';
 import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
-import type { VehicleCorePart } from '../types';
+import type { VehicleCorePart, VinDashboardMetrics } from '../types';
+import { mockVehicles } from '../mock/mockVehicles';
 
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ const VINPage: React.FC = () => {
 
   // Update latest history entry with vehicle data once result arrives
   useEffect(() => {
-    if (result) {
+    if (result && result.analysisStatus !== 'FAILED') {
       addToHistory({
         vin: result.vin,
         make: result.vehicle.make,
@@ -38,7 +39,16 @@ const VINPage: React.FC = () => {
         resultSummary: `${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.year || ''} — ${result.coreParts.length} ${t('vin_parts_count')}`,
       });
     }
-  }, [result, addToHistory]);
+  }, [result, addToHistory, t]);
+
+  // Dynamic dashboard metrics
+  const metrics = useMemo((): VinDashboardMetrics => ({
+    vinsAnalyzed: history.length,
+    vehiclesInKnowledgeBase: Object.keys(mockVehicles).length,
+    verifiedFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'VERIFIED').length : 0,
+    inventoryMatches: result ? result.inventoryMatches.length : 0,
+    unknownFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'UNKNOWN').length : 0,
+  }), [history, result]);
 
   const handleSelectRecent = useCallback((vin: string) => {
     handleAnalyze(vin);
@@ -68,7 +78,7 @@ const VINPage: React.FC = () => {
       />
 
       <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-3 bg-[var(--app-bg)]">
-        <DashboardSummary />
+        <DashboardSummary metrics={metrics} />
 
         <VINSearch
           onAnalyze={handleAnalyze}
@@ -85,7 +95,16 @@ const VINPage: React.FC = () => {
           </div>
         )}
 
-        {result && (
+        {result && result.analysisStatus === 'FAILED' && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">{t('vin_not_found')}</p>
+            <p className="text-[9px] text-amber-700 dark:text-amber-400">
+              {t('vin_not_found_desc', { vin: result.vin })}
+            </p>
+          </div>
+        )}
+
+        {result && result.analysisStatus !== 'FAILED' && (
           <>
             <VehicleCard vehicle={result.vehicle} />
 
@@ -121,7 +140,7 @@ const VINPage: React.FC = () => {
         )}
       </div>
 
-      {selectedPart && result && (
+      {selectedPart && result && result.analysisStatus !== 'FAILED' && (
         <ExplainabilityDrawer
           isOpen={!!selectedPart}
           onClose={() => setSelectedPart(null)}

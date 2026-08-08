@@ -1,17 +1,16 @@
 import React from 'react';
 import { Car, Database, CheckCircle2, Package, HelpCircle } from 'lucide-react';
 import type { VinDashboardMetrics } from '../types';
-import { mockMetrics } from '../mock';
 import StatCard from '../../../ui/common/StatCard';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface DashboardSummaryProps {
-  metrics?: VinDashboardMetrics;
+  metrics: VinDashboardMetrics;
 }
 
 const DashboardSummary: React.FC<DashboardSummaryProps> = ({ metrics }) => {
   const { t } = useTranslation();
-  const m = metrics ?? mockMetrics;
+  const m = metrics;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
       <StatCard title={t('vin_vins_analyzed')} value={m.vinsAnalyzed.toLocaleString()} icon={Car} colorClass="text-blue-600" iconBgClass="bg-blue-600" variant="compact" />
