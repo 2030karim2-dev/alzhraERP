@@ -29,11 +29,12 @@ export const vinPartsService = {
       if (!data || data.length === 0) return [];
 
       return data.map((row: any) => ({
-        id: row.id,
+        // RPC uses part_id/part_position/part_side to avoid SQL reserved words
+        id: row.part_id,
         canonicalPartName: row.canonical_part_name,
         category: row.category,
-        position: row.position ?? undefined,
-        side: row.side ?? undefined,
+        position: row.part_position ?? undefined,
+        side: row.part_side ?? undefined,
         oemNumbers: row.oem_numbers ?? [],
         crossReferences: row.cross_references ?? undefined,
         fitmentStatus: (row.fitment_status as FitmentStatus) ?? 'UNKNOWN',
