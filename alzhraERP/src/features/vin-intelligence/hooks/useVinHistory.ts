@@ -1,46 +1,42 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { VinHistoryEntry } from '../types';
-
-const STORAGE_KEY = 'alzhra_vin_history';
-const MAX_ENTRIES = 50;
-
-function loadHistory(): VinHistoryEntry[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(entries: VinHistoryEntry[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
-  } catch {
-    // localStorage full or unavailable — silently ignore
-  }
-}
+import { vinHistoryService } from '../services/vinHistoryService';
+import { useAuthStore } from '../../auth/store';
 
 export function useVinHistory() {
-  const [history, setHistory] = useState<VinHistoryEntry[]>(loadHistory);
+  const [history, setHistory] = useState<VinHistoryEntry[]>(() => vinHistoryService.getLocalHistory());
   const [hydrated, setHydrated] = useState(false);
+  const user = useAuthStore(s => s.user);
 
+  // Hydrate from remote on mount
   useEffect(() => {
-    setHydrated(true);
-  }, []);
+    if (user?.id) {
+      vinHistoryService.getHistory(user.id).then(remote => {
+        if (remote.length > 0) setHistory(remote);
+      }).finally(() => setHydrated(true));
+    } else {
+      setHydrated(true);
+    }
+  }, [user?.id]);
 
   const addToHistory = useCallback((entry: VinHistoryEntry) => {
-    setHistory(prev => {
-      const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, MAX_ENTRIES);
-      saveHistory(updated);
-      return updated;
-    });
-  }, []);
+    if (user?.id) {
+      vinHistoryService.addEntry(user.id, user.company_id, entry).then(setHistory);
+    } else {
+      const updated = vinHistoryService.addLocalEntry(entry);
+      setHistory(updated);
+    }
+  }, [user?.id, user?.company_id]);
 
   const clearHistory = useCallback(() => {
-    setHistory([]);
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
+    if (user?.id) {
+      vinHistoryService.clearHistory(user.id).then(() => setHistory([]));
+    } else {
+      vinHistoryService.clearLocalHistory();
+      setHistory([]);
+    }
+  }, [user?.id]);
 
   return { history, addToHistory, clearHistory, hydrated };
 }
+

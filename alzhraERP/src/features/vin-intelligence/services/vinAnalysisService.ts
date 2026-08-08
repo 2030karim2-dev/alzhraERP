@@ -1,10 +1,8 @@
 import type { VinAnalysisService, VinAnalysisResult, VinHistoryEntry, AnalysisStep } from '../types';
-import { mockVehicles } from '../mock/mockVehicles';
-import { MOCK_PARTS } from '../mock/mockParts';
-import { mockHistory } from '../mock';
+import { vinVehicleService } from './vinVehicleService';
+import { vinPartsService } from './vinPartsService';
+import { vinHistoryService } from './vinHistoryService';
 import { findInventoryForOem } from './vinInventoryBridge';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const ANALYSIS_STEPS: AnalysisStep[] = [
   { id: 'validate', label: 'vin_validating', status: 'PENDING' },
@@ -16,12 +14,9 @@ export const ANALYSIS_STEPS: AnalysisStep[] = [
   { id: 'knowledge', label: 'vin_building_knowledge', status: 'PENDING' },
 ];
 
-/** Build a VIN result from a matched vehicle + parts (synchronous core — no inventory bridge). */
-export function buildResultCore(vin: string, vehicle: VinAnalysisResult['vehicle']): VinAnalysisResult {
-  const parts = [...MOCK_PARTS];
-  const inventoryMatches = parts.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches);
-  const missingParts = parts.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE');
-  const demandInsights = parts
+/** Build demand insights from core parts */
+function buildDemandInsights(parts: VinAnalysisResult['coreParts']): VinAnalysisResult['demandInsights'] {
+  return parts
     .filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM')
     .map(p => ({
       partId: p.id,
@@ -33,6 +28,36 @@ export function buildResultCore(vin: string, vehicle: VinAnalysisResult['vehicle
       isFastMoving: (p.salesCount ?? 0) > 300,
       recommendedStock: undefined,
     }));
+}
+
+/** Build a complete analysis result from vehicle + parts. Enriches with real inventory. */
+async function buildResult(
+  vin: string,
+  vehicle: VinAnalysisResult['vehicle'],
+  parts: VinAnalysisResult['coreParts'],
+): Promise<VinAnalysisResult> {
+  // Try to find real inventory matches for all OEM numbers
+  const allOemNumbers = parts.flatMap(p => p.oemNumbers);
+  const realMatches = await findInventoryForOem(allOemNumbers);
+
+  if (realMatches.length > 0) {
+    const realMatchMap = new Map<string, typeof realMatches>();
+    for (const m of realMatches) {
+      const key = m.sku;
+      if (!realMatchMap.has(key)) realMatchMap.set(key, []);
+      realMatchMap.get(key)!.push(m);
+    }
+
+    for (const part of parts) {
+      const realForPart = part.oemNumbers.flatMap(oem => realMatchMap.get(oem) ?? []);
+      if (realForPart.length > 0) {
+        part.inventoryMatches = realForPart;
+      }
+    }
+  }
+
+  const inventoryMatches = parts.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches);
+  const missingParts = parts.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE');
 
   return {
     vin,
@@ -40,64 +65,24 @@ export function buildResultCore(vin: string, vehicle: VinAnalysisResult['vehicle
     coreParts: parts,
     inventoryMatches,
     missingParts,
-    demandInsights,
+    demandInsights: buildDemandInsights(parts),
     analysisTimestamp: new Date().toISOString(),
     analysisStatus: 'COMPLETE',
   };
 }
 
-/** Build a VIN result from a matched vehicle + parts. Tries real inventory first. */
-async function buildResult(vin: string, vehicle: VinAnalysisResult['vehicle']): Promise<VinAnalysisResult> {
-  const result = buildResultCore(vin, vehicle);
-
-  // Collect all OEM numbers from core parts
-  const allOemNumbers = result.coreParts.flatMap(p => p.oemNumbers);
-
-  // Try to find real inventory matches (falls back to mock if unavailable)
-  const realMatches = await findInventoryForOem(allOemNumbers);
-
-  if (realMatches.length === 0) return result;
-
-  // Merge real matches: override mock inventoryMatches when real data exists
-  const realMatchMap = new Map<string, typeof realMatches>();
-  for (const m of realMatches) {
-    const key = m.sku;
-    if (!realMatchMap.has(key)) realMatchMap.set(key, []);
-    realMatchMap.get(key)!.push(m);
-  }
-
-  // Update each part's inventoryMatches with real data when available
-  for (const part of result.coreParts) {
-    const realForPart = part.oemNumbers.flatMap(oem => realMatchMap.get(oem) ?? []);
-    if (realForPart.length > 0) {
-      part.inventoryMatches = realForPart;
-    }
-  }
-
-  // Recompute derived arrays after enrichment
-  result.inventoryMatches = result.coreParts.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches);
-  result.missingParts = result.coreParts.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE');
-
-  return result;
-}
-
-export class MockVinAnalysisService implements VinAnalysisService {
+export class RealVinAnalysisService implements VinAnalysisService {
   async analyzeVin(vin: string): Promise<VinAnalysisResult> {
     const normalized = vin.toUpperCase().replace(/\s+/g, '');
 
-    // Validation
     if (normalized.length < 5) {
       throw new Error('Invalid VIN — too short');
     }
 
-    // Simulate network delay
-    await delay(300);
+    // Lookup vehicle in Supabase knowledge base
+    const vehicle = await vinVehicleService.lookupVehicle(normalized);
 
-    // Lookup in mock vehicle database
-    const vehicle = mockVehicles[normalized];
-
-    if (!vehicle) {
-      // Unknown VIN — return partial result
+    if (!vehicle || !vehicle.make) {
       return {
         vin: normalized,
         vehicle: { vin: normalized, make: '', model: '' },
@@ -111,12 +96,16 @@ export class MockVinAnalysisService implements VinAnalysisService {
       };
     }
 
-    return await buildResult(normalized, vehicle);
+    // Fetch core parts from knowledge base
+    const parts = await vinPartsService.getCoreParts(normalized);
+
+    return buildResult(normalized, vehicle, parts);
   }
 
   async getVinHistory(): Promise<VinHistoryEntry[]> {
-    await delay(100);
-    return mockHistory;
+    // History is managed client-side via useVinHistory/vinHistoryService.
+    // This returns empty — the hook handles persistence.
+    return [];
   }
 
   validateVin(vin: string): { valid: boolean; message?: string } {
@@ -130,4 +119,5 @@ export class MockVinAnalysisService implements VinAnalysisService {
   }
 }
 
-export const vinAnalysisService: VinAnalysisService = new MockVinAnalysisService();
+export const vinAnalysisService: VinAnalysisService = new RealVinAnalysisService();
+

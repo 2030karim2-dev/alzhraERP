@@ -15,13 +15,18 @@ import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
 import type { VehicleCorePart, VinDashboardMetrics } from '../types';
-import { mockVehicles } from '../mock/mockVehicles';
+import { vinVehicleService } from '../services/vinVehicleService';
 
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
   const { result, isAnalyzing, error, steps, analyzeVin, reset } = useVinAnalysis();
   const { history, addToHistory } = useVinHistory();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
+  const [vehicleCount, setVehicleCount] = useState(0);
+
+  useEffect(() => {
+    vinVehicleService.getVehicleCount().then(setVehicleCount);
+  }, []);
 
   const handleAnalyze = useCallback(async (vin: string) => {
     await analyzeVin(vin);
@@ -44,7 +49,7 @@ const VINPage: React.FC = () => {
   // Dynamic dashboard metrics
   const metrics = useMemo((): VinDashboardMetrics => ({
     vinsAnalyzed: history.length,
-    vehiclesInKnowledgeBase: Object.keys(mockVehicles).length,
+    vehiclesInKnowledgeBase: vehicleCount,
     verifiedFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'VERIFIED').length : 0,
     inventoryMatches: result ? result.inventoryMatches.length : 0,
     unknownFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'UNKNOWN').length : 0,
