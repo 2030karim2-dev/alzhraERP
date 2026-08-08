@@ -1,42 +1,48 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { VinHistoryEntry } from '../types';
-import { vinHistoryService } from '../services/vinHistoryService';
-import { useAuthStore } from '../../auth/store';
+
+const STORAGE_KEY = 'alzhra_vin_history';
+const MAX_ENTRIES = 50;
+
+function loadHistory(): VinHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: VinHistoryEntry[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
+  } catch {
+    // localStorage full or unavailable — silently ignore
+  }
+}
 
 export function useVinHistory() {
-  const [history, setHistory] = useState<VinHistoryEntry[]>(() => vinHistoryService.getLocalHistory());
+  const [history, setHistory] = useState<VinHistoryEntry[]>(loadHistory);
   const [hydrated, setHydrated] = useState(false);
-  const user = useAuthStore(s => s.user);
 
-  // Hydrate from remote on mount
   useEffect(() => {
-    if (user?.id) {
-      vinHistoryService.getHistory(user.id).then(remote => {
-        if (remote.length > 0) setHistory(remote);
-      }).finally(() => setHydrated(true));
-    } else {
-      setHydrated(true);
-    }
-  }, [user?.id]);
+    setHydrated(true);
+  }, []);
 
   const addToHistory = useCallback((entry: VinHistoryEntry) => {
-    if (user?.id) {
-      vinHistoryService.addEntry(user.id, user.company_id, entry).then(setHistory);
-    } else {
-      const updated = vinHistoryService.addLocalEntry(entry);
-      setHistory(updated);
-    }
-  }, [user?.id, user?.company_id]);
+    setHistory(prev => {
+      const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, MAX_ENTRIES);
+      saveHistory(updated);
+      return updated;
+    });
+  }, []);
 
   const clearHistory = useCallback(() => {
-    if (user?.id) {
-      vinHistoryService.clearHistory(user.id).then(() => setHistory([]));
-    } else {
-      vinHistoryService.clearLocalHistory();
-      setHistory([]);
-    }
-  }, [user?.id]);
+    setHistory([]);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
 
   return { history, addToHistory, clearHistory, hydrated };
 }
+
 
