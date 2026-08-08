@@ -3,7 +3,7 @@
  * Handles communication with the AI model API.
  */
 import { STRICT_SYSTEM_ROLE } from './prompts';
-import { getActiveModel } from './config';
+import { getActiveModel, getModelProvider } from './config';
 import { supabase, AI_FEATURES_ENABLED } from '../../../lib/supabaseClient';
 import { aiMetrics } from './metrics';
 
@@ -24,6 +24,7 @@ export async function generateAIContent(
     const isJson = options?.jsonMode ?? true;
     const taskType = options?.taskType ?? 'general';
     const model = getActiveModel();
+    const provider = getModelProvider(model);
 
     const finalSystemInstruction = isJson
         ? `${systemInstruction}\n\nيجب أن يكون الرد بصيغة JSON صالحة وحصرية.`
@@ -36,6 +37,7 @@ export async function generateAIContent(
             body: {
                 prompt,
                 model,
+                provider,
                 systemInstruction: finalSystemInstruction,
                 temperature: options?.temperature ?? 0.1,
                 maxTokens: options?.maxTokens ?? 1500,

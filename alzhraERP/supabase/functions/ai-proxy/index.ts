@@ -98,27 +98,43 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, messages, model, systemInstruction, temperature, maxTokens, jsonMode } = body;
+    const { prompt, messages, model, systemInstruction, temperature, maxTokens, jsonMode, provider } = body;
+    const selectedProvider = provider || 'openrouter';
 
-    // 4. Setup OpenRouter Client
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({
-        error: 'Server Error: OPENROUTER_API_KEY not configured',
-        code: 'CONFIG_ERROR'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // 4. Setup AI Client based on provider
+    let apiKey: string | undefined;
+    let baseURL: string;
+    let defaultHeaders: Record<string, string> = {};
+
+    if (selectedProvider === 'deepseek') {
+      apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+      if (!apiKey) {
+        return new Response(JSON.stringify({
+          error: 'Server Error: DEEPSEEK_API_KEY not configured',
+          code: 'CONFIG_ERROR'
+        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      baseURL = "https://api.deepseek.com/v1";
+    } else {
+      // Default: OpenRouter
+      apiKey = Deno.env.get("OPENROUTER_API_KEY");
+      if (!apiKey) {
+        return new Response(JSON.stringify({
+          error: 'Server Error: OPENROUTER_API_KEY not configured',
+          code: 'CONFIG_ERROR'
+        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      baseURL = "https://openrouter.ai/api/v1";
+      defaultHeaders = {
+        "HTTP-Referer": "https://alzhra-erp.vercel.app",
+        "X-Title": "Al Zhra ERP Secure Proxy",
+      };
     }
 
     const openai = new OpenAI({
       apiKey: apiKey,
-      baseURL: "https://openrouter.ai/api/v1",
-      defaultHeaders: {
-        "HTTP-Referer": "https://alzhra-erp.vercel.app",
-        "X-Title": "Al Zhra ERP Secure Proxy",
-      }
+      baseURL,
+      defaultHeaders,
     });
 
     // 5. Construct Messages
@@ -136,7 +152,7 @@ serve(async (req) => {
 
     try {
       const response = await openai.chat.completions.create({
-        model: model || "google/gemini-2.5-flash",
+        model: model || (selectedProvider === 'deepseek' ? 'deepseek-chat' : "google/gemini-2.5-flash"),
         messages: finalMessages,
         temperature: temperature ?? 0.1,
         max_tokens: maxTokens ?? 1500,

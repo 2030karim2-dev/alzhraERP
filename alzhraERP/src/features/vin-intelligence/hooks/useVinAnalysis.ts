@@ -75,6 +75,12 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [steps, setSteps] = useState<AnalysisStep[]>(INITIAL_STEPS.map(s => ({ ...s })));
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Cleanup: abort any in-flight request on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
   const resetSteps = useCallback(() => setSteps(INITIAL_STEPS.map(s => ({ ...s }))), []);
 
@@ -86,6 +92,11 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
     }), []);
 
   const analyzeVin = useCallback(async (vin: string) => {
+    // Abort any previous in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsAnalyzing(true);
     setError(null);
     setResult(null);
@@ -126,6 +137,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
           },
           body: JSON.stringify({ vin: normalized }),
+          signal: controller.signal,
         }
       );
 
@@ -163,24 +175,24 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       markStep(1, 'COMPLETE');
       markStep(2, 'COMPLETE');
 
-      // Steps 3–6: Parts / OEM / Inventory / Knowledge — driven by received data
-      markStep(3, 'IN_PROGRESS');
+      // Steps 3–6: sequenced with yieldToUI for visual progress
+      markStep(3, 'IN_PROGRESS'); await yieldToUI();
       const parts = mapParts(data.parts);
-      markStep(3, 'COMPLETE');
+      markStep(3, 'COMPLETE'); await yieldToUI();
 
-      markStep(4, 'IN_PROGRESS');
+      markStep(4, 'IN_PROGRESS'); await yieldToUI();
       const inventoryMatches = parts
         .filter(p => p.inventoryMatches.length > 0)
         .flatMap(p => p.inventoryMatches);
-      markStep(4, 'COMPLETE');
+      markStep(4, 'COMPLETE'); await yieldToUI();
 
-      markStep(5, 'IN_PROGRESS');
+      markStep(5, 'IN_PROGRESS'); await yieldToUI();
       const missingParts = parts.filter(
         p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'
       );
-      markStep(5, 'COMPLETE');
+      markStep(5, 'COMPLETE'); await yieldToUI();
 
-      markStep(6, 'IN_PROGRESS');
+      markStep(6, 'IN_PROGRESS'); await yieldToUI();
       // Build demand insights from high/medium demand parts
       const demandInsights = parts
         .filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM')
@@ -224,6 +236,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       });
 
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       const msg = err instanceof Error ? err.message : 'Analysis failed';
       setError(msg);
       setSteps(prev =>
@@ -235,6 +248,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
   }, [markStep, resetSteps]);
 
   const reset = useCallback(() => {
+    abortRef.current?.abort();
     setResult(null);
     setError(null);
     resetSteps();

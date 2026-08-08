@@ -41,14 +41,15 @@ export function useVinHistory() {
   }, [fetchHistory]);
 
   const addToHistory = useCallback((entry: VinHistoryEntry) => {
-    // Optimistic UI update
+    // Optimistic UI update: show entry immediately, then validate against DB
     setHistory(prev => {
       const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, 20);
       return updated;
     });
-    // Edge function already wrote to DB, so we just trigger a background refetch
-    // to ensure full consistency if needed.
-    setTimeout(fetchHistory, 1000); 
+    // Refetch to sync with authoritative DB state (Edge Function may still be writing)
+    // Use a small delay to allow the fire-and-forget DB write to complete
+    const timer = setTimeout(() => { fetchHistory(); }, 800);
+    return () => clearTimeout(timer);
   }, [fetchHistory]);
 
   const clearHistory = useCallback(async () => {

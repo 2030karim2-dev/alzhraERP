@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Camera, X, Loader2 } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
+import { validateVin } from '../utils/vinValidator';
 
 interface VINSearchProps {
   onAnalyze: (vin: string) => void;
@@ -13,7 +14,7 @@ interface VINSearchProps {
  * Local VIN validation — independent from any service.
  * Mirrors the server-side validation in the Edge Function exactly.
  */
-function validateVinLocal(raw: string): { valid: boolean; message?: string } {
+function validateVinInput(raw: string): { valid: boolean; message?: string } {
   const vin = raw.replace(/[\s\-]/g, '').toUpperCase();
   if (!vin) return { valid: false, message: 'VIN is empty.' };
   if (vin.length < 17) return { valid: false, message: `VIN too short — ${vin.length}/17 characters.` };
@@ -32,7 +33,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
     const value = e.target.value.toUpperCase().replace(/\s+/g, '').slice(0, 17);
     setVin(value);
     if (value) {
-      setValidation(validateVinLocal(value));
+      setValidation(validateVinInput(value));
     } else {
       setValidation(null);
     }
@@ -43,7 +44,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
   const handleAnalyze = () => {
     const v = vin.trim();
     if (!v) return;
-    const result = validateVinLocal(v);
+    const result = validateVinInput(v);
     if (result.valid) onAnalyze(v.toUpperCase().replace(/\s+/g, ''));
   };
 
@@ -120,3 +121,5 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
 };
 
 export default VINSearch;
+
+

@@ -17,7 +17,7 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-[var(--app-surface)] border border-[var(--app-border)] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[80vh] overflow-y-auto p-4 animate-in slide-in-from-bottom">
+      <div className="relative bg-[var(--app-surface)] border border-[var(--app-border)] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[80vh] overflow-y-auto p-4 transition-all duration-200 ease-out">
         <button onClick={onClose} className="absolute top-3 right-3 p-1 hover:bg-[var(--app-surface-hover)] rounded-lg">
           <X size={14} className="text-[var(--app-text-secondary)]" />
         </button>

@@ -11,9 +11,11 @@ import InventoryMatches from '../components/InventoryMatches';
 import MissingParts from '../components/MissingParts';
 import DemandIntelligence from '../components/DemandIntelligence';
 import VINHistory from '../components/VINHistory';
+import VinAIInsights from '../components/VinAIInsights';
 import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
+import { useVinAI } from '../hooks/useVinAI';
 import type { VehicleCorePart, VinDashboardMetrics } from '../types';
 import { supabase } from '../../../lib/supabaseClient';
 
@@ -21,6 +23,7 @@ const VINPage: React.FC = () => {
   const { t } = useTranslation();
   const { result, isAnalyzing, error, steps, analyzeVin, reset } = useVinAnalysis();
   const { history, addToHistory } = useVinHistory();
+  const { aiInsight, isAnalyzingAI, aiError, runAIAnalysis } = useVinAI();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
   const [vehicleCount, setVehicleCount] = useState(0);
   const [vinsAnalyzedCount, setVinsAnalyzedCount] = useState(0);
@@ -63,7 +66,14 @@ const VINPage: React.FC = () => {
       // Refresh DB counts after a successful analysis
       refreshCounts();
     }
-  }, [result, addToHistory, t]);
+  }, [result, addToHistory, t, refreshCounts]);
+
+  // Trigger AI analysis after a successful VIN analysis
+  useEffect(() => {
+    if (result && result.analysisStatus === 'COMPLETE' && result.vehicle.make) {
+      runAIAnalysis(result);
+    }
+  }, [result, runAIAnalysis]);
 
   // Dynamic dashboard metrics — vinsAnalyzed comes from real DB count
   const metrics = useMemo((): VinDashboardMetrics => ({
@@ -144,6 +154,7 @@ const VINPage: React.FC = () => {
                 <InventoryMatches matches={result.inventoryMatches} />
                 <MissingParts parts={result.missingParts} />
                 <DemandIntelligence insights={result.demandInsights} />
+                <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
                 <VINHistory history={history} onSelect={handleSelectRecent} />
               </div>
             </div>
