@@ -117,37 +117,21 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       markStep(1, 'IN_PROGRESS');
       markStep(2, 'IN_PROGRESS');
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      const { data, error: fnError } = await supabase.functions.invoke('vin-analyze', {
+        body: { vin: normalized },
+      });
 
-      // Guard: detect missing/expired session before making any network call
-      if (!token) {
+      // Guard: handle invoke errors (network, auth, etc.)
+      if (fnError) {
         markStep(1, 'ERROR');
-        setError('Your session has expired. Please sign in again to use VIN Intelligence.');
+        markStep(2, 'ERROR');
+        setSteps(prev => prev.map(s =>
+          s.status === 'IN_PROGRESS' ? { ...s, status: 'ERROR' as const } : s
+        ));
+        const msg = (fnError as any)?.message || `Edge Function error: ${(fnError as any)?.code || 'unknown'}`;
+        setError(msg);
         return;
       }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vin-analyze`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
-          },
-          body: JSON.stringify({ vin: normalized }),
-          signal: controller.signal,
-        }
-      );
-
-      // Guard: handle HTTP errors before attempting JSON parse
-      if (!response.ok && response.status !== 200) {
-        const errText = await response.text().catch(() => `HTTP ${response.status}`);
-        throw new Error(`Edge Function error (${response.status}): ${errText.slice(0, 200)}`);
-      }
-
-      const data = await response.json();
 
       // Step 1 & 2: Decoder + Vehicle
       if (data.status !== 'SUCCESS' || !data.vehicle) {
