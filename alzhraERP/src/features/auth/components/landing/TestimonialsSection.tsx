@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_TESTIMONIALS } from '../landing.constants';
+import { LANDING_TESTIMONIALS } from '../../landing/landing.constants';
 
 const TestimonialsSection: React.FC = () => {
     const [current, setCurrent] = useState(0);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, Award } from 'lucide-react';
-import { LANDING_TRUSTED_BY } from '../landing.constants';
+import { LANDING_TRUSTED_BY } from '../../landing/landing.constants';
 
 const TrustedBySection: React.FC = () => {
     const brands = [...LANDING_TRUSTED_BY, ...LANDING_TRUSTED_BY]; // duplicate for seamless loop

@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_PRICING_PLANS } from '../landing.constants';
-import type { LandingPricingPlan } from '../landing.constants';
+import { LANDING_PRICING_PLANS } from '../../landing/landing.constants';
+import type { LandingPricingPlan } from '../../landing/landing.constants';
 
 const accentBorderMap: Record<string, string> = {
     blue: 'border-blue-200 dark:border-blue-800',

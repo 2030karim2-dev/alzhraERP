@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SectionHeader } from '../SectionHeader';
 import { StepIllustration } from '../LandingIllustrations';
-import { LANDING_STEPS } from '../landing.constants';
+import { LANDING_STEPS } from '../../landing/landing.constants';
 
 interface HowItWorksSectionProps {
     sectionRef: React.RefObject<HTMLDivElement | null>;

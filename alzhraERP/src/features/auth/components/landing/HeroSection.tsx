@@ -5,7 +5,7 @@ import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { DashboardMockup, AutoPattern } from '../LandingIllustrations';
 import { AnimatedCounter } from '../AnimatedCounter';
 import { containerVariants, itemVariants } from './landingAnimations';
-import { LANDING_HERO_STATS } from '../landing.constants';
+import { LANDING_HERO_STATS } from '../../landing/landing.constants';
 
 interface HeroSectionProps {
     scrollToAuth: () => void;

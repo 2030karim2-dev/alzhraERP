@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_FAQS } from '../landing.constants';
+import { LANDING_FAQS } from '../../landing/landing.constants';
 
 const FAQItem: React.FC<{ question: string; answer: string; isOpen: boolean; onToggle: () => void }> = React.memo(({ question, answer, isOpen, onToggle }) => (
     <motion.div

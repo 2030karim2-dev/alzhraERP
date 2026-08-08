@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_FEATURES, FEATURE_COLORS } from '../landing.constants';
+import { LANDING_FEATURES, FEATURE_COLORS } from '../../landing/landing.constants';
 
 interface FeaturesSectionProps {
     sectionRef: React.RefObject<HTMLDivElement | null>;
