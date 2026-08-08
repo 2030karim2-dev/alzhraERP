@@ -10,8 +10,9 @@ const corsHeaders = {
 function validateVin(input: string | null | undefined) {
   if (!input) return { isValid: false, normalizedVin: '', error: 'EMPTY_INPUT' };
   const normalized = input.replace(/[\s\-]/g, '').toUpperCase();
-  if (normalized.length !== 17) return { isValid: false, normalizedVin: normalized, error: 'INVALID_LENGTH' };
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(normalized)) return { isValid: false, normalizedVin: normalized, error: 'INVALID_CHARACTERS' };
+  const validLengths = [11, 12, 13, 17];
+  if (!validLengths.includes(normalized.length)) return { isValid: false, normalizedVin: normalized, error: 'INVALID_LENGTH' };
+  if (!/^[A-HJ-NPR-Z0-9]+$/.test(normalized)) return { isValid: false, normalizedVin: normalized, error: 'INVALID_CHARACTERS' };
   return { isValid: true, normalizedVin: normalized };
 }
 

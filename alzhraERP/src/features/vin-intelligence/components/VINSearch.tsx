@@ -17,10 +17,12 @@ interface VINSearchProps {
 function validateVinInput(raw: string): { valid: boolean; message?: string } {
   const vin = raw.replace(/[\s\-]/g, '').toUpperCase();
   if (!vin) return { valid: false, message: 'VIN is empty.' };
-  if (vin.length < 17) return { valid: false, message: `VIN too short — ${vin.length}/17 characters.` };
-  if (vin.length > 17) return { valid: false, message: `VIN too long — ${vin.length}/17 characters.` };
+  const validLengths = [11, 12, 13, 17];
+  if (!validLengths.includes(vin.length)) {
+    return { valid: false, message: `Invalid VIN length — ${vin.length} characters (must be 11, 12, 13, or 17).` };
+  }
   if (/[IOQ]/.test(vin)) return { valid: false, message: 'VIN contains invalid characters (I, O, or Q are not allowed).' };
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return { valid: false, message: 'VIN contains invalid characters.' };
+  if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin)) return { valid: false, message: 'VIN contains invalid characters.' };
   return { valid: true };
 }
 

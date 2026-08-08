@@ -17,7 +17,7 @@ export const AI_MODELS = [
 export const FALLBACK_MODEL = 'deepseek-chat';
 
 export function getActiveProvider(): string {
-    return 'openrouter';
+    return getModelProvider(getActiveModel());
 }
 
 export function getActiveModel(): string {
