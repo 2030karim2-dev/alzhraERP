@@ -39,8 +39,8 @@ export interface VehicleConfiguration {
 export type PartCategory =
   | 'Braking' | 'Cooling' | 'Electrical' | 'Air Conditioning'
   | 'Steering' | 'Front Suspension' | 'Rear Suspension'
-  | 'Engine' | 'Fuel / Intake' | 'Drivetrain' | 'Mirrors'
-  | 'Body' | 'Exhaust' | 'Filters';
+  | 'Engine' | 'Fuel / Intake' | 'Drivetrain'
+  | 'Mirrors' | 'Body' | 'Exhaust' | 'Filters';
 
 export interface InventoryMatch {
   productId: string;

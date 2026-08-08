@@ -29,12 +29,25 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
     resetSteps();
 
     try {
-      for (let i = 0; i < ANALYSIS_STEPS.length; i++) {
+      // Phase A: Pre-analysis steps (validate → identify → config)
+      const preSteps = [0, 1, 2];
+      for (const i of preSteps) {
         updateStep(i, 'IN_PROGRESS');
-        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
         updateStep(i, 'COMPLETE');
       }
+
+      // Run the actual analysis (mock lookup in vehicle DB)
       const data = await vinAnalysisService.analyzeVin(vin);
+
+      // Phase B: Post-analysis steps (parts → oem → inventory → knowledge)
+      const postSteps = [3, 4, 5, 6];
+      for (const i of postSteps) {
+        updateStep(i, 'IN_PROGRESS');
+        await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
+        updateStep(i, 'COMPLETE');
+      }
+
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');

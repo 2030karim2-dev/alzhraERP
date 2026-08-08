@@ -1,6 +1,8 @@
 import type { VinAnalysisService, VinAnalysisResult, VinHistoryEntry, AnalysisStep } from '../types';
 import { mockVehicles } from '../mock/mockVehicles';
 import { MOCK_PARTS } from '../mock/mockParts';
+import { mockHistory } from '../mock';
+import { findInventoryForOem } from './vinInventoryBridge';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -14,8 +16,8 @@ export const ANALYSIS_STEPS: AnalysisStep[] = [
   { id: 'knowledge', label: 'vin_building_knowledge', status: 'PENDING' },
 ];
 
-/** Build a VIN result from a matched vehicle + parts */
-function buildResult(vin: string, vehicle: VinAnalysisResult['vehicle']): VinAnalysisResult {
+/** Build a VIN result from a matched vehicle + parts (synchronous core — no inventory bridge). */
+export function buildResultCore(vin: string, vehicle: VinAnalysisResult['vehicle']): VinAnalysisResult {
   const parts = [...MOCK_PARTS];
   const inventoryMatches = parts.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches);
   const missingParts = parts.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE');
@@ -42,6 +44,41 @@ function buildResult(vin: string, vehicle: VinAnalysisResult['vehicle']): VinAna
     analysisTimestamp: new Date().toISOString(),
     analysisStatus: 'COMPLETE',
   };
+}
+
+/** Build a VIN result from a matched vehicle + parts. Tries real inventory first. */
+async function buildResult(vin: string, vehicle: VinAnalysisResult['vehicle']): Promise<VinAnalysisResult> {
+  const result = buildResultCore(vin, vehicle);
+
+  // Collect all OEM numbers from core parts
+  const allOemNumbers = result.coreParts.flatMap(p => p.oemNumbers);
+
+  // Try to find real inventory matches (falls back to mock if unavailable)
+  const realMatches = await findInventoryForOem(allOemNumbers);
+
+  if (realMatches.length === 0) return result;
+
+  // Merge real matches: override mock inventoryMatches when real data exists
+  const realMatchMap = new Map<string, typeof realMatches>();
+  for (const m of realMatches) {
+    const key = m.sku;
+    if (!realMatchMap.has(key)) realMatchMap.set(key, []);
+    realMatchMap.get(key)!.push(m);
+  }
+
+  // Update each part's inventoryMatches with real data when available
+  for (const part of result.coreParts) {
+    const realForPart = part.oemNumbers.flatMap(oem => realMatchMap.get(oem) ?? []);
+    if (realForPart.length > 0) {
+      part.inventoryMatches = realForPart;
+    }
+  }
+
+  // Recompute derived arrays after enrichment
+  result.inventoryMatches = result.coreParts.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches);
+  result.missingParts = result.coreParts.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE');
+
+  return result;
 }
 
 export class MockVinAnalysisService implements VinAnalysisService {
@@ -74,7 +111,12 @@ export class MockVinAnalysisService implements VinAnalysisService {
       };
     }
 
-    return buildResult(normalized, vehicle);
+    return await buildResult(normalized, vehicle);
+  }
+
+  async getVinHistory(): Promise<VinHistoryEntry[]> {
+    await delay(100);
+    return mockHistory;
   }
 
   validateVin(vin: string): { valid: boolean; message?: string } {

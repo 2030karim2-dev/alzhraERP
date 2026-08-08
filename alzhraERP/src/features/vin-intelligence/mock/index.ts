@@ -1,5 +1,6 @@
 import { MOCK_PARTS } from './mockParts';
 import type { VinAnalysisResult, VinHistoryEntry, VinDashboardMetrics } from '../types';
+import { buildResultCore } from '../services/vinAnalysisService';
 
 export { mockVehicles, getMockVehicle } from './mockVehicles';
 
@@ -20,20 +21,8 @@ export const MOCK_VEHICLE = {
   cabType: 'Double Cab' as const,
 };
 
-export const mockVinResult: VinAnalysisResult = {
-  vin: MOCK_VEHICLE.vin,
-  vehicle: MOCK_VEHICLE,
-  coreParts: MOCK_PARTS,
-  inventoryMatches: MOCK_PARTS.filter(p => p.inventoryMatches.length > 0).flatMap(p => p.inventoryMatches),
-  missingParts: MOCK_PARTS.filter(p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'),
-  demandInsights: MOCK_PARTS.filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM').map(p => ({
-    partId: p.id, partName: p.canonicalPartName, demandLevel: (p.demandLevel === 'UNKNOWN' ? 'LOW' : p.demandLevel) as 'HIGH' | 'MEDIUM' | 'LOW',
-    salesCount: p.salesCount ?? 0, vehicleMatches: p.vehicleMatches ?? 0,
-    isCorePart: true, isFastMoving: (p.salesCount ?? 0) > 300, recommendedStock: undefined,
-  })),
-  analysisTimestamp: new Date().toISOString(),
-  analysisStatus: 'COMPLETE',
-};
+/** Pre-built mock result using the shared buildResultCore (synchronous, no inventory bridge). */
+export const mockVinResult: VinAnalysisResult = buildResultCore(MOCK_VEHICLE.vin, MOCK_VEHICLE);
 
 export const mockHistory: VinHistoryEntry[] = [
   { vin: 'JTB53AEB1W0025920', make: 'Toyota', model: 'Hilux', year: 2015, analyzedAt: new Date().toISOString(), resultSummary: 'Toyota Hilux 2015 — 20 parts' },
