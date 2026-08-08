@@ -7,16 +7,17 @@ interface LandingHeaderProps {
     scrollToAuth: () => void;
     scrollToFeatures: () => void;
     scrollToHowItWorks: () => void;
+    scrollToPricing: () => void;
 }
 
-const LandingHeader: React.FC<LandingHeaderProps> = ({ scrollToAuth, scrollToFeatures, scrollToHowItWorks }) => {
+const LandingHeader: React.FC<LandingHeaderProps> = ({ scrollToAuth, scrollToFeatures, scrollToHowItWorks, scrollToPricing }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { theme, toggleTheme } = useThemeStore();
 
     const navItems = [
         { label: 'الميزات', action: scrollToFeatures },
         { label: 'كيف يعمل', action: scrollToHowItWorks },
-        { label: 'الأسعار', action: () => {} },
+        { label: 'الأسعار', action: scrollToPricing },
         { label: 'الدخول', action: scrollToAuth },
     ];
 
@@ -28,7 +29,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ scrollToAuth, scrollToFea
             className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         >
             <div className="max-w-none mx-auto px-4 py-6">
-                <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border border-white/20 dark:border-slate-800/50 rounded-[2rem] shadow-2xl shadow-blue-500/5 px-6 h-20 flex items-center justify-between">
+                <div className="landing-glass bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-blue-500/5 px-6 h-20 flex items-center justify-between" style={{ borderColor: 'var(--app-border)' }}>
                     <div className="flex items-center gap-4 group cursor-pointer">
                         <motion.div
                             whileHover={{ rotate: 180 }}
@@ -38,7 +39,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ scrollToAuth, scrollToFea
                             <Car className="text-white" size={26} />
                         </motion.div>
                         <div className="hidden sm:block">
-                            <span className="block text-lg font-black text-gray-900 dark:text-white leading-none tracking-tight">نظام الزهراء</span>
+                            <span className="block text-lg font-black leading-none tracking-tight" style={{ color: 'var(--app-text)' }}>نظام الزهراء</span>
                             <span className="block text-[10px] text-blue-500 dark:text-blue-400 uppercase tracking-[0.2em] font-black mt-1">Auto Parts ERP</span>
                         </div>
                     </div>

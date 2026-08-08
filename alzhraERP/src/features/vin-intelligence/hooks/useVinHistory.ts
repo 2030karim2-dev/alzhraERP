@@ -1,48 +1,69 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { VinHistoryEntry } from '../types';
-
-const STORAGE_KEY = 'alzhra_vin_history';
-const MAX_ENTRIES = 50;
-
-function loadHistory(): VinHistoryEntry[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(entries: VinHistoryEntry[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
-  } catch {
-    // localStorage full or unavailable — silently ignore
-  }
-}
+import { supabase } from '../../../lib/supabaseClient';
 
 export function useVinHistory() {
-  const [history, setHistory] = useState<VinHistoryEntry[]>(loadHistory);
-  const [hydrated, setHydrated] = useState(false);
+  const [history, setHistory] = useState<VinHistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('vin_analysis_history')
+        .select('vin, make, model, year, analyzed_at, result_summary')
+        .eq('user_id', sessionData.session.user.id)
+        .order('analyzed_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      setHistory((data || []).map(row => ({
+        vin: row.vin,
+        make: row.make ?? undefined,
+        model: row.model ?? undefined,
+        year: row.year ?? undefined,
+        analyzedAt: row.analyzed_at,
+        resultSummary: row.result_summary ?? undefined,
+      })));
+    } catch (err) {
+      console.error('Failed to load VIN history from DB:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setHydrated(true);
-  }, []);
+    fetchHistory();
+  }, [fetchHistory]);
 
   const addToHistory = useCallback((entry: VinHistoryEntry) => {
+    // Optimistic UI update
     setHistory(prev => {
-      const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, MAX_ENTRIES);
-      saveHistory(updated);
+      const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, 20);
       return updated;
     });
+    // Edge function already wrote to DB, so we just trigger a background refetch
+    // to ensure full consistency if needed.
+    setTimeout(fetchHistory, 1000); 
+  }, [fetchHistory]);
+
+  const clearHistory = useCallback(async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user?.id) return;
+      await supabase
+        .from('vin_analysis_history')
+        .delete()
+        .eq('user_id', sessionData.session.user.id);
+      setHistory([]);
+    } catch (err) {
+      console.error('Failed to clear VIN history in DB:', err);
+    }
   }, []);
 
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
-
-  return { history, addToHistory, clearHistory, hydrated };
+  return { history, addToHistory, clearHistory, loading, hydrated: true };
 }
-
-

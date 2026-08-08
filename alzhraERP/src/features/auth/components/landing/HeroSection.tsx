@@ -5,6 +5,7 @@ import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { DashboardMockup, AutoPattern } from '../LandingIllustrations';
 import { AnimatedCounter } from '../AnimatedCounter';
 import { containerVariants, itemVariants } from './landingAnimations';
+import { LANDING_HERO_STATS } from '../landing.constants';
 
 interface HeroSectionProps {
     scrollToAuth: () => void;
@@ -72,7 +73,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ scrollToAuth, scrollToFeature
 
                             <motion.h1
                                 variants={itemVariants}
-                                className="text-4xl sm:text-6xl lg:text-8xl font-black text-gray-900 dark:text-white leading-[1.05] mb-8 tracking-tighter"
+                                className="text-4xl sm:text-6xl lg:text-8xl font-black leading-[1.05] mb-8 tracking-tighter" style={{ color: 'var(--app-text)' }}
                             >
                                 أحدث تقنيات <br />
                                 <span className="bg-gradient-to-l from-blue-700 via-blue-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm">
@@ -103,17 +104,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ scrollToAuth, scrollToFeature
                             </motion.div>
 
                             {/* Stats Grid */}
-                            <motion.div variants={itemVariants} className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 border-t border-gray-100 dark:border-slate-800 pt-8">
-                                {[
-                                    { label: 'عميل نشط', value: 1200, suffix: '+' },
-                                    { label: 'فاتورة منجزة', value: 45, suffix: 'K+' },
-                                    { label: 'قطعة مدارة', value: 250, suffix: 'K+' },
-                                ].map((stat, i) => (
+                            <motion.div variants={itemVariants} className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 border-t pt-8" style={{ borderColor: 'var(--app-border)' }}>
+                                {LANDING_HERO_STATS.map((stat, i) => (
                                     <div key={stat.label} className={i === 2 ? "col-span-2 sm:col-span-1" : ""}>
-                                        <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                                        <div className="text-xl sm:text-2xl font-black" style={{ color: 'var(--app-text)' }}>
                                             <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                                         </div>
-                                        <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">{stat.label}</div>
+                                        <div className="text-[10px] sm:text-xs text-[var(--app-text-secondary)] font-bold uppercase tracking-widest">{stat.label}</div>
                                     </div>
                                 ))}
                             </motion.div>

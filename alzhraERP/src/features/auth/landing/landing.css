@@ -1,0 +1,182 @@
+/* ============================================================
+   Landing Page — Theme-Aware CSS Variables & Animations
+   مرتبط بنظام الثيمات العام للتطبيق
+   ============================================================ */
+
+/* ── Landing Brand Identity Tokens ── */
+:root {
+  --landing-primary: #2563eb;
+  --landing-primary-dark: #1d4ed8;
+  --landing-primary-light: #3b82f6;
+  --landing-primary-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+  --landing-gradient-text: linear-gradient(to right, #3b82f6, #60a5fa);
+  --landing-card-radius: 2rem;
+  --landing-shadow-blue: 0 10px 30px -10px rgba(37, 99, 235, 0.3);
+  --landing-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient Text Utility ── */
+.landing-gradient-text {
+  background: var(--landing-gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass Morphism Base ── */
+.landing-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .landing-glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+/* ── Gradient Button ── */
+.landing-btn-primary {
+  background: var(--landing-primary-gradient);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--landing-shadow-blue);
+  transition: var(--landing-transition);
+}
+
+.landing-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.5);
+}
+
+.landing-btn-primary:active {
+  transform: scale(0.97);
+}
+
+/* ── Section Enter Animations ── */
+@keyframes landing-scroll-indicator {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(8px); opacity: 0.3; }
+}
+
+@keyframes landing-border-glow {
+  0%, 100% { border-color: rgba(37, 99, 235, 0.2); }
+  50% { border-color: rgba(37, 99, 235, 0.6); }
+}
+
+@keyframes landing-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Animated Gradient Border ── */
+.landing-gradient-border {
+  position: relative;
+  border-radius: var(--landing-card-radius);
+  overflow: hidden;
+}
+
+.landing-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    60deg,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #3b82f6
+  );
+  background-size: 300% 300%;
+  animation: landing-border-rotate 4s linear infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.landing-gradient-border:hover::before {
+  opacity: 1;
+}
+
+@keyframes landing-border-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Scroll-triggered reveal ── */
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.landing-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Feature Card Hover Effects ── */
+.landing-feature-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.landing-feature-card:hover .landing-feature-icon {
+  transform: scale(1.15) rotate(6deg);
+}
+
+.landing-feature-icon {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Smooth Scroll Behavior ── */
+.landing-page {
+  scroll-behavior: smooth;
+}
+
+/* ── Section divider with gradient ── */
+.landing-section-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(37, 99, 235, 0.2),
+    transparent
+  );
+}
+
+/* ── Trusted By Marquee ── */
+.landing-marquee-track {
+  animation: landing-marquee 30s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.landing-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* ── Pricing Card Popular ── */
+.landing-pricing-popular {
+  position: relative;
+  border: 2px solid var(--landing-primary);
+  animation: landing-border-glow 3s ease-in-out infinite;
+}
+
+/* ── FAQ Accordion item ── */
+.landing-faq-item {
+  transition: all 0.3s ease;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 768px) {
+  :root {
+    --landing-card-radius: 1.5rem;
+  }
+}

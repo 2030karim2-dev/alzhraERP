@@ -15,7 +15,7 @@ import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
 import type { VehicleCorePart, VinDashboardMetrics } from '../types';
-import { vinVehicleService } from '../services/vinVehicleService';
+import { supabase } from '../../../lib/supabaseClient';
 
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
@@ -23,18 +23,35 @@ const VINPage: React.FC = () => {
   const { history, addToHistory } = useVinHistory();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
   const [vehicleCount, setVehicleCount] = useState(0);
+  const [vinsAnalyzedCount, setVinsAnalyzedCount] = useState(0);
+
+  /** Fetch real counts from DB (stable reference via useCallback) */
+  const refreshCounts = useCallback(() => {
+    supabase
+      .from('vehicle_knowledge_base')
+      .select('*', { count: 'exact', head: true })
+      .then(({ count }) => setVehicleCount(count ?? 0))
+      .catch(() => setVehicleCount(0));
+
+    supabase
+      .from('vin_analysis_history')
+      .select('*', { count: 'exact', head: true })
+      .then(({ count }) => setVinsAnalyzedCount(count ?? 0))
+      .catch(() => setVinsAnalyzedCount(0));
+  }, []);
 
   useEffect(() => {
-    vinVehicleService.getVehicleCount().then(setVehicleCount);
-  }, []);
+    refreshCounts();
+  }, [refreshCounts]);
 
   const handleAnalyze = useCallback(async (vin: string) => {
     await analyzeVin(vin);
   }, [analyzeVin]);
 
-  // Update latest history entry with vehicle data once result arrives
+  // UI-only convenience cache — NOT the authoritative audit trail.
+  // Authoritative audit is written server-side by the vin-analyze Edge Function.
   useEffect(() => {
-    if (result && result.analysisStatus !== 'FAILED') {
+    if (result && result.analysisStatus !== 'FAILED' && result.vehicle.make) {
       addToHistory({
         vin: result.vin,
         make: result.vehicle.make,
@@ -43,17 +60,19 @@ const VINPage: React.FC = () => {
         analyzedAt: result.analysisTimestamp,
         resultSummary: `${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.year || ''} — ${result.coreParts.length} ${t('vin_parts_count')}`,
       });
+      // Refresh DB counts after a successful analysis
+      refreshCounts();
     }
   }, [result, addToHistory, t]);
 
-  // Dynamic dashboard metrics
+  // Dynamic dashboard metrics — vinsAnalyzed comes from real DB count
   const metrics = useMemo((): VinDashboardMetrics => ({
-    vinsAnalyzed: history.length,
+    vinsAnalyzed: vinsAnalyzedCount,
     vehiclesInKnowledgeBase: vehicleCount,
     verifiedFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'VERIFIED').length : 0,
     inventoryMatches: result ? result.inventoryMatches.length : 0,
     unknownFitments: result ? result.coreParts.filter(p => p.fitmentStatus === 'UNKNOWN').length : 0,
-  }), [history, result]);
+  }), [vinsAnalyzedCount, vehicleCount, result]);
 
   const handleSelectRecent = useCallback((vin: string) => {
     handleAnalyze(vin);

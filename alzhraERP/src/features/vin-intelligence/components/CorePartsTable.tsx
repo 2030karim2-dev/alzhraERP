@@ -66,7 +66,7 @@ const CorePartsTable: React.FC<CorePartsTableProps> = ({ parts, onPartClick }) =
                     <th className="px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-widest text-[var(--app-text-secondary)] w-20">{t('vin_status_col')}</th>
                   </tr></thead>
                   <tbody>{catParts.map(part => {
-                    const fm = FITMENT_CONFIG[part.fitmentStatus];
+                    const fm = FITMENT_CONFIG[part.fitmentStatus] || FITMENT_CONFIG['UNKNOWN'];
                     const qty = qtyMap.get(part.id) ?? 0;
                     return (
                       <tr key={part.id} onClick={() => onPartClick?.(part)} className="border-b border-[var(--app-border)] hover:bg-[var(--app-surface-hover)] transition-all cursor-pointer">

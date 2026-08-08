@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Search, Camera, X, Loader2 } from 'lucide-react';
-import { vinAnalysisService } from '../services/vinAnalysisService';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 interface VINSearchProps {
@@ -8,6 +7,20 @@ interface VINSearchProps {
   isAnalyzing: boolean;
   recentVins?: string[];
   onSelectRecent?: (vin: string) => void;
+}
+
+/**
+ * Local VIN validation — independent from any service.
+ * Mirrors the server-side validation in the Edge Function exactly.
+ */
+function validateVinLocal(raw: string): { valid: boolean; message?: string } {
+  const vin = raw.replace(/[\s\-]/g, '').toUpperCase();
+  if (!vin) return { valid: false, message: 'VIN is empty.' };
+  if (vin.length < 17) return { valid: false, message: `VIN too short — ${vin.length}/17 characters.` };
+  if (vin.length > 17) return { valid: false, message: `VIN too long — ${vin.length}/17 characters.` };
+  if (/[IOQ]/.test(vin)) return { valid: false, message: 'VIN contains invalid characters (I, O, or Q are not allowed).' };
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return { valid: false, message: 'VIN contains invalid characters.' };
+  return { valid: true };
 }
 
 const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVins = [], onSelectRecent }) => {
@@ -19,7 +32,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
     const value = e.target.value.toUpperCase().replace(/\s+/g, '').slice(0, 17);
     setVin(value);
     if (value) {
-      setValidation(vinAnalysisService.validateVin(value));
+      setValidation(validateVinLocal(value));
     } else {
       setValidation(null);
     }
@@ -30,7 +43,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
   const handleAnalyze = () => {
     const v = vin.trim();
     if (!v) return;
-    const result = vinAnalysisService.validateVin(v);
+    const result = validateVinLocal(v);
     if (result.valid) onAnalyze(v.toUpperCase().replace(/\s+/g, ''));
   };
 
@@ -73,7 +86,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
         </div>
         <button
           onClick={handleAnalyze}
-          disabled={isAnalyzing || !vin}
+          disabled={isAnalyzing || !vin || (validation !== null && !validation.valid)}
           className="flex items-center gap-1.5 h-9 px-4 bg-blue-600 text-white rounded-lg text-[10px] font-bold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 transition-all"
         >
           {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}

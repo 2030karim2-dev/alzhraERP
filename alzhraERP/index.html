@@ -11,10 +11,47 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="description" content="نظام الزهراء الذكي - الحل المتكامل لإدارة مراكز قطع الغيار والمحاسبة المالية" />
-  <title>نظام الزهراء الذكي | ERP</title>
+
+  <!-- Primary Meta Tags -->
+  <title>نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار</title>
+  <meta name="title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
+  <meta name="description" content="نظام الزهراء الذكي - نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، ذكاء اصطناعي، والمزيد." />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://alzahra-erp.app/" />
+  <meta property="og:title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
+  <meta property="og:description" content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي." />
+  <meta property="og:image" content="/pwa-icon-512.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://alzahra-erp.app/" />
+  <meta property="twitter:title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
+  <meta property="twitter:description" content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي." />
+  <meta property="twitter:image" content="/pwa-icon-512.png" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "نظام الزهراء الذكي",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Preconnect to Supabase API for faster auth/data loading -->
+  <link rel="preconnect" href="https://[your-project].supabase.co" />
+  <link rel="dns-prefetch" href="https://[your-project].supabase.co" />
   <link
     href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
     rel="stylesheet">
@@ -77,6 +114,10 @@
 </head>
 
 <body class="font-sans antialiased">
+  <!-- Skip to main content for accessibility -->
+  <a href="#landing-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-2xl focus:font-black focus:shadow-2xl">
+    تخطي إلى المحتوى الرئيسي
+  </a>
   <div id="root"></div>
   <script type="module" src="/src/index.tsx"></script>
 </body>

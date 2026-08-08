@@ -5,9 +5,10 @@ interface LandingFooterProps {
     scrollToFeatures: () => void;
     scrollToHowItWorks: () => void;
     scrollToAuth: () => void;
+    scrollToPricing: () => void;
 }
 
-const LandingFooter: React.FC<LandingFooterProps> = ({ scrollToFeatures, scrollToHowItWorks, scrollToAuth }) => {
+const LandingFooter: React.FC<LandingFooterProps> = ({ scrollToFeatures, scrollToHowItWorks, scrollToAuth, scrollToPricing }) => {
     return (
         <footer className="relative bg-slate-950 pt-32 pb-12 overflow-hidden border-t border-slate-900">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
@@ -48,7 +49,7 @@ const LandingFooter: React.FC<LandingFooterProps> = ({ scrollToFeatures, scrollT
                             <li><button onClick={scrollToFeatures} className="hover:text-blue-400 transition-colors">الميزات الرئيسية</button></li>
                             <li><button onClick={scrollToHowItWorks} className="hover:text-blue-400 transition-colors">كيفية الاستخدام</button></li>
                             <li><button onClick={scrollToAuth} className="hover:text-blue-400 transition-colors">تسجيل الدخول</button></li>
-                            <li><button className="hover:text-blue-400 transition-colors">الأسعار والباقات</button></li>
+                            <li><button onClick={scrollToPricing} className="hover:text-blue-400 transition-colors">الأسعار والباقات</button></li>
                         </ul>
                     </div>
 

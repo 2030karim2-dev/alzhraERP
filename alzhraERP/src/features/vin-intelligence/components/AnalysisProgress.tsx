@@ -10,7 +10,12 @@ interface AnalysisProgressProps {
 
 const AnalysisProgress: React.FC<AnalysisProgressProps> = ({ steps, isAnalyzing }) => {
   const { t } = useTranslation();
-  if (!isAnalyzing && steps.every(s => s.status === 'PENDING')) return null;
+
+  // Hide when: not analyzing AND (all steps are PENDING — never started, or all COMPLETE — finished cleanly)
+  const allPending = steps.every(s => s.status === 'PENDING');
+  const allDone = steps.every(s => s.status === 'COMPLETE');
+  if (!isAnalyzing && (allPending || allDone)) return null;
+
 
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-3 shadow-sm">

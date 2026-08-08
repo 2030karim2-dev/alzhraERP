@@ -24,13 +24,15 @@ export interface VehicleConfiguration {
   engineCode?: string;
   engineSize?: string;
   cylinderCount?: number;
-  fuelType?: 'Gasoline' | 'Diesel' | 'Hybrid' | 'Electric';
-  transmission?: 'Automatic' | 'Manual' | 'CVT' | 'DCT';
-  driveType?: 'FWD' | 'RWD' | '4WD' | 'AWD';
-  market?: 'GCC' | 'USA' | 'Japan' | 'JDM' | 'Europe' | 'Australia';
+  // Widened to accept real NHTSA values (e.g. "Flexible Fuel Vehicle (FFV)", "US/NHTSA")
+  fuelType?: string;
+  transmission?: string;
+  driveType?: string;
+  market?: string;
   bodyType?: string;
-  cabType?: 'Single Cab' | 'Double Cab' | 'Extended Cab';
+  cabType?: string;
 }
+
 
 // ============================================================
 // Inventory Match

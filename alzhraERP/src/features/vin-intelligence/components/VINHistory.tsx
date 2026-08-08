@@ -18,7 +18,7 @@ const VINHistory: React.FC<{ history: VinHistoryEntry[]; onSelect: (vin: string)
       </h3>
       <div className="space-y-1">
         {history.map(h => (
-          <button key={h.vin} onClick={() => onSelect(h.vin)} className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-[var(--app-surface-hover)] transition-all group text-left">
+          <button key={h.vin} onClick={() => onSelect(h.vin)} className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-[var(--app-surface-hover)] transition-all group text-start">
             <div className="min-w-0">
               <p className="font-mono font-bold text-[10px] text-indigo-600 dark:text-indigo-400">{h.vin}</p>
               <p className="text-[8px] text-[var(--app-text-secondary)] truncate">
