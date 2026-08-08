@@ -135,22 +135,34 @@ $$;
 -- ============================================================
 -- RLS Policies
 -- ============================================================
+-- NOTE: vehicle_knowledge_base and vehicle_core_parts are SHARED
+-- knowledge tables (NHTSA-sourced decoded VIN data is public).
+-- Any authenticated user in any company can read cached VIN data
+-- to avoid redundant NHTSA API calls.
+-- ============================================================
 
 ALTER TABLE public.vehicle_knowledge_base ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vehicle_core_parts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vin_analysis_history ENABLE ROW LEVEL SECURITY;
 
+-- Shared knowledge base: all authenticated users can read (NHTSA data is public)
 CREATE POLICY "vehicle_kb_select_auth" ON public.vehicle_knowledge_base
     FOR SELECT TO authenticated USING (true);
 
+-- Core parts reference the shared knowledge base; read-only for all authenticated users
 CREATE POLICY "core_parts_select_auth" ON public.vehicle_core_parts
     FOR SELECT TO authenticated USING (true);
 
+-- VIN analysis history: strictly user-scoped (each user sees only their own history)
 CREATE POLICY "vin_history_select_own" ON public.vin_analysis_history
     FOR SELECT TO authenticated USING (user_id = auth.uid());
 
 CREATE POLICY "vin_history_insert_own" ON public.vin_analysis_history
     FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+
+-- Upsert: allow updating existing records for the same user+vin combo
+CREATE POLICY "vin_history_update_own" ON public.vin_analysis_history
+    FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "vin_history_delete_own" ON public.vin_analysis_history
     FOR DELETE TO authenticated USING (user_id = auth.uid());

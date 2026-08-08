@@ -1,10 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { VinAnalysisResult, VehicleCorePart, AnalysisStep } from '../types';
 import { supabase } from '../../../lib/supabaseClient';
 
 // -------------------------------------------------------
-// Real analysis steps — driven by ACTUAL backend progress
-// No fake delays. States advance only when real work occurs.
+// Analysis steps — driven by backend progress + sequenced UI updates
 // -------------------------------------------------------
 const INITIAL_STEPS: AnalysisStep[] = [
   { id: 'validate',   label: 'vin_validating',        status: 'PENDING' },
@@ -15,6 +14,9 @@ const INITIAL_STEPS: AnalysisStep[] = [
   { id: 'inventory',  label: 'vin_matching_inv',       status: 'PENDING' },
   { id: 'knowledge',  label: 'vin_building_knowledge', status: 'PENDING' },
 ];
+
+/** Yield to the browser so React can flush a render before continuing */
+const yieldToUI = () => new Promise<void>(r => requestAnimationFrame(() => r()));
 
 /** Map Edge Function error status codes to user-facing messages */
 function mapErrorStatus(status: string, errorDetail?: string): string {

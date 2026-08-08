@@ -195,14 +195,17 @@ serve(async (req: Request) => {
     }
 
     // STEP 6: Authoritative Audit Log (non-blocking)
+    // Use upsert to handle duplicate VIN analyses gracefully (ON CONFLICT user_id, vin → UPDATE)
     const partsFound = partsResults.length;
     const inStockCount = partsResults.filter(p => p.inventoryMatches.length > 0).length;
-    await supabaseAdmin.from('vin_analysis_history').insert({
+    supabaseAdmin.from('vin_analysis_history').upsert({
       user_id: userId, company_id: companyId, vin,
       make: dv.make, model: dv.model, year: dv.year,
       result_summary: `${dv.make} ${dv.model} ${dv.year} — ${partsFound} parts, ${inStockCount} in stock`,
       analyzed_at: new Date().toISOString(),
-    }).catch(() => {});
+    }, { onConflict: 'user_id, vin' }).catch((err) => {
+      console.error('[vin-analyze] Failed to write audit log:', err.message);
+    });
 
     return new Response(JSON.stringify({
       status: 'SUCCESS', vin,
