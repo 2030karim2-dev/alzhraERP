@@ -8,16 +8,16 @@ export const calculateDashboardInsights = (data: {
     totalExpenses: number;
     netProfit: number;
     totalSupplierDebts: number;
-    salesChartData?: any[];
-    lowStockProducts: any[];
-    overdueInvoices: any[];
+    salesChartData?: Array<{ sales?: number; purchases?: number; expenses?: number; value?: number }>;
+    lowStockProducts: Array<{ id: string; name?: string }>;
+    overdueInvoices: Array<{ id: string }>;
 }) => {
     const { 
         totalSales = 0, 
         salesChartData = [], 
         lowStockProducts = [], 
         overdueInvoices = [], 
-        totalDebts = 0 
+        totalDebts = data.totalSupplierDebts ?? 0  // FIX: use totalSupplierDebts from input
     } = data;
 
     // Use salesChartData to calculate trends
@@ -26,7 +26,8 @@ export const calculateDashboardInsights = (data: {
     const olderHalf = salesChartData.slice(0, halfLength);
     const newerHalf = salesChartData.slice(halfLength);
 
-    const getSum = (list: any[], key: string) => list.reduce((sum: number, item: any) => sum + (Number(item[key]) || 0), 0);
+    const getSum = (list: Array<Record<string, unknown>>, key: string) =>
+        list.reduce((sum: number, item: Record<string, unknown>) => sum + (Number(item[key]) || 0), 0);
 
     const olderSales = getSum(olderHalf, 'sales') || getSum(olderHalf, 'value');
     const newerSales = getSum(newerHalf, 'sales') || getSum(newerHalf, 'value');

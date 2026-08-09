@@ -10,6 +10,7 @@ export interface Account {
   company_id: string;
   code: string;
   name: string;
+  name_ar?: string;
   type: AccountType;
   balance: number;
   currency_code: string;

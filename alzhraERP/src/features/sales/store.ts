@@ -89,8 +89,12 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     set(state => {
       const newItems = [...state.items];
       if (newItems[index]) {
-        // Type-safe field update via spread — preserves type checking
-        newItems[index] = { ...newItems[index], [field]: value as SalesCartItem[typeof field] };
+        // Use typed Pick to constrain field-value pairs:
+        // quantity/costPrice/basePrice/price/discount → number, rest → string
+        type NumericFields = 'quantity' | 'costPrice' | 'basePrice' | 'price' | 'discount';
+        const numericFields = new Set<NumericFields>(['quantity', 'costPrice', 'basePrice', 'price', 'discount']);
+        const coercedValue = numericFields.has(field as NumericFields) ? Number(value) : String(value);
+        newItems[index] = { ...newItems[index], [field]: coercedValue as SalesCartItem[typeof field] };
       }
       return { items: newItems };
     });
