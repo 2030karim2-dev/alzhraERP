@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../../../core/utils';
 import { useReturnsReport } from '../hooks/useReturnsReport';
 import ReturnsFilterBar from './returns/ReturnsFilterBar';
 import ReturnsStatsGrid from './returns/ReturnsStatsGrid';
