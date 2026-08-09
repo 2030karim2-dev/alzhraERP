@@ -106,9 +106,12 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       // Step 0: Validating (client-side pre-check before network call)
       markStep(0, 'IN_PROGRESS');
       const normalized = (vin || '').replace(/[\s\-]/g, '').toUpperCase();
-      if (!normalized || normalized.length !== 17 || /[IOQ]/.test(normalized)) {
+      // Accept VINs of 11-17 characters (backend handles 11, 12, 13, 17)
+      const validLengths = [11, 12, 13, 17];
+      if (!normalized || !validLengths.includes(normalized.length) || /[IOQ]/.test(normalized)) {
         markStep(0, 'ERROR');
-        setError('VIN format is invalid. Enter a complete 17-character VIN (no I, O, Q).');
+        setError('VIN format is invalid. Enter a valid VIN (11, 12, 13, or 17 characters, no I, O, Q).');
+        setIsAnalyzing(false);
         return;
       }
       markStep(0, 'COMPLETE');
@@ -121,15 +124,30 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
         body: { vin: normalized },
       });
 
-      // Guard: handle invoke errors (network, auth, etc.)
+      // Guard: handle invoke errors (network, auth, function not found, etc.)
       if (fnError) {
         markStep(1, 'ERROR');
         markStep(2, 'ERROR');
         setSteps(prev => prev.map(s =>
           s.status === 'IN_PROGRESS' ? { ...s, status: 'ERROR' as const } : s
         ));
-        const msg = (fnError as any)?.message || `Edge Function error: ${(fnError as any)?.code || 'unknown'}`;
-        setError(msg);
+
+        // Diagnose error type for better user messaging
+        const errName = (fnError as any)?.name || '';
+        const errMsg = (fnError as any)?.message || '';
+        const errStatus = (fnError as any)?.context?.status;
+
+        if (errName === 'FunctionsFetchError' && errMsg.includes('Failed to send')) {
+          setError('Unable to connect to the analysis service. The Edge Function may not be deployed or Supabase is unreachable. Check your network connection and ensure vin-analyze is deployed.');
+        } else if (errStatus === 401 || errMsg.includes('Unauthorized') || errMsg.includes('UNAUTHENTICATED')) {
+          setError('Session expired. Please sign in again to use VIN intelligence.');
+        } else if (errStatus === 404) {
+          setError('VIN analysis service not found (404). The vin-analyze Edge Function needs to be deployed.');
+        } else {
+          const msg = errMsg || `Edge Function error: ${(fnError as any)?.code || 'unknown'}`;
+          setError(msg);
+        }
+        setIsAnalyzing(false);
         return;
       }
 
@@ -153,6 +171,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
           analysisStatus: 'FAILED',
           warnings: [mapErrorStatus(data.status, data.errorDetail)],
         });
+        setIsAnalyzing(false);
         return;
       }
 
@@ -222,7 +241,16 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       const msg = err instanceof Error ? err.message : 'Analysis failed';
-      setError(msg);
+
+      // Detect specific error scenarios
+      const errMsgLower = msg.toLowerCase();
+      if (errMsgLower.includes('failed to fetch') || errMsgLower.includes('network') || errMsgLower.includes('timeout')) {
+        setError('Network error: Cannot reach the analysis service. Please check your internet connection and try again.');
+      } else if (errMsgLower.includes('failed to send')) {
+        setError('Unable to connect to the VIN analysis service. The Edge Function (vin-analyze) may need to be deployed. Run: npx supabase functions deploy vin-analyze');
+      } else {
+        setError(msg);
+      }
       setSteps(prev =>
         prev.map(s => s.status === 'IN_PROGRESS' ? { ...s, status: 'ERROR' as const } : s)
       );
