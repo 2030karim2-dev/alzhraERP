@@ -71,9 +71,6 @@ interface RawTopPayload {
     top_products?: RawTopProduct[] | null;
     top_customers?: RawTopCustomer[] | null;
 }
-    top_products?: RawTopProduct[] | null;
-    top_customers?: RawTopCustomer[] | null;
-}
 
 export const dashboardApi = {
     /**
