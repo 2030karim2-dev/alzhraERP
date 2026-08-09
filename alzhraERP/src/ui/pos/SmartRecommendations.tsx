@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sparkles, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { aiPosService } from '../../features/ai/posService';
+import { aiService } from '../../features/ai/service';
 import { CartItem } from '../../features/sales/types';
 import Spinner from '../base/Spinner';
 
@@ -14,7 +14,7 @@ interface Props {
 const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
   const { data: suggestions, isLoading } = useQuery({
     queryKey: ['pos_ai_suggestions', cartItems.map(i => i.productId)],
-    queryFn: () => aiPosService.getComplementaryParts(cartItems),
+    queryFn: () => aiService.suggestCrossSell(cartItems.map(item => item.productName || item.productId)),
     enabled: cartItems.length > 0,
   });
 
