@@ -18,6 +18,7 @@ import { useVinHistory } from '../hooks/useVinHistory';
 import { useVinAI } from '../hooks/useVinAI';
 import type { VehicleCorePart, VinDashboardMetrics } from '../types';
 import { supabase } from '../../../lib/supabaseClient';
+import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPanel';
 
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
@@ -154,6 +155,15 @@ const VINPage: React.FC = () => {
                 <InventoryMatches matches={result.inventoryMatches} />
                 <MissingParts parts={result.missingParts} />
                 <DemandIntelligence insights={result.demandInsights} />
+                {/* Phase 5: Part Number Intelligence Search */}
+                <PartSearchPanel
+                  vin={result.vin}
+                  vehicleInfo={{
+                    make: result.vehicle.make,
+                    model: result.vehicle.model,
+                    year: result.vehicle.year,
+                  }}
+                />
                 <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
                 <VINHistory history={history} onSelect={handleSelectRecent} />
               </div>
