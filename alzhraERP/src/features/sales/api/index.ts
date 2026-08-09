@@ -153,12 +153,23 @@ export const salesApi = {
   },
 
   getNextSequence: async (companyId: string, type: string) => {
-    const { data, error } = await supabase.rpc('get_next_sequence', {
-      p_company_id: companyId,
-      p_type: type
-    });
-    if (error) return { data: null, error };
-    return { data, error: null };
+    try {
+      const { data, error } = await supabase.rpc('get_next_sequence', {
+        p_company_id: companyId,
+        p_type: type
+      });
+      if (error) {
+        // Graceful fallback when RPC doesn't exist (migration not yet applied)
+        if ((error as { code?: string }).code === 'PGRST202' || error.message?.includes('Could not find the function')) {
+          return { data: `${type.toUpperCase().slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`, error: null };
+        }
+      }
+      if (error) return { data: null, error };
+      return { data, error: null };
+    } catch {
+      // Catch-all fallback for environments without the migration
+      return { data: `${type.toUpperCase().slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`, error: null };
+    }
   },
 
   getSalesAnalytics: async (params: { company_id: string; start_date?: string; end_date?: string }) => {

@@ -41,13 +41,19 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const branchStockData = useMemo(() => {
         if (!branches.length || !product.warehouse_distribution?.length) return [];
 
+        const whDistribution = Array.isArray(product.warehouse_distribution)
+            ? product.warehouse_distribution
+            : [];
+
         return branches.map((branch: any) => ({
             id: branch.id,
             name: branch.name,
-            warehouses: (product.warehouse_distribution || [])
+            warehouses: whDistribution
                 .filter((wh: any) => {
-                    // ربط المستودعات بالفروع حسب warehouse_id → warehouse.branch_id
-                    return wh.warehouse_id && branch.warehouses?.some?.((bw: any) => bw.id === wh.warehouse_id);
+                    const branchWarehouses = Array.isArray(branch.warehouses)
+                        ? branch.warehouses
+                        : [];
+                    return wh.warehouse_id && branchWarehouses.some((bw: any) => bw.id === wh.warehouse_id);
                 })
                 .map((wh: any) => ({
                     id: wh.warehouse_id,
