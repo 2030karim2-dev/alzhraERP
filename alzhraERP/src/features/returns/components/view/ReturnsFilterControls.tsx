@@ -27,7 +27,7 @@ interface Props {
 export const ReturnsFilterControls: React.FC<Props> = ({
     localSearchTerm, setLocalSearchTerm,
     showFilters, setShowFilters,
-    filters, setFilters,
+    filters = {}, setFilters,
     sortField, setSortField,
     sortDirection, setSortDirection,
     hasActiveFilters, clearFilters,
@@ -35,6 +35,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
     refetch, isLoading, hasData,
     type
 }) => {
+    // حاجز أمان: ضمان أن filters دائماً كائن صالح لتجنب انهيار .filter()
+    const safeFilters = (filters && typeof filters === 'object' && !Array.isArray(filters)) ? filters : {};
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
             <div className="flex flex-col lg:flex-row gap-3">
@@ -69,7 +71,7 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                         فلترة
                         {hasActiveFilters && (
                             <span className="mr-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                                {[filters.status, filters.startDate, filters.endDate, filters.minAmount, filters.maxAmount, filters.returnReason, localSearchTerm].filter(Boolean).length}
+                                {[safeFilters.status, safeFilters.startDate, safeFilters.endDate, safeFilters.minAmount, safeFilters.maxAmount, safeFilters.returnReason, localSearchTerm].filter(Boolean).length}
                             </span>
                         )}
                     </Button>
@@ -110,8 +112,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">الحالة</label>
                             <select
-                                value={filters.status}
-                                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                                value={safeFilters.status}
+                                onChange={(e) => setFilters({ ...safeFilters, status: e.target.value })}
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             >
                                 <option value="">الكل</option>
@@ -125,8 +127,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">سبب الإرجاع</label>
                             <select
-                                value={filters.returnReason}
-                                onChange={(e) => setFilters({ ...filters, returnReason: e.target.value })}
+                                value={safeFilters.returnReason}
+                                onChange={(e) => setFilters({ ...safeFilters, returnReason: e.target.value })}
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             >
                                 <option value="">الكل</option>
@@ -145,8 +147,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                             <label className="block text-xs font-bold text-gray-500 mb-1">من تاريخ</label>
                             <input
                                 type="date"
-                                value={filters.startDate}
-                                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                                value={safeFilters.startDate}
+                                onChange={(e) => setFilters({ ...safeFilters, startDate: e.target.value })}
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             />
                         </div>
@@ -156,8 +158,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                             <label className="block text-xs font-bold text-gray-500 mb-1">إلى تاريخ</label>
                             <input
                                 type="date"
-                                value={filters.endDate}
-                                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                                value={safeFilters.endDate}
+                                onChange={(e) => setFilters({ ...safeFilters, endDate: e.target.value })}
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             />
                         </div>
@@ -167,8 +169,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                             <label className="block text-xs font-bold text-gray-500 mb-1">الحد الأدنى</label>
                             <input
                                 type="number"
-                                value={filters.minAmount}
-                                onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
+                                value={safeFilters.minAmount}
+                                onChange={(e) => setFilters({ ...safeFilters, minAmount: e.target.value })}
                                 placeholder="الحد الأدنى"
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             />
@@ -179,8 +181,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
                             <label className="block text-xs font-bold text-gray-500 mb-1">الحد الأعلى</label>
                             <input
                                 type="number"
-                                value={filters.maxAmount}
-                                onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
+                                value={safeFilters.maxAmount}
+                                onChange={(e) => setFilters({ ...safeFilters, maxAmount: e.target.value })}
                                 placeholder="الحد الأعلى"
                                 className="w-full p-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-sm outline-none focus:border-blue-500"
                             />

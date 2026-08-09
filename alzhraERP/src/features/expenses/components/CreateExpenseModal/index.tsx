@@ -9,7 +9,6 @@ import { ExpenseCategorySection } from './components/ExpenseCategorySection';
 
 import { ExpenseFinancialSection } from './components/ExpenseFinancialSection';
 import { useFeedbackStore } from '../../../feedback/store';
-import AIAssistantButton from '../../../../ui/common/AIAssistantButton';
 
 interface Props {
     isOpen: boolean;
@@ -85,37 +84,6 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
             footer={footer}
         >
             <form className="flex flex-col">
-                <div className="p-3 border-b dark:border-slate-800 bg-indigo-50/50 dark:bg-indigo-900/10 flex justify-between items-center bg-[url('/bg-pattern.svg')] bg-cover">
-                    <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-indigo-800 dark:text-indigo-300">مساعد إدخال المصروفات</span>
-                        <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-bold">اشرح المصروف وسيقوم المساعد بتعبئة النموذج آلياً.</span>
-                    </div>
-                    <AIAssistantButton
-                        promptDescription="أنت تقوم بإنشاء سند مصروف جديد. استنتج المبلغ المطلوب، وصف المصروف، وتصنيف المصروف المناسب من طلب المستخدم بالرجوع لقائمة التصنيفات المتوفرة."
-                        schemaDescription={`{
-  "amount": "المبلغ كرقم",
-  "description": "بيان المصروف",
-  "category_id": "معرف (ID) تصنيف المصروف الأنسب من القائمة المرفقة، أو فارغ إذا لم تجد تصنيف مناسب",
-  "payment_method": "نوع الدفع، اختر فقط من: cash, bank, credit_card",
-  "currency_code": "رمز العملة مثل SAR أو USD أو EUR، الافتراضي SAR"
-}`}
-                        contextData={{
-                            categories: categories?.map((c: any) => ({ id: c.id, name: c.name }))
-                        }}
-                        onDataExtracted={(data) => {
-                            type ExpenseAIData = {
-                              amount?: number; description?: string;
-                              category_id?: string; payment_method?: string; currency_code?: string;
-                            };
-                            const d = data as ExpenseAIData;
-                            if (d.amount) setValue('amount', d.amount, { shouldValidate: true });
-                            if (d.description) setValue('description', d.description, { shouldValidate: true });
-                            if (d.category_id) setValue('category_id', d.category_id, { shouldValidate: true });
-                            if (d.payment_method) setValue('payment_method', d.payment_method as ExpenseFormData['payment_method'], { shouldValidate: true });
-                            if (d.currency_code) setValue('currency_code', d.currency_code, { shouldValidate: true });
-                        }}
-                    />
-                </div>
                 <ExpenseAmountSection
                     register={register}
                     currenciesData={currencies.data || []}

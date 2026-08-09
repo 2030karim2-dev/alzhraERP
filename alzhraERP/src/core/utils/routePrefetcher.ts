@@ -25,7 +25,6 @@ const ROUTE_PREFETCH_MAP: Record<string, PrefetchFn> = {
   '/parties/customers': () => import('../../features/parties/PartiesPage'),
   '/parties/suppliers': () => import('../../features/parties/PartiesPage'),
   '/reports': () => import('../../features/reports/ReportsPage'),
-  '/ai-brain': () => import('../../features/ai/AIBrainPage'),
 };
 
 // Track which routes have already been prefetched to avoid duplicate fetches

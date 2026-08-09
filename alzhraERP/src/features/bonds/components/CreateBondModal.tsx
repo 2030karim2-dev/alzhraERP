@@ -13,7 +13,6 @@ import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { cn, formatCurrency } from '../../../core/utils';
 import { convertToBaseCurrency } from '../../../core/utils/currencyUtils';
-import AIAssistantButton from '../../../ui/common/AIAssistantButton';
 
 interface CreateBondModalProps {
   isOpen: boolean;
@@ -136,52 +135,6 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
       size="full"
     >
       <form className="space-y-6 max-w-5xl mx-auto">
-        <div className="p-3 mb-2 rounded-2xl border dark:border-slate-800 bg-indigo-50/50 dark:bg-indigo-900/10 flex justify-between items-center bg-[url('/bg-pattern.svg')] bg-cover">
-          <div className="flex flex-col">
-            <span className="text-[11px] font-black text-indigo-800 dark:text-indigo-300">مساعد الإدخال الذكي</span>
-            <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-bold">اشرح تفاصيل السند وسيقوم المساعد بتعبئته.</span>
-          </div>
-          <AIAssistantButton
-            promptDescription={`أنت تقوم بإنشاء سند من نوع: ${theme.title}. استنتج المبلغ المطلوب، العملة، الحساب المقابل/الجهة، حساب الدفع/القبض، والبيان من طلب المستخدم بالرجوع لقوائم الحسابات والجهات.`}
-            schemaDescription={`{
-  "amount": "المبلغ كرقم",
-  "currency_code": "رمز العملة (اختياري، الافتراضي SAR)",
-  "counterparty_type": "party إذا كان خصماً لحساب عميل أو مورد، أو account إذا كان حساباً عاماً",
-  "counterparty_id": "معرف (ID) الحساب المقابل أو الجهة المطابقة. استخدم قوائم parties أو otherAccounts أو cashAccounts",
-  "cash_account_id": "معرف (ID) حساب الصندوق أو البنك للعملية. استخدم قائمة cashAccounts",
-  "description": "بيان السند",
-  "date": "تاريخ السند بصيغة YYYY-MM-DD (اختياري)"
-}`}
-            contextData={{
-               parties: parties.map((p: any) => ({ id: p.id, name: p.name, type: p.type })),
-               cashAccounts: cashAccounts.map(a => ({ id: a.id, name: a.name })),
-               otherAccounts: otherAccounts.map(a => ({ id: a.id, name: a.name }))
-            }}
-            onDataExtracted={(data) => {
-               type BondAIData = {
-                 amount?: number; currency_code?: string;
-                 counterparty_type?: 'party' | 'account'; counterparty_id?: string;
-                 cash_account_id?: string; description?: string; date?: string;
-               };
-               const d = data as BondAIData;
-               if (d.amount) setValue(selectedCurrency === 'SAR' ? 'amount' : 'foreign_amount', d.amount, { shouldValidate: true });
-               if (d.currency_code) setValue('currency_code', d.currency_code, { shouldValidate: true });
-               if (d.counterparty_type) setValue('counterparty_type', d.counterparty_type, { shouldValidate: true });
-               
-               if (d.counterparty_id) {
-                   setValue('counterparty_id', d.counterparty_id, { shouldValidate: true });
-                   if (d.counterparty_type === 'party') {
-                       const foundParty = parties.find((p) => p.id === d.counterparty_id);
-                       if (foundParty) setPartyQuery((foundParty as { name: string }).name);
-                   }
-               }
-               
-               if (d.cash_account_id) setValue('cash_account_id', d.cash_account_id, { shouldValidate: true });
-               if (d.description) setValue('description', d.description, { shouldValidate: true });
-               if (d.date) setValue('date', d.date, { shouldValidate: true });
-            }}
-          />
-        </div>
 
         {/* Step 1: Head - Amount & Currency */}
         <div className={cn(

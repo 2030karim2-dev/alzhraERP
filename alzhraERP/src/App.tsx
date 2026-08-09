@@ -6,7 +6,6 @@ import { ErrorBoundary } from './core/components/ErrorBoundary';
 import CommandPalette from './ui/base/CommandPalette';
 import { useSystemInitialization } from './core/hooks/useSystemInitialization';
 import { prefetchCriticalRoutes } from './core/utils/routePrefetcher';
-import AIChatButton from './ui/common/AIChatButton';
 const App: React.FC = () => {
   // Centralized system bootstrapping (Auth, I18n, Sync, Shortcuts)
   useSystemInitialization();
@@ -22,7 +21,6 @@ const App: React.FC = () => {
         <AppRoutes />
         <FeedbackToast />
         <CommandPalette />
-        <AIChatButton />
       </HashRouter>
     </ErrorBoundary>
   );

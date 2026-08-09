@@ -6,7 +6,6 @@ import { cn } from '../../../../core/utils';
 import { useJournalEntryForm } from '../../hooks/useJournalEntryForm';
 import JournalEntryTable from './JournalEntryTable';
 import JournalEntryTotals from './JournalEntryTotals';
-import AIAssistantButton from '../../../../ui/common/AIAssistantButton';
 
 interface AddJournalEntryModalProps {
     isOpen: boolean;
@@ -59,52 +58,6 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-                        <div className="p-3 mb-2 rounded-2xl border dark:border-slate-800 bg-indigo-50/50 dark:bg-indigo-900/10 flex justify-between items-center bg-[url('/bg-pattern.svg')] bg-cover">
-                            <div className="flex flex-col">
-                                <span className="text-[11px] font-black text-indigo-800 dark:text-indigo-300">مساعد القيد الذكي</span>
-                                <span className="text-[9px] text-indigo-600/70 dark:text-indigo-400/70 font-bold">اشرح العملية وسيقوم المساعد بتوجيه الحسابات بناءً على الوصف.</span>
-                            </div>
-                            <AIAssistantButton
-                                promptDescription="أنت تقوم بإنشاء قيد يومية محاسبي (Journal Entry). استنتج تاريخ القيد، بيانه العام، والسطور المستحقة (المدين والدائن) بناءً على طلب المستخدم ومطابقتها مع الحسابات المرفقة بقواعد المحاسبة المزدوجة."
-                                schemaDescription={`{
-  "date": "تاريخ القيد بصيغة YYYY-MM-DD (الافتراضي يمكن تحديده من النص إن وجد، وإلا استبعد هذا الحقل)",
-  "description": "البيان أو الشرح العام للقيد",
-  "currency_code": "رمز العملة إن ذكر (مثل SAR, USD)، الافتراضي SAR",
-  "lines": [
-    {
-      "account_id": "معرف (ID) الحساب الأنسب من قائمة accounts المرفقة.",
-      "debit_amount": "قيمة المدين (رقم)، اجعلها 0 إذا كان الحساب دائن",
-      "credit_amount": "قيمة الدائن (رقم)، اجعلها 0 إذا كان الحساب مدين",
-      "description": "شرح السطر (اختياري)"
-    }
-  ]
-}
-هام: مجموع الـ debit_amount يجب أن يساوي مجموع الـ credit_amount في السطور.`}
-                                contextData={{
-                                    accounts: accounts?.map((a: any) => ({ id: a.id, name: a.name, code: a.code, type: a.type }))
-                                }}
-                                onDataExtracted={(data) => {
-                                    type JournalAIData = {
-                                      date?: string; description?: string; currency_code?: string;
-                                      lines?: { account_id?: string; debit_amount?: number; credit_amount?: number; description?: string }[];
-                                    };
-                                    const d = data as JournalAIData;
-                                    if (d.date) setValue('date', d.date, { shouldValidate: true });
-                                    if (d.description) setValue('description', d.description, { shouldValidate: true });
-                                    if (d.currency_code) setValue('currency_code', d.currency_code, { shouldValidate: true });
-                                    
-                                    if (d.lines && Array.isArray(d.lines) && d.lines.length > 0) {
-                                        setValue('lines', d.lines.map((line) => ({
-                                            account_id: line.account_id || '',
-                                            debit_amount: Number(line.debit_amount) || 0,
-                                            credit_amount: Number(line.credit_amount) || 0,
-                                            description: line.description || ''
-                                        })), { shouldValidate: true });
-                                    }
-                                }}
-                            />
-                        </div>
 
                         {/* Header Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-gray-100 dark:border-slate-800">

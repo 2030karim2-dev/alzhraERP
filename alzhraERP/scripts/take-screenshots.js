@@ -30,11 +30,6 @@ if (!fs.existsSync('screenshots')) {
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'screenshots/3_sales.png', fullPage: true });
 
-    console.log('Navigating to AI Brain...');
-    await page.goto('http://localhost:8081/#/ai-brain');
-    await page.waitForTimeout(3000);
-    await page.screenshot({ path: 'screenshots/4_ai_brain.png', fullPage: true });
-
   } catch (e) {
     console.error('Error during navigation:', e);
   } finally {

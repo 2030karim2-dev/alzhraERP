@@ -32,8 +32,6 @@ const AppearancePage = lazy(() => import('../features/appearance/AppearancePage'
 const BondsPage = lazy(() => import('../features/bonds/BondsPage'));
 const PartiesPage = lazy(() => import('../features/parties/PartiesPage'));
 const ReportsPage = lazy(() => import('../features/reports/ReportsPage'));
-const AICommandCenter = lazy(() => import('../features/ai/AICommandCenter'));
-const AIBrainPage = lazy(() => import('../features/ai/AIBrainPage'));
 const VINIntelligencePage = lazy(() => import('../features/vin-intelligence/pages/VINPage'));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
@@ -119,12 +117,6 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="settings"><SettingsPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.APPEARANCE}
           element={<FeatureBoundary name="appearance"><AppearancePage /></FeatureBoundary>} />
-
-        {/* AI */}
-        <Route path="/ai-center"
-          element={<FeatureBoundary name="ai-center"><AICommandCenter isOpen={true} onClose={() => { }} /></FeatureBoundary>} />
-        <Route path="/ai-brain"
-          element={<FeatureBoundary name="ai-brain"><AIBrainPage /></FeatureBoundary>} />
 
         {/* AI VIN Intelligence */}
         {isFeatureEnabled('enableVinIntelligence') && (

@@ -10,7 +10,7 @@ import { aiMetrics } from './metrics';
 // Check if AI features are enabled
 function checkAIEnabled(): void {
     if (!AI_FEATURES_ENABLED) {
-        throw new Error('المساعد الذكي معطل حالياً. يرجى تفعيله من الإعدادات.');
+        throw new Error('ميزات الذكاء الاصطناعي معطلة حالياً. يرجى تفعيلها من الإعدادات.');
     }
 }
 
