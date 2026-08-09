@@ -1,7 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
-// import { Database } from '../../../core/database.types';
-
 import { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
+import type { ProductUOM } from '../types';
 
 /** Products CRUD and search */
 export const productsApi = {
@@ -65,7 +64,7 @@ export const productsApi = {
             .single();
     },
 
-    saveProductUoMs: async (productId: string, uoms: any[]) => {
+    saveProductUoMs: async (productId: string, uoms: ProductUOM[]) => {
         // product_uoms table may not exist yet — silently skip if so
         try {
             const { data, error } = await supabase.rpc('save_product_uoms', {
@@ -75,8 +74,9 @@ export const productsApi = {
             if (!error) return { data, error: null };
 
             // If function is missing, fallback to client-side non-atomic sequence
-            const errCode = (error as any).code || '';
-            const errMessage = (error as any).message?.toLowerCase() || '';
+            const pgError = error as { code?: string; message?: string };
+            const errCode = pgError.code || '';
+            const errMessage = pgError.message?.toLowerCase() || '';
             if (errCode === 'PGRST202' || errMessage.includes('could not find the function') || errMessage.includes('404')) {
                 await supabase.from('product_uoms' as any).delete().eq('product_id', productId);
                 if (uoms && uoms.length > 0) {

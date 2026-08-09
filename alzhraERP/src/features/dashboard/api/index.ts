@@ -6,7 +6,7 @@
 import { supabase } from '@/lib/supabaseClient';
 
 // Helper to extract data or throw error on failure
-function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: any }>, fallback: T, name: string = 'RPC'): T {
+function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name: string = 'RPC'): T {
     if (result.status === 'fulfilled' && result.value.error) {
         console.error(`[Dashboard API] ${name} error:`, result.value.error.message);
         throw new Error(`فشل في جلب بيانات (${name}): ${result.value.error.message}`);
@@ -53,7 +53,24 @@ interface RawTopCustomer {
     invoices?: number;
 }
 
+interface RawLowStockProduct {
+    id: string;
+    name_ar?: string;
+    quantity: number | string;
+    min_quantity: number | string;
+}
+
+interface RawCategoryDatum {
+    category_name: string;
+    total_amount: number | string;
+}
+
+const CATEGORY_COLORS = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'] as const;
+
 interface RawTopPayload {
+    top_products?: RawTopProduct[] | null;
+    top_customers?: RawTopCustomer[] | null;
+}
     top_products?: RawTopProduct[] | null;
     top_customers?: RawTopCustomer[] | null;
 }
@@ -73,8 +90,8 @@ export const dashboardApi = {
         const branchParam = branchId || null;
 
         // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
-        const activeSignal =
-            signal && typeof (signal as any).addEventListener === 'function'
+        const activeSignal: AbortSignal =
+            (signal && 'addEventListener' in signal)
                 ? signal
                 : new AbortController().signal;
 
@@ -123,7 +140,7 @@ export const dashboardApi = {
                 p_from: '2000-01-01',
                 p_to: dateTo,
                 p_branch_id: branchParam
-            } as any).abortSignal(activeSignal as any),
+            }).abortSignal(activeSignal),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array
@@ -164,16 +181,16 @@ export const dashboardApi = {
                     invoices: cu.invoice_count ?? cu.invoices ?? 0,
                 })),
             },
-            lowStockProducts: lowStockProducts.map((p: any) => ({
+            lowStockProducts: (lowStockProducts as RawLowStockProduct[]).map((p) => ({
                 id: p.id,
                 name: p.name_ar,
                 quantity: Number(p.quantity),
                 min_quantity: Number(p.min_quantity)
             })),
-            categoryData: categoryData.map((c: any, i: number) => ({
+            categoryData: (categoryData as RawCategoryDatum[]).map((c, i) => ({
                 name: c.category_name,
                 value: Number(c.total_amount),
-                color: ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'][i % 6]
+                color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
             })),
             trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : []
         };

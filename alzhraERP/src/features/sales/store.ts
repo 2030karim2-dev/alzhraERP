@@ -88,8 +88,10 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   updateItem: (index, field, value) => {
     set(state => {
       const newItems = [...state.items];
-      // @ts-expect-error assignment bypass for generic field updates
-      if (newItems[index]) newItems[index][field] = value;
+      if (newItems[index]) {
+        // Type-safe field update via spread — preserves type checking
+        newItems[index] = { ...newItems[index], [field]: value as SalesCartItem[typeof field] };
+      }
       return { items: newItems };
     });
     get().calculateTotals();

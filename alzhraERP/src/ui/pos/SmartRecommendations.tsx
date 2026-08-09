@@ -1,20 +1,24 @@
-
 import React from 'react';
 import { Sparkles, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { aiService } from '../../features/ai/service';
-import { CartItem } from '../../features/sales/types';
 import Spinner from '../base/Spinner';
 
+interface CartItemLike {
+  productId: string;
+  productName?: string;
+  name?: string;
+}
+
 interface Props {
-  cartItems: CartItem[];
+  cartItems: CartItemLike[];
   onAdd: (partName: string) => void;
 }
 
 const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
   const { data: suggestions, isLoading } = useQuery({
     queryKey: ['pos_ai_suggestions', cartItems.map(i => i.productId)],
-    queryFn: () => aiService.suggestCrossSell(cartItems.map(item => item.productName || item.productId)),
+    queryFn: () => aiService.suggestCrossSell(cartItems.map(item => item.productName || item.name || item.productId)),
     enabled: cartItems.length > 0,
   });
 

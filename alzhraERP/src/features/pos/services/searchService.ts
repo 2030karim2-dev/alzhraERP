@@ -39,6 +39,29 @@ export interface POSSearchResult {
     match_type?: 'exact' | 'fuzzy' | 'alternative' | 'barcode';
 }
 
+/** Raw Supabase row for barcode search queries */
+interface BarcodeSearchRow {
+    id: string;
+    name_ar: string;
+    sku: string | null;
+    part_number: string | null;
+    brand: string | null;
+    size: string | null;
+    sale_price: number | null;
+    purchase_price: number | null;
+    unit: string | null;
+    image_url: string | null;
+    alternative_numbers: string | null;
+    barcode: string | null;
+    product_stock: Array<{ quantity: number; warehouse_id: string; warehouses: { name_ar: string } | null }>;
+}
+
+/** Raw Supabase row for sales counts query */
+interface SalesCountRow {
+    product_id: string;
+    invoices: { created_at: string } | null;
+}
+
 export interface POSSearchFilters {
     /** Filter by category ID */
     category_id?: string;
@@ -442,10 +465,11 @@ export const posSearchService = {
             if (error || !data) return new Map();
 
             const map = new Map<string, { count: number; last_date?: string }>();
-            for (const row of data) {
-                const productId = (row as any).product_id;
+            const rows = data as SalesCountRow[];
+            for (const row of rows) {
+                const productId = row.product_id;
                 const existing = map.get(productId);
-                const createdAt = (row as any).invoices?.created_at;
+                const createdAt = row.invoices?.created_at;
 
                 if (existing) {
                     existing.count++;
@@ -492,29 +516,28 @@ export const posSearchService = {
 
         if (error || !data) return null;
 
-        const stockList = Array.isArray((data as any).product_stock)
-            ? (data as any).product_stock
-            : [];
+        const row = data as unknown as BarcodeSearchRow;
+        const stockList = Array.isArray(row.product_stock) ? row.product_stock : [];
         const totalStock = stockList.reduce(
-            (sum: number, s: any) => sum + (Number(s.quantity) || 0), 0
+            (sum: number, s) => sum + (Number(s.quantity) || 0), 0
         );
 
         return {
-            id: (data as any).id,
+            id: row.id,
             type: 'code',
-            name: (data as any).name_ar || '',
-            name_ar: (data as any).name_ar || '',
-            sku: (data as any).sku || '',
-            part_number: (data as any).part_number || '',
-            brand: (data as any).brand || '',
-            size: (data as any).size || '',
-            selling_price: Number((data as any).sale_price) || 0,
-            cost_price: Number((data as any).purchase_price) || 0,
+            name: row.name_ar || '',
+            name_ar: row.name_ar || '',
+            sku: row.sku || '',
+            part_number: row.part_number || '',
+            brand: row.brand || '',
+            size: row.size || '',
+            selling_price: Number(row.sale_price) || 0,
+            cost_price: Number(row.purchase_price) || 0,
             stock_quantity: totalStock,
-            unit: (data as any).unit || 'pcs',
-            image_url: (data as any).image_url || null,
-            alternative_numbers: (data as any).alternative_numbers || null,
-            barcode: (data as any).barcode || null,
+            unit: row.unit || 'pcs',
+            image_url: row.image_url || null,
+            alternative_numbers: row.alternative_numbers || null,
+            barcode: row.barcode || null,
             score: 100,
             match_type: 'barcode',
         };

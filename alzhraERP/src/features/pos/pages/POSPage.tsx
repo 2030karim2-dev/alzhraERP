@@ -55,7 +55,7 @@ const POSPage: React.FC = () => {
         const result = await posSearchService.searchByBarcode(user.company_id, code);
         if (result) {
             const product = buildProductFromSearchResult(result, user.company_id);
-            addProductToCart(product as any);
+            addProductToCart(product);
         } else {
             search.setQuery(code);
         }
@@ -64,12 +64,12 @@ const POSPage: React.FC = () => {
     const handleSearchSelect = useCallback((result: typeof search.results[number]) => {
         const product = buildProductFromSearchResult(result, '');
         search.selectResult(result);
-        addProductToCart(product as any);
+        addProductToCart(product);
     }, [addProductToCart, search]);
 
     const handleViewDetails = useCallback((result: typeof search.results[number]) => {
         const product = buildProductFromSearchResult(result, '');
-        setDetailProduct(product as any);
+        setDetailProduct(product);
     }, []);
 
     // Keyboard shortcut: Ctrl+B opens barcode scanner
@@ -154,7 +154,7 @@ const POSPage: React.FC = () => {
 
                     {!isQuickMode && (
                         <div className="shrink-0 p-2 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 hidden md:block">
-                            <SmartRecommendations cartItems={validCartItems as any} onAdd={(name) => search.setQuery(name)} />
+                            <SmartRecommendations cartItems={validCartItems} onAdd={(name) => search.setQuery(name)} />
                         </div>
                     )}
                 </aside>
@@ -165,9 +165,9 @@ const POSPage: React.FC = () => {
         `}>
                     <ProductGrid
                         searchTerm={search.debouncedQuery}
-                        onAddToCart={(p) => addProductToCart(p as any)}
+                        onAddToCart={(p) => addProductToCart(p)}
                         inStockOnly={inStockOnly}
-                        onViewDetails={(p) => setDetailProduct(p as any)}
+                        onViewDetails={(p) => setDetailProduct(p)}
                         selectedWarehouseId={selectedWarehouseId}
                     />
                 </main>

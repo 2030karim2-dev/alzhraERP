@@ -102,14 +102,13 @@ describe('currencyUtils', () => {
             expect(result).toBe(100);
         });
 
-        it('should return 0 for invalid amount', () => {
+        it('should throw error for invalid amount', () => {
             const params: CurrencyConversionParams = {
                 amount: NaN,
                 currencyCode: 'USD',
                 exchangeRate: 3.75,
             };
-            const result = convertFromBaseCurrency(params);
-            expect(result).toBe(0);
+            expect(() => convertFromBaseCurrency(params)).toThrow(CurrencyError);
         });
 
         it('should round to 2 decimal places', () => {

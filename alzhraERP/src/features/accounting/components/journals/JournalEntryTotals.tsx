@@ -32,7 +32,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                             <span dir="ltr" className="font-mono text-[10px] text-gray-500">
                                 {formatCurrency(convertToBaseCurrency({
                                     amount: totals.debit_amount,
-                                    currencyCode: (currencyCode || 'SAR') as any,
+                                    currencyCode: (currencyCode || 'SAR'),
                                     exchangeRate,
                                     exchangeOperator: isDivide ? 'divide' : 'multiply'
                                 }), 'SAR')}
@@ -48,7 +48,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                             <span dir="ltr" className="font-mono text-[10px] text-gray-500">
                                 {formatCurrency(convertToBaseCurrency({
                                     amount: totals.credit_amount,
-                                    currencyCode: (currencyCode || 'SAR') as any,
+                                    currencyCode: (currencyCode || 'SAR'),
                                     exchangeRate,
                                     exchangeOperator: isDivide ? 'divide' : 'multiply'
                                 }), 'SAR')}
@@ -64,7 +64,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                             <span dir="ltr" className="font-mono text-[10px] opacity-70">
                                 {formatCurrency(convertToBaseCurrency({
                                     amount: Math.abs(difference),
-                                    currencyCode: (currencyCode || 'SAR') as any,
+                                    currencyCode: (currencyCode || 'SAR'),
                                     exchangeRate,
                                     exchangeOperator: isDivide ? 'divide' : 'multiply'
                                 }), 'SAR')}

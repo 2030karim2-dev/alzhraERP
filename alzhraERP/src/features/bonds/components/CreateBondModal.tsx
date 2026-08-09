@@ -23,7 +23,12 @@ interface CreateBondModalProps {
 }
 
 // Micro-Component for Styled Select Inputs
-const AccountSelector: React.FC<any> = ({ label, icon: Icon, children, ...props }) => (
+const AccountSelector: React.FC<{
+    label: string;
+    icon: React.ElementType;
+    children: React.ReactNode;
+    [key: string]: unknown;
+}> = ({ label, icon: Icon, children, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">{label}</label>
     <div className="relative">
@@ -53,7 +58,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
 
   const selectedCurrency = watch('currency_code');
   const counterpartyType = watch('counterparty_type');
-  const currencyObj = currencies.data?.find((c: any) => c.code === selectedCurrency);
+  const currencyObj = currencies.data?.find((c: { code: string; exchange_operator?: string }) => c.code === selectedCurrency);
   const isDivide = currencyObj?.exchange_operator === 'divide';
 
   useEffect(() => {
@@ -68,7 +73,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
       setValue('exchange_rate', 1);
       setValue('foreign_amount', 0);
     } else {
-      const rate = rates.data?.find((r: any) => r.currency_code === selectedCurrency);
+      const rate = rates.data?.find((r: { currency_code: string; rate_to_base: number }) => r.currency_code === selectedCurrency);
       if (rate) setValue('exchange_rate', rate.rate_to_base);
     }
   }, [selectedCurrency, rates.data, setValue]);

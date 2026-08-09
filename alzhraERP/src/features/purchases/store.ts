@@ -193,7 +193,7 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   resetCart: () => set({
     items: Array.from({ length: 6 }, createNewItem),
     supplier: null,
-    totals: { grandTotal: 0 },
+    totals: { grandTotal: 0, subTotal: 0, totalDiscount: 0 },
     currency: 'SAR',
     exchangeRate: 1,
     invoiceType: 'cash',

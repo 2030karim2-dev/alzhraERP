@@ -30,10 +30,10 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
   const selectedAccount = accounts?.find(a => a.id === effectiveAccountId);
 
   const columns = [
-    { header: 'التاريخ', accessor: (row: any) => <span dir="ltr" className="font-mono text-xs">{row.date}</span>, width: 'w-24' },
-    { header: 'رقم القيد', accessor: (row: any) => row.entry_number > 0 ? <span dir="ltr" className="font-mono text-xs text-blue-600 hover:underline cursor-pointer">#{formatNumberDisplay(row.entry_number)}</span> : '-', width: 'w-24' },
-    { header: 'البيان', accessor: (row: any) => <span className="text-xs font-semibold">{row.description}</span>, className: 'text-right min-w-[200px]' },
-    { header: 'العميل / المورد', accessor: (row: any) => row.party_name ? <span className="text-xs font-medium text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">{row.party_name}</span> : <span className="text-gray-400">-</span>, className: 'text-right min-w-[150px]' },
+    { header: 'التاريخ', accessor: (row: LedgerEntry) => <span dir="ltr" className="font-mono text-xs">{row.date}</span>, width: 'w-24' },
+    { header: 'رقم القيد', accessor: (row: LedgerEntry) => row.entry_number > 0 ? <span dir="ltr" className="font-mono text-xs text-blue-600 hover:underline cursor-pointer">#{formatNumberDisplay(row.entry_number)}</span> : '-', width: 'w-24' },
+    { header: 'البيان', accessor: (row: LedgerEntry) => <span className="text-xs font-semibold">{row.description}</span>, className: 'text-right min-w-[200px]' },
+    { header: 'العميل / المورد', accessor: (row: LedgerEntry) => row.party_name ? <span className="text-xs font-medium text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">{row.party_name}</span> : <span className="text-gray-400">-</span>, className: 'text-right min-w-[150px]' },
     {
       header: 'مدين',
       accessor: () => null,
@@ -102,7 +102,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
               showLabel
               eventType="ledger"
               title={`مشاركة كشف حساب ${selectedAccount?.name}`}
-              message={`📒 دفتر الأستاذ - كشف حساب\n━━━━━━━━━━━━━━\n📋 الحساب: ${selectedAccount?.name} (${selectedAccount?.code})\n📗 إجمالي المدين: ${formatCurrency(ledger.reduce((s: number, r: any) => s + r.debit_amount, 0))}\n📕 إجمالي الدائن: ${formatCurrency(ledger.reduce((s: number, r: any) => s + r.credit_amount, 0))}\n💰 الرصيد النهائي: ${formatCurrency(ledger[ledger.length - 1]?.balance || 0)}\n📅 الفترة: من ${dateRange.from} إلى ${dateRange.to}`}
+              message={`📒 دفتر الأستاذ - كشف حساب\n━━━━━━━━━━━━━━\n📋 الحساب: ${selectedAccount?.name} (${selectedAccount?.code})\n📗 إجمالي المدين: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.debit_amount, 0))}\n📕 إجمالي الدائن: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.credit_amount, 0))}\n💰 الرصيد النهائي: ${formatCurrency(ledger[ledger.length - 1]?.balance || 0)}\n📅 الفترة: من ${dateRange.from} إلى ${dateRange.to}`}
             />
           )}
         </div>

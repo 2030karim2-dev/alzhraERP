@@ -500,7 +500,7 @@ export const isValidDecimal = (value: NumericInput): boolean => {
 
 export const isPositiveDecimal = (value: NumericInput): boolean => {
     const d = tryDecimal(value);
-    return d !== null && d.isPositive();
+    return d !== null && d.isPositive() && !d.isZero();
 };
 
 export const isNonNegativeDecimal = (value: NumericInput): boolean => {

@@ -3,7 +3,7 @@ import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useSalesStore } from '../../sales/store';
 import { usePaymentAccounts } from '../../accounting/hooks/usePaymentAccounts';
 import { cn } from '../../../core/utils';
-import type { POSPaymentResult, POSPaymentMethod } from './payment';
+import type { POSPaymentResult, POSPaymentMethod, PaymentAccount } from './payment';
 
 // Re-export types for backward compatibility
 export type { POSPaymentMethod, POSPaymentResult, PaymentAccount } from './payment/paymentTypes';
@@ -54,13 +54,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     // Auto-select first exchange when switching to exchange tab
     const { data: paymentAccounts } = usePaymentAccounts();
-    const accounts = (paymentAccounts || []) as any;
-    const cashAccounts = useMemo(() => accounts.filter((a: any) =>
+    const accounts: PaymentAccount[] = paymentAccounts || [];
+    const cashAccounts = useMemo(() => accounts.filter((a) =>
         (a.code ?? '').startsWith('101') ||
         (a.name_ar ?? '').includes('صندوق') ||
         (a.name_ar ?? '').includes('كاش')
     ), [accounts]);
-    const exchangeAccounts = useMemo(() => accounts.filter((a: any) =>
+    const exchangeAccounts = useMemo(() => accounts.filter((a) =>
         (a.code ?? '').startsWith('102') ||
         (a.name_ar ?? '').includes('صراف') ||
         (a.name_ar ?? '').includes('كريمي') ||
@@ -76,9 +76,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     useEffect(() => {
         if (method === 'exchange') {
-            setSelectedAccountId(prev => exchangeAccounts.find((a: any) => a.id === prev) ? prev : (exchangeAccounts[0]?.id ?? null));
+            setSelectedAccountId(prev => exchangeAccounts.find((a) => a.id === prev) ? prev : (exchangeAccounts[0]?.id ?? null));
         } else {
-            setSelectedAccountId(prev => cashAccounts.find((a: any) => a.id === prev) ? prev : (cashAccounts[0]?.id ?? null));
+            setSelectedAccountId(prev => cashAccounts.find((a) => a.id === prev) ? prev : (cashAccounts[0]?.id ?? null));
         }
     }, [method, cashAccounts.length, exchangeAccounts.length]);
 
