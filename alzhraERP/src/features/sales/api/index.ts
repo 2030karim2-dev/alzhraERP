@@ -71,21 +71,29 @@ export const salesApi = {
       throw new Error('يجب اختيار العميل قبل إنشاء الفاتورة');
     }
 
+    // Generate idempotency key to prevent duplicate invoices on retry
+    const idempotencyKey = `${companyId}_${Date.now()}_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+
     const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
       p_party_id: payload.partyId,
-      p_items: payload.items.map(i => ({ product_id: i.productId, quantity: i.quantity, unit_price: i.unitPrice })),
-      ...(payload.paymentMethod ? { p_payment_method: payload.paymentMethod } : {}),
-      ...(payload.notes ? { p_notes: payload.notes } : {}),
-      ...(payload.treasuryAccountId ? { p_treasury_account_id: payload.treasuryAccountId } : {}),
-      ...(payload.currency ? { p_currency: payload.currency } : {}),
-      ...(payload.exchangeRate ? { p_exchange_rate: payload.exchangeRate } : {}),
+      p_invoice_date: payload.issueDate || new Date().toISOString().split('T')[0],
+      p_due_date: payload.dueDate || new Date().toISOString().split('T')[0],
+      p_items: payload.items.map(i => ({
+        product_id: i.productId,
+        quantity: i.quantity,
+        unit_price: i.unitPrice,
+        tax_rate: i.taxRate ?? 15,
+        ...(i.warehouseId ? { warehouse_id: i.warehouseId } : {}),
+      })),
+      p_payment_type: payload.paymentMethod || 'cash',
+      p_notes: payload.notes || null,
+      p_currency_code: payload.currency || 'SAR',
+      p_exchange_rate: payload.exchangeRate || 1,
+      p_idempotency_key: idempotencyKey,
       ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
-      p_discount_amount: payload.discount || 0
     };
 
-    const { data: result, error } = await supabase.rpc('commit_sales_invoice', rpcParams);
+    const { data: result, error } = await supabase.rpc('commit_sales_invoice_v2', rpcParams);
     if (error) throw parseError(error);
     return result as unknown as InvoiceResponse;
   },

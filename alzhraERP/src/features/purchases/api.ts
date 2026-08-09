@@ -69,9 +69,8 @@ export const purchasesApi = {
    */
   createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
+    const idempotencyKey = `pur_${companyId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
       p_supplier_id: data.supplierId || '',
       p_invoice_number: data.invoiceNumber,
       p_issue_date: data.issueDate,
@@ -85,7 +84,8 @@ export const purchasesApi = {
       p_exchange_rate: rate,
       p_payment_method: data.paymentMethod || 'credit',
       ...(data.paymentMethod === 'cash' && data.cashAccountId ? { p_payment_account_id: data.cashAccountId } : data.bankAccountId ? { p_payment_account_id: data.bankAccountId } : {}),
-      p_branch_id: data.branchId || null
+      p_branch_id: data.branchId || null,
+      p_idempotency_key: idempotencyKey,
     };
 
     const { data: result, error } = await supabase.rpc('commit_purchase_invoice', rpcParams);
@@ -95,9 +95,8 @@ export const purchasesApi = {
 
   createPurchaseReturnRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
+    const idempotencyKey = `pur_ret_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
       p_supplier_id: data.supplierId || '',
       p_items: data.items.map(item => ({
         product_id: item.productId,
@@ -107,7 +106,8 @@ export const purchasesApi = {
       p_currency: data.currency || 'SAR',
       p_exchange_rate: rate,
       p_notes: data.notes || '',
-      p_branch_id: data.branchId || null
+      p_branch_id: data.branchId || null,
+      p_idempotency_key: idempotencyKey,
     };
 
     const { data: result, error } = await supabase.rpc('commit_purchase_return', rpcParams);
@@ -123,9 +123,8 @@ export const purchasesApi = {
       .eq('code', '1010')
       .single();
 
+    const idempotencyKey = `bond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     return await supabase.rpc('create_financial_bond', {
-      p_company_id: companyId,
-      p_user_id: userId,
       p_bond_type: 'payment',
       p_amount: paymentData.amount,
       p_date: paymentData.date,
@@ -135,7 +134,8 @@ export const purchasesApi = {
       p_description: paymentData.notes || 'سند صرف لمورد',
       p_currency_code: paymentData.currencyCode || 'SAR',
       p_exchange_rate: paymentData.exchangeRate || 1,
-      ...((paymentData.foreignAmount || paymentData.amount) ? { p_foreign_amount: paymentData.foreignAmount || paymentData.amount } : {})
+      ...((paymentData.foreignAmount || paymentData.amount) ? { p_foreign_amount: paymentData.foreignAmount || paymentData.amount } : {}),
+      p_idempotency_key: idempotencyKey,
     });
   },
 

@@ -117,6 +117,22 @@
    تطبيق عام — يُغيّر ألوان خلفية التطبيق حسب الثيم المختار
    ============================================================ */
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
 /* خلفيات الصفحات */
 [data-theme-scope] .bg-gray-50,
 [data-theme-scope] .bg-\[\#f8fafc\] {

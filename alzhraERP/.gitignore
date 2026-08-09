@@ -14,8 +14,20 @@ yarn-error.log*
 
 # env
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # backup
 src_backup/
+
+# AI tooling cache
+.kilo/
+.kilocode/
+
+# auto-generated types
+supabase-types.ts
 
 # data/temp
 import_ready.txt
@@ -24,13 +36,6 @@ import_script.sql
 tsc_errors.log
 tsc_output.txt
 sizes.txt
-
-# etc
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # editor
 .vscode/*
@@ -51,7 +56,6 @@ DeepSeek-OCR*
 test_stock_structure.mjs
 *.mjstsxns
 *.mjssx
-*.txt
 tmp/
 tsconfig.tsbuildinfo
-	tmp_supabase_test.mjs
+tmp_supabase_test.mjs

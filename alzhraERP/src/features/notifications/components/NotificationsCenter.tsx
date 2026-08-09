@@ -31,6 +31,7 @@ const categoryColors: Record<string, string> = {
   debt: 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20',
   invoice: 'border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20',
   system: 'border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20',
+};
 
 const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
   notifications, onMarkRead, onMarkAllRead, onDelete, onArchive, onClearAll, onNavigate, className,
@@ -127,7 +128,5 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
 };
 
 export default NotificationsCenter;
-
-};
 
 type FilterTab = 'all' | 'unread' | 'warning' | 'archived';

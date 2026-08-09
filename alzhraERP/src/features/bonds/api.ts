@@ -40,17 +40,14 @@ export const bondsApi = {
       throw new Error("يجب اختيار الحسابات المطلوبة");
     }
     
-    // Explicit bounds check preventing logical crashes
     if (Number(data.amount) <= 0) {
       throw new Error("لا يمكن إنشاء سند بقيمة صفر أو قيمة سالبة");
     }
 
-    // Map BondType (receipt/payment/transfer) to payments.type (receipt/disbursement/transfer)
     const paymentType = data.type === 'receipt' ? 'receipt' : (data.type === 'transfer' ? 'transfer' : 'disbursement');
+    const idempotencyKey = `bond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     const { data: result, error } = await supabase.rpc('commit_payment', {
-      p_company_id: companyId,
-      p_user_id: userId,
       p_type: paymentType,
       p_amount: data.amount,
       p_date: data.date,
@@ -63,11 +60,11 @@ export const bondsApi = {
       ...(data.currency_code ? { p_currency_code: data.currency_code } : {}),
       ...(data.exchange_rate ? { p_exchange_rate: data.exchange_rate } : {}),
       ...(data.foreign_amount ? { p_foreign_amount: data.foreign_amount } : {}),
-      p_branch_id: data.branchId || null
+      p_branch_id: data.branchId || null,
+      p_idempotency_key: idempotencyKey,
     });
 
     if (error) {
-      console.error('Error creating payment:', error);
       throw error;
     }
 

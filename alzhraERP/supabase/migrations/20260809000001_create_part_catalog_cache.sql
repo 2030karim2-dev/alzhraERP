@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.external_fitment_evidence (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_part_cache_prov ON public.part_catalog_cache(provider);
 CREATE INDEX IF NOT EXISTS idx_part_cache_num ON public.part_catalog_cache(normalized_number);
-CREATE INDEX IF NOT EXISTS idx_part_cache_exp ON public.part_catalog_cache(expires_at) WHERE expires_at < now();
+CREATE INDEX IF NOT EXISTS idx_part_cache_exp ON public.part_catalog_cache(expires_at);
 CREATE INDEX IF NOT EXISTS idx_ext_xref_prov ON public.external_cross_references(provider);
 CREATE INDEX IF NOT EXISTS idx_ext_xref_src ON public.external_cross_references(source_number);
 CREATE INDEX IF NOT EXISTS idx_ext_xref_qual ON public.external_cross_references(match_quality);
