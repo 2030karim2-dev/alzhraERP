@@ -1,0 +1,201 @@
+# Al-Zahra Smart ERP - Cline Rules & Agent Skills Configuration
+
+## Project Identity
+You are working on **Al-Zahra Smart ERP** — a production-grade, multi-tenant ERP system for managing sales, purchases, inventory, accounting, POS, expenses, and HR.
+
+## Tech Stack
+- **Frontend:** React 19, TypeScript 5, Vite 6, Tailwind CSS 3
+- **Routing:** React Router DOM v7 (HashRouter)
+- **State:** TanStack Query (React Query) v5, Zustand v5
+- **Forms:** React Hook Form v7 + Zod v3
+- **Database:** Supabase (PostgreSQL) — Single Source of Truth
+- **UI:** Lucide React icons, Recharts, Framer Motion, Tailwind Merge, clsx
+- **Testing:** Vitest (unit), Playwright (e2e), Testing Library
+- **AI:** Google Gemini GenAI SDK
+- **Export:** jsPDF, html2canvas, xlsx-js-style
+
+## Agent Skills — ALWAYS USE THEM
+
+This project uses 24 production-grade engineering skills from `addyosmani/agent-skills`.  
+**Skills are MANDATORY.** Never implement directly if a skill applies.
+
+### Core Operating Behaviors (Non-Negotiable, Always Active)
+
+1. **Surface Assumptions First** — Before any non-trivial work, explicitly state:
+   ```
+   ASSUMPTIONS I'M MAKING:
+   1. [assumption about requirements]
+   2. [assumption about architecture]
+   3. [assumption about scope]
+   → Correct me now or I'll proceed with these.
+   ```
+
+2. **Manage Confusion Actively** — When encountering inconsistencies or unclear specs:
+   - **STOP.** Do not guess.
+   - Name the specific confusion.
+   - Present the tradeoff or ask the clarifying question.
+   - Wait for resolution before continuing.
+
+3. **Push Back When Warranted** — Point out problems directly with concrete downsides and propose alternatives.
+
+### Intent → Skill Mapping
+
+When a task arrives, map the intent to the correct skill:
+
+```
+DEFINE Phase:
+├── Vague/underspecified request? ───────→ interview-me
+├── Raw idea, need variations? ──────────→ idea-refine
+└── New feature/change, no spec? ────────→ spec-driven-development
+
+PLAN Phase:
+└── Have spec, need tasks? ──────────────→ planning-and-task-breakdown
+
+BUILD Phase:
+├── Implementing code? ──────────────────→ incremental-implementation
+│   ├── UI/Component work? ─────────────→ frontend-ui-engineering
+│   ├── API/Interface work? ────────────→ api-and-interface-design
+│   ├── Need doc-verified code? ────────→ source-driven-development
+│   ├── High-stakes / unfamiliar code? ─→ doubt-driven-development
+│   └── Session quality degrading? ─────→ context-engineering
+
+VERIFY Phase:
+├── Writing/running tests? ─────────────→ test-driven-development
+│   └── Browser-based? ─────────────────→ browser-testing-with-devtools
+└── Something broke? ───────────────────→ debugging-and-error-recovery
+
+REVIEW Phase:
+├── Reviewing code? ────────────────────→ code-review-and-quality
+│   ├── Too complex? ───────────────────→ code-simplification
+│   ├── Security concerns? ─────────────→ security-and-hardening
+│   └── Performance concerns? ──────────→ performance-optimization
+
+SHIP Phase:
+├── Committing/branching? ──────────────→ git-workflow-and-versioning
+├── CI/CD pipeline? ────────────────────→ ci-cd-and-automation
+├── Deploying/launching? ───────────────→ shipping-and-launch
+├── Writing docs/ADRs? ─────────────────→ documentation-and-adrs
+├── Adding logs/metrics/alerts? ────────→ observability-and-instrumentation
+└── Removing old systems? ──────────────→ deprecation-and-migration
+```
+
+### Lifecycle Sequence (for a Complete Feature)
+
+```
+1.  interview-me                → Extract what the user actually wants
+2.  idea-refine                 → Refine vague ideas
+3.  spec-driven-development     → Define what we're building
+4.  planning-and-task-breakdown → Break into verifiable chunks
+5.  context-engineering         → Load the right context
+6.  source-driven-development   → Verify against official docs
+7.  incremental-implementation  → Build slice by slice
+8.  observability-and-instrumentation → Instrument as you build
+9.  doubt-driven-development    → Cross-examine non-trivial decisions
+10. test-driven-development     → Prove each slice works (RED-GREEN-REFACTOR)
+11. code-review-and-quality     → Five-axis review before merge
+12. code-simplification         → Reduce unnecessary complexity
+13. git-workflow-and-versioning → Clean commit history
+14. documentation-and-adrs      → Document decisions
+15. deprecation-and-migration   → Retire old systems safely
+16. shipping-and-launch         → Deploy safely
+```
+
+**Note:** Not every task needs all 16 skills. A bug fix: `debugging-and-error-recovery` → `test-driven-development` → `code-review-and-quality`.
+
+### Skill Locations
+
+All skills at: `alzhraERP/.agent/skills/<skill-name>/SKILL.md`
+Shared references: `alzhraERP/.agent/references/`
+
+
+---
+
+## Project-Specific Conventions
+
+### Architecture (MANDATORY)
+- **Layers:** `Component` → `Hook` → `Service` → `API` → `Supabase`
+- **DO NOT** call `supabase` directly inside React components
+- **DO** use `useQuery` for fetching, `useMutation` for mutations
+- **DO NOT** store server data in `useState`/Zustand (use TanStack Query)
+- Supabase client: single import from `src/lib/supabaseClient.ts`
+
+### Security (NON-NEGOTIABLE)
+- RLS must be active on all tables — security via database, not frontend
+- Every query must include `company_id` (tenant isolation via RLS)
+- Never log sensitive data, never commit secrets
+- Errors: pass through `parseError` in `src/core/utils/errorUtils.ts`
+
+### Code Style
+- Functional components with hooks (no class components)
+- Named exports preferred
+- Colocate tests: `Component.tsx` → `Component.test.tsx`
+- Use `cn()` utility for conditional classNames
+- Error boundaries at route level
+- Arabic UI supported (RTL-ready)
+
+### Routing
+- `HashRouter` with `/#/path` format
+- Route constants: never hardcode paths
+- Protected routes require authentication
+
+### Boundaries (Always / Ask First / Never)
+- **Always:** Run tests before commits, validate inputs, follow naming conventions
+- **Ask first:** Database schema changes, adding dependencies, CI config changes
+- **Never:** Commit secrets, skip failing tests, use `any` type
+
+---
+
+## Anti-Rationalizations (DO NOT THINK THESE)
+
+- ❌ "This is too small for a skill" → Always check skills first
+- ❌ "I can just quickly implement this" → Skills exist to prevent this
+- ❌ "I'll gather context first" → Skills ARE the context
+- ❌ "It's just a prototype" → Prototypes become production
+- ❌ "I'll write tests later" → TDD: test first, always
+- ❌ "The code is self-explanatory" → Tests document behavior; ADRs document decisions
+
+---
+
+## Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server (from root) |
+| `cd alzhraERP && npm run dev` | Start Vite dev server |
+| `npm test` | Run Vitest tests |
+| `npm run test:e2e` | Run Playwright e2e tests |
+| `npm run lint` | ESLint check |
+| `npm run lint:fix` | ESLint auto-fix |
+| `npm run type-check` | TypeScript check |
+| `npm run build` | Production build |
+
+---
+
+## Quick Reference Card
+
+| Phase | Skill | Trigger |
+|-------|-------|---------|
+| Define | `interview-me` | Underspecified request |
+| Define | `idea-refine` | Raw idea needs refinement |
+| Define | `spec-driven-development` | New feature, no spec |
+| Plan | `planning-and-task-breakdown` | Need task decomposition |
+| Build | `incremental-implementation` | Multi-file change |
+| Build | `frontend-ui-engineering` | UI/component work |
+| Build | `api-and-interface-design` | API/interface work |
+| Build | `source-driven-development` | Framework-specific code |
+| Build | `doubt-driven-development` | High-stakes decision |
+| Build | `context-engineering` | Agent quality degrading |
+| Verify | `test-driven-development` | Writing tests |
+| Verify | `browser-testing-with-devtools` | Browser UI testing |
+| Verify | `debugging-and-error-recovery` | Something broke |
+| Review | `code-review-and-quality` | Before merge |
+| Review | `code-simplification` | Refactoring for clarity |
+| Review | `security-and-hardening` | Security audit |
+| Review | `performance-optimization` | Performance concerns |
+| Ship | `git-workflow-and-versioning` | Committing |
+| Ship | `ci-cd-and-automation` | CI/CD setup |
+| Ship | `shipping-and-launch` | Deployment |
+| Ship | `documentation-and-adrs` | Documenting decisions |
+| Ship | `observability-and-instrumentation` | Adding telemetry |
+| Ship | `deprecation-and-migration` | Removing old code |
+| Meta | `using-agent-skills` | Discover which skill applies |
