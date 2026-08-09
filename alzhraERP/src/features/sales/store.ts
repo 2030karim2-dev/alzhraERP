@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
+import { useFeedbackStore } from '../feedback/store';
 import { convertCurrency } from '../../core/utils/currencyUtils';
 
 /**
@@ -104,6 +105,16 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   },
 
   setProductForRow: (index, product) => {
+    // [FIX #2] التحقق من سعر الصرف قبل البدء — مع إشعار المستخدم
+    const state = get();
+    if (state.currency !== 'SAR' && (!state.exchangeRate || state.exchangeRate <= 0)) {
+      useFeedbackStore.getState().showToast(
+        'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
+        'error'
+      );
+      return;
+    }
+
     set(state => {
       const newItems = [...state.items];
       const basePrice = product.selling_price || 0;
@@ -116,7 +127,9 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           // Convert from base (SAR) to foreign currency
           convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
         } catch (e) {
+          // [FIX #2] لن نصل هنا نظرياً بعد التحقق أعلاه، لكن نحتفظ بـ safety net
           console.error('SalesStore: Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
+          useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
           return state; // Don't update if rate is invalid
         }
       }
@@ -144,6 +157,16 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   addItem: () => set(state => ({ items: [...state.items, createNewItem()] })),
 
   addProductToCart: (product) => {
+    // [FIX #2] التحقق من سعر الصرف قبل البدء — مع إشعار المستخدم
+    const currentState = get();
+    if (currentState.currency !== 'SAR' && (!currentState.exchangeRate || currentState.exchangeRate <= 0)) {
+      useFeedbackStore.getState().showToast(
+        'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
+        'error'
+      );
+      return;
+    }
+
     set(state => {
       const existing = state.items.find(i => i.productId === product.id);
       if (existing) {
@@ -164,6 +187,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
         } catch (e) {
           console.error('SalesStore: Invalid exchange rate for addProductToCart', { rate, currency: state.currency });
+          useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
           return state;
         }
       }
@@ -199,7 +223,9 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   },
 
   calculateTotals: () => {
-    const { discountEnabled } = useDiscountStore.getState(); // Read outside set() to avoid race condition
+    // [FIX #3] تُقرأ حالة الخصم من المتجر الخارجي خارج set() لتجنب سباق الحالة
+    // هذا آمن لأن JS أحادي الخيط ويتم الاستدعاء دائماً خارج set()
+    const { discountEnabled } = useDiscountStore.getState();
     set(state => {
       let subtotal = 0;
       let discountAmount = 0;
@@ -263,3 +289,11 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     invoiceType: 'cash'
   }))
 }));
+
+// [FIX #3] الاشتراك في تغييرات إعدادات الخصم لإعادة حساب الإجماليات تلقائياً
+// يضمن أن إجماليات الفاتورة محدّثة دائماً عند تفعيل/إلغاء الخصم
+useDiscountStore.subscribe((state, prevState) => {
+  if (state.discountEnabled !== prevState.discountEnabled) {
+    useSalesStore.getState().calculateTotals();
+  }
+});

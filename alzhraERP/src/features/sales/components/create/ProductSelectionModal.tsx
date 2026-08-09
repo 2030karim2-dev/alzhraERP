@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Search, Box, Settings, Eye, EyeOff, Eye as EyeIcon, ArrowUp, ArrowDown, RotateCcw, GitBranch, Globe, PackageCheck, ChevronDown } from 'lucide-react';
+import { Search, Box, Settings, Eye, EyeOff, Eye as EyeIcon, ArrowUp, ArrowDown, RotateCcw, GitBranch, Globe, PackageCheck, ChevronDown, Plus } from 'lucide-react';
 import { useProducts } from '../../../inventory/hooks/index';
 import type { Product } from '../../../inventory/types';
 import Modal from '../../../../ui/base/Modal';
@@ -8,6 +8,7 @@ import ProductDetailModal from '../../../inventory/components/ProductDetailModal
 import { useBranchFilterStore } from '../../../branches/store';
 import { useBranches } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
+import { useFeedbackStore } from '../../../feedback/store';
 
 interface BranchData {
     id: string;
@@ -32,8 +33,20 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     const [showSettings, setShowSettings] = useState(false);
     const branchMenuRef = useRef<HTMLDivElement>(null);
     const settingsRef = useRef<HTMLDivElement>(null);
+    const tableBodyRef = useRef<HTMLTableSectionElement>(null);
+
+    // [FIX #8] Keyboard navigation state
+    const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+
+    // [FIX #9] Column sorting state
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+
+    // [FIX #4] Client-side pagination state
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
 
     const { user } = useAuthStore();
+    const { showToast } = useFeedbackStore();
     const isManager = user?.role === 'owner' || user?.role === 'admin';
     const { activeBranchId } = useBranchFilterStore();
     const { data: branches } = useBranches();
@@ -42,16 +55,82 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     // Use the local branch filter for this modal, falling back to global
     const effectiveBranchId = localBranchId ?? activeBranchId;
 
-    const { products: allProducts, isLoading } = useProducts(submittedQuery, { limitNum: 5000 });
+    const { products: allProducts, isLoading } = useProducts(submittedQuery, { limitNum: 5000, warehouseId: effectiveBranchId || undefined });
 
     // Modals state for actions
     const [viewProduct, setViewProduct] = useState<Product | null>(null);
 
     // Filter products
-    const products = allProducts.filter(p => {
+    const filteredProducts = allProducts.filter(p => {
         if (showInStockOnly && p.stock_quantity <= 0) return false;
         return true;
     });
+
+    // [FIX #9] Sort products based on sortConfig
+    const products = React.useMemo(() => {
+        if (!sortConfig) return filteredProducts;
+        const { key, direction } = sortConfig;
+        const sorted = [...filteredProducts].sort((a, b) => {
+            let aVal: string | number = '';
+            let bVal: string | number = '';
+            
+            // Map column key to product field
+            switch (key) {
+                case 'name': aVal = a.name || ''; bVal = b.name || ''; break;
+                case 'part_number': aVal = a.part_number || ''; bVal = b.part_number || ''; break;
+                case 'brand': aVal = a.brand || ''; bVal = b.brand || ''; break;
+                case 'stock': {
+                    const aQty = a.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ?? a.stock_quantity;
+                    const bQty = b.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ?? b.stock_quantity;
+                    aVal = aQty; bVal = bQty; break;
+                }
+                case 'price': aVal = (a.selling_price || a.sale_price) ?? 0; bVal = (b.selling_price || b.sale_price) ?? 0; break;
+                case 'size': aVal = a.size || ''; bVal = b.size || ''; break;
+                default: return 0;
+            }
+            
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return direction === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return direction === 'asc' ? -1 : 1;
+            if (strA > strB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }, [filteredProducts, sortConfig, effectiveBranchId]);
+
+    // [FIX #9] Handle column header click for sorting
+    const handleSort = (colId: string) => {
+        // Don't sort index or actions columns
+        if (colId === 'index' || colId === 'actions' || colId === 'branch' || colId === 'specs') return;
+        setSortConfig(prev => {
+            if (prev?.key === colId) {
+                return { key: colId, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key: colId, direction: 'asc' };
+        });
+    };
+
+    // [FIX #4] Pagination logic
+    const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
+    const safePage = Math.min(page, totalPages);
+    
+    // Reset to page 1 when filters/sort change
+    React.useEffect(() => {
+        setPage(1);
+    }, [submittedQuery, showInStockOnly, sortConfig, effectiveBranchId]);
+    
+    const paginatedProducts = React.useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return products.slice(start, start + pageSize);
+    }, [products, safePage, pageSize]);
+    
+    const handlePageChange = (newPage: number) => {
+        setPage(Math.max(1, Math.min(totalPages, newPage)));
+        setFocusedIndex(-1); // Reset keyboard focus
+    };
 
     const {
         config,
@@ -151,9 +230,57 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         if (clickCountRef.current[id] >= 2) {
             clickCountRef.current[id] = 0;
             if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+            
+            // [FIX #5] التحقق من توفر المخزون قبل الإضافة
+            const branchQty = p.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity;
+            const effectiveQty = branchQty ?? p.stock_quantity;
+            if (effectiveQty <= 0) {
+                showToast(`المنتج "${p.name}" غير متوفر في المخزون حالياً`, 'warning');
+                return;
+            }
+            
             onSelect(p);
         }
     };
+
+    // [FIX #8] Keyboard navigation: Arrow Up/Down + Enter for selection
+    const handleTableKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setFocusedIndex(prev => {
+                const max = paginatedProducts.length - 1;
+                if (max < 0) return -1;
+                if (prev < 0) return 0;
+                const next = e.key === 'ArrowDown' ? prev + 1 : prev - 1;
+                return Math.max(0, Math.min(max, next));
+            });
+        } else if (e.key === 'Enter' && focusedIndex >= 0 && focusedIndex < paginatedProducts.length) {
+            e.preventDefault();
+            const product = paginatedProducts[focusedIndex];
+            if (product) {
+                const branchQty = product.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity;
+                const effectiveQty = branchQty ?? product.stock_quantity;
+                if (effectiveQty <= 0) {
+                    showToast(`المنتج "${product.name}" غير متوفر في المخزون حالياً`, 'warning');
+                    return;
+                }
+                onSelect(product);
+            }
+        }
+    }, [paginatedProducts, focusedIndex, effectiveBranchId, showToast, onSelect]);
+
+    // Scroll focused row into view when focusedIndex changes
+    useEffect(() => {
+        if (focusedIndex >= 0 && tableBodyRef.current) {
+            const row = tableBodyRef.current.children[focusedIndex] as HTMLElement | undefined;
+            row?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [focusedIndex]);
+
+    // Reset keyboard focus when products change or modal opens/closes
+    useEffect(() => {
+        setFocusedIndex(-1);
+    }, [products, isOpen]);
 
     const renderCellContent = (col: ColumnConfig, p: Product, idx: number) => {
         switch (col.id) {
@@ -179,6 +306,14 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
             case 'specs': return <span className="opacity-70 truncate block" title={p.specifications || ''}>{p.specifications || '---'}</span>;
             case 'actions': return (
                 <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onSelect(p); }}
+                        className="p-1 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 transition-colors"
+                        title="إضافة مباشرة بنقرة واحدة"
+                    >
+                        <Plus size={12} />
+                    </button>
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setViewProduct(p); }}
@@ -370,17 +505,34 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                     </div>
 
                     {/* Table */}
-                    <div className="flex-1 overflow-auto custom-scrollbar">
+                    <div 
+                        className="flex-1 overflow-auto custom-scrollbar outline-none"
+                        onKeyDown={handleTableKeyDown}
+                        tabIndex={0}
+                        role="grid"
+                        aria-label="قائمة المنتجات"
+                    >
                         <table className="w-full border-collapse border-spacing-0 table-fixed min-w-max">
                             <thead className="bg-gray-100 dark:bg-slate-800 sticky top-0 z-20 shadow-sm border-b-2 border-gray-300 dark:border-slate-600">
                                 <tr className={`${headerFontSizeClasses[config.fontSize]} font-extrabold text-gray-600 dark:text-slate-300 uppercase tracking-tighter text-right`}>
-                                    {visibleColumns.map((col) => (
+                                    {visibleColumns.map((col) => {
+                                        const isSortable = !['index', 'actions', 'branch', 'specs'].includes(col.id);
+                                        const isSorted = sortConfig?.key === col.id;
+                                        return (
                                         <th
                                             key={col.id}
                                             style={{ width: col.width }}
-                                            className={`relative border-l border-gray-300 dark:border-slate-600 p-2 bg-gray-100 dark:bg-slate-800/80 last:border-l-0 select-none ${col.id === 'index' || col.id === 'stock' || col.id === 'actions' ? 'text-center' : 'pr-4'}`}
+                                            onClick={() => handleSort(col.id)}
+                                            className={`relative border-l border-gray-300 dark:border-slate-600 p-2 bg-gray-100 dark:bg-slate-800/80 last:border-l-0 select-none ${col.id === 'index' || col.id === 'stock' || col.id === 'actions' ? 'text-center' : 'pr-4'} ${isSortable ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700' : ''}`}
                                         >
-                                            <span>{col.label}</span>
+                                            <span className="inline-flex items-center gap-1">
+                                                {col.label}
+                                                {isSorted && (
+                                                    <span className="text-blue-500">
+                                                        {sortConfig!.direction === 'asc' ? '▲' : '▼'}
+                                                    </span>
+                                                )}
+                                            </span>
                                             {col.id !== 'index' && (
                                                 <div
                                                     onMouseDown={(e) => onMouseDown(e, col.id, col.width)}
@@ -388,14 +540,15 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                                 />
                                             )}
                                         </th>
-                                    ))}
+                                        );
+                                    })}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                            <tbody ref={tableBodyRef} className="divide-y divide-gray-200 dark:divide-slate-700">
                                 {isLoading ? (
                                     <tr>
                                         <td colSpan={visibleColumns.length} className="p-10 text-center animate-pulse text-[10px] font-bold text-gray-400">
-                                            جاري مسح قاعدة البيانات...
+                                            جاري تحميل المنتجات...
                                         </td>
                                     </tr>
                                 ) : products.length === 0 ? (
@@ -405,14 +558,13 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                         </td>
                                     </tr>
                                 ) : (
-                                    products.map((p, idx) => (
+                                    paginatedProducts.map((p, idx) => (
                                         <tr
                                             key={p.id}
                                             onClick={() => handleRowClick(p)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter') { onSelect(p); } }}
-                                            tabIndex={0}
-                                            title="انقر مرتين لإضافة المنتج للفاتورة"
-                                            className={`hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer group transition-colors focus:bg-blue-100 dark:focus:bg-blue-900/30 outline-none ${fontSizeClasses[config.fontSize]}`}
+                                            onMouseEnter={() => setFocusedIndex(idx)}
+                                            title="انقر مرتين أو اضغط Enter لإضافة المنتج للفاتورة"
+                                            className={`hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer group transition-colors outline-none ${fontSizeClasses[config.fontSize]} ${focusedIndex === idx ? 'bg-blue-100 dark:bg-blue-900/40 ring-1 ring-blue-400 dark:ring-blue-500' : ''}`}
                                         >
                                             {visibleColumns.map(col => (
                                                 <td
@@ -429,12 +581,55 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                         </table>
                     </div>
 
-                    {/* Status bar */}
-                    <div className="px-3 py-1 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                    {/* Status bar with pagination */}
+                    <div className="px-3 py-1.5 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
                         <span>{products.length} نتيجة</span>
                         {showInStockOnly && <span className="text-emerald-500">• عرض المتوفر فقط</span>}
                         {effectiveBranchId !== null && <span className="text-indigo-500">• {selectedBranchName}</span>}
-                        <span className="mr-auto opacity-60">انقر مرتين لإضافة المنتج</span>
+                        
+                        {/* Page size selector */}
+                        <div className="flex items-center gap-1 ml-4">
+                            <span className="opacity-60">عرض:</span>
+                            {[25, 50, 100].map(size => (
+                                <button
+                                    key={size}
+                                    onClick={() => { setPageSize(size); setPage(1); }}
+                                    className={`px-1.5 py-0.5 rounded text-[8px] transition-colors ${pageSize === size ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                                >
+                                    {size}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* Pagination controls */}
+                        <div className="mr-auto flex items-center gap-1">
+                            <button
+                                onClick={() => handlePageChange(1)}
+                                disabled={safePage <= 1}
+                                className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="الصفحة الأولى"
+                            >««</button>
+                            <button
+                                onClick={() => handlePageChange(safePage - 1)}
+                                disabled={safePage <= 1}
+                                className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="السابق"
+                            >«</button>
+                            <span className="px-1 text-[10px] font-mono">{safePage} / {totalPages}</span>
+                            <button
+                                onClick={() => handlePageChange(safePage + 1)}
+                                disabled={safePage >= totalPages}
+                                className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="التالي"
+                            >»</button>
+                            <button
+                                onClick={() => handlePageChange(totalPages)}
+                                disabled={safePage >= totalPages}
+                                className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="الصفحة الأخيرة"
+                            >»»</button>
+                        </div>
+                        <span className="opacity-60">انقر مرتين أو Enter للإضافة</span>
                     </div>
                 </div>
             </Modal>

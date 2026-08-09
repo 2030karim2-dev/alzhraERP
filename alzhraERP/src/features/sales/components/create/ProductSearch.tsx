@@ -4,11 +4,13 @@
 // ============================================
 
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ArrowLeftRight } from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { useProductSearch, ProductSearchResult } from '../../../sales/hooks/useProductSearch';
 import { useAuthStore } from '../../../auth/store';
 import { CartItem } from '../../../sales/types';
+import ProductSelectionModal from './ProductSelectionModal';
+import { Product } from '../../../inventory/types';
 
 interface ProductSearchProps {
     onSelectProduct: (product: CartItem) => void;
@@ -19,6 +21,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onSelectProduct, }) => {
     const { } = useTranslation();
     const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState('');
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     const { products, isLoading, hasResults } = useProductSearch(searchTerm, {
         companyId: user?.company_id || '',
@@ -40,6 +43,21 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onSelectProduct, }) => {
         };
         onSelectProduct(cartItem);
         setSearchTerm('');
+    };
+
+    const handleAdvancedSelect = (product: Product) => {
+        const cartItem: CartItem = {
+            productId: product.id,
+            name: product.name || product.name_ar,
+            sku: product.sku,
+            quantity: 1,
+            unitPrice: product.selling_price || product.sale_price || 0,
+            costPrice: product.cost_price || 0,
+            maxStock: product.stock_quantity || 999,
+        };
+        onSelectProduct(cartItem);
+        setSearchTerm('');
+        setShowAdvanced(false);
     };
 
     return (
@@ -100,8 +118,27 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onSelectProduct, }) => {
                             ))}
                         </ul>
                     )}
+                    
+                    {/* [FIX #6] رابط فتح مستكشف الأصناف المتقدم */}
+                    <div className="border-t border-gray-100 dark:border-slate-700 p-2">
+                        <button
+                            onClick={() => setShowAdvanced(true)}
+                            className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors uppercase tracking-widest"
+                        >
+                            <ArrowLeftRight size={14} />
+                            مستكشف الأصناف المتقدم
+                        </button>
+                    </div>
                 </div>
             )}
+
+            {/* [FIX #6] نافذة مستكشف الأصناف المتقدم منبثقة من البحث السريع */}
+            <ProductSelectionModal
+                isOpen={showAdvanced}
+                onClose={() => setShowAdvanced(false)}
+                onSelect={handleAdvancedSelect}
+                initialQuery={searchTerm}
+            />
         </div>
     );
 };

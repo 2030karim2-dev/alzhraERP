@@ -24,7 +24,7 @@ const DEFAULT_CONFIG: TableConfig = {
         { id: 'branch', label: 'الفرع', visible: true, width: 110, order: 4 },
         { id: 'stock', label: 'الكمية', visible: true, width: 70, order: 5 },
         { id: 'price', label: 'السعر', visible: true, width: 90, order: 6 },
-        { id: 'size', label: 'المقاس', visible: true, width: 80, order: 7 },
+        { id: 'size', label: 'المقاس', visible: false, width: 80, order: 7 },
         { id: 'specs', label: 'المواصفات', visible: false, width: 150, order: 8 },
         { id: 'actions', label: 'الإجراءات', visible: true, width: 70, order: 9 },
     ],
