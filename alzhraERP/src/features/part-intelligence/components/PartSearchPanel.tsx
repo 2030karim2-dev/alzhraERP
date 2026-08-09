@@ -15,7 +15,7 @@ interface PartSearchPanelProps {
 export const PartSearchPanel: React.FC<PartSearchPanelProps> = ({ vin, vehicleInfo, onPartSelected }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { result, isSearching, error, searchPart, reset } = usePartSearch();
-  const companyId = useAuthStore(s => s.companyId);
+  const companyId = useAuthStore(s => s.user?.company_id);
 
   const handleSearch = useCallback(async () => {
     if (!searchTerm.trim() || !companyId) return;

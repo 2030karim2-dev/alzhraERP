@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { dashboardApi } from '../api/index';
 import { calculateDashboardInsights } from '../services/dashboardInsights';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { useFeedbackStore } from '../../feedback/store';
 import type {
@@ -121,37 +121,35 @@ export const useDashboardData = (): UseDashboardDataResult => {
   const queryClient = useQueryClient();
   const { showToast } = useFeedbackStore();
 
-  import('react').then(({ useEffect }) => {
-    useEffect(() => {
-      if (!companyId) return;
-      const channelKey = `dashboard_sales_${companyId}`;
-      const globalAny = window as any;
-      if (!globalAny.__ALZ_DASHBOARD_CHANNELS__) {
-        globalAny.__ALZ_DASHBOARD_CHANNELS__ = new Map<string, any>();
-      }
-      const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
+  useEffect(() => {
+    if (!companyId) return;
+    const channelKey = `dashboard_sales_${companyId}`;
+    const globalAny = window as any;
+    if (!globalAny.__ALZ_DASHBOARD_CHANNELS__) {
+      globalAny.__ALZ_DASHBOARD_CHANNELS__ = new Map<string, any>();
+    }
+    const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
 
-      if (!registry.has(channelKey)) {
-        const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
-          const ch = supabase
-            .channel(channelKey)
-            .on(
-              'postgres_changes',
-              { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
-              (payload: any) => {
-                if (payload.new.type === 'sale') {
-                  showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
-                  queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
-                }
+    if (!registry.has(channelKey)) {
+      const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
+        const ch = supabase
+          .channel(channelKey)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
+            (payload: any) => {
+              if (payload.new.type === 'sale') {
+                showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
+                queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
               }
-            )
-            .subscribe();
-          registry.set(channelKey, ch);
-        });
-      }
-      return () => { /* no-op */ };
-    }, [companyId, queryClient, showToast]);
-  });
+            }
+          )
+          .subscribe();
+        registry.set(channelKey, ch);
+      });
+    }
+    return () => { /* no-op */ };
+  }, [companyId, queryClient, showToast]);
 
   // 1. Fetch Raw Data using React Query
   const rawDataQuery = useQuery({

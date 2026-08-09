@@ -8,7 +8,19 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' *.supabase.co *.vercel.com *.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google.com *.googleapis.com *.gstatic.com *.vercel.live; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com; img-src 'self' data: *.supabase.co *.google.com *.googleusercontent.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com; frame-src 'self' *.google.com; manifest-src 'self' *.vercel.com;"
+          "value": "default-src 'self' *.supabase.co *.vercel.com *.vercel.app https://vercel.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google.com *.googleapis.com *.gstatic.com *.vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com *.vercel.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com https://vercel.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com https://vercel.com; manifest-src 'self' *.vercel.com *.vercel.app https://vercel.com; object-src 'none';"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
