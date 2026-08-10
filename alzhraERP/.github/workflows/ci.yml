@@ -1,44 +1,38 @@
-name: Enterprise CI Pipeline
+﻿name: CI
 
 on:
-  push:
-    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  quality:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: alzhraERP
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ''22''
+          cache: ''npm''
+          cache-dependency-path: alzhraERP/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Strict Type Check
+      - name: Type check
         run: npx tsc --noEmit
 
-      - name: Run Unit Tests
-        run: npx vitest run
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
 
-      - name: Build Application
+      - name: Test
+        run: npm test -- --reporter=verbose
+
+      - name: Build
         run: npm run build
-        env:
-          # Ensure any warnings during build are exposed, and CI fails on critical errors
-          CI: true
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: alzhra-dist
-          path: dist/
-          retention-days: 7

@@ -5,39 +5,25 @@ import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import Input from '../../../ui/base/Input';
 import { cn } from '../../../core/utils';
-import { supabase } from '../../../lib/supabaseClient';
+import { useUpdateProfile } from '../hooks/useProfileUpdate';
 
 const PersonalProfile: React.FC = () => {
     const { user, login } = useAuthStore();
     const { showToast } = useFeedbackStore();
     const [fullName, setFullName] = useState(user?.full_name || '');
-    const [isPending, setIsPending] = useState(false);
     const [saved, setSaved] = useState(false);
+    const updateProfile = useUpdateProfile();
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsPending(true);
         try {
-            const { data, error } = await supabase.auth.updateUser({
-                data: { full_name: fullName }
-            });
-
-            if (error) throw error;
-
-            if (data.user) {
-                // Update local store
-                login({
-                    ...user!,
-                    full_name: fullName,
-                });
-                setSaved(true);
-                showToast('تم تحديث البيانات الشخصية بنجاح', 'success');
-                setTimeout(() => setSaved(false), 3000);
-            }
+            await updateProfile.mutateAsync({ full_name: fullName });
+            login({ ...user!, full_name: fullName });
+            setSaved(true);
+            showToast('تم تحديث البيانات الشخصية بنجاح', 'success');
+            setTimeout(() => setSaved(false), 3000);
         } catch (err: any) {
             showToast(err.message || 'فشل تحديث البيانات', 'error');
-        } finally {
-            setIsPending(false);
         }
     };
 
@@ -113,16 +99,16 @@ const PersonalProfile: React.FC = () => {
                         <div className="flex justify-start">
                             <button
                                 type="submit"
-                                disabled={isPending || fullName === user?.full_name}
+                                disabled={updateProfile.isPending || fullName === user?.full_name}
                                 className={cn(
                                     "inline-flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl",
                                     saved
                                         ? "bg-emerald-600 text-white shadow-emerald-500/20"
                                         : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25",
-                                    (isPending || fullName === user?.full_name) && !saved && "opacity-50 cursor-not-allowed grayscale"
+                                    (updateProfile.isPending || fullName === user?.full_name) && !saved && "opacity-50 cursor-not-allowed grayscale"
                                 )}
                             >
-                                {isPending ? (
+                                {updateProfile.isPending ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : saved ? (
                                     <CheckCircle size={16} />
