@@ -160,7 +160,7 @@ const VINPage: React.FC = () => {
           </>
         )}
 
-        {!isAnalyzing && !result && (
+        {!isAnalyzing && !result && !error && (
           <VINHistory history={history} onSelect={handleSelectRecent} />
         )}
       </div>

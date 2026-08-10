@@ -138,7 +138,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       const validLengths = [11, 12, 13, 17];
       if (!normalized || !validLengths.includes(normalized.length) || /[IOQ]/.test(normalized)) {
         markStep(0, 'ERROR');
-        setError('VIN format is invalid. Enter a valid VIN (11, 12, 13, or 17 characters, no I, O, Q).');
+        setError('رقم الشاصي غير صالح. أدخل رقماً صحيحاً (11، 12، 13، أو 17 حرفاً، بدون I, O, Q).');
         setIsAnalyzing(false);
         return;
       }
@@ -167,13 +167,13 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
         const errStatus = (fnError as any)?.context?.status;
 
         if (errName === 'FunctionsFetchError' && errMsg.includes('Failed to send')) {
-          setError('Unable to connect to the analysis service. The Edge Function may not be deployed or Supabase is unreachable. Check your network connection and ensure vin-analyze is deployed.');
+          setError('تعذر الاتصال بخدمة التحليل. قد لا تكون دالة Edge منشورة أو Supabase غير قابل للوصول. تحقق من اتصال الشبكة.');
         } else if (errStatus === 401 || errMsg.includes('Unauthorized') || errMsg.includes('UNAUTHENTICATED')) {
-          setError('Session expired. Please sign in again to use VIN intelligence.');
+          setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لاستخدام ذكاء VIN.');
         } else if (errStatus === 404) {
-          setError('VIN analysis service not found (404). The vin-analyze Edge Function needs to be deployed.');
+          setError('خدمة تحليل VIN غير موجودة (404). يجب نشر دالة vin-analyze.');
         } else {
-          const msg = errMsg || `Edge Function error: ${(fnError as any)?.code || 'unknown'}`;
+          const msg = errMsg || `خطأ في دالة Edge: ${(fnError as any)?.code || 'غير معروف'}`;
           setError(msg);
         }
         setIsAnalyzing(false);
@@ -263,7 +263,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
         analysisTimestamp: new Date().toISOString(),
         analysisStatus: 'COMPLETE',
         warnings: data.meta?.vehicleIsNew
-          ? ['Vehicle added to knowledge base from provider data.']
+          ? ['تمت إضافة المركبة إلى قاعدة المعرفة من بيانات المزوّد.']
           : undefined,
       });
 
