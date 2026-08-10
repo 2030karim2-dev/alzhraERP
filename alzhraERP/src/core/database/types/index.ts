@@ -13,3 +13,5 @@ export * from './inventory.types';
 export * from './sales.types';
 export * from './accounting.types';
 export * from './auth.types';
+export * from './debt.types';
+

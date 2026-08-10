@@ -28,6 +28,13 @@ export const ROUTES = {
     REPORTS: '/reports',
     AI: '/ai',
     VIN_INTELLIGENCE: '/vin-intelligence',
+    DEBTS: '/debts',
+    DEBTS_FOLLOW_UP: '/debts/follow-up',
+    DEBTS_TODAY: '/debts/today',
+    DEBTS_CUSTOMER: '/debts/customer/:id',
+    DEBTS_OUTBOX: '/debts/outbox',
+    DEBTS_REPORTS: '/debts/reports',
+    DEBTS_SETTINGS: '/debts/settings',
   },
 } as const;
 

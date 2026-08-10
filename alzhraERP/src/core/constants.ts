@@ -8,6 +8,7 @@ import {
   FileText,
   Wrench,
   Users,
+  Wallet,
   BarChart3,
   Settings,
   Package,
@@ -18,6 +19,7 @@ import { ROUTES } from './routes/paths';
 
 export const MENU_ITEMS: MenuItem[] = [
   { id: 'dashboard', labelKey: 'overview', icon: LayoutDashboard, path: ROUTES.DASHBOARD.ROOT, color: 'purple' },
+  { id: 'debts', labelKey: 'debt_receivables', icon: Wallet, path: ROUTES.DASHBOARD.DEBTS, color: 'orange' },
   { id: 'sales', labelKey: 'invoices', icon: ShoppingBag, path: ROUTES.DASHBOARD.SALES, color: 'green' },
   { id: 'bonds', labelKey: 'receipts', icon: FileText, path: ROUTES.DASHBOARD.BONDS, color: 'yellow' },
   { id: 'clients', labelKey: 'customers', icon: Users, path: ROUTES.DASHBOARD.CLIENTS, color: 'emerald' },

@@ -46,6 +46,12 @@ export const featureFlags = {
         rolloutPercentage: 100, // Fully rolled out for development
         allowedUsers: ['admin', 'beta-testers'],
     } as FeatureFlagConfig,
+
+    enableDebtsModule: {
+        enabled: true,
+        rolloutPercentage: 100,
+        allowedUsers: ['admin', 'accountant'],
+    } as FeatureFlagConfig,
 };
 
 // ======== Helper Functions ========
