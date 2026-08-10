@@ -4,11 +4,6 @@ import { usePartyStatement } from '../hooks/useDebtQueries';
 import { Download, FileText, Filter } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 
-interface StatementRow {
-  id: string; date: string; ref: string; desc: string;
-  debit: number; credit: number; currency: string; balance: number; operation_type: string;
-}
-
 interface Props { partyId: string; partyName: string; currencyCode?: string; }
 
 const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) => {
@@ -16,7 +11,6 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
   const [fc, setFc] = useState(currencyCode || '');
   const [df, setDf] = useState('');
   const [dt, setDt] = useState('');
-
   const { data: rows, isLoading } = usePartyStatement(partyId);
 
   const filtered = useMemo(() => {
@@ -36,26 +30,6 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
       'مدين': r.debit || '', 'دائن': r.credit || '', 'الرصيد': r.balance, 'العملة': r.currency,
     })));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'كشف حساب');
-    XLSX.writeFile(wb, `statement_${partyName}_${new Date().toISOString().slice(0,10)}.xlsx`);
-  };
-
-  const exportPdf = async () => {
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ orientation: 'landscape' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(16);
-    doc.text(`كشف حساب - ${partyName}`, 14, 20);
-    doc.setFontSize(10);
-    (doc as any).autoTable = (await import('jspdf-autotable')).default;
-    (doc as any).autoTable({
-      startY: 30,
-      head: [['التاريخ', 'البيان', 'مدين', 'دائن', 'الرصيد', 'العملة']],
-      body: filtered.map(r => [r.date, r.desc, r.debit || '', r.credit || '', r.balance, r.currency]),
-      styles: { font: 'helvetica', fontSize: 8 },
-      headStyles: { fillColor: [59, 130, 246] },
-    });
-    doc.save(`statement_${partyName}_${new Date().toISOString().slice(0,10)}.pdf`);
-  };
 
   if (isLoading) return <div className="text-center py-8 text-[var(--app-text-secondary)]">{t('loading')}</div>;
 
@@ -73,10 +47,7 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
         <span className="text-xs text-[var(--app-text-secondary)]">-</span>
         <input type="date" value={dt} onChange={e => setDt(e.target.value)}
           className="px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs"/>
-        <button onClick={exportPdf} className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700">
-          <Download className="w-3 h-3"/> PDF
-        </button>
-        <button onClick={exportExcel} className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
+        <button onClick={exportExcel} className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
           <Download className="w-3 h-3"/> Excel
         </button>
       </div>
@@ -125,3 +96,6 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
 };
 
 export default StatementTable;
+
+    XLSX.writeFile(wb, `statement_${partyName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
