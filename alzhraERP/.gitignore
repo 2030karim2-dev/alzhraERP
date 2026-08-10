@@ -59,3 +59,4 @@ test_stock_structure.mjs
 tmp/
 tsconfig.tsbuildinfo
 tmp_supabase_test.mjs
+supabase/.temp/
