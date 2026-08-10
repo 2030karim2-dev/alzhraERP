@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { usePartyStatement } from '../hooks/useDebtQueries';
 import { Download, FileText, Filter } from 'lucide-react';
@@ -29,7 +29,10 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
       'التاريخ': r.date, 'البيان': r.desc, 'المرجع': r.ref,
       'مدين': r.debit || '', 'دائن': r.credit || '', 'الرصيد': r.balance, 'العملة': r.currency,
     })));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'كشف حساب');
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'كشف حساب');
+    XLSX.writeFile(wb, `statement_${partyName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
   if (isLoading) return <div className="text-center py-8 text-[var(--app-text-secondary)]">{t('loading')}</div>;
 
@@ -96,6 +99,3 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
 };
 
 export default StatementTable;
-
-    XLSX.writeFile(wb, `statement_${partyName}_${new Date().toISOString().slice(0,10)}.xlsx`);
-  };
