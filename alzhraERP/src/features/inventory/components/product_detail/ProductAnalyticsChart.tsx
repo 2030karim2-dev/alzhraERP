@@ -7,9 +7,10 @@ interface AnalyticsData {
     totalPurchases: number;
     profit: number;
     margin: number;
-    salesTrend?: number; // percentage change
+    salesTrend?: number;
     turnoverRate?: number;
     stockDays?: number;
+    history?: number[];
 }
 
 interface Props {
@@ -17,22 +18,19 @@ interface Props {
     isLoading?: boolean;
 }
 
-const MiniSparkline: React.FC<{ value: number; color: string }> = ({ value, color }) => {
-    // Generate a simple sparkline-like SVG bar
-    const bars = 7;
-    const heights = Array.from({ length: bars }, (_, i) => {
-        const base = Math.sin((i / bars) * Math.PI) * 60 + 20;
-        const variance = (Math.random() - 0.5) * 30;
-        return Math.max(5, Math.min(100, base + variance));
-    });
-
+const MiniSparkline: React.FC<{ values: number[]; color: string }> = ({ values, color }) => {
+    if (!values || values.length < 2) return null;
+    const max = Math.max(...values, 1);
+    const bars = Math.min(values.length, 7);
+    const recent = values.slice(-bars);
+    
     return (
         <div className="flex items-end gap-[2px] h-8">
-            {heights.map((h, i) => (
+            {recent.map((v, i) => (
                 <div
                     key={i}
                     className={`w-2 rounded-sm transition-all duration-300 ${color}`}
-                    style={{ height: `${h}%` }}
+                    style={{ height: `${Math.max(5, (v / max) * 100)}%` }}
                 />
             ))}
         </div>
@@ -87,7 +85,13 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
             <div className="p-4">
                 {/* Sparkline Chart */}
                 <div className="mb-4">
-                    <MiniSparkline value={data.totalSales} color="bg-blue-400 dark:bg-blue-500" />
+                    {data.history && data.history.length > 1 ? (
+                        <MiniSparkline values={data.history} color="bg-blue-400 dark:bg-blue-500" />
+                    ) : (
+                        <div className="flex items-center justify-center h-8">
+                            <span className="text-[9px] text-slate-400">لا توجد بيانات كافية</span>
+                        </div>
+                    )}
                     <div className="flex justify-between mt-1">
                         <span className="text-[8px] text-slate-400">آخر 7 حركات</span>
                         <span className="text-[8px] text-slate-400">الآن</span>

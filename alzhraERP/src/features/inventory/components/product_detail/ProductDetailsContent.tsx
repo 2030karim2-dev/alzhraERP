@@ -131,7 +131,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                                 className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1 text-[8px] font-bold py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-50"
                                             >
                                                 {isAISearching ? <Loader2 size={9} className="animate-spin" /> : <Sparkles size={9} />}
-                                                {isAISearching ? 'جاري البحث...' : '🤖 بحث ذكي عن صورة'}
+                                                {isAISearching ? 'جاري البحث...' : 'بحث ذكي عن صورة'}
                                             </button>
                                         )}
                                     </div>
