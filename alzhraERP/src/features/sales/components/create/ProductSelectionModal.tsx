@@ -3,6 +3,7 @@ import { Search, Box, Settings, Eye, EyeOff, Eye as EyeIcon, ArrowUp, ArrowDown,
 import { useProducts } from '../../../inventory/hooks/index';
 import type { Product } from '../../../inventory/types';
 import Modal from '../../../../ui/base/Modal';
+import { PaginationBar } from '../../../../ui/common/PaginationBar';
 import { useProductTableConfig, ColumnConfig } from '../../hooks/useProductTableConfig';
 import ProductDetailModal from '../../../inventory/components/ProductDetailModal';
 import { useBranchFilterStore } from '../../../branches/store';
@@ -582,55 +583,18 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                     </div>
 
                     {/* Status bar with pagination */}
-                    <div className="px-3 py-1.5 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                        <span>{products.length} نتيجة</span>
-                        {showInStockOnly && <span className="text-emerald-500">• عرض المتوفر فقط</span>}
-                        {effectiveBranchId !== null && <span className="text-indigo-500">• {selectedBranchName}</span>}
-                        
-                        {/* Page size selector */}
-                        <div className="flex items-center gap-1 ml-4">
-                            <span className="opacity-60">عرض:</span>
-                            {[25, 50, 100].map(size => (
-                                <button
-                                    key={size}
-                                    onClick={() => { setPageSize(size); setPage(1); }}
-                                    className={`px-1.5 py-0.5 rounded text-[8px] transition-colors ${pageSize === size ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'hover:bg-gray-200 dark:hover:bg-slate-800'}`}
-                                >
-                                    {size}
-                                </button>
-                            ))}
-                        </div>
-                        
-                        {/* Pagination controls */}
-                        <div className="mr-auto flex items-center gap-1">
-                            <button
-                                onClick={() => handlePageChange(1)}
-                                disabled={safePage <= 1}
-                                className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="الصفحة الأولى"
-                            >««</button>
-                            <button
-                                onClick={() => handlePageChange(safePage - 1)}
-                                disabled={safePage <= 1}
-                                className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="السابق"
-                            >«</button>
-                            <span className="px-1 text-[10px] font-mono">{safePage} / {totalPages}</span>
-                            <button
-                                onClick={() => handlePageChange(safePage + 1)}
-                                disabled={safePage >= totalPages}
-                                className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="التالي"
-                            >»</button>
-                            <button
-                                onClick={() => handlePageChange(totalPages)}
-                                disabled={safePage >= totalPages}
-                                className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="الصفحة الأخيرة"
-                            >»»</button>
-                        </div>
-                        <span className="opacity-60">انقر مرتين أو Enter للإضافة</span>
-                    </div>
+                    <PaginationBar
+                        page={safePage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        totalResults={products.length}
+                        onPageChange={handlePageChange}
+                        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+                        extraInfo={<>
+                            {showInStockOnly && <span className="text-emerald-500">• عرض المتوفر فقط</span>}
+                            {effectiveBranchId !== null && <span className="text-indigo-500">• {selectedBranchName}</span>}
+                        </>}
+                    />
                 </div>
             </Modal>
         </>
