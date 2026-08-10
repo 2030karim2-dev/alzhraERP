@@ -104,9 +104,57 @@ describe('PostTransactionUsecase', () => {
         const apiError = new Error('Database error');
         (journalsApi.postJournalEntryRPC as any).mockRejectedValue(apiError);
 
-        // Execute and assert
         await expect(PostTransactionUsecase.execute(mockInputData, mockCompanyId, mockUserId))
             .rejects
             .toThrow('Database error');
+    });
+
+    it('should pass through reference_type when provided', async () => {
+        const mockInputData = {
+            date: '2023-10-01',
+            description: 'Invoice entry',
+            reference_type: 'invoice',
+            lines: [
+                { account_id: validUUID1, debit_amount: 50, credit_amount: 0 },
+                { account_id: validUUID2, debit_amount: 0, credit_amount: 50 }
+            ]
+        };
+
+        (journalsApi.postJournalEntryRPC as any).mockResolvedValue('journal-456');
+
+        await PostTransactionUsecase.execute(mockInputData, mockCompanyId, mockUserId);
+
+        expect(journalsApi.postJournalEntryRPC).toHaveBeenCalledWith(
+            mockCompanyId, mockUserId,
+            expect.objectContaining({ reference_type: 'invoice' })
+        );
+    });
+
+    it('should reject single-line entries (minimum 2 required)', async () => {
+        const invalidInput = {
+            date: '2023-10-01',
+            description: 'Single line',
+            lines: [
+                { account_id: validUUID1, debit_amount: 100, credit_amount: 0 }
+            ]
+        };
+
+        await expect(PostTransactionUsecase.execute(invalidInput, mockCompanyId, mockUserId))
+            .rejects.toThrow();
+        expect(journalsApi.postJournalEntryRPC).not.toHaveBeenCalled();
+    });
+
+    it('should handle zero-amount lines gracefully via Zod refinement', async () => {
+        const invalidInput = {
+            date: '2023-10-01',
+            description: 'Zero amounts',
+            lines: [
+                { account_id: validUUID1, debit_amount: 0, credit_amount: 0 },
+                { account_id: validUUID2, debit_amount: 0, credit_amount: 0 }
+            ]
+        };
+
+        await expect(PostTransactionUsecase.execute(invalidInput, mockCompanyId, mockUserId))
+            .rejects.toThrow();
     });
 });
