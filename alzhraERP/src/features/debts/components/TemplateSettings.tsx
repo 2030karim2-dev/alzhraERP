@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { debtApi } from '../../api/debtApi';
+import { debtApi } from '../api/debtApi';
 import type { MessageTemplate } from '@/core/database/types/debt.types';
 
 interface Props { templates: MessageTemplate[]; companyId: string; qc: ReturnType<typeof useQueryClient>; }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { debtApi } from '../../api/debtApi';
+import { debtApi } from '../api/debtApi';
 import { Save } from 'lucide-react';
 import type { FollowupConfig } from '@/core/database/types/debt.types';
 
