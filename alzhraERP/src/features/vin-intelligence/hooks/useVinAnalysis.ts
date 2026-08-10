@@ -122,6 +122,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
 
       const { data, error: fnError } = await supabase.functions.invoke('vin-analyze', {
         body: { vin: normalized },
+        signal: controller.signal,
       });
 
       // Guard: handle invoke errors (network, auth, function not found, etc.)
@@ -202,7 +203,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
         .map(p => ({
           partId:          p.id,
           partName:        p.canonicalPartName,
-          demandLevel:     (p.demandLevel === 'UNKNOWN' ? 'LOW' : p.demandLevel) as 'HIGH' | 'MEDIUM' | 'LOW',
+          demandLevel:     p.demandLevel as 'HIGH' | 'MEDIUM' | 'LOW',
           salesCount:      p.salesCount ?? 0,
           vehicleMatches:  p.vehicleMatches ?? 0,
           isCorePart:      true,

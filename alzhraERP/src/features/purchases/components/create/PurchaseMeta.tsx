@@ -133,7 +133,7 @@ const PurchaseMeta: React.FC = () => {
                 <MetaBlock label="نوع الفاتورة" field="invoiceType" value={invoiceType} icon={CreditCard} isSelect
                     options={[{ id: 'cash', label: 'نقدي (Cash)' }, { id: 'credit', label: 'آجل (Credit)' }]} />
                 <MetaBlock label="الصندوق / البنك" field="cashboxId" value={cashboxId} icon={Wallet} isSelect
-                    options={cashAccounts?.map((a: any) => ({ id: a.id, label: a.name })) || []} />
+                    options={cashAccounts?.map((a: any) => ({ id: a.id, label: a.name_ar })) || []} />
                 <MetaBlock label="المستودع المستلم" field="warehouseId" value={warehouseId} icon={Warehouse} isSelect
                     options={warehouses?.map((w: any) => ({ id: w.id, label: w.name })) || [{ id: 'wh_main', label: 'المستودع الرئيسي' }]} />
                 <MetaBlock label="العملة" field="currency" value={currency} icon={Coins} isSelect

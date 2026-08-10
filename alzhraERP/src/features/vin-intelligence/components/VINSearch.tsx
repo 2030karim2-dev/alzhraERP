@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Search, Camera, X, Loader2 } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { Search, X, Loader2 } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
-import { validateVin } from '../utils/vinValidator';
+import { validateVin, VALID_VIN_LENGTHS } from '../utils/vinValidator';
 
 interface VINSearchProps {
   onAnalyze: (vin: string) => void;
@@ -10,21 +10,15 @@ interface VINSearchProps {
   onSelectRecent?: (vin: string) => void;
 }
 
-/**
- * Local VIN validation — independent from any service.
- * Mirrors the server-side validation in the Edge Function exactly.
- */
-function validateVinInput(raw: string): { valid: boolean; message?: string } {
-  const vin = raw.replace(/[\s\-]/g, '').toUpperCase();
-  if (!vin) return { valid: false, message: 'VIN is empty.' };
-  const validLengths = [11, 12, 13, 17];
-  if (!validLengths.includes(vin.length)) {
-    return { valid: false, message: `Invalid VIN length — ${vin.length} characters (must be 11, 12, 13, or 17).` };
-  }
-  if (/[IOQ]/.test(vin)) return { valid: false, message: 'VIN contains invalid characters (I, O, or Q are not allowed).' };
-  if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin)) return { valid: false, message: 'VIN contains invalid characters.' };
-  return { valid: true };
-}
+/** Maps validation errors to user-facing messages */
+const ERROR_MESSAGES: Record<string, string> = {
+  EMPTY_INPUT: 'VIN is empty.',
+  INVALID_LENGTH: `Invalid VIN length — must be ${VALID_VIN_LENGTHS.join(', ')} characters.`,
+  INVALID_CHARACTERS: 'VIN contains invalid characters (I, O, or Q are not allowed).',
+};
+
+/** Max VIN length we allow the user to type (17 is the NHTSA standard max) */
+const MAX_VIN_LENGTH = 17;
 
 const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVins = [], onSelectRecent }) => {
   const { t } = useTranslation();
@@ -32,10 +26,11 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
   const [validation, setValidation] = useState<{ valid: boolean; message?: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase().replace(/\s+/g, '').slice(0, 17);
+    const value = e.target.value.toUpperCase().replace(/\s+/g, '').slice(0, MAX_VIN_LENGTH);
     setVin(value);
     if (value) {
-      setValidation(validateVinInput(value));
+      const result = validateVin(value);
+      setValidation({ valid: result.isValid, message: result.error ? ERROR_MESSAGES[result.error] : undefined });
     } else {
       setValidation(null);
     }
@@ -46,8 +41,8 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
   const handleAnalyze = () => {
     const v = vin.trim();
     if (!v) return;
-    const result = validateVinInput(v);
-    if (result.valid) onAnalyze(v.toUpperCase().replace(/\s+/g, ''));
+    const result = validateVin(v);
+    if (result.isValid) onAnalyze(result.normalizedVin);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -68,23 +63,15 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
             onKeyDown={handleKeyDown}
             placeholder={t('vin_search_placeholder')}
             dir="ltr"
-            className="w-full h-9 pl-9 pr-16 text-[11px] font-mono font-bold tracking-wider bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)]"
+            className="w-full h-9 pl-9 pr-10 text-[11px] font-mono font-bold tracking-wider bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)]"
             disabled={isAnalyzing}
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-1 gap-0.5">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-1">
             {vin && (
               <button onClick={handleClear} className="p-1 hover:bg-[var(--app-surface-hover)] rounded" title={t('vin_clear')}>
                 <X size={12} className="text-[var(--app-text-secondary)]" />
               </button>
             )}
-            <button
-              onClick={() => {}}
-              className="p-1.5 hover:bg-[var(--app-surface-hover)] rounded opacity-40 cursor-not-allowed"
-              title={t('vin_camera_coming_soon')}
-              disabled
-            >
-              <Camera size={14} className="text-[var(--app-text-secondary)]" />
-            </button>
           </div>
         </div>
         <button
@@ -123,5 +110,3 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
 };
 
 export default VINSearch;
-
-

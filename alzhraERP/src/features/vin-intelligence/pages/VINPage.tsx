@@ -16,8 +16,8 @@ import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
 import { useVinAI } from '../hooks/useVinAI';
+import { useVinCounts } from '../hooks/useVinCounts';
 import type { VehicleCorePart, VinDashboardMetrics } from '../types';
-import { supabase } from '../../../lib/supabaseClient';
 import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPanel';
 
 const VINPage: React.FC = () => {
@@ -25,28 +25,8 @@ const VINPage: React.FC = () => {
   const { result, isAnalyzing, error, steps, analyzeVin, reset } = useVinAnalysis();
   const { history, addToHistory } = useVinHistory();
   const { aiInsight, isAnalyzingAI, aiError, runAIAnalysis } = useVinAI();
+  const { vehicleCount, vinsAnalyzedCount, refreshCounts } = useVinCounts();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
-  const [vehicleCount, setVehicleCount] = useState(0);
-  const [vinsAnalyzedCount, setVinsAnalyzedCount] = useState(0);
-
-  /** Fetch real counts from DB (stable reference via useCallback) */
-  const refreshCounts = useCallback(() => {
-    supabase
-      .from('vehicle_knowledge_base')
-      .select('*', { count: 'exact', head: true })
-      .then(({ count }) => setVehicleCount(count ?? 0))
-      .catch(() => setVehicleCount(0));
-
-    supabase
-      .from('vin_analysis_history')
-      .select('*', { count: 'exact', head: true })
-      .then(({ count }) => setVinsAnalyzedCount(count ?? 0))
-      .catch(() => setVinsAnalyzedCount(0));
-  }, []);
-
-  useEffect(() => {
-    refreshCounts();
-  }, [refreshCounts]);
 
   const handleAnalyze = useCallback(async (vin: string) => {
     await analyzeVin(vin);

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Car, Gauge, Wrench, Fuel, Cog, Globe } from 'lucide-react';
 import type { VehicleConfiguration } from '../types';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
@@ -9,7 +9,7 @@ interface VehicleCardProps {
 
 const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
   const { t } = useTranslation();
-  const rows = useMemo(() => [
+  const rows = [
     { icon: <Car size={11} />, label: t('vin_make'), value: vehicle.make },
     { icon: <Car size={11} />, label: t('vin_model'), value: vehicle.model },
     { icon: null, label: t('vin_year'), value: vehicle.year ?? t('vin_not_available') },
@@ -22,7 +22,7 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
     { icon: <Globe size={11} />, label: t('vin_market'), value: vehicle.market ?? t('vin_not_available') },
     { icon: null, label: t('vin_body'), value: vehicle.bodyType ?? t('vin_not_available') },
     { icon: null, label: t('vin_cab'), value: vehicle.cabType ?? t('vin_not_available') },
-  ], [vehicle, t]);
+  ].filter(r => r.value !== undefined);
 
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm overflow-hidden">
@@ -36,7 +36,7 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
         )}
       </div>
       <div className="p-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-        {rows.filter(r => r.value !== undefined).map((row, i) => (
+        {rows.map((row, i) => (
           <div key={i} className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-1.5 text-center">
             <div className="flex items-center justify-center gap-0.5 text-[var(--app-text-secondary)] mb-0.5">
               {row.icon}

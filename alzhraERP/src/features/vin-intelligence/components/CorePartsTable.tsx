@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Wrench, ChevronDown, ChevronRight, Package } from 'lucide-react';
 import type { VehicleCorePart } from '../types';
 import { cn } from '../../../core/utils';
@@ -14,17 +14,11 @@ interface CorePartsTableProps {
 const CorePartsTable: React.FC<CorePartsTableProps> = ({ parts, onPartClick }) => {
   const { t, lang } = useTranslation();
   const grouped = useMemo(() => groupByCategory(parts), [parts]);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(Object.keys(grouped)));
-
-  // Sync expanded on initial mount only (not on every grouped change)
-  useEffect(() => {
-    setExpanded(prev => {
-      const keys = new Set(Object.keys(grouped));
-      // Preserve existing collapse state — only add newly appeared cats
-      prev.forEach(k => keys.add(k));
-      return keys;
-    });
-  }, [grouped]);
+  // Start with only the first category expanded to avoid an overwhelmingly long page
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    const cats = Object.keys(grouped);
+    return new Set(cats.slice(0, 1)); // Only first category expanded by default
+  });
 
   // Pre-compute qty per part (memoized)
   const qtyMap = useMemo(() => {

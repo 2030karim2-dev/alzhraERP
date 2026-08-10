@@ -46,11 +46,7 @@ export function useVinHistory() {
       const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, 20);
       return updated;
     });
-    // Refetch to sync with authoritative DB state (Edge Function may still be writing)
-    // Use a small delay to allow the fire-and-forget DB write to complete
-    const timer = setTimeout(() => { fetchHistory(); }, 800);
-    return () => clearTimeout(timer);
-  }, [fetchHistory]);
+  }, []); // Remove setTimeout dependency — auth writes happen server-side
 
   const clearHistory = useCallback(async () => {
     try {

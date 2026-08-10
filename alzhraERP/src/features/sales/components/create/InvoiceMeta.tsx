@@ -156,7 +156,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                         </div>
                     )}
                     <MetaBlock label="حساب الصندوق" field="cashboxId" value={cashboxId} icon={Wallet} isSelect
-                        options={paymentAccounts?.map(a => ({ id: a.id, label: a.name })) || []}
+                        options={paymentAccounts?.map(a => ({ id: a.id, label: a.name_ar })) || []}
                         onChange={setMetadata} />
                     <MetaBlock label="الفرع / المخزن" field="warehouseId" value={warehouseId} icon={Warehouse} isSelect
                         options={warehouses?.map((w: Record<string, unknown>) => ({ id: w.id as string, label: w.name_ar as string })) || [{ id: 'wh_main', label: 'المستودع الرئيسي' }]}

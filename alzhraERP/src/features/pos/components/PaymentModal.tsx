@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useSalesStore } from '../../sales/store';
-import { usePaymentAccounts } from '../../accounting/hooks/usePaymentAccounts';
+import { useCashPaymentAccounts, useExchangePaymentAccounts, usePaymentAccounts } from '../../accounting/hooks/usePaymentAccounts';
 import { cn } from '../../../core/utils';
 import type { POSPaymentResult, POSPaymentMethod, PaymentAccount } from './payment';
 
@@ -53,34 +53,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }, [isOpen]);
 
     // Auto-select first exchange when switching to exchange tab
+    const { data: cashAccounts } = useCashPaymentAccounts();
+    const { data: exchangeAccounts } = useExchangePaymentAccounts();
     const { data: paymentAccounts } = usePaymentAccounts();
     const accounts: PaymentAccount[] = paymentAccounts || [];
-    const cashAccounts = useMemo(() => accounts.filter((a) =>
-        (a.code ?? '').startsWith('101') ||
-        (a.name_ar ?? '').includes('صندوق') ||
-        (a.name_ar ?? '').includes('كاش')
-    ), [accounts]);
-    const exchangeAccounts = useMemo(() => accounts.filter((a) =>
-        (a.code ?? '').startsWith('102') ||
-        (a.name_ar ?? '').includes('صراف') ||
-        (a.name_ar ?? '').includes('كريمي') ||
-        (a.name_ar ?? '').includes('هويدي') ||
-        (a.name_ar ?? '').includes('اهلي') ||
-        (a.name_ar ?? '').includes('الأهلي') ||
-        (a.name_ar ?? '').includes('المسار') ||
-        (a.name_ar ?? '').includes('ذهبي') ||
-        (a.name_ar ?? '').includes('سبأ') ||
-        (a.name_ar ?? '').includes('امتياز') ||
-        (a.name_ar ?? '').includes('وطني')
-    ), [accounts]);
 
     useEffect(() => {
         if (method === 'exchange') {
-            setSelectedAccountId(prev => exchangeAccounts.find((a) => a.id === prev) ? prev : (exchangeAccounts[0]?.id ?? null));
+            setSelectedAccountId(prev => (exchangeAccounts || []).find((a) => a.id === prev) ? prev : ((exchangeAccounts || [])[0]?.id ?? null));
         } else {
-            setSelectedAccountId(prev => cashAccounts.find((a) => a.id === prev) ? prev : (cashAccounts[0]?.id ?? null));
+            setSelectedAccountId(prev => (cashAccounts || []).find((a) => a.id === prev) ? prev : ((cashAccounts || [])[0]?.id ?? null));
         }
-    }, [method, cashAccounts.length, exchangeAccounts.length]);
+    }, [method, (cashAccounts || []).length, (exchangeAccounts || []).length]);
 
     const receivedNum = parseFloat(received) || 0;
     const change = receivedNum - total;

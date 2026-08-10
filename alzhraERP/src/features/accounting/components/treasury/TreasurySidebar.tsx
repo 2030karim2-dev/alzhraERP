@@ -1,11 +1,14 @@
 
 import React, { useMemo, useState, Fragment } from 'react';
 import { useAccounts, useAccountMutations } from '../../hooks/index';
+import { useCashboxes, useExchangeCompanies } from '../../hooks/useTreasury';
 import { formatCurrency } from '../../../../core/utils';
-import { Wallet, Landmark, Plus, Loader2, Globe, ChevronRight } from 'lucide-react';
+import { Wallet, Landmark, Plus, Loader2, Globe, ChevronRight, Building2 } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import Button from '../../../../ui/base/Button';
 import AddAccountModal from '../accounts/AddAccountModal';
+import { AddTreasuryEntityModal } from './AddTreasuryEntityModal';
+
 
 interface Props {
     onSelectAccount: (id: string) => void;
@@ -96,9 +99,13 @@ const SidebarItem: React.FC<{
 
 const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }) => {
     const { data: accounts, isLoading } = useAccounts();
+    const { data: cashboxes } = useCashboxes();
+    const { data: exchangeCompanies } = useExchangeCompanies();
     const { createAccount, isCreating, seedYemeniExchanges, isSeedingExchanges, seedSubCashboxes, isSeedingSubCashboxes, migrateCashboxBalances, isMigratingCashbox } = useAccountMutations();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [treasuryModalType, setTreasuryModalType] = useState<'cashbox' | 'exchange' | null>(null);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
 
     const treasuryTree = useMemo(() => {
         // We only want Asset accounts starting with 10 for treasury, BUT exclude the root '1000' (Assets) 
@@ -211,22 +218,29 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
             </div>
 
             <div className="p-2 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950/50 space-y-1 shrink-0">
-                <Button onClick={() => setIsModalOpen(true)} variant="secondary" size="sm" className="w-full" leftIcon={<Plus size={12} />}>
-                    إضافة صندوق / بنك
-                </Button>
-                {!hasSubCashboxes && (
-                    <Button onClick={() => seedSubCashboxes()} isLoading={isSeedingSubCashboxes} variant="outline" size="sm" className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-900/40" leftIcon={<Wallet size={12} />}>
-                        تقسيم الكاش (عملات متعددة)
+                <div className="grid grid-cols-2 gap-1">
+                    <Button
+                        onClick={() => setTreasuryModalType('cashbox')}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        leftIcon={<Wallet size={12} />}
+                    >
+                        صندوق جديد
                     </Button>
-                )}
+                    <Button
+                        onClick={() => setTreasuryModalType('exchange')}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        leftIcon={<Building2 size={12} />}
+                    >
+                        شركة صرافة
+                    </Button>
+                </div>
                 {needsMigration && (
                     <Button onClick={() => migrateCashboxBalances()} isLoading={isMigratingCashbox} variant="outline" size="sm" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-900/40" leftIcon={<Landmark size={12} />}>
                         تسوية رصيد الكاش القديم للسعودي
-                    </Button>
-                )}
-                {!hasExchangeAccounts && (
-                    <Button onClick={() => seedYemeniExchanges()} isLoading={isSeedingExchanges} variant="outline" size="sm" className="w-full" leftIcon={<Globe size={12} />}>
-                        إضافة حسابات الصرافة اليمنية
                     </Button>
                 )}
             </div>
@@ -238,6 +252,13 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
                 isSubmitting={isCreating}
                 accounts={accounts}
             />
+
+            {treasuryModalType && (
+                <AddTreasuryEntityModal
+                    type={treasuryModalType}
+                    onClose={() => setTreasuryModalType(null)}
+                />
+            )}
         </div>
     );
 };

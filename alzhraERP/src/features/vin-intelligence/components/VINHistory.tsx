@@ -1,15 +1,17 @@
 import React from 'react';
 import { Clock, ChevronRight } from 'lucide-react';
 import type { VinHistoryEntry } from '../types';
-import { format } from 'date-fns';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
-const formatDate = (dateStr: string): string => {
-  try { return format(new Date(dateStr), 'MMM dd'); } catch { return ''; }
+const formatDate = (dateStr: string, lang?: string): string => {
+  try {
+    const locale = lang === 'ar' ? 'ar-SA' : 'en-US';
+    return new Date(dateStr).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  } catch { return ''; }
 };
 
 const VINHistory: React.FC<{ history: VinHistoryEntry[]; onSelect: (vin: string) => void }> = ({ history, onSelect }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   if (!history.length) return null;
   return (
     <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
@@ -27,7 +29,7 @@ const VINHistory: React.FC<{ history: VinHistoryEntry[]; onSelect: (vin: string)
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-[7px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest">
-                {formatDate(h.analyzedAt)}
+                {formatDate(h.analyzedAt, lang)}
               </span>
               <ChevronRight size={12} className="text-slate-300 group-hover:text-blue-500" />
             </div>

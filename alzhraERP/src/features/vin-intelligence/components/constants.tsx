@@ -37,7 +37,7 @@ export const CATEGORY_LABELS_AR: Record<string, string> = {
 };
 
 export function getCategoryLabel(cat: string, lang?: string): string {
-  const isArabic = lang === 'ar' || (!lang && document.documentElement.dir === 'rtl');
+  const isArabic = lang === 'ar';
   return (isArabic ? CATEGORY_LABELS_AR[cat] : CATEGORY_LABELS_EN[cat]) || cat;
 }
 

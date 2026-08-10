@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VIN AI Intelligence Service
  * ===========================
  * Leverages DeepSeek AI to provide intelligent insights about vehicles,
@@ -17,9 +17,18 @@ export interface VinAIInsight {
   recommendedActions: string[];
 }
 
-/** System prompt that instructs DeepSeek how to analyze VIN data */
+/** Expected shape of the ai-proxy Edge Function response */
+interface AIProxyResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+}
+
+/** System prompt that instructs the AI how to analyze VIN data (Arabic) */
 const VIN_AI_SYSTEM_PROMPT = `أنت خبير في قطع غيار السيارات وتحليل سوق قطع الغيار في منطقة الخليج (السعودية، الإمارات، الكويت، إلخ).
-قم بتحليل بيانات المركبة وقطع الغيار التالية وأعطِ:
+قم بتحليل بيانات المركبة وقطع الغيار التالية وأعط:
 1. ملخص عن المركبة ومدى انتشارها في السوق الخليجي
 2. تحليل الطلب على قطع الغيار الرئيسية لهذه المركبة
 3. نصائح للمشتريات (أي القطع الأكثر ربحية، أيها يجب تجنبه)
@@ -38,7 +47,7 @@ const VIN_AI_SYSTEM_PROMPT = `أنت خبير في قطع غيار السيار�
 }`;
 
 /**
- * Analyze VIN result using DeepSeek AI for market intelligence
+ * Analyze VIN result using AI for market intelligence
  */
 export async function analyzeVinWithAI(
   vinResult: VinAnalysisResult
@@ -95,7 +104,8 @@ ${vinResult.warnings?.length ? 'تحذيرات: ' + vinResult.warnings.join(', '
       return null;
     }
 
-    const content = (data as any)?.choices?.[0]?.message?.content;
+    const response = data as AIProxyResponse;
+    const content = response?.choices?.[0]?.message?.content;
     if (!content) return null;
 
     // Parse the JSON response
@@ -149,7 +159,8 @@ export async function getPartAIInsight(
     });
 
     if (error) return null;
-    return (data as any)?.choices?.[0]?.message?.content || null;
+    const response = data as AIProxyResponse;
+    return response?.choices?.[0]?.message?.content || null;
   } catch {
     return null;
   }

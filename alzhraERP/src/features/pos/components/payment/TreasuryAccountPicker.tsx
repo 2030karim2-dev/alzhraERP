@@ -1,8 +1,8 @@
 import React from 'react';
 import { Wallet, Building2, Search, ShieldCheck, DollarSign, Loader2 } from 'lucide-react';
 import { cn } from '../../../../core/utils';
-import { usePaymentAccounts } from '../../../accounting/hooks/usePaymentAccounts';
-import type { PaymentAccount } from './paymentTypes';
+import { useCashPaymentAccounts, useExchangePaymentAccounts } from '../../../accounting/hooks/usePaymentAccounts';
+import type { PaymentAccount } from '../../../accounting/hooks/usePaymentAccounts';
 import { formatBalance } from './categorizeAccounts';
 
 interface TreasuryAccountPickerProps {
@@ -17,42 +17,21 @@ interface TreasuryAccountPickerProps {
 export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
     method, selectedAccountId, onSelectAccount, searchQuery, onSearchChange, searchInputRef
 }) => {
-    const { data: paymentAccounts, isLoading: isLoadingAccounts } = usePaymentAccounts();
-    const accounts = (paymentAccounts || []) as unknown as PaymentAccount[];
+    const { data: cashAccounts, isLoading: loadingCash } = useCashPaymentAccounts();
+    const { data: exchangeAccounts, isLoading: loadingExchange } = useExchangePaymentAccounts();
 
-    const cashAccounts = accounts.filter(a =>
-        (a.code ?? '').startsWith('101') ||
-        (a.name_ar ?? '').includes('صندوق') ||
-        (a.name_ar ?? '').includes('كاش')
-    );
-    const exchanges = accounts.filter(a =>
-        (a.code ?? '').startsWith('102') ||
-        (a.name_ar ?? '').includes('صراف') ||
-        (a.name_ar ?? '').includes('كريمي') ||
-        (a.name_ar ?? '').includes('هويدي') ||
-        (a.name_ar ?? '').includes('اهلي') ||
-        (a.name_ar ?? '').includes('الأهلي') ||
-        (a.name_ar ?? '').includes('المسار') ||
-        (a.name_ar ?? '').includes('ذهبي') ||
-        (a.name_ar ?? '').includes('سبأ') ||
-        (a.name_ar ?? '').includes('امتياز') ||
-        (a.name_ar ?? '').includes('وطني')
-    );
-    const rest = accounts.filter(a =>
-        !cashAccounts.find(c => c.id === a.id) && !exchanges.find(e => e.id === a.id)
-    );
-    const cash = [...cashAccounts, ...rest];
+    const isLoadingAccounts = loadingCash || loadingExchange;
 
-    const filteredExchanges = exchanges.filter(a => {
+    const filteredExchanges = exchangeAccounts.filter(a => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         return (a.name_ar ?? '').toLowerCase().includes(q) ||
-            (a.code ?? '').toLowerCase().includes(q) ||
             (a.currency_code ?? '').toLowerCase().includes(q);
     });
 
-    const displayAccounts = method === 'cash' ? cash : filteredExchanges;
-    const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+    const displayAccounts: PaymentAccount[] = method === 'cash' ? cashAccounts : filteredExchanges;
+    const allAccounts = [...cashAccounts, ...exchangeAccounts];
+    const selectedAccount = allAccounts.find(a => a.id === selectedAccountId);
 
     return (
         <div className="px-4 pt-3 pb-1">
@@ -88,7 +67,7 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                             type="button"
                             onClick={() => onSelectAccount(acc.id)}
                             className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95 group",
+                                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95",
                                 selectedAccountId === acc.id
                                     ? method === 'exchange'
                                         ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/20"
@@ -121,8 +100,8 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                     {displayAccounts.length === 0 && (
                         <p className="text-xs text-slate-400 dark:text-slate-500 py-2">
                             {method === 'exchange'
-                                ? 'لا توجد حسابات صرافة. يرجى إضافتها من المحاسبة ← الإعدادات.'
-                                : 'لا توجد صناديق نقدية. يرجى مراجعة الحسابات.'}
+                                ? 'لا توجد شركات صرافة. يرجى إضافتها من المحاسبة ← الخزينة.'
+                                : 'لا توجد صناديق نقدية. يرجى إضافتها من المحاسبة ← الخزينة.'}
                         </p>
                     )}
                 </div>
@@ -130,15 +109,10 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
 
             {selectedAccount && method === 'exchange' && (
                 <div className="mx-4 mt-2 p-2.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-900/30">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                                {selectedAccount.name_ar}
-                            </span>
-                        </div>
-                        <span className="text-[9px] font-mono text-slate-500">
-                            {selectedAccount.code}
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                            {selectedAccount.name_ar}
                         </span>
                     </div>
                     <div className="flex items-center justify-between mt-1.5">
