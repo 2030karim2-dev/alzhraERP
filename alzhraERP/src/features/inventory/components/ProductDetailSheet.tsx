@@ -65,7 +65,7 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({ product, classN
             <span className="text-[10px] font-semibold text-[var(--app-text-secondary)]">سعر البيع</span>
           </div>
           <p className="text-base font-black text-[var(--app-text)] font-mono">
-            {product.salePrice.toLocaleString('en-US')} ريال
+            {product.salePrice.toLocaleString('ar-SA')} ريال
           </p>
         </div>
         {product.costPrice && (

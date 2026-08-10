@@ -23,39 +23,55 @@ interface Props {
 
 type TabType = 'overview' | 'inventory' | 'relations' | 'history';
 
+interface BranchData {
+    id: string;
+    name: string;
+    warehouses?: WarehouseRef[];
+}
+
+interface WarehouseRef {
+    id: string;
+    name: string;
+}
+
+interface WarehouseDist {
+    warehouse_id?: string;
+    warehouse_name?: string;
+    quantity?: number;
+    location?: string | null;
+}
+
 const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const { stats, margin, supplierName, selling } = useProductDetails(product);
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const { search: aiImageSearch, searchResult: aiResult, isSearching: isAISearching } = useAIPartLookup(product.part_number);
     const { user } = useAuthStore();
 
-    // جلب الفروع لربطها مع المستودعات
-    const { data: branches = [] } = useQuery({
+    const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useQuery<{ data?: BranchData[] }>({
         queryKey: ['branches', user?.company_id],
         queryFn: () => user?.company_id ? settingsApi.getBranches(user.company_id) : Promise.resolve({ data: [] }),
         enabled: !!user?.company_id,
-        select: (result) => result.data || [],
+        select: (result) => (result as { data?: BranchData[] }).data || [],
     });
 
-    // بناء هيكل الفروع مع المستودعات المرتبطة
     const branchStockData = useMemo(() => {
         if (!branches.length || !product.warehouse_distribution?.length) return [];
 
         const whDistribution = Array.isArray(product.warehouse_distribution)
-            ? product.warehouse_distribution
+            ? (product.warehouse_distribution as WarehouseDist[])
             : [];
 
-        return branches.map((branch: any) => ({
+        return branches.map((branch: BranchData) => ({
             id: branch.id,
             name: branch.name,
             warehouses: whDistribution
-                .filter((wh: any) => {
+                .filter((wh: WarehouseDist) => {
                     const branchWarehouses = Array.isArray(branch.warehouses)
-                        ? branch.warehouses
+                        ? (branch.warehouses as WarehouseRef[])
                         : [];
-                    return wh.warehouse_id && branchWarehouses.some((bw: any) => bw.id === wh.warehouse_id);
+                    return wh.warehouse_id && branchWarehouses.some((bw: WarehouseRef) => bw.id === wh.warehouse_id);
                 })
-                .map((wh: any) => ({
+                .map((wh: WarehouseDist) => ({
                     id: wh.warehouse_id,
                     name: wh.warehouse_name,
                     quantity: wh.quantity,
@@ -64,7 +80,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
         }));
     }, [branches, product.warehouse_distribution]);
 
-    const tabs: { id: TabType; label: string; icon: any }[] = [
+    const tabs: { id: TabType; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
         { id: 'overview', label: 'نظرة عامة', icon: Info },
         { id: 'inventory', label: 'المخزون', icon: Box },
         { id: 'relations', label: 'الارتباطات', icon: Link2 },
@@ -181,7 +197,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                     </h4>
                                 </div>
                                 <BranchStockBreakdown
-                                    warehouseDistribution={(product.warehouse_distribution || []) as any}
+                                    warehouseDistribution={(product.warehouse_distribution || []) as WarehouseDist[]}
                                     branches={branchStockData}
                                     totalStock={product.stock_quantity}
                                     minStockLevel={product.min_stock_level}

@@ -70,6 +70,9 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
             <div
                 id="print-area"
                 onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-label={`تفاصيل المنتج: ${product.name}`}
+                aria-modal="true"
                 className={cn(
                     "bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl flex flex-col border transition-all duration-300 shadow-2xl overflow-hidden",
                     isMaximized
