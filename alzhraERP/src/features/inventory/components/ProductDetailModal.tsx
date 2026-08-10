@@ -119,6 +119,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                                 onClick={() => { onEdit(product); onClose(); }}
                                 className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all active:scale-95"
                                 title="تعديل"
+                                aria-label="تعديل المنتج"
                             >
                                 <FileText size={14} strokeWidth={2.5} />
                             </button>
@@ -128,6 +129,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                                 onClick={() => { if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) { onDelete(product.id); onClose(); } }}
                                 className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-all active:scale-95"
                                 title="حذف"
+                                aria-label="حذف المنتج"
                             >
                                 <Trash2 size={14} strokeWidth={2.5} />
                             </button>
@@ -138,6 +140,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                             onClick={handlePrint}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all active:scale-95 hidden md:flex"
                             title="طباعة"
+                            aria-label="طباعة تفاصيل المنتج"
                         >
                             <Printer size={14} strokeWidth={2} />
                         </button>
@@ -148,6 +151,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                             }}
                             className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all active:scale-95 hidden md:flex"
                             title="نسخ المعلومات"
+                            aria-label="نسخ معلومات المنتج"
                         >
                             <ExternalLink size={14} strokeWidth={2} />
                         </button>
@@ -159,6 +163,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                             onClick={() => setIsMaximized(!isMaximized)}
                             className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg bg-transparent transition-all active:scale-95"
                             title={isMaximized ? "تصغير" : "تكبير"}
+                            aria-label={isMaximized ? "تصغير النافذة" : "تكبير النافذة"}
                         >
                             {isMaximized ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
                         </button>
@@ -167,6 +172,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                             type="button"
                             onClick={handleClose}
                             className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg bg-transparent transition-all active:scale-95 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                            aria-label="إغلاق النافذة"
                         >
                             <X size={16} />
                         </button>

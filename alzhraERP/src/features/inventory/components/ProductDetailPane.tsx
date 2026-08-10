@@ -51,6 +51,7 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
             onClick={() => onEdit(product)} 
             className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all active:scale-95"
             title="تعديل"
+            aria-label="تعديل المنتج"
           >
             <Edit size={14} strokeWidth={2.5} />
           </button>
@@ -58,6 +59,7 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
             onClick={() => { if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) onDelete(product.id); }} 
             className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-all active:scale-95"
             title="حذف"
+            aria-label="حذف المنتج"
           >
             <Trash2 size={14} strokeWidth={2.5} />
           </button>
@@ -69,6 +71,7 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
               onClick={onMaximize} 
               className="p-1.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
               title="تكبير"
+              aria-label="تكبير التفاصيل"
             >
               <Maximize2 size={15} />
             </button>
@@ -79,6 +82,7 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
               onClick={onClose} 
               className="p-1.5 text-slate-400 hover:text-rose-500 rounded transition-colors"
               title="إغلاق"
+              aria-label="إغلاق التفاصيل"
             >
               <X size={16} />
             </button>

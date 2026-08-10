@@ -35,7 +35,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
             "px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-tighter",
             product.isLowStock ? "bg-rose-600 text-white" : "bg-blue-600 text-white"
           )}>
-            {product.isLowStock ? 'Stock Alert' : 'In Stock'}
+            {product.isLowStock ? 'تنبيه مخزون' : 'متوفر'}
           </span>
         </div>
       </div>
@@ -80,7 +80,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
       <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 flex justify-between items-center opacity-60 rounded-b-xl">
         <div className="flex items-center gap-1 text-[8px] font-bold text-gray-500 uppercase">
           <MapPin size={8} />
-          <span>{product.location || 'N/A'}</span>
+          <span>{product.location || 'غير متوفر'}</span>
         </div>
         <Activity size={10} className="text-blue-500" />
       </div>
