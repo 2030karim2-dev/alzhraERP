@@ -23,6 +23,7 @@ export function useFollowUpDashboard(dueSoonDays = 7, criticalDays = 30) {
     queryFn: () => debtApi.getFollowUpDashboard(cid, dueSoonDays, criticalDays),
     enabled: !!cid,
     staleTime: 30_000,
+    retry: 1,
   });
 }
 
@@ -35,6 +36,7 @@ export function useTodayTasks() {
     staleTime: 15_000,
     refetchInterval: 60_000,
     refetchIntervalInBackground: false,
+    retry: 1,
   });
 }
 
@@ -45,6 +47,7 @@ export function useDebtAnalytics() {
     queryFn: () => debtApi.getDebtAnalytics(cid),
     enabled: !!cid,
     staleTime: 60_000,
+    retry: 1,
   });
 }
 
