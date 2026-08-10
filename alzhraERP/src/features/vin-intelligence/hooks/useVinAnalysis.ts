@@ -21,19 +21,48 @@ const yieldToUI = () => new Promise<void>(r => requestAnimationFrame(() => r()))
 /** Map Edge Function error status codes to user-facing messages */
 function mapErrorStatus(status: string, errorDetail?: string): string {
   const msgs: Record<string, string> = {
-    INVALID_VIN:          'VIN format is invalid. Please enter a complete 17-character VIN.',
-    VIN_NOT_FOUND:        'VIN not recognized by the data provider. Verify the VIN and try again.',
-    DECODER_UNAVAILABLE:  'Vehicle data service is temporarily unavailable. Please try again shortly.',
-    DECODER_RATE_LIMITED: 'Too many requests. Please wait a moment and try again.',
-    UNAUTHENTICATED:      'You must be signed in to use VIN intelligence.',
-    INTERNAL_ERROR:       'An internal error occurred. Please contact support if this persists.',
+    INVALID_VIN:          'رقم الشاصي غير صالح. يرجى إدخال رقم شاصي كامل مكون من 17 حرفاً.',
+    VIN_NOT_FOUND:        'لم يتم التعرف على رقم الشاصي. تحقق من الرقم وحاول مرة أخرى.',
+    DECODER_UNAVAILABLE:  'خدمة بيانات المركبات غير متاحة حالياً. يرجى المحاولة لاحقاً.',
+    DECODER_RATE_LIMITED: 'طلبات كثيرة جداً. يرجى الانتظار قليلاً والمحاولة مرة أخرى.',
+    UNAUTHENTICATED:      'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لاستخدام ذكاء VIN.',
+    INTERNAL_ERROR:       'حدث خطأ داخلي. يرجى التواصل مع الدعم الفني إذا استمرت المشكلة.',
   };
-  return msgs[status] || errorDetail || 'VIN analysis failed.';
+  return msgs[status] || errorDetail || 'فشل تحليل رقم الشاصي.';
+}
+
+/** Raw part data shape from vin-analyze Edge Function */
+interface RawVinPart {
+    id: string;
+    canonicalPartName: string;
+    category: string;
+    position?: string | null;
+    side?: string | null;
+    oemNumbers?: string[];
+    crossReferences?: string[];
+    fitmentStatus?: string;
+    evidence?: string | null;
+    evidenceSource?: string | null;
+    demandLevel?: string;
+    salesCount?: number;
+    vehicleMatches?: number;
+    inventoryMatches?: RawInventoryMatch[];
+}
+
+interface RawInventoryMatch {
+    productId: string;
+    sku?: string;
+    productName?: string;
+    productNameAr?: string;
+    quantity?: number;
+    price?: number | null;
+    warehouse?: string | null;
+    location?: string | null;
 }
 
 /** Convert Edge Function response parts → VehicleCorePart[] */
-function mapParts(rawParts: any[]): VehicleCorePart[] {
-  return (rawParts || []).map((p: any) => ({
+function mapParts(rawParts: RawVinPart[]): VehicleCorePart[] {
+  return (rawParts || []).map((p: RawVinPart) => ({
     id:                p.id,
     canonicalPartName: p.canonicalPartName,
     category:          p.category,
@@ -41,14 +70,13 @@ function mapParts(rawParts: any[]): VehicleCorePart[] {
     side:              p.side ?? undefined,
     oemNumbers:        p.oemNumbers ?? [],
     crossReferences:   p.crossReferences ?? [],
-    // Strict fitment mapping — CONFIRMED only if backend says VERIFIED
-    fitmentStatus:     (['VERIFIED','INFERRED','UNKNOWN','NOT_COMPATIBLE'].includes(p.fitmentStatus) ? p.fitmentStatus : 'UNKNOWN') as import('../types').FitmentStatus,
+    fitmentStatus:     (['VERIFIED','INFERRED','UNKNOWN','NOT_COMPATIBLE'].includes(p.fitmentStatus || '') ? p.fitmentStatus : 'UNKNOWN') as import('../types').FitmentStatus,
     evidence:          p.evidence ?? undefined,
     evidenceSource:    p.evidenceSource ?? undefined,
     demandLevel:       p.demandLevel as VehicleCorePart['demandLevel'],
     salesCount:        p.salesCount ?? 0,
     vehicleMatches:    p.vehicleMatches ?? 0,
-    inventoryMatches:  (p.inventoryMatches ?? []).map((m: any) => ({
+    inventoryMatches:  (p.inventoryMatches ?? []).map((m: RawInventoryMatch) => ({
       productId:    m.productId,
       sku:          m.sku,
       productName:  m.productName,
@@ -246,9 +274,9 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       // Detect specific error scenarios
       const errMsgLower = msg.toLowerCase();
       if (errMsgLower.includes('failed to fetch') || errMsgLower.includes('network') || errMsgLower.includes('timeout')) {
-        setError('Network error: Cannot reach the analysis service. Please check your internet connection and try again.');
+        setError('خطأ في الشبكة: تعذر الاتصال بخدمة التحليل. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
       } else if (errMsgLower.includes('failed to send')) {
-        setError('Unable to connect to the VIN analysis service. The Edge Function (vin-analyze) may need to be deployed. Run: npx supabase functions deploy vin-analyze');
+        setError('تعذر الاتصال بخدمة تحليل VIN. قد تحتاج دالة Edge (vin-analyze) إلى النشر.');
       } else {
         setError(msg);
       }
