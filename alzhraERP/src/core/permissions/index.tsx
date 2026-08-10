@@ -1,13 +1,24 @@
 // ============================================
 // Permissions - نظام الصلاحيات
 // Al-Zahra Smart ERP
+// 
+// ⚠️ MIGRATION NOTICE (C-2 fix):
+// The hardcoded rolePermissions map below is being phased out.
+// New code should use `usePermission('permission:name')` from
+// `../../core/hooks/usePermission` which queries the server-side
+// `has_permission()` RPC backed by the `role_permissions` table.
+// 
+// Migration: supabase/migrations/20260810000010_server_side_permissions.sql
 // ============================================
 
 import { Permission, Role } from '../types/common';
 
+// Re-export the new server-side hooks for convenience
+export { usePermission, useAllPermissions } from '../hooks/usePermission';
+
 /**
- * Role-based permissions mapping
- * Each role has a specific set of permissions
+ * @deprecated Use `usePermission('sales:create')` instead.
+ * This client-side map will be removed in v2.0.
  */
 const rolePermissions: Record<Role, Permission[]> = {
     admin: [

@@ -21,7 +21,12 @@ export function getActiveProvider(): string {
 }
 
 export function getActiveModel(): string {
-    return localStorage.getItem('ai_model') || 'deepseek-chat';
+    const stored = localStorage.getItem('ai_model');
+    const allowedIds = AI_MODELS.map(m => m.id);
+    if (stored && allowedIds.includes(stored)) {
+        return stored;
+    }
+    return 'deepseek-chat';
 }
 
 export function setActiveModel(modelId: string) {

@@ -156,9 +156,9 @@ const createMockClient = () => {
   };
 };
 
-// Export mock client when Supabase is not configured
+// Export typed supabase client - uses real client when configured, otherwise mock for dev
 export const supabase = isSupabasePlaceholder
-  ? createMockClient() as any
+  ? createMockClient() as unknown as ReturnType<typeof createClient<Database>>
   : createClient<Database>(
     supabaseUrl,
     supabaseAnonKey,

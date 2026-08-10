@@ -9,11 +9,11 @@ export interface AppError {
   actionLabel?: string;
 }
 
-export const parseError = (error: any): AppError => {
-  const errorObj = error instanceof Error ? error : (typeof error === 'object' && error !== null ? error : new Error(String(error)));
+export const parseError = (error: unknown): AppError => {
+  const errorObj = error instanceof Error ? error : (typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : new Error(String(error)));
   
-  const code = errorObj?.code || 'UNKNOWN';
-  const rawMessage = errorObj?.message || String(errorObj);
+  const code = (errorObj?.code as string) || 'UNKNOWN';
+  const rawMessage = (errorObj?.message as string) || String(errorObj);
   const lowerMsg = rawMessage.toLowerCase();
 
   // Network Errors - Catch generic fetch failures
@@ -68,11 +68,16 @@ export const parseError = (error: any): AppError => {
         message: 'البريد الإلكتروني مسجل مسبقاً.',
         severity: 'medium'
       };
-    default:
+    default: {
+      // Log the actual error for debugging but don't expose internals to users
+      if (import.meta.env.DEV) {
+        console.error('[ErrorUtils] Unhandled error:', code, rawMessage);
+      }
       return {
         code,
-        message: rawMessage || 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً.',
+        message: 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً.',
         severity: 'medium'
       };
+    }
   }
 };

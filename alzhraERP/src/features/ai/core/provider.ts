@@ -7,6 +7,40 @@ import { getActiveModel, getModelProvider } from './config';
 import { supabase, AI_FEATURES_ENABLED } from '../../../lib/supabaseClient';
 import { aiMetrics } from './metrics';
 
+// ── AI Response Types ─────────────────────────────────
+interface AIResponseChoice {
+    message: {
+        content: string;
+        role?: string;
+    };
+    finish_reason?: string;
+    index?: number;
+}
+
+interface AIResponse {
+    choices: AIResponseChoice[];
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
+    model?: string;
+}
+
+interface AIMetricData {
+    model: string;
+    taskType: string;
+    latencyMs: number;
+    success: boolean;
+    tokensUsed?: {
+        prompt: number;
+        completion: number;
+        total: number;
+    };
+    errorType?: string;
+}
+// ──────────────────────────────────────────────────────
+
 // Check if AI features are enabled
 function checkAIEnabled(): void {
     if (!AI_FEATURES_ENABLED) {
@@ -88,9 +122,10 @@ export async function generateAIContent(
         }
 
         // Extract token usage if available from the proxy response
-        const usage = (data as any)?.usage;
+        const aiResponse = data as AIResponse;
+        const usage = aiResponse?.usage;
 
-        const metricData: any = {
+        const metricData: AIMetricData = {
             model,
             taskType,
             latencyMs,
@@ -108,7 +143,7 @@ export async function generateAIContent(
         aiMetrics.recordMetric(metricData);
 
         // Edge Function returns the full OpenRouter response
-        const content = (data as any)?.choices?.[0]?.message?.content ?? '';
+        const content = aiResponse?.choices?.[0]?.message?.content ?? '';
 
         if (!content) {
             console.warn('[AI Provider] Empty response from AI model');

@@ -62,6 +62,23 @@ interface SalesCountRow {
     invoices: { created_at: string } | null;
 }
 
+/** Raw Supabase row for recent sales with nested product data */
+interface RecentSalesRow {
+    products: {
+        id: string;
+        name_ar: string;
+        sku: string | null;
+        part_number: string | null;
+        brand: string | null;
+        sale_price: number | null;
+        purchase_price: number | null;
+        unit: string | null;
+        image_url: string | null;
+        alternative_numbers: string | null;
+    };
+    invoices?: { created_at: string } | null;
+}
+
 export interface POSSearchFilters {
     /** Filter by category ID */
     category_id?: string;
@@ -417,7 +434,8 @@ export const posSearchService = {
             const results: POSSearchResult[] = [];
 
             for (const row of data) {
-                const product = (row as any).products;
+                const typed = row as RecentSalesRow;
+                const product = typed.products;
                 if (!product || seen.has(product.id)) continue;
                 seen.add(product.id);
 
@@ -435,8 +453,8 @@ export const posSearchService = {
                     unit: product.unit || 'pcs',
                     image_url: product.image_url || null,
                     alternative_numbers: product.alternative_numbers || null,
-                    score: 15, // Higher score for recently sold items
-                    last_sale_date: (row as any).invoices?.created_at,
+                    score: 15,
+                    last_sale_date: typed.invoices?.created_at,
                 });
             }
 

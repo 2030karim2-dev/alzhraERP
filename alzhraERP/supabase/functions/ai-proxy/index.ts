@@ -2,12 +2,20 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { OpenAI } from "https://esm.sh/openai@4.26.0"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGINS = [
+  'https://zzthamxjxnxzzpswllid.supabase.co',
+  'https://alzhra-erp.vercel.app',
+  'https://alzhra-erp.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
   'Access-Control-Max-Age': '86400',
-}
+})
 
 // Validate required fields
 function validateRequest(body: any) {
@@ -25,9 +33,12 @@ function validateRequest(body: any) {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const headers = corsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers })
   }
 
   try {
@@ -39,7 +50,7 @@ serve(async (req) => {
         code: 'AUTH_MISSING'
       }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
 
@@ -52,7 +63,7 @@ serve(async (req) => {
         code: 'CONFIG_ERROR'
       }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
 
@@ -68,7 +79,7 @@ serve(async (req) => {
         code: 'AUTH_INVALID'
       }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
 
@@ -82,7 +93,7 @@ serve(async (req) => {
         code: 'INVALID_BODY'
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
 
@@ -94,7 +105,7 @@ serve(async (req) => {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
 
@@ -112,7 +123,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           error: 'Server Error: DEEPSEEK_API_KEY not configured',
           code: 'CONFIG_ERROR'
-        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
       }
       baseURL = "https://api.deepseek.com/v1";
     } else {
@@ -122,7 +133,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           error: 'Server Error: OPENROUTER_API_KEY not configured',
           code: 'CONFIG_ERROR'
-        }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
       }
       baseURL = "https://openrouter.ai/api/v1";
       defaultHeaders = {
@@ -163,7 +174,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify(response), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       });
     } catch (error: any) {
       clearTimeout(timeoutId);
@@ -176,7 +187,7 @@ serve(async (req) => {
           details: error.message
         }), {
           status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...headers, 'Content-Type': 'application/json' },
         });
       }
 
@@ -187,7 +198,7 @@ serve(async (req) => {
           details: error.message
         }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...headers, 'Content-Type': 'application/json' },
         });
       }
 
@@ -202,7 +213,7 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...headers, 'Content-Type': 'application/json' },
     });
   }
 })
