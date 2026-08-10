@@ -125,18 +125,3 @@ const StatementTable: React.FC<Props> = ({ partyId, partyName, currencyCode }) =
 };
 
 export default StatementTable;
-
-        <select value={fc} onChange={e => setFc(e.target.value)}
-          className="px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs">
-          <option value="">{t('all_currencies') || 'كل العملات'}</option>
-          {currencies.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <input type="date" value={df} onChange={e => setDf(e.target.value)}
-          className="px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs"/>
-        <span className="text-xs text-[var(--app-text-secondary)]">-</span>
-        <input type="date" value={dt} onChange={e => setDt(e.target.value)}
-          className="px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs"/>
-        <button onClick={exportExcel} className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
-          <Download className="w-3 h-3"/> Excel
-        </button>
-      </div>
