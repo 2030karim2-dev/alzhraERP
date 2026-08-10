@@ -147,14 +147,6 @@ function PromisesTab({ promises, isLoading, onFulfill, onBreak, onCancel, t }: {
 
 export default CustomerDebtPage;
 
-      </div>
-
-      <div className="flex gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-xl p-1">
-        {tabs.map(tb => (
-          <button key={tb.id} onClick={() => setTab(tb.id)} className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${tab === tb.id ? 'bg-white dark:bg-gray-600 text-[var(--app-text)] shadow-sm' : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'}`}>{tb.label}</button>
-        ))}
-      </div>
-
 function OpeningTab({ partyId, onAdd, t }: { partyId: string; onAdd: () => void; t: (k: string) => string }) {
   const { data: openings, isLoading } = useOpeningBalances(partyId);
   if (isLoading) return <div className="text-center py-8 text-[var(--app-text-secondary)]">{t('loading')}</div>;
@@ -170,6 +162,22 @@ function OpeningTab({ partyId, onAdd, t }: { partyId: string; onAdd: () => void;
           <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-30"/>
           <p>{t('no_opening_balances') || 'لا توجد أرصدة افتتاحية'}</p>
         </div>
+      ) : (
+        <div className="space-y-2">
+          {openings.map((o: any) => (
+            <div key={o.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border flex justify-between items-center">
+              <div>
+                <div className="font-medium text-sm">{o.currency_code} {new Intl.NumberFormat('ar-SA').format(o.amount)}</div>
+                <div className="text-xs text-[var(--app-text-secondary)]">{o.direction==='debit'?'مدين':'دائن'} · {new Date(o.entry_date).toLocaleDateString('ar-SA')}</div>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${o.direction==='debit'?'bg-red-100 text-red-700':'bg-green-100 text-green-700'}`}>{o.direction==='debit'?'مدين':'دائن'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ActivitiesTab({ activities, t }: { activities: any[]; t: (k: string) => string }) {
   const typeIcons: Record<string, string> = {
@@ -205,23 +213,6 @@ function ActivitiesTab({ activities, t }: { activities: any[]; t: (k: string) =>
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-      ) : (
-        <div className="space-y-2">
-          {openings.map((o: any) => (
-            <div key={o.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border flex justify-between items-center">
-              <div>
-                <div className="font-medium text-sm">{o.currency_code} {new Intl.NumberFormat('ar-SA').format(o.amount)}</div>
-                <div className="text-xs text-[var(--app-text-secondary)]">{o.direction==='debit'?'مدين':'دائن'} · {new Date(o.entry_date).toLocaleDateString('ar-SA')}</div>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${o.direction==='debit'?'bg-red-100 text-red-700':'bg-green-100 text-green-700'}`}>{o.direction==='debit'?'مدين':'دائن'}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
