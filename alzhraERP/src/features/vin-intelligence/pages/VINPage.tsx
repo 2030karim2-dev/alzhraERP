@@ -97,8 +97,6 @@ const VINPage: React.FC = () => {
         )}
       </div>
 
-      {hasResult && <DashboardSummary metrics={metrics} />}
-
       <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
         <VINSearch
           onAnalyze={handleAnalyze}
