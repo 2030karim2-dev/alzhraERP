@@ -6,6 +6,19 @@
  */
 
 // ============================================================
+// Tab Navigation
+// ============================================================
+
+export type VINTab = 'dashboard' | 'parts' | 'market' | 'history';
+
+export const VIN_TABS: { id: VINTab; labelKey: string; icon: string }[] = [
+  { id: 'dashboard', labelKey: 'vin_tab_dashboard', icon: 'LayoutDashboard' },
+  { id: 'parts',     labelKey: 'vin_tab_parts',     icon: 'Wrench' },
+  { id: 'market',    labelKey: 'vin_tab_market',    icon: 'Sparkles' },
+  { id: 'history',   labelKey: 'vin_tab_history',   icon: 'Clock' },
+];
+
+// ============================================================
 // Fitment Status
 // ============================================================
 

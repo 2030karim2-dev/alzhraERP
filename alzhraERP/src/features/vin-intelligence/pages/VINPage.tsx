@@ -1,24 +1,27 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+﻿import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import MicroHeader from '../../../ui/base/MicroHeader';
-import { Car, RotateCcw } from 'lucide-react';
+import { Car, RotateCcw, LayoutDashboard, Wrench, Sparkles, Clock } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import VINSearch from '../components/VINSearch';
 import AnalysisProgress from '../components/AnalysisProgress';
-import VehicleCard from '../components/VehicleCard';
 import DashboardSummary from '../components/DashboardSummary';
-import CorePartsTable from '../components/CorePartsTable';
-import InventoryMatches from '../components/InventoryMatches';
-import MissingParts from '../components/MissingParts';
-import DemandIntelligence from '../components/DemandIntelligence';
-import VINHistory from '../components/VINHistory';
-import VinAIInsights from '../components/VinAIInsights';
 import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
+import DashboardTab from './tabs/DashboardTab';
+import PartsTab from './tabs/PartsTab';
+import MarketTab from './tabs/MarketTab';
+import HistoryTab from './tabs/HistoryTab';
 import { useVinAnalysis } from '../hooks/useVinAnalysis';
 import { useVinHistory } from '../hooks/useVinHistory';
 import { useVinAI } from '../hooks/useVinAI';
 import { useVinCounts } from '../hooks/useVinCounts';
-import type { VehicleCorePart, VinDashboardMetrics } from '../types';
-import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPanel';
+import type { VehicleCorePart, VinDashboardMetrics, VINTab } from '../types';
+
+const TABS: { id: VINTab; labelKey: string; Icon: React.FC<{ size?: number; className?: string }> }[] = [
+  { id: 'dashboard', labelKey: 'vin_tab_dashboard', Icon: LayoutDashboard },
+  { id: 'parts',     labelKey: 'vin_tab_parts',     Icon: Wrench },
+  { id: 'market',    labelKey: 'vin_tab_market',    Icon: Sparkles },
+  { id: 'history',   labelKey: 'vin_tab_history',   Icon: Clock },
+];
 
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
@@ -27,13 +30,12 @@ const VINPage: React.FC = () => {
   const { aiInsight, isAnalyzingAI, aiError, runAIAnalysis } = useVinAI();
   const { vehicleCount, vinsAnalyzedCount, refreshCounts } = useVinCounts();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
+  const [activeTab, setActiveTab] = useState<VINTab>('dashboard');
 
   const handleAnalyze = useCallback(async (vin: string) => {
     await analyzeVin(vin);
   }, [analyzeVin]);
 
-  // UI-only convenience cache — NOT the authoritative audit trail.
-  // Authoritative audit is written server-side by the vin-analyze Edge Function.
   useEffect(() => {
     if (result && result.analysisStatus !== 'FAILED' && result.vehicle.make) {
       addToHistory({
@@ -44,19 +46,17 @@ const VINPage: React.FC = () => {
         analyzedAt: result.analysisTimestamp,
         resultSummary: `${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.year || ''} — ${result.coreParts.length} ${t('vin_parts_count')}`,
       });
-      // Refresh DB counts after a successful analysis
       refreshCounts();
+      setActiveTab('dashboard');
     }
   }, [result, addToHistory, t, refreshCounts]);
 
-  // Trigger AI analysis after a successful VIN analysis
   useEffect(() => {
     if (result && result.analysisStatus === 'COMPLETE' && result.vehicle.make) {
       runAIAnalysis(result);
     }
   }, [result, runAIAnalysis]);
 
-  // Dynamic dashboard metrics — vinsAnalyzed comes from real DB count
   const metrics = useMemo((): VinDashboardMetrics => ({
     vinsAnalyzed: vinsAnalyzedCount,
     vehiclesInKnowledgeBase: vehicleCount,
@@ -75,99 +75,112 @@ const VINPage: React.FC = () => {
 
   const handleReset = useCallback(() => {
     reset();
+    setActiveTab('dashboard');
   }, [reset]);
 
+  const hasResult = result && result.analysisStatus !== 'FAILED';
+
   return (
-    <div className="flex flex-col h-full">
-      <MicroHeader
-        title={t('vin_title')}
-        icon={Car}
-        iconColor="text-blue-600"
-        actions={
-          result && (
-            <button onClick={handleReset} className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[var(--app-text-secondary)] rounded-lg text-[9px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95">
-              <RotateCcw size={11} /> {t('vin_new_analysis')}
-            </button>
-          )
-        }
-      />
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <MicroHeader
+          Icon={Car}
+          title={t('vin_intelligence')}
+          description={t('vin_intelligence_desc')}
+        />
+        {result && (
+          <button onClick={handleReset}
+            className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[var(--app-text-secondary)] transition-all">
+            <RotateCcw size={12} />
+            {t('vin_new_analysis')}
+          </button>
+        )}
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-3 bg-[var(--app-bg)]">
-        <DashboardSummary metrics={metrics} />
+      {hasResult && <DashboardSummary metrics={metrics} />}
 
+      <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
         <VINSearch
           onAnalyze={handleAnalyze}
           isAnalyzing={isAnalyzing}
           recentVins={history.map(h => h.vin)}
           onSelectRecent={handleSelectRecent}
         />
+      </div>
 
-        <AnalysisProgress steps={steps} isAnalyzing={isAnalyzing} />
+      <AnalysisProgress steps={steps} isAnalyzing={isAnalyzing} />
 
-        {error && (
-          <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-rose-600">{error}</p>
-          </div>
+      {error && (
+        <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
+          <p className="text-[10px] font-bold text-rose-600">{error}</p>
+        </div>
+      )}
+
+      {result && result.analysisStatus === 'FAILED' && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+          <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">{t('vin_not_found')}</p>
+          <p className="text-[9px] text-amber-700 dark:text-amber-400">
+            {t('vin_not_found_desc', { vin: result.vin })}
+          </p>
+        </div>
+      )}
+
+      {hasResult && (
+        <div className="flex gap-1 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-1 overflow-x-auto">
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                    : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                <tab.Icon size={13} />
+                <span className="hidden sm:inline">{t(tab.labelKey)}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="min-h-[300px]">
+        {!hasResult && !isAnalyzing && !error && !result && (
+          <HistoryTab
+            history={history}
+            metrics={metrics}
+            historyError={historyError}
+            onSelectVin={handleSelectRecent}
+          />
         )}
 
-        {historyError && (
-          <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-rose-600">{historyError}</p>
-          </div>
+        {hasResult && activeTab === 'dashboard' && (
+          <DashboardTab result={result} metrics={metrics} error={error} />
         )}
 
-        {result && result.analysisStatus === 'FAILED' && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">{t('vin_not_found')}</p>
-            <p className="text-[9px] text-amber-700 dark:text-amber-400">
-              {t('vin_not_found_desc', { vin: result.vin })}
-            </p>
-          </div>
+        {hasResult && activeTab === 'parts' && (
+          <PartsTab result={result} onPartClick={handlePartClick} />
         )}
 
-        {result && result.analysisStatus !== 'FAILED' && (
-          <>
-            <VehicleCard vehicle={result.vehicle} />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              <div className="lg:col-span-2 space-y-3">
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)] mb-2 px-1">{t('vin_core_parts')}</h3>
-                  <CorePartsTable parts={result.coreParts} onPartClick={handlePartClick} />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <InventoryMatches matches={result.inventoryMatches} />
-                <MissingParts parts={result.missingParts} />
-                <DemandIntelligence insights={result.demandInsights} />
-                {/* Phase 5: Part Number Intelligence Search */}
-                <PartSearchPanel
-                  vin={result.vin}
-                  vehicleInfo={{
-                    make: result.vehicle.make,
-                    model: result.vehicle.model,
-                    year: result.vehicle.year,
-                  }}
-                />
-                <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
-                <VINHistory history={history} onSelect={handleSelectRecent} />
-              </div>
-            </div>
-
-            {result.warnings && result.warnings.length > 0 && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
-                <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">{t('vin_warnings')}</p>
-                {result.warnings.map((w, i) => (
-                  <p key={i} className="text-[9px] text-amber-700 dark:text-amber-400">{w}</p>
-                ))}
-              </div>
-            )}
-          </>
+        {hasResult && activeTab === 'market' && (
+          <MarketTab
+            result={result}
+            aiInsight={aiInsight}
+            isAnalyzingAI={isAnalyzingAI}
+            aiError={aiError}
+          />
         )}
 
-        {!isAnalyzing && !result && !error && (
-          <VINHistory history={history} onSelect={handleSelectRecent} />
+        {hasResult && activeTab === 'history' && (
+          <HistoryTab
+            history={history}
+            metrics={metrics}
+            historyError={historyError}
+            onSelectVin={handleSelectRecent}
+          />
         )}
       </div>
 
