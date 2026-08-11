@@ -198,13 +198,13 @@ export const reportsService = {
         .select('account_id, balance')
         .eq('company_id', companyId),
       supabase.from('exchange_rates')
-        .select('currency_code, rate')
+        .select('currency_code, rate_to_base')
         .eq('company_id', companyId)
-        .order('date', { ascending: false })
+        .order('effective_date', { ascending: false })
     ]);
 
     const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
-    const rateMap = new Map((rates || []).map((r: any) => [r.currency_code, Number(r.rate)]));
+    const rateMap = new Map((rates || []).map((r: any) => [r.currency_code, Number(r.rate_to_base)]));
 
     return (accounts || []).map((a: any): CurrencyAccount => {
       const balance = Math.abs(balanceMap.get(a.id) || 0);

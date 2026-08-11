@@ -8,13 +8,14 @@ CREATE OR REPLACE FUNCTION public.get_debt_today_tasks(
     p_company_id UUID
 )
 RETURNS TABLE(
-    task_type VARCHAR, party_id UUID, party_name VARCHAR, party_phone VARCHAR,
-    currency_code VARCHAR, amount DECIMAL, reference_info TEXT, urgency VARCHAR
+    task_type VARCHAR, party_id UUID, party_name TEXT, party_phone TEXT,
+    currency_code TEXT, amount DECIMAL, reference_info TEXT, urgency VARCHAR
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 DECLARE v_today DATE := CURRENT_DATE;
 BEGIN
     RETURN QUERY
+    SELECT * FROM (
     -- Debts due today
     SELECT 'due_today'::VARCHAR, i.party_id, p.name, p.phone, i.currency_code,
         (i.total_amount - COALESCE(i.paid_amount, 0)), i.invoice_number::TEXT, 'high'::VARCHAR
@@ -47,7 +48,7 @@ BEGIN
     FROM public.debt_message_log dm
     JOIN public.parties p ON p.id = dm.party_id AND p.deleted_at IS NULL
     WHERE dm.company_id = p_company_id AND dm.status = 'failed' AND dm.created_at::DATE = v_today
-
+    ) sub
     ORDER BY urgency DESC, amount DESC NULLS LAST;
 END;
 $$;

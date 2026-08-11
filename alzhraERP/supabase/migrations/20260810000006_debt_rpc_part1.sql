@@ -47,10 +47,10 @@ CREATE OR REPLACE FUNCTION public.get_debt_followup_dashboard(
     p_critical_days INT DEFAULT 30
 )
 RETURNS TABLE(
-    party_id UUID, party_name VARCHAR, party_phone VARCHAR,
-    currency_code VARCHAR, outstanding_balance DECIMAL, overdue_balance DECIMAL,
-    oldest_due_date DATE, days_overdue INT, last_contact_date DATE,
-    has_broken_promise BOOLEAN, promise_status VARCHAR, classification VARCHAR
+    party_id UUID, party_name TEXT, party_phone TEXT,
+    currency_code TEXT, outstanding_balance DECIMAL, overdue_balance DECIMAL,
+    oldest_due_date DATE, days_overdue INT, last_contact_date TIMESTAMPTZ,
+    has_broken_promise BOOLEAN, promise_status TEXT, classification TEXT
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 DECLARE v_today DATE := CURRENT_DATE;
@@ -86,7 +86,7 @@ BEGIN
     SELECT cb.party_id, p.name, p.phone, cb.currency_code,
         cb.balance, COALESCE(oi.overdue_amount, 0),
         oi.oldest_due, CASE WHEN oi.oldest_due IS NOT NULL THEN v_today - oi.oldest_due ELSE 0 END,
-        lc.last_contact, COALESCE(lp.has_broken, false), lp.promise_status,
+        lc.last_contact, COALESCE(lp.has_broken, false), lp.promise_status::TEXT,
         CASE
             WHEN oi.oldest_due IS NOT NULL AND (v_today - oi.oldest_due) >= p_critical_days THEN 'critical'
             WHEN oi.oldest_due IS NOT NULL AND oi.oldest_due < v_today THEN 'overdue'
