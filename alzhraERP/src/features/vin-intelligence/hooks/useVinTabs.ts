@@ -51,18 +51,54 @@ export function useVinTabs(): UseVinTabsReturn {
 
   const invoke = useCallback(async (step: string, body: Record<string, unknown>) => {
     const ctrl = new AbortController(); abortRef.current?.abort(); abortRef.current = ctrl;
-    const { data: s } = await supabase.auth.getSession();
-    if (!s?.session) throw new Error('انتهت الجلسة.');
-    const { data: d, error: e } = await supabase.functions.invoke('vin-analyze', { body: { step, ...body }, signal: ctrl.signal });
-    if (e) {
-      if (e.name === 'AbortError') throw e;
-      if ((e as any)?.context?.status === 401 || String(e).includes('Unauthorized')) {
+
+    // Helper: try to get a valid session (with proactive refresh)
+    const ensureSession = async (): Promise<boolean> => {
+      const { data: s } = await supabase.auth.getSession();
+      if (s?.session?.access_token) return true;
+      // Session missing/expired — try silent refresh
+      try {
         const { data: ref } = await supabase.auth.refreshSession();
-        if (ref?.session) { const { data: rd, error: re } = await supabase.functions.invoke('vin-analyze', { body: { step, ...body }, signal: ctrl.signal }); if (!re && rd) return rd; }
-        throw new Error('انتهت الجلسة.');
+        return !!(ref?.session?.access_token);
+      } catch { return false; }
+    };
+
+    if (!(await ensureSession())) throw new Error('انتهت الجلسة.');
+
+    const makeRequest = async () => {
+      const { data: d, error: e } = await supabase.functions.invoke('vin-analyze', {
+        body: { step, ...body }, signal: ctrl.signal,
+      });
+      return { data: d, error: e };
+    };
+
+    let { data: d, error: e } = await makeRequest();
+
+    if (e) {
+      // Detect 401 from ANY error shape (FunctionsHttpError, FunctionsRelayError, or plain)
+      const status = (e as any)?.context?.status || (e as any)?.status || 0;
+      const is401 = status === 401 || String(e).includes('401') || String(e).includes('Unauthorized');
+
+      if (e.name === 'AbortError') throw e;
+
+      if (is401) {
+        // Try session refresh + one retry
+        console.warn('[useVinTabs] 401 detected, attempting session refresh...', { step, status });
+        try {
+          const { data: ref } = await supabase.auth.refreshSession();
+          if (ref?.session) {
+            ({ data: d, error: e } = await makeRequest());
+            if (!e && d) return d;
+          }
+        } catch (refreshErr) {
+          console.error('[useVinTabs] Session refresh failed:', refreshErr);
+        }
+        throw new Error('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.');
       }
-      throw new Error((e as any)?.message || 'فشل الاتصال.');
+      // Non-401 error — throw with message
+      throw new Error((e as any)?.message || `خطأ ${status || ''}`.trim() || 'فشل الاتصال.');
     }
+
     if (d?.status !== 'SUCCESS') throw new Error(d?.errorDetail || d?.status || 'فشلت العملية.');
     return d;
   }, []);
