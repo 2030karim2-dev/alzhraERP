@@ -70,8 +70,10 @@ export async function analyzeVinWithAI(
     const partsInfo = vinResult.coreParts
       .slice(0, 20)
       .map(p => {
-        const invCount = p.inventoryMatches.length;
-        return `- ${p.canonicalPartName} (${p.category}): OEM ${p.oemNumbers.slice(0, 3).join(', ')}, الطلب: ${p.demandLevel || 'غير معروف'}, المبيعات: ${p.salesCount || 0}, متوفر بالمخزون: ${invCount > 0 ? 'نعم' : 'لا'}`;
+        // Map the correct inventory match count from the deep integrated state
+        const invCount = p.inventoryMatches?.length || 0;
+        const oems = p.oemNumbers?.length > 0 ? p.oemNumbers.slice(0, 3).join(', ') : 'غير متوفر';
+        return `- ${p.canonicalPartName} (${p.category}): OEM ${oems}, الطلب: ${p.demandLevel || 'متوسط'}, المبيعات: ${p.salesCount || 0}, متوفر بالمخزون: ${invCount > 0 ? 'نعم (' + invCount + ')' : 'لا'}`;
       })
       .join('\n');
 

@@ -51,10 +51,10 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <div className="flex-1 relative">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex-1 relative group">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search size={14} className="text-[var(--app-text-secondary)]" />
+            <Search size={14} className="text-[var(--app-text-secondary)] group-focus-within:text-blue-500 transition-colors" />
           </div>
           <input
             type="text"
@@ -63,13 +63,13 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
             onKeyDown={handleKeyDown}
             placeholder={t('vin_search_placeholder')}
             dir="ltr"
-            className="w-full h-9 pl-9 pr-10 text-[11px] font-mono font-bold tracking-wider bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)]"
+            className="w-full h-11 sm:h-9 pl-9 pr-10 text-[13px] sm:text-[11px] font-mono font-bold tracking-wider bg-white dark:bg-slate-900 border border-[var(--app-border)] rounded-xl sm:rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] shadow-sm"
             disabled={isAnalyzing}
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-1">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2">
             {vin && (
-              <button onClick={handleClear} className="p-1 hover:bg-[var(--app-surface-hover)] rounded" title={t('vin_clear')}>
-                <X size={12} className="text-[var(--app-text-secondary)]" />
+              <button onClick={handleClear} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" title={t('vin_clear')}>
+                <X size={14} className="text-[var(--app-text-secondary)]" />
               </button>
             )}
           </div>
@@ -77,10 +77,10 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
         <button
           onClick={handleAnalyze}
           disabled={isAnalyzing || !vin || (validation !== null && !validation.valid)}
-          className="flex items-center gap-1.5 h-9 px-4 bg-blue-600 text-white rounded-lg text-[10px] font-bold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 transition-all"
+          className="flex items-center justify-center gap-2 h-11 sm:h-9 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl sm:rounded-lg text-[12px] sm:text-[10px] font-black active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25 transition-all"
         >
-          {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-          <span>{t('vin_analyze_btn')}</span>
+          {isAnalyzing ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+          <span className="uppercase tracking-wider">{t('vin_analyze_btn')}</span>
         </button>
       </div>
       {validation && !validation.valid && (

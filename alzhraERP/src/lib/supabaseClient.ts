@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '../core/database.types';
 import { logger } from '../core/utils/logger';
 import { useConnectionStore } from '../core/store/connectionStore';
+import { STORAGE_KEYS } from '../core/constants';
 
 // تكوين الاتصال من متغيرات البيئة
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -168,7 +169,7 @@ export const supabase = isSupabasePlaceholder
         autoRefreshToken: true,
         detectSessionInUrl: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        storageKey: 'alz_auth_session',
+        storageKey: STORAGE_KEYS.AUTH_TOKEN,
       },
       global: {
         fetch: customFetch,

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import MicroHeader from '../../../ui/base/MicroHeader';
-import { Car, RotateCcw, Wrench, History } from 'lucide-react';
+import { Car, RotateCcw, Wrench, History, CheckCircle2, XCircle, Loader2, Circle } from 'lucide-react';
+import { cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import VINSearch from '../components/VINSearch';
 import VehicleCard from '../components/VehicleCard';
@@ -19,7 +20,53 @@ import { useVinAI } from '../hooks/useVinAI';
 import { useVinCounts } from '../hooks/useVinCounts';
 import type { VehicleCorePart, VinDashboardMetrics, VinAnalysisResult } from '../types';
 import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPanel';
+import { ShoppingCart, Plus } from 'lucide-react';
 
+
+// ============================================================
+// Analysis Progress (Mobile Optimized)
+// ============================================================
+const AnalysisProgress: React.FC<{ tabs: TabState[] }> = ({ tabs }) => {
+  const { t } = useTranslation();
+  
+  const getIcon = (status: TabStatus) => {
+    switch (status) {
+      case 'success': return <CheckCircle2 size={14} className="text-emerald-500" />;
+      case 'error': return <XCircle size={14} className="text-rose-500" />;
+      case 'loading': return <Loader2 size={14} className="text-blue-500 animate-spin" />;
+      default: return <Circle size={14} className="text-slate-300 dark:text-slate-700" />;
+    }
+  };
+
+  return (
+    <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-center gap-2 mb-4">
+        <Loader2 size={16} className="text-blue-500 animate-spin" />
+        <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--app-text)]">
+          {t('vin_analyzing')}
+        </h3>
+      </div>
+      
+      <div className="space-y-3">
+        {tabs.map((tab) => (
+          <div key={tab.id} className="flex items-center gap-3">
+            <div className="shrink-0">{getIcon(tab.status)}</div>
+            <div className="flex-1">
+              <p className={cn(
+                "text-[10px] font-bold transition-colors",
+                tab.status === 'loading' ? "text-blue-600 dark:text-blue-400" : 
+                tab.status === 'success' ? "text-[var(--app-text)]" :
+                tab.status === 'error' ? "text-rose-600" : "text-[var(--app-text-secondary)]"
+              )}>
+                {tab.label}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // ============================================================
 // Empty state
@@ -62,70 +109,123 @@ const TabContent: React.FC<TabContentProps> = ({ tab, data, onPartClick, error }
   }, [tab, data, aiInsight, isAnalyzingAI, runAIAnalysis]);
 
   switch (tab) {
-    case 'validate-decode':
+    case 'validate':
+      return (
+        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="text-emerald-600" size={24} />
+            </div>
+          </div>
+          <h3 className="text-[12px] font-black text-[var(--app-text)] mb-1">تم التحقق من رقم الشاصي بنجاح</h3>
+          <p className="text-[11px] font-mono text-blue-600 dark:text-blue-400 font-bold">{data.vin}</p>
+        </div>
+      );
+
+    case 'identify':
       return data.vehicle ? (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
           <VehicleCard vehicle={data.vehicle} />
-          {error && <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 rounded-xl p-3"><p className="text-[10px] font-bold text-rose-600">{error}</p></div>}
         </div>
       ) : null;
 
-    case 'knowledge':
+    case 'analyze':
       return (
-        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 text-center">
-          <p className="text-[10px] font-bold text-[var(--app-text)]">
-            {data.vehicleIsNew ? `تمت إضافة ${data.vehicle?.make || ''} ${data.vehicle?.model || ''} إلى قاعدة المعرفة` : `المركبة ${data.vehicle?.make || ''} ${data.vehicle?.model || ''} موجودة مسبقاً`}
-          </p>
-          <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">VIN: {data.normalizedVin}</p>
+        <div className="space-y-3">
+          <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles size={14} className="text-purple-500" />
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">تحليل المواصفات الفنية</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">المحرك</span><span className="font-bold">{data.vehicle?.engineSize || 'N/A'}</span></div>
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">السلندرات</span><span className="font-bold">{data.vehicle?.cylinderCount || 'N/A'}</span></div>
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">ناقل الحركة</span><span className="font-bold">{data.vehicle?.transmission || 'N/A'}</span></div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">نظام الدفع</span><span className="font-bold">{data.vehicle?.driveType || 'N/A'}</span></div>
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">نوع الهيكل</span><span className="font-bold">{data.vehicle?.bodyType || 'N/A'}</span></div>
+                <div className="flex justify-between text-[10px]"><span className="text-[var(--app-text-secondary)]">السوق المستهدف</span><span className="font-bold">{data.vehicle?.market || 'N/A'}</span></div>
+              </div>
+            </div>
+          </div>
+          <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
         </div>
       );
 
     case 'parts':
       return (
-        <div>
+        <div className="space-y-3">
           <div className="flex items-center gap-2 mb-2">
             <Wrench size={12} className="text-blue-500" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">
-              {t('vin_core_parts')} ({data.coreParts.length})
-            </h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">القطع الرئيسية المتوافقة ({data.coreParts.length})</h3>
           </div>
-          {data.coreParts.length > 0
-            ? <CorePartsTable parts={data.coreParts} onPartClick={onPartClick} />
-            : <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-4 text-center"><p className="text-[10px] font-bold text-amber-600">{t('vin_no_parts')}</p></div>}
+          <CorePartsTable parts={data.coreParts} onPartClick={onPartClick} />
+        </div>
+      );
+
+    case 'oem':
+      return (
+        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Database size={14} className="text-blue-500" />
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">مطابقة أرقام OEM المرجعية</h3>
+          </div>
+          <div className="space-y-2">
+            {data.coreParts.slice(0, 5).map((part, i) => (
+              <div key={i} className="flex items-center justify-between p-2 bg-[var(--app-bg)] rounded-lg border border-[var(--app-border)]">
+                <span className="text-[10px] font-bold">{part.canonicalPartName}</span>
+                <div className="flex gap-1">
+                  {part.oemNumbers.slice(0, 2).map((num, j) => (
+                    <span key={j} className="text-[8px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 px-1.5 py-0.5 rounded font-mono">{num}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'knowledge':
+      return (
+        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+              <Database className="text-purple-600" size={24} />
+            </div>
+          </div>
+          <h3 className="text-[11px] font-black text-[var(--app-text)] mb-1">حالة قاعدة المعرفة</h3>
+          <p className="text-[10px] text-[var(--app-text-secondary)]">
+            {data.vehicleIsNew ? `تمت إضافة ${data.vehicle?.make || ''} إلى النظام كمركبة جديدة` : `تم تحديث بيانات ${data.vehicle?.make || ''} في قاعدة المعرفة`}
+          </p>
         </div>
       );
 
     case 'inventory':
       return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-2"><Wrench size={12} className="text-blue-500" /><h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">{t('vin_core_parts')} ({data.coreParts.length})</h3></div>
-            <CorePartsTable parts={data.coreParts} onPartClick={onPartClick} />
-          </div>
-          <div className="space-y-3">
+          <div className="lg:col-span-2 space-y-3">
             <InventoryMatches matches={data.inventoryMatches} />
-            <MissingParts parts={data.missingParts} />
-            <DemandIntelligence insights={data.demandInsights} />
-            <PartSearchPanel vin={data.vin} vehicleInfo={{ make: data.vehicle?.make || '', model: data.vehicle?.model || '', year: data.vehicle?.year }} />
-            <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
-          </div>
-        </div>
-      );
-
-    case 'audit':
-      return (
-        <div className="space-y-3">
-          <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-3">
-            <div className="flex items-center gap-2 mb-2"><History size={12} className="text-purple-500" /><h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">{t('vin_analysis_summary')}</h3></div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
-              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase">{t('vin_parts_count')}</span><p className="font-bold">{data.coreParts.length}</p></div>
-              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase">{t('vin_in_stock')}</span><p className="font-bold text-emerald-600">{data.inventoryMatches.length}</p></div>
-              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase">{t('vin_missing_parts')}</span><p className="font-bold text-rose-600">{data.missingParts.length}</p></div>
-              <div><span className="text-[8px] text-[var(--app-text-secondary)] uppercase">{t('vin_demand_intel')}</span><p className="font-bold text-orange-600">{data.demandInsights.length}</p></div>
+            <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart size={14} className="text-rose-500" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">القطع الناقصة المطلوب شراؤها</h3>
+                </div>
+                {data.missingParts.length > 0 && (
+                  <button className="bg-rose-600 hover:bg-rose-700 text-white text-[8px] font-black px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all shadow-sm active:scale-95 uppercase tracking-tighter">
+                    <Plus size={10} /> إضافة الكل للمشتريات
+                  </button>
+                )}
+              </div>
+              <MissingParts parts={data.missingParts} />
             </div>
           </div>
-          <PartSearchPanel vin={data.vin} vehicleInfo={{ make: data.vehicle?.make || '', model: data.vehicle?.model || '', year: data.vehicle?.year }} />
-          <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
+          <div className="space-y-3">
+            <PartSearchPanel vin={data.vin} vehicleInfo={{ make: data.vehicle?.make || '', model: data.vehicle?.model || '', year: data.vehicle?.year }} />
+            <DemandIntelligence insights={data.demandInsights} />
+          </div>
         </div>
       );
 
@@ -159,7 +259,20 @@ const VINPage: React.FC = () => {
   retryRef.current = retryStep;
 
   const handleTabClick = useCallback((idx: number) => {
-    if (tabs[idx]?.status !== 'locked') { setActiveTab(idx); if (tabs[idx]?.status === 'idle') retryRef.current(tabs[idx].id); }
+    const targetTab = tabs[idx];
+    if (!targetTab || targetTab.status === 'locked') return;
+
+    // Strict validation: Don't allow going to steps without required data
+    if (idx > 0) {
+      const prevStep = tabs[idx - 1];
+      if (prevStep.status !== 'success') {
+         console.warn('[VIN] Cannot jump to tab without previous step success');
+         return;
+      }
+    }
+
+    setActiveTab(idx);
+    if (targetTab.status === 'idle') retryRef.current(targetTab.id);
   }, [tabs, setActiveTab]);
 
   useEffect(() => {
@@ -200,6 +313,12 @@ const VINPage: React.FC = () => {
               )}
             </div>
           </>
+        )}
+
+        {isAnyLoading && !hasData && (
+          <div className="max-w-md mx-auto w-full">
+            <AnalysisProgress tabs={tabs} />
+          </div>
         )}
 
         {!hasData && !isAnyLoading && <EmptyState onSelect={handleSelectRecent} history={history} />}

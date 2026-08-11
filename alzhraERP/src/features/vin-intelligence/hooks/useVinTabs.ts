@@ -2,12 +2,13 @@ import { logger } from '../../../core/utils/logger';
 
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { useAuthSession } from '../../../core/hooks/useAuthSession';
 import type { VehicleConfiguration, VehicleCorePart, InventoryMatch, DemandInsight } from '../types';
 
 // ============================================================
 // Types
 // ============================================================
-export type TabStep = 'validate-decode' | 'knowledge' | 'parts' | 'inventory' | 'audit';
+export type TabStep = 'validate' | 'identify' | 'analyze' | 'parts' | 'oem' | 'knowledge' | 'inventory';
 export type TabStatus = 'idle' | 'locked' | 'loading' | 'success' | 'error';
 
 export interface TabState { id: TabStep; label: string; labelKey: string; status: TabStatus; error: string | null; }
@@ -26,11 +27,13 @@ interface UseVinTabsReturn {
 }
 
 const TAB_DEFS: { id: TabStep; label: string; labelKey: string }[] = [
-  { id: 'validate-decode', label: 'التحقق وتحديد المركبة', labelKey: 'vin_tab_validate' },
-  { id: 'knowledge', label: 'قاعدة المعرفة', labelKey: 'vin_tab_knowledge' },
-  { id: 'parts', label: 'القطع الرئيسية', labelKey: 'vin_tab_parts' },
-  { id: 'inventory', label: 'المخزون والتوريد', labelKey: 'vin_tab_inventory' },
-  { id: 'audit', label: 'سجل التحليل', labelKey: 'vin_tab_audit' },
+  { id: 'validate', label: 'التحقق من VIN', labelKey: 'vin_step_validate' },
+  { id: 'identify', label: 'تحديد المركبة', labelKey: 'vin_step_identify' },
+  { id: 'analyze', label: 'تحليل البيانات', labelKey: 'vin_step_analyze' },
+  { id: 'parts', label: 'القطع الرئيسية', labelKey: 'vin_step_parts' },
+  { id: 'oem', label: 'مطابقة OEM', labelKey: 'vin_step_oem' },
+  { id: 'knowledge', label: 'قاعدة المعرفة', labelKey: 'vin_step_knowledge' },
+  { id: 'inventory', label: 'المخزون', labelKey: 'vin_step_inventory' },
 ];
 
 const EMPTY_DATA: VinAccumulatedData = {
@@ -39,6 +42,7 @@ const EMPTY_DATA: VinAccumulatedData = {
 };
 
 export function useVinTabs(): UseVinTabsReturn {
+  const { ensureValidSession } = useAuthSession();
   const [tabs, setTabs] = useState<TabState[]>(TAB_DEFS.map(t => ({ ...t, status: 'idle', error: null })));
   const [activeTab, setActiveTab] = useState(0);
   const [accData, setAccData] = useState<VinAccumulatedData>(EMPTY_DATA);
@@ -54,18 +58,10 @@ export function useVinTabs(): UseVinTabsReturn {
   const invoke = useCallback(async (step: string, body: Record<string, unknown>) => {
     const ctrl = new AbortController(); abortRef.current?.abort(); abortRef.current = ctrl;
 
-    // Helper: try to get a valid session (with proactive refresh)
-    const ensureSession = async (): Promise<boolean> => {
-      const { data: s } = await supabase.auth.getSession();
-      if (s?.session?.access_token) return true;
-      // Session missing/expired — try silent refresh
-      try {
-        const { data: ref } = await supabase.auth.refreshSession();
-        return !!(ref?.session?.access_token);
-      } catch { return false; }
-    };
-
-    if (!(await ensureSession())) throw new Error('انتهت الجلسة.');
+    const { userId } = await ensureValidSession();
+    if (!userId) {
+       console.warn('[VIN] No active session detected before invoke');
+    }
 
     const makeRequest = async () => {
       const { data: d, error: e } = await supabase.functions.invoke('vin-analyze', {
@@ -122,24 +118,50 @@ export function useVinTabs(): UseVinTabsReturn {
     try {
       const d = dataRef.current; let r: any;
       switch (step) {
-        case 'validate-decode':
-          if (!d.normalizedVin) throw new Error('الرجاء إدخال VIN.'); r = await invoke('validate-decode', { vin: d.normalizedVin });
-          setAccData(p => ({ ...p, vin: r.vin, vehicle: r.vehicle }));
-          setTabs(p => p.map(t => t.id === 'knowledge' && t.status === 'locked' ? { ...t, status: 'idle' } : t)); break;
-        case 'knowledge':
-          if (!d.vehicle) throw new Error('يجب تحديد المركبة.'); r = await invoke('knowledge', { vin: d.normalizedVin, previousResults: { vehicle: d.vehicle } });
-          setAccData(p => ({ ...p, vkbId: r.vkbId, vehicleIsNew: r.vehicleIsNew }));
-          setTabs(p => p.map(t => t.id === 'parts' && t.status === 'locked' ? { ...t, status: 'idle' } : t)); break;
+        case 'validate':
+          if (!d.normalizedVin) throw new Error('الرجاء إدخال VIN.'); 
+          r = await invoke('validate', { vin: d.normalizedVin });
+          setAccData(p => ({ ...p, vin: r.vin }));
+          break;
+        case 'identify':
+          if (!d.normalizedVin) throw new Error('يجب التحقق من VIN أولاً.');
+          r = await invoke('identify', { vin: d.normalizedVin });
+          setAccData(p => ({ ...p, vehicle: r.vehicle }));
+          break;
+        case 'analyze':
+          if (!d.vehicle) throw new Error('يجب تحديد المركبة أولاً.');
+          r = await invoke('analyze', { vin: d.normalizedVin, vehicle: d.vehicle });
+          // We keep the vehicle data updated with any deep specs found
+          if (r.vehicle) setAccData(p => ({ ...p, vehicle: { ...p.vehicle, ...r.vehicle } }));
+          break;
         case 'parts':
-          if (!d.vkbId) throw new Error('يجب بناء قاعدة المعرفة.'); r = await invoke('parts', { previousResults: { vkbId: d.vkbId } });
+          if (!d.vehicle) throw new Error('يجب تحديد المركبة أولاً.');
+          r = await invoke('parts', { vin: d.normalizedVin, vehicle: d.vehicle });
           setAccData(p => ({ ...p, coreParts: r.coreParts || [] }));
-          setTabs(p => p.map(t => t.id === 'inventory' && t.status === 'locked' ? { ...t, status: 'idle' } : t)); break;
+          break;
+        case 'oem':
+          if (!d.coreParts.length) throw new Error('يجب البحث عن القطع أولاً.');
+          // OEM matching is often part of the 'parts' or 'analyze' step, but here we link it to the coreParts in state
+          r = await invoke('oem', { vin: d.normalizedVin, coreParts: d.coreParts });
+          if (r.updatedParts) setAccData(p => ({ ...p, coreParts: r.updatedParts }));
+          break;
+        case 'knowledge':
+          if (!d.vehicle) throw new Error('يجب تحديد المركبة أولاً.');
+          r = await invoke('knowledge', { vin: d.normalizedVin, vehicle: d.vehicle, coreParts: d.coreParts });
+          setAccData(p => ({ ...p, vkbId: r.vkbId, vehicleIsNew: r.vehicleIsNew }));
+          break;
         case 'inventory':
-          if (!d.coreParts.length) throw new Error('يجب تحميل القطع.'); r = await invoke('inventory', { previousResults: { coreParts: d.coreParts } });
-          setAccData(p => ({ ...p, inventoryMatches: r.matches || [], missingParts: r.missingParts || [], demandInsights: r.demandInsights || [] }));
-          setTabs(p => p.map(t => t.id === 'audit' && t.status === 'locked' ? { ...t, status: 'idle' } : t)); break;
-        case 'audit':
-          r = await invoke('audit', { vin: d.normalizedVin, previousResults: { vin: d.normalizedVin, vehicle: d.vehicle, inventory: { partsFound: d.coreParts.length, inStockCount: d.inventoryMatches.length } } }); break;
+          if (!d.coreParts.length) throw new Error('يجب تحميل القطع أولاً.');
+          // REAL INTEGRATION: Link core parts with company inventory
+          r = await invoke('inventory', { vin: d.normalizedVin, coreParts: d.coreParts });
+          setAccData(p => ({ ...p, inventoryMatches: r.inventoryMatches || [], missingParts: r.missingParts || [], demandInsights: r.demandInsights || [] }));
+          break;
+      }
+      
+      // Unlock next tab
+      const currentIdx = tabs.findIndex(t => t.id === step);
+      if (currentIdx < tabs.length - 1) {
+        setTabs(prev => prev.map((t, i) => i === currentIdx + 1 && t.status === 'locked' ? { ...t, status: 'idle' } : t));
       }
       updateTab(step, { status: 'success' });
     } catch (err) { updateTab(step, { status: 'error', error: err instanceof Error ? err.message : 'حدث خطأ.' }); }
@@ -150,7 +172,7 @@ export function useVinTabs(): UseVinTabsReturn {
     setAccData({ ...EMPTY_DATA, vin, normalizedVin: n });
     setTabs(TAB_DEFS.map((t, i) => ({ ...t, status: i === 0 ? 'idle' : 'locked', error: null })));
     setActiveTab(0);
-    await runStep('validate-decode');
+    await runStep('validate');
   }, [runStep]);
 
   const retryStep = useCallback(async (step: TabStep) => { await runStep(step); }, [runStep]);

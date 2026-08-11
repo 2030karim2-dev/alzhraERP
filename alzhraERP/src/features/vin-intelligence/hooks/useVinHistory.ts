@@ -3,8 +3,10 @@ import { logger } from '../../../core/utils/logger';
 import { useState, useCallback, useEffect } from 'react';
 import type { VinHistoryEntry } from '../types';
 import { supabase } from '../../../lib/supabaseClient';
+import { useAuthSession } from '../../../core/hooks/useAuthSession';
 
 export function useVinHistory() {
+  const { ensureValidSession } = useAuthSession();
   const [history, setHistory] = useState<VinHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,28 +16,16 @@ export function useVinHistory() {
       setLoading(true);
       setError(null);
 
-      // 🔒 Verify active session before querying
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session?.user?.id) {
-        // Try silent refresh — session may have expired since last check
-        try {
-          const { data: refreshed } = await supabase.auth.refreshSession();
-          if (refreshed?.session?.user?.id) {
-            sessionData!.session = refreshed.session;
-          } else {
-            setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لعرض سجل التحليل.');
-            return;
-          }
-        } catch (_) {
-          setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لعرض سجل التحليل.');
-          return;
-        }
+      const { userId } = await ensureValidSession();
+      if (!userId) {
+        setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لعرض سجل التحليل.');
+        return;
       }
 
       const { data, error: dbError } = await supabase
         .from('vin_analysis_history')
         .select('vin, make, model, year, analyzed_at, result_summary')
-        .eq('user_id', sessionData!.session!.user.id)
+        .eq('user_id', userId)
         .order('analyzed_at', { ascending: false })
         .limit(20);
 
@@ -61,23 +51,46 @@ export function useVinHistory() {
     fetchHistory();
   }, [fetchHistory]);
 
-  const addToHistory = useCallback((entry: VinHistoryEntry) => {
-    // Optimistic UI update: show entry immediately, then validate against DB
+  const addToHistory = useCallback(async (entry: VinHistoryEntry) => {
+    // Optimistic UI update: show entry immediately
     setHistory(prev => {
       const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, 20);
       return updated;
     });
-    setError(null); // Clear any stale error on new analysis
-  }, []); // Remove setTimeout dependency — auth writes happen server-side
+    setError(null);
+
+    try {
+      const { userId } = await ensureValidSession();
+      if (!userId) return;
+
+      const { error: insertError } = await supabase
+        .from('vin_analysis_history')
+        .upsert({
+          user_id: userId,
+          vin: entry.vin,
+          make: entry.make,
+          model: entry.model,
+          year: entry.year,
+          analyzed_at: entry.analyzedAt,
+          result_summary: entry.resultSummary
+        }, { onConflict: 'user_id,vin' });
+
+      if (insertError) {
+        logger.error('VIN', 'Failed to persist VIN history to DB', insertError);
+      }
+    } catch (err) {
+      logger.error('VIN', 'Error in addToHistory persistence', err);
+    }
+  }, []);
 
   const clearHistory = useCallback(async () => {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session?.user?.id) return;
+      const { userId } = await ensureValidSession();
+      if (!userId) return;
       await supabase
         .from('vin_analysis_history')
         .delete()
-        .eq('user_id', sessionData.session.user.id);
+        .eq('user_id', userId);
       setHistory([]);
     } catch (err) {
       logger.error('VIN', 'Failed to clear VIN history in DB', err);
