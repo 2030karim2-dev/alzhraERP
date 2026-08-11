@@ -1,7 +1,6 @@
 import React from 'react';
 import DemandIntelligence from '../../components/DemandIntelligence';
 import VinAIInsights from '../../components/VinAIInsights';
-import { PartSearchPanel } from '../../../part-intelligence/components/PartSearchPanel';
 import type { VinAnalysisResult } from '../../types';
 import type { VinAIInsight } from '../../services/vinAIService';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
@@ -27,16 +26,6 @@ const MarketTab: React.FC<MarketTabProps> = ({ result, aiInsight, isAnalyzingAI,
 
       {/* AI Market Analysis (DeepSeek) */}
       <VinAIInsights insight={aiInsight} isLoading={isAnalyzingAI} error={aiError} />
-
-      {/* Part Number Intelligence Search */}
-      <PartSearchPanel
-        vin={result!.vin}
-        vehicleInfo={{
-          make: result!.vehicle.make,
-          model: result!.vehicle.model,
-          year: result!.vehicle.year,
-        }}
-      />
     </div>
   );
 };

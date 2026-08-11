@@ -2,7 +2,7 @@ import React from 'react';
 import VINHistory from '../../components/VINHistory';
 import type { VinHistoryEntry, VinDashboardMetrics } from '../../types';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
-import { Clock, Database, CheckCircle2, Package } from 'lucide-react';
+import { Clock, Server, CheckCircle2, Package } from 'lucide-react';
 
 interface HistoryTabProps {
   history: VinHistoryEntry[];
@@ -33,7 +33,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({ history, metrics, historyError,
         </div>
         <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-2.5 flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
-            <Database size={12} className="text-blue-600 dark:text-blue-400" />
+            <Server size={12} className="text-blue-600 dark:text-blue-400" />
           </div>
           <div className="min-w-0">
             <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--app-text-secondary)]">{t('vin_stats_vehicles')}</p>
