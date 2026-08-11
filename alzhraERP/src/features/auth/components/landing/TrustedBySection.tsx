@@ -39,10 +39,10 @@ const TrustedBySection: React.FC = () => {
                         {brands.map((brand, i) => (
                             <div
                                 key={`trust-${i}`}
-                                className="flex-shrink-0 mx-4 px-8 py-4 rounded-2xl border shadow-sm transition-shadow hover:shadow-md"
+                                className="flex-shrink-0 mx-2 sm:mx-4 px-4 py-2 sm:px-8 sm:py-4 rounded-none border shadow-sm transition-shadow hover:shadow-md"
                                 style={{ backgroundColor: 'var(--app-bg)', borderColor: 'var(--app-border)' }}
                             >
-                                <span className="text-lg font-black whitespace-nowrap select-none" style={{ color: 'var(--app-text-secondary)' }}>
+                                <span className="text-[10px] sm:text-lg font-black whitespace-nowrap select-none uppercase tracking-tighter" style={{ color: 'var(--app-text-secondary)' }}>
                                     {brand}
                                 </span>
                             </div>

@@ -9,16 +9,16 @@ const FAQItem: React.FC<{ question: string; answer: string; isOpen: boolean; onT
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="landing-faq-item rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+        className="landing-faq-item rounded-none border border-[var(--app-border)] bg-[var(--app-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
     >
         <button
             onClick={onToggle}
             aria-expanded={isOpen}
-            className="w-full flex items-center justify-between gap-4 p-6 text-right"
+            className="w-full flex items-center justify-between gap-2 sm:gap-4 p-3 sm:p-6 text-right"
         >
-            <div className="flex items-center gap-4 min-w-0">
-                <HelpCircle size={20} className={`flex-shrink-0 ${isOpen ? 'text-blue-500' : 'text-[var(--app-text-secondary)]'} transition-colors`} />
-                <span className={`font-black text-base ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-[var(--app-text)]'} transition-colors`}>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                <HelpCircle size={14} className={`flex-shrink-0 ${isOpen ? 'text-blue-500' : 'text-[var(--app-text-secondary)]'} transition-colors sm:w-5 sm:h-5`} />
+                <span className={`font-black text-[10px] sm:text-base uppercase tracking-tighter ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-[var(--app-text)]'} transition-colors`}>
                     {question}
                 </span>
             </div>
@@ -27,7 +27,7 @@ const FAQItem: React.FC<{ question: string; answer: string; isOpen: boolean; onT
                 transition={{ duration: 0.3 }}
                 className="flex-shrink-0"
             >
-                <ChevronDown size={20} className={`${isOpen ? 'text-blue-500' : 'text-[var(--app-text-secondary)]'} transition-colors`} />
+                <ChevronDown size={14} className={`${isOpen ? 'text-blue-500' : 'text-[var(--app-text-secondary)]'} transition-colors sm:w-5 sm:h-5`} />
             </motion.div>
         </button>
         <AnimatePresence initial={false}>
@@ -39,7 +39,7 @@ const FAQItem: React.FC<{ question: string; answer: string; isOpen: boolean; onT
                     transition={{ duration: 0.35, ease: 'easeInOut' }}
                     className="overflow-hidden"
                 >
-                    <div className="px-6 pt-5 pb-6 text-[var(--app-text-secondary)] leading-relaxed font-medium text-sm border-t border-[var(--app-border)] mx-6">
+                    <div className="px-3 sm:px-6 pt-2 sm:pt-5 pb-3 sm:pb-6 text-[var(--app-text-secondary)] leading-tight sm:leading-relaxed font-black uppercase tracking-tighter text-[9px] sm:text-sm border-t border-[var(--app-border)] mx-3 sm:mx-6">
                         {answer}
                     </div>
                 </motion.div>
