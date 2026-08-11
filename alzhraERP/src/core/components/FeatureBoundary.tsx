@@ -18,6 +18,7 @@ import React, { Suspense, ReactNode } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import PageLoader from '../../ui/base/PageLoader';
 import { useLocation } from 'react-router-dom';
+import { logger } from '../utils/logger';
 
 interface FeatureBoundaryProps {
   children: ReactNode;
@@ -34,7 +35,7 @@ export const FeatureBoundary: React.FC<FeatureBoundaryProps> = ({ children, name
       resetKeys={[pathname]}
       onError={(err, info) => {
         // In production this is where you'd forward to Sentry / analytics
-        console.error(`[FeatureBoundary:${name}]`, err, info);
+        logger.error('FeatureBoundary', `Error in feature: ${name}`, err);
       }}
     >
       <Suspense fallback={<PageLoader />}>

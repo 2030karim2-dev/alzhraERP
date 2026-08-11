@@ -1,6 +1,8 @@
 // Refactored for type safety
 import { supabase } from '../../../lib/supabaseClient';
 import { parseError } from '../../../core/utils/errorUtils';
+import { safeDecimal, SOX_BALANCE_TOLERANCE } from '../../../core/utils/decimalUtils';
+import { logger } from '../../../core/utils/logger';
 
 
 export const journalsApi = {
@@ -54,11 +56,12 @@ export const journalsApi = {
     }>;
     branchId?: string | null;
   }) => {
-    // 1. Calculate and validate balance
-    const totalDebit = data.lines.reduce((sum: number, l) => sum + (Number(l.debit) || 0), 0);
-    const totalCredit = data.lines.reduce((sum: number, l) => sum + (Number(l.credit) || 0), 0);
+    // 1. Calculate and validate balance using Decimal-safe arithmetic
+    const totalDebit = data.lines.reduce((sum: number, l) => sum + safeDecimal(l.debit).toNumber(), 0);
+    const totalCredit = data.lines.reduce((sum: number, l) => sum + safeDecimal(l.credit).toNumber(), 0);
+    const imbalance = Math.abs(totalDebit - totalCredit);
 
-    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+    if (imbalance > SOX_BALANCE_TOLERANCE.toNumber()) {
       throw parseError(`القيد غير متوازن: مدين ${totalDebit.toFixed(2)} ≠ دائن ${totalCredit.toFixed(2)}`);
     }
 
@@ -71,18 +74,18 @@ export const journalsApi = {
       p_description: data.description,
       p_reference_type: data.reference_type || 'manual',
       p_currency_code: data.currency_code || 'SAR',
-      p_exchange_rate: Number(data.exchange_rate) || 1,
+      p_exchange_rate: safeDecimal(data.exchange_rate ?? 1).toNumber(),
       p_lines: data.lines.map(l => ({
         account_id: l.account_id,
         party_id: l.party_id || null,
-        debit: Number(l.debit) || 0,
-        credit: Number(l.credit) || 0,
+        debit: safeDecimal(l.debit).toNumber(),
+        credit: safeDecimal(l.credit).toNumber(),
         description: l.description || null
       }))
     });
 
     if (error) {
-      console.error('Error in post_manual_journal RPC:', error);
+      logger.error('journalsApi', 'Error in post_manual_journal RPC', error);
       throw parseError(error);
     }
 

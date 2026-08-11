@@ -3,6 +3,7 @@ import { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
 import { useFeedbackStore } from '../feedback/store';
 import { convertCurrency } from '../../core/utils/currencyUtils';
+import { logger } from '../../core/utils/logger';
 
 /**
  * SalesCartItem - Used for the sales cart/UI state
@@ -134,7 +135,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
         } catch (e) {
           // [FIX #2] لن نصل هنا نظرياً بعد التحقق أعلاه، لكن نحتفظ بـ safety net
-          console.error('SalesStore: Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
+          logger.error('SalesStore', 'Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
           useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
           return state; // Don't update if rate is invalid
         }
@@ -192,7 +193,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
         try {
           convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
         } catch (e) {
-          console.error('SalesStore: Invalid exchange rate for addProductToCart', { rate, currency: state.currency });
+          logger.error('SalesStore', 'Invalid exchange rate for addProductToCart', { rate, currency: state.currency });
           useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
           return state;
         }
@@ -272,7 +273,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
             const newPrice = convertCurrency(item.basePrice, rate, 'fromBase');
             return { ...item, price: newPrice };
           } catch (e) {
-            console.error('SalesStore: Invalid rate in setMetadata', { rate, currency: newState.currency });
+            logger.error('SalesStore', 'Invalid rate in setMetadata', { rate, currency: newState.currency });
             return item;
           }
         });

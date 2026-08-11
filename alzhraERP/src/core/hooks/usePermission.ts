@@ -11,6 +11,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuthStore } from '../../auth/store';
+import { logger } from '../utils/logger';
 
 const PERMISSION_STALE_TIME = 5 * 60 * 1000; // 5 دقائق
 
@@ -24,7 +25,7 @@ export function usePermission(permission: string) {
             const { data, error: rpcError } = await supabase
                 .rpc('has_permission', { p_permission: permission });
             if (rpcError) {
-                console.warn(`[usePermission] RPC error for "${permission}":`, rpcError.message);
+                logger.warn('usePermission', `RPC error for "${permission}"`, rpcError.message);
                 return false;
             }
             return (data as boolean) ?? false;
@@ -55,7 +56,7 @@ export function useAllPermissions() {
             const { data: perms, error } = await supabase
                 .rpc('get_user_permissions');
             if (error) {
-                console.warn('[useAllPermissions] RPC error:', error.message);
+                logger.warn('useAllPermissions', 'RPC error', error.message);
                 return [];
             }
             return (perms as { permission: string }[])?.map(p => p.permission) ?? [];
