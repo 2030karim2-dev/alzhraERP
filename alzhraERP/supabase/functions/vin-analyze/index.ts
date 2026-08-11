@@ -112,7 +112,18 @@ serve(async (req: Request) => {
       { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } });
     const sa = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
+    // ---- AUTH DIAGNOSTICS ----
+    const authHeader = req.headers.get("Authorization") ?? "MISSING";
+    console.error("[vin-analyze] Auth header present:", authHeader !== "MISSING");
+    console.error("[vin-analyze] Auth header preview:", authHeader.substring(0, 30) + "...");
+    console.error("[vin-analyze] Step:", step);
+    console.error("[vin-analyze] Has rawVin:", !!rawVin);
+
     const { data: auth, error: ae } = await su.auth.getUser();
+    if (ae) {
+      console.error("[vin-analyze] getUser() ERROR:", JSON.stringify({ message: ae.message, status: ae.status, name: ae.name }));
+    }
+    console.error("[vin-analyze] getUser() result:", JSON.stringify({ hasUser: !!auth?.user, userId: auth?.user?.id?.substring(0, 8) + "..." }));
     if (ae || !auth?.user) {
       return new Response(JSON.stringify({ status: "UNAUTHENTICATED", vin: null, vehicle: null, parts: [],
         errorDetail: ae?.message || "Unknown auth error" }),
@@ -245,3 +256,4 @@ serve(async (req: Request) => {
       { status: 500, headers: { ...cors(req), "Content-Type": "application/json" } });
   }
 });
+
