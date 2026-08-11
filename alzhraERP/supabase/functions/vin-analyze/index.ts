@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('SITE_URL') || Deno.env.get('SUPABASE_URL') || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
-};
+// Allowed origins — explicitly listed to satisfy CORS preflight.
+// SITE_URL env var can be set to override / add origins.
+const ALLOWED_ORIGINS = [
+  'https://alzhra-erp.vercel.app',
+  Deno.env.get('SITE_URL'),
+  Deno.env.get('SUPABASE_URL'),
+].filter(Boolean) as string[];
+
+/** Build CORS headers by echoing the request origin if allowed, otherwise fall back to the first allowed origin */
+function buildCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin') || '';
+  const allowed = ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith('http://localhost'));
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : (ALLOWED_ORIGINS[0] || '*'),
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
+  };
+}
 
 // ---- VIN Validation (server-side, no I/O/Q) ----
 function validateVin(input: string | null | undefined) {
@@ -57,7 +70,7 @@ async function decodeVinNhtsa(vin: string) {
 
 // ---- Main Handler ----
 serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: buildCorsHeaders(req) });
   const startTime = Date.now();
 
   try {
@@ -92,7 +105,7 @@ serve(async (req: Request) => {
         errorCode: authError?.status || 0,
         errorName: authError?.name || 'UnknownError',
       }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        status: 401, headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' }
       });
     }
     const userId = authData.user.id;
@@ -107,7 +120,7 @@ serve(async (req: Request) => {
       rawVin = body?.vin;
     } catch {
       return new Response(JSON.stringify({ status: 'INVALID_REQUEST', vin: null, vehicle: null, parts: [] }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        status: 400, headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' }
       });
     }
 
@@ -116,7 +129,7 @@ serve(async (req: Request) => {
     if (!validation.isValid) {
       return new Response(JSON.stringify({
         status: 'INVALID_VIN', vin: rawVin, vehicle: null, parts: [], error: validation.error,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' } });
     }
     const vin = validation.normalizedVin;
 
@@ -131,7 +144,7 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({
         status: decodeResult.status, vin, vehicle: null, parts: [],
         errorDetail: decodeResult.errorDetail,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' } });
     }
     const dv = decodeResult.vehicle;
 
@@ -235,12 +248,12 @@ serve(async (req: Request) => {
       },
       parts: partsResults,
       meta: { partsFound, inStockCount, elapsedMs: Date.now() - startTime, provider: 'NHTSA_vPIC', vehicleIsNew },
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }), { headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' } });
 
   } catch (error: any) {
     console.error('[vin-analyze] Error:', error.message);
     return new Response(JSON.stringify({ status: 'INTERNAL_ERROR', vin: null, vehicle: null, parts: [] }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      status: 500, headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' }
     });
   }
 });
