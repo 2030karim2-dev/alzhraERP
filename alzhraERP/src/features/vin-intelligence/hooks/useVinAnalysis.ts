@@ -250,8 +250,16 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
           // 🔄 Attempt silent session refresh — clock skew or stale token may
           // cause a transient 401 even though the user is still authenticated.
           try {
-            const { data: refreshed } = await supabase.auth.refreshSession();
+            const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+            if (refreshErr) {
+              console.warn('[useVinAnalysis] refreshSession failed:', refreshErr.message);
+            }
             if (refreshed?.session) {
+              // Explicitly set the refreshed session to ensure the client uses it
+              await supabase.auth.setSession({
+                access_token: refreshed.session.access_token,
+                refresh_token: refreshed.session.refresh_token,
+              });
               // Retry once with the fresh token
               const { data: retryData, error: retryError } = await supabase.functions.invoke('vin-analyze', {
                 body: { vin: normalized },
@@ -263,8 +271,13 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
                 setIsAnalyzing(false);
                 return;
               }
-              // Refresh succeeded but retry still failed — fall through to error
-              console.warn('[useVinAnalysis] Session refreshed but retry failed:', retryError);
+              // Refresh succeeded but retry still failed — log Edge Function error details
+              console.warn('[useVinAnalysis] Session refreshed but retry failed:', {
+                retryError: (retryError as any)?.message || String(retryError),
+                edgeErrorDetail: retryData?.errorDetail,
+                edgeErrorCode: retryData?.errorCode,
+                edgeErrorName: retryData?.errorName,
+              });
             }
           } catch (_) { /* refresh failed — fall through to error message */ }
           setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لاستخدام ذكاء VIN.');

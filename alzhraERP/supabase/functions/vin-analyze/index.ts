@@ -73,7 +73,25 @@ serve(async (req: Request) => {
 
     const { data: authData, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !authData?.user) {
-      return new Response(JSON.stringify({ status: 'UNAUTHENTICATED', vin: null, vehicle: null, parts: [] }), {
+      // 🔍 Detailed auth failure logging for diagnosis (clock skew, invalid key, etc.)
+      const authHeader = req.headers.get('Authorization') ?? '';
+      const tokenPreview = authHeader.startsWith('Bearer ') ? authHeader.slice(7, 27) + '...' : 'NONE';
+      console.error('[vin-analyze] Auth failed:', {
+        message: authError?.message,
+        status: authError?.status,
+        name: authError?.name,
+        hasToken: authHeader.startsWith('Bearer '),
+        tokenPreview,
+      });
+      return new Response(JSON.stringify({ 
+        status: 'UNAUTHENTICATED', 
+        vin: null, 
+        vehicle: null, 
+        parts: [],
+        errorDetail: authError?.message || 'Unknown auth error',
+        errorCode: authError?.status || 0,
+        errorName: authError?.name || 'UnknownError',
+      }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
