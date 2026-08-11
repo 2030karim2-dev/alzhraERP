@@ -24,13 +24,14 @@ export interface VehicleConfiguration {
   engineCode?: string;
   engineSize?: string;
   cylinderCount?: number;
-  // Widened to accept real NHTSA values (e.g. "Flexible Fuel Vehicle (FFV)", "US/NHTSA")
   fuelType?: string;
   transmission?: string;
   driveType?: string;
   market?: string;
   bodyType?: string;
   cabType?: string;
+  isManualEntry?: boolean;
+  manualNote?: string;
 }
 
 
@@ -74,6 +75,8 @@ export interface VehicleCorePart {
   demandLevel?: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
   salesCount?: number;
   vehicleMatches?: number;
+  isManualEntry?: boolean;
+  manualPartNumber?: string;
 }
 
 // ============================================================
@@ -105,6 +108,9 @@ export interface DemandInsight {
   isCorePart: boolean;
   isFastMoving: boolean;
   recommendedStock?: number;
+  predictedShortageDate?: string;
+  predictedDemandScore: number;
+  isManualPrediction?: boolean;
 }
 
 // ============================================================

@@ -14,6 +14,9 @@ import VINHistory from '../components/VINHistory';
 import VinAIInsights from '../components/VinAIInsights';
 import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import VinTabsBar from '../components/VinTabsBar';
+import ManualEntryForm from '../components/ManualEntryForm';
+import PredictiveProcurement from '../components/PredictiveProcurement';
+import { analyzeProcurementNeeds } from '../services/procurementEngine';
 import { useVinTabs, type TabStep } from '../hooks/useVinTabs';
 import { useVinHistory } from '../hooks/useVinHistory';
 import { useVinAI } from '../hooks/useVinAI';
@@ -251,9 +254,30 @@ const VINPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.vehicle?.make]);
 
+  const [showManualVehicle, setShowManualVehicle] = useState(false);
+  const [showManualPart, setShowManualPart] = useState(false);
+
   const handleAnalyze = useCallback(async (vin: string) => { await runAllSteps(vin); }, [runAllSteps]);
   const handleSelectRecent = useCallback((vin: string) => { handleAnalyze(vin); }, [handleAnalyze]);
   const handlePartClick = useCallback((part: VehicleCorePart) => { setSelectedPart(part); }, []);
+
+  const handleManualVehicleSave = (vehicleData: any) => {
+    // Manually update the accumulated data
+    data.vehicle = vehicleData;
+    setActiveTab(2); // Jump to analysis
+    setShowManualVehicle(false);
+  };
+
+  const handleManualPartSave = (partData: any) => {
+    const newPart: VehicleCorePart = {
+      id: 'manual-' + Date.now(),
+      ...partData,
+      inventoryMatches: [],
+      fitmentStatus: 'VERIFIED'
+    };
+    data.coreParts = [newPart, ...data.coreParts];
+    setShowManualPart(false);
+  };
 
   const retryRef = useRef(retryStep);
   retryRef.current = retryStep;
@@ -288,6 +312,10 @@ const VINPage: React.FC = () => {
     inventoryMatches: data.inventoryMatches.length,
     unknownFitments: data.coreParts.filter(p => p.fitmentStatus === 'UNKNOWN').length,
   }), [vinsAnalyzedCount, vehicleCount, data]);
+
+  const procurementRecs = useMemo(() => {
+    return analyzeProcurementNeeds(data.coreParts, data.inventoryMatches, data.demandInsights);
+  }, [data.coreParts, data.inventoryMatches, data.demandInsights]);
 
   const hasData = !!data.vehicle;
   const activeStep = tabs[activeTab]?.id;
@@ -355,9 +383,46 @@ const VINPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
-              <VinTabsBar tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
+              {activeTab === 6 && procurementRecs.length > 0 && (
+                <PredictiveProcurement recommendations={procurementRecs} />
+              )}
               
-              <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-3xl p-4 sm:p-8 shadow-2xl shadow-gray-200/10 dark:shadow-none min-h-[500px]">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <VinTabsBar tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
+                <div className="flex gap-2">
+                  {activeTab === 1 && (
+                    <button 
+                      onClick={() => setShowManualVehicle(true)}
+                      className="bg-blue-600 text-white text-[10px] font-black px-4 py-2 rounded-none hover:bg-blue-700 transition-all uppercase tracking-widest shadow-lg shadow-blue-500/20"
+                    >
+                      إدخال يدوي
+                    </button>
+                  )}
+                  {activeTab === 3 && (
+                    <button 
+                      onClick={() => setShowManualPart(true)}
+                      className="bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-none hover:bg-emerald-700 transition-all uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                    >
+                      إضافة قطعة
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {showManualVehicle && (
+                  <div className="max-w-md mx-auto w-full">
+                    <ManualEntryForm type="vehicle" onSave={handleManualVehicleSave} onCancel={() => setShowManualVehicle(false)} />
+                  </div>
+                )}
+                {showManualPart && (
+                  <div className="max-w-md mx-auto w-full">
+                    <ManualEntryForm type="part" onSave={handleManualPartSave} onCancel={() => setShowManualPart(false)} />
+                  </div>
+                )}
+              </AnimatePresence>
+              
+              <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-none p-4 sm:p-8 shadow-2xl shadow-gray-200/10 dark:shadow-none min-h-[500px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeStep}
