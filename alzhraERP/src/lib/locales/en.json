@@ -412,6 +412,7 @@
     "vin_tab_parts": "Parts",
     "vin_tab_market": "Market AI",
     "vin_tab_history": "History",
+    "vin_tab_nav": "Vehicle Analysis Sections",
     "vin_no_analysis_yet": "No Analysis Yet",
     "vin_enter_vin_to_start": "Enter a VIN in the search bar above to start analysis",
     "vin_no_parts_yet": "No Parts Displayed",

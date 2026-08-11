@@ -4,7 +4,6 @@ import { Car, RotateCcw, LayoutDashboard, Wrench, Sparkles, Clock } from 'lucide
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import VINSearch from '../components/VINSearch';
 import AnalysisProgress from '../components/AnalysisProgress';
-import DashboardSummary from '../components/DashboardSummary';
 import ExplainabilityDrawer from '../components/ExplainabilityDrawer';
 import DashboardTab from './tabs/DashboardTab';
 import PartsTab from './tabs/PartsTab';
@@ -97,6 +96,8 @@ const VINPage: React.FC = () => {
         )}
       </div>
 
+      {hasResult && <DashboardSummary metrics={metrics} />}
+
       <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm p-3">
         <VINSearch
           onAnalyze={handleAnalyze}
@@ -124,13 +125,29 @@ const VINPage: React.FC = () => {
       )}
 
       {hasResult && (
-        <div className="flex gap-1 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-1 overflow-x-auto">
-          {TABS.map(tab => {
+        <div role="tablist" aria-label={t('vin_tab_nav')} className="flex gap-1 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-1 overflow-x-auto">
+          {TABS.map((tab, idx) => {
             const isActive = activeTab === tab.id;
+            const handleKey = (e: React.KeyboardEvent) => {
+              const n = TABS.length; let next = idx;
+              if (e.key === 'ArrowRight') next = (idx + 1) % n;
+              else if (e.key === 'ArrowLeft') next = (idx - 1 + n) % n;
+              else if (e.key === 'Home') next = 0;
+              else if (e.key === 'End') next = n - 1;
+              else return;
+              e.preventDefault();
+              setActiveTab(TABS[next].id);
+            };
             return (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`vin-tabpanel-${tab.id}`}
+                tabIndex={isActive ? 0 : -1}
+                title={t(tab.labelKey)}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={handleKey}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
