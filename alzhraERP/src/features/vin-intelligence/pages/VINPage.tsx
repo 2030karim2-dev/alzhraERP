@@ -293,35 +293,83 @@ const VINPage: React.FC = () => {
   const activeStep = tabs[activeTab]?.id;
 
   return (
-    <div className="flex flex-col h-full bg-[var(--app-bg)]">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950">
       <MicroHeader title={t('vin_intelligence')} subtitle={t('vin_subtitle')} icon={Car}
-        actions={<button onClick={reset} className="text-[10px] font-bold text-[var(--app-text-secondary)] hover:text-[var(--app-text)] flex items-center gap-1"><RotateCcw size={12} /> {t('vin_reset')}</button>} />
-
-      <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-3">
-        <DashboardSummary metrics={metrics} />
-        <VINSearch onAnalyze={handleAnalyze} isAnalyzing={isAnyLoading} recentVins={history.map(h => h.vin)} onSelectRecent={handleSelectRecent} />
-
-        {hasData && (
-          <>
-            <VinTabsBar tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
-            <div className="space-y-3">
-              <TabContent key={data.vin} tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} error={tabs[activeTab]?.error || null} />
-              {tabs[activeTab]?.status === 'error' && (
-                <div className="flex justify-center">
-                  <button onClick={() => retryStep(activeStep as TabStep)} className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all"><RotateCcw size={12} /> {t('vin_retry')}</button>
-                </div>
-              )}
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-full">
+              <ShieldCheck size={12} className="text-emerald-600" />
+              <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-tighter">Secure Engine Active</span>
             </div>
-          </>
-        )}
-
-        {isAnyLoading && !hasData && (
-          <div className="max-w-md mx-auto w-full">
-            <AnalysisProgress tabs={tabs} />
+            <button onClick={reset} className="p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-gray-500 hover:text-blue-600 transition-all shadow-sm active:scale-95">
+              <RotateCcw size={18} />
+            </button>
           </div>
+        }
+      />
+
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 pb-24 space-y-6">
+        <DashboardSummary metrics={metrics} />
+        
+        <div className="max-w-3xl mx-auto w-full">
+          <VINSearch onAnalyze={handleAnalyze} isAnalyzing={isAnyLoading} recentVins={history.map(h => h.vin)} onSelectRecent={handleSelectRecent} />
+        </div>
+
+        {!hasData && !isAnyLoading && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <EmptyState onSelect={handleSelectRecent} history={history} />
+          </motion.div>
         )}
 
-        {!hasData && !isAnyLoading && <EmptyState onSelect={handleSelectRecent} history={history} />}
+        <AnimatePresence mode="wait">
+          {isAnyLoading && !hasData && (
+            <motion.div 
+              key="progress"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="max-w-md mx-auto w-full"
+            >
+              <AnalysisProgress tabs={tabs} />
+            </motion.div>
+          )}
+
+          {hasData && (
+            <motion.div 
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <VinTabsBar tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
+              
+              <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-3xl p-4 sm:p-8 shadow-2xl shadow-gray-200/10 dark:shadow-none min-h-[500px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeStep}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <TabContent tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} error={tabs[activeTab]?.error || null} />
+                    
+                    {tabs[activeTab]?.status === 'error' && (
+                      <div className="mt-8 flex justify-center">
+                        <button 
+                          onClick={() => retryStep(activeStep as TabStep)} 
+                          className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-black px-6 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-rose-500/30 active:scale-95"
+                        >
+                          <RotateCcw size={16} /> إعادة المحاولة
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {selectedPart && hasData && (

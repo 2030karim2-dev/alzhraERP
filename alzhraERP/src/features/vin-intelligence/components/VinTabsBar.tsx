@@ -27,8 +27,8 @@ const STATUS_BG: Record<TabStatus, string> = {
 
 const VinTabsBar: React.FC<VinTabsBarProps> = ({ tabs, activeTab, onTabClick }) => {
   return (
-    <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl shadow-sm overflow-x-auto">
-      <div className="flex min-w-max p-1 gap-1">
+    <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl shadow-xl shadow-gray-200/10 dark:shadow-none overflow-x-auto no-scrollbar">
+      <div className="flex min-w-max p-1.5 gap-1.5">
         {tabs.map((tab, idx) => {
           const isActive = idx === activeTab;
           const isLocked = tab.status === 'locked';
@@ -40,17 +40,21 @@ const VinTabsBar: React.FC<VinTabsBarProps> = ({ tabs, activeTab, onTabClick }) 
               onClick={() => !isLocked && onTabClick(idx)}
               disabled={isLocked}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap',
+                'relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-black transition-all whitespace-nowrap overflow-hidden',
                 isActive
-                  ? 'bg-[var(--app-bg)] text-[var(--app-text)] shadow-sm ring-1 ring-[var(--app-border)]'
-                  : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]',
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
+                  : 'text-gray-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60',
                 isError && !isActive && 'text-rose-600',
-                STATUS_BG[tab.status],
-                isLocked && 'cursor-not-allowed'
+                isLocked && 'opacity-40 cursor-not-allowed grayscale'
               )}
             >
-              <span className="shrink-0">{STATUS_ICON[tab.status]}</span>
-              <span className="truncate max-w-[120px]">{tab.label}</span>
+              <span className={cn("shrink-0 transition-transform", isActive && "scale-110")}>
+                {isActive ? <div className="w-2 h-2 bg-white rounded-full animate-pulse" /> : STATUS_ICON[tab.status]}
+              </span>
+              <span className="truncate max-w-[140px] uppercase tracking-tight">{tab.label}</span>
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
+              )}
             </button>
           );
         })}

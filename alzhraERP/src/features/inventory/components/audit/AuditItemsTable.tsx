@@ -90,17 +90,24 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                         : (isCounted ? "hover:bg-gray-50/50 dark:hover:bg-slate-800/30" : "")
                                 )}>
                                     <td className="p-2 sm:p-3 text-center font-mono text-gray-400 border-l dark:border-slate-800 text-[9px] sm:text-[10px]">{index + 1}</td>
-                                    <td className="p-2 sm:p-3 border-l dark:border-slate-800">
+                                    <td className="p-2 sm:p-3 border-l dark:border-slate-800 max-w-[140px] sm:max-w-none">
                                         <div className="flex items-center gap-1.5 sm:gap-2">
                                             {isCounted
-                                                ? <CheckCircle2 size={10} className="text-emerald-500 shrink-0 sm:w-3 sm:h-3" />
-                                                : <Clock size={10} className="text-amber-400 shrink-0 animate-pulse sm:w-3 sm:h-3" />
+                                                ? <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                                                : <Clock size={10} className="text-amber-400 shrink-0 animate-pulse" />
                                             }
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-gray-900 dark:text-slate-100 truncate text-[10px] sm:text-xs">{product?.name_ar || product?.name}</p>
-                                                {product?.brand && (
-                                                    <span className="text-[8px] sm:text-[9px] font-bold text-blue-500 block leading-none">{product.brand}</span>
-                                                )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-black text-gray-900 dark:text-slate-100 truncate text-[10px] sm:text-xs leading-tight">{product?.name_ar || product?.name}</p>
+                                                <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                                    {product?.part_number && (
+                                                        <span className="text-[7px] sm:hidden font-mono font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 px-1 rounded uppercase tracking-tighter">
+                                                            #{product.part_number}
+                                                        </span>
+                                                    )}
+                                                    {product?.brand && (
+                                                        <span className="text-[7px] sm:text-[9px] font-bold text-blue-500 uppercase">{product.brand}</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
