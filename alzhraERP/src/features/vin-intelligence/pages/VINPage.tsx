@@ -322,15 +322,29 @@ const VINPage: React.FC = () => {
         )}
 
         <AnimatePresence mode="wait">
-          {isAnyLoading && !hasData && (
+          {/* Show progress if loading OR if we have an error in the first few steps before data is loaded */}
+          {(isAnyLoading || (tabs[0].status === 'error' || tabs[1].status === 'error')) && !hasData && (
             <motion.div 
               key="progress"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="max-w-md mx-auto w-full"
+              className="max-w-md mx-auto w-full space-y-4"
             >
               <AnalysisProgress tabs={tabs} />
+              {tabs.find(t => t.status === 'error') && (
+                <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 p-4 rounded-2xl text-center">
+                  <p className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-3">
+                    {tabs.find(t => t.status === 'error')?.error || 'فشلت عملية التحليل'}
+                  </p>
+                  <button 
+                    onClick={() => retryStep(tabs.find(t => t.status === 'error')!.id)}
+                    className="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-lg shadow-rose-500/20 active:scale-95"
+                  >
+                    إعادة المحاولة
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 

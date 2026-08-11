@@ -113,19 +113,22 @@ export function useVinTabs(): UseVinTabsReturn {
   }, []);
 
   // runStep reads from dataRef — always latest, no stale closure
-  const runStep = useCallback(async (step: TabStep) => {
+  const runStep = useCallback(async (step: TabStep, inputVin?: string) => {
     updateTab(step, { status: 'loading', error: null });
     try {
-      const d = dataRef.current; let r: any;
+      const d = dataRef.current; 
+      const currentVin = inputVin || d.normalizedVin;
+      let r: any;
+
       switch (step) {
         case 'validate':
-          if (!d.normalizedVin) throw new Error('الرجاء إدخال VIN.'); 
-          r = await invoke('validate', { vin: d.normalizedVin });
-          setAccData(p => ({ ...p, vin: r.vin }));
+          if (!currentVin) throw new Error('الرجاء إدخال VIN.'); 
+          r = await invoke('validate', { vin: currentVin });
+          setAccData(p => ({ ...p, vin: r.vin, normalizedVin: currentVin }));
           break;
         case 'identify':
-          if (!d.normalizedVin) throw new Error('يجب التحقق من VIN أولاً.');
-          r = await invoke('identify', { vin: d.normalizedVin });
+          if (!currentVin) throw new Error('يجب التحقق من VIN أولاً.');
+          r = await invoke('identify', { vin: currentVin });
           setAccData(p => ({ ...p, vehicle: r.vehicle }));
           break;
         case 'analyze':
@@ -168,11 +171,16 @@ export function useVinTabs(): UseVinTabsReturn {
   }, [invoke, updateTab]);
 
   const runAllSteps = useCallback(async (vin: string) => {
-    const n = (vin || '').replace(/[\s\-]/g, '').toUpperCase(); if (!n) return;
+    const n = (vin || '').replace(/[\s\-]/g, '').toUpperCase(); 
+    if (!n) return;
+    
+    // Reset state for new analysis
     setAccData({ ...EMPTY_DATA, vin, normalizedVin: n });
     setTabs(TAB_DEFS.map((t, i) => ({ ...t, status: i === 0 ? 'idle' : 'locked', error: null })));
     setActiveTab(0);
-    await runStep('validate');
+    
+    // Pass 'n' directly to runStep to avoid stale closure/state issues
+    await runStep('validate', n);
   }, [runStep]);
 
   const retryStep = useCallback(async (step: TabStep) => { await runStep(step); }, [runStep]);
