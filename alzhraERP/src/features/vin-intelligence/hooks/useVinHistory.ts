@@ -5,21 +5,39 @@ import { supabase } from '../../../lib/supabaseClient';
 export function useVinHistory() {
   const [history, setHistory] = useState<VinHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session?.user?.id) return;
+      setError(null);
 
-      const { data, error } = await supabase
+      // 🔒 Verify active session before querying
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user?.id) {
+        // Try silent refresh — session may have expired since last check
+        try {
+          const { data: refreshed } = await supabase.auth.refreshSession();
+          if (refreshed?.session?.user?.id) {
+            sessionData!.session = refreshed.session;
+          } else {
+            setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لعرض سجل التحليل.');
+            return;
+          }
+        } catch (_) {
+          setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لعرض سجل التحليل.');
+          return;
+        }
+      }
+
+      const { data, error: dbError } = await supabase
         .from('vin_analysis_history')
         .select('vin, make, model, year, analyzed_at, result_summary')
-        .eq('user_id', sessionData.session.user.id)
+        .eq('user_id', sessionData!.session!.user.id)
         .order('analyzed_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       setHistory((data || []).map(row => ({
         vin: row.vin,
@@ -31,6 +49,7 @@ export function useVinHistory() {
       })));
     } catch (err) {
       console.error('Failed to load VIN history from DB:', err);
+      setError('فشل تحميل سجل التحليل. حاول مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -46,6 +65,7 @@ export function useVinHistory() {
       const updated = [entry, ...prev.filter(h => h.vin !== entry.vin)].slice(0, 20);
       return updated;
     });
+    setError(null); // Clear any stale error on new analysis
   }, []); // Remove setTimeout dependency — auth writes happen server-side
 
   const clearHistory = useCallback(async () => {
@@ -62,5 +82,5 @@ export function useVinHistory() {
     }
   }, []);
 
-  return { history, addToHistory, clearHistory, loading, hydrated: true };
+  return { history, addToHistory, clearHistory, loading, error, hydrated: true };
 }

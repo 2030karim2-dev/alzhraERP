@@ -23,7 +23,7 @@ import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPa
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
   const { result, isAnalyzing, error, steps, analyzeVin, reset } = useVinAnalysis();
-  const { history, addToHistory } = useVinHistory();
+  const { history, addToHistory, error: historyError } = useVinHistory();
   const { aiInsight, isAnalyzingAI, aiError, runAIAnalysis } = useVinAI();
   const { vehicleCount, vinsAnalyzedCount, refreshCounts } = useVinCounts();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
@@ -107,6 +107,12 @@ const VINPage: React.FC = () => {
         {error && (
           <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
             <p className="text-[10px] font-bold text-rose-600">{error}</p>
+          </div>
+        )}
+
+        {historyError && (
+          <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
+            <p className="text-[10px] font-bold text-rose-600">{historyError}</p>
           </div>
         )}
 

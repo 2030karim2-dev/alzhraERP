@@ -131,6 +131,72 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
     resetSteps();
 
     try {
+      // Helper: processes a successful Edge Function response and sets all UI state.
+      // Extracted so the retry-after-refresh path can reuse the same logic.
+      const processSuccessResponse = async (responseData: any) => {
+        markStep(1, 'COMPLETE');
+        markStep(2, 'COMPLETE');
+
+        // Steps 3–6: sequenced with yieldToUI for visual progress
+        markStep(3, 'IN_PROGRESS'); await yieldToUI();
+        const parts = mapParts(responseData.parts);
+        markStep(3, 'COMPLETE'); await yieldToUI();
+
+        markStep(4, 'IN_PROGRESS'); await yieldToUI();
+        const inventoryMatches = parts
+          .filter(p => p.inventoryMatches.length > 0)
+          .flatMap(p => p.inventoryMatches);
+        markStep(4, 'COMPLETE'); await yieldToUI();
+
+        markStep(5, 'IN_PROGRESS'); await yieldToUI();
+        const missingParts = parts.filter(
+          p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'
+        );
+        markStep(5, 'COMPLETE'); await yieldToUI();
+
+        markStep(6, 'IN_PROGRESS'); await yieldToUI();
+        const demandInsights = parts
+          .filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM')
+          .map(p => ({
+            partId:          p.id,
+            partName:        p.canonicalPartName,
+            demandLevel:     p.demandLevel as 'HIGH' | 'MEDIUM' | 'LOW',
+            salesCount:      p.salesCount ?? 0,
+            vehicleMatches:  p.vehicleMatches ?? 0,
+            isCorePart:      true,
+            isFastMoving:    (p.salesCount ?? 0) > 300,
+            recommendedStock: undefined,
+          }));
+        markStep(6, 'COMPLETE');
+
+        const v = responseData.vehicle;
+        setResult({
+          vin: responseData.vin,
+          vehicle: {
+            vin:          v.vin,
+            make:         v.make,
+            model:        v.model,
+            year:         v.year,
+            engineSize:   v.engineSize ?? undefined,
+            cylinderCount: v.cylinderCount ?? undefined,
+            fuelType:     v.fuelType ?? undefined,
+            transmission: v.transmission ?? undefined,
+            driveType:    v.driveType ?? undefined,
+            bodyType:     v.bodyType ?? undefined,
+            market:       v.market ?? undefined,
+          },
+          coreParts: parts,
+          inventoryMatches,
+          missingParts,
+          demandInsights,
+          analysisTimestamp: new Date().toISOString(),
+          analysisStatus: 'COMPLETE',
+          warnings: responseData.meta?.vehicleIsNew
+            ? ['تمت إضافة المركبة إلى قاعدة المعرفة من بيانات المزوّد.']
+            : undefined,
+        });
+      };
+
       // Step 0: Validating (client-side pre-check before network call)
       markStep(0, 'IN_PROGRESS');
       const normalized = (vin || '').replace(/[\s\-]/g, '').toUpperCase();
@@ -147,6 +213,18 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       // Step 1: Decoding (send to Edge Function — real NHTSA call happens here)
       markStep(1, 'IN_PROGRESS');
       markStep(2, 'IN_PROGRESS');
+
+      // 🔒 Verify active session before invoking Edge Function
+      // Prevents 401 errors from expired/stale tokens caused by clock skew
+      // or race conditions between auto-refresh and the function call.
+      const { data: sessionResult } = await supabase.auth.getSession();
+      if (!sessionResult?.session) {
+        markStep(1, 'ERROR');
+        markStep(2, 'ERROR');
+        setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لاستخدام ذكاء VIN.');
+        setIsAnalyzing(false);
+        return;
+      }
 
       const { data, error: fnError } = await supabase.functions.invoke('vin-analyze', {
         body: { vin: normalized },
@@ -169,6 +247,26 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
         if (errName === 'FunctionsFetchError' && errMsg.includes('Failed to send')) {
           setError('تعذر الاتصال بخدمة التحليل. قد لا تكون دالة Edge منشورة أو Supabase غير قابل للوصول. تحقق من اتصال الشبكة.');
         } else if (errStatus === 401 || errMsg.includes('Unauthorized') || errMsg.includes('UNAUTHENTICATED')) {
+          // 🔄 Attempt silent session refresh — clock skew or stale token may
+          // cause a transient 401 even though the user is still authenticated.
+          try {
+            const { data: refreshed } = await supabase.auth.refreshSession();
+            if (refreshed?.session) {
+              // Retry once with the fresh token
+              const { data: retryData, error: retryError } = await supabase.functions.invoke('vin-analyze', {
+                body: { vin: normalized },
+                signal: controller.signal,
+              });
+              if (!retryError && retryData?.status === 'SUCCESS' && retryData?.vehicle) {
+                // ✅ Retry succeeded — process and return early
+                await processSuccessResponse(retryData);
+                setIsAnalyzing(false);
+                return;
+              }
+              // Refresh succeeded but retry still failed — fall through to error
+              console.warn('[useVinAnalysis] Session refreshed but retry failed:', retryError);
+            }
+          } catch (_) { /* refresh failed — fall through to error message */ }
           setError('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى لاستخدام ذكاء VIN.');
         } else if (errStatus === 404) {
           setError('خدمة تحليل VIN غير موجودة (404). يجب نشر دالة vin-analyze.');
@@ -207,65 +305,7 @@ export function useVinAnalysis(): UseVinAnalysisReturn {
       markStep(1, 'COMPLETE');
       markStep(2, 'COMPLETE');
 
-      // Steps 3–6: sequenced with yieldToUI for visual progress
-      markStep(3, 'IN_PROGRESS'); await yieldToUI();
-      const parts = mapParts(data.parts);
-      markStep(3, 'COMPLETE'); await yieldToUI();
-
-      markStep(4, 'IN_PROGRESS'); await yieldToUI();
-      const inventoryMatches = parts
-        .filter(p => p.inventoryMatches.length > 0)
-        .flatMap(p => p.inventoryMatches);
-      markStep(4, 'COMPLETE'); await yieldToUI();
-
-      markStep(5, 'IN_PROGRESS'); await yieldToUI();
-      const missingParts = parts.filter(
-        p => p.inventoryMatches.length === 0 && p.fitmentStatus !== 'NOT_COMPATIBLE'
-      );
-      markStep(5, 'COMPLETE'); await yieldToUI();
-
-      markStep(6, 'IN_PROGRESS'); await yieldToUI();
-      // Build demand insights from high/medium demand parts
-      const demandInsights = parts
-        .filter(p => p.demandLevel === 'HIGH' || p.demandLevel === 'MEDIUM')
-        .map(p => ({
-          partId:          p.id,
-          partName:        p.canonicalPartName,
-          demandLevel:     p.demandLevel as 'HIGH' | 'MEDIUM' | 'LOW',
-          salesCount:      p.salesCount ?? 0,
-          vehicleMatches:  p.vehicleMatches ?? 0,
-          isCorePart:      true,
-          isFastMoving:    (p.salesCount ?? 0) > 300,
-          recommendedStock: undefined,
-        }));
-      markStep(6, 'COMPLETE');
-
-      const v = data.vehicle;
-      setResult({
-        vin: data.vin,
-        vehicle: {
-          vin:          v.vin,
-          make:         v.make,
-          model:        v.model,
-          year:         v.year,
-          engineSize:   v.engineSize ?? undefined,
-          cylinderCount: v.cylinderCount ?? undefined,
-          fuelType:     v.fuelType ?? undefined,
-          transmission: v.transmission ?? undefined,
-          driveType:    v.driveType ?? undefined,
-          bodyType:     v.bodyType ?? undefined,
-          market:       v.market ?? undefined,
-        },
-        coreParts: parts,
-        inventoryMatches,
-        missingParts,
-        demandInsights,
-        analysisTimestamp: new Date().toISOString(),
-        analysisStatus: 'COMPLETE',
-        warnings: data.meta?.vehicleIsNew
-          ? ['تمت إضافة المركبة إلى قاعدة المعرفة من بيانات المزوّد.']
-          : undefined,
-      });
+      await processSuccessResponse(data);
 
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;

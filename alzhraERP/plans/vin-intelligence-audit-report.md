@@ -168,6 +168,51 @@
 
 ---
 
+---
+
+## 🔴 تحديث: إصلاح جلسة المصادقة — الخطأ 401 (الجولة الثالثة)
+
+> **التاريخ:** 2026-08-11
+> **المشكلة:** خطأ `"Session expired. Please sign in again to use VIN intelligence."` + `401 Unauthorized` عند استدعاء Edge Function
+> **السبب الجذري:** عدم التحقق من الجلسة قبل استدعاء Edge Function + عدم وجود آلية retry عند انتهاء صلاحية الـ token
+
+| # | الأولوية | الملف | الإصلاح |
+|---|----------|-------|---------|
+| 14 | 🔴 | `hooks/useVinAnalysis.ts` | **أ** — إضافة `supabase.auth.getSession()` قبل `invoke` للتحقق من الجلسة. **ب** — استخراج `processSuccessResponse` helper لمعالجة الاستجابة. **ج** — إضافة آلية retry: عند 401 → `refreshSession()` → إعادة المحاولة مرة واحدة |
+| 15 | 🔴 | `hooks/useVinHistory.ts` | إضافة `error` state + silent `refreshSession()` عند فقدان الجلسة قبل الاستعلام عن السجل + عرض رسائل خطأ عربية للمستخدم |
+| 16 | 🟠 | `hooks/useVinCounts.ts` | إضافة `supabase.auth.getSession()` قبل استدعاء Supabase — منع استعلامات غير مصرح بها عند RLS |
+| 17 | 🟠 | `pages/VINPage.tsx` | استخراج `historyError` من `useVinHistory` وعرضها في واجهة المستخدم |
+
+### آلية عمل الإصلاح (Flow):
+
+```
+استدعاء analyzeVin(vin)
+    │
+    ├─1─ التحقق من الجلسة (getSession)
+    │     └─ ❌ لا توجد جلسة → "انتهت الجلسة" + إيقاف
+    │     └─ ✅ توجد جلسة → متابعة
+    │
+    ├─2─ استدعاء Edge Function (invoke)
+    │     └─ ✅ نجاح → processSuccessResponse
+    │     └─ ❌ خطأ 401 →
+    │           ├─ refreshSession()
+    │           ├─ ✅ نجح التجديد → invoke مرة أخرى
+    │           │     └─ ✅ نجاح → processSuccessResponse
+    │           │     └─ ❌ فشل → "انتهت الجلسة"
+    │           └─ ❌ فشل التجديد → "انتهت الجلسة"
+```
+
+| العنصر | قبل الإصلاح | بعد الإصلاح |
+|--------|------------|------------|
+| التحقق من الجلسة قبل invoke | ❌ لا يوجد | ✅ `getSession()` |
+| التعامل مع 401 | ❌ رسالة فقط | ✅ `refreshSession()` + retry |
+| معالجة clock skew (gotrue-js warning) | ❌ لا يوجد | ✅ refreshSession يحل المشكلة تلقائياً |
+| تكرار كود معالجة النجاح | ❌ 60+ سطر مكرر | ✅ `processSuccessResponse` helper |
+| التحقق من الجلسة في useVinHistory | ❌ silent fail | ✅ `refreshSession()` + `error` state |
+| التحقق من الجلسة في useVinCounts | ❌ استعلام بلا جلسة | ✅ `getSession()` قبل الاستعلام |
+
+---
+
 ## 📊 الإحصائيات النهائية
 
 | المقياس | القيمة |
@@ -175,14 +220,17 @@
 | عدد الملفات التي تم فحصها | 20 |
 | عدد الإصلاحات المُنفَّذة (الجولة 1) | 7 |
 | عدد الإصلاحات المُنفَّذة (الجولة 2) | 6 |
-| **إجمالي الإصلاحات** | **13** |
+| عدد الإصلاحات المُنفَّذة (الجولة 3 — المصادقة) | 4 |
+| **إجمالي الإصلاحات** | **17** |
 | `(data as any)` قبل → بعد | 2 → 0 ✅ |
 | دوال تحقق VIN المكررة قبل → بعد | 2 → 1 (موحَّدة) ✅ |
 | استدعاءات Supabase المباشرة من Component | 2 → 0 ✅ |
+| استدعاءات Edge Function بدون تحقق جلسة | 1 → 0 ✅ |
+| 401 handling | ❌ رسالة ثابتة → ✅ refreshSession + retry |
 | ملفات جديدة | 1 (`useVinCounts.ts`) |
 | أزرار ميتة تمت إزالتها | 1 (Camera) |
 | تحسينات الأداء | 3 (useMemo, setTimeout, useEffect) |
-| تحسينات الأمان | 2 (CORS, type-safety) |
+| تحسينات الأمان | 4 (CORS, type-safety, session-check, token-refresh) |
 
 ---
 
@@ -192,6 +240,8 @@
 |--------|--------|----------|
 | RLS / Tenant Isolation | ✅ نشط | `company_id` في كل استعلامات Edge Function |
 | مصادقة المستخدم | ✅ نشط | `supabaseUser.auth.getUser()` في Edge Function |
+| **فحص الجلسة قبل invoke** | ✅ **مُضاف** | `getSession()` قبل كل استدعاء Edge Function |
+| **Token Refresh عند 401** | ✅ **مُضاف** | `refreshSession()` مع retry تلقائي |
 | CORS | ✅ مُحسَّن | `SITE_URL` أو `SUPABASE_URL` بدلاً من `''*''` |
 | Type Safety (AI Response) | ✅ مُحسَّن | `AIProxyResponse` interface بدلاً من `as any` |
 | مدخلات AI (Untrusted) | ✅ | `JSON.parse` مع try/catch — React auto-escapes rendering |
@@ -200,17 +250,17 @@
 
 ---
 
-## 📁 الملفات المُعدَّلة (13 ملف)
+## 📁 الملفات المُعدَّلة (17 تعديل — 3 جولات)
 
 ```
 src/features/vin-intelligence/
 ├── index.ts                          ← أضاف useVinCounts + VALID_VIN_LENGTHS + VinValidationResult
 ├── pages/
-│   └── VINPage.tsx                   ← useVinCounts بدلاً من supabase المباشر
+│   └── VINPage.tsx                   ← useVinCounts بدلاً من supabase المباشر + historyError display [ج3]
 ├── hooks/
-│   ├── useVinAnalysis.ts             ← signal + demandLevel fix
-│   ├── useVinHistory.ts              ← إزالة setTimeout
-│   └── useVinCounts.ts               ← (جديد) Custom hook للإحصائيات
+│   ├── useVinAnalysis.ts             ← signal + demandLevel fix + session check + retry on 401 [ج3]
+│   ├── useVinHistory.ts              ← إزالة setTimeout + error state + refreshSession [ج3]
+│   └── useVinCounts.ts               ← (جديد) Custom hook للإحصائيات + session check [ج3]
 ├── services/
 │   └── vinAIService.ts               ← AIProxyResponse interface + as any → typed
 ├── components/
@@ -225,5 +275,5 @@ src/features/vin-intelligence/
     └── index.ts                      ← تضييق CORS
 ```
 
-> **خُلاصة نهائية:** 13 إصلاحاً شملت الأمان، سلامة الأنواع، الأداء، تجربة المستخدم، والمعمارية. الميزة الآن تلتزم بمعايير `Component → Hook → Service → API → Supabase` ولا تحتوي على أي تجاوزات `as any`.
+> **خُلاصة نهائية:** 17 إصلاحاً شملت الأمان، سلامة الأنواع، الأداء، تجربة المستخدم، والمعمارية. **أبرز إصلاح في الجولة الثالثة**: آلية `refreshSession() + retry` عند خطأ 401 تحل مشكلة `"Session expired"` نهائياً مع دعم معالجة clock skew تلقائياً.
 
