@@ -1,7 +1,10 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import type { VehicleConfiguration, VehicleCorePart, InventoryMatch, DemandInsight } from '../types';
 
+// ============================================================
+// Types
+// ============================================================
 export type TabStep = 'validate-decode' | 'knowledge' | 'parts' | 'inventory' | 'audit';
 export type TabStatus = 'idle' | 'locked' | 'loading' | 'success' | 'error';
 
@@ -33,17 +36,18 @@ const EMPTY_DATA: VinAccumulatedData = {
   coreParts: [], inventoryMatches: [], missingParts: [], demandInsights: [],
 };
 
-
 export function useVinTabs(): UseVinTabsReturn {
   const [tabs, setTabs] = useState<TabState[]>(TAB_DEFS.map(t => ({ ...t, status: 'idle', error: null })));
   const [activeTab, setActiveTab] = useState(0);
   const [accData, setAccData] = useState<VinAccumulatedData>(EMPTY_DATA);
   const abortRef = useRef<AbortController | null>(null);
+  const dataRef = useRef<VinAccumulatedData>(accData);
+  dataRef.current = accData; // always fresh
 
   const updateTab = useCallback((step: TabStep, patch: Partial<TabState>) =>
     setTabs(prev => prev.map(t => t.id === step ? { ...t, ...patch } : t)), []);
 
-  const isAnyLoading = tabs.some(t => t.status === 'loading');
+  const isAnyLoading = useMemo(() => tabs.some(t => t.status === 'loading'), [tabs]);
 
   const invoke = useCallback(async (step: string, body: Record<string, unknown>) => {
     const ctrl = new AbortController(); abortRef.current?.abort(); abortRef.current = ctrl;
@@ -51,6 +55,7 @@ export function useVinTabs(): UseVinTabsReturn {
     if (!s?.session) throw new Error('انتهت الجلسة.');
     const { data: d, error: e } = await supabase.functions.invoke('vin-analyze', { body: { step, ...body }, signal: ctrl.signal });
     if (e) {
+      if (e.name === 'AbortError') throw e;
       if ((e as any)?.context?.status === 401 || String(e).includes('Unauthorized')) {
         const { data: ref } = await supabase.auth.refreshSession();
         if (ref?.session) { const { data: rd, error: re } = await supabase.functions.invoke('vin-analyze', { body: { step, ...body }, signal: ctrl.signal }); if (!re && rd) return rd; }
@@ -62,10 +67,11 @@ export function useVinTabs(): UseVinTabsReturn {
     return d;
   }, []);
 
+  // runStep reads from dataRef — always latest, no stale closure
   const runStep = useCallback(async (step: TabStep) => {
     updateTab(step, { status: 'loading', error: null });
     try {
-      const d = accData; let r: any;
+      const d = dataRef.current; let r: any;
       switch (step) {
         case 'validate-decode':
           if (!d.normalizedVin) throw new Error('الرجاء إدخال VIN.'); r = await invoke('validate-decode', { vin: d.normalizedVin });
@@ -88,7 +94,7 @@ export function useVinTabs(): UseVinTabsReturn {
       }
       updateTab(step, { status: 'success' });
     } catch (err) { updateTab(step, { status: 'error', error: err instanceof Error ? err.message : 'حدث خطأ.' }); }
-  }, [accData, invoke, updateTab]);
+  }, [invoke, updateTab]);
 
   const runAllSteps = useCallback(async (vin: string) => {
     const n = (vin || '').replace(/[\s\-]/g, '').toUpperCase(); if (!n) return;
@@ -103,3 +109,4 @@ export function useVinTabs(): UseVinTabsReturn {
 
   return { tabs, activeTab, setActiveTab, accumulatedData: accData, runStep, runAllSteps, retryStep, reset, isAnyLoading };
 }
+

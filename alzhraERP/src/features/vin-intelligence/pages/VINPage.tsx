@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import { Car, RotateCcw, Wrench, History } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
@@ -145,25 +145,29 @@ const VINPage: React.FC = () => {
 
   useEffect(() => {
     if (data.vehicle?.make) {
-      addToHistory({ vin: data.vin, make: data.vehicle.make, model: data.vehicle.model, year: data.vehicle.year, analyzedAt: new Date().toISOString(), resultSummary: `${data.vehicle.make} ${data.vehicle.model} ${data.vehicle.year || ''} - ${data.coreParts.length} ${t('vin_parts_count')}` });
+      addToHistory({ vin: data.vin, make: data.vehicle.make, model: data.vehicle.model, year: data.vehicle.year, analyzedAt: new Date().toISOString(), resultSummary: `${data.vehicle.make} ${data.vehicle.model} ${data.vehicle.year || ''} - ${data.coreParts.length} أجزاء` });
       refreshCounts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.vehicle?.make]);
 
   const handleAnalyze = useCallback(async (vin: string) => { await runAllSteps(vin); }, [runAllSteps]);
   const handleSelectRecent = useCallback((vin: string) => { handleAnalyze(vin); }, [handleAnalyze]);
   const handlePartClick = useCallback((part: VehicleCorePart) => { setSelectedPart(part); }, []);
 
+  const retryRef = useRef(retryStep);
+  retryRef.current = retryStep;
+
   const handleTabClick = useCallback((idx: number) => {
-    if (tabs[idx]?.status !== 'locked') { setActiveTab(idx); if (tabs[idx]?.status === 'idle') retryStep(tabs[idx].id); }
-  }, [tabs, setActiveTab, retryStep]);
+    if (tabs[idx]?.status !== 'locked') { setActiveTab(idx); if (tabs[idx]?.status === 'idle') retryRef.current(tabs[idx].id); }
+  }, [tabs, setActiveTab]);
 
   useEffect(() => {
     const ct = tabs[activeTab];
     if (ct?.status === 'success' && activeTab < tabs.length - 1 && tabs[activeTab + 1]?.status === 'idle') {
-      setActiveTab(activeTab + 1); retryStep(tabs[activeTab + 1].id);
+      setActiveTab(activeTab + 1); retryRef.current(tabs[activeTab + 1].id);
     }
-  }, [tabs, activeTab, setActiveTab, retryStep]);
+  }, [tabs, activeTab, setActiveTab]);
 
   const metrics = useMemo((): VinDashboardMetrics => ({
     vinsAnalyzed: vinsAnalyzedCount, vehiclesInKnowledgeBase: vehicleCount,
