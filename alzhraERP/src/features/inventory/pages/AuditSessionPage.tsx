@@ -302,38 +302,39 @@ const AuditSessionPage: React.FC = () => {
                 title={(session?.title as string) || "جلسة جرد"}
                 icon={ClipboardCheck}
                 actions={
-                    <div className="flex gap-2">
-                        {isRestoring && <span className="text-xs text-blue-500 self-center ml-2 animate-pulse">جاري استعادة البيانات...</span>}
-                        {saveStatus === 'saving' && <span className="text-xs text-amber-500 self-center ml-2">جاري الحفظ...</span>}
-                        {saveStatus === 'saved' && <span className="text-xs text-green-500 self-center ml-2">تم الحفظ</span>}
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        {isRestoring && <span className="hidden md:inline text-[10px] text-blue-500 self-center ml-2 animate-pulse">استعادة...</span>}
+                        {saveStatus === 'saving' && <span className="hidden md:inline text-[10px] text-amber-500 self-center ml-2">حفظ...</span>}
+                        
                         {session?.status !== 'completed' && (
                             <Button
                                 variant="outline"
-                                size="sm"
+                                size="xs"
                                 onClick={() => setShowBulkConfirm(true)}
                                 isLoading={isBulkAdding}
                                 leftIcon={isBulkAdding
-                                    ? <Loader2 size={14} className="animate-spin" />
-                                    : <PackageSearch size={14} />}
-                                title="إضافة كل منتجات المستودع للجلسة"
+                                    ? <Loader2 size={12} className="animate-spin" />
+                                    : <PackageSearch size={12} />}
+                                title="جرد كامل للمستودع"
+                                className="px-2 sm:px-3"
                             >
-                                {isBulkAdding
-                                    ? `${bulkProgress.current}/${bulkProgress.total}`
-                                    : 'جرد كامل'}
+                                <span className="hidden sm:inline">جرد كامل</span>
                             </Button>
                         )}
-                        <Button variant="outline" size="sm" onClick={handleSave} isLoading={isSavingProgress} leftIcon={<Save size={14} />}>
-                            حفظ
+                        <Button variant="outline" size="xs" onClick={handleSave} isLoading={isSavingProgress} leftIcon={<Save size={12} />} title="حفظ مسودة" className="px-2 sm:px-3">
+                            <span className="hidden sm:inline">حفظ</span>
                         </Button>
-                        <Button
-                            variant="success"
-                            size="sm"
-                            onClick={handleFinalize}
-                            isLoading={isFinalizing}
+                        <Button 
+                            variant="success" 
+                            size="xs" 
+                            onClick={handleFinalize} 
+                            isLoading={isFinalizing} 
                             disabled={session?.status === 'completed'}
-                            leftIcon={<CheckCircle size={14} />}
+                            leftIcon={<CheckCircle size={12} />}
+                            className="bg-emerald-600 hover:bg-emerald-700 border-none px-2 sm:px-3"
+                            title="إنهاء وترحيل"
                         >
-                            {session?.status === 'completed' ? 'تم الإغلاق' : 'إنهاء وترحيل'}
+                            <span className="hidden sm:inline">{session?.status === 'completed' ? 'تم الإغلاق' : 'إنهاء وترحيل'}</span>
                         </Button>
                     </div>
                 }
@@ -341,7 +342,7 @@ const AuditSessionPage: React.FC = () => {
 
             {/* Search and Scan Bar */}
             {session?.status !== 'completed' && (
-                <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 sticky top-0 z-40 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-2 sm:p-4 sticky top-0 z-40 shadow-sm">
                     <div className="max-w-[1600px] mx-auto relative">
                         <div className="flex gap-2 relative">
                             <SearchInput
@@ -350,16 +351,16 @@ const AuditSessionPage: React.FC = () => {
                                     setFilter(val);
                                     if (val.trim()) setShowResults(true);
                                 }}
-                                placeholder="ابحث عن صنف لجرده (مسح باركود، رقم قطعة، أو اسم)..."
+                                placeholder="ابحث عن صنف لجرده..."
                                 loading={isLoadingSearch || isAddingItem}
                                 variant="default"
                                 size="md"
-                                className="flex-1"
+                                className="flex-1 h-11 sm:h-12 text-sm sm:text-base font-bold"
                                 onEscape={() => setShowResults(false)}
                             />
                             <button
                                 onClick={() => setIsScannerOpen(true)}
-                                className="flex items-center justify-center bg-blue-600 text-white w-12 rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all shrink-0"
+                                className="flex items-center justify-center bg-blue-600 text-white w-12 rounded-xl shadow-lg shadow-blue-500/25 active:scale-95 transition-all shrink-0"
                             >
                                 <ScanBarcode size={22} />
                             </button>
@@ -412,15 +413,15 @@ const AuditSessionPage: React.FC = () => {
                 <div className="max-w-[1600px] mx-auto space-y-4">
                     <AuditStats stats={stats} session={session} />
 
-                    {/* Category Filter Bar */}
-                    <div className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-gray-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm">
-                        <div className="flex items-center gap-2 px-3 border-l dark:border-slate-800 text-gray-400">
-                            <Layers size={16} />
-                            <span className="text-[10px] font-bold whitespace-nowrap">تصفية حسب الفئة:</span>
+                    {/* Category Filter Bar - Mobile Optimized */}
+                    <div className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-gray-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm -mx-2 px-2 sm:mx-0 sm:px-0">
+                        <div className="flex items-center gap-1 px-2 border-l dark:border-slate-800 text-gray-400">
+                            <Layers size={12} />
+                            <span className="text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">الفئة:</span>
                         </div>
                         <button
                             onClick={() => setSelectedCategory(null)}
-                            className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${!selectedCategory ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 dark:bg-slate-800 text-gray-500'}`}
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${!selectedCategory ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 dark:bg-slate-800 text-gray-500'}`}
                         >
                             الكل
                         </button>
@@ -428,7 +429,7 @@ const AuditSessionPage: React.FC = () => {
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.name)}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 dark:bg-slate-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+                                className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 dark:bg-slate-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
                             >
                                 {cat.name}
                             </button>

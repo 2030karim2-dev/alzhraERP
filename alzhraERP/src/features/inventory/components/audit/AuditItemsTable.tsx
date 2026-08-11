@@ -62,15 +62,15 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                 <table className="w-full text-right text-xs border-collapse">
                     <thead className="bg-slate-800 dark:bg-slate-900 text-white font-bold border-b-2 border-slate-700 uppercase tracking-wider sticky top-0 z-10">
                         <tr>
-                            <th className="p-3 w-10 text-center border-l border-slate-700">#</th>
-                            <th className="p-3 border-l border-slate-700 min-w-[180px]">اسم الصنف</th>
+                            <th className="p-2 sm:p-3 w-8 sm:w-10 text-center border-l border-slate-700 text-[9px] sm:text-xs">#</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 min-w-[120px] sm:min-w-[180px] text-[9px] sm:text-xs">الصنف</th>
                             <th className="p-3 border-l border-slate-700 w-28 text-center hidden md:table-cell">رقم القطعة</th>
-                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell">المقاس</th>
-                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell">الفئة</th>
-                            <th className="p-3 border-l border-slate-700 w-28 text-center bg-blue-900/30">الكمية الدفترية</th>
-                            <th className="p-3 border-l border-slate-700 w-36 text-center bg-emerald-900/30 text-emerald-300">الكمية الفعلية ✏️</th>
-                            <th className="p-3 text-center w-24 border-l border-slate-700">الفرق</th>
-                            {showActions && <th className="p-3 text-center w-12">حذف</th>}
+                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[9px] sm:text-xs">المقاس</th>
+                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[9px] sm:text-xs">الفئة</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 w-16 sm:w-28 text-center bg-blue-900/30 text-[9px] sm:text-xs">دفتر</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 w-24 sm:w-36 text-center bg-emerald-900/30 text-emerald-300 text-[9px] sm:text-xs">فعل ✏️</th>
+                            <th className="p-2 sm:p-3 text-center w-16 sm:w-24 border-l border-slate-700 text-[9px] sm:text-xs">الفرق</th>
+                            {showActions && <th className="p-2 sm:p-3 text-center w-8 sm:w-12 text-[9px] sm:text-xs">X</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y dark:divide-slate-800">
@@ -89,17 +89,17 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                         ? (diff > 0 ? "bg-emerald-50/40 dark:bg-emerald-900/10" : "bg-rose-50/40 dark:bg-rose-900/10")
                                         : (isCounted ? "hover:bg-gray-50/50 dark:hover:bg-slate-800/30" : "")
                                 )}>
-                                    <td className="p-3 text-center font-mono text-gray-400 border-l dark:border-slate-800 text-[10px]">{index + 1}</td>
-                                    <td className="p-3 border-l dark:border-slate-800">
-                                        <div className="flex items-center gap-2">
+                                    <td className="p-2 sm:p-3 text-center font-mono text-gray-400 border-l dark:border-slate-800 text-[9px] sm:text-[10px]">{index + 1}</td>
+                                    <td className="p-2 sm:p-3 border-l dark:border-slate-800">
+                                        <div className="flex items-center gap-1.5 sm:gap-2">
                                             {isCounted
-                                                ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                                                : <Clock size={12} className="text-amber-400 shrink-0 animate-pulse" />
+                                                ? <CheckCircle2 size={10} className="text-emerald-500 shrink-0 sm:w-3 sm:h-3" />
+                                                : <Clock size={10} className="text-amber-400 shrink-0 animate-pulse sm:w-3 sm:h-3" />
                                             }
                                             <div className="min-w-0">
-                                                <p className="font-bold text-gray-900 dark:text-slate-100 truncate">{product?.name}</p>
+                                                <p className="font-bold text-gray-900 dark:text-slate-100 truncate text-[10px] sm:text-xs">{product?.name_ar || product?.name}</p>
                                                 {product?.brand && (
-                                                    <span className="text-[9px] font-bold text-blue-500">{product.brand}</span>
+                                                    <span className="text-[8px] sm:text-[9px] font-bold text-blue-500 block leading-none">{product.brand}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -117,10 +117,10 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                             {product?.category || 'عام'}
                                         </span>
                                     </td>
-                                    <td className="p-3 text-center font-mono font-black text-blue-600 dark:text-blue-400 text-lg border-l dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/5">
+                                    <td className="p-2 sm:p-3 text-center font-mono font-black text-blue-600 dark:text-blue-400 text-sm sm:text-lg border-l dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/5">
                                         {formatNumberDisplay(field.expected_quantity)}
                                     </td>
-                                    <td className="p-2 text-center border-l dark:border-slate-800 bg-emerald-50/20 dark:bg-emerald-900/5">
+                                    <td className="p-1 sm:p-2 text-center border-l dark:border-slate-800 bg-emerald-50/20 dark:bg-emerald-900/5">
                                         <input
                                             type="number"
                                             {...register(`items.${field.index}.counted_quantity`, { 
@@ -129,13 +129,13 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                                     if (onSave) onSave();
                                                 }
                                             })}
-                                            className="w-full h-14 bg-white dark:bg-slate-950 border-2 border-emerald-200 dark:border-emerald-900/50 rounded-xl text-center font-mono font-black text-2xl text-gray-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-sm"
+                                            className="w-full h-10 sm:h-14 bg-white dark:bg-slate-950 border border-emerald-200 dark:border-emerald-900/50 rounded-lg sm:rounded-xl text-center font-mono font-black text-base sm:text-2xl text-gray-900 dark:text-white outline-none focus:border-emerald-500 transition-all shadow-sm"
                                             readOnly={isCompleted}
                                             placeholder="0"
                                         />
                                     </td>
                                     <td className={cn(
-                                        "p-3 text-center font-mono font-black text-lg border-l dark:border-slate-800",
+                                        "p-2 sm:p-3 text-center font-mono font-black text-sm sm:text-lg border-l dark:border-slate-800",
                                         diff === null ? 'text-gray-300 dark:text-slate-700' :
                                         diff > 0 ? 'text-emerald-500' :
                                         diff < 0 ? 'text-rose-500' : 'text-gray-400'
