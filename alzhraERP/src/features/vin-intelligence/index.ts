@@ -11,10 +11,7 @@ export type {
   DemandInsight,
   PartCategory,
   VinValidationResult,
-  VINTab,
 } from './types';
-
-export { VIN_TABS } from './types';
 
 export type { VinAIInsight } from './services/vinAIService';
 
