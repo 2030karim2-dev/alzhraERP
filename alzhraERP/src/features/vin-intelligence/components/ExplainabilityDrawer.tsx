@@ -1,7 +1,9 @@
-import React from 'react';
-import { X, Car, Wrench, CheckCircle2, AlertTriangle, HelpCircle, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Car, Wrench, CheckCircle2, AlertTriangle, HelpCircle, XCircle, Sparkles, Loader2 } from 'lucide-react';
 import type { VehicleCorePart, VehicleConfiguration } from '../types';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
+import { getPartAIInsight } from '../services/vinAIService';
+import { logger } from '../../../core/utils/logger';
 
 interface ExplainabilityDrawerProps {
   isOpen: boolean;
@@ -12,6 +14,33 @@ interface ExplainabilityDrawerProps {
 
 const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onClose, vehicle, part }) => {
   const { t } = useTranslation();
+
+  // AI part explanation — on-demand, resets whenever a different part is opened
+  const [partInsight, setPartInsight] = useState<string | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
+  const [insightFailed, setInsightFailed] = useState(false);
+
+  useEffect(() => {
+    setPartInsight(null);
+    setInsightFailed(false);
+    setInsightLoading(false);
+  }, [part.id]);
+
+  const handleAIInsight = async () => {
+    setInsightLoading(true);
+    setInsightFailed(false);
+    try {
+      const text = await getPartAIInsight(part, vehicle.make, vehicle.model);
+      if (text) setPartInsight(text);
+      else setInsightFailed(true);
+    } catch (err) {
+      logger.error('VIN', 'Part AI insight failed', err);
+      setInsightFailed(true);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -68,6 +97,29 @@ const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({ isOpen, onC
             <p className="text-[9px] text-[var(--app-text-secondary)]">
               <span className="font-bold">{t('vin_source')}:</span> {part.evidenceSource || t('vin_unknown_source')}
             </p>
+          </div>
+
+          <div className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg p-2.5">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)] flex items-center gap-1">
+                <Sparkles size={10} className="text-violet-500" /> شرح الذكاء الاصطناعي
+              </p>
+              {!partInsight && !insightLoading && (
+                <button onClick={handleAIInsight}
+                  className="text-[9px] font-bold text-violet-600 hover:text-violet-700 bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-lg transition-all">
+                  {insightFailed ? 'إعادة المحاولة' : 'تحليل القطعة'}
+                </button>
+              )}
+            </div>
+            {insightLoading && (
+              <p className="text-[9px] text-[var(--app-text-secondary)] flex items-center gap-1">
+                <Loader2 size={10} className="animate-spin" /> جاري تحليل القطعة بالذكاء الاصطناعي...
+              </p>
+            )}
+            {partInsight && <p className="text-[9px] leading-relaxed text-[var(--app-text)]">{partInsight}</p>}
+            {insightFailed && !insightLoading && !partInsight && (
+              <p className="text-[9px] text-rose-500">تعذر الحصول على شرح الذكاء الاصطناعي حالياً.</p>
+            )}
           </div>
         </div>
       </div>

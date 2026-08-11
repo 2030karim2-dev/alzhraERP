@@ -192,7 +192,7 @@ const VINPage: React.FC = () => {
           <>
             <VinTabsBar tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
             <div className="space-y-3">
-              <TabContent tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} error={tabs[activeTab]?.error || null} />
+              <TabContent key={data.vin} tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} error={tabs[activeTab]?.error || null} />
               {tabs[activeTab]?.status === 'error' && (
                 <div className="flex justify-center">
                   <button onClick={() => retryStep(activeStep as TabStep)} className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all"><RotateCcw size={12} /> {t('vin_retry')}</button>

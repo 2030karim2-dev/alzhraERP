@@ -1,3 +1,5 @@
+import { logger } from '../../../core/utils/logger';
+
 import { useState, useCallback, useEffect } from 'react';
 import type { VinHistoryEntry } from '../types';
 import { supabase } from '../../../lib/supabaseClient';
@@ -48,7 +50,7 @@ export function useVinHistory() {
         resultSummary: row.result_summary ?? undefined,
       })));
     } catch (err) {
-      console.error('Failed to load VIN history from DB:', err);
+      logger.error('VIN', 'Failed to load VIN history from DB', err);
       setError('فشل تحميل سجل التحليل. حاول مرة أخرى.');
     } finally {
       setLoading(false);
@@ -78,7 +80,7 @@ export function useVinHistory() {
         .eq('user_id', sessionData.session.user.id);
       setHistory([]);
     } catch (err) {
-      console.error('Failed to clear VIN history in DB:', err);
+      logger.error('VIN', 'Failed to clear VIN history in DB', err);
     }
   }, []);
 

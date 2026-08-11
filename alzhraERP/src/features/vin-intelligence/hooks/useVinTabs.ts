@@ -1,3 +1,5 @@
+import { logger } from '../../../core/utils/logger';
+
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import type { VehicleConfiguration, VehicleCorePart, InventoryMatch, DemandInsight } from '../types';
@@ -83,7 +85,7 @@ export function useVinTabs(): UseVinTabsReturn {
 
       if (is401) {
         // Try session refresh + one retry
-        console.warn('[useVinTabs] 401 detected, attempting session refresh...', { step, status });
+        logger.warn('VIN', '401 detected, attempting session refresh', { step, status });
         try {
           const { data: ref } = await supabase.auth.refreshSession();
           if (ref?.session) {
@@ -91,7 +93,7 @@ export function useVinTabs(): UseVinTabsReturn {
             if (!e && d) return d;
           }
         } catch (refreshErr) {
-          console.error('[useVinTabs] Session refresh failed:', refreshErr);
+          logger.error('VIN', 'Session refresh failed', refreshErr);
         }
         throw new Error('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.');
       }
@@ -99,7 +101,18 @@ export function useVinTabs(): UseVinTabsReturn {
       throw new Error((e as any)?.message || `خطأ ${status || ''}`.trim() || 'فشل الاتصال.');
     }
 
-    if (d?.status !== 'SUCCESS') throw new Error(d?.errorDetail || d?.status || 'فشلت العملية.');
+    if (d?.status !== 'SUCCESS') {
+      // Map known Edge Function statuses to user-friendly Arabic messages
+      const STATUS_MESSAGES: Record<string, string> = {
+        DECODER_TIMEOUT: 'انتهت مهلة الاتصال بخدمة فك ترميز VIN. حاول مرة أخرى.',
+        DECODER_UNAVAILABLE: 'خدمة فك ترميز VIN غير متاحة حالياً. حاول لاحقاً.',
+        DECODER_RATE_LIMITED: 'تم تجاوز حد الطلبات على خدمة فك الترميز. انتظر قليلاً ثم حاول مجدداً.',
+        VIN_NOT_FOUND: 'لم يتم العثور على بيانات لهذا الرقم في قاعدة NHTSA (قد تكون المركبة غير أمريكية).',
+        NO_COMPANY: 'حسابك غير مرتبط بشركة. تواصل مع مسؤول النظام.',
+        UNAUTHORIZED: 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.',
+      };
+      throw new Error(STATUS_MESSAGES[d?.status] || d?.errorDetail || d?.status || 'فشلت العملية.');
+    }
     return d;
   }, []);
 

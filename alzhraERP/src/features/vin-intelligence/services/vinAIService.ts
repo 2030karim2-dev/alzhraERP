@@ -5,6 +5,7 @@
  * parts compatibility, market demand, and procurement recommendations.
  */
 import { supabase } from '../../../lib/supabaseClient';
+import { logger } from '../../../core/utils/logger';
 import { getActiveModel, getModelProvider } from '../../ai/core/config';
 import type { VinAnalysisResult, VehicleCorePart } from '../types';
 
@@ -94,13 +95,14 @@ ${vinResult.warnings?.length ? 'تحذيرات: ' + vinResult.warnings.join(', '
         provider,
         systemInstruction: VIN_AI_SYSTEM_PROMPT,
         temperature: 0.3,
-        maxTokens: 1000,
+        // 6 Arabic JSON sections need headroom — 1000 tokens truncated responses
+        maxTokens: 2048,
         jsonMode: true,
       },
     });
 
     if (error) {
-      console.error('[vinAIService] AI proxy error:', error);
+      logger.error('VIN', 'AI proxy error', error);
       return null;
     }
 
@@ -115,11 +117,11 @@ ${vinResult.warnings?.length ? 'تحذيرات: ' + vinResult.warnings.join(', '
       const parsed: VinAIInsight = JSON.parse(jsonStr);
       return parsed;
     } catch (parseErr) {
-      console.error('[vinAIService] Failed to parse AI response:', parseErr);
+      logger.error('VIN', 'Failed to parse AI response', parseErr);
       return null;
     }
   } catch (err) {
-    console.error('[vinAIService] AI analysis failed:', err);
+    logger.error('VIN', 'AI analysis failed', err);
     return null;
   }
 }
