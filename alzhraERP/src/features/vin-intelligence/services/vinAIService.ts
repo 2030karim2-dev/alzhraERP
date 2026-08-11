@@ -1,4 +1,4 @@
-﻿/**
+/**
  * VIN AI Intelligence Service
  * ===========================
  * Leverages DeepSeek AI to provide intelligent insights about vehicles,

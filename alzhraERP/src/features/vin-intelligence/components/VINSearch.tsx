@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { validateVin, VALID_VIN_LENGTHS } from '../utils/vinValidator';

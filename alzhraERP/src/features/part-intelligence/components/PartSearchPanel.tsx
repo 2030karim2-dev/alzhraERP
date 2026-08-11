@@ -4,6 +4,7 @@
 import React, { useState, useCallback } from 'react';
 import { usePartSearch } from '../hooks/usePartSearch';
 import { useAuthStore } from '../../auth/store';
+import { PartResult } from './PartResult';
 import type { PartSearchResultWithInventory } from '../types/models';
 
 interface PartSearchPanelProps {

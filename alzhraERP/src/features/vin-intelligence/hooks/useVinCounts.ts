@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
 interface UseVinCountsReturn {
