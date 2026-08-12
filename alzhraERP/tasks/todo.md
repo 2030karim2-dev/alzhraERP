@@ -2,11 +2,11 @@
 
 ## Phase 0: البوابات والمكاسب السريعة
 - [x] Task 1: إصلاح 3 اختبارات فاشلة (localStorage mock + StockMovementUsecase RPC stale) — ✅ 224/224
-- [ ] Task 2: كنس TS6133 (83 خطأً) — baseline 275 → ~192
-- [ ] Task 3: إصلاح CI (encoding + ratchet بدل tsc الحاجب)
+- [x] Task 2: كنس TS6133 (83 خطأً) — ✅ baseline 275 → 191
+- [x] Task 3: إصلاح CI (encoding + ratchet بدل tsc الحاجب) — ci.yml + quality-gate.yml
 
 ### Checkpoint 0
-- [ ] 224/224 + CI أخضر + baseline ≤ 192
+- [x] 224/224 + CI أخضر-واقعي + baseline 191 (≤ 192)
 
 ## Phase C1: الأمان والصلاحيات
 - [ ] Task 4: استبدال AuthorizeActionUsecase بـ usePermission (6 مواقع)

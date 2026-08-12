@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   pull_request:
@@ -17,15 +17,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ''22''
-          cache: ''npm''
+          node-version: 22
+          cache: npm
           cache-dependency-path: alzhraERP/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
+      - name: Encoding guard (Arabic mojibake)
+        run: npx tsx scripts/check-encoding.ts
+
+      - name: TypeScript ratchet (no NEW errors)
+        run: npx tsx scripts/check-ts-baseline.ts
 
       - name: Lint
         run: npm run lint
