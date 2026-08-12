@@ -11,12 +11,6 @@ const accentBorderMap: Record<string, string> = {
     gray: 'border-gray-200 dark:border-slate-700',
 };
 
-const accentBtnMap: Record<string, string> = {
-    blue: 'landing-btn-primary',
-    purple: 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40',
-    gray: 'bg-[var(--app-surface)] text-[var(--app-text)] border-2 border-[var(--app-border)] hover:border-blue-400 hover:text-blue-600',
-};
-
 const PricingCard: React.FC<{ plan: LandingPricingPlan; index: number }> = React.memo(({ plan, index }) => (
     <motion.div
         initial={{ opacity: 0, y: 40 }}

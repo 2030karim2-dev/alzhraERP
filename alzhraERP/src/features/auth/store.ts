@@ -168,7 +168,7 @@ export const useAuthStore = create<AuthState>()(
                   email: session.user.email || '',
                   full_name: session.user.user_metadata?.full_name || '',
                   role: recoveredRole,
-                  company_id: recoveredCompanyId,
+                  ...(recoveredCompanyId ? { company_id: recoveredCompanyId } : {}),
                   branch_id: recoveredBranchId,
                 },
                 isAuthenticated: true,

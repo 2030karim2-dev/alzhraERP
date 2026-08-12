@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Building2, Package, Users, Wallet } from 'lucide-react';
+import { Check, ChevronLeft, Building2, Package, Users, Wallet } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { cn } from '../../../core/utils';

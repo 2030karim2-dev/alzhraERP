@@ -1,8 +1,20 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Zap, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+    Activity,
+    ArrowLeft,
+    ArrowRight,
+    Cpu,
+    Database,
+    Gauge,
+    PackageCheck,
+    ScanLine,
+    ShieldCheck,
+    Sparkles,
+    Truck,
+    Zap,
+} from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
-import { DashboardMockup, AutoPattern } from '../LandingIllustrations';
 import { AnimatedCounter } from '../AnimatedCounter';
 import { containerVariants, itemVariants } from './landingAnimations';
 import { LANDING_HERO_STATS } from '../../landing/landing.constants';
@@ -12,151 +24,121 @@ interface HeroSectionProps {
     scrollToFeatures: () => void;
 }
 
+const telemetry = [
+    { label: 'حالة المخزون', value: 'مستقر', meta: '+12.8%', icon: PackageCheck, tone: 'emerald' },
+    { label: 'فحص VIN', value: 'جاهز', meta: 'AI / 24ms', icon: ScanLine, tone: 'blue' },
+    { label: 'حماية البيانات', value: 'مفعّلة', meta: 'RLS / 24×7', icon: ShieldCheck, tone: 'violet' },
+] as const;
+
+const toneClasses = {
+    emerald: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300',
+    blue: 'border-blue-200/80 bg-blue-50/80 text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300',
+    violet: 'border-violet-200/80 bg-violet-50/80 text-violet-700 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-300',
+} as const;
+
 const HeroSection: React.FC<HeroSectionProps> = ({ scrollToAuth, scrollToFeatures }) => {
     const { dir } = useTranslation();
     const shouldReduceMotion = useReducedMotion();
     const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
 
+    const floatTransition = (duration: number, delay = 0) => shouldReduceMotion
+        ? { duration: 0 }
+        : { duration, delay, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
+
     return (
-        <>
-            {/* ── Background Patterns ── */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.08),transparent_50%)]" />
-                <div className="absolute top-0 left-0 w-full h-[800px] bg-gradient-to-b from-blue-50/50 dark:from-blue-900/10 to-transparent" />
-                <AutoPattern className="top-[10%] left-[5%] text-blue-500 opacity-20" />
-                <AutoPattern className="bottom-[15%] right-[5%] text-emerald-500 rotate-180 scale-75 opacity-20" />
+        <section className="relative isolate overflow-hidden px-3 pb-12 pt-4 sm:px-6 sm:pb-20 sm:pt-8 lg:px-10 lg:pb-28 lg:pt-12">
+            <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_18%,rgba(37,99,235,0.16),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef5ff_56%,#f8fbff_100%)] dark:bg-[radial-gradient(circle_at_18%_18%,rgba(37,99,235,0.22),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#08111f_0%,#0b1526_56%,#08111f_100%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-[linear-gradient(to_right,rgba(37,99,235,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(37,99,235,0.08)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:linear-gradient(to_bottom,black,transparent)] dark:bg-[linear-gradient(to_right,rgba(147,197,253,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(147,197,253,0.08)_1px,transparent_1px)]" />
+            <div className="pointer-events-none absolute -left-28 top-56 -z-10 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-500/10" />
+            <div className="pointer-events-none absolute -right-28 bottom-24 -z-10 h-72 w-72 rounded-full bg-emerald-400/15 blur-3xl dark:bg-emerald-400/10" />
 
-                {/* Dynamic animated blobs */}
-                <motion.div
-                    animate={shouldReduceMotion ? {} : {
-                        x: [0, 50, 0],
-                        y: [0, -30, 0],
-                        scale: [1, 1.1, 1]
-                    }}
-                    transition={shouldReduceMotion ? {} : { duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-[15%] right-[5%] w-[600px] h-[600px] bg-blue-400/10 dark:bg-blue-600/5 rounded-full blur-[120px]"
-                    style={{ willChange: 'transform' }}
-                />
-                <motion.div
-                    animate={shouldReduceMotion ? {} : {
-                        x: [0, -40, 0],
-                        y: [0, 60, 0],
-                        scale: [1, 0.9, 1]
-                    }}
-                    transition={shouldReduceMotion ? {} : { duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute bottom-[10%] left-[5%] w-[500px] h-[500px] bg-emerald-400/10 dark:bg-emerald-600/5 rounded-full blur-[100px]"
-                    style={{ willChange: 'transform' }}
-                />
-            </div>
-
-            {/* ─── Hero Section ── */}
-            <section className="relative pt-24 sm:pt-32 lg:pt-0 pb-16 sm:pb-20 px-4 z-10 lg:flex lg:items-center lg:min-h-screen">
-                <div className="max-w-none mx-auto w-full">
-                    <div className="grid lg:grid-cols-2 gap-8 sm:gap-16 items-center">
-                        {/* Hero Text */}
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="text-center lg:text-right"
-                        >
-                            <motion.div variants={itemVariants} className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-none bg-blue-600 text-white text-[8px] sm:text-xs font-black mb-4 sm:mb-6 uppercase tracking-tighter">
-                                <Zap size={10} fill="currentColor" className="sm:w-3.5 sm:h-3.5" /> حوّل تجارتك إلى الرقمية اليوم
-                            </motion.div>
-
-                            <motion.h1
-                                variants={itemVariants}
-                                className="text-3xl sm:text-6xl lg:text-8xl font-black leading-tight sm:leading-[1.05] mb-4 sm:mb-8 tracking-tighter" style={{ color: 'var(--app-text)' }}
-                            >
-                                أحدث تقنيات <br />
-                                <span className="bg-gradient-to-l from-blue-700 via-blue-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm">
-                                    إدارة قطع الغيار
-                                </span>
-                            </motion.h1>
-
-                            <motion.p variants={itemVariants} className="text-xs sm:text-lg text-gray-500 dark:text-slate-400 mb-6 sm:mb-10 max-w-md sm:max-w-xl mx-auto lg:mx-0 leading-relaxed font-black uppercase tracking-tight">
-                                نظام الزهراء هو الحل السحابي المتكامل لإدارة المخازن، المبيعات، والعملاء لمحلات قطع غيار السيارات. سرعة، دقة، وسهولة في الاستخدام.
-                            </motion.p>
-
-                            <motion.div variants={itemVariants} className="flex flex-row items-center gap-2 sm:gap-5 justify-center lg:justify-start">
-                                <button
-                                    onClick={scrollToAuth}
-                                    className="flex-1 sm:flex-none px-4 py-3 sm:px-10 sm:py-5 bg-blue-600 text-white rounded-none font-black flex items-center justify-center gap-2 text-[10px] sm:text-lg shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 border border-white/10"
-                                >
-                                    ابدأ الآن
-                                    <ArrowIcon size={14} className="sm:w-5 sm:h-5" />
-                                </button>
-                                <button
-                                    onClick={scrollToFeatures}
-                                    className="flex-1 sm:flex-none px-4 py-3 sm:px-10 sm:py-5 bg-white dark:bg-slate-900 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-800 rounded-none font-black hover:border-blue-500 transition-all active:scale-95 shadow-sm text-[10px] sm:text-base"
-                                >
-                                    المميزات
-                                </button>
-                            </motion.div>
-
-                            {/* Stats Grid - Micro Square Style */}
-                            <motion.div variants={itemVariants} className="mt-8 sm:mt-12 grid grid-cols-3 gap-2 sm:gap-8 border-t border-gray-100 dark:border-slate-800 pt-6 sm:pt-8">
-                                {LANDING_HERO_STATS.map((stat) => (
-                                    <div key={stat.label} className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-2 sm:p-4 border border-gray-100 dark:border-slate-800 rounded-none text-center sm:text-right">
-                                        <div className="text-sm sm:text-2xl font-black text-blue-600 dark:text-blue-400">
-                                            <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                                        </div>
-                                        <div className="text-[7px] sm:text-xs text-gray-400 dark:text-slate-500 font-black uppercase tracking-tighter truncate">{stat.label}</div>
-                                    </div>
-                                ))}
-                            </motion.div>
-                        </motion.div>
-
-                        {/* Hero Illustration - 3D Animated Asset */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 1.2, ease: 'circOut' }}
-                            className="relative flex items-center justify-center"
-                        >
-                            <div className="relative w-full max-w-[300px] sm:max-w-none">
-                                <motion.img 
-                                    src="/assets/3d-car-parts.png" 
-                                    alt="3D Car Parts"
-                                    animate={{ 
-                                        y: [0, -20, 0],
-                                        rotate: [0, 2, -2, 0]
-                                    }}
-                                    transition={{ 
-                                        duration: 6, 
-                                        repeat: Infinity, 
-                                        ease: "easeInOut" 
-                                    }}
-                                    className="relative z-20 w-full drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)]"
-                                />
-                                
-                                {/* Floating 3D Engine as a secondary detail for larger screens */}
-                                <motion.img 
-                                    src="/assets/3d-engine.png" 
-                                    alt="3D Engine"
-                                    animate={{ 
-                                        y: [0, 15, 0],
-                                        rotate: [0, -5, 5, 0],
-                                        scale: [1, 1.05, 1]
-                                    }}
-                                    transition={{ 
-                                        duration: 8, 
-                                        repeat: Infinity, 
-                                        ease: "easeInOut",
-                                        delay: 1
-                                    }}
-                                    className="absolute -top-10 -right-10 w-24 sm:w-48 z-10 opacity-40 blur-[1px] hidden sm:block"
-                                />
-
-                                {/* Decorative Background Elements */}
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-500/10 blur-[80px] rounded-full z-0" />
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-emerald-500/5 blur-[60px] rounded-full z-0" />
-                            </div>
-                        </motion.div>
-                    </div>
+            <div className="mx-auto max-w-[1440px]">
+                <div className="mb-5 flex items-center justify-between gap-2 border-y border-slate-200/70 py-2.5 text-[8px] font-black uppercase tracking-[0.22em] text-slate-500 dark:border-slate-700/70 dark:text-slate-400 sm:mb-8 sm:text-[9px]">
+                    <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 animate-pulse bg-emerald-500" /> Al Zahra Intelligence Layer</span>
+                    <span className="hidden items-center gap-1.5 sm:flex"><Cpu size={11} className="text-blue-500" /> Enterprise Parts Operations</span>
+                    <span className="flex items-center gap-1.5"><Activity size={11} className="text-emerald-500" /> Live Systems</span>
                 </div>
-            </section>
-        </>
+
+                <div className="grid items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12 xl:gap-20" dir={dir}>
+                    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="order-1 text-center lg:order-2 lg:text-right">
+                        <motion.div variants={itemVariants} className="mb-4 inline-flex items-center gap-2 border border-blue-200 bg-blue-50/80 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.18em] text-blue-700 shadow-sm dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300 sm:mb-6 sm:px-3 sm:text-[9px]">
+                            <Sparkles size={12} className="text-blue-500" /> مركز عمليات قطع الغيار الذكي
+                        </motion.div>
+
+                        <motion.h1 variants={itemVariants} className="mx-auto max-w-3xl text-[clamp(2.5rem,8vw,6.8rem)] font-black leading-[0.94] tracking-[-0.07em] text-slate-950 dark:text-white lg:mx-0">
+                            إدارة أدق.
+                            <br />
+                            <span className="bg-gradient-to-l from-blue-700 via-blue-500 to-emerald-500 bg-clip-text text-transparent">قرارات أسرع.</span>
+                        </motion.h1>
+
+                        <motion.p variants={itemVariants} className="mx-auto mt-5 max-w-xl text-[11px] font-bold leading-7 text-slate-600 dark:text-slate-300 sm:mt-7 sm:text-sm sm:leading-8 lg:mx-0">
+                            نظام الزهراء يربط المخزون، المبيعات، المحاسبة وذكاء VIN في مساحة تشغيل واحدة. بيانات أوضح، بحث أسرع، وتوريد استباقي قبل أن ينفد أي جزء.
+                        </motion.p>
+
+                        <motion.div variants={itemVariants} className="mt-6 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-center sm:gap-2 lg:justify-start">
+                            <button onClick={scrollToAuth} className="group flex min-h-11 items-center justify-center gap-2 bg-slate-950 px-4 text-[10px] font-black text-white shadow-[0_14px_35px_-16px_rgba(15,23,42,0.65)] transition-all hover:-translate-y-0.5 hover:bg-blue-700 active:scale-[0.97] dark:bg-white dark:text-slate-950 dark:hover:bg-blue-100 sm:px-6 sm:text-[11px]">
+                                ابدأ مجاناً الآن <ArrowIcon size={14} className="transition-transform group-hover:-translate-x-0.5" />
+                            </button>
+                            <button onClick={scrollToFeatures} className="flex min-h-11 items-center justify-center gap-2 border border-slate-300 bg-white/70 px-4 text-[10px] font-black text-slate-800 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-blue-400 hover:text-blue-700 active:scale-[0.97] dark:border-slate-600 dark:bg-slate-900/70 dark:text-white dark:hover:border-blue-400 sm:px-6 sm:text-[11px]">
+                                استكشف المنصة <ArrowIcon size={14} />
+                            </button>
+                        </motion.div>
+
+                        <motion.div variants={itemVariants} className="mt-7 grid grid-cols-3 gap-1.5 border-t border-slate-200/80 pt-4 dark:border-slate-700/80 sm:mt-10 sm:gap-2 sm:pt-5">
+                            {LANDING_HERO_STATS.map((stat) => (
+                                <div key={stat.label} className="min-w-0 border border-slate-200/80 bg-white/60 px-1.5 py-2.5 text-center backdrop-blur dark:border-slate-700/80 dark:bg-slate-900/50 sm:px-2.5">
+                                    <div className="text-sm font-black tracking-tight text-blue-600 dark:text-blue-300 sm:text-xl"><AnimatedCounter target={stat.value} suffix={stat.suffix} /></div>
+                                    <div className="mt-1 truncate text-[7px] font-black uppercase tracking-tight text-slate-500 dark:text-slate-400 sm:text-[8px]">{stat.label}</div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, x: -24, scale: 0.96 }} animate={{ opacity: 1, x: 0, scale: 1 }} transition={{ duration: 0.75, ease: 'easeOut' }} className="relative order-2 min-h-[340px] lg:order-1 lg:min-h-[560px]">
+                        <div className="absolute inset-4 border border-blue-200/80 bg-white/25 backdrop-blur-[2px] dark:border-blue-400/15 dark:bg-slate-900/20 sm:inset-10" />
+                        <div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-500/10" />
+                        <motion.div animate={shouldReduceMotion ? {} : { rotate: [0, 3, -2, 0], y: [0, -8, 0] }} transition={floatTransition(8)} className="absolute inset-0 z-10 flex items-center justify-center p-2 sm:p-8">
+                            <img src="/assets/hero-3d-parts-card.jpg" alt="قطع غيار سيارات ثلاثية الأبعاد" className="h-auto w-full max-w-[560px] object-contain drop-shadow-[0_32px_38px_rgba(15,23,42,0.28)]" />
+                        </motion.div>
+
+                        <motion.div animate={shouldReduceMotion ? {} : { y: [0, -7, 0] }} transition={floatTransition(5, 0.3)} className="absolute left-0 top-8 z-20 border border-slate-200 bg-white/90 p-2 shadow-xl shadow-blue-950/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:left-4 sm:top-14 sm:p-3">
+                            <div className="mb-1 flex items-center gap-1.5 text-[7px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400"><Gauge size={11} className="text-blue-500" /> Smart pulse</div>
+                            <div className="text-sm font-black text-slate-950 dark:text-white sm:text-lg">98.4%</div>
+                            <div className="text-[7px] font-bold text-emerald-600 dark:text-emerald-400">دقة المطابقة</div>
+                        </motion.div>
+
+                        <motion.div animate={shouldReduceMotion ? {} : { y: [0, 8, 0] }} transition={floatTransition(6, 0.7)} className="absolute bottom-10 right-0 z-20 border border-slate-200 bg-white/90 p-2 shadow-xl shadow-emerald-950/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:bottom-16 sm:right-4 sm:p-3">
+                            <div className="mb-1 flex items-center gap-1.5 text-[7px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400"><Truck size={11} className="text-emerald-500" /> Procurement AI</div>
+                            <div className="flex items-end gap-1.5"><span className="text-sm font-black text-slate-950 dark:text-white sm:text-lg">24</span><span className="pb-0.5 text-[7px] font-bold text-slate-500">طلباً متوقعاً</span></div>
+                            <div className="mt-1 h-1 w-20 bg-slate-100 dark:bg-slate-700"><div className="h-full w-[76%] bg-emerald-500" /></div>
+                        </motion.div>
+
+                        <div className="absolute bottom-0 left-1/2 z-20 grid w-[92%] -translate-x-1/2 grid-cols-3 gap-1.5 sm:bottom-2 sm:w-[86%] sm:gap-2">
+                            {telemetry.map(({ label, value, meta, icon: Icon, tone }) => (
+                                <div key={label} className={`min-w-0 border px-1.5 py-2 backdrop-blur sm:px-2 sm:py-2.5 ${toneClasses[tone]}`}>
+                                    <div className="flex items-center justify-between gap-1"><Icon size={11} /><span className="truncate text-[7px] font-black uppercase tracking-tight">{label}</span></div>
+                                    <div className="mt-1 truncate text-[9px] font-black sm:text-[10px]">{value}</div>
+                                    <div className="truncate text-[7px] font-bold opacity-70">{meta}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+
+                <div className="mt-10 grid gap-2 sm:mt-16 sm:grid-cols-3 sm:gap-3" dir={dir}>
+                    {[
+                        { icon: Database, title: 'بيانات مترابطة', text: 'كل حركة في المخزون والمبيعات قابلة للتتبع.' },
+                        { icon: Zap, title: 'تنفيذ لحظي', text: 'أقل نقرات، قرارات أسرع، وتجربة محسّنة للهاتف.' },
+                        { icon: ShieldCheck, title: 'أمان مؤسسي', text: 'عزل بيانات الشركات وصلاحيات دقيقة لكل مستخدم.' },
+                    ].map(({ icon: Icon, title, text }, index) => (
+                        <motion.div key={title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ delay: index * 0.08 }} className="flex items-start gap-2 border border-slate-200/80 bg-white/55 p-3 backdrop-blur dark:border-slate-700/80 dark:bg-slate-900/50 sm:gap-3 sm:p-4">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-slate-950 text-white dark:bg-blue-500"><Icon size={14} /></div>
+                            <div className="min-w-0"><div className="text-[9px] font-black text-slate-900 dark:text-white sm:text-[10px]">{title}</div><p className="mt-1 text-[8px] font-bold leading-5 text-slate-500 dark:text-slate-400 sm:text-[9px]">{text}</p></div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
     );
 };
 

@@ -46,7 +46,7 @@ const CorePartsTable: React.FC<CorePartsTableProps> = ({ parts, onPartClick }) =
                 <Wrench size={12} className="text-blue-500" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">{getCategoryLabel(cat, lang)}</span>
               </div>
-              <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">{t('vin_parts_suffix', { count: catParts.length })}</span>
+              <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">{t('vin_parts_suffix', { count: String(catParts.length) })}</span>
             </button>
             {isExp && (
               <div className="overflow-x-auto">

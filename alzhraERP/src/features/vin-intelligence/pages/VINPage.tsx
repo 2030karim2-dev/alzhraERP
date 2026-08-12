@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import MicroHeader from '../../../ui/base/MicroHeader';
-import { Car, RotateCcw, Wrench, History, CheckCircle2, XCircle, Loader2, Circle } from 'lucide-react';
+import { Car, RotateCcw, Wrench, CheckCircle2, XCircle, Loader2, Circle, Sparkles, Database, ShieldCheck, ShoppingCart, Plus } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import VINSearch from '../components/VINSearch';
@@ -17,13 +18,12 @@ import VinTabsBar from '../components/VinTabsBar';
 import ManualEntryForm from '../components/ManualEntryForm';
 import PredictiveProcurement from '../components/PredictiveProcurement';
 import { analyzeProcurementNeeds } from '../services/procurementEngine';
-import { useVinTabs, type TabStep } from '../hooks/useVinTabs';
+import { useVinTabs, type TabStep, type TabState, type TabStatus } from '../hooks/useVinTabs';
 import { useVinHistory } from '../hooks/useVinHistory';
 import { useVinAI } from '../hooks/useVinAI';
 import { useVinCounts } from '../hooks/useVinCounts';
-import type { VehicleCorePart, VinDashboardMetrics, VinAnalysisResult } from '../types';
+import type { VehicleConfiguration, VehicleCorePart, VinDashboardMetrics, VinAnalysisResult, VinHistoryEntry } from '../types';
 import { PartSearchPanel } from '../../part-intelligence/components/PartSearchPanel';
-import { ShoppingCart, Plus } from 'lucide-react';
 
 
 // ============================================================
@@ -92,11 +92,9 @@ interface TabContentProps {
   tab: TabStep;
   data: ReturnType<typeof useVinTabs>['accumulatedData'];
   onPartClick: (part: VehicleCorePart) => void;
-  error: string | null;
 }
 
-const TabContent: React.FC<TabContentProps> = ({ tab, data, onPartClick, error }) => {
-  const { t } = useTranslation();
+const TabContent: React.FC<TabContentProps> = ({ tab, data, onPartClick }) => {
   const { aiInsight, isAnalyzingAI, aiError, runAIAnalysis } = useVinAI();
 
   useEffect(() => {
@@ -226,7 +224,7 @@ const TabContent: React.FC<TabContentProps> = ({ tab, data, onPartClick, error }
             </div>
           </div>
           <div className="space-y-3">
-            <PartSearchPanel vin={data.vin} vehicleInfo={{ make: data.vehicle?.make || '', model: data.vehicle?.model || '', year: data.vehicle?.year }} />
+            <PartSearchPanel vin={data.vin} vehicleInfo={{ make: data.vehicle?.make || '', model: data.vehicle?.model || '', ...(data.vehicle?.year !== undefined ? { year: data.vehicle.year } : {}) }} />
             <DemandIntelligence insights={data.demandInsights} />
           </div>
         </div>
@@ -241,14 +239,22 @@ const TabContent: React.FC<TabContentProps> = ({ tab, data, onPartClick, error }
 // ============================================================
 const VINPage: React.FC = () => {
   const { t } = useTranslation();
-  const { tabs, activeTab, setActiveTab, accumulatedData: data, runAllSteps, retryStep, reset, isAnyLoading } = useVinTabs();
+  const { tabs, activeTab, setActiveTab, accumulatedData: data, updateData, runAllSteps, retryStep, reset, isAnyLoading } = useVinTabs();
   const { history, addToHistory } = useVinHistory();
   const { vehicleCount, vinsAnalyzedCount, refreshCounts } = useVinCounts();
   const [selectedPart, setSelectedPart] = useState<VehicleCorePart | null>(null);
 
   useEffect(() => {
     if (data.vehicle?.make) {
-      addToHistory({ vin: data.vin, make: data.vehicle.make, model: data.vehicle.model, year: data.vehicle.year, analyzedAt: new Date().toISOString(), resultSummary: `${data.vehicle.make} ${data.vehicle.model} ${data.vehicle.year || ''} - ${data.coreParts.length} أجزاء` });
+      const historyEntry: VinHistoryEntry = {
+        vin: data.vin,
+        analyzedAt: new Date().toISOString(),
+        resultSummary: `${data.vehicle.make} ${data.vehicle.model} ${data.vehicle.year || ''} - ${data.coreParts.length} أجزاء`,
+        ...(data.vehicle.make ? { make: data.vehicle.make } : {}),
+        ...(data.vehicle.model ? { model: data.vehicle.model } : {}),
+        ...(data.vehicle.year !== undefined ? { year: data.vehicle.year } : {}),
+      };
+      addToHistory(historyEntry);
       refreshCounts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -261,21 +267,29 @@ const VINPage: React.FC = () => {
   const handleSelectRecent = useCallback((vin: string) => { handleAnalyze(vin); }, [handleAnalyze]);
   const handlePartClick = useCallback((part: VehicleCorePart) => { setSelectedPart(part); }, []);
 
-  const handleManualVehicleSave = (vehicleData: any) => {
-    // Manually update the accumulated data
-    data.vehicle = vehicleData;
-    setActiveTab(2); // Jump to analysis
+  const handleManualVehicleSave = (vehicleData: VehicleConfiguration) => {
+    updateData({ vehicle: { ...vehicleData, isManualEntry: true }, vehicleIsNew: true });
+    setActiveTab(2);
     setShowManualVehicle(false);
   };
 
-  const handleManualPartSave = (partData: any) => {
+  const handleManualPartSave = (partData: Partial<VehicleCorePart>) => {
     const newPart: VehicleCorePart = {
-      id: 'manual-' + Date.now(),
-      ...partData,
+      id: `manual-${Date.now()}`,
+      canonicalPartName: partData.canonicalPartName?.trim() || 'قطعة مضافة يدوياً',
+      category: partData.category || 'Engine',
+      oemNumbers: partData.oemNumbers?.filter(Boolean) || (partData.manualPartNumber ? [partData.manualPartNumber] : []),
+      fitmentStatus: 'VERIFIED',
       inventoryMatches: [],
-      fitmentStatus: 'VERIFIED'
+      ...(partData.position !== undefined ? { position: partData.position } : {}),
+      ...(partData.side !== undefined ? { side: partData.side } : {}),
+      ...(partData.crossReferences !== undefined ? { crossReferences: partData.crossReferences } : {}),
+      ...(partData.evidence !== undefined ? { evidence: partData.evidence } : { evidence: 'تمت الإضافة يدوياً بواسطة المستخدم' }),
+      evidenceSource: 'manual-entry',
+      isManualEntry: true,
+      ...(partData.manualPartNumber !== undefined ? { manualPartNumber: partData.manualPartNumber } : {}),
     };
-    data.coreParts = [newPart, ...data.coreParts];
+    updateData({ coreParts: [newPart, ...data.coreParts] });
     setShowManualPart(false);
   };
 
@@ -322,7 +336,7 @@ const VINPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950">
-      <MicroHeader title={t('vin_intelligence')} subtitle={t('vin_subtitle')} icon={Car}
+      <MicroHeader title={t('vin_intelligence')} icon={Car}
         actions={
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-full">
@@ -431,7 +445,12 @@ const VINPage: React.FC = () => {
                     exit={{ opacity: 0, x: 10 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <TabContent tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} error={tabs[activeTab]?.error || null} />
+                    {tabs[activeTab]?.error && (
+                      <div role="alert" className="mb-4 border border-rose-200 bg-rose-50 px-3 py-2 text-[10px] font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+                        {tabs[activeTab].error}
+                      </div>
+                    )}
+                    <TabContent tab={activeStep as TabStep} data={data} onPartClick={handlePartClick} />
                     
                     {tabs[activeTab]?.status === 'error' && (
                       <div className="mt-8 flex justify-center">

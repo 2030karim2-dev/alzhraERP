@@ -33,11 +33,11 @@ export function useVinHistory() {
 
       setHistory((data || []).map(row => ({
         vin: row.vin,
-        make: row.make ?? undefined,
-        model: row.model ?? undefined,
-        year: row.year ?? undefined,
-        analyzedAt: row.analyzed_at,
-        resultSummary: row.result_summary ?? undefined,
+        analyzedAt: row.analyzed_at ?? new Date().toISOString(),
+        ...(row.make ? { make: row.make } : {}),
+        ...(row.model ? { model: row.model } : {}),
+        ...(row.year !== null && row.year !== undefined ? { year: row.year } : {}),
+        ...(row.result_summary ? { resultSummary: row.result_summary } : {}),
       })));
     } catch (err) {
       logger.error('VIN', 'Failed to load VIN history from DB', err);
@@ -68,11 +68,11 @@ export function useVinHistory() {
         .upsert({
           user_id: userId,
           vin: entry.vin,
-          make: entry.make,
-          model: entry.model,
-          year: entry.year,
+          make: entry.make ?? null,
+          model: entry.model ?? null,
+          year: entry.year ?? null,
           analyzed_at: entry.analyzedAt,
-          result_summary: entry.resultSummary
+          result_summary: entry.resultSummary ?? null
         }, { onConflict: 'user_id,vin' });
 
       if (insertError) {

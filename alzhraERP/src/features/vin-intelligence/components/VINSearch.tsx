@@ -30,7 +30,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
     setVin(value);
     if (value) {
       const result = validateVin(value);
-      setValidation({ valid: result.isValid, message: result.error ? ERROR_MESSAGES[result.error] : undefined });
+      setValidation(result.error ? { valid: result.isValid, message: ERROR_MESSAGES[result.error] } : { valid: result.isValid });
     } else {
       setValidation(null);
     }
@@ -88,7 +88,7 @@ const VINSearch: React.FC<VINSearchProps> = ({ onAnalyze, isAnalyzing, recentVin
       )}
       {vin.length > 0 && (
         <p className="text-[9px] text-[var(--app-text-secondary)] px-1 font-mono">
-          {t('vin_characters_count', { count: vin.length })}
+          {t('vin_characters_count', { count: String(vin.length) })}
         </p>
       )}
       {recentVins.length > 0 && !isAnalyzing && (

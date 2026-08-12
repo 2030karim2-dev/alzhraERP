@@ -28,14 +28,12 @@ export function useVinCounts(): UseVinCountsReturn {
     supabase
       .from('vehicle_knowledge_base')
       .select('*', { count: 'exact', head: true })
-      .then(({ count }) => setVehicleCount(count ?? 0))
-      .catch(() => setVehicleCount(0));
+      .then(({ count }) => setVehicleCount(count ?? 0), () => setVehicleCount(0));
 
     supabase
       .from('vin_analysis_history')
       .select('*', { count: 'exact', head: true })
-      .then(({ count }) => setVinsAnalyzedCount(count ?? 0))
-      .catch(() => setVinsAnalyzedCount(0));
+      .then(({ count }) => setVinsAnalyzedCount(count ?? 0), () => setVinsAnalyzedCount(0));
   }, []);
 
   useEffect(() => {

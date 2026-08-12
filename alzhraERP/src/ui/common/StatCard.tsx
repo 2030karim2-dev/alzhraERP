@@ -15,6 +15,7 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   } | undefined;
+  className?: string;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -25,14 +26,16 @@ const StatCard: React.FC<StatCardProps> = ({
   colorClass,
   iconBgClass,
   variant = 'default',
-  trend
+  trend,
+  className
 }) => {
   const isCompact = variant === 'compact';
 
   return (
     <div className={cn(
       "bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:shadow-md hover:border-blue-500/20 stat-card",
-      isCompact ? "p-3 lg:p-4" : "p-3 md:p-4 lg:p-5 xl:p-6 lg:rounded-2xl"
+      isCompact ? "p-3 lg:p-4" : "p-3 md:p-4 lg:p-5 xl:p-6 lg:rounded-2xl",
+      className
     )}>
       <div className={cn("flex justify-between items-start", isCompact ? "mb-1" : "mb-2")}>
         <div className="flex flex-col">

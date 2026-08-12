@@ -10,7 +10,6 @@ export type {
   AnalysisStep,
   DemandInsight,
   PartCategory,
-  VinValidationResult,
 } from './types';
 
 export type { VinAIInsight } from './services/vinAIService';
@@ -22,3 +21,4 @@ export { useVinCounts } from './hooks/useVinCounts';
 export { useVinTabs } from './hooks/useVinTabs';
 export { analyzeVinWithAI, getPartAIInsight } from './services/vinAIService';
 export { validateVin, VALID_VIN_LENGTHS } from './utils/vinValidator';
+export type { VinValidationResult } from './utils/vinValidator';

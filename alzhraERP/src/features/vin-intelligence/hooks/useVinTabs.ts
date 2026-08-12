@@ -1,8 +1,7 @@
-import { logger } from '../../../core/utils/logger';
-
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuthSession } from '../../../core/hooks/useAuthSession';
+import { logger } from '../../../core/utils/logger';
 import type { VehicleConfiguration, VehicleCorePart, InventoryMatch, DemandInsight } from '../types';
 
 // ============================================================
@@ -21,7 +20,7 @@ export interface VinAccumulatedData {
 
 interface UseVinTabsReturn {
   tabs: TabState[]; activeTab: number; setActiveTab: (idx: number) => void;
-  accumulatedData: VinAccumulatedData; runStep: (step: TabStep) => Promise<void>;
+  accumulatedData: VinAccumulatedData; updateData: (patch: Partial<VinAccumulatedData>) => void; runStep: (step: TabStep) => Promise<void>;
   runAllSteps: (vin: string) => Promise<void>; retryStep: (step: TabStep) => Promise<void>;
   reset: () => void; isAnyLoading: boolean;
 }
@@ -52,6 +51,10 @@ export function useVinTabs(): UseVinTabsReturn {
 
   const updateTab = useCallback((step: TabStep, patch: Partial<TabState>) =>
     setTabs(prev => prev.map(t => t.id === step ? { ...t, ...patch } : t)), []);
+
+  const updateData = useCallback((patch: Partial<VinAccumulatedData>) => {
+    setAccData(prev => ({ ...prev, ...patch }));
+  }, []);
 
   const isAnyLoading = useMemo(() => tabs.some(t => t.status === 'loading'), [tabs]);
 
@@ -186,6 +189,6 @@ export function useVinTabs(): UseVinTabsReturn {
   const retryStep = useCallback(async (step: TabStep) => { await runStep(step); }, [runStep]);
   const reset = useCallback(() => { abortRef.current?.abort(); setTabs(TAB_DEFS.map(t => ({ ...t, status: 'idle' as TabStatus, error: null }))); setAccData(EMPTY_DATA); setActiveTab(0); }, []);
 
-  return { tabs, activeTab, setActiveTab, accumulatedData: accData, runStep, runAllSteps, retryStep, reset, isAnyLoading };
+  return { tabs, activeTab, setActiveTab, accumulatedData: accData, updateData, runStep, runAllSteps, retryStep, reset, isAnyLoading };
 }
 

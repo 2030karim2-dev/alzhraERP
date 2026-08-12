@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, AlertTriangle, Calendar, ShoppingCart, ArrowRight, Zap } from 'lucide-react';
+import { TrendingUp, AlertTriangle, ShoppingCart, ArrowRight, Zap } from 'lucide-react';
 import { ProcurementRecommendation } from '../services/procurementEngine';
 import { cn } from '../../../core/utils';
 

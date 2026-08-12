@@ -17,14 +17,6 @@ const STATUS_ICON: Record<TabStatus, React.ReactNode> = {
   error:   <XCircle size={12} className="text-rose-500" />,
 };
 
-const STATUS_BG: Record<TabStatus, string> = {
-  idle:    'bg-transparent',
-  locked:  'bg-slate-50 dark:bg-slate-800/50 opacity-50',
-  loading: 'bg-blue-50 dark:bg-blue-900/20',
-  success: 'bg-emerald-50 dark:bg-emerald-900/20',
-  error:   'bg-rose-50 dark:bg-rose-900/20',
-};
-
 const VinTabsBar: React.FC<VinTabsBarProps> = ({ tabs, activeTab, onTabClick }) => {
   return (
     <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl shadow-xl shadow-gray-200/10 dark:shadow-none overflow-x-auto no-scrollbar">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, ShoppingCart } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import type { VehicleCorePart } from '../types';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
