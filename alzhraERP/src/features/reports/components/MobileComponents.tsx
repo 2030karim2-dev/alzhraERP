@@ -4,11 +4,12 @@ import { cn } from '../../../core/utils';
 interface MobileCardProps {
     children: React.ReactNode;
     className?: string;
-    padding?: 'sm' | 'md' | 'lg';
+    padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
 export const MobileCard: React.FC<MobileCardProps> = ({ children, className, padding = 'md' }) => {
     const paddingClasses = {
+        none: 'p-0',
         sm: 'p-3 sm:p-4',
         md: 'p-4 sm:p-6',
         lg: 'p-4 sm:p-6 md:p-8',

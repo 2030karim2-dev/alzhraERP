@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────
+# Al-Zahra Smart ERP — Git attributes
+# Goal: prevent the Arabic mojibake incident (UTF-8 files saved
+# as Windows-1256) from ever happening again.
+# ─────────────────────────────────────────────────────────────
+
+# Default: let Git normalize line endings on checkout
+* text=auto
+
+# Source & content files: always UTF-8, LF endings
+*.ts          text eol=lf working-tree-encoding=UTF-8
+*.tsx         text eol=lf working-tree-encoding=UTF-8
+*.js          text eol=lf working-tree-encoding=UTF-8
+*.jsx         text eol=lf working-tree-encoding=UTF-8
+*.json        text eol=lf working-tree-encoding=UTF-8
+*.css         text eol=lf working-tree-encoding=UTF-8
+*.html        text eol=lf working-tree-encoding=UTF-8
+*.md          text eol=lf working-tree-encoding=UTF-8
+*.sql         text eol=lf working-tree-encoding=UTF-8
+*.yml         text eol=lf working-tree-encoding=UTF-8
+*.yaml        text eol=lf working-tree-encoding=UTF-8
+*.xml         text eol=lf working-tree-encoding=UTF-8
+*.svg         text eol=lf working-tree-encoding=UTF-8
+*.txt         text eol=lf working-tree-encoding=UTF-8
+*.env.example text eol=lf working-tree-encoding=UTF-8
+
+# Binary assets: never touch
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.pdf  binary
+*.zip  binary
