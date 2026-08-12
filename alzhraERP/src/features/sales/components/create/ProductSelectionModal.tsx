@@ -1,11 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Search, Box, Settings, Eye, EyeOff, Eye as EyeIcon, ArrowUp, ArrowDown, RotateCcw, GitBranch, Globe, PackageCheck, ChevronDown, Plus } from 'lucide-react';
-import { useProducts } from '../../../inventory/hooks/index';
-import type { Product } from '../../../inventory/types';
+import { useProducts, useProductMutations } from '../../../inventory/hooks/index';
+import type { Product, ProductFormData } from '../../../inventory/types';
 import Modal from '../../../../ui/base/Modal';
 import { PaginationBar } from '../../../../ui/common/PaginationBar';
 import { useProductTableConfig, ColumnConfig } from '../../hooks/useProductTableConfig';
 import ProductDetailModal from '../../../inventory/components/ProductDetailModal';
+import AddProductModal from '../../../inventory/components/AddProductModal';
+import { productService } from '../../../inventory/service';
 import { useBranchFilterStore } from '../../../branches/store';
 import { useBranches } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
@@ -51,7 +53,9 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     const isManager = user?.role === 'owner' || user?.role === 'admin';
     const { activeBranchId } = useBranchFilterStore();
     const { data: branches } = useBranches();
-    const activeBranches = (branches as BranchData[] | undefined)?.filter(b => b.status === 'active') ?? [];
+    const activeBranches = Array.isArray(branches)
+        ? branches.filter(b => b.status === 'active')
+        : [];
 
     // Use the local branch filter for this modal, falling back to global
     const effectiveBranchId = localBranchId ?? activeBranchId;
@@ -60,6 +64,27 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
 
     // Modals state for actions
     const [viewProduct, setViewProduct] = useState<Product | null>(null);
+    const [showAddProduct, setShowAddProduct] = useState(false);
+
+    // [ENHANCEMENT] Add a new product without leaving the invoice flow
+    const { saveProduct, isSaving } = useProductMutations();
+
+    const handleAddProduct = async (data: ProductFormData) => {
+        try {
+            const created = await saveProduct({ data });
+            setShowAddProduct(false);
+
+            // Auto-add the newly created product to the invoice right away
+            const mapped = productService.mapRawProducts([created])[0];
+            if (mapped) {
+                onSelect(mapped);
+                onClose();
+            }
+        } catch (err) {
+            // Error toast is already shown by useProductMutations.onError
+            console.error('[ProductSelectionModal] فشل إضافة المنتج:', err);
+        }
+    };
 
     // Filter products
     const filteredProducts = allProducts.filter(p => {
@@ -360,6 +385,17 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                 <div className="flex flex-col h-[70vh] bg-white dark:bg-slate-900">
                     {/* Toolbar */}
                     <div className="p-2 border-b dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap gap-2 items-center">
+                        {/* Add New Product - no need to leave the invoice flow */}
+                        <button
+                            type="button"
+                            onClick={() => setShowAddProduct(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 shadow-sm transition-colors"
+                            title="إضافة منتج جديد دون مغادرة النافذة"
+                        >
+                            <Plus size={14} />
+                            منتج جديد
+                        </button>
+
                         {/* Search */}
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
@@ -597,6 +633,15 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                     />
                 </div>
             </Modal>
+
+            {/* Add New Product Modal (inline creation without leaving the invoice) */}
+            <AddProductModal
+                isOpen={showAddProduct}
+                onClose={() => setShowAddProduct(false)}
+                onSubmit={handleAddProduct}
+                isSubmitting={isSaving}
+                zIndex="z-[10000]"
+            />
         </>
     );
 };

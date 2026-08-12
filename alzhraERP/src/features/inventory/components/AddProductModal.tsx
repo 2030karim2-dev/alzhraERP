@@ -25,9 +25,11 @@ interface Props {
   onSubmit: (data: ProductFormData) => void | Promise<void>;
   isSubmitting: boolean;
   initialData?: Product | null;
+  /** Optional override for the overlay z-index (e.g. when opened above a fullscreen modal). */
+  zIndex?: string;
 }
 
-const AddProductModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubmitting, initialData }) => {
+const AddProductModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubmitting, initialData, zIndex }) => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
 
@@ -113,6 +115,7 @@ const AddProductModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubmitt
       title={initialData ? t('edit_product_title') : t('new_product_title')}
       description={t('product_card_desc')}
       footer={footer}
+      zIndex={zIndex}
     >
       <div className="flex flex-col">
         <div className="p-5 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex flex-row gap-6">

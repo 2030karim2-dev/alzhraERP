@@ -13,9 +13,7 @@ import { SupplierPricesList } from '../auto_parts/SupplierPricesList';
 import { CrossReferenceList } from '../auto_parts/CrossReferenceList';
 import { useProductDetails } from '../../hooks/useProductDetails';
 import { useAIPartLookup } from '../../hooks/useAIPartLookup';
-import { useAuthStore } from '../../../auth/store';
-import { useQuery } from '@tanstack/react-query';
-import { settingsApi } from '../../../settings/api';
+import { useBranches } from '../../../settings/hooks';
 
 interface Props {
     product: Product;
@@ -45,14 +43,11 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const { stats, margin, supplierName, selling } = useProductDetails(product);
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const { search: aiImageSearch, searchResult: aiResult, isSearching: isAISearching } = useAIPartLookup(product.part_number);
-    const { user } = useAuthStore();
 
-    const { data: branches = [] } = useQuery<{ data?: BranchData[] }>({
-        queryKey: ['branches', user?.company_id],
-        queryFn: () => user?.company_id ? settingsApi.getBranches(user.company_id) : Promise.resolve({ data: [] }),
-        enabled: !!user?.company_id,
-        select: (result) => (result as { data?: BranchData[] }).data || [],
-    });
+    // Use the canonical `useBranches` hook to avoid a React Query cache-key collision
+    // (['branches', company_id]) that previously caused `branches` to become a raw
+    // Supabase `{ data, error }` object instead of an array, breaking `.filter()`.
+    const { data: branches = [] } = useBranches();
 
     const branchStockData = useMemo(() => {
         if (!branches.length || !product.warehouse_distribution?.length) return [];

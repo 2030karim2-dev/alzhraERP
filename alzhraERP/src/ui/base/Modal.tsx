@@ -12,6 +12,8 @@ interface ModalProps {
   children: React.ReactNode;
   footer: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full' | 'resizable';
+  /** Optional override for the overlay z-index (e.g. when stacking a modal above a fullscreen modal). */
+  zIndex?: string;
 }
 
 type Position = { x: number; y: number };
@@ -25,7 +27,8 @@ const Modal: React.FC<ModalProps> = ({
   description,
   children,
   footer,
-  size = 'lg'
+  size = 'lg',
+  zIndex
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
@@ -197,7 +200,7 @@ const Modal: React.FC<ModalProps> = ({
     <div
       className={cn(
         "fixed inset-0 flex items-end md:items-center justify-center p-0 md:p-4 transition-all duration-300 animate-in fade-in",
-        (isMaximized || size === 'full') ? "z-[9999]" : "z-[100]",
+        zIndex ?? ((isMaximized || size === 'full') ? "z-[9999]" : "z-[100]"),
         !isMaximized && "bg-slate-950/40 backdrop-blur-[2px]"
       )}
       onClick={onClose}
