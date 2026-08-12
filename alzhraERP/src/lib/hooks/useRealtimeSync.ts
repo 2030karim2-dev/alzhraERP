@@ -13,7 +13,16 @@ import { logger } from '../../core/utils/logger';
  * active queries every 60s so users keep seeing fresh data.
  */
 const FALLBACK_POLL_MS = 60_000;
-const fallbackIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+// Using 'any' for global to avoid complex typing for this specific fix
+const globalAny = window as any;
+
+// Registry lives on `window` (like __ALZ_CHANNELS__) so a Vite HMR module
+// swap does not orphan a running interval that the new module cannot stop.
+if (!globalAny.__ALZ_FALLBACK_INTERVALS__) {
+    globalAny.__ALZ_FALLBACK_INTERVALS__ = new Map<string, ReturnType<typeof setInterval>>();
+}
+const fallbackIntervals: Map<string, ReturnType<typeof setInterval>> = globalAny.__ALZ_FALLBACK_INTERVALS__;
 
 const startFallbackPolling = (channelId: string, queryClient: QueryClient) => {
     if (fallbackIntervals.has(channelId)) return;
@@ -46,9 +55,6 @@ const TABLE_PRESET_MAP: Record<string, InvalidationPreset> = {
     'warehouses': 'settings',
     'expense_categories': 'expense'
 };
-
-// Using 'any' for global to avoid complex typing for this specific fix
-const globalAny = window as any;
 
 export const useRealtimeSync = () => {
     const queryClient = useQueryClient();
