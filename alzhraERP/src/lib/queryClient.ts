@@ -40,5 +40,9 @@ export const queryClient = new QueryClient({
 persistQueryClient({
   queryClient,
   persister,
-  maxAge: Infinity,
+  // ⚡ كان Infinity — كاش مُديم بلا سقف يعني أن بيانات مالية قديمة قد
+  // تظهر وكأنها حديثة إلى الأبد. 24 ساعة حد أقصى، وبعدها يُعاد الجلب.
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  // bump this string to force-discard all persisted caches on deploy
+  buster: 'alz-erp-v1',
 });

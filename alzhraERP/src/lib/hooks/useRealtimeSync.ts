@@ -1,9 +1,36 @@
 import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, QueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { invalidateByPreset, invalidateKeys, InvalidationPreset } from '../../lib/invalidation';
 import { useAuthStore } from '../../features/auth/store';
+import { useConnectionStore } from '../../core/store/connectionStore';
 import { logger } from '../../core/utils/logger';
+
+/**
+ * Fallback polling: when the Realtime WebSocket drops silently, cached
+ * financial data would otherwise go stale FOREVER (staleTime=5min,
+ * refetchOnMount=false). While the channel is down we invalidate all
+ * active queries every 60s so users keep seeing fresh data.
+ */
+const FALLBACK_POLL_MS = 60_000;
+const fallbackIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+const startFallbackPolling = (channelId: string, queryClient: QueryClient) => {
+    if (fallbackIntervals.has(channelId)) return;
+    logger.warn('Realtime', `⚠️ Channel down — starting ${FALLBACK_POLL_MS / 1000}s fallback polling`);
+    fallbackIntervals.set(channelId, setInterval(() => {
+        queryClient.invalidateQueries();
+    }, FALLBACK_POLL_MS));
+};
+
+const stopFallbackPolling = (channelId: string) => {
+    const handle = fallbackIntervals.get(channelId);
+    if (handle) {
+        clearInterval(handle);
+        fallbackIntervals.delete(channelId);
+        logger.info('Realtime', '✅ Channel restored — fallback polling stopped');
+    }
+};
 
 // Map database tables to invalidation presets
 const TABLE_PRESET_MAP: Record<string, InvalidationPreset> = {
@@ -42,6 +69,7 @@ export const useRealtimeSync = () => {
 
         if (!registry.has(channelId)) {
             logger.debug('Realtime', `🔌 Initializing semi-persistent channel for company [${companyId}]`);
+            useConnectionStore.getState().setRealtimeStatus('connecting');
 
             // ⚡ Throttle invalidations to avoid cascading re-renders
             // 5s is enough since realtime is for collaboration, not millisecond sync
@@ -53,6 +81,8 @@ export const useRealtimeSync = () => {
                     'postgres_changes',
                     { event: '*', schema: 'public' },
                     (payload: any) => {
+                        useConnectionStore.getState().reportRealtimeEvent();
+
                         const now = Date.now();
                         if (now - lastInvalidated < THROTTLE_MS) return;
 
@@ -70,8 +100,15 @@ export const useRealtimeSync = () => {
                 );
 
             channel.subscribe((status: any) => {
+                const { setRealtimeStatus } = useConnectionStore.getState();
                 if (status === 'SUBSCRIBED') {
                     logger.debug('Realtime', '✅ Realtime Connection Active');
+                    setRealtimeStatus('connected');
+                    stopFallbackPolling(channelId);
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                    logger.warn('Realtime', `⚠️ Realtime channel status: ${status}`);
+                    setRealtimeStatus('disconnected');
+                    startFallbackPolling(channelId, queryClient);
                 }
             });
 

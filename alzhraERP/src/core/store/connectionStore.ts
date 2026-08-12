@@ -1,21 +1,31 @@
 import { create } from 'zustand';
 
+export type RealtimeStatus = 'connecting' | 'connected' | 'disconnected';
+
 interface ConnectionState {
   isUnstable: boolean;
   lastTimeoutAt: number | null;
   consecutiveFailures: number;
-  
+
+  /** Live-sync (Supabase Realtime) channel health */
+  realtimeStatus: RealtimeStatus;
+  realtimeLastEventAt: number | null;
+
   // Actions
   reportTimeout: () => void;
   reportSuccess: () => void;
   reportFailure: () => void;
   setUnstable: (unstable: boolean) => void;
+  setRealtimeStatus: (status: RealtimeStatus) => void;
+  reportRealtimeEvent: () => void;
 }
 
 export const useConnectionStore = create<ConnectionState>((set) => ({
   isUnstable: false,
   lastTimeoutAt: null,
   consecutiveFailures: 0,
+  realtimeStatus: 'connecting',
+  realtimeLastEventAt: null,
 
   reportTimeout: () => set((state) => {
     const now = Date.now();
@@ -37,4 +47,8 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
   })),
 
   setUnstable: (isUnstable) => set({ isUnstable }),
+
+  setRealtimeStatus: (realtimeStatus) => set({ realtimeStatus }),
+
+  reportRealtimeEvent: () => set({ realtimeLastEventAt: Date.now() }),
 }));

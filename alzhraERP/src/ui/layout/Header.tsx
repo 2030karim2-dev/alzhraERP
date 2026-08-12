@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Car, Menu, Search, X } from 'lucide-react';
 import HeaderActions from './header/HeaderActions';
+import RealtimeStatusIndicator from '../common/RealtimeStatusIndicator';
 import { MENU_ITEMS } from '../../core/constants';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { useSearchStore } from '../../core/store/searchStore';
@@ -107,7 +108,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </div>
 
       {/* Right side: Global Actions (Profile, Theme, etc) */}
-      <HeaderActions />
+      <div className="flex items-center gap-2">
+        <RealtimeStatusIndicator />
+        <HeaderActions />
+      </div>
     </header>
   );
 };

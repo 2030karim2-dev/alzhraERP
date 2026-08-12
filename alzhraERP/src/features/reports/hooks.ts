@@ -107,6 +107,7 @@ export const useCashFlow = (options: { enabled?: boolean } = {}) => {
         queryKey: ['cash_flow', user?.company_id],
         queryFn: () => user?.company_id ? reportsService.getCashFlow(user.company_id) : Promise.resolve(null),
         enabled: (options.enabled !== false) && !!user?.company_id,
-        staleTime: 5 * 60 * 1000, // 5 min
+        // بيانات سيولة مالية حساسة — دقيقة واحدة فقط بدل 5 (تُحدَّث لحظيًا عبر Realtime أيضًا)
+        staleTime: 60 * 1000, // 1 min
     });
 };
