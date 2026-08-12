@@ -34,15 +34,23 @@ Object.defineProperty(window, 'scrollTo', {
     writable: true,
 });
 
-// Mock localStorage
-const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+// Mock localStorage with a WORKING in-memory implementation.
+// A bare `vi.fn()` mock returns `undefined` for every getItem and stores
+// nothing, which silently broke any test relying on a storage round-trip
+// (e.g. AI model allowlist: setActiveModel -> getActiveModel).
+const createLocalStorageMock = () => {
+    let store: Record<string, string> = {};
+    return {
+        getItem: (key: string): string | null => (key in store ? store[key] : null),
+        setItem: (key: string, value: string): void => { store[key] = String(value); },
+        removeItem: (key: string): void => { delete store[key]; },
+        clear: (): void => { store = {}; },
+        get length(): number { return Object.keys(store).length; },
+        key: (index: number): string | null => Object.keys(store)[index] ?? null,
+    };
 };
 Object.defineProperty(window, 'localStorage', {
-    value: localStorageMock,
+    value: createLocalStorageMock(),
 });
 
 // Suppress console errors during tests

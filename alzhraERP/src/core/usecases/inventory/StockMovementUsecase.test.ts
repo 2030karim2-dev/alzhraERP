@@ -53,23 +53,21 @@ describe('StockMovementUsecase', () => {
     vi.clearAllMocks();
   });
 
-  it('should call RPC to calculate weighted average cost on IN transaction', async () => {
-    // Mock rpc to succeed
-    const rpcFn = vi.fn().mockResolvedValue({ error: null });
-    (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc = rpcFn;
-
-    // Mock inventory API
+  it('should record IN transaction with transaction_type purchase (WAC via DB trigger)', async () => {
+    // WAC is now updated by the fn_update_weighted_avg_cost trigger in the
+    // database, NOT by a manual RPC call from this usecase.
     (inventoryApi.createInventoryTransactions as ReturnType<typeof vi.fn>)
       .mockResolvedValue({ error: null });
 
     await StockMovementUsecase.execute(mockParams);
 
-    // Verify the atomic DB RPC was called with correct args
-    expect(rpcFn).toHaveBeenCalledWith('calculate_and_update_wac', {
-      p_product_id: 'prod-123',
-      p_added_qty:  10,
-      p_unit_price: 50,
-    });
+    expect(inventoryApi.createInventoryTransactions).toHaveBeenCalledWith([
+      expect.objectContaining({
+        product_id: 'prod-123',
+        quantity: 10,
+        transaction_type: 'purchase',
+      })
+    ]);
   });
 
   it('should create inventory transaction record', async () => {
