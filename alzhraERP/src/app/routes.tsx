@@ -7,7 +7,6 @@ import { useTranslation } from '../lib/hooks/useTranslation';
 import { AuthGuard } from '../features/auth/components/AuthGuard';
 import { GuestGuard } from '../features/auth/components/GuestGuard';
 import { FeatureBoundary } from '../core/components/FeatureBoundary';
-import { isFeatureEnabled } from '../config/featureFlags';
 
 // Auth Pages (Eager Loading — must be instant)
 import LandingPage from '../features/auth/LandingPage';
@@ -32,14 +31,6 @@ const AppearancePage = lazy(() => import('../features/appearance/AppearancePage'
 const BondsPage = lazy(() => import('../features/bonds/BondsPage'));
 const PartiesPage = lazy(() => import('../features/parties/PartiesPage'));
 const ReportsPage = lazy(() => import('../features/reports/ReportsPage'));
-const VINIntelligencePage = lazy(() => import('../features/vin-intelligence/pages/VINPage'));
-const DebtDashboardPage = lazy(() => import('../features/debts/pages/DebtDashboardPage'));
-const FollowUpPage = lazy(() => import('../features/debts/pages/FollowUpPage'));
-const TodayTasksPage = lazy(() => import('../features/debts/pages/TodayTasksPage'));
-const CustomerDebtPage = lazy(() => import('../features/debts/pages/CustomerDebtPage'));
-const DebtOutboxPage = lazy(() => import('../features/debts/pages/OutboxPage'));
-const DebtReportsPage = lazy(() => import('../features/debts/pages/ReportsPage'));
-const DebtSettingsPage = lazy(() => import('../features/debts/pages/SettingsPage'));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
@@ -124,28 +115,6 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="settings"><SettingsPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.APPEARANCE}
           element={<FeatureBoundary name="appearance"><AppearancePage /></FeatureBoundary>} />
-
-        {/* AI VIN Intelligence */}
-        {isFeatureEnabled('enableVinIntelligence') && (
-          <Route path={ROUTES.DASHBOARD.VIN_INTELLIGENCE}
-            element={<FeatureBoundary name="vin-intelligence"><VINIntelligencePage /></FeatureBoundary>} />
-        )}
-
-        {/* Debt & Receivables */}
-        <Route path={ROUTES.DASHBOARD.DEBTS}
-          element={<FeatureBoundary name="debts"><DebtDashboardPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_FOLLOW_UP}
-          element={<FeatureBoundary name="debts-follow-up"><FollowUpPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_TODAY}
-          element={<FeatureBoundary name="debts-today"><TodayTasksPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_CUSTOMER}
-          element={<FeatureBoundary name="debts-customer"><CustomerDebtPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_OUTBOX}
-          element={<FeatureBoundary name="debts-outbox"><DebtOutboxPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_REPORTS}
-          element={<FeatureBoundary name="debts-reports"><DebtReportsPage /></FeatureBoundary>} />
-        <Route path={ROUTES.DASHBOARD.DEBTS_SETTINGS}
-          element={<FeatureBoundary name="debts-settings"><DebtSettingsPage /></FeatureBoundary>} />
 
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />

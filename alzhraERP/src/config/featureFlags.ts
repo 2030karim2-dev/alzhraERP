@@ -39,19 +39,6 @@ export const featureFlags = {
         enabled: true,
         rolloutPercentage: 100,
     } as FeatureFlagConfig,
-
-    // AI VIN & Parts Intelligence Engine — Phase 1 (Frontend Only)
-    enableVinIntelligence: {
-        enabled: import.meta.env.VITE_VIN_INTELLIGENCE !== 'false', // Enabled by default; set VITE_VIN_INTELLIGENCE=false to disable
-        rolloutPercentage: 100, // Fully rolled out for development
-        allowedUsers: ['admin', 'beta-testers'],
-    } as FeatureFlagConfig,
-
-    enableDebtsModule: {
-        enabled: true,
-        rolloutPercentage: 100,
-        allowedUsers: ['admin', 'accountant'],
-    } as FeatureFlagConfig,
 };
 
 // ======== Helper Functions ========

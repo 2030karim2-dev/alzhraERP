@@ -8,18 +8,15 @@ import {
   FileText,
   Wrench,
   Users,
-  Wallet,
   BarChart3,
   Settings,
-  Package,
-  Car
+  Package
 } from 'lucide-react';
 import { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
 
 export const MENU_ITEMS: MenuItem[] = [
   { id: 'dashboard', labelKey: 'overview', icon: LayoutDashboard, path: ROUTES.DASHBOARD.ROOT, color: 'purple' },
-  { id: 'debts', labelKey: 'debt_receivables', icon: Wallet, path: ROUTES.DASHBOARD.DEBTS, color: 'orange' },
   { id: 'sales', labelKey: 'invoices', icon: ShoppingBag, path: ROUTES.DASHBOARD.SALES, color: 'green' },
   { id: 'bonds', labelKey: 'receipts', icon: FileText, path: ROUTES.DASHBOARD.BONDS, color: 'yellow' },
   { id: 'clients', labelKey: 'customers', icon: Users, path: ROUTES.DASHBOARD.CLIENTS, color: 'emerald' },
@@ -31,7 +28,6 @@ export const MENU_ITEMS: MenuItem[] = [
 
   { id: 'purchases', labelKey: 'purchases', icon: ShoppingCart, path: ROUTES.DASHBOARD.PURCHASES, color: 'teal' },
   { id: 'reports', labelKey: 'reports', icon: BarChart3, path: ROUTES.DASHBOARD.REPORTS, color: 'slate' },
-  { id: 'vin-intelligence', labelKey: 'vin_intelligence', icon: Car, path: ROUTES.DASHBOARD.VIN_INTELLIGENCE, color: 'sky' },
   { id: 'settings', labelKey: 'settings', icon: Settings, path: ROUTES.DASHBOARD.SETTINGS, isOwner: true, color: 'slate' },
 ];
 
