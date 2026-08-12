@@ -42,10 +42,6 @@ const reportLabelKeys: Record<ReportTab, string> = {
   cash_flow: 'cash_flow',
 };
 
-/** Helper to join class names (inline cn replacement) */
-function cls(...classes: (string | false | undefined | null)[]): string {
-  return classes.filter(Boolean).join(' ');
-}
 
 /** Skeleton loader matching report layout */
 const ReportSkeleton: React.FC<{ type?: 'financial' | 'default' }> = ({ type = 'default' }) => (

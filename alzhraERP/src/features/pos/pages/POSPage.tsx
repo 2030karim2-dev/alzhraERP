@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ShoppingCart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid';
 import { POSCart } from '../components/POSCart';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
@@ -12,7 +11,6 @@ import { useAuthStore } from '../../auth/store';
 import { usePOSCheckout } from '../hooks';
 import { usePOSSearch } from '../hooks/usePOSSearch';
 import { posSearchService } from '../services/searchService';
-import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
 import { formatCurrency } from '../../../core/utils';
 import { Product } from '../../inventory/types';
@@ -22,8 +20,6 @@ import { POSHeader } from '../components/layout/POSHeader';
 import { useWarehousesWithBranches } from '../../inventory/hooks/useWarehouseStock';
 
 const POSPage: React.FC = () => {
-    const navigate = useNavigate();
-
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [showSuspended, setShowSuspended] = useState(false);
     const [isQuickMode, setIsQuickMode] = useState(false);
@@ -32,7 +28,6 @@ const POSPage: React.FC = () => {
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(null);
     const isDesktop = useBreakpoint('md');
-    const { t } = useTranslation();
 
     const { warehouses } = useWarehousesWithBranches();
 

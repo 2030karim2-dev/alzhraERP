@@ -11,7 +11,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Feature flags
 export const AI_FEATURES_ENABLED = import.meta.env.VITE_ENABLE_AI_FEATURES === 'true';
-const IS_DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
 // Validate URL format (should end with .supabase.co)
 const isValidSupabaseUrl = (url: string): boolean => {

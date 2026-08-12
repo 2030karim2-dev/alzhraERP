@@ -1,5 +1,3 @@
-import type { Account as AccountModel } from '../../../accounting/types/models';
-
 // Local Account type that matches what usePaymentAccounts returns
 export interface PaymentAccount {
     id: string;

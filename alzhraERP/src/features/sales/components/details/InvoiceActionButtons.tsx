@@ -1,7 +1,5 @@
 import React from 'react';
 import { Download, FileSpreadsheet, RotateCcw, Loader2, Share2 } from 'lucide-react';
-import ShareButton from '@/ui/common/ShareButton';
-import { formatCurrency as shareFmtCur } from '@/core/utils';
 
 interface InvoiceActionButtonsProps {
   invoice: any;
@@ -22,9 +20,7 @@ const InvoiceActionButtons: React.FC<InvoiceActionButtonsProps> = ({
   onExportExcel,
   onShare,
   onToggleReturn,
-  isExporting,
-  issuedByName,
-  printRef
+  isExporting
 }) => {
   if (!invoice) return null;
 

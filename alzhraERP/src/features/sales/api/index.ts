@@ -66,7 +66,7 @@ export const salesApi = {
     return data as unknown as InvoiceWithParty[];
   },
 
-  commitInvoiceRPC: async (companyId: string, userId: string, payload: CreateInvoicePayload): Promise<InvoiceResponse> => {
+  commitInvoiceRPC: async (companyId: string, _userId: string, payload: CreateInvoicePayload): Promise<InvoiceResponse> => {
     if (!payload.partyId) {
       throw new Error('يجب اختيار العميل قبل إنشاء الفاتورة');
     }

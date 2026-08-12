@@ -76,7 +76,7 @@ export const inventoryService = {
   // Warehouse Operations (delegated to warehouseService)
   // ==========================================
 
-  getWarehouses: async (companyId: string, branchId?: string | null) => {
+  getWarehouses: async (companyId: string, _branchId?: string | null) => {
     return warehouseService.getWarehouses(companyId);
   },
 

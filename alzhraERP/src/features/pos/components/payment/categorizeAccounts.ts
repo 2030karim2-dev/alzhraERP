@@ -1,7 +1,3 @@
-import type { PaymentAccount } from './paymentTypes';
-
-
-
 /** Format balance helper */
 export const formatBalance = (balance: number | undefined): string => {
     if (balance === undefined || balance === null) return '—';

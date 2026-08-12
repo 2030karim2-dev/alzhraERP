@@ -9,7 +9,6 @@ interface MainLayoutOffsetOptions extends SidebarWidthOptions {
     isCollapsed: boolean;
 }
 
-const isUltraWideBreakpoint = (breakpoint: string) => breakpoint === '4xl' || breakpoint === '5xl';
 const isWideDesktop = (breakpoint: string) => breakpoint === '3xl' || breakpoint === '4xl' || breakpoint === '5xl';
 
 /**

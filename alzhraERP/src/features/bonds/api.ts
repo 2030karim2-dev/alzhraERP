@@ -35,7 +35,7 @@ export const bondsApi = {
     return await query;
   },
 
-  createPaymentRPC: async (companyId: string, userId: string, data: BondFormData & { branchId?: string | null }) => {
+  createPaymentRPC: async (_companyId: string, _userId: string, data: BondFormData & { branchId?: string | null }) => {
     if (!data.cash_account_id || !data.counterparty_id) {
       throw new Error("يجب اختيار الحسابات المطلوبة");
     }

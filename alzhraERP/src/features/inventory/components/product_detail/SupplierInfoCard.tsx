@@ -1,6 +1,5 @@
 import React from 'react';
-import { Building2, Phone, MapPin, Hash, Package, TrendingUp, Loader2, ExternalLink } from 'lucide-react';
-import { cn } from '../../../../core/utils';
+import { Building2, Phone, MapPin, Hash, Package, Loader2, ExternalLink } from 'lucide-react';
 
 interface SupplierData {
     id: string;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Bell, Check, Trash2, Archive, Package, AlertTriangle, DollarSign, Receipt } from 'lucide-react';
+import { Bell, Trash2, Archive, Package, AlertTriangle, DollarSign, Receipt } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import EmptyState from '../../../ui/base/EmptyState';
 

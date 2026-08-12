@@ -1,5 +1,4 @@
 import { inventoryApi } from '../../../features/inventory/api';
-import { supabase } from '../../../lib/supabaseClient';
 
 interface MovementParams {
   productId: string;

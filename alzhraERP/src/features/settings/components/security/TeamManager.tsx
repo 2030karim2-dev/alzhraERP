@@ -1,20 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Users, Mail, Plus, Clock, CheckCircle, XCircle, Trash2, GitBranch } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
 import Input from '../../../../ui/base/Input';
 import { useForm } from 'react-hook-form';
 import MicroListItem from '../../../../ui/common/MicroListItem';
-import { settingsApi } from '../../api';
-import { useAuthStore } from '../../../auth/store';
-import { useFeedbackStore } from '../../../feedback/store';
 import { useI18nStore } from '@/lib/i18nStore';
 import { useBranches, useInvitations, useInvitationMutations } from '../../hooks';
 
 const TeamManager: React.FC = () => {
     const { dictionary: t } = useI18nStore();
-    const { user } = useAuthStore();
-    const { showToast } = useFeedbackStore();
     const { register, handleSubmit, reset } = useForm();
     const { data: branches } = useBranches();
     const { data: invitations = [] } = useInvitations();

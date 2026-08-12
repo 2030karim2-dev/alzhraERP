@@ -5,7 +5,7 @@ import { formatCurrency } from '../../../core/utils';
 import { RefreshCw, Info, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import ExcelTable from '../../../ui/common/ExcelTable';
-import { MobileCard, MobileSectionTitle } from './MobileComponents';
+import { MobileCard } from './MobileComponents';
 
 const CurrencyDiffView: React.FC = () => {
   const { data, isLoading } = useCurrencyDiffs();

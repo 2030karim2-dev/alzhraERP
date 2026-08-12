@@ -3,7 +3,7 @@ import React from 'react';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import MicroListItem from '../../../ui/common/MicroListItem';
 import { formatCurrency } from '../../../core/utils';
-import { Eye, Trash2, ArrowLeftRight, FileText, ShoppingCart, Printer, Edit } from 'lucide-react';
+import { Eye, Trash2, ArrowLeftRight, ShoppingCart, Printer } from 'lucide-react';
 
 import { useDeletePurchase } from '../hooks';
 

@@ -16,7 +16,7 @@ interface AddAccountModalProps {
 }
 
 const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSubmit, isSubmitting, accounts = [] }) => {
-  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<AccountFormData>();
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<AccountFormData>();
   const selectedType = watch('type');
 
   // Filter potential parents based on type (optional but good UX)

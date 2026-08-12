@@ -1,4 +1,4 @@
-import { toBaseCurrency, formatCurrency } from '../../../core/utils/currencyUtils';
+import { formatCurrency } from '../../../core/utils/currencyUtils';
 
 export const calculateDashboardInsights = (data: {
     receiptBonds: number;

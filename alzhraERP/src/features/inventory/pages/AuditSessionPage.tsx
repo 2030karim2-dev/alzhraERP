@@ -38,12 +38,10 @@ const AuditSessionPage: React.FC = () => {
     const [showResults, setShowResults] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
     const [isBulkAdding, setIsBulkAdding] = useState(false);
-    const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+    const [, setBulkProgress] = useState({ current: 0, total: 0 });
     const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
     const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
-
-    const warehouseId = data?.session?.warehouse_id;
 
     const {
         items: sessionItems,

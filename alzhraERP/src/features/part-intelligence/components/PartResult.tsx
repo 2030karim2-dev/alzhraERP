@@ -11,7 +11,7 @@ interface PartResultProps {
   onPartSelected?: (part: PartSearchResultWithInventory) => void;
 }
 
-export const PartResult: React.FC<PartResultProps> = ({ result, vin, vehicleInfo, onPartSelected }) => {
+export const PartResult: React.FC<PartResultProps> = ({ result, vehicleInfo, onPartSelected }) => {
   const fe = result.fitmentEvidence;
 
   return (

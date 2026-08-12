@@ -14,7 +14,7 @@ interface PurchaseDetailsModalProps {
     onReturn?: (invoiceId: string, items: any[]) => void;
 }
 
-const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, onClose, onReturn }) => {
+const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, onClose }) => {
     const { data: _invoice, isLoading } = usePurchaseDetails(invoiceId);
     const invoice = _invoice as any;
     const { user } = useAuth();
@@ -96,13 +96,6 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
             console.error('Share via WhatsApp failed', err);
             showToast('فشل في مشاركة الفاتورة', 'error');
         }
-    };
-
-    // إنشاء مرتجع من تفاصيل الفاتورة
-    const handleCreateReturn = () => {
-        if (!invoice) return;
-        onReturn?.(invoice.id, invoice.invoice_items || []);
-        onClose();
     };
 
     if (!invoiceId) return null;

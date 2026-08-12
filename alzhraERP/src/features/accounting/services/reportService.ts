@@ -6,7 +6,7 @@ import { supabase } from '../../../lib/supabaseClient';
 export const reportService = {
     // ⚡ Server-side ledger via RPC
     // DB: get_account_ledger(p_company_id, p_account_id, p_from, p_to) → json { openingBalance, entries[], accountType }
-    getLedger: async (companyId: string, accountId: string, branchId?: string | null, fromDate?: string, toDate?: string): Promise<LedgerEntry[]> => {
+    getLedger: async (companyId: string, accountId: string, _branchId?: string | null, fromDate?: string, toDate?: string): Promise<LedgerEntry[]> => {
         const { data, error } = await supabase.rpc('get_account_ledger', {
             p_company_id: companyId,
             p_account_id: accountId,
@@ -65,7 +65,7 @@ export const reportService = {
     //    where type ∈ ('revenue', 'expense', 'net_profit')
     // DB report_balance_sheet(p_company_id, p_as_of_date) → TABLE rows: { category, amount, type }
     //    where type ∈ ('asset', 'liability', 'equity')
-    getFinancials: async (companyId: string, branchId?: string | null, fromDate?: string, toDate?: string) => {
+    getFinancials: async (companyId: string, _branchId?: string | null, fromDate?: string, toDate?: string) => {
         const now = new Date();
         const from = fromDate || `${now.getFullYear()}-01-01`;
         const to = toDate || now.toISOString().split('T')[0];

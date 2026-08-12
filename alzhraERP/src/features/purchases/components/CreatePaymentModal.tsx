@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { X, Loader2, Search, Banknote, Calendar, ShieldCheck } from 'lucide-react';
 import { useCreatePayment } from '../hooks';
 import { useParties } from '../../parties/hooks';
-import { useAuthStore } from '../../auth/store';
 
 import { Party } from '../../parties/types';
 import { formatCurrency } from '../../../core/utils';

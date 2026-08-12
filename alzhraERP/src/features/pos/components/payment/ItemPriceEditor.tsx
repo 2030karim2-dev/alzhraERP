@@ -1,7 +1,6 @@
 import React from 'react';
 import { ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 import { useSalesStore } from '../../../sales/store';
-import type { PaymentAccount } from './paymentTypes';
 
 interface ItemPriceEditorProps {
     show: boolean;

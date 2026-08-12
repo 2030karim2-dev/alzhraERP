@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { LayoutDashboard, ShoppingBag, Store, Wrench, WifiOff, Ellipsis, Receipt, Users, Truck, BarChart3, Settings, ReceiptText, PackageOpen, DollarSign } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Store, Wrench, WifiOff, Ellipsis, Users, Truck, BarChart3, Settings, ReceiptText, PackageOpen, DollarSign } from 'lucide-react';
 import { ROUTES } from '../../core/routes/paths';
 import { useI18nStore } from '../../lib/i18nStore';
 import { useThemeStore } from '../../lib/themeStore';

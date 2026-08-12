@@ -3,7 +3,6 @@ import { Search, Barcode, Hash } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
-import QuickActionFAB from '../../../ui/base/QuickActionFAB';
 
 interface QuickPartLookupProps {
   onSearch: (query: string, type: 'part_number' | 'oem' | 'barcode') => void;

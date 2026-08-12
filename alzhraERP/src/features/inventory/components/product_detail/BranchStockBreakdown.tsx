@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Store, Warehouse, MapPin, Building2, ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import React from 'react';
+import { Warehouse, MapPin, Building2, ChevronDown, ChevronUp, Layers } from 'lucide-react';
 import { cn, formatNumberDisplay } from '../../../../core/utils';
 import { warehouseStock } from '../../types';
 

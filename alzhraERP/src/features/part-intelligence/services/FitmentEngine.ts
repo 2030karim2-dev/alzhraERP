@@ -141,7 +141,7 @@ export class FitmentEngine {
    */
   normalizeExternalStatus(
     externalStatus: string,
-    providerSource: ProviderSource
+    _providerSource: ProviderSource
   ): FitmentStatus {
     // Only FAPI/TECDOC statuses mapped; everything else is UNKNOWN
     switch (externalStatus.toUpperCase()) {

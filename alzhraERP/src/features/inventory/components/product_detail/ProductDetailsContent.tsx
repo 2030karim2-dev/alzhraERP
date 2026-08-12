@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Info, FileClock, Link2, Sparkles, Loader2, Building2, Warehouse, Activity } from 'lucide-react';
+import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Info, FileClock, Link2, Sparkles, Loader2, Building2, Activity } from 'lucide-react';
 import { Product } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
 import StatCard from './StatCard';
@@ -47,7 +47,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
     const { search: aiImageSearch, searchResult: aiResult, isSearching: isAISearching } = useAIPartLookup(product.part_number);
     const { user } = useAuthStore();
 
-    const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useQuery<{ data?: BranchData[] }>({
+    const { data: branches = [] } = useQuery<{ data?: BranchData[] }>({
         queryKey: ['branches', user?.company_id],
         queryFn: () => user?.company_id ? settingsApi.getBranches(user.company_id) : Promise.resolve({ data: [] }),
         enabled: !!user?.company_id,

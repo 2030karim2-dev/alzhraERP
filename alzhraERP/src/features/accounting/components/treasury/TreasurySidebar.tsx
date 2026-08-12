@@ -1,9 +1,8 @@
 
 import React, { useMemo, useState, Fragment } from 'react';
 import { useAccounts, useAccountMutations } from '../../hooks/index';
-import { useCashboxes, useExchangeCompanies } from '../../hooks/useTreasury';
 import { formatCurrency } from '../../../../core/utils';
-import { Wallet, Landmark, Plus, Loader2, Globe, ChevronRight, Building2 } from 'lucide-react';
+import { Wallet, Landmark, Loader2, Globe, ChevronRight, Building2 } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import Button from '../../../../ui/base/Button';
 import AddAccountModal from '../accounts/AddAccountModal';
@@ -99,9 +98,7 @@ const SidebarItem: React.FC<{
 
 const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }) => {
     const { data: accounts, isLoading } = useAccounts();
-    const { data: cashboxes } = useCashboxes();
-    const { data: exchangeCompanies } = useExchangeCompanies();
-    const { createAccount, isCreating, seedYemeniExchanges, isSeedingExchanges, seedSubCashboxes, isSeedingSubCashboxes, migrateCashboxBalances, isMigratingCashbox } = useAccountMutations();
+    const { createAccount, isCreating, migrateCashboxBalances, isMigratingCashbox } = useAccountMutations();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [treasuryModalType, setTreasuryModalType] = useState<'cashbox' | 'exchange' | null>(null);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -149,11 +146,6 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
         roots.forEach(calculateTotal);
         sortNodes(roots);
         return roots;
-    }, [accounts]);
-
-    const hasExchangeAccounts = useMemo(() => {
-        // Check if root "Exchange Companies" (1030) exists
-        return accounts?.some(acc => acc.code === '1030');
     }, [accounts]);
 
     const hasSubCashboxes = useMemo(() => {

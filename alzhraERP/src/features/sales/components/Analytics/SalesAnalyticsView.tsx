@@ -83,7 +83,6 @@ const SalesAnalyticsView: React.FC = () => {
         invoiceCount,
         prevTotalSales,
         prevTotalReturns,
-        prevNetSales,
         topProducts,
         topCustomers,
         salesByDay,

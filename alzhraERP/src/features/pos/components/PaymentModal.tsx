@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useTranslation } from '../../../lib/hooks/useTranslation';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSalesStore } from '../../sales/store';
 import { useCashPaymentAccounts, useExchangePaymentAccounts, usePaymentAccounts } from '../../accounting/hooks/usePaymentAccounts';
-import { cn } from '../../../core/utils';
 import type { POSPaymentResult, POSPaymentMethod, PaymentAccount } from './payment';
 
 // Re-export types for backward compatibility
@@ -35,10 +33,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
     const [showItemEdit, setShowItemEdit] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
-    const { items, updateItem } = useSalesStore();
+    const { items } = useSalesStore();
     const validItems = items.filter(i => i.productId);
 
     // Reset on open

@@ -3,7 +3,6 @@ import { useAuthStore } from '../../auth/store';
 import { dashboardApi } from '../api/index';
 import { calculateDashboardInsights } from '../services/dashboardInsights';
 import { useMemo, useEffect } from 'react';
-import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { useFeedbackStore } from '../../feedback/store';
 import type {
   DashboardDataPayload,
@@ -131,7 +130,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
     const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
 
     if (!registry.has(channelKey)) {
-      const channel = import('../../../lib/supabaseClient').then(({ supabase }) => {
+      void import('../../../lib/supabaseClient').then(({ supabase }) => {
         const ch = supabase
           .channel(channelKey)
           .on(
@@ -310,7 +309,7 @@ export const useDashboardStats = () => {
   return { stats, isLoading, error };
 };
 
-export const useSalesChart = (period: 'today' | 'week' | 'month' | 'year' = 'week') => {
+export const useSalesChart = (_period: 'today' | 'week' | 'month' | 'year' = 'week') => {
   const { salesData, isLoading } = useDashboardData();
   return { chartData: salesData, isLoading };
 };

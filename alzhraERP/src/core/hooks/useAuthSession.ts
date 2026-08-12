@@ -10,7 +10,7 @@ export function useAuthSession() {
       }
       
       // Session missing or expired, try refresh
-      const { data: ref, error: re } = await supabase.auth.refreshSession();
+      const { data: ref } = await supabase.auth.refreshSession();
       if (ref?.session?.access_token && ref?.session?.user?.id) {
         return { userId: ref.session.user.id, token: ref.session.access_token };
       }

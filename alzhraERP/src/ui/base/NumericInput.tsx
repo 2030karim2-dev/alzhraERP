@@ -21,16 +21,9 @@ interface NumericInputProps {
 const NumericInput: React.FC<NumericInputProps> = ({
   value, onChange, min, max, step = 1,
   label, disabled = false, className,
-  formatThousands = true, showSteppers = true,
+  showSteppers = true,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const formatDisplay = useCallback((val: number): string => {
-    if (formatThousands) {
-      return val.toLocaleString('en-US');
-    }
-    return val.toString();
-  }, [formatThousands]);
 
   const parseInput = useCallback((input: string): number => {
     // Remove non-numeric chars except minus and decimal

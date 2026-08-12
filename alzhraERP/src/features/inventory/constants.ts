@@ -4,11 +4,7 @@ import {
     FileSearch, 
     Warehouse, 
     ArrowLeftRight, 
-    Archive, 
-    TrendingUp, 
     History,
-    Activity,
-    Sparkles,
     Boxes,
     FileText,
     Settings

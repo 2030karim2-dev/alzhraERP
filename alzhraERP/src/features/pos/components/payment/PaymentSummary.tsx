@@ -1,7 +1,6 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { formatCurrency } from '../../../../core/utils';
-import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import type { PaymentAccount } from './paymentTypes';
 
 interface PaymentSummaryProps {
@@ -16,8 +15,6 @@ interface PaymentSummaryProps {
 export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     total, currency, method, selectedAccount, receivedNum, change
 }) => {
-    const { t } = useTranslation();
-
     return (
         <div className="mx-4 mt-3 mb-1 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-1.5 mb-2">

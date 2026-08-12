@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../../core/utils';
 
 interface ProductImage {

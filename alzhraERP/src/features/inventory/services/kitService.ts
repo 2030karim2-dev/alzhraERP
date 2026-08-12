@@ -119,8 +119,6 @@ export const kitService = {
         quantity: number,
         userId: string
     ): Promise<KitAssemblyResult> => {
-        const errors: string[] = [];
-
         // 1. Check kit stock availability
         const { data: kitStock } = await supabase
             .from('product_stock')

@@ -165,7 +165,7 @@ export const generateCalculationHash = (
  * 
  * NOTE: For true cryptographic security, use generateCalculationHashAsync instead.
  */
-function generateHashSync(data: Uint8Array, hashInput: string): string {
+function generateHashSync(_data: Uint8Array, hashInput: string): string {
     // Use a combination of FNV-1a hash and DJB2 for better distribution
     let hash1 = 2166136261; // FNV offset basis
     let hash2 = 5381;       // DJB2 initial

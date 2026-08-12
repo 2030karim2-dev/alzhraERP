@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, Building2, Phone, MapPin, Calendar, Package, FileText } from 'lucide-react';
-import { formatCurrency, formatNumberDisplay } from '../../../core/utils';
+import { formatCurrency } from '../../../core/utils';
 import { useCompany } from '../../settings/hooks';
 import { useInvoiceSettings } from '../../settings/settingsStore';
 

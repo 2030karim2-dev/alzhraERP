@@ -67,7 +67,7 @@ export const purchasesApi = {
    * @param data بيانات الفاتورة (الأصناف، المورد، الإجماليات، إلخ)
    * @returns نتيجة العملية (معرّف الفاتورة المنشأة أو خطأ)
    */
-  createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
+  createPurchaseRPC: async (companyId: string, _userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
     const idempotencyKey = `pur_${companyId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
@@ -93,7 +93,7 @@ export const purchasesApi = {
     return result;
   },
 
-  createPurchaseReturnRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
+  createPurchaseReturnRPC: async (_companyId: string, _userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
     const idempotencyKey = `pur_ret_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
@@ -115,7 +115,7 @@ export const purchasesApi = {
     return result;
   },
 
-  createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, userId: string) => {
+  createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, _userId: string) => {
     const { data: cashAccount } = await supabase
       .from('accounts')
       .select('id')

@@ -213,7 +213,7 @@ export const productService = {
     /**
      * Update an existing product
      */
-    updateProduct: async (id: string, data: ProductFormData, companyId: string) => {
+    updateProduct: async (id: string, data: ProductFormData, _companyId: string) => {
         logger.debug('ProductService', `Updating product ${id}`, data);
 
         try {

@@ -14,7 +14,6 @@ interface InvoiceItemsListProps {
 
 const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
     items,
-    invoiceCurrency = 'SAR',
     returnQuantities,
     selectedItems,
     onItemSelect,

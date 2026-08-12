@@ -18,7 +18,7 @@ interface ProductDetailSheetProps {
   onEdit?: () => void;
 }
 
-const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({ product, className, onEdit }) => {
+const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({ product, className }) => {
   const profitMargin = product.costPrice && product.salePrice
     ? Math.round(((product.salePrice - product.costPrice) / product.salePrice) * 100) : null;
 
