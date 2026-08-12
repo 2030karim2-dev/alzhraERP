@@ -52,6 +52,8 @@ test_stock_structure.mjs
 *.mjstsxns
 *.mjssx
 *.txt
+# Exception: TS error ratchet baseline must be committed (read by pre-push gate)
+!alzhraERP/scripts/ts-error-baseline.txt
 tmp/
 tsconfig.tsbuildinfo
 	tmp_supabase_test.mjs

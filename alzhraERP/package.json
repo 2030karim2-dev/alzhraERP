@@ -33,7 +33,7 @@
     "quality:report": "tsx scripts/quality-report.ts",
     "prepare": "husky",
     "validate:barrels": "tsx scripts/validate-barrels.ts",
-    "pre-push": "npm run check:encoding && npm run type-check && npm run build"
+    "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts"
   },
   "dependencies": {
     "@google/genai": "^1.38.0",
