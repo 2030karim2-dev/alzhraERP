@@ -150,25 +150,17 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers });
 
   try {
-    // 1. Auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return json({ error: 'Unauthorized: Missing Authorization header', code: 'AUTH_MISSING' }, 401, headers);
-    }
-
+    // 1. Config — service role for DB ops (NO user session required).
+    // VIN decode is a read-only public operation (vPIC + global vehicles
+    // catalog); company-specific data (vin_analyses, vehicle_products) stays
+    // RLS-protected on the frontend. This removes the session-dependent 401.
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
       return json({ error: 'Server Error: Supabase configuration missing', code: 'CONFIG_ERROR' }, 500, headers);
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return json({ error: 'Unauthorized: Invalid token', code: 'AUTH_INVALID' }, 401, headers);
-    }
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     // 2. Body
     let body: { vin?: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: 'deepseek' | 'openrouter'; model?: string };

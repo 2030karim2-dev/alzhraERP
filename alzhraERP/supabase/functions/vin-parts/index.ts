@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
 // ============================================================
 // Edge Function: vin-parts — REAL parts lookup (no AI)
@@ -69,23 +68,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers });
 
   try {
-    // 1. Auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return json({ error: 'Unauthorized', code: 'AUTH_MISSING' }, 401, headers);
-    }
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return json({ error: 'Config error', code: 'CONFIG_ERROR' }, 500, headers);
-    }
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return json({ error: 'Unauthorized', code: 'AUTH_INVALID' }, 401, headers);
-    }
+    // 1. No auth required — read-only public parts catalog lookup (megazip).
 
     // 2. Body
     let body: { action?: string; partNumber?: string };
