@@ -2868,6 +2868,68 @@ export type Database = {
           },
         ]
       }
+      part_compatibility: {
+        Row: {
+          company_id: string
+          compatibility_status: string
+          confidence: number | null
+          created_at: string
+          engine_code: string | null
+          evidence: Json | null
+          id: string
+          manufacturer: string | null
+          part_number: string
+          source: string
+          updated_at: string
+          vehicle_make: string
+          vehicle_model: string | null
+          vehicle_year_from: number | null
+          vehicle_year_to: number | null
+        }
+        Insert: {
+          company_id: string
+          compatibility_status?: string
+          confidence?: number | null
+          created_at?: string
+          engine_code?: string | null
+          evidence?: Json | null
+          id?: string
+          manufacturer?: string | null
+          part_number: string
+          source?: string
+          updated_at?: string
+          vehicle_make: string
+          vehicle_model?: string | null
+          vehicle_year_from?: number | null
+          vehicle_year_to?: number | null
+        }
+        Update: {
+          company_id?: string
+          compatibility_status?: string
+          confidence?: number | null
+          created_at?: string
+          engine_code?: string | null
+          evidence?: Json | null
+          id?: string
+          manufacturer?: string | null
+          part_number?: string
+          source?: string
+          updated_at?: string
+          vehicle_make?: string
+          vehicle_model?: string | null
+          vehicle_year_from?: number | null
+          vehicle_year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_compatibility_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parties: {
         Row: {
           address: string | null
@@ -7954,6 +8016,109 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_products: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          fitment_status: string
+          id: string
+          product_id: string
+          source: string
+          vehicle_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          fitment_status?: string
+          id?: string
+          product_id: string
+          source?: string
+          vehicle_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          fitment_status?: string
+          id?: string
+          product_id?: string
+          source?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vin_analyses: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          decoded: Json | null
+          id: string
+          source: string
+          vehicle_id: string | null
+          vin: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          decoded?: Json | null
+          id?: string
+          source?: string
+          vehicle_id?: string | null
+          vin: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          decoded?: Json | null
+          id?: string
+          source?: string
+          vehicle_id?: string | null
+          vin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vin_analyses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vin_analyses_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       warehouses: {
         Row: {
           branch_id: string | null
@@ -10000,6 +10165,20 @@ export type Database = {
         Args: { p_company_id: string; p_sequence_name: string }
         Returns: string
       }
+      get_matching_inventory_products: {
+        Args: { p_company_id: string; p_vehicle_make: string; p_vehicle_model?: string | null; p_year?: number | null }
+        Returns: {
+          brand: string | null
+          compatibility_status: string
+          match_source: string
+          name_ar: string
+          part_number: string | null
+          product_id: string
+          sale_price: number
+          sku: string
+          status: string
+        }[]
+      }
       get_overdue_invoices: {
         Args: { p_company_id: string; p_type?: string }
         Returns: {
@@ -10361,6 +10540,10 @@ export type Database = {
       save_product_uoms: {
         Args: { p_product_id: string; p_uoms: Json }
         Returns: undefined
+      }
+      resolve_vehicle_from_vin: {
+        Args: { p_vin: string }
+        Returns: Json
       }
       search_by_oem: {
         Args: { p_company_id: string; p_search_term: string }

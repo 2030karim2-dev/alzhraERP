@@ -26,6 +26,7 @@ export const ROUTES = {
     PARTIES_CUSTOMERS: '/parties/customers',
     PARTIES_SUPPLIERS: '/parties/suppliers',
     REPORTS: '/reports',
+    VIN: '/vin',
     AI: '/ai',
   },
 } as const;

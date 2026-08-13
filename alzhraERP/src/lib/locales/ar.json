@@ -368,5 +368,9 @@
   "direction": "الاتجاه",
   "message_text": "نص الرسالة",
   "refresh": "تحديث",
-  "all": "الكل"
+  "all": "الكل",
+  "vin_intelligence": "ذكاء الشاصي (VIN)",
+  "vin_tab_decode": "فك الشاصي",
+  "vin_tab_inventory": "ربط المخزون",
+  "vin_tab_extract": "استخراج القطع"
 }

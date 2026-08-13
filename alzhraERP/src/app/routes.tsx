@@ -22,6 +22,7 @@ const AuditSessionPage = lazy(() => import('../features/inventory/pages/AuditSes
 const QuickAuditPage = lazy(() => import('../features/inventory/pages/QuickAuditPage'));
 
 const POSPage = lazy(() => import('../features/pos/pages/POSPage'));
+const VINPage = lazy(() => import('../features/vin-intelligence/pages/VINPage'));
 const SalesPage = lazy(() => import('../features/sales/pages/SalesPage'));
 const AccountingPage = lazy(() => import('../features/accounting/AccountingPage'));
 const PurchasesPage = lazy(() => import('../features/purchases/pages/PurchasesPage'));
@@ -85,6 +86,8 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="sales"><SalesPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.POS}
           element={<FeatureBoundary name="pos"><POSPage /></FeatureBoundary>} />
+        <Route path={ROUTES.DASHBOARD.VIN}
+          element={<FeatureBoundary name="vin-intelligence"><VINPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.PURCHASES}
           element={<FeatureBoundary name="purchases"><PurchasesPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.EXPENSES}

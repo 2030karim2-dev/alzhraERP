@@ -10,7 +10,8 @@ import {
   Users,
   BarChart3,
   Settings,
-  Package
+  Package,
+  Car
 } from 'lucide-react';
 import { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
@@ -25,6 +26,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { id: 'expenses', labelKey: 'expenses', icon: Receipt, path: ROUTES.DASHBOARD.EXPENSES, color: 'red' },
   { id: 'accounting', labelKey: 'accounting', icon: Calculator, path: ROUTES.DASHBOARD.ACCOUNTING, color: 'indigo' },
   { id: 'pos', labelKey: 'pos', icon: Package, path: ROUTES.DASHBOARD.POS, color: 'pink' },
+  { id: 'vin', labelKey: 'vin_intelligence', icon: Car, path: ROUTES.DASHBOARD.VIN, color: 'blue' },
 
   { id: 'purchases', labelKey: 'purchases', icon: ShoppingCart, path: ROUTES.DASHBOARD.PURCHASES, color: 'teal' },
   { id: 'reports', labelKey: 'reports', icon: BarChart3, path: ROUTES.DASHBOARD.REPORTS, color: 'slate' },

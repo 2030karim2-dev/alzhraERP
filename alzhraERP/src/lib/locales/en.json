@@ -355,5 +355,9 @@
   "debit": "Debit",
   "balance": "Balance",
   "no_data": "No data",
-  "direction": "Direction"
+  "direction": "Direction",
+  "vin_intelligence": "VIN Intelligence",
+  "vin_tab_decode": "VIN Decode",
+  "vin_tab_inventory": "Inventory Match",
+  "vin_tab_extract": "Parts Extract"
 }
