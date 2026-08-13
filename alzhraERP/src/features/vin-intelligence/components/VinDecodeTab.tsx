@@ -124,6 +124,27 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   );
 };
 
+const fuelAr = (f: string): string => {
+  const s = f.toLowerCase();
+  if (s.includes('diesel')) return 'ديزل';
+  if (s.includes('gasoline') || s.includes('petrol') || s.includes('gas')) return 'بترول';
+  if (s.includes('electric')) return 'كهرباء';
+  if (s.includes('hybrid')) return 'هجين';
+  return f;
+};
+
+const driveAr = (d: string): string => {
+  if (/4wd|awd|4x4|all.wheel/i.test(d)) return 'دبل';
+  if (/2wd|4x2|front|rear|fwd|rwd/i.test(d)) return 'سنجل';
+  return d;
+};
+
+const transAr = (t: string): string => {
+  if (/auto/i.test(t)) return 'أوتوماتيك';
+  if (/manual/i.test(t)) return 'عادي';
+  return t;
+};
+
 function VehicleCard({
   vehicle,
   source,
@@ -135,14 +156,17 @@ function VehicleCard({
 }) {
   const rows: Array<[string, string]> = (
     [
-      ['الشركة المصنعة', vehicle.make],
+      ['اسم السيارة', vehicle.make],
       ['الموديل', vehicle.model ?? null],
       ['سنة الصنع', vehicle.year ? String(vehicle.year) : null],
+      ['حجم المكينة', vehicle.displacement ? `${vehicle.displacement} لتر` : null],
+      ['عدد السلندر', vehicle.cylinders ? `${vehicle.cylinders} سلندر` : null],
       ['المحرك', vehicle.engine ?? null],
-      ['نوع الهيكل', vehicle.bodyType ?? null],
-      ['ناقل الحركة', vehicle.transmission ?? null],
-      ['نوع الوقود', vehicle.fuelType ?? null],
-      ['المنطقة', vehicle.region ?? null],
+      ['الوقود', vehicle.fuelType ? fuelAr(vehicle.fuelType) : null],
+      ['الدفع', vehicle.driveType ? driveAr(vehicle.driveType) : null],
+      ['الجير', vehicle.transmission ? transAr(vehicle.transmission) : null],
+      ['الوارد', vehicle.market ?? null],
+      ['بلد الصنع', vehicle.region ?? null],
     ] as Array<[string, string | null]>
   ).filter(([, v]) => !!v) as Array<[string, string]>;
 

@@ -17,11 +17,14 @@ export interface VehicleInfo {
   yearStart?: number | null;
   yearEnd?: number | null;
   engine?: string | null;
+  displacement?: string | null;
+  cylinders?: string | null;
   bodyType?: string | null;
   driveType?: string | null;
   fuelType?: string | null;
   transmission?: string | null;
   region?: string | null;
+  market?: string | null;
   vinPrefix?: string | null;
 }
 

@@ -9,6 +9,27 @@ import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord 
 
 type UiPart = ExtractedPart & { _key: string };
 
+const fuelLabel = (f: string): string => {
+  const s = f.toLowerCase();
+  if (s.includes('diesel')) return 'ديزل';
+  if (s.includes('gasoline') || s.includes('petrol') || s.includes('gas')) return 'بترول';
+  if (s.includes('electric')) return 'كهرباء';
+  if (s.includes('hybrid')) return 'هجين';
+  return f;
+};
+
+const driveLabel = (d: string): string => {
+  if (/4wd|awd|4x4|all.wheel/i.test(d)) return 'دبل';
+  if (/2wd|4x2|front|rear|fwd|rwd/i.test(d)) return 'سنجل';
+  return d;
+};
+
+const transLabel = (t: string): string => {
+  if (/auto/i.test(t)) return 'أوتوماتيك';
+  if (/manual/i.test(t)) return 'عادي';
+  return t;
+};
+
 interface VinsTabProps {
   savedVins: VinAnalysisRecord[];
   isLoading: boolean;
@@ -160,6 +181,16 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                 </div>
                 <span className="text-[9px] font-mono text-[var(--app-text-secondary)]">{selected.vin}</span>
               </div>
+              {(vehicle.displacement || vehicle.cylinders || vehicle.fuelType || vehicle.driveType || vehicle.transmission || vehicle.market) && (
+                <div className="flex flex-wrap gap-1.5 mt-2 text-[9px] text-[var(--app-text-secondary)]">
+                  {vehicle.displacement && <span className="px-1.5 py-0.5 rounded bg-slate-100">المكينة {vehicle.displacement} لتر</span>}
+                  {vehicle.cylinders && <span className="px-1.5 py-0.5 rounded bg-slate-100">{vehicle.cylinders} سلندر</span>}
+                  {vehicle.fuelType && <span className="px-1.5 py-0.5 rounded bg-slate-100">{fuelLabel(vehicle.fuelType)}</span>}
+                  {vehicle.driveType && <span className="px-1.5 py-0.5 rounded bg-slate-100">{driveLabel(vehicle.driveType)}</span>}
+                  {vehicle.transmission && <span className="px-1.5 py-0.5 rounded bg-slate-100">{transLabel(vehicle.transmission)}</span>}
+                  {vehicle.market && <span className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700">وارد {vehicle.market}</span>}
+                </div>
+              )}
               {linkedParts.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {linkedParts.map((l) => (

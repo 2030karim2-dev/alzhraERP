@@ -50,11 +50,14 @@ Respond with STRICT JSON only, no markdown, matching this shape:
   "model": string | null,
   "year": number | null,
   "engine": string | null,
+  "displacement": string | null,
+  "cylinders": string | null,
   "body_type": string | null,
   "drive_type": string | null,
   "fuel_type": string | null,
   "transmission": string | null,
   "region": string | null,
+  "market": string | null,
   "confidence": "high" | "medium" | "low",
   "notes": string
 }
@@ -69,11 +72,30 @@ interface VpicVehicle {
   model?: string | null;
   year?: number | null;
   engine?: string | null;
+  displacement?: string | null;
+  cylinders?: string | null;
   body_type?: string | null;
   drive_type?: string | null;
   fuel_type?: string | null;
   transmission?: string | null;
   region?: string | null;
+  market?: string | null;
+}
+
+/** Classify the import market from the WMI (first 3 chars of the VIN). */
+function marketFromWmi(vin: string): string {
+  const c = (vin[0] || '').toUpperCase();
+  if ('145'.includes(c)) return 'أمريكي';
+  if (c === '2') return 'كندي';
+  if (c === '3') return 'مكسيكي';
+  if (c === 'J') return 'ياباني';
+  if (c === 'K') return 'كوري';
+  if (c === 'L') return 'صيني';
+  if ('STUVWXYZ'.includes(c)) return 'أوروبي';
+  if ('67'.includes(c)) return 'أسترالي';
+  if ('89'.includes(c)) return 'أمريكي جنوبي';
+  if ('ABCDEFGH'.includes(c)) return 'أفريقي';
+  return 'آسيوي';
 }
 
 async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
@@ -98,20 +120,28 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
     const year = parseInt(get('Model Year') || '', 10) || null;
     const cylinders = get('Engine Number of Cylinders');
     const engineModel = get('Engine Model');
-    const engine = engineModel || cylinders
-      ? (engineModel && cylinders ? `${engineModel} (${cylinders} cyl)` : (engineModel || `${cylinders} cyl`))
-      : null;
+    const displacementL = get('Displacement (L)');
+    const displacementCC = get('Displacement (CC)');
+    let displacement: string | null = null;
+    if (displacementL) {
+      displacement = parseFloat(displacementL).toFixed(1);
+    } else if (displacementCC) {
+      displacement = (parseFloat(displacementCC) / 1000).toFixed(1);
+    }
 
     return {
       make,
       model: get('Model'),
       year,
-      engine,
+      engine: engineModel,
+      displacement,
+      cylinders,
       body_type: get('Body Class'),
       drive_type: get('Drive Type'),
       fuel_type: get('Fuel Type - Primary'),
       transmission: get('Transmission Style'),
       region: get('Plant Country'),
+      market: marketFromWmi(vin),
     };
   } catch {
     return null;
