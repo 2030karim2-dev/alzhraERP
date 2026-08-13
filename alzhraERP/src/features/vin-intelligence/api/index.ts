@@ -21,18 +21,28 @@ import type {
 async function ensureFreshSession(): Promise<boolean> {
   try {
     const { data, error } = await supabase.auth.refreshSession();
-    return !error && !!data?.session;
+    if (error || !data?.session) return false;
+    // Verify the refreshed token is actually valid (detects JWT-secret rotation
+    // and silently-invalid sessions). getUser() hits /auth/v1/user.
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    return !userError && !!userData?.user;
   } catch {
     return false;
   }
 }
 
 function authErrorMsg(error: unknown): string | null {
-  const ctx = (error as { context?: { body?: { code?: string } } }).context;
+  const ctx = (error as { context?: { body?: { code?: string; message?: string } } }).context;
   const code = ctx?.body?.code;
-  return code === 'AUTH_INVALID' || code === 'AUTH_MISSING'
-    ? 'انتهت الجلسة، يرجى إعادة تسجيل الدخول'
-    : null;
+  if (
+    code === 'AUTH_INVALID' ||
+    code === 'AUTH_MISSING' ||
+    (typeof code === 'string' && code.startsWith('UNAUTHORIZED'))
+  ) {
+    // Gateway (verify_jwt) or function-level auth rejected the token.
+    return 'انتهت صلاحية الجلسة، يرجى تسجيل الخروج ثم تسجيل الدخول مرة أخرى';
+  }
+  return null;
 }
 
 export const vinApi = {
