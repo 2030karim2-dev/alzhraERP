@@ -12,6 +12,29 @@ import type {
   VehicleProductLink,
 } from '../types';
 
+/**
+ * Proactively refresh the auth session before invoking edge functions.
+ * Edge functions call supabase.auth.getUser(), which fails with 401 on an
+ * expired access token (e.g. after a network outage breaks auto-refresh).
+ * Returns false when the session is unrecoverable (must log in again).
+ */
+async function ensureFreshSession(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.auth.refreshSession();
+    return !error && !!data?.session;
+  } catch {
+    return false;
+  }
+}
+
+function authErrorMsg(error: unknown): string | null {
+  const ctx = (error as { context?: { body?: { code?: string } } }).context;
+  const code = ctx?.body?.code;
+  return code === 'AUTH_INVALID' || code === 'AUTH_MISSING'
+    ? 'انتهت الجلسة، يرجى إعادة تسجيل الدخول'
+    : null;
+}
+
 export const vinApi = {
   /** Structural VIN → vehicle resolution via vin_prefix (DB only) */
   resolveVehicleFromVin: async (vin: string) => {
@@ -22,11 +45,13 @@ export const vinApi = {
 
   /** Hybrid VIN decode: vPIC → DB → AI (Edge Function) */
   decodeVin: async (body: { vin: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: string; model?: string }) => {
+    if (!(await ensureFreshSession())) {
+      throw new Error('انتهت الجلسة، يرجى إعادة تسجيل الدخول');
+    }
     const { data, error } = await supabase.functions.invoke('vin-decode', { body });
     if (error) {
-      const msg = (error as { message?: string }).message || 'فشل فك الشاصي';
       logger.error('VinAPI', 'decodeVin failed', error);
-      throw new Error(msg);
+      throw new Error(authErrorMsg(error) ?? 'فشل فك الشاصي، حاول مرة أخرى');
     }
     return data as {
       found: boolean;
@@ -57,12 +82,15 @@ export const vinApi = {
 
   /** Real parts lookup via megazip.net catalog (no AI) */
   searchPartsByNumber: async (partNumber: string) => {
+    if (!(await ensureFreshSession())) {
+      throw new Error('انتهت الجلسة، يرجى إعادة تسجيل الدخول');
+    }
     const { data, error } = await supabase.functions.invoke('vin-parts', {
       body: { action: 'searchByPart', partNumber },
     });
     if (error) {
       logger.error('VinAPI', 'searchPartsByNumber failed', error);
-      throw new Error((error as { message?: string }).message || 'فشل البحث عن القطعة');
+      throw new Error(authErrorMsg(error) ?? 'فشل البحث عن القطعة، حاول مرة أخرى');
     }
     return data as { source: string; parts: Array<{ partNumber: string; name: string; make: string | null }> };
   },
