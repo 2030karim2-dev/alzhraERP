@@ -79,7 +79,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       <Card isMicro className="text-center py-8">
         <Car size={24} className="text-[var(--app-text-secondary)] opacity-40 mx-auto mb-2" />
         <p className="text-[11px] font-bold text-[var(--app-text-secondary)]">
-          لا توجد شواصي محفوظة — اذهب إلى تبويب «فك الشاصي» ثم اضغط «حفظ»
+          لا توجد شواصي محفوظة — اذهب إلى تبويب «فك الشاصي» ثم اضغط زر الحفظ
         </p>
       </Card>
     );
