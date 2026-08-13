@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScanLine, PackageSearch, PackagePlus } from 'lucide-react';
+import { ScanLine, PackageSearch, PackagePlus, Bookmark } from 'lucide-react';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useAuthStore } from '../../auth/store';
@@ -7,6 +7,7 @@ import { useVinIntelligence } from '../hooks/useVinIntelligence';
 import { VinDecodeTab } from '../components/VinDecodeTab';
 import { InventoryMatchTab } from '../components/InventoryMatchTab';
 import { PartsExtractTab } from '../components/PartsExtractTab';
+import { VinsTab } from '../components/VinsTab';
 import type { VinDecodeMode } from '../types';
 
 const VINPage: React.FC = () => {
@@ -18,6 +19,7 @@ const VINPage: React.FC = () => {
 
   const tabs = [
     { id: 'decode', label: t('vin_tab_decode'), icon: ScanLine },
+    { id: 'vin', label: t('vin_tab_saved'), icon: Bookmark },
     { id: 'inventory', label: t('vin_tab_inventory'), icon: PackageSearch },
     { id: 'extract', label: t('vin_tab_extract'), icon: PackagePlus },
   ];
@@ -27,6 +29,15 @@ const VINPage: React.FC = () => {
       await vin.decodeVin(vinValue, mode);
     } catch {
       /* error surfaced via vin.decodeError */
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await vin.saveCurrentResult();
+      setActiveTab('vin');
+    } catch {
+      /* error surfaced via toast */
     }
   };
 
@@ -48,8 +59,22 @@ const VINPage: React.FC = () => {
               isDecoding={vin.isDecoding}
               error={vin.decodeError}
               result={vin.result}
-              history={vin.history}
+              history={vin.savedVins}
               onDecode={handleDecode}
+              onSave={handleSave}
+              isSaving={vin.isSaving}
+            />
+          )}
+
+          {activeTab === 'vin' && (
+            <VinsTab
+              savedVins={vin.savedVins}
+              isLoading={vin.isSavedVinsLoading}
+              onLoadParts={vin.loadLinkedProducts}
+              onSearchPart={vin.searchPartByNumber}
+              isSearching={vin.isSearching}
+              onAddParts={(vehicle, parts) => vin.addToInventory({ vehicle, parts })}
+              isAdding={vin.isAdding}
             />
           )}
 
@@ -72,7 +97,7 @@ const VINPage: React.FC = () => {
               vehicle={vin.vehicle}
               onSearchPart={vin.searchPartByNumber}
               isSearching={vin.isSearching}
-              onAdd={vin.addToInventory}
+              onAdd={(parts) => (vin.vehicle ? vin.addToInventory({ vehicle: vin.vehicle, parts }) : Promise.resolve(0))}
               isAdding={vin.isAdding}
             />
           )}

@@ -79,7 +79,11 @@ export const vinApi = {
   },
 
   saveVinAnalysis: async (payload: TableInsert<'vin_analyses'>) => {
-    const { data, error } = await supabase.from('vin_analyses').insert(payload).select().single();
+    const { data, error } = await supabase
+      .from('vin_analyses')
+      .upsert(payload, { onConflict: 'uq_vin_analyses_company_vin' })
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },

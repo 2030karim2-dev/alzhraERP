@@ -371,6 +371,7 @@
   "all": "الكل",
   "vin_intelligence": "ذكاء الشاصي (VIN)",
   "vin_tab_decode": "فك الشاصي",
+  "vin_tab_saved": "الشواصي المحفوظة",
   "vin_tab_inventory": "ربط المخزون",
   "vin_tab_extract": "استخراج القطع"
 }

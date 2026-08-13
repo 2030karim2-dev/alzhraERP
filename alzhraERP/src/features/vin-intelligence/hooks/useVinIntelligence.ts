@@ -4,6 +4,8 @@ import { useFeedbackStore } from '../../feedback/store';
 import { vinService } from '../services/vinService';
 import type {
   ExtractedPart,
+  VehicleInfo,
+  VehicleProductLink,
   VinDecodeMode,
   VinDecodeResult,
 } from '../types';
@@ -29,9 +31,6 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
       try {
         const res = await vinService.decodeVin(vin, mode);
         setResult(res);
-        if (companyId && userId && res.vehicle) {
-          vinService.saveAnalysis(companyId, userId, res).catch(() => undefined);
-        }
         return res;
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'فشل فك الشاصي';
@@ -64,15 +63,28 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     enabled: !!companyId,
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!companyId || !userId || !result?.vehicle) return false;
+      await vinService.saveAnalysis(companyId, userId, result);
+      return true;
+    },
+    onSuccess: () => {
+      showToast('تم حفظ الشاصي بنجاح', 'success');
+      queryClient.invalidateQueries({ queryKey: ['vin', 'history'] });
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'فشل الحفظ', 'error'),
+  });
+
   const searchMutation = useMutation({
     mutationFn: (partNumber: string) => vinService.searchPartByNumber(partNumber),
     onError: (err) => showToast(err instanceof Error ? err.message : 'فشل البحث', 'error'),
   });
 
   const addMutation = useMutation({
-    mutationFn: (parts: ExtractedPart[]) => {
-      if (!companyId || !userId || !vehicle) return Promise.resolve(0);
-      return vinService.addPartsToInventory({ companyId, userId, vehicle, parts });
+    mutationFn: ({ vehicle: target, parts }: { vehicle: VehicleInfo; parts: ExtractedPart[] }) => {
+      if (!companyId || !userId) return Promise.resolve(0);
+      return vinService.addPartsToInventory({ companyId, userId, vehicle: target, parts });
     },
     onSuccess: (count) => {
       showToast(`تمت إضافة ${count} قطعة إلى المخزون`, 'success');
@@ -103,6 +115,11 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     },
   });
 
+  const loadLinkedProducts = useCallback(
+    (vehicleId: string): Promise<VehicleProductLink[]> => vinService.listLinkedProducts(vehicleId),
+    [],
+  );
+
   const reset = useCallback(() => {
     setResult(null);
     setDecodeError(null);
@@ -119,7 +136,11 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     isMatching: matchingQuery.isLoading,
     linkedProducts: linkedQuery.data ?? [],
     isLinkedLoading: linkedQuery.isLoading,
-    history: historyQuery.data ?? [],
+    savedVins: historyQuery.data ?? [],
+    isSavedVinsLoading: historyQuery.isLoading,
+    saveCurrentResult: saveMutation.mutateAsync,
+    isSaving: saveMutation.isPending,
+    loadLinkedProducts,
     searchPartByNumber: searchMutation.mutateAsync,
     isSearching: searchMutation.isPending,
     addToInventory: addMutation.mutateAsync,

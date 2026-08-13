@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScanLine, Sparkles, Database, History, Car } from 'lucide-react';
+import { ScanLine, Sparkles, Database, History, Car, Save } from 'lucide-react';
 import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
 import Card from '../../../ui/base/Card';
@@ -13,6 +13,8 @@ interface VinDecodeTabProps {
   result: VinDecodeResult | null;
   history: VinAnalysisRecord[];
   onDecode: (vin: string, mode: VinDecodeMode) => Promise<void>;
+  onSave: () => void;
+  isSaving: boolean;
 }
 
 const MODES: { id: VinDecodeMode; label: string; icon: typeof ScanLine }[] = [
@@ -27,6 +29,8 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   result,
   history,
   onDecode,
+  onSave,
+  isSaving,
 }) => {
   const [vin, setVin] = useState('');
   const [mode, setMode] = useState<VinDecodeMode>('hybrid');
@@ -86,7 +90,12 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
       </Card>
 
       {result?.vehicle && (
-        <VehicleCard vehicle={result.vehicle} source={result.source} confidence={result.confidence} />
+        <>
+          <VehicleCard vehicle={result.vehicle} source={result.source} confidence={result.confidence} />
+          <Button size="sm" variant="success" onClick={onSave} isLoading={isSaving} fullWidth>
+            <Save size={14} className="ml-1" /> حفظ البيانات مع رقم الشاصي
+          </Button>
+        </>
       )}
 
       {history.length > 0 && (
