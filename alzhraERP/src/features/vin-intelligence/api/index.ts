@@ -20,7 +20,7 @@ export const vinApi = {
     return data as { found: boolean; vin: string; vehicle: Record<string, unknown> | null };
   },
 
-  /** Hybrid VIN decode: DB first, AI fallback (Edge Function) */
+  /** Hybrid VIN decode: vPIC → DB → AI (Edge Function) */
   decodeVin: async (body: { vin: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: string; model?: string }) => {
     const { data, error } = await supabase.functions.invoke('vin-decode', { body });
     if (error) {
@@ -53,28 +53,6 @@ export const vinApi = {
     });
     if (error) throw error;
     return (data ?? []) as MatchingInventoryProduct[];
-  },
-
-  /** AI part suggestion for a decoded vehicle (enrichment layer) */
-  aiSuggestParts: async (body: { make: string; model?: string | null; year?: number | null; engine?: string | null }) => {
-    const { data, error } = await supabase.functions.invoke('ai-proxy', {
-      body: {
-        prompt: `Suggest the most common replacement and maintenance parts for this vehicle. Return STRICT JSON only:
-{"parts":[{"partNumber":"...","description":"...","category":"...","manufacturer":"..."}]}
-Vehicle: ${body.year ?? ''} ${body.make} ${body.model ?? ''} engine ${body.engine ?? ''}`,
-        systemInstruction: 'You are an automotive spare-parts specialist. Only suggest parts you are reasonably confident apply to the given vehicle. partNumber must be a realistic OEM/aftermarket style code or leave it empty. Keep the list practical (5-15 items).',
-        model: 'google/gemini-2.5-flash',
-        provider: 'openrouter',
-        temperature: 0.2,
-        maxTokens: 2000,
-        jsonMode: true,
-      },
-    });
-    if (error) {
-      logger.error('VinAPI', 'aiSuggestParts failed', error);
-      throw new Error((error as { message?: string }).message || 'فشل اقتراح القطع');
-    }
-    return data as { choices?: Array<{ message?: { content?: string } }> };
   },
 
   /** Real parts lookup via megazip.net catalog (no AI) */

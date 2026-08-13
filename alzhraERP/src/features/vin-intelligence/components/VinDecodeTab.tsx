@@ -16,9 +16,9 @@ interface VinDecodeTabProps {
 }
 
 const MODES: { id: VinDecodeMode; label: string; icon: typeof ScanLine }[] = [
-  { id: 'hybrid', label: 'تلقائي (قاعدة بيانات + ذكاء اصطناعي)', icon: Sparkles },
-  { id: 'db', label: 'يدوي (فك بنيوي)', icon: Database },
-  { id: 'ai', label: 'ذكاء اصطناعي', icon: Sparkles },
+  { id: 'hybrid', label: 'تلقائي (vPIC + داخلي + AI)', icon: Sparkles },
+  { id: 'db', label: 'بنيوي (قاعدة البيانات)', icon: Database },
+  { id: 'ai', label: 'ذكاء اصطناعي فقط', icon: Sparkles },
 ];
 
 export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({

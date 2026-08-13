@@ -120,6 +120,29 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
   }
 }
 
+async function ensureVehicleId(
+  supabase: ReturnType<typeof createClient>,
+  v: Record<string, unknown>,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc('ensure_vehicle', {
+      p_make: (v.make as string | null) ?? null,
+      p_model: (v.model as string | null) ?? null,
+      p_year: (v.year as number | null) ?? null,
+      p_engine: (v.engine as string | null) ?? null,
+      p_body_type: (v.body_type as string | null) ?? null,
+      p_drive_type: (v.drive_type as string | null) ?? null,
+      p_fuel_type: (v.fuel_type as string | null) ?? null,
+      p_transmission: (v.transmission as string | null) ?? null,
+      p_region: (v.region as string | null) ?? null,
+    });
+    if (error || !data) return null;
+    return data as string;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   const origin = req.headers.get('Origin');
   const headers = corsHeaders(origin);
@@ -161,34 +184,59 @@ serve(async (req) => {
     }
     const mode = body.mode ?? 'hybrid';
 
-    // 3. vPIC FIRST — authoritative free US government VIN decoder
-    const vpicVehicle = await fetchVinFromVpic(vin);
+    // 3. Decode by mode: hybrid = vPIC→DB→AI, db = DB only, ai = AI only
+    const useVpic = mode === 'hybrid';
+    const useDb = mode === 'hybrid' || mode === 'db';
+    const useAi = mode === 'hybrid' || mode === 'ai';
 
-    // 4. Internal DB resolve (vin_prefix — supplements GCC/JDM VINs)
-    const { data: resolved, error: rpcError } = await supabase.rpc('resolve_vehicle_from_vin', { p_vin: vin });
-    const dbVehicle = !rpcError && resolved && resolved.found === true ? resolved.vehicle : null;
+    let vpicVehicle: VpicVehicle | null = null;
+    let dbVehicle: Record<string, unknown> | null = null;
+
+    if (useVpic) vpicVehicle = await fetchVinFromVpic(vin);
+
+    if (useDb) {
+      const { data: resolved, error: rpcError } = await supabase.rpc('resolve_vehicle_from_vin', { p_vin: vin });
+      dbVehicle = !rpcError && resolved && resolved.found === true ? resolved.vehicle : null;
+    }
+
+    let resultVehicle: Record<string, unknown> | null = null;
+    let resultSource: 'vpic' | 'db' | 'ai' = 'ai';
+    let resultConfidence: 'high' | 'medium' | 'low' | null = null;
 
     // vPIC full decode (make + model or year) → authoritative
     if (vpicVehicle && vpicVehicle.make && (vpicVehicle.model || vpicVehicle.year)) {
-      return json({ found: true, source: 'vpic', vin, vehicle: vpicVehicle, confidence: 'high', raw_ai: null }, 200, headers);
+      resultVehicle = vpicVehicle as unknown as Record<string, unknown>;
+      resultSource = 'vpic';
+      resultConfidence = 'high';
     }
-
     // Internal DB match (merged with vPIC partial if any)
-    if (dbVehicle) {
-      const merged = { ...(vpicVehicle ?? {}), ...dbVehicle };
-      return json({ found: true, source: 'db', vin, vehicle: merged, confidence: 'high', raw_ai: null }, 200, headers);
+    else if (dbVehicle) {
+      resultVehicle = { ...(vpicVehicle ?? {}), ...dbVehicle } as Record<string, unknown>;
+      resultSource = 'db';
+      resultConfidence = 'high';
     }
-
     // vPIC partial decode (make only — e.g. non-NHTSA VIN)
-    if (vpicVehicle && vpicVehicle.make) {
-      return json({ found: true, source: 'vpic', vin, vehicle: vpicVehicle, confidence: 'medium', raw_ai: null }, 200, headers);
+    else if (vpicVehicle && vpicVehicle.make) {
+      resultVehicle = vpicVehicle as unknown as Record<string, unknown>;
+      resultSource = 'vpic';
+      resultConfidence = 'medium';
     }
 
-    if (mode === 'db') {
-      return json({ found: false, source: 'db', vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
+    // Ensure a stable vehicles.id for linking (find-or-create in catalog)
+    if (resultVehicle && resultVehicle.make && !resultVehicle.id) {
+      const vehicleId = await ensureVehicleId(supabase, resultVehicle);
+      if (vehicleId) resultVehicle = { ...resultVehicle, id: vehicleId };
     }
 
-    // 5. AI fallback (LAST resort — never authoritative)
+    if (resultVehicle) {
+      return json({ found: true, source: resultSource, vin, vehicle: resultVehicle, confidence: resultConfidence, raw_ai: null }, 200, headers);
+    }
+
+    if (!useAi) {
+      return json({ found: false, source: resultSource, vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
+    }
+
+    // 4. AI fallback (LAST resort — never authoritative)
     const ai = await decodeWithAI(vin, body.provider, body.model);
 
     return json({

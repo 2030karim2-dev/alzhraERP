@@ -6,7 +6,6 @@
  */
 
 import type { Json } from '../../../core/database.types';
-import { logger } from '../../../core/utils/logger';
 import { productsApi } from '../../inventory/api/productsApi';
 import { vinApi } from '../api';
 import { validateVin } from '../utils/vinValidator';
@@ -44,6 +43,14 @@ function normalizeVehicle(raw: Record<string, unknown> | null | undefined): Vehi
   if (id) vehicle.id = id;
   return vehicle;
 }
+
+/** Map frontend part source → DB part_compatibility.source enum */
+const DB_SOURCE_MAP: Record<string, string> = {
+  megazip: 'MEGAZIP',
+  manual: 'MANUAL',
+  ai: 'AI',
+  fapi: 'FAPI',
+};
 
 export const vinService = {
   /** Validate + decode a VIN (vPIC → internal DB → AI fallback) */
@@ -83,41 +90,6 @@ export const vinService = {
       vehicle.model ?? null,
       vehicle.year ?? vehicle.yearStart ?? null,
     );
-  },
-
-  /** Suggest compatible parts for a vehicle (AI enrichment) */
-  async extractParts(vehicle: VehicleInfo): Promise<ExtractedPart[]> {
-    try {
-      const res = await vinApi.aiSuggestParts({
-        make: vehicle.make,
-        model: vehicle.model ?? null,
-        year: vehicle.year ?? vehicle.yearStart ?? null,
-        engine: vehicle.engine ?? null,
-      });
-      const content = res?.choices?.[0]?.message?.content ?? '{}';
-      let parsed: { parts?: Array<Record<string, unknown>> };
-      try {
-        parsed = JSON.parse(content) as { parts?: Array<Record<string, unknown>> };
-      } catch {
-        return [];
-      }
-      const parts: ExtractedPart[] = [];
-      for (const p of parsed.parts ?? []) {
-        const part: ExtractedPart = {
-          partNumber: String(p.partNumber ?? '').trim(),
-          source: 'ai',
-          confidence: 'medium',
-        };
-        if (p.manufacturer) part.manufacturer = String(p.manufacturer);
-        if (p.description) part.description = String(p.description);
-        if (p.category) part.category = String(p.category);
-        if (part.partNumber || part.description) parts.push(part);
-      }
-      return parts;
-    } catch (err) {
-      logger.error('VinService', 'extractParts failed', err);
-      throw err;
-    }
   },
 
   /** Search a part number against the megazip catalog (real data — no AI) */
@@ -228,7 +200,7 @@ export const vinService = {
         vehicle_year_from: vehicle.yearStart ?? vehicle.year ?? null,
         vehicle_year_to: vehicle.yearEnd ?? vehicle.year ?? null,
         compatibility_status: 'POSSIBLE',
-        source: 'AI',
+        source: DB_SOURCE_MAP[part.source] ?? 'MANUAL',
         confidence: 2,
         evidence: { description: part.description ?? null, source: part.source },
       });
@@ -239,10 +211,10 @@ export const vinService = {
     return created;
   },
 
-  /** Deterministic SKU from part number (fallback to timestamp) */
+  /** Deterministic SKU from part number (time suffix avoids collisions) */
   generateSku(part: ExtractedPart): string {
-    const base = part.partNumber.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-    if (base) return `VIN-${base}`;
-    return `VIN-${Date.now().toString(36).toUpperCase()}`;
+    const base = part.partNumber.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 24);
+    const suffix = Date.now().toString(36).toUpperCase().slice(-6);
+    return base ? `VIN-${base}-${suffix}` : `VIN-${suffix}`;
   },
 };
