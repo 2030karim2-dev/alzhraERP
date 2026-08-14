@@ -28,6 +28,13 @@ export const ROUTES = {
     REPORTS: '/reports',
     VIN: '/vin',
     AI: '/ai',
+    // Debts & Collection module (each main service = its own route)
+    DEBTS: '/debts',
+    DEBTS_FOLLOWUP: '/debts/followup',
+    DEBTS_PROMISES: '/debts/promises',
+    DEBTS_OUTBOX: '/debts/outbox',
+    DEBTS_STATEMENTS: '/debts/statements',
+    DEBTS_SETTINGS: '/debts/settings',
   },
 } as const;
 

@@ -33,6 +33,15 @@ const BondsPage = lazy(() => import('../features/bonds/BondsPage'));
 const PartiesPage = lazy(() => import('../features/parties/PartiesPage'));
 const ReportsPage = lazy(() => import('../features/reports/ReportsPage'));
 
+// Debts & Collection module — one lazy page per main service
+const DebtsLayout = lazy(() => import('../features/debts/pages/DebtsLayout'));
+const DebtOverviewPage = lazy(() => import('../features/debts/pages/OverviewPage'));
+const DebtFollowUpPage = lazy(() => import('../features/debts/pages/FollowUpPage'));
+const DebtPromisesPage = lazy(() => import('../features/debts/pages/PromisesPage'));
+const DebtOutboxPage = lazy(() => import('../features/debts/pages/OutboxPage'));
+const DebtStatementsPage = lazy(() => import('../features/debts/pages/StatementsPage'));
+const DebtSettingsPage = lazy(() => import('../features/debts/pages/SettingsPage'));
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
 const NotFoundPage: React.FC = () => {
@@ -118,6 +127,17 @@ export const AppRoutes: React.FC = () => {
           element={<FeatureBoundary name="settings"><SettingsPage /></FeatureBoundary>} />
         <Route path={ROUTES.DASHBOARD.APPEARANCE}
           element={<FeatureBoundary name="appearance"><AppearancePage /></FeatureBoundary>} />
+
+        {/* Debts & Collection module — each main service is its own tab/route */}
+        <Route path={ROUTES.DASHBOARD.DEBTS}
+          element={<FeatureBoundary name="debts"><DebtsLayout /></FeatureBoundary>}>
+          <Route index element={<DebtOverviewPage />} />
+          <Route path="followup" element={<DebtFollowUpPage />} />
+          <Route path="promises" element={<DebtPromisesPage />} />
+          <Route path="outbox" element={<DebtOutboxPage />} />
+          <Route path="statements" element={<DebtStatementsPage />} />
+          <Route path="settings" element={<DebtSettingsPage />} />
+        </Route>
 
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />

@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -1008,6 +1008,261 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      debt_followup_config: {
+        Row: {
+          company_id: string
+          created_at: string
+          critical_days: number
+          due_soon_days: number
+          id: string
+          reminder_signature: string | null
+          reminder_window_days: number
+          updated_at: string
+          whatsapp_enabled: boolean
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          critical_days?: number
+          due_soon_days?: number
+          id?: string
+          reminder_signature?: string | null
+          reminder_window_days?: number
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          critical_days?: number
+          due_soon_days?: number
+          id?: string
+          reminder_signature?: string | null
+          reminder_window_days?: number
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_followup_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debt_message_log: {
+        Row: {
+          channel: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          error_info: string | null
+          id: string
+          message_text: string
+          party_id: string
+          recipient: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          sent_at: string | null
+          status: string
+          template_id: string | null
+        }
+        Insert: {
+          channel?: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          error_info?: string | null
+          id?: string
+          message_text: string
+          party_id: string
+          recipient?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Update: {
+          channel?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          error_info?: string | null
+          id?: string
+          message_text?: string
+          party_id?: string
+          recipient?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_message_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_message_log_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "active_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_message_log_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_message_log_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "party_balances"
+            referencedColumns: ["party_id"]
+          },
+          {
+            foreignKeyName: "debt_message_log_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "debt_message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debt_message_templates: {
+        Row: {
+          body: string
+          channel: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          channel?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_message_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debt_payment_promises: {
+        Row: {
+          amount: number
+          cancelled_at: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          id: string
+          notes: string | null
+          party_id: string
+          promise_date: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          cancelled_at?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          id?: string
+          notes?: string | null
+          party_id: string
+          promise_date: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cancelled_at?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          id?: string
+          notes?: string | null
+          party_id?: string
+          promise_date?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_payment_promises_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_payment_promises_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "active_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_payment_promises_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_payment_promises_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "party_balances"
+            referencedColumns: ["party_id"]
           },
         ]
       }
@@ -2873,14 +3128,14 @@ export type Database = {
           company_id: string
           compatibility_status: string
           confidence: number | null
-          created_at: string
+          created_at: string | null
           engine_code: string | null
           evidence: Json | null
           id: string
           manufacturer: string | null
           part_number: string
           source: string
-          updated_at: string
+          updated_at: string | null
           vehicle_make: string
           vehicle_model: string | null
           vehicle_year_from: number | null
@@ -2890,14 +3145,14 @@ export type Database = {
           company_id: string
           compatibility_status?: string
           confidence?: number | null
-          created_at?: string
+          created_at?: string | null
           engine_code?: string | null
           evidence?: Json | null
           id?: string
           manufacturer?: string | null
           part_number: string
           source?: string
-          updated_at?: string
+          updated_at?: string | null
           vehicle_make: string
           vehicle_model?: string | null
           vehicle_year_from?: number | null
@@ -2907,14 +3162,14 @@ export type Database = {
           company_id?: string
           compatibility_status?: string
           confidence?: number | null
-          created_at?: string
+          created_at?: string | null
           engine_code?: string | null
           evidence?: Json | null
           id?: string
           manufacturer?: string | null
           part_number?: string
           source?: string
-          updated_at?: string
+          updated_at?: string | null
           vehicle_make?: string
           vehicle_model?: string | null
           vehicle_year_from?: number | null
@@ -3100,6 +3355,80 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_opening_balances: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          direction: string
+          entry_date: string
+          id: string
+          notes: string | null
+          party_id: string
+          reference_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          direction?: string
+          entry_date?: string
+          id?: string
+          notes?: string | null
+          party_id: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          direction?: string
+          entry_date?: string
+          id?: string
+          notes?: string | null
+          party_id?: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_opening_balances_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_opening_balances_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "active_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_opening_balances_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_opening_balances_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "party_balances"
+            referencedColumns: ["party_id"]
           },
         ]
       }
@@ -7959,6 +8288,82 @@ export type Database = {
           },
         ]
       }
+      vehicle_products: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          fitment_status: string
+          id: string
+          product_id: string
+          source: string
+          vehicle_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          fitment_status?: string
+          id?: string
+          product_id: string
+          source?: string
+          vehicle_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          fitment_status?: string
+          id?: string
+          product_id?: string
+          source?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "active_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inventory_summary"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inventory_valuation"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "vehicle_products_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles: {
         Row: {
           body_type: string | null
@@ -8015,61 +8420,6 @@ export type Database = {
           year_start?: number
         }
         Relationships: []
-      }
-      vehicle_products: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          fitment_status: string
-          id: string
-          product_id: string
-          source: string
-          vehicle_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          fitment_status?: string
-          id?: string
-          product_id: string
-          source?: string
-          vehicle_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          fitment_status?: string
-          id?: string
-          product_id?: string
-          source?: string
-          vehicle_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_products_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_products_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       vin_analyses: {
         Row: {
@@ -9207,6 +9557,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_vin_parts_to_inventory: {
+        Args: { p_company_id: string; p_vehicle: Json; p_parts: Json }
+        Returns: number
+      }
       admin_recalculate_all_stock: {
         Args: { p_company_id: string }
         Returns: Json
@@ -9593,10 +9947,6 @@ export type Database = {
         }
         Returns: string
       }
-      add_vin_parts_to_inventory: {
-        Args: { p_company_id: string; p_vehicle: Json; p_parts: Json }
-        Returns: number
-      }
       api_v1_sys_worker_heartbeat: {
         Args: { p_worker_id: string }
         Returns: undefined
@@ -9638,6 +9988,10 @@ export type Database = {
       auto_journal_from_invoice: {
         Args: { p_invoice_id: string }
         Returns: string
+      }
+      break_overdue_promises: {
+        Args: { p_company_id: string }
+        Returns: string[]
       }
       bulk_adjust_stock: {
         Args: {
@@ -9790,6 +10144,14 @@ export type Database = {
         }
         Returns: string
       }
+      complete_promise: {
+        Args: {
+          p_company_id: string
+          p_payment_id?: string
+          p_promise_id: string
+        }
+        Returns: undefined
+      }
       convert_quotation_to_invoice: {
         Args: {
           p_due_date?: string
@@ -9859,6 +10221,20 @@ export type Database = {
           p_warehouse_id: string
         }
         Returns: undefined
+      }
+      ensure_vehicle: {
+        Args: {
+          p_body_type?: string
+          p_drive_type?: string
+          p_engine?: string
+          p_fuel_type?: string
+          p_make: string
+          p_model?: string
+          p_region?: string
+          p_transmission?: string
+          p_year?: number
+        }
+        Returns: string
       }
       finalize_audit_session:
         | {
@@ -9930,20 +10306,6 @@ export type Database = {
       }
       generate_invoice_number: {
         Args: { p_company_id: string; p_type: string }
-        Returns: string
-      }
-      ensure_vehicle: {
-        Args: {
-          p_make: string
-          p_model?: string | null
-          p_year?: number | null
-          p_engine?: string | null
-          p_body_type?: string | null
-          p_drive_type?: string | null
-          p_fuel_type?: string | null
-          p_transmission?: string | null
-          p_region?: string | null
-        }
         Returns: string
       }
       generate_payment_number: {
@@ -10097,6 +10459,74 @@ export type Database = {
           total_value: number
         }[]
       }
+      get_debt_analytics_summary: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
+      get_debt_followup_dashboard: {
+        Args: {
+          p_company_id: string
+          p_critical_days?: number
+          p_due_soon_days?: number
+          p_reminder_window_days?: number
+        }
+        Returns: {
+          category: string
+          classification: string
+          credit_limit: number
+          currency_code: string
+          days_overdue: number
+          has_broken_promise: boolean
+          invoice_count: number
+          last_contact_date: string
+          last_reminded_at: string
+          next_due_date: string
+          oldest_due_date: string
+          opening_balance: number
+          outstanding_balance: number
+          overdue_amount: number
+          party_id: string
+          party_name: string
+          party_phone: string
+          pending_promise_amount: number
+          pending_promise_count: number
+          pending_promise_date: string
+          reminder_status: string
+        }[]
+      }
+      get_debt_party_overview: {
+        Args: { p_company_id: string; p_party_id: string }
+        Returns: {
+          category: string
+          credit_limit: number
+          due_today_amount: number
+          has_broken_promise: boolean
+          invoice_count: number
+          last_contact_date: string
+          last_reminded_at: string
+          opening_balance: number
+          overdue_amount: number
+          party_id: string
+          party_name: string
+          party_phone: string
+          pending_promise_amount: number
+          pending_promise_count: number
+          total_outstanding: number
+        }[]
+      }
+      get_debt_today_tasks: {
+        Args: { p_company_id: string }
+        Returns: {
+          amount: number
+          currency_code: string
+          party_id: string
+          party_name: string
+          party_phone: string
+          reference_info: string
+          task_type: string
+          urgency: string
+        }[]
+      }
       get_expense_categories_summary: {
         Args: {
           p_branch_id?: string
@@ -10153,6 +10583,25 @@ export type Database = {
           quantity: number
         }[]
       }
+      get_matching_inventory_products: {
+        Args: {
+          p_company_id: string
+          p_vehicle_make: string
+          p_vehicle_model?: string | null
+          p_year?: number | null
+        }
+        Returns: {
+          brand: string | null
+          compatibility_status: string
+          match_source: string
+          name_ar: string
+          part_number: string | null
+          product_id: string
+          sale_price: number
+          sku: string
+          status: string
+        }[]
+      }
       get_monthly_performance:
         | {
             Args: { p_company_id: string; p_month?: number; p_year?: number }
@@ -10185,20 +10634,6 @@ export type Database = {
       get_next_sequence: {
         Args: { p_company_id: string; p_sequence_name: string }
         Returns: string
-      }
-      get_matching_inventory_products: {
-        Args: { p_company_id: string; p_vehicle_make: string; p_vehicle_model?: string | null; p_year?: number | null }
-        Returns: {
-          brand: string | null
-          compatibility_status: string
-          match_source: string
-          name_ar: string
-          part_number: string | null
-          product_id: string
-          sale_price: number
-          sku: string
-          status: string
-        }[]
       }
       get_overdue_invoices: {
         Args: { p_company_id: string; p_type?: string }
@@ -10233,6 +10668,30 @@ export type Database = {
           p_type?: string
         }
         Returns: Json
+      }
+      get_party_all_balances: {
+        Args: { p_company_id: string; p_party_id: string }
+        Returns: {
+          balance: number
+          currency_code: string
+          last_activity_date: string
+          party_id: string
+          transaction_count: number
+        }[]
+      }
+      get_party_balance_by_currency: {
+        Args: {
+          p_company_id: string
+          p_currency_code: string
+          p_party_id: string
+        }
+        Returns: {
+          balance: number
+          currency_code: string
+          last_activity_date: string
+          party_id: string
+          transaction_count: number
+        }[]
       }
       get_party_statement: {
         Args: { p_company_id: string; p_party_id: string }
@@ -10503,6 +10962,22 @@ export type Database = {
         Args: { p_product_id: string; p_warehouse_id: string }
         Returns: undefined
       }
+      record_debt_reminder: {
+        Args: {
+          p_channel?: string
+          p_company_id: string
+          p_message_text: string
+          p_party_id: string
+          p_recipient?: string
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+          p_template_id?: string
+        }
+        Returns: {
+          activity_id: string
+          message_log_id: string
+        }[]
+      }
       report_balance_sheet: {
         Args: { p_as_of_date?: string; p_company_id: string }
         Returns: {
@@ -10556,18 +11031,15 @@ export type Database = {
           total_debit: number
         }[]
       }
+      resolve_vehicle_from_vin: { Args: { p_vin: string }; Returns: Json }
       reverse_audit_session: { Args: { p_session_id: string }; Returns: Json }
       reverse_stock_transfer: { Args: { p_transfer_id: string }; Returns: Json }
       save_product_uoms: {
         Args: { p_product_id: string; p_uoms: Json }
         Returns: undefined
       }
-      resolve_vehicle_from_vin: {
-        Args: { p_vin: string }
-        Returns: Json
-      }
       search_by_oem: {
-        Args: { p_company_id: string; p_search_term: string }
+        Args: { p_company_id: string; p_limit?: number; p_search_term: string }
         Returns: {
           brand: string
           match_quality: string
@@ -10683,6 +11155,7 @@ export type Database = {
         Returns: undefined
       }
       test_active_accounts: { Args: { p_company_id: string }; Returns: Json }
+      user_can_manage_debts: { Args: never; Returns: boolean }
       user_has_company_access: {
         Args: { p_company_id: string }
         Returns: boolean

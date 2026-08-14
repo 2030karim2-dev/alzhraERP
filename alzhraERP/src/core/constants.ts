@@ -11,7 +11,8 @@ import {
   BarChart3,
   Settings,
   Package,
-  Car
+  Car,
+  HandCoins
 } from 'lucide-react';
 import { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
@@ -20,6 +21,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { id: 'dashboard', labelKey: 'overview', icon: LayoutDashboard, path: ROUTES.DASHBOARD.ROOT, color: 'purple' },
   { id: 'sales', labelKey: 'invoices', icon: ShoppingBag, path: ROUTES.DASHBOARD.SALES, color: 'green' },
   { id: 'bonds', labelKey: 'receipts', icon: FileText, path: ROUTES.DASHBOARD.BONDS, color: 'yellow' },
+  { id: 'debts', labelKey: 'debts', icon: HandCoins, path: ROUTES.DASHBOARD.DEBTS, color: 'red' },
   { id: 'clients', labelKey: 'customers', icon: Users, path: ROUTES.DASHBOARD.CLIENTS, color: 'emerald' },
   { id: 'suppliers', labelKey: 'suppliers', icon: Users, path: ROUTES.DASHBOARD.SUPPLIERS, color: 'blue' },
   { id: 'inventory', labelKey: 'products', icon: Wrench, path: ROUTES.DASHBOARD.INVENTORY, color: 'orange' },
