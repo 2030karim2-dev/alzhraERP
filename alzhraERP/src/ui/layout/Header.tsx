@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Car, Menu, Search, X } from 'lucide-react';
 import HeaderActions from './header/HeaderActions';
 import RealtimeStatusIndicator from '../common/RealtimeStatusIndicator';
+import DhikrTicker from '../../features/dhikr/DhikrTicker';
 import { MENU_ITEMS } from '../../core/constants';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { useSearchStore } from '../../core/store/searchStore';
@@ -36,7 +37,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const title = currentRoute ? t(currentRoute.labelKey) : 'الرئيسية';
 
   return (
-    <header className="flex h-10 md:h-12 items-center justify-between px-3 md:px-5 bg-[var(--app-surface)]/80 backdrop-blur-md border-b border-[var(--app-border)] flex-shrink-0 z-50 sticky top-0 transition-colors no-print">
+    <div className="sticky top-0 z-50 flex-shrink-0 no-print">
+      <header className="flex h-10 md:h-12 items-center justify-between px-3 md:px-5 bg-[var(--app-surface)]/80 backdrop-blur-md border-b border-[var(--app-border)] transition-colors">
       {/* Left side: Logo/Title (Mobile) / Page Title (Desktop) */}
       <div className="flex items-center gap-3 flex-1 md:flex-none">
         {/* Mobile Menu Button */}
@@ -112,7 +114,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <RealtimeStatusIndicator />
         <HeaderActions />
       </div>
-    </header>
+      </header>
+
+      {/* Non-intrusive Dhikr & Prayer ticker */}
+      <DhikrTicker />
+    </div>
   );
 };
 

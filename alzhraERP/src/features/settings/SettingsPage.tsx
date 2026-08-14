@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Settings, Building, ShieldCheck, Banknote, Users, FileText, Calculator, Package, Link, Search, ChevronLeft, User, GitBranch } from 'lucide-react';
+import { Settings, Building, ShieldCheck, Banknote, Users, FileText, Calculator, Package, Link, Search, ChevronLeft, User, GitBranch, Moon } from 'lucide-react';
 import CompanyProfile from './components/CompanyProfile';
 import BranchManager from './components/branches/BranchManager';
 import PersonalProfile from './components/PersonalProfile';
@@ -16,6 +16,7 @@ import InventorySettings from './components/inventory/InventorySettings';
 import PrintSettings from './components/print';
 import IntegrationsSettings from './components/integrations/IntegrationsSettings';
 import LocalizationSettings from './components/localization/LocalizationSettings';
+import DhikrSettings from './components/dhikr/DhikrSettings';
 import { SettingsSection } from './types';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { cn } from '../../core/utils';
@@ -41,6 +42,7 @@ const SettingsPage: React.FC = () => {
         { id: 'company', label: t('company_profile'), icon: Building, desc: 'الهوية والمعلومات القانونية', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
         { id: 'branches', label: 'فروع الشركة', icon: GitBranch, desc: 'إدارة الفروع والمواقع الجغرافية', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
         { id: 'preferences', label: 'تفضيلات النظام', icon: Settings, desc: 'المظهر واللغة والإشعارات', color: 'text-violet-600 bg-violet-50 dark:bg-violet-900/30' },
+        { id: 'dhikr', label: 'ذكر وأوقات الصلاة', icon: Moon, desc: 'شريط الذكر وصوت الأذان', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
       ]
     },
     {
@@ -93,6 +95,7 @@ const SettingsPage: React.FC = () => {
             <div className="px-4"><NotificationSettings /></div>
           </div>
         );
+      case 'dhikr': return <DhikrSettings />;
       case 'invoice':
         return (
           <div className="space-y-8">
