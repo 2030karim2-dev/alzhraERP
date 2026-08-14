@@ -627,9 +627,9 @@ BEGIN
         WHERE dm.company_id = p_company_id AND dm.status = 'failed'
           AND dm.created_at::DATE = v_today
     ) sub
-    ORDER BY CASE urgency
+    ORDER BY CASE sub.urgency
         WHEN 'critical' THEN 0 WHEN 'high' THEN 1 ELSE 2 END,
-        amount DESC NULLS LAST;
+        sub.amount DESC NULLS LAST;
 END;
 $$;
 

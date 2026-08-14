@@ -70,15 +70,31 @@ export const vinApi = {
 
   // ── vin_analyses ─────────────────────────────────────────
   listVinAnalyses: async (companyId: string) => {
-    const { data, error } = await supabase
-      .from('vin_analyses')
-      .select('*')
-      .eq('company_id', companyId)
+    // Prefer updated_at ordering (added by migration 20260814000005).
+    // If that column is missing on the server (migration not applied yet),
+    // PostgREST answers 400 → fall back to created_at ordering so the list
+    // keeps working and stops spamming the console with errors.
+    const query = () =>
+      supabase
+        .from('vin_analyses')
+        .select('*')
+        .eq('company_id', companyId)
+        .limit(50);
+
+    const { data, error } = await query()
       .order('updated_at', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (error) throw error;
-    return data ?? [];
+      .order('created_at', { ascending: false });
+    if (!error) return data ?? [];
+
+    logger.warn(
+      'VinAPI',
+      'order by updated_at failed (migration 20260814000005 missing on server?) — retrying with created_at only',
+      error
+    );
+
+    const { data: fallback, error: fallbackError } = await query().order('created_at', { ascending: false });
+    if (fallbackError) throw fallbackError;
+    return fallback ?? [];
   },
 
   saveVinAnalysis: async (payload: TableInsert<'vin_analyses'>) => {

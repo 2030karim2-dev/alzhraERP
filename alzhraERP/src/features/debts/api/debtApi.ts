@@ -5,6 +5,7 @@
  * (an Error subclass) and surfaced to the user by the hooks layer.
  */
 import { supabase } from '../../../lib/supabaseClient';
+import { logger } from '../../../core/utils/logger';
 import type {
   DebtFollowupConfig,
   DebtFollowupConfigUpdate,
@@ -57,8 +58,17 @@ export const debtApi = {
     const { data, error } = await supabase.rpc('get_debt_today_tasks', {
       p_company_id: companyId,
     });
-    if (error) throw error;
-    return data;
+    if (error) {
+      // The RPC is created by migration 20260814000006. Until that migration
+      // is applied to the database, degrade gracefully (return []) instead of
+      // throwing — throwing makes TanStack Query retry and spam 400s.
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        logger.warn('DebtAPI', 'get_debt_today_tasks RPC not found on server — apply migration 20260814000006', { companyId });
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
   },
 
   getPartyOverview: async (companyId: string, partyId: string): Promise<PartyDebtOverview | null> => {
