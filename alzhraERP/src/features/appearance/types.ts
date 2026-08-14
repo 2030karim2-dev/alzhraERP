@@ -21,7 +21,7 @@ export interface ThemePreset {
   previewColor: string; // اللون الرئيسي للمعاينة
   isDark: boolean; // هل الثيم مخصص للوضع الليلي؟
   accent?: string; // لون التمييز الرئيسي
-  category?: 'premium' | 'classic' | 'beige' | 'royal' | 'accounting' | 'nature' | 'bold' | 'corporate' | 'night' | 'seasonal' | 'artistic' | 'industry' | 'glass' | 'bento'; // تصنيف الثيم
+  category?: 'premium' | 'classic' | 'beige' | 'royal' | 'accounting' | 'nature' | 'bold' | 'corporate' | 'night' | 'seasonal' | 'artistic' | 'industry' | 'glass' | 'bento' | 'automotive'; // تصنيف الثيم
   emoji?: string; // رمز تعبيري للثيم
   cssVars: ThemeCSSVars; // متغيرات CSS التي تُطبق فعلياً (للتوافق مع الثيمات القديمة)
   light?: ThemeCSSVars; // متغيرات الوضع النهاري للثيمات الاحترافية

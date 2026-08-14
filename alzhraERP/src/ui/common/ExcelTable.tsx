@@ -10,6 +10,7 @@ import { ExcelTablePagination } from './ExcelTablePagination';
 import FullscreenContainer from '../base/FullscreenContainer';
 import ExcelTableToolbar from './ExcelTableToolbar';
 import ExcelTableStatusBar from './ExcelTableStatusBar';
+import { EXCEL_TABLE_THEMES, ExcelTableColorTheme } from './excelTableThemes';
 
 export interface Column<T> {
   header: string;
@@ -29,7 +30,7 @@ interface ExcelTableProps<T> {
   title?: string;
   subtitle?: string;
   emptyMessage?: string;
-  colorTheme?: 'blue' | 'green' | 'orange' | 'indigo';
+  colorTheme?: ExcelTableColorTheme;
   onExport?: (() => void) | undefined;
   showSearch?: boolean;
   /** External search value for a "main" search box (bypasses internal client-side filtering). */
@@ -106,46 +107,7 @@ function ExcelTable<T>({
   const [zoomLevel, setZoomLevel] = useState(1);
   const resizingRef = useRef<{ colIndex: number; startX: number; startWidth: number } | null>(null);
 
-  const themes = {
-    blue: {
-      accent: 'bg-blue-600',
-      border: 'border-blue-200',
-      text: 'text-blue-600',
-      sub: 'bg-blue-50/50',
-      hover: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
-      glow: 'shadow-[0_0_12px_rgba(37,99,235,0.4)]',
-      focusRing: 'ring-blue-500/50'
-    },
-    green: {
-      accent: 'bg-emerald-600',
-      border: 'border-emerald-200',
-      text: 'text-emerald-600',
-      sub: 'bg-emerald-50/50',
-      hover: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
-      glow: 'shadow-[0_0_12px_rgba(16,185,129,0.4)]',
-      focusRing: 'ring-emerald-500/50'
-    },
-    orange: {
-      accent: 'bg-orange-600',
-      border: 'border-orange-200',
-      text: 'text-orange-600',
-      sub: 'bg-orange-50/50',
-      hover: 'hover:bg-orange-50 dark:hover:bg-orange-900/20',
-      glow: 'shadow-[0_0_12px_rgba(234,88,12,0.4)]',
-      focusRing: 'ring-orange-500/50'
-    },
-    indigo: {
-      accent: 'bg-indigo-600',
-      border: 'border-indigo-200',
-      text: 'text-indigo-600',
-      sub: 'bg-indigo-50/50',
-      hover: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20',
-      glow: 'shadow-[0_0_12px_rgba(79,70,229,0.4)]',
-      focusRing: 'ring-indigo-500/50'
-    },
-  };
-
-  const currentTheme = themes[colorTheme];
+  const currentTheme = EXCEL_TABLE_THEMES[colorTheme];
 
   const processedData = useMemo(() => {
     let items = [...data];
@@ -153,7 +115,7 @@ function ExcelTable<T>({
       const term = searchTermForFilter.toLowerCase();
 
       // Helper to recursively extract text from any React element or primitive
-      const getStringContent = (val: any): string => {
+      const getStringContent = (val: unknown): string => {
         if (val === null || val === undefined) return '';
         if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
           return String(val);
@@ -162,12 +124,13 @@ function ExcelTable<T>({
           return val.map(getStringContent).join(' ');
         }
         if (typeof val === 'object') {
-          if (val.props && val.props.children !== undefined) {
-            return getStringContent(val.props.children);
+          const obj = val as { props?: { children?: unknown }; $$typeof?: unknown; then?: unknown };
+          if (obj.props && obj.props.children !== undefined) {
+            return getStringContent(obj.props.children);
           }
-          if (!val.$$typeof && typeof val.then !== 'function') {
+          if (!obj.$$typeof && typeof obj.then !== 'function') {
             try {
-              return Object.values(val).map(getStringContent).join(' ');
+              return Object.values(obj as Record<string, unknown>).map(getStringContent).join(' ');
             } catch (e) {
               return '';
             }
@@ -193,15 +156,16 @@ function ExcelTable<T>({
         if (accessorMatches) return true;
 
         // 2. Fallback to recursive deep search of the item object's values
-        const deepSearch = (val: any): boolean => {
+        const deepSearch = (val: unknown): boolean => {
           if (val === null || val === undefined) return false;
           if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
             return String(val).toLowerCase().includes(term);
           }
           if (typeof val === 'object') {
-            if (val.$$typeof || typeof val.then === 'function') return false;
+            const obj = val as { $$typeof?: unknown; then?: unknown };
+            if (obj.$$typeof || typeof obj.then === 'function') return false;
             try {
-              return Object.values(val).some(deepSearch);
+              return Object.values(obj as Record<string, unknown>).some(deepSearch);
             } catch (e) {
               return false;
             }

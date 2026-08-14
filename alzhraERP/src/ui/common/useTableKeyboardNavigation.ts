@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import type { Column } from './ExcelTable';
 
 export interface CellPosition {
     row: number;
@@ -10,15 +11,15 @@ export interface SelectionRange {
     end: CellPosition;
 }
 
-export interface UseTableKeyboardNavigationProps<T = any> {
+export interface UseTableKeyboardNavigationProps<T> {
     tableRef: React.RefObject<HTMLDivElement>;
     orderedData: T[];
-    columns: any[];
+    columns: Column<T>[];
     isRTL?: boolean | undefined;
     onRowDoubleClick?: ((row: T) => void) | undefined;
-    onCellUpdate?: ((rowIndex: number, accessorKey: string, value: any) => void | Promise<void>) | undefined;
-    onCopy?: ((cells: any[]) => void) | undefined;
-    onPaste?: ((cells: any[]) => void) | undefined;
+    onCellUpdate?: ((rowIndex: number, accessorKey: string, value: unknown) => void | Promise<void>) | undefined;
+    onCopy?: ((cells: unknown[]) => void) | undefined;
+    onPaste?: ((cells: unknown[]) => void) | undefined;
 }
 
 interface KeyboardShortcut {
@@ -57,9 +58,9 @@ export const useTableKeyboardNavigation = <T,>({
 }: UseTableKeyboardNavigationProps<T>) => {
     const [focusedCell, setFocusedCell] = useState<CellPosition>({ row: 0, col: 0 });
     const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
-    const [editValue, setEditValue] = useState<any>('');
+    const [editValue, setEditValue] = useState<unknown>('');
     const [selection, setSelection] = useState<SelectionRange | null>(null);
-    const [clipboard, setClipboard] = useState<any[]>([]);
+    const [clipboard, setClipboard] = useState<unknown[]>([]);
     const pageSizeRef = useRef(20);
 
     const maxRow = orderedData.length - 1;
@@ -142,7 +143,7 @@ export const useTableKeyboardNavigation = <T,>({
 
     // Copy selected cells
     const copyCells = useCallback(() => {
-        const cells: any[] = [];
+        const cells: unknown[] = [];
         const { row, col } = focusedCell;
         const colDef = columns[col];
 
@@ -170,11 +171,11 @@ export const useTableKeyboardNavigation = <T,>({
         const minCol = Math.min(start.col, end.col);
         const maxColSel = Math.max(start.col, end.col);
 
-        const cells: any[][] = [];
-        const flatCells: any[] = [];
+        const cells: unknown[][] = [];
+        const flatCells: unknown[] = [];
 
         for (let r = minRow; r <= maxRowSel; r++) {
-            const rowCells: any[] = [];
+            const rowCells: unknown[] = [];
             for (let c = minCol; c <= maxColSel; c++) {
                 const colDef = columns[c];
                 const rowData = orderedData[r];
