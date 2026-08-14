@@ -39,7 +39,11 @@ export function validateVin(input: string | null | undefined): VinValidationResu
   }
 
   const checkDigitValid = normalized.length === 17 ? isValidVinCheckDigit(normalized) : undefined;
-  return { isValid: true, normalizedVin: normalized, checkDigitValid };
+  return {
+    isValid: true,
+    normalizedVin: normalized,
+    ...(checkDigitValid !== undefined ? { checkDigitValid } : {}),
+  };
 }
 
 /** ISO 3779 transliteration table for the check digit (I, O, Q excluded). */
