@@ -6,29 +6,9 @@ import Input from '../../../ui/base/Input';
 import ExcelTable, { Column } from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
 import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord } from '../types';
+import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
 
 type UiPart = ExtractedPart & { _key: string };
-
-const fuelLabel = (f: string): string => {
-  const s = f.toLowerCase();
-  if (s.includes('diesel')) return 'ديزل';
-  if (s.includes('gasoline') || s.includes('petrol') || s.includes('gas')) return 'بترول';
-  if (s.includes('electric')) return 'كهرباء';
-  if (s.includes('hybrid')) return 'هجين';
-  return f;
-};
-
-const driveLabel = (d: string): string => {
-  if (/4wd|awd|4x4|all.wheel/i.test(d)) return 'دبل';
-  if (/2wd|4x2|front|rear|fwd|rwd/i.test(d)) return 'سنجل';
-  return d;
-};
-
-const transLabel = (t: string): string => {
-  if (/auto/i.test(t)) return 'أوتوماتيك';
-  if (/manual/i.test(t)) return 'عادي';
-  return t;
-};
 
 interface VinsTabProps {
   savedVins: VinAnalysisRecord[];
@@ -38,6 +18,7 @@ interface VinsTabProps {
   isSearching: boolean;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
   isAdding: boolean;
+  canAdd?: boolean;
 }
 
 export const VinsTab: React.FC<VinsTabProps> = ({
@@ -48,6 +29,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   isSearching,
   onAddParts,
   isAdding,
+  canAdd,
 }) => {
   const [selected, setSelected] = useState<VinAnalysisRecord | null>(null);
   const [linkedParts, setLinkedParts] = useState<VehicleProductLink[]>([]);
@@ -118,6 +100,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     if (!vehicle || selectedIds.size === 0) return;
     await onAddParts(vehicle, parts.filter((p) => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p));
     setSelectedIds(new Set());
+    // Refresh linked parts — newly created products are now linked to this vehicle.
+    if (selected?.vehicle_id) {
+      try {
+        const rows = await onLoadParts(selected.vehicle_id);
+        setLinkedParts(rows);
+      } catch {
+        /* ignore */
+      }
+    }
   };
 
   const columns: Column<UiPart>[] = [
@@ -241,9 +232,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                 />
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] text-[var(--app-text-secondary)]">تم تحديد {selectedIds.size} من {parts.length}</p>
-                  <Button size="sm" variant="success" onClick={handleAdd} isLoading={isAdding} disabled={selectedIds.size === 0}>
-                    <PackagePlus size={14} className="ml-1" /> إضافة المحدد للمخزون
-                  </Button>
+                  {canAdd === false ? (
+                    <p className="text-[10px] text-[var(--app-text-secondary)] font-semibold">
+                      تتطلب إضافة القطع للمخزون صلاحية مدير
+                    </p>
+                  ) : (
+                    <Button size="sm" variant="success" onClick={handleAdd} isLoading={isAdding} disabled={selectedIds.size === 0}>
+                      <PackagePlus size={14} className="ml-1" /> إضافة المحدد للمخزون
+                    </Button>
+                  )}
                 </div>
               </>
             )}

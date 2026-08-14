@@ -5,6 +5,7 @@ import Button from '../../../ui/base/Button';
 import Card from '../../../ui/base/Card';
 import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
+import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
 
 interface VinDecodeTabProps {
@@ -61,6 +62,11 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               {validation.error === 'INVALID_LENGTH'
                 ? 'رقم الشاصي يجب أن يكون بين 11 و 17 خانة'
                 : 'رموز غير صالحة (لا يُسمح بالأحرف I, O, Q)'}
+            </p>
+          )}
+          {vin && validation.isValid && validation.checkDigitValid === false && (
+            <p className="text-[10px] text-amber-600 font-semibold px-1">
+              تنبيه: خانة الفحص (Check Digit) غير صحيحة — تأكد من الرقم
             </p>
           )}
 
@@ -124,27 +130,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   );
 };
 
-const fuelAr = (f: string): string => {
-  const s = f.toLowerCase();
-  if (s.includes('diesel')) return 'ديزل';
-  if (s.includes('gasoline') || s.includes('petrol') || s.includes('gas')) return 'بترول';
-  if (s.includes('electric')) return 'كهرباء';
-  if (s.includes('hybrid')) return 'هجين';
-  return f;
-};
-
-const driveAr = (d: string): string => {
-  if (/4wd|awd|4x4|all.wheel/i.test(d)) return 'دبل';
-  if (/2wd|4x2|front|rear|fwd|rwd/i.test(d)) return 'سنجل';
-  return d;
-};
-
-const transAr = (t: string): string => {
-  if (/auto/i.test(t)) return 'أوتوماتيك';
-  if (/manual/i.test(t)) return 'عادي';
-  return t;
-};
-
 function VehicleCard({
   vehicle,
   source,
@@ -162,9 +147,9 @@ function VehicleCard({
       ['حجم المكينة', vehicle.displacement ? `${vehicle.displacement} لتر` : null],
       ['عدد السلندر', vehicle.cylinders ? `${vehicle.cylinders} سلندر` : null],
       ['المحرك', vehicle.engine ?? null],
-      ['الوقود', vehicle.fuelType ? fuelAr(vehicle.fuelType) : null],
-      ['الدفع', vehicle.driveType ? driveAr(vehicle.driveType) : null],
-      ['الجير', vehicle.transmission ? transAr(vehicle.transmission) : null],
+      ['الوقود', vehicle.fuelType ? fuelLabel(vehicle.fuelType) : null],
+      ['الدفع', vehicle.driveType ? driveLabel(vehicle.driveType) : null],
+      ['الجير', vehicle.transmission ? transLabel(vehicle.transmission) : null],
       ['الوارد', vehicle.market ?? null],
       ['بلد الصنع', vehicle.region ?? null],
     ] as Array<[string, string | null]>

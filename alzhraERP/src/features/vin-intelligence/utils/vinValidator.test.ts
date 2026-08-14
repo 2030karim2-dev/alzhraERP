@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateVin, MIN_VIN_LENGTH, MAX_VIN_LENGTH } from './vinValidator';
+import { validateVin, isValidVinCheckDigit, MIN_VIN_LENGTH, MAX_VIN_LENGTH } from './vinValidator';
 
 describe('validateVin', () => {
   it('accepts a valid 17-char VIN', () => {
@@ -42,5 +42,20 @@ describe('validateVin', () => {
   it('exposes the length range constants', () => {
     expect(MIN_VIN_LENGTH).toBe(11);
     expect(MAX_VIN_LENGTH).toBe(17);
+  });
+
+  it('verifies the ISO 3779 check digit for 17-char VINs', () => {
+    expect(isValidVinCheckDigit('1M8GDM9AXKP042788')).toBe(true); // X is the correct check digit
+    expect(isValidVinCheckDigit('1M8GDM9A0KP042788')).toBe(false); // 0 is wrong
+  });
+
+  it('skips check digit for non-17-char VINs', () => {
+    expect(isValidVinCheckDigit('JN1CA21DXTK')).toBe(true); // 11-char: no check digit
+  });
+
+  it('surfaces checkDigitValid only for 17-char VINs', () => {
+    expect(validateVin('1M8GDM9AXKP042788').checkDigitValid).toBe(true);
+    expect(validateVin('1M8GDM9A0KP042788').checkDigitValid).toBe(false);
+    expect(validateVin('JN1CA21DXTK').checkDigitValid).toBeUndefined();
   });
 });

@@ -180,10 +180,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers });
 
   try {
-    // 1. Config — service role for DB ops (NO user session required).
-    // VIN decode is a read-only public operation (vPIC + global vehicles
-    // catalog); company-specific data (vin_analyses, vehicle_products) stays
-    // RLS-protected on the frontend. This removes the session-dependent 401.
+    // 1. Config — service role for privileged DB ops (ensure_vehicle /
+    // resolve_vehicle_from_vin). Authentication is enforced below: callers
+    // must present a valid Supabase user JWT (anonymous requests → 401).
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -192,7 +191,19 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    // 2. Body
+    // 2. Auth — require a valid authenticated user (blocks anonymous abuse
+    // of AI credits and poisoning of the global vehicles catalog).
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    if (!token) {
+      return json({ error: 'Authentication required', code: 'UNAUTHORIZED' }, 401, headers);
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return json({ error: 'Invalid or expired token', code: 'UNAUTHORIZED' }, 401, headers);
+    }
+
+    // 3. Body
     let body: { vin?: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: 'deepseek' | 'openrouter'; model?: string };
     try {
       body = await req.json();
@@ -206,7 +217,7 @@ serve(async (req) => {
     }
     const mode = body.mode ?? 'hybrid';
 
-    // 3. Decode by mode: hybrid = vPIC→DB→AI, db = DB only, ai = AI only
+    // 4. Decode by mode: hybrid = vPIC→DB→AI, db = DB only, ai = AI only
     const useVpic = mode === 'hybrid';
     const useDb = mode === 'hybrid' || mode === 'db';
     const useAi = mode === 'hybrid' || mode === 'ai';
@@ -255,18 +266,28 @@ serve(async (req) => {
     }
 
     if (!useAi) {
-      return json({ found: false, source: resultSource, vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
+      // No AI fallback requested — report the correct source for the miss.
+      const noResultSource: 'vpic' | 'db' | 'ai' = mode === 'db' ? 'db' : 'vpic';
+      return json({ found: false, source: noResultSource, vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
     }
 
-    // 4. AI fallback (LAST resort — never authoritative)
+    // 5. AI fallback (LAST resort — never authoritative)
     const ai = await decodeWithAI(vin, body.provider, body.model);
 
+    // Give AI results a stable vehicles.id too, so saved analyses can be
+    // linked to inventory products like vPIC/DB results.
+    let aiVehicle = ai.vehicle as Record<string, unknown> | null;
+    if (aiVehicle && aiVehicle.make && !aiVehicle.id) {
+      const vehicleId = await ensureVehicleId(supabase, aiVehicle);
+      if (vehicleId) aiVehicle = { ...aiVehicle, id: vehicleId };
+    }
+
     return json({
-      found: !!ai.vehicle,
+      found: !!aiVehicle,
       source: 'ai',
       vin,
-      vehicle: ai.vehicle,
-      confidence: ai.vehicle?.confidence ?? 'low',
+      vehicle: aiVehicle,
+      confidence: aiVehicle?.confidence ?? 'low',
       raw_ai: ai.raw,
     }, 200, headers);
 

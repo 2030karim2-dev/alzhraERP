@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
 // ============================================================
 // Edge Function: vin-parts — REAL parts lookup (no AI)
@@ -46,17 +47,20 @@ interface MegazipPart {
 function parseMegazipResults(html: string, searched: string): MegazipPart[] {
   const seen = new Set<string>();
   const parts: MegazipPart[] = [];
-  const re = /<a[^>]+href="(\/zapchasti-dlya\/([^\/]+)\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  // Captures the part's OEM number from the URL path:
+  //   /zapchasti-dlya/{make}/{part-number}
+  const re = /<a[^>]+href="(\/zapchasti-dlya\/([^\/]+)\/([^\/"?#]+))[^"]*"[^>]*>([\s\S]*?)<\/a>/gi;
   let m;
   while ((m = re.exec(html)) !== null) {
     const url = m[1];
     const make = m[2];
-    const name = cleanText(m[3]);
+    const name = cleanText(m[4]);
     if (!name) continue;
+    const partNumber = m[3] ? decodeURIComponent(m[3]) : searched;
     const key = `${make}|${name}`.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    parts.push({ partNumber: searched, name, make, url });
+    parts.push({ partNumber, name, make, url });
   }
   return parts;
 }
@@ -68,7 +72,23 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers });
 
   try {
-    // 1. No auth required — read-only public parts catalog lookup (megazip).
+    // 1. Auth — require a valid authenticated user (prevents abuse of this
+    // read-only catalog proxy as a free scraping relay).
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return json({ error: 'Server Error: Supabase configuration missing', code: 'CONFIG_ERROR' }, 500, headers);
+    }
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    if (!token) {
+      return json({ error: 'Authentication required', code: 'UNAUTHORIZED' }, 401, headers);
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return json({ error: 'Invalid or expired token', code: 'UNAUTHORIZED' }, 401, headers);
+    }
 
     // 2. Body
     let body: { action?: string; partNumber?: string };

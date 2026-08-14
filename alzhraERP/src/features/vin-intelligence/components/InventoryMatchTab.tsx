@@ -133,11 +133,11 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
             <div className="flex flex-wrap gap-1">
               {linkedProducts.map((l) => (
                 <span
-                  key={l.id}
+                  key={l.id ?? l.product_id}
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700"
                 >
                   {l.product_id.slice(0, 8)}
-                  <button onClick={() => onUnlink(l.id!)} title="إلغاء الربط" className="hover:text-rose-600">
+                  <button onClick={() => l.id && onUnlink(l.id)} title="إلغاء الربط" className="hover:text-rose-600">
                     <Unlink2 size={10} />
                   </button>
                 </span>

@@ -8,7 +8,9 @@ import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
 import type { TableInsert } from '../../../core/types/supabase-helpers';
 import type {
+  ExtractedPart,
   MatchingInventoryProduct,
+  VehicleInfo,
   VehicleProductLink,
 } from '../types';
 
@@ -72,6 +74,7 @@ export const vinApi = {
       .from('vin_analyses')
       .select('*')
       .eq('company_id', companyId)
+      .order('updated_at', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(50);
     if (error) throw error;
@@ -119,5 +122,38 @@ export const vinApi = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  /** Atomically create products + link + graph edges for extracted parts (RPC) */
+  addPartsToInventory: async (
+    companyId: string,
+    vehicle: VehicleInfo,
+    parts: ExtractedPart[],
+  ): Promise<number> => {
+    const { data, error } = await supabase.rpc('add_vin_parts_to_inventory', {
+      p_company_id: companyId,
+      p_vehicle: {
+        id: vehicle.id ?? null,
+        make: vehicle.make,
+        model: vehicle.model ?? null,
+        year: vehicle.year ?? null,
+        year_start: vehicle.yearStart ?? null,
+        year_end: vehicle.yearEnd ?? null,
+        engine: vehicle.engine ?? null,
+        body_type: vehicle.bodyType ?? null,
+        drive_type: vehicle.driveType ?? null,
+        fuel_type: vehicle.fuelType ?? null,
+        transmission: vehicle.transmission ?? null,
+        region: vehicle.region ?? null,
+      },
+      p_parts: parts.map((p) => ({
+        part_number: p.partNumber,
+        description: p.description ?? null,
+        manufacturer: p.manufacturer ?? null,
+        source: p.source,
+      })),
+    });
+    if (error) throw error;
+    return (data as number) ?? 0;
   },
 };

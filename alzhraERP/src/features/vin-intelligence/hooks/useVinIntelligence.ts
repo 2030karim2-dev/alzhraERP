@@ -73,12 +73,12 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
       showToast('تم حفظ الشاصي بنجاح', 'success');
       queryClient.invalidateQueries({ queryKey: ['vin', 'history'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : 'فشل الحفظ', 'error'),
+    onError: (err) => showToast('فشل الحفظ', 'error', err),
   });
 
   const searchMutation = useMutation({
     mutationFn: (partNumber: string) => vinService.searchPartByNumber(partNumber),
-    onError: (err) => showToast(err instanceof Error ? err.message : 'فشل البحث', 'error'),
+    onError: (err) => showToast('فشل البحث', 'error', err),
   });
 
   const addMutation = useMutation({
@@ -92,7 +92,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
       queryClient.invalidateQueries({ queryKey: ['vin', 'matching'] });
       queryClient.invalidateQueries({ queryKey: ['vin', 'linked'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : 'فشل الإضافة', 'error'),
+    onError: (err) => showToast('فشل الإضافة', 'error', err),
   });
 
   const linkMutation = useMutation({
@@ -104,7 +104,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
       showToast('تم ربط المنتج بالمركبة', 'success');
       queryClient.invalidateQueries({ queryKey: ['vin', 'linked'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : 'فشل الربط', 'error'),
+    onError: (err) => showToast('فشل الربط', 'error', err),
   });
 
   const unlinkMutation = useMutation({
@@ -113,6 +113,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
       showToast('تم إلغاء الربط', 'info');
       queryClient.invalidateQueries({ queryKey: ['vin', 'linked'] });
     },
+    onError: (err) => showToast('فشل إلغاء الربط', 'error', err),
   });
 
   const loadLinkedProducts = useCallback(

@@ -15,6 +15,7 @@ interface PartsExtractTabProps {
   isSearching: boolean;
   onAdd: (parts: ExtractedPart[]) => Promise<number>;
   isAdding: boolean;
+  canAdd?: boolean;
 }
 
 export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
@@ -24,6 +25,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   isSearching,
   onAdd,
   isAdding,
+  canAdd,
 }) => {
   const [parts, setParts] = useState<UiPart[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -166,15 +168,21 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             <p className="text-[10px] text-[var(--app-text-secondary)]">
               تم تحديد {selected.size} من {parts.length}
             </p>
-            <Button
-              size="sm"
-              variant="success"
-              onClick={handleAdd}
-              isLoading={isAdding}
-              disabled={selected.size === 0}
-            >
-              <PackagePlus size={14} className="ml-1" /> إضافة المحدد للمخزون
-            </Button>
+            {canAdd === false ? (
+              <p className="text-[10px] text-[var(--app-text-secondary)] font-semibold">
+                تتطلب إضافة القطع للمخزون صلاحية مدير
+              </p>
+            ) : (
+              <Button
+                size="sm"
+                variant="success"
+                onClick={handleAdd}
+                isLoading={isAdding}
+                disabled={selected.size === 0}
+              >
+                <PackagePlus size={14} className="ml-1" /> إضافة المحدد للمخزون
+              </Button>
+            )}
           </div>
         </>
       )}

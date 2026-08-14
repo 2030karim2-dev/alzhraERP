@@ -17,6 +17,8 @@ const VINPage: React.FC = () => {
 
   const vin = useVinIntelligence(user?.company_id, user?.id);
 
+  const canAddToInventory = user?.role === 'admin' || user?.role === 'manager';
+
   const tabs = [
     { id: 'decode', label: t('vin_tab_decode'), icon: ScanLine },
     { id: 'vin', label: t('vin_tab_saved'), icon: Bookmark },
@@ -75,6 +77,7 @@ const VINPage: React.FC = () => {
               isSearching={vin.isSearching}
               onAddParts={(vehicle, parts) => vin.addToInventory({ vehicle, parts })}
               isAdding={vin.isAdding}
+              canAdd={canAddToInventory}
             />
           )}
 
@@ -99,6 +102,7 @@ const VINPage: React.FC = () => {
               isSearching={vin.isSearching}
               onAdd={(parts) => (vin.vehicle ? vin.addToInventory({ vehicle: vin.vehicle, parts }) : Promise.resolve(0))}
               isAdding={vin.isAdding}
+              canAdd={canAddToInventory}
             />
           )}
         </div>

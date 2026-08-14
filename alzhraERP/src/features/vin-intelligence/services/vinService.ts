@@ -6,7 +6,6 @@
  */
 
 import type { Json } from '../../../core/database.types';
-import { productsApi } from '../../inventory/api/productsApi';
 import { vinApi } from '../api';
 import { validateVin } from '../utils/vinValidator';
 import type {
@@ -46,14 +45,6 @@ function normalizeVehicle(raw: Record<string, unknown> | null | undefined): Vehi
   if (id) vehicle.id = id;
   return vehicle;
 }
-
-/** Map frontend part source → DB part_compatibility.source enum */
-const DB_SOURCE_MAP: Record<string, string> = {
-  megazip: 'MEGAZIP',
-  manual: 'MANUAL',
-  ai: 'AI',
-  fapi: 'FAPI',
-};
 
 export const vinService = {
   /** Validate + decode a VIN (vPIC → internal DB → AI fallback) */
@@ -153,71 +144,14 @@ export const vinService = {
     await vinApi.unlinkVehicleProduct(id);
   },
 
-  /** Extract parts → create products → link to vehicle (Graph of Truth) */
+  /** Extract parts → create products + link + graph edges (atomic RPC) */
   async addPartsToInventory(params: {
     companyId: string;
     userId: string;
     vehicle: VehicleInfo;
     parts: ExtractedPart[];
   }): Promise<number> {
-    const { companyId, userId, vehicle, parts } = params;
-    let created = 0;
-
-    for (const part of parts) {
-      const sku = this.generateSku(part);
-      const { data: product, error } = await productsApi.createProduct({
-        company_id: companyId,
-        name_ar: part.description || part.partNumber || 'قطعة غيار',
-        sku,
-        part_number: part.partNumber || null,
-        brand: part.manufacturer || vehicle.make,
-        sale_price: 0,
-        purchase_price: 0,
-        cost_price: 0,
-        min_stock_level: 0,
-        unit: 'pcs',
-        status: 'active',
-      });
-      if (error) throw error;
-      if (!product) throw new Error('فشل إنشاء المنتج في المخزون');
-
-      // Link product to the resolved vehicle (if it has a catalog id)
-      if (vehicle.id) {
-        await vinApi.linkVehicleProduct({
-          company_id: companyId,
-          vehicle_id: vehicle.id,
-          product_id: product.id,
-          fitment_status: 'POSSIBLE',
-          source: 'vin_extract',
-          created_by: userId,
-        });
-      }
-
-      // Record the compatibility edge (graph of truth)
-      await vinApi.upsertPartCompatibility({
-        company_id: companyId,
-        part_number: part.partNumber || sku,
-        manufacturer: part.manufacturer ?? null,
-        vehicle_make: vehicle.make,
-        vehicle_model: vehicle.model ?? null,
-        vehicle_year_from: vehicle.yearStart ?? vehicle.year ?? null,
-        vehicle_year_to: vehicle.yearEnd ?? vehicle.year ?? null,
-        compatibility_status: 'POSSIBLE',
-        source: DB_SOURCE_MAP[part.source] ?? 'MANUAL',
-        confidence: 2,
-        evidence: { description: part.description ?? null, source: part.source },
-      });
-
-      created += 1;
-    }
-
-    return created;
-  },
-
-  /** Deterministic SKU from part number (time suffix avoids collisions) */
-  generateSku(part: ExtractedPart): string {
-    const base = part.partNumber.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 24);
-    const suffix = Date.now().toString(36).toUpperCase().slice(-6);
-    return base ? `VIN-${base}-${suffix}` : `VIN-${suffix}`;
+    const { companyId, vehicle, parts } = params;
+    return vinApi.addPartsToInventory(companyId, vehicle, parts);
   },
 };

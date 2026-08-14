@@ -8079,6 +8079,7 @@ export type Database = {
           decoded: Json | null
           id: string
           source: string
+          updated_at: string
           vehicle_id: string | null
           vin: string
         }
@@ -8089,6 +8090,7 @@ export type Database = {
           decoded?: Json | null
           id?: string
           source?: string
+          updated_at?: string
           vehicle_id?: string | null
           vin: string
         }
@@ -8099,6 +8101,7 @@ export type Database = {
           decoded?: Json | null
           id?: string
           source?: string
+          updated_at?: string
           vehicle_id?: string | null
           vin?: string
         }
@@ -9590,6 +9593,10 @@ export type Database = {
         }
         Returns: string
       }
+      add_vin_parts_to_inventory: {
+        Args: { p_company_id: string; p_vehicle: Json; p_parts: Json }
+        Returns: number
+      }
       api_v1_sys_worker_heartbeat: {
         Args: { p_worker_id: string }
         Returns: undefined
@@ -9923,6 +9930,20 @@ export type Database = {
       }
       generate_invoice_number: {
         Args: { p_company_id: string; p_type: string }
+        Returns: string
+      }
+      ensure_vehicle: {
+        Args: {
+          p_make: string
+          p_model?: string | null
+          p_year?: number | null
+          p_engine?: string | null
+          p_body_type?: string | null
+          p_drive_type?: string | null
+          p_fuel_type?: string | null
+          p_transmission?: string | null
+          p_region?: string | null
+        }
         Returns: string
       }
       generate_payment_number: {
