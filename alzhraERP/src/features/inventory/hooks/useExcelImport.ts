@@ -2,8 +2,13 @@ import { useState, useRef } from 'react';
 import { useAuthStore } from '../../auth/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { inventoryService } from '../service';
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = _XLSX as any;
+
+// 🔒 Lazy-load the heavy xlsx library only when actually needed.
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 export const useExcelImport = () => {
     const { user } = useAuthStore();
@@ -24,8 +29,9 @@ export const useExcelImport = () => {
 
             // Quick Preview
             const reader = new FileReader();
-            reader.onload = (evt) => {
+            reader.onload = async (evt) => {
                 try {
+                    const XLSX = await loadXLSX();
                     const bstr = evt.target?.result;
                     const wb = XLSX.read(bstr, { type: 'binary' });
                     const wsname = wb.SheetNames[0];
@@ -55,7 +61,8 @@ export const useExcelImport = () => {
         }
     };
 
-    const downloadTemplate = () => {
+    const downloadTemplate = async () => {
+        const XLSX = await loadXLSX();
         const ws = XLSX.utils.json_to_sheet([
             { "اسم المنتج": "فحمات فرامل", "رقم الصنف": "BP-001", "الشركة": "Toyota", "سعر البيع": 150, "التكلفة": 100, "الكمية": 50 }
         ]);

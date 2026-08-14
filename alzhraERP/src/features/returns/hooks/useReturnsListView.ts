@@ -75,10 +75,10 @@ export const useReturnsListView = (returns: any[] | undefined, type: 'sales' | '
         }, 0);
     }, [processedReturns, getFilteredAmount]);
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         if (!processedReturns.length) return;
 
-        exportReturnsToExcel({
+        await exportReturnsToExcel({
             companyName: 'Al-Zahra',
             returns: processedReturns.map((r: any) => ({
                 invoiceNumber: r.invoice_number || '',

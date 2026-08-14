@@ -41,7 +41,9 @@ const SalesPage: React.FC = () => {
       resetCart();
       const entities = aiData.entities;
       if (entities.partyName) {
-        setCustomer({ id: `ai_temp_${Date.now()}`, name: entities.partyName });
+        // id فارغ عمداً: معرف وهمي قد يسبب خطأ مفتاح أجنبي عند الحفظ،
+        // والعربة تقبل partyId فارغ (يعامل كعميل نقدي مع الاحتفاظ بالاسم)
+        setCustomer({ id: '', name: entities.partyName });
       }
       if (entities.paymentMethod) {
         setMetadata('invoiceType', entities.paymentMethod === 'credit' ? 'credit' : 'cash');

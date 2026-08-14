@@ -1,10 +1,15 @@
-import { useI18nStore } from '../i18nStore';
+import { useI18nStore, dictionaries } from '../i18nStore';
 
 export const useTranslation = () => {
   const { lang, dir, dictionary } = useI18nStore();
 
   const t = (key: string, replacements?: Record<string, string>): string => {
-    let translation = dictionary[key] || key;
+    // Missing key fallback chain: current language → Arabic → raw key.
+    let translation = dictionary[key];
+    if (!translation && dictionaries.ar[key]) {
+      translation = dictionaries.ar[key];
+    }
+    if (!translation) translation = key;
 
     if (replacements) {
       Object.keys(replacements).forEach(rKey => {

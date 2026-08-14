@@ -14,6 +14,10 @@ yarn-error.log*
 
 # env
 .env
+.env.production
+.env.local
+.env.development.local
+.env.test.local
 # backup
 src_backup/
 
@@ -26,10 +30,6 @@ tsc_output.txt
 sizes.txt
 
 # etc
-.env
-.env.local
-.env.development.local
-.env.test.local
 .env.production.local
 
 # editor

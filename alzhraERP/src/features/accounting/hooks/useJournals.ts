@@ -5,7 +5,7 @@ import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { JournalEntryFormData } from '../types/models';
 import { PostTransactionUsecase } from '../../../core/usecases/accounting/PostTransactionUsecase';
-import { AuthorizeActionUsecase } from '../../../core/usecases/auth/AuthorizeActionUsecase';
+import { assertPermission } from '../../../core/hooks/usePermission';
 import { invalidateByPreset } from '../../../lib/invalidation';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 
@@ -46,8 +46,8 @@ export const useJournalMutation = () => {
     mutationFn: async (data: JournalEntryFormData) => {
       if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
 
-      // 1. فحص الصلاحية
-      AuthorizeActionUsecase.validateAction(user, 'post_journal_entry');
+      // 1. فحص الصلاحية عبر الخادم
+      await assertPermission('accounting:create', 'ترحيل قيود محاسبية');
 
       // 2. التنفيذ عبر Usecase لضمان صحة السنة المالية والتوازن
       return PostTransactionUsecase.execute(data, user.company_id, user.id);

@@ -76,7 +76,7 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
                 totalAmount: invoice.total_amount,
             };
 
-            const blob = generateInvoiceExcelBlob(data);
+            const blob = await generateInvoiceExcelBlob(data);
             const file = new File([blob], `فاتورة_شراء_${invoice.invoice_number}.xlsx`, {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
@@ -89,7 +89,7 @@ const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, 
                 });
             } else {
                 // Fallback
-                exportInvoiceToExcel(data);
+                await exportInvoiceToExcel(data);
                 alert('تم تنزيل الفاتورة بنجاح. يمكنك الآن إرسالها للجهة المطلوبة.');
             }
         } catch (err) {

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Calendar, Plus, Lock, ShieldAlert } from 'lucide-react';
 import { useFiscalYears, useFiscalYearMutations } from '../hooks';
 import { useAuthStore } from '../../auth/store';
-import { AuthorizeActionUsecase } from '../../../core/usecases/auth/AuthorizeActionUsecase';
+import { assertOwner } from '../../../core/hooks/usePermission';
 import { useFeedbackStore } from '../../feedback/store';
 import MicroListItem from '../../../ui/common/MicroListItem';
 import Button from '../../../ui/base/Button';
@@ -22,7 +22,7 @@ const FiscalYearManager: React.FC = () => {
 
   const handleClose = (id: string) => {
     try {
-      AuthorizeActionUsecase.requireAdmin(user as any);
+      assertOwner(user);
       if (window.confirm('تحذير: إغلاق السنة المالية عملية لا يمكن التراجع عنها. هل تريد المتابعة؟')) {
         closeFiscalYear(id);
       }

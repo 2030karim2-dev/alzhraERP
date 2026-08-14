@@ -5,7 +5,7 @@ import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
 import { PartyFormData, PartyType, Party, PartyView } from './types';
 import { useMemo, useState } from 'react';
-import { AuthorizeActionUsecase } from '../../core/usecases/auth/AuthorizeActionUsecase';
+import { assertPermission } from '../../core/hooks/usePermission';
 import { syncStore } from '../../core/lib/sync-store';
 import { partyCache } from './lib/party-cache';
 
@@ -92,7 +92,7 @@ export const usePartyMutations = (type: PartyType) => {
 
   const deleteParty = useMutation({
     mutationFn: async (id: string) => {
-      AuthorizeActionUsecase.validateAction(user, 'delete_party');
+      await assertPermission('customers:delete', 'حذف جهات (عملاء/موردين)');
       return partiesService.deleteParty(id);
     },
     onSuccess: () => {

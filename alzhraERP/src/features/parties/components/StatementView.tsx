@@ -188,7 +188,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                   } else {
                     // Fallback to downloading if native share isn't supported (e.g. desktop Chrome)
                     const { exportStatementToExcel } = await import('../utils/statementExcelExporter');
-                    exportStatementToExcel(company, selectedParty.name, filteredStatement as any);
+                    await exportStatementToExcel(company, selectedParty.name, filteredStatement as any);
                     
                     // Show a toast or just let the download happen
                     alert('تم تنزيل ملف الإكسل. يمكنك الآن إرساله عبر واتساب ويب.');

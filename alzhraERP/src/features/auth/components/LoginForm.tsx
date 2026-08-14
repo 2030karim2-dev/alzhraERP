@@ -140,13 +140,8 @@ export const LoginForm: React.FC = () => {
             </button>
 
             <div className="pt-6 border-t border-gray-100 dark:border-slate-800 text-center">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">المطور الذكي</p>
-                <p className="text-xs font-black text-gray-700 dark:text-slate-300">عبدالكريم الجعفري</p>
-                <div className="flex items-center justify-center gap-4 mt-2 text-[10px] text-blue-500 font-bold">
-                    <span>779816860</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                    <span>2030.krim2@gmail.com</span>
-                </div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Al-Zahra Smart ERP</p>
+                <p className="text-xs font-black text-gray-700 dark:text-slate-300">نظام الزهراء الذكي</p>
             </div>
         </form>
     );

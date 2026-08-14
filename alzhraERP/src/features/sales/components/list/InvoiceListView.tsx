@@ -70,14 +70,14 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
                 subtotal: row.total,
                 totalAmount: row.total,
             };
-            const blob = generateInvoiceExcelBlob(data);
+            const blob = await generateInvoiceExcelBlob(data);
             const file = new File([blob], `فاتورة_${row.invoiceNumber}.xlsx`, {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({ files: [file], title: `فاتورة ${row.invoiceNumber}` });
             } else {
-                exportInvoiceToExcel(data);
+                await exportInvoiceToExcel(data);
                 showToast('تم تنزيل ملف Excel بنجاح', 'success');
             }
         } catch {

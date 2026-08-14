@@ -32,6 +32,60 @@ function validateRequest(body: any) {
   return { valid: true };
 }
 
+// ── Rate limiting (DB-backed) ───────────────────────────────────────────────
+// Limits AI proxy usage per authenticated user so a compromised/abusive token
+// cannot drain the company's OpenRouter/DeepSeek balance.
+const RATE_LIMIT = { windowMs: 60_000, maxRequests: 10 }; // 10 req / user / minute
+
+async function checkRateLimit(
+  userId: string,
+  supabaseUrl: string
+): Promise<{ allowed: boolean; retryAfterSec?: number }> {
+  try {
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!serviceRoleKey) {
+      // No admin client available → fail OPEN (never block AI on infra gaps).
+      return { allowed: true };
+    }
+
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const since = new Date(Date.now() - RATE_LIMIT.windowMs).toISOString();
+
+    // 1. Record this attempt
+    await admin.from('ai_request_log').insert({ user_id: userId });
+
+    // 2. Count requests within the window
+    const { count, error } = await admin
+      .from('ai_request_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    // The count above already includes the request just recorded above.
+    const used = count ?? 0;
+    if (used > RATE_LIMIT.maxRequests) {
+      return { allowed: false, retryAfterSec: Math.ceil(RATE_LIMIT.windowMs / 1000) };
+    }
+
+    // 3. Probabilistic cleanup (keep the log table bounded)
+    if (Math.random() < 0.01) {
+      const cutoff = new Date(Date.now() - RATE_LIMIT.windowMs * 10).toISOString();
+      await admin.from('ai_request_log').delete().lt('created_at', cutoff);
+    }
+
+    return { allowed: true };
+  } catch (e) {
+    // Infra failure must never break AI — fail open and log.
+    console.error('[RateLimit] check failed (fail-open)', e);
+    return { allowed: true };
+  }
+}
+
 serve(async (req) => {
   const origin = req.headers.get('Origin');
   const headers = corsHeaders(origin);
@@ -79,6 +133,19 @@ serve(async (req) => {
         code: 'AUTH_INVALID'
       }), {
         status: 401,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 1b. Rate limit per user (10 req/min by default)
+    const rate = await checkRateLimit(user.id, supabaseUrl);
+    if (!rate.allowed) {
+      return new Response(JSON.stringify({
+        error: 'Rate limit exceeded. Please wait and try again.',
+        code: 'RATE_LIMIT',
+        retry_after_sec: rate.retryAfterSec
+      }), {
+        status: 429,
         headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }

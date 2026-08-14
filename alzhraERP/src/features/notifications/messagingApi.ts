@@ -50,6 +50,24 @@ export const DEFAULT_MESSAGING_CONFIG: Omit<MessagingConfig, 'company_id'> = {
     notify_on_low_stock: true,
 };
 
+// ── Secret handling ───────────────────────────────────────────────────────────
+// Raw API keys (WhatsApp token / Telegram bot token) must NEVER live in React
+// state or be written back over the stored value. On fetch they are replaced
+// with this sentinel; on save a sentinel value is omitted from the payload.
+export const MASKED_SECRET = '••••••••••';
+
+export const SECRET_FIELDS = ['whatsapp_api_key', 'telegram_bot_token'] as const;
+
+type MessagingConfigRow = MessagingConfig & Record<string, unknown>;
+
+const redactSecrets = (row: MessagingConfig): MessagingConfig => {
+    const redacted = { ...row } as MessagingConfigRow;
+    for (const field of SECRET_FIELDS) {
+        redacted[field] = redacted[field] ? MASKED_SECRET : '';
+    }
+    return redacted as MessagingConfig;
+};
+
 export const messagingApi = {
     /**
      * Get messaging config for a company
@@ -64,16 +82,28 @@ export const messagingApi = {
         if (error) {
             console.error('[MessagingAPI] Error fetching config:', error);
         }
-        return data as MessagingConfig | null;
+        if (!data) return null;
+        // 🔒 Redact secrets so raw keys never enter app state / logs.
+        return redactSecrets(data as unknown as MessagingConfig);
     },
 
     /**
-     * Save/update messaging config
+     * Save/update messaging config.
+     * Secret fields carrying the MASKED_SECRET sentinel are OMITTED from the
+     * upsert so the stored key is never overwritten with the mask.
      */
     saveConfig: async (config: MessagingConfig): Promise<{ error: any }> => {
+        const payload = { ...config, updated_at: new Date().toISOString() } as MessagingConfigRow;
+
+        for (const field of SECRET_FIELDS) {
+            if (payload[field] === MASKED_SECRET) {
+                delete payload[field];
+            }
+        }
+
         const { error } = await (supabase.from('messaging_config') as any)
             .upsert(
-                { ...config, updated_at: new Date().toISOString() },
+                payload,
                 { onConflict: 'company_id' }
             );
 

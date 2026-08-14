@@ -132,7 +132,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
         totalAmount: quotation.total_amount,
       };
 
-      const blob = generateQuotationExcelBlob(data);
+      const blob = await generateQuotationExcelBlob(data);
       const file = new File([blob], `عرض_سعر_${quotation.quotation_number}.xlsx`, {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
@@ -145,7 +145,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
         });
       } else {
         // Fallback
-        exportQuotationToExcel(data);
+        await exportQuotationToExcel(data);
         const text = encodeURIComponent(`مرفق عرض سعر رقم ${quotation.quotation_number}. يرجى الاطلاع على الملف المرفق.`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
       }

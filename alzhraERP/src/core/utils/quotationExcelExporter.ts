@@ -3,8 +3,14 @@
 // Professional styled Excel export for quotations
 // ============================================
 
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = (_XLSX as any).default || _XLSX;
+// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
+// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
+// declarations, so the resolved value is typed as `any` (same as original code).
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 interface QuotationExcelData {
     companyName: string;
@@ -26,7 +32,8 @@ interface QuotationExcelData {
     notes?: string;
 }
 
-export const generateQuotationWorkbook = (data: QuotationExcelData) => {
+export const generateQuotationWorkbook = async (data: QuotationExcelData) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     const rows: any[][] = [];
 
@@ -166,13 +173,15 @@ export const generateQuotationWorkbook = (data: QuotationExcelData) => {
     return wb;
 };
 
-export const exportQuotationToExcel = (data: QuotationExcelData) => {
-    const wb = generateQuotationWorkbook(data);
+export const exportQuotationToExcel = async (data: QuotationExcelData) => {
+    const XLSX = await loadXLSX();
+    const wb = await generateQuotationWorkbook(data);
     XLSX.writeFile(wb, `عرض_سعر_${data.quotationNumber}.xlsx`);
 };
 
-export const generateQuotationExcelBlob = (data: QuotationExcelData): Blob => {
-    const wb = generateQuotationWorkbook(data);
+export const generateQuotationExcelBlob = async (data: QuotationExcelData): Promise<Blob> => {
+    const XLSX = await loadXLSX();
+    const wb = await generateQuotationWorkbook(data);
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };

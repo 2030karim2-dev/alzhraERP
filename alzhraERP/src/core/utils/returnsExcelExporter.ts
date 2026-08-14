@@ -3,8 +3,14 @@
 // Export returns data to Excel with professional styling
 // ============================================
 
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = (_XLSX as any).default || _XLSX;
+// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
+// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
+// declarations, so the resolved value is typed as `any` (same as original code).
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 interface ReturnExcelData {
     companyName: string;
@@ -54,7 +60,8 @@ const getReturnReasonText = (reason: string): string => {
     return reasonMap[reason] || reason || '-';
 };
 
-export const exportReturnsToExcel = (data: ReturnExcelData) => {
+export const exportReturnsToExcel = async (data: ReturnExcelData) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
 
     const isSales = data.type === 'sales';
@@ -205,7 +212,7 @@ export const exportReturnsToExcel = (data: ReturnExcelData) => {
 };
 
 // Export single return to Excel (detailed)
-export const exportSingleReturnToExcel = (data: {
+export const exportSingleReturnToExcel = async (data: {
     companyName: string;
     companyAddress?: string;
     invoiceNumber: string;
@@ -226,6 +233,7 @@ export const exportSingleReturnToExcel = (data: {
     notes?: string;
     type: 'sales' | 'purchase';
 }) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
 
     const isSales = data.type === 'sales';

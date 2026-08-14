@@ -42,7 +42,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
             };
             const { generateSingleBondExcelBlob, exportSingleBondToExcel } = await import('../../../core/utils/bondExcelExporter');
             
-            const blob = generateSingleBondExcelBlob(company, bond);
+            const blob = await generateSingleBondExcelBlob(company, bond);
             const bondTitle = bond.type === 'receipt' ? 'سند_قبض' : bond.type === 'payment' ? 'سند_صرف' : 'سند_تحويل';
             const file = new File([blob], `${bondTitle}_${bond.payment_number}.xlsx`, {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -55,7 +55,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                     text: `مرفق ${bondTitle.replace('_', ' ')} رقم ${bond.payment_number}`
                 });
             } else {
-                exportSingleBondToExcel(company, bond);
+                await exportSingleBondToExcel(company, bond);
                 const text = encodeURIComponent(`مرفق ${bondTitle.replace('_', ' ')} رقم ${bond.payment_number}.`);
                 window.open(`https://wa.me/?text=${text}`, '_blank');
             }
@@ -64,14 +64,14 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
         }
     };
 
-    const handleExport = (bond: Bond) => {
+    const handleExport = async (bond: Bond) => {
         const company = {
             name_ar: invoiceSettings?.company_name_ar || settingsCompany?.name || 'اسم الشركة',
             address: invoiceSettings?.company_address || settingsCompany?.address || '',
             phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
             tax_number: settingsCompany?.tax_number || '---',
         };
-        exportSingleBondToExcel(company, bond);
+        await exportSingleBondToExcel(company, bond);
     };
 
     if (isLoading) {

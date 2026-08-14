@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react';
 import ContentContainer from '../../ui/layout/ContentContainer';
 import { useDashboardMetrics } from './hooks/useDashboardMetrics';
 import { useTranslation } from '../../lib/hooks/useTranslation';
+import { useAuthStore } from '../auth/store';
 
 import MicroHeader from '../../ui/base/MicroHeader';
 import ChartSkeleton from '../../ui/base/ChartSkeleton';
@@ -62,6 +63,8 @@ const DashboardError = ({ refetch, isFetching }: { refetch: () => void, isFetchi
 
 const DashboardPage: React.FC = () => {
     const { t } = useTranslation();
+    const { user } = useAuthStore();
+    const companyId = user?.company_id ?? '';
     const {
         stats,
         salesData,
@@ -209,7 +212,7 @@ const DashboardPage: React.FC = () => {
                         </Suspense>
 
                         <Suspense fallback={null}>
-                            <CustomerSegmentation companyId="" />
+                            <CustomerSegmentation companyId={companyId} />
                         </Suspense>
 
                         <Suspense fallback={null}>

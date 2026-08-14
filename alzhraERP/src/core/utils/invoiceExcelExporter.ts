@@ -3,8 +3,14 @@
 // Professional styled Excel export for invoices
 // ============================================
 
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = (_XLSX as any).default || _XLSX;
+// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
+// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
+// declarations, so the resolved value is typed as `any` (same as original code).
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 interface InvoiceExcelData {
     companyName: string;
@@ -24,7 +30,8 @@ interface InvoiceExcelData {
     totalAmount: number;
 }
 
-export const generateInvoiceWorkbook = (data: InvoiceExcelData) => {
+export const generateInvoiceWorkbook = async (data: InvoiceExcelData) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     const rows: any[][] = [];
 
@@ -148,13 +155,15 @@ export const generateInvoiceWorkbook = (data: InvoiceExcelData) => {
     return wb;
 };
 
-export const exportInvoiceToExcel = (data: InvoiceExcelData) => {
-    const wb = generateInvoiceWorkbook(data);
+export const exportInvoiceToExcel = async (data: InvoiceExcelData) => {
+    const XLSX = await loadXLSX();
+    const wb = await generateInvoiceWorkbook(data);
     XLSX.writeFile(wb, `فاتورة_${data.invoiceNumber}.xlsx`);
 };
 
-export const generateInvoiceExcelBlob = (data: InvoiceExcelData): Blob => {
-    const wb = generateInvoiceWorkbook(data);
+export const generateInvoiceExcelBlob = async (data: InvoiceExcelData): Promise<Blob> => {
+    const XLSX = await loadXLSX();
+    const wb = await generateInvoiceWorkbook(data);
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };

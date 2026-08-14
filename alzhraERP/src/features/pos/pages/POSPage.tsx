@@ -57,13 +57,16 @@ const POSPage: React.FC = () => {
     }, [addProductToCart, search]);
 
     const handleSearchSelect = useCallback((result: typeof search.results[number]) => {
-        const product = buildProductFromSearchResult(result, '');
+        const { user } = useAuthStore.getState();
+        if (!user?.company_id) return;
+        const product = buildProductFromSearchResult(result, user.company_id);
         search.selectResult(result);
         addProductToCart(product);
     }, [addProductToCart, search]);
 
     const handleViewDetails = useCallback((result: typeof search.results[number]) => {
-        const product = buildProductFromSearchResult(result, '');
+        const { user } = useAuthStore.getState();
+        const product = buildProductFromSearchResult(result, user?.company_id ?? '');
         setDetailProduct(product);
     }, []);
 

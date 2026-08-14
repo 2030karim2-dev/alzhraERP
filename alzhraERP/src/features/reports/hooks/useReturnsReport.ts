@@ -185,7 +185,7 @@ export const useReturnsReport = () => {
     }, [filteredSalesReturns, filteredPurchaseReturns, filters.type]);
 
     // Export to Excel
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         const returns = filters.type === 'sales' ? filteredSalesReturns :
             filters.type === 'purchase' ? filteredPurchaseReturns :
                 [...filteredSalesReturns, ...filteredPurchaseReturns];
@@ -212,7 +212,7 @@ export const useReturnsReport = () => {
             type: filters.type === 'all' ? 'sales' : filters.type
         };
 
-        exportReturnsToExcel(excelData);
+        await exportReturnsToExcel(excelData);
     };
 
     return {

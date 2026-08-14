@@ -4,7 +4,7 @@ import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
 import { ExpenseFormData } from './types';
 import { useMemo } from 'react';
-import { AuthorizeActionUsecase } from '../../core/usecases/auth/AuthorizeActionUsecase';
+import { assertPermission } from '../../core/hooks/usePermission';
 import { supabase } from '../../lib/supabaseClient';
 import { invalidateByPreset } from '../../lib/invalidation';
 import { useNetworkStatus } from '../../lib/hooks/useNetworkStatus';
@@ -98,7 +98,7 @@ export const useExpenseActions = () => {
   const create = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
       if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
-      AuthorizeActionUsecase.validateAction(user, 'create_expense');
+      await assertPermission('expenses:create', 'تسجيل مصروفات');
       const finalData = { ...data, branch_id: data.branch_id || branchId };
       return expensesService.processNewExpense(finalData, user.company_id, user.id);
     },

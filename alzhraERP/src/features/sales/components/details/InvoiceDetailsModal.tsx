@@ -52,12 +52,12 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!invoice || !company) return;
     const comp = company as Record<string, unknown>;
     // [FIX] استخدام بيانات الشركة الحقيقية من الإعدادات
     const companyName = (comp?.name_ar || comp?.name || (company as any)?.company_name || 'الشركة') as string;
-    exportInvoiceToExcel({
+    await exportInvoiceToExcel({
       companyName,
       companyAddress: (comp?.address || '') as string,
       taxNumber: (comp?.tax_number || '') as string,
@@ -119,7 +119,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         totalAmount: invoice.total_amount,
       };
 
-      const blob = generateInvoiceExcelBlob(data);
+      const blob = await generateInvoiceExcelBlob(data);
       const file = new File([blob], `فاتورة_${data.invoiceNumber}.xlsx`, {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
@@ -132,7 +132,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         });
       } else {
         // Fallback
-        exportInvoiceToExcel(data);
+        await exportInvoiceToExcel(data);
         const text = encodeURIComponent(`مرفق فاتورة رقم ${data.invoiceNumber}. يرجى الاطلاع على الملف المرفق.`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
       }

@@ -3,8 +3,14 @@
 // Professional styled Excel export for bonds (receipts/payments)
 // ============================================
 
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = (_XLSX as any).default || _XLSX;
+// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
+// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
+// declarations, so the resolved value is typed as `any` (same as original code).
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 interface CompanyInfo {
     name_ar: string;
@@ -13,7 +19,7 @@ interface CompanyInfo {
     tax_number?: string;
 }
 
-export const generateSingleBondWorkbook = (
+export const generateSingleBondWorkbook = async (
     company: CompanyInfo,
     bond: {
         payment_number: string;
@@ -27,6 +33,7 @@ export const generateSingleBondWorkbook = (
         payment_method?: string;
     }
 ) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     const rows: any[][] = [];
 
@@ -128,7 +135,7 @@ export const generateSingleBondWorkbook = (
     return wb;
 };
 
-export const exportSingleBondToExcel = (
+export const exportSingleBondToExcel = async (
     company: CompanyInfo,
     bond: {
         payment_number: string;
@@ -142,12 +149,13 @@ export const exportSingleBondToExcel = (
         payment_method?: string;
     }
 ) => {
+    const XLSX = await loadXLSX();
     const bondTitle = bond.type === 'receipt' ? 'سند قبض' : bond.type === 'payment' ? 'سند صرف' : 'سند تحويل';
-    const wb = generateSingleBondWorkbook(company, bond);
+    const wb = await generateSingleBondWorkbook(company, bond);
     XLSX.writeFile(wb, `${bondTitle}_${bond.payment_number}.xlsx`);
 };
 
-export const generateSingleBondExcelBlob = (
+export const generateSingleBondExcelBlob = async (
     company: CompanyInfo,
     bond: {
         payment_number: string;
@@ -160,17 +168,19 @@ export const generateSingleBondExcelBlob = (
         account_name: string;
         payment_method?: string;
     }
-): Blob => {
-    const wb = generateSingleBondWorkbook(company, bond);
+): Promise<Blob> => {
+    const XLSX = await loadXLSX();
+    const wb = await generateSingleBondWorkbook(company, bond);
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };
 
-export const exportBondsListToExcel = (
+export const exportBondsListToExcel = async (
     company: CompanyInfo,
     bonds: any[],
     listTitle: string = 'قائمة السندات'
 ) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     const rows: any[][] = [];
 

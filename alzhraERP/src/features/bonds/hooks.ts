@@ -3,7 +3,7 @@ import { bondsService } from './service';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
 import { BondType, BondFormData } from './types';
-import { AuthorizeActionUsecase } from '../../core/usecases/auth/AuthorizeActionUsecase';
+import { assertPermission } from '../../core/hooks/usePermission';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
 
 export const useBonds = (type?: BondType) => {
@@ -37,7 +37,7 @@ export const useBondMutation = () => {
       if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
 
       // فحص الصلاحية لإصدار السندات
-      AuthorizeActionUsecase.validateAction(user, 'create_bond');
+      await assertPermission('accounting:create', 'إصدار سندات مالية');
 
       return bondsService.createBond(user.company_id, user.id, { ...data, branch_id: branchId });
     },
@@ -66,7 +66,7 @@ export const useDeleteBond = () => {
       if (!user) throw new Error("جلسة العمل منتهية");
 
       // فحص الصلاحية لحذف السندات
-      AuthorizeActionUsecase.validateAction(user, 'delete_bond');
+      await assertPermission('accounting:delete', 'حذف سندات مالية');
 
       return bondsService.deleteBond(id);
     },

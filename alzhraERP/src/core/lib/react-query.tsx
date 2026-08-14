@@ -249,16 +249,7 @@ export interface UseMutationOptions<TData, TError, TVariables, TContext> {
 // ------------------------------------------
 // Utility Hooks
 // ------------------------------------------
-export const useInvalidateQueries = () => {
-    return {
-        invalidateAll: () => { },
-        invalidateInventory: () => { },
-        invalidateSales: () => { },
-        invalidatePurchases: () => { },
-        invalidateAccounting: () => { },
-        invalidateParties: () => { },
-        invalidateDashboard: () => { },
-    };
-};
+// NOTE: `useInvalidateQueries` (no-op stub) was removed — it silently did nothing.
+// Use `queryClient.invalidateQueries({ queryKey })` directly instead.
 
 export default queryKeys;

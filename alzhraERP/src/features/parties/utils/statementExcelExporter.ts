@@ -3,8 +3,14 @@
 // Professional styled Excel export for party statements
 // ============================================
 
-import * as _XLSX from 'xlsx-js-style';
-const XLSX = (_XLSX as any).default || _XLSX;
+// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
+// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
+// declarations, so the resolved value is typed as `any` (same as original code).
+let xlsxPromise: Promise<any> | null = null;
+const loadXLSX = (): Promise<any> => {
+  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  return xlsxPromise;
+};
 
 interface CompanyInfo {
     name_ar: string;
@@ -23,11 +29,12 @@ interface StatementEntry {
     balance: number;
 }
 
-export const generateStatementExcelWorkbook = (
+export const generateStatementExcelWorkbook = async (
     company: CompanyInfo,
     partyName: string,
     entries: StatementEntry[]
 ) => {
+    const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     const rows: any[][] = [];
 
@@ -148,13 +155,15 @@ export const generateStatementExcelWorkbook = (
     return wb;
 };
 
-export const exportStatementToExcel = (company: CompanyInfo, partyName: string, data: StatementEntry[]) => {
-    const wb = generateStatementExcelWorkbook(company, partyName, data);
+export const exportStatementToExcel = async (company: CompanyInfo, partyName: string, data: StatementEntry[]) => {
+    const XLSX = await loadXLSX();
+    const wb = await generateStatementExcelWorkbook(company, partyName, data);
     XLSX.writeFile(wb, `كشف_حساب_${partyName}_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
-export const generateStatementExcelBlob = (company: CompanyInfo, partyName: string, data: StatementEntry[]): Blob => {
-    const wb = generateStatementExcelWorkbook(company, partyName, data);
+export const generateStatementExcelBlob = async (company: CompanyInfo, partyName: string, data: StatementEntry[]): Promise<Blob> => {
+    const XLSX = await loadXLSX();
+    const wb = await generateStatementExcelWorkbook(company, partyName, data);
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };
