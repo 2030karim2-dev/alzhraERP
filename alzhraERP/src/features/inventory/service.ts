@@ -128,6 +128,10 @@ export const inventoryService = {
     return auditService.deleteAuditItem(itemId);
   },
 
+  deleteAuditSession: async (sessionId: string) => {
+    return auditService.deleteAuditSession(sessionId);
+  },
+
   // ==========================================
   // Category Operations (delegated to categoryService)
   // ==========================================

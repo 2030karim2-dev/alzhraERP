@@ -191,6 +191,17 @@ export const useInventoryMutations = () => {
         }
     });
 
+    const deleteSession = useMutation({
+        mutationFn: (sessionId: string) => inventoryService.deleteAuditSession(sessionId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
+            showToast("تم حذف جلسة الجرد", 'success');
+        },
+        onError: (err: any) => {
+            showToast("فشل حذف الجلسة: " + err.message, 'error');
+        }
+    });
+
     return {
         createTransfer: transfer.mutate,
         isTransferring: transfer.isPending,
@@ -206,5 +217,7 @@ export const useInventoryMutations = () => {
         isAddingItem: addItem.isPending,
         removeItemFromAudit: removeItem.mutate,
         isRemovingItem: removeItem.isPending,
+        deleteAuditSession: deleteSession.mutate,
+        isDeletingSession: deleteSession.isPending,
     };
 };

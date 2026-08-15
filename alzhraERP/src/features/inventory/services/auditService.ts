@@ -93,6 +93,7 @@ export const auditService = {
         const { data, error } = await supabase.from('audit_sessions')
             .select('*, warehouses(name_ar)')
             .eq('company_id', companyId)
+            .neq('status', 'cancelled')
             .order('created_at', { ascending: false });
         if (error) throw error;
         return (data || []).map((s: Record<string, unknown>) => ({
@@ -160,6 +161,19 @@ export const auditService = {
      */
     deleteAuditItem: async (itemId: string) => {
         const { error } = await supabase.from('audit_items').delete().eq('id', itemId);
+        if (error) throw error;
+    },
+
+    /**
+     * Delete (soft-delete) an audit session by marking it as cancelled.
+     * Hard DELETE is blocked by RLS (admin-only policy), so we use status='cancelled'
+     * and hide cancelled sessions from the UI.
+     */
+    deleteAuditSession: async (sessionId: string) => {
+        const { error } = await supabase
+            .from('audit_sessions')
+            .update({ status: 'cancelled' })
+            .eq('id', sessionId);
         if (error) throw error;
     }
 };
