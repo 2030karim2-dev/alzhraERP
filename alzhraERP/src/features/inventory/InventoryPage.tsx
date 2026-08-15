@@ -97,7 +97,7 @@ const InventoryPage: React.FC = () => {
                     isZenMode={isZenMode}
                     onToggleZen={() => setIsZenMode(!isZenMode)}
                     actions={
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 max-md:gap-1">
                             {activeView === 'products' && (
                                 <div className="hidden md:flex items-center gap-3 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] sm:text-xs font-bold shadow-sm" title="إحصائيات المنتجات">
                                     <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400" title="إجمالي المنتجات">
@@ -123,15 +123,15 @@ const InventoryPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleAdd}
-                                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 shadow-md shadow-blue-500/20"
+                                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 max-md:px-2 max-md:py-1 rounded-lg text-[10px] max-md:text-[9px] font-bold active:scale-95 shadow-md shadow-blue-500/20"
                                 >
                                     <Plus size={14} />
                                     <span>{t('add_new_entity', { entity: t('product') })}</span>
                                 </button>
                                 {!isDesktop && activeView === 'products' && (
-                                    <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
-                                        <button onClick={() => setDisplayMode('table')} className={`p-1.5 rounded-lg ${displayMode === 'table' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><List size={14} /></button>
-                                        <button onClick={() => setDisplayMode('grid')} className={`p-1.5 rounded-lg ${displayMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><LayoutGrid size={14} /></button>
+                                    <div className="flex bg-gray-100 dark:bg-slate-800 p-1 max-md:p-0.5 rounded-xl">
+                                        <button onClick={() => setDisplayMode('table')} className={`p-1.5 max-md:p-1 rounded-lg ${displayMode === 'table' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><List size={14} /></button>
+                                        <button onClick={() => setDisplayMode('grid')} className={`p-1.5 max-md:p-1 rounded-lg ${displayMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><LayoutGrid size={14} /></button>
                                     </div>
                                 )}
                             </div>
@@ -151,7 +151,7 @@ const InventoryPage: React.FC = () => {
                     <ContentContainer>
                         {showSmartImport ? (
                             <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
-                                <div className="p-3 border-b flex justify-between items-center bg-gray-50 dark:bg-slate-950/50">
+                                <div className="p-3 max-md:p-2 border-b flex justify-between items-center bg-gray-50 dark:bg-slate-950/50">
                                     <h3 className="font-bold flex items-center gap-2 text-purple-600"><Sparkles size={16}/> الاستيراد الذكي (AI)</h3>
                                     <button onClick={() => setShowSmartImport(false)} className="p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-lg">
                                         <X size={16} />
@@ -165,7 +165,7 @@ const InventoryPage: React.FC = () => {
                             <div className="flex-1 flex overflow-hidden gap-0">
                                 {/* Detail Pane — left side on RTL */}
                                 <div className="w-[480px] 4xl:w-[560px] 5xl:w-[640px] border-l border-[var(--app-border)] overflow-y-auto custom-scrollbar bg-[var(--app-surface)]">
-                                    <div className="p-4">
+                                    <div className="p-4 max-md:p-2">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="font-bold text-sm text-[var(--app-text)]">تفاصيل المنتج</h3>
                                             <button

@@ -157,35 +157,35 @@ const InteractiveInvoiceTable: React.FC = () => {
       </div>
 
       {/* Main Grid */}
-      <div className="overflow-x-auto custom-scrollbar">
-        <table ref={tableRef} className="w-full border-collapse table-fixed min-w-max">
+      <div className="overflow-x-auto custom-scrollbar max-md:-mx-1">
+        <table ref={tableRef} className="w-full border-collapse table-fixed min-w-[680px] max-md:min-w-[540px]">
           <thead>
             <tr className="bg-gray-50/50 dark:bg-slate-800/20 text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest text-right">
-              <th style={{ width: colWidths.index }} className="relative p-2 border-b border-l dark:border-slate-800 text-center">#</th>
-              <th style={{ width: colWidths.description }} className="relative p-2 border-b border-l dark:border-slate-800 group">
+              <th style={{ width: colWidths.index }} className="relative p-2 max-md:p-1 border-b border-l dark:border-slate-800 text-center max-md:hidden">#</th>
+              <th style={{ width: colWidths.description }} className="relative p-2 max-md:p-1.5 border-b border-l dark:border-slate-800 group max-md:!w-[42%]">
                 وصف الصنف
                 <div onMouseDown={(e) => onMouseDown(e, 'description')} className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-20 hover:w-1.5 active:bg-blue-600"></div>
               </th>
-              <th style={{ width: colWidths.quantity }} className="relative p-2 border-b border-l dark:border-slate-800 text-center group">
+              <th style={{ width: colWidths.quantity }} className="relative p-2 max-md:p-1 border-b border-l dark:border-slate-800 text-center group max-md:!w-[15%]">
                 الكمية
                 <div onMouseDown={(e) => onMouseDown(e, 'quantity')} className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-20 hover:w-1.5 active:bg-blue-600"></div>
               </th>
-              <th style={{ width: colWidths.price }} className="relative p-2 border-b border-l dark:border-slate-800 text-center group">
+              <th style={{ width: colWidths.price }} className="relative p-2 max-md:p-1 border-b border-l dark:border-slate-800 text-center group max-md:!w-[18%]">
                 سعر الوحدة
                 <div onMouseDown={(e) => onMouseDown(e, 'price')} className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-20 hover:w-1.5 active:bg-blue-600"></div>
               </th>
               {showDiscount && (
-                <th style={{ width: colWidths.discount }} className="relative p-2 border-b border-l dark:border-slate-800 text-center group">
+                <th style={{ width: colWidths.discount }} className="relative p-2 max-md:p-1 border-b border-l dark:border-slate-800 text-center group max-md:!w-[15%]">
                   الخصم
                   <div onMouseDown={(e) => onMouseDown(e, 'discount')} className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-20 hover:w-1.5 active:bg-blue-600"></div>
                 </th>
               )}
 
-              <th style={{ width: colWidths.total }} className="relative p-2 border-b dark:border-slate-800 text-left group">
+              <th style={{ width: colWidths.total }} className="relative p-2 max-md:p-1 border-b dark:border-slate-800 text-left group max-md:!w-[18%]">
                 الإجمالي
                 <div onMouseDown={(e) => onMouseDown(e, 'total')} className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-20 hover:w-1.5 active:bg-blue-600"></div>
               </th>
-              <th className="p-2 w-10 text-center border-b dark:border-slate-800"></th>
+              <th className="p-2 max-md:p-1 w-10 max-md:w-8 text-center border-b dark:border-slate-800"></th>
             </tr>
           </thead>
           <tbody className="divide-y dark:divide-slate-800">
@@ -205,7 +205,7 @@ const InteractiveInvoiceTable: React.FC = () => {
         </table>
       </div>
 
-      <button onClick={addItem} className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all border-t dark:border-slate-800">
+      <button onClick={addItem} className="w-full py-2 max-md:py-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all border-t dark:border-slate-800">
         <Plus size={14} strokeWidth={3} /> إضافة سطر
       </button>
 

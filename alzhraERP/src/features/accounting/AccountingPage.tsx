@@ -81,18 +81,18 @@ const AccountingPage: React.FC = () => {
     if (!showDateFilter) return undefined;
 
     return (
-      <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/10 px-3 py-2 rounded-xl border border-blue-100 dark:border-blue-900/20 w-full md:w-fit animate-in slide-in-from-top-1 duration-300">
+      <div className="flex items-center gap-2 max-md:gap-1 bg-blue-50 dark:bg-blue-900/10 px-2 py-1.5 max-md:px-1.5 max-md:py-1 rounded-xl border border-blue-100 dark:border-blue-900/20 w-full md:w-fit animate-in slide-in-from-top-1 duration-300">
         <div className="p-1.5 bg-blue-600 text-white rounded-lg shadow-sm">
           <Calendar size={14} />
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tighter">
+        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[9px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tighter">
           <div className="flex items-center gap-1.5">
             <span>{t('from_date')}:</span>
             <input
               type="date"
               value={dateRange.from}
               onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-              className="bg-white dark:bg-slate-800 border-none rounded p-1 outline-none font-mono text-blue-600 dark:text-blue-400"
+              className="bg-white dark:bg-slate-800 border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[9px]"
             />
           </div>
           <div className="w-px h-4 bg-blue-200 dark:bg-blue-800/50 mx-1"></div>
@@ -102,7 +102,7 @@ const AccountingPage: React.FC = () => {
               type="date"
               value={dateRange.to}
               onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-              className="bg-white dark:bg-slate-800 border-none rounded p-1 outline-none font-mono text-blue-600 dark:text-blue-400"
+              className="bg-white dark:bg-slate-800 border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[9px]"
             />
           </div>
         </div>
@@ -155,7 +155,7 @@ const AccountingPage: React.FC = () => {
         isZenMode ? "bg-white dark:bg-slate-900" : ""
       )}>
         <Suspense fallback={<PageLoader />}>
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 md:p-4 pt-5 md:pt-6 print-area animate-in slide-in-from-bottom-4 duration-500">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 max-md:p-1 md:p-4 pt-3 max-md:pt-1.5 md:pt-6 print-area animate-in slide-in-from-bottom-4 duration-500">
              {renderContent()}
           </div>
         </Suspense>

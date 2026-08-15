@@ -1,0 +1,13 @@
+import React from 'react';
+import { Calculator, Clock3, Coins, FileWarning, RefreshCw } from 'lucide-react';
+import { useCommissionDashboardData } from './useCommissionDashboardData';
+import { DashboardAlerts, Metric, PendingInvoices, PeriodResults } from './CommissionDashboardWidgets';
+import { formatCommissionMoney } from './commissionLabels';
+
+export default function CommissionDashboardPage(): React.JSX.Element {
+  const data = useCommissionDashboardData();
+  if (data.companyId === undefined || data.companyId.length === 0) return <div dir="rtl" className="p-6 text-[var(--app-text-secondary)]">لا يمكن تحميل بيانات العمولات قبل تحديد الشركة المرتبطة بالمستخدم.</div>;
+  const currency = data.selectedPeriod?.currency_code ?? 'SAR';
+  const canRun = data.canCalculate && data.selectedPeriod?.state === 'open' && !data.calculating;
+  return <div dir="rtl" className="min-h-full space-y-6 bg-[var(--app-bg)] p-4 sm:p-6"><header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-sm text-[var(--app-text-secondary)]">الإدارة المالية / الحوافز</p><h1 className="mt-1 text-2xl font-bold text-[var(--app-text)]">لوحة عمولات المهندسين</h1><p className="mt-2 max-w-2xl text-sm text-[var(--app-text-secondary)]">حسابات ذرية مرتبطة بالفواتير والتوزيعات والدفعات، مع حماية مستقلة لفترات الاختبار.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="inline-flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2 text-sm" onClick={data.detect} disabled={data.detecting}><RefreshCw size={16} className={data.detecting ? 'animate-spin' : ''} /> تحديث قائمة الانتظار</button><button type="button" className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50" onClick={data.calculate} disabled={!canRun}><Calculator size={16} /> تشغيل الحساب</button></div></header><DashboardAlerts data={data} /><section className="grid grid-cols-2 gap-3 lg:grid-cols-4"><Metric title="إجمالي العمولات" value={formatCommissionMoney(data.total, currency)} icon={<Coins size={18} />} tone="emerald" /><Metric title="المحصل المرتبط" value={formatCommissionMoney(data.collected, currency)} icon={<Coins size={18} />} tone="blue" /><Metric title="الفواتير المحتسبة" value={data.invoiceCount.toLocaleString('ar-SA')} icon={<FileWarning size={18} />} tone="violet" /><Metric title="في قائمة الانتظار" value={data.pending.length.toLocaleString('ar-SA')} icon={<Clock3 size={18} />} tone="amber" /></section><section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><PeriodResults data={data} /><PendingInvoices data={data} /></section></div>;
+}

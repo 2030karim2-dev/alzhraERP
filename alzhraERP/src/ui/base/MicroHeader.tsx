@@ -84,8 +84,8 @@ const MicroHeader: React.FC<MicroHeaderProps> = ({
     <div className="flex-none bg-[var(--app-surface)] border-b border-[var(--app-border)] shadow-sm transition-all no-print z-40">
       <div className="max-w-none mx-auto">
         {/* Main Row */}
-        <div className="flex h-8 md:h-9 items-center justify-between px-2 md:px-4">
-          <div className="flex items-center gap-1.5 overflow-hidden">
+        <div className="flex h-8 max-md:h-7 md:h-9 items-center justify-between px-2 max-md:px-1.5 md:px-4">
+          <div className="flex items-center gap-1 max-md:gap-0.5 overflow-hidden">
             {!isRoot && (
               <button
                 onClick={() => navigate(-1)}
@@ -95,13 +95,13 @@ const MicroHeader: React.FC<MicroHeaderProps> = ({
                 <BackIcon size={14} className="text-[var(--app-text-secondary)]" />
               </button>
             )}
-            <div className="flex items-center gap-1.5 bg-[var(--app-bg)]/50 px-2 py-0.5 rounded-full border border-[var(--app-border)]">
+            <div className="flex items-center gap-1 max-md:gap-0.5 bg-[var(--app-bg)]/50 px-2 max-md:px-1.5 py-0.5 rounded-full border border-[var(--app-border)]">
               <Icon className={iconColor} size={12} />
               <h1 className="text-[9px] md:text-[10px] font-black text-[var(--app-text)] whitespace-nowrap uppercase tracking-widest">{title}</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-1.5">
+          <div className="flex items-center gap-0.5 md:gap-1.5">
             {isMaximized && onToggleZen && (
               <button
                 onClick={onToggleZen}
@@ -134,7 +134,7 @@ const MicroHeader: React.FC<MicroHeaderProps> = ({
 
         {/* Unified Search & Tab Row - MERGED TO SAVE SPACE */}
         {(tabs || onSearchChange || extraRow) && (
-          <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-3 p-1 md:px-3 bg-[var(--app-surface)] border-t border-[var(--app-border)]">
+          <div className="flex flex-col md:flex-row items-center gap-1 max-md:gap-0.5 md:gap-3 p-1 max-md:p-0.5 md:px-3 bg-[var(--app-surface)] border-t border-[var(--app-border)]">
             {/* Tabs Section */}
             {tabs && onTabChange && activeTab && (
               <div className="flex-1 w-full overflow-x-auto no-scrollbar min-w-0">
@@ -165,7 +165,7 @@ const MicroHeader: React.FC<MicroHeaderProps> = ({
 
             {/* Search/Filter Section - HIDDEN because it's moved to Top Header */}
             {extraRow && (
-              <div className={`flex items-center gap-2 w-full ${searchWidth} shrink-0`}>
+              <div className={`flex items-center gap-1 max-md:gap-0.5 w-full ${searchWidth} shrink-0`}>
                 {extraRow}
               </div>
             )}

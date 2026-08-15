@@ -156,7 +156,7 @@ const ReportsPage: React.FC = () => {
           isZenMode={false}
           onToggleZen={() => { }}
           extraRow={
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-1 max-md:gap-0.5 overflow-x-auto pb-1 max-md:pb-0 no-scrollbar">
               {categories.map((cat) => {
                 const isActive = activeCategory === cat.id;
                 const pillClass = isActive
@@ -166,7 +166,7 @@ const ReportsPage: React.FC = () => {
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap text-xs font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px] ${pillClass}`}
+                    className={`flex items-center gap-2 max-md:gap-1 px-4 max-md:px-2 py-2 max-md:py-1.5 rounded-full border transition-all whitespace-nowrap text-xs max-md:text-[10px] font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px] max-md:min-h-[32px] ${pillClass}`}
                   >
                     <cat.icon size={14} className={isActive ? "text-white" : cat.colorClass} />
                     {cat.label}
@@ -184,7 +184,7 @@ const ReportsPage: React.FC = () => {
         )}
 
         <div className="flex-1 overflow-hidden flex flex-col relative z-20">
-          <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 md:pt-5 pb-6 md:pb-8 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-4 max-md:px-2 md:px-6 pt-3 max-md:pt-2 md:pt-5 pb-4 max-md:pb-3 md:pb-8 custom-scrollbar">
             <div className="max-w-none mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
               <ReportErrorBoundary reportName={t(reportLabelKeys[activeTab])}>
                 {renderReportComponent(activeTab)}

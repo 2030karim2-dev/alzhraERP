@@ -1,4 +1,3 @@
-
 export const ROUTES = {
   AUTH: {
     LANDING: '/welcome',
@@ -26,6 +25,11 @@ export const ROUTES = {
     PARTIES_CUSTOMERS: '/parties/customers',
     PARTIES_SUPPLIERS: '/parties/suppliers',
     REPORTS: '/reports',
+    COMMISSIONS: '/commissions',
+    COMMISSIONS_CONFIG: '/commissions/configuration',
+    COMMISSIONS_ASSIGNMENTS: '/commissions/assignments',
+    COMMISSIONS_PERIODS: '/commissions/periods',
+    COMMISSIONS_REPORTS: '/commissions/reports',
     VIN: '/vin',
     AI: '/ai',
     // Debts & Collection module (each main service = its own route)

@@ -35,7 +35,7 @@ self.addEventListener('fetch', (event) => {
   if (request.url.includes('supabase.co')) {
     return;
   }
-  
+
   // Navigation: Network First -> Cache Fallback
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (event) => {
             });
         }
         return networkResponse;
-      }).catch(() => null); 
+      }).catch(() => null);
       return cachedResponse || fetchPromise;
     })
   );

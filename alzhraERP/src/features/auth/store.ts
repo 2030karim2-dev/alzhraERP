@@ -101,9 +101,9 @@ export const useAuthStore = create<AuthState>()(
               isInitializingGlobal = false;
               return;
             }
-          } else {
-            session = result?.data?.session;
-            sessionError = result?.error;
+          } else if ('data' in result) {
+            session = result.data.session;
+            sessionError = result.error;
           }
 
           // ⚡ If Refresh Token fails, clear session immediately

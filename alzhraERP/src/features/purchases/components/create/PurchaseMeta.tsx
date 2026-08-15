@@ -66,16 +66,16 @@ const PurchaseMeta: React.FC = () => {
     const isDivide = currencyObj?.exchange_operator === 'divide';
 
     const MetaBlock = ({ label, value, icon: Icon, isSelect, options, field, colorClass, type = "text" }: any) => (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 flex flex-col group hover:bg-blue-50/40 transition-colors">
-            <div className="flex items-center gap-1 mb-1">
+        <div className="flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 flex flex-col group hover:bg-blue-50/40 transition-colors">
+            <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0.5">
                 <Icon size={10} className={colorClass || "text-blue-500"} />
-                <span className="text-[8px] font-bold text-blue-400 dark:text-blue-600 uppercase tracking-widest">{label}</span>
+                <span className="text-[8px] max-md:text-[6px] font-bold text-blue-400 dark:text-blue-600 uppercase tracking-widest">{label}</span>
             </div>
             {isSelect ? (
                 <select
                     value={value}
                     onChange={(e) => { setMetadata(field, e.target.value); }}
-                    className="bg-transparent text-[11px] font-bold outline-none appearance-none cursor-pointer text-blue-900 dark:text-white text-right"
+                    className="bg-transparent text-[11px] max-md:text-[8px] font-bold outline-none appearance-none cursor-pointer text-blue-900 dark:text-white text-right"
                 >
                     {options.map((opt: any) => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                 </select>
@@ -83,10 +83,10 @@ const PurchaseMeta: React.FC = () => {
                 <input
                     type={type} value={value}
                     onChange={(e) => { setMetadata(field, e.target.value); }}
-                    className="bg-transparent text-[11px] font-bold outline-none text-blue-900 dark:text-white text-right font-mono"
+                    className="bg-transparent text-[11px] max-md:text-[8px] font-bold outline-none text-blue-900 dark:text-white text-right font-mono"
                 />
             ) : (
-                <span className="text-[11px] font-bold text-blue-900 dark:text-gray-100 font-mono leading-none">
+                <span className="text-[11px] max-md:text-[8px] font-bold text-blue-900 dark:text-gray-100 font-mono leading-none">
                     {value}
                 </span>
             )}
@@ -97,10 +97,10 @@ const PurchaseMeta: React.FC = () => {
         <div className="bg-blue-50/20 dark:bg-slate-950/20 border-b dark:border-slate-800 flex flex-col">
             <div className="relative border-b-2 border-blue-100 dark:border-slate-800">
                 {supplier ? (
-                    <div className="bg-blue-700 px-3 py-1.5 flex items-center justify-between text-white">
+                    <div className="bg-blue-700 px-3 max-md:px-1.5 py-1.5 max-md:py-0.5 flex items-center justify-between text-white">
                         <div className="flex items-center gap-2">
                             <User size={12} className="text-blue-200" />
-                            <span className="text-[11px] font-bold uppercase">المورد: {supplier.name}</span>
+                            <span className="text-[11px] max-md:text-[8px] font-bold uppercase">المورد: {supplier.name}</span>
                         </div>
                         <button onClick={() => { setSupplier(null); }} className="p-1 hover:bg-white/10 rounded"><X size={14} /></button>
                     </div>
@@ -110,14 +110,14 @@ const PurchaseMeta: React.FC = () => {
                             type="text" value={query}
                             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
                             placeholder="ابحث عن المورد (Search Supplier)..."
-                            className="w-full px-10 py-2.5 bg-white dark:bg-slate-800 text-[10px] font-bold outline-none text-blue-600 placeholder:text-blue-200"
+                            className="w-full px-10 max-md:px-7 py-2.5 max-md:py-1 bg-white dark:bg-slate-800 text-[10px] max-md:text-[8px] font-bold outline-none text-blue-600 placeholder:text-blue-200"
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300" size={14} />
                         {isOpen && query.length > 1 && (
                             <div className="absolute z-50 w-full top-full bg-white dark:bg-slate-900 border-2 border-blue-600 shadow-2xl">
                                 {suppliers?.map((s: any) => (
                                     <div key={s.id} onClick={() => { setSupplier(s); setIsOpen(false); }}
-                                        className="p-3 hover:bg-blue-600 hover:text-white cursor-pointer text-[11px] font-bold border-b dark:border-slate-800 text-right">
+                                        className="p-3 max-md:p-1.5 hover:bg-blue-600 hover:text-white cursor-pointer text-[11px] max-md:text-[9px] font-bold border-b dark:border-slate-800 text-right">
                                         {s.name}
                                     </div>
                                 ))}
@@ -141,7 +141,7 @@ const PurchaseMeta: React.FC = () => {
                 
                 {currency && currency !== 'SAR' ? (
                     <div className="bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 flex flex-col group hover:bg-blue-50/40 transition-colors">
-                        <div className="flex items-center gap-1 mb-1">
+                        <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0.5">
                             <Coins size={10} className="text-amber-500" />
                             <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest">
                                 سعر الصرف {isDivide ? '(÷)' : '(×)'}
@@ -160,15 +160,15 @@ const PurchaseMeta: React.FC = () => {
                         />
                     </div>
                 ) : (
-                    <div className="bg-gray-50/20 dark:bg-slate-900/20 border border-blue-100 dark:border-slate-800 p-2 invisible lg:visible">
+                    <div className="bg-gray-50/20 dark:bg-slate-900/20 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 invisible lg:visible">
                         {/* Placeholder to maintain grid shape on desktop */}
                     </div>
                 )}
 
-                <div className="bg-gray-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 p-2 col-span-2 md:col-span-1 lg:col-span-1">
-                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">ملاحظات التوريد</span>
+                <div className="bg-gray-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 col-span-2 md:col-span-1 lg:col-span-1">
+                    <span className="text-[8px] max-md:text-[6px] font-bold text-gray-400 uppercase tracking-widest">ملاحظات التوريد</span>
                     <input 
-                        className="w-full bg-transparent outline-none text-[10px] font-bold mt-1" 
+                        className="w-full bg-transparent outline-none text-[10px] max-md:text-[8px] font-bold mt-1 max-md:mt-0.5"
                         placeholder="ملاحظات..." 
                         value={notes}
                         onChange={(e) => setMetadata('notes', e.target.value)}

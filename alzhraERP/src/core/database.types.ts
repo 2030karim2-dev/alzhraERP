@@ -8528,6 +8528,70 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      },
+      incentive_periods: {
+        Row: {
+          id: string; company_id: string; branch_id: string | null; period_label: string
+          period_start: string; period_end: string; state: string; is_test_period: boolean
+          currency_code: string; calculated_at: string | null
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_calculations: {
+        Row: {
+          id: string; company_id: string; period_id: string; user_id: string
+          gross_sales: number; net_sales: number; collected_amount: number; invoice_count: number
+          customer_count: number; base_commission: number; bonus_amount: number
+          adjustment_amount: number; deduction_amount: number; total_commission: number
+          currency_code: string; status: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_pending_invoices: {
+        Row: {
+          id: string; company_id: string; invoice_id: string; branch_id: string | null
+          status: string; detected_at: string; reason: string | null
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_plans: {
+        Row: {
+          id: string; company_id: string; name: string; description: string | null
+          calculation_basis: string; currency_code: string; status: string
+          effective_from: string | null; effective_to: string | null
+          collection_mode: string; tier_method: string; tier_currency_code: string | null
+          deleted_at: string | null; created_at: string; updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_rules: {
+        Row: {
+          id: string; company_id: string; plan_id: string; name: string; rule_type: string
+          calculation_method: string; threshold_min: number | null; threshold_max: number | null
+          rate: number | null; fixed_amount: number | null; priority: number
+          conditions: Json | null; is_active: boolean; deleted_at: string | null
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_tiers: {
+        Row: {
+          id: string; company_id: string; plan_id: string; rule_id: string | null
+          from_amount: number; to_amount: number | null; rate: number | null
+          fixed_bonus: number | null; tier_order: number; tier_currency_code: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
       }
     }
     Views: {
@@ -11177,6 +11241,16 @@ export type Database = {
       void_bond: { Args: { p_payment_id: string }; Returns: undefined }
       void_expense: { Args: { p_expense_id: string }; Returns: Json }
       void_invoice: { Args: { p_invoice_id: string }; Returns: Json }
+      incentive_calculate_period: { Args: { p_company_id: string; p_period_id: string }; Returns: number }
+      incentive_apply_adjustment: { Args: { p_company_id: string; p_calculation_id: string; p_adjustment_type: string; p_amount: number; p_reason: string }; Returns: string }
+      incentive_create_engineer_link: { Args: { p_invoice_id: string; p_company_id: string; p_user_id: string; p_allocation_pct: number; p_assignment_type?: string; p_reason?: string | null; p_source?: string | null }; Returns: string }
+      incentive_create_plan: { Args: { p_company_id: string; p_name: string; p_description?: string | null; p_calculation_basis: string; p_currency_code: string; p_collection_mode?: string; p_tier_method?: string; p_tier_currency_code?: string | null; p_effective_from?: string | null; p_effective_to?: string | null }; Returns: string }
+      incentive_create_rule: { Args: { p_company_id: string; p_plan_id: string; p_name: string; p_rule_type: string; p_calculation_method: string; p_threshold_min?: number | null; p_threshold_max?: number | null; p_rate?: number | null; p_fixed_amount?: number | null; p_priority?: number; p_conditions?: Json | null }; Returns: string }
+      incentive_create_target: { Args: { p_company_id: string; p_name: string; p_target_type: string; p_user_id: string; p_period_start: string; p_period_end: string; p_target_value: number; p_currency_code: string; p_branch_id?: string | null; p_plan_id?: string | null; p_notes?: string | null }; Returns: string }
+      incentive_detect_pending_invoices: { Args: { p_company_id: string; p_branch_id?: string | null }; Returns: number }
+      incentive_mark_pending_resolved: { Args: { p_pending_id: string; p_company_id: string; p_status: string; p_reason?: string | null }; Returns: undefined }
+      incentive_period_transition: { Args: { p_period_id: string; p_company_id: string; p_new_state: string; p_by_permission: string }; Returns: undefined }
+      incentive_update_plan: { Args: { p_plan_id: string; p_company_id: string; p_name?: string | null; p_description?: string | null; p_calculation_basis?: string | null; p_status?: string | null; p_effective_to?: string | null }; Returns: undefined }
     }
     Enums: {
       fin_account_type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"
