@@ -57,11 +57,11 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col group">
-            <div className="flex items-center justify-between mb-8">
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8  max-md:p-4 shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col group">
+            <div className="flex items-center justify-between mb-8 max-md:mb-3">
                 <div>
-                    <h3 className="text-base font-bold flex items-center gap-3 text-slate-800 dark:text-slate-100">
-                        <div className="p-2.5 bg-purple-500/10 rounded-2xl">
+                    <h3 className="text-base font-bold flex items-center   max-md:gap-3 text-slate-800 dark:text-slate-100">
+                        <div className="  max-md:p-2.5 bg-purple-500/10 rounded-2xl max-md:rounded-xl">
                             <PieChartIcon size={20} className="text-purple-500" />
                         </div>
                         {/* التحليل الثلاثي (ABC Analysis) */}
@@ -107,9 +107,9 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                         const entry = payload[0].payload;
                                         const info = getCategoryInfo(entry.name);
                                         return (
-                                            <div className="p-4 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className={cn("p-2 rounded-xl", info.bg)}>
+                                            <div className="  max-md:p-4 rounded-3xl max-md:rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
+                                                <div className="flex items-center   max-md:gap-3 mb-2">
+                                                    <div className={cn("  max-md:p-2 rounded-xl", info.bg)}>
                                                         <info.icon size={16} className={info.textColor} />
                                                     </div>
                                                     <div>
@@ -117,7 +117,7 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                                         <span className="text-[10px] font-bold text-slate-400 block">{info.desc}</span>
                                                     </div>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-8">
+                                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-8  max-md:gap-3">
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase">القيمة المقدرة</span>
                                                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100 font-mono">
                                                         {Math.round((entry.value / total) * 100)}%
@@ -136,18 +136,18 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                 {/* Center Stats */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">تحليل</span>
-                    <span className="text-2xl font-bold text-slate-800 dark:text-white font-mono">ABC</span>
+                    <span className="text-2xl max-md:text-lg font-bold text-slate-800 dark:text-white font-mono">ABC</span>
                 </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-3">
+            <div className="mt-8 max-md:mt-3 grid grid-cols-1   max-md:gap-3">
                 {data.map((entry, _index) => {
                     const info = getCategoryInfo(entry.name);
                     const percentage = Math.round((entry.value / total) * 100);
                     return (
-                        <div key={entry.name} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
-                            <div className="flex items-center gap-4">
-                                <div className={cn("p-2.5 rounded-xl shadow-sm", info.bg)}>
+                        <div key={entry.name} className="flex items-center justify-between   max-md:p-4 rounded-2xl max-md:rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
+                            <div className="flex items-center   max-md:gap-4">
+                                <div className={cn("  max-md:p-2.5 rounded-xl shadow-sm", info.bg)}>
                                     <info.icon size={18} className={info.textColor} />
                                 </div>
                                 <div>

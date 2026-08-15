@@ -44,26 +44,26 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50  max-md:p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between px-6 max-md:px-3 py-4 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center  max-md:gap-2">
                         <Icon size={18} className={iconColor} />
                         <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">{title}</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
+                        className=" max-md:p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
                     >
                         <X size={16} />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 max-md:p-3 space-y-4">
 
                     {/* Name */}
                     <div>
@@ -117,7 +117,7 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
                     </p>
 
                     {/* Actions */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex  max-md:gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
@@ -128,7 +128,7 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
                         <button
                             type="submit"
                             disabled={isLoading || !name.trim()}
-                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center gap-2 ${btnColor} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center  max-md:gap-2 ${btnColor} disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {isLoading ? (
                                 <>

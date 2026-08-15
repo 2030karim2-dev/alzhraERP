@@ -14,10 +14,10 @@ interface Props {
 
 const ReturnsCharts: React.FC<Props> = ({ monthlyTrends, reasonDistribution }) => {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="glass-panel bento-item p-10 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl overflow-hidden relative group">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8  max-md:gap-3">
+            <div className="glass-panel bento-item p-10  max-md:p-5 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl overflow-hidden relative group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500/50 to-emerald-500/50 opacity-30" />
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-8 max-md:mb-3">
                     <div>
                         <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">تحليل الاتجاه الزمني</h4>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Monthly Flow Dynamics</p>
@@ -70,9 +70,9 @@ const ReturnsCharts: React.FC<Props> = ({ monthlyTrends, reasonDistribution }) =
                 </div>
             </div>
 
-            <div className="glass-panel bento-item p-10 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl overflow-hidden relative group">
+            <div className="glass-panel bento-item p-10  max-md:p-5 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-purple-500/50 to-blue-500/50 opacity-30" />
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-8 max-md:mb-3">
                     <div>
                         <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">توزيع مسببات الارتجاع</h4>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Causality Distribution Matrix</p>
@@ -107,14 +107,14 @@ const ReturnsCharts: React.FC<Props> = ({ monthlyTrends, reasonDistribution }) =
                         </ResponsiveContainer>
                     </div>
                 ) : (
-                    <div className="h-[320px] flex flex-col items-center justify-center text-slate-400 gap-4">
+                    <div className="h-[320px] flex flex-col items-center justify-center text-slate-400   max-md:gap-4">
                         <div className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-800 border-dashed animate-spin" />
                         <p className="text-[10px] font-black uppercase tracking-widest">No Causality Data Detected</p>
                     </div>
                 )}
             </div>
 
-            <div className="glass-panel bento-item p-10 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl relative overflow-hidden group lg:col-span-2 mt-8">
+            <div className="glass-panel bento-item p-10  max-md:p-5 bg-white/40 dark:bg-slate-900/40 border-none shadow-2xl backdrop-blur-3xl relative overflow-hidden group lg:col-span-2 mt-8 max-md:mt-3">
                 <div className="flex items-center justify-between mb-10">
                     <div>
                         <h4 className="text-xl font-black text-slate-800 dark:text-white mb-1">مقارنة الأداء الشهري</h4>

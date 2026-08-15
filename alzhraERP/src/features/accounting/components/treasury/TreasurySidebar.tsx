@@ -46,14 +46,14 @@ const SidebarItem: React.FC<{
                 className={cn(
                     "w-full text-right transition-colors flex justify-between items-center group relative",
                     isSelected ? "bg-blue-600 text-white" : "hover:bg-gray-50 dark:hover:bg-slate-800/50",
-                    depth === 0 ? "p-3 border-b dark:border-slate-800/50" : "p-2 pr-4"
+                    depth === 0 ? " max-md:p-3 border-b dark:border-slate-800/50" : " max-md:p-2 pr-4"
                 )}
                 style={{ paddingRight: `${(depth * 12) + 12}px` }}
             >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center  max-md:gap-2">
                     {hasChildren && (
                         <div
-                            className={cn("transition-transform p-0.5 rounded-full hover:bg-black/10", isExpanded && "rotate-90")}
+                            className={cn("transition-transform  max-md:p-0.5 rounded-full hover:bg-black/10", isExpanded && "rotate-90")}
                             onClick={(e) => { e.stopPropagation(); onToggle(node.id); }}
                         >
                             <ChevronRight size={12} />
@@ -62,7 +62,7 @@ const SidebarItem: React.FC<{
 
                     {!hasChildren && <div className="w-4" />}
 
-                    <div className={cn("p-1.5 rounded-md", isSelected ? "bg-white/10" : "bg-gray-100 dark:bg-slate-800 text-gray-500")}>
+                    <div className={cn(" max-md:p-1.5 rounded-md", isSelected ? "bg-white/10" : "bg-gray-100 dark:bg-slate-800 text-gray-500")}>
                         {getIcon()}
                     </div>
                     <span className={cn("font-bold tracking-tight", depth === 0 ? "text-[11px] uppercase" : "text-[10px]")}>{node.name}</span>
@@ -187,13 +187,13 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
         });
     };
 
-    if (isLoading) return <div className="p-10 text-center"><Loader2 className="animate-spin text-blue-500" /></div>;
+    if (isLoading) return <div className="p-10 max-md:p-5 text-center"><Loader2 className="animate-spin text-blue-500" /></div>;
 
     return (
         <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm rounded-none h-full flex flex-col">
-            <div className="p-4 border-b dark:border-slate-800 bg-slate-900 text-white shrink-0">
+            <div className=" max-md:p-4 border-b dark:border-slate-800 bg-slate-900 text-white shrink-0">
                 <p className="text-[8px] font-bold uppercase tracking-[0.2em] opacity-50">إجمالي السيولة المتاحة</p>
-                <h3 dir="ltr" className="text-2xl font-bold font-mono tracking-tighter text-emerald-400">{formatCurrency(totalLiquidity)}</h3>
+                <h3 dir="ltr" className="text-2xl max-md:text-lg font-bold font-mono tracking-tighter text-emerald-400">{formatCurrency(totalLiquidity)}</h3>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -209,8 +209,8 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
                 ))}
             </div>
 
-            <div className="p-2 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950/50 space-y-1 shrink-0">
-                <div className="grid grid-cols-2 gap-1">
+            <div className=" max-md:p-2 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950/50 space-y-1 shrink-0">
+                <div className="grid grid-cols-2  max-md:gap-1">
                     <Button
                         onClick={() => setTreasuryModalType('cashbox')}
                         variant="secondary"

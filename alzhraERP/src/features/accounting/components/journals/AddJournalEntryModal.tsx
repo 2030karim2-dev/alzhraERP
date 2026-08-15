@@ -37,13 +37,13 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl my-auto animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh] border dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm  max-md:p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl max-md:rounded-xl shadow-2xl w-full max-w-4xl my-auto animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh] border dark:border-slate-800">
 
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 rounded-t-3xl">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-accent/10 rounded-xl">
+                <div className="flex justify-between items-center p-6 max-md:p-3 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 rounded-t-3xl">
+                    <div className="flex items-center  max-md:gap-3">
+                        <div className=" max-md:p-2 bg-accent/10 rounded-xl">
                             <Calculator className="text-accent" size={24} />
                         </div>
                         <div>
@@ -57,10 +57,10 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div className="flex-1 overflow-y-auto p-6 max-md:p-3 space-y-6">
 
                         {/* Header Fields */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-gray-100 dark:border-slate-800">
+                        <div className="grid grid-cols-1 md:grid-cols-4  max-md:gap-4 bg-gray-50 dark:bg-slate-800/50  max-md:p-4 rounded-2xl max-md:rounded-xl border border-gray-100 dark:border-slate-800">
                             <div className="space-y-1.5 md:col-span-1">
                                 <label className="text-xs font-bold text-gray-600 dark:text-slate-400">تاريخ القيد</label>
                                 <input
@@ -135,18 +135,18 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 flex justify-end gap-3 rounded-b-3xl">
+                    <div className="p-6 max-md:p-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 flex justify-end  max-md:gap-3 rounded-b-3xl">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 text-gray-600 dark:text-slate-400 font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm rounded-xl transition-all"
+                            className="px-6 max-md:px-3 py-2.5 text-gray-600 dark:text-slate-400 font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm rounded-xl transition-all"
                         >
                             إلغاء
                         </button>
                         <button
                             type="submit"
                             disabled={!isBalanced || isSubmitting}
-                            className="px-8 py-2.5 bg-accent hover:bg-emerald-600 disabled:bg-gray-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-emerald-500/10 transition-all flex items-center gap-2"
+                            className="px-8 max-md:px-3 py-2.5 bg-accent hover:bg-emerald-600 disabled:bg-gray-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-emerald-500/10 transition-all flex items-center  max-md:gap-2"
                         >
                             {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                             <span>حفظ وترحيل القيد</span>
@@ -159,4 +159,4 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
 };
 
 
-export default AddJournalEntryModal;
+export default AddJournalEntryModal;

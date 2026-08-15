@@ -9,10 +9,10 @@ interface MobileCardProps {
 
 export const MobileCard: React.FC<MobileCardProps> = ({ children, className, padding = 'md' }) => {
     const paddingClasses = {
-        none: 'p-0',
-        sm: 'p-3 sm:p-4',
-        md: 'p-4 sm:p-6',
-        lg: 'p-4 sm:p-6 md:p-8',
+        none: ' max-md:p-0',
+        sm: ' max-md:p-3 sm:p-4',
+        md: ' max-md:p-4 sm:p-6',
+        lg: ' max-md:p-4 sm:p-6 md:p-8',
     };
 
     return (
@@ -39,7 +39,7 @@ export const MobileStatCard: React.FC<MobileStatCardProps> = ({
 }) => {
     return (
         <div className={cn(
-            "bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-3 sm:p-4 flex items-center gap-3",
+            "bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm  max-md:p-3 sm:p-4 flex items-center  max-md:gap-3",
             className
         )}>
             {icon && (
@@ -70,7 +70,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({ children, cols =
     };
 
     return (
-        <div className={cn("grid gap-2 sm:gap-3 md:gap-4", gridCols[cols], className)}>
+        <div className={cn("grid  max-md:gap-2 sm:gap-3 md:gap-4", gridCols[cols], className)}>
             {children}
         </div>
     );
@@ -85,8 +85,8 @@ interface MobileSectionTitleProps {
 
 export const MobileSectionTitle: React.FC<MobileSectionTitleProps> = ({ title, subtitle, icon, action }) => {
     return (
-        <div className="flex items-start sm:items-center justify-between gap-2 mb-3 sm:mb-4">
-            <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-start sm:items-center justify-between  max-md:gap-2 mb-3 sm:mb-4">
+            <div className="flex items-center  max-md:gap-2 min-w-0">
                 {icon && <span className="flex-shrink-0">{icon}</span>}
                 <div className="min-w-0">
                     <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 truncate">{title}</h3>
@@ -122,7 +122,7 @@ interface LoadingStateProps {
 
 export const MobileLoadingState: React.FC<LoadingStateProps> = ({ text = 'جاري التحميل...' }) => {
     return (
-        <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-3">
+        <div className="flex flex-col items-center justify-center py-12 sm:py-16  max-md:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 border-3 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
             <p className="text-xs sm:text-sm font-bold text-slate-400 animate-pulse">{text}</p>
         </div>

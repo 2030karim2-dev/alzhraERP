@@ -52,7 +52,7 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
 
     return (
         <div className={cn(
-            "group relative glass-panel bento-item p-6 flex flex-col justify-between min-h-[180px] border transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl",
+            "group relative glass-panel bento-item p-6  max-md:p-3 flex flex-col justify-between min-h-[180px] border transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl",
             config.bg, config.border, config.glow
         )}>
             {/* Background Accent Gradient */}
@@ -60,18 +60,18 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
 
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
-                    <div className={cn("p-2.5 rounded-xl shadow-lg", config.text, "bg-white/40 dark:bg-slate-900/40")}>
+                    <div className={cn("  max-md:p-2.5 rounded-xl shadow-lg", config.text, "bg-white/40 dark:bg-slate-900/40")}>
                         <Icon size={18} />
                     </div>
                     {insight.impact === 'high' && (
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-900/90 dark:bg-white/10 backdrop-blur-md shadow-xl border border-white/10">
+                        <div className="flex items-center   max-md:gap-1.5 px-2 py-1 rounded-full bg-slate-900/90 dark:bg-white/10 backdrop-blur-md shadow-xl border border-white/10">
                             <Zap size={10} className="text-amber-400 fill-amber-400 animate-pulse" />
                             <span className="text-[8px] font-black text-white uppercase tracking-tighter">High Priority</span>
                         </div>
                     )}
                 </div>
 
-                <h4 className={cn("text-sm font-black mb-2 tracking-tight flex items-center gap-2", config.text)}>
+                <h4 className={cn("text-sm font-black mb-2 tracking-tight flex items-center   max-md:gap-2", config.text)}>
                     <Sparkles size={12} className="opacity-50" />
                     {insight.title}
                 </h4>
@@ -83,14 +83,14 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
             <div className="pt-4 flex items-center justify-between mt-auto">
                 {insight.action && (
                     <button className={cn(
-                        "flex items-center gap-2 text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg bg-white/50 dark:bg-slate-900/50 backdrop-blur-lg border border-transparent hover:border-current transition-all",
+                        "flex items-center   max-md:gap-2 text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg bg-white/50 dark:bg-slate-900/50 backdrop-blur-lg border border-transparent hover:border-current transition-all",
                         config.text
                     )}>
                         {insight.action}
                         <ArrowUpRight size={10} />
                     </button>
                 )}
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center   max-md:gap-2 text-slate-400">
                     <TrendingUp size={12} className="opacity-30" />
                 </div>
             </div>

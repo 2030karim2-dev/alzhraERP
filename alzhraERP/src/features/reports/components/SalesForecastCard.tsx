@@ -25,7 +25,7 @@ const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {
     const trendColor = forecast?.trend === 'صاعد' ? 'text-emerald-500' : forecast?.trend === 'هابط' ? 'text-rose-500' : 'text-yellow-500';
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl border dark:border-slate-800 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-xl">
@@ -47,7 +47,7 @@ const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {
 
             {forecast ? (
                 <div className="space-y-3">
-                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl">
+                    <div className="flex items-center gap-4 max-md:gap-3 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl">
                         <div className={`p-2.5 rounded-xl ${forecast.trend === 'صاعد' ? 'bg-emerald-100 dark:bg-emerald-900/30' : forecast.trend === 'هابط' ? 'bg-rose-100 dark:bg-rose-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'}`}>
                             <TrendIcon size={20} className={trendColor} />
                         </div>

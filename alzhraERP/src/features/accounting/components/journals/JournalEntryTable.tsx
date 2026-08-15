@@ -26,8 +26,8 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
     isLoadingAccounts
 }) => {
     return (
-        <div className="border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-colors">
-            <div className="bg-gray-100 dark:bg-slate-800 px-4 py-2.5 grid grid-cols-12 gap-4 text-[11px] font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+        <div className="border border-gray-200 dark:border-slate-800 rounded-2xl max-md:rounded-xl overflow-hidden shadow-sm transition-colors">
+            <div className="bg-gray-100 dark:bg-slate-800 px-4 py-2.5 grid grid-cols-12 gap-4 max-md:gap-3 text-[11px] font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
                 <div className="col-span-1 text-center">#</div>
                 <div className="col-span-3">الحساب</div>
                 <div className="col-span-4">البيان (اختياري)</div>
@@ -37,7 +37,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
 
             <div className="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
                 {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-4 px-4 py-3 items-start group hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div key={field.id} className="grid grid-cols-12 gap-4 max-md:gap-3 px-4 py-3 items-start group hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
                         <div className="col-span-1 flex items-center justify-center pt-2">
                             <span dir="ltr" className="w-6 h-6 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 flex items-center justify-center text-xs font-bold">
                                 {index + 1}

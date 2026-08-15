@@ -138,8 +138,8 @@ const InventoryMovementView: React.FC = () => {
                         <div className="absolute top-full left-0 right-0 mt-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[100] max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
                             {filteredProducts.map((p: any) => (
                                 <div key={p.id} onClick={() => handleSelectProduct(p)} className="p-5 border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 group cursor-pointer flex justify-between items-center transition-all">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-2xl group-hover:bg-white/20 transition-colors">
+                                    <div className="flex items-center gap-4 max-md:gap-3">
+                                        <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-2xl max-md:rounded-xl group-hover:bg-white/20 transition-colors">
                                             <Package size={18} className="text-blue-500 group-hover:text-white" />
                                         </div>
                                         <div>
@@ -162,7 +162,7 @@ const InventoryMovementView: React.FC = () => {
                             type="date"
                             value={fromDate}
                             onChange={(e) => setFromDate(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-2xl py-3.5 px-6 text-xs font-black font-mono outline-none focus:border-blue-500 w-full transition-all dark:text-white shadow-inner"
+                            className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-2xl max-md:rounded-xl py-3.5 px-6 max-md:px-3 text-xs font-black font-mono outline-none focus:border-blue-500 w-full transition-all dark:text-white shadow-inner"
                         />
                     </div>
                     <div className="flex-1">
@@ -171,16 +171,16 @@ const InventoryMovementView: React.FC = () => {
                             type="date"
                             value={toDate}
                             onChange={(e) => setToDate(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-2xl py-3.5 px-6 text-xs font-black font-mono outline-none focus:border-blue-500 w-full transition-all dark:text-white shadow-inner"
+                            className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-2xl max-md:rounded-xl py-3.5 px-6 max-md:px-3 text-xs font-black font-mono outline-none focus:border-blue-500 w-full transition-all dark:text-white shadow-inner"
                         />
                     </div>
                 </div>
             </div>
 
             {!selectedProductId ? (
-                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/20 rounded-2xl sm:rounded-3xl md:rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl md:rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-blue-500 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-1000" />
-                    <div className="p-8 sm:p-10 md:p-12 bg-blue-500/5 dark:bg-blue-500/10 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 md:mb-10 relative group overflow-visible">
+                    <div className="p-8 sm:p-10 md:p-12 bg-blue-500/5 dark:bg-blue-500/10 rounded-2xl max-md:rounded-xl sm:rounded-3xl mb-6 max-md:mb-3 sm:mb-8 md:mb-10 relative group overflow-visible">
                         <History size={48} className="sm:hidden text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
                         <History size={60} className="hidden sm:block md:hidden text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
                         <History size={80} className="hidden md:block text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
@@ -192,7 +192,7 @@ const InventoryMovementView: React.FC = () => {
                     </p>
                 </div>
             ) : isLoading ? (
-                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col justify-center items-center gap-6 sm:gap-8 bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col justify-center items-center gap-6 sm:gap-8 bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl sm:rounded-3xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
                     <div className="relative">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-4 sm:border-8 border-slate-100 border-t-blue-500 rounded-full animate-spin shadow-xl shadow-blue-500/20" />
                     </div>
@@ -223,7 +223,7 @@ const InventoryMovementView: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-4 sm:p-6 bg-slate-900 rounded-2xl sm:rounded-3xl text-white shadow-xl relative overflow-hidden border border-slate-800">
+                                <div className="p-4 sm:p-6 bg-slate-900 rounded-2xl max-md:rounded-xl sm:rounded-3xl text-white shadow-xl relative overflow-hidden border border-slate-800">
                                     <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full blur-2xl sm:blur-3xl -mr-10 -mt-10 sm:-mr-16 sm:-mt-16" />
                                     <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-500">معامل الدوران</p>
                                     <div className="flex items-center gap-3 sm:gap-4">
@@ -233,12 +233,12 @@ const InventoryMovementView: React.FC = () => {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                    <div className="p-3 sm:p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl sm:rounded-3xl group hover:bg-emerald-500/20 transition-all">
+                                    <div className="p-3 sm:p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-emerald-500/20 transition-all">
                                         <ArrowDownRight size={16} className="text-emerald-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
                                         <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق وارد</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-emerald-600 tracking-tighter">+{analysis?.totalIn}</p>
                                     </div>
-                                    <div className="p-3 sm:p-4 md:p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl sm:rounded-3xl group hover:bg-rose-500/20 transition-all">
+                                    <div className="p-3 sm:p-4 md:p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-rose-500/20 transition-all">
                                         <ArrowUpRight size={16} className="text-rose-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
                                         <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق صادر</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-rose-600 tracking-tighter">-{analysis?.totalOut}</p>
@@ -246,7 +246,7 @@ const InventoryMovementView: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 sm:mt-8 md:mt-10 pt-4 sm:pt-6 md:pt-8 border-t dark:border-slate-800 flex justify-between items-center opacity-40">
+                            <div className="mt-6 max-md:mt-3 sm:mt-8 md:mt-10 pt-4 sm:pt-6 md:pt-8 border-t dark:border-slate-800 flex justify-between items-center opacity-40">
                                 <span className="text-[9px] font-black uppercase tracking-widest">Global Status</span>
                                 <span className="text-[9px] font-bold font-mono uppercase">SYSLOG_SYNC_OK</span>
                             </div>

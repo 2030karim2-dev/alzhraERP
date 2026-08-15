@@ -23,7 +23,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
 }) => {
     return (
         <div className="flex justify-end pt-2">
-            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-gray-100 dark:border-slate-800 w-full md:w-80 space-y-3 shadow-inner">
+            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl p-5 border border-gray-100 dark:border-slate-800 w-full md:w-80 space-y-3 shadow-inner">
                 <div className="flex justify-between items-start text-sm">
                     <span className="text-gray-500 dark:text-slate-400">إجمالي المدين</span>
                     <div className="flex flex-col items-end">

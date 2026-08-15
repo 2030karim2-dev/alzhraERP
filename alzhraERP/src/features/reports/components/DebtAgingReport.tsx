@@ -141,7 +141,7 @@ const DebtAgingReport: React.FC = () => {
         },
     ], []);
 
-    if (isLoading) return <div className="p-10 text-center animate-pulse text-slate-400 text-sm">جاري تحليل أعمار الديون...</div>;
+    if (isLoading) return <div className="p-10  max-md:p-5 text-center animate-pulse text-slate-400 text-sm">جاري تحليل أعمار الديون...</div>;
 
     const hasData = data && data.partiesList && data.partiesList.length > 0;
 
@@ -160,7 +160,7 @@ const DebtAgingReport: React.FC = () => {
 
             {/* Alert for critical debts */}
             {(data?.criticalCount || 0) > 0 && (
-                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-xl p-3 sm:p-4 flex items-center gap-3">
+                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-xl   max-md:p-3 sm:p-4 flex items-center   max-md:gap-3">
                     <AlertTriangle size={16} className="text-rose-600 flex-shrink-0" />
                     <span className="text-[10px] sm:text-xs font-bold text-rose-700 dark:text-rose-400">
                         ⚠️ يوجد {data?.criticalCount} عميل لديهم ديون متأخرة أكثر من 90 يوم بإجمالي {formatCurrency(data?.agingBuckets.days90 || 0)}
@@ -201,8 +201,8 @@ const DebtAgingReport: React.FC = () => {
             {/* Table */}
             {hasData && (
                 <MobileCard padding="none">
-                    <div className="p-3 sm:p-4 border-b dark:border-slate-800 flex justify-between items-center bg-amber-50/50 dark:bg-amber-950/20">
-                        <h4 className="font-bold text-[10px] sm:text-xs text-amber-600 uppercase flex items-center gap-2">
+                    <div className="  max-md:p-3 sm:p-4 border-b dark:border-slate-800 flex justify-between items-center bg-amber-50/50 dark:bg-amber-950/20">
+                        <h4 className="font-bold text-[10px] sm:text-xs text-amber-600 uppercase flex items-center   max-md:gap-2">
                             <Clock size={12} /> تفصيل أعمار الديون حسب العميل ({data?.partiesList.length || 0})
                         </h4>
                         <ShareButton

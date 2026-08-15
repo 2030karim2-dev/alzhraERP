@@ -19,7 +19,7 @@ const AccountingOverview: React.FC = () => {
       </div>
 
       {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-md:gap-3 items-start">
         {/* Main Column */}
         <div className="lg:col-span-2 space-y-4">
             <Card className="p-4 rounded-none">

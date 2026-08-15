@@ -28,7 +28,7 @@ const ReturnsReportView: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4">
+            <div className="flex flex-col items-center justify-center p-20 max-md:p-6  max-md:gap-4">
                 <div className="w-16 h-16 border-4 border-slate-200 border-t-rose-500 rounded-full animate-spin shadow-xl shadow-rose-500/20" />
                 <p className="text-slate-400 font-bold tracking-[0.2em] animate-pulse uppercase text-[10px]">جاري مراجعة سجلات المرتجعات المالية...</p>
             </div>
@@ -53,7 +53,7 @@ const ReturnsReportView: React.FC = () => {
             <ReturnsStatsGrid stats={stats} />
 
             {/* Insight Tabs Architecture */}
-            <div className="flex p-1 sm:p-1.5 bg-[var(--app-surface-hover)] rounded-xl sm:rounded-[1.5rem] w-full sm:w-fit border border-[var(--app-border)] sm:self-center overflow-x-auto no-scrollbar">
+            <div className="flex  max-md:p-1 sm:p-1.5 bg-[var(--app-surface-hover)] rounded-xl sm:rounded-[1.5rem] w-full sm:w-fit border border-[var(--app-border)] sm:self-center overflow-x-auto no-scrollbar">
                 <button
                     onClick={() => setReportView('overview')}
                     className={cn(

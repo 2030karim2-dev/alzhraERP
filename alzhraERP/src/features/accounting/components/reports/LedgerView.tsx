@@ -74,7 +74,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
       header: 'الرصيد',
       accessor: (row: LedgerEntry) => (
         <div className="text-left">
-          <span className={`flex items-center gap-1 text-xs font-bold ${row.balance < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+          <span className={`flex items-center  max-md:gap-1 text-xs font-bold ${row.balance < 0 ? 'text-red-600' : 'text-blue-600'}`}>
             <span>{row.balance < 0 ? 'دائن' : 'مدين'}</span>
             <span dir="ltr" className="font-mono">{formatCurrency(Math.abs(row.balance))}</span>
           </span>
@@ -88,7 +88,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     <div className="space-y-4 print-area h-full flex flex-col">
       {/* Show dropdown only if explicitly requested and no account is forced */}
       {showAccountSelector && !accountId && (
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-2 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center gap-3 no-print shadow-sm">
+        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md  max-md:p-2 rounded-2xl max-md:rounded-xl border border-gray-100 dark:border-slate-800 flex items-center  max-md:gap-3 no-print shadow-sm">
           <SearchableAccountSelector
             accounts={accounts || []}
             selectedId={internalAccountId}
@@ -110,7 +110,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
 
       {effectiveAccountId ? (
         isLoading ? (
-          <div className="flex-1 flex items-center justify-center p-12"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
+          <div className="flex-1 flex items-center justify-center p-12 max-md:p-5"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
         ) : (
           <div className="flex-1 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
             <ExcelTable

@@ -11,7 +11,7 @@ import { MobileCard } from './MobileComponents';
 const TrialBalanceView: React.FC = () => {
   const { data, isLoading } = useTrialBalance();
 
-  if (isLoading) return <div className="p-20 text-center animate-pulse text-slate-400 font-bold tracking-widest">تحميل ميزان المراجعة الذكي...</div>;
+  if (isLoading) return <div className="p-20  max-md:p-6 text-center animate-pulse text-slate-400 font-bold tracking-widest">تحميل ميزان المراجعة الذكي...</div>;
 
   const columns = [
     { header: 'كود الحساب', accessor: (row: any) => <span className="font-mono text-[10px] text-blue-600 font-bold">{row.code}</span>, width: 'w-24' },
@@ -21,7 +21,7 @@ const TrialBalanceView: React.FC = () => {
     {
       header: 'الرصيد الصافي',
       accessor: (row: any) => (
-        <span dir="ltr" className={cn("flex items-center gap-1 text-[10px] font-bold", row.netBalance >= 0 ? "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full" : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full")}>
+        <span dir="ltr" className={cn("flex items-center   max-md:gap-1 text-[10px] font-bold", row.netBalance >= 0 ? "text-emerald-700 bg-emerald-50  .5 " : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full")}>
           <span>{row.netBalance >= 0 ? 'مدين' : 'دائن'}</span>
           <span className="font-mono">{formatCurrency(Math.abs(row.netBalance))}</span>
         </span>
@@ -47,9 +47,9 @@ const TrialBalanceView: React.FC = () => {
           isBalanced ? "bg-emerald-500" : "bg-rose-500"
         )} />
 
-        <div className="flex items-center gap-3 sm:gap-5 relative z-10">
+        <div className="flex items-center   max-md:gap-3 sm:gap-5 relative z-10">
           <div className={cn(
-            "p-3 sm:p-4 rounded-2xl shadow-lg transition-transform active:scale-95",
+            "  max-md:p-3 sm:p-4 rounded-2xl max-md:rounded-xl shadow-lg transition-transform active:scale-95",
             isBalanced ? "bg-emerald-500 text-white shadow-emerald-500/30" : "bg-rose-500 text-white shadow-rose-500/30"
           )}>
             {isBalanced ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
@@ -62,7 +62,7 @@ const TrialBalanceView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-6 mt-4 sm:mt-0 relative z-10">
+        <div className="flex items-center   max-md:gap-4 sm:gap-6 mt-4 sm:mt-0 relative z-10">
           <div className="text-right border-l border-slate-200 dark:border-slate-800 pl-4 sm:pl-6 h-10 flex flex-col justify-center">
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">التباين الفعلي</p>
             <p dir="ltr" className={cn("text-lg sm:text-xl font-bold font-mono tracking-tighter", isBalanced ? "text-emerald-500" : "text-rose-600")}>
@@ -74,7 +74,7 @@ const TrialBalanceView: React.FC = () => {
             showLabel
             eventType="trial_balance"
             title="مشاركة ميزان المراجعة"
-            className="bg-white/50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 shadow-sm transition-all"
+            className="bg-white/50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl max-md:rounded-xl   max-md:p-3 sm:p-4 shadow-sm transition-all"
             message={`⚖️ ميزان المراجعة الذكي - الزهراء سمارت\n━━━━━━━━━━━━━━\n📊 الحالة: ${isBalanced ? '✅ متزن تماماً' : '❌ غير متزن'}\n📗 إجمالي المدين: ${formatCurrency(totalDr)}\n📕 إجمالي الدائن: ${formatCurrency(totalCr)}\n📐 التباين: ${formatCurrency(diff)}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}`}
           />
         </div>
@@ -86,14 +86,14 @@ const TrialBalanceView: React.FC = () => {
         </div>
 
         {/* Simplified Summary Footer */}
-        <div className="p-4 sm:p-6 bg-slate-900 dark:bg-slate-900/40 flex flex-col sm:flex-row justify-between items-center gap-3 relative overflow-hidden">
+        <div className="  max-md:p-4 sm:p-6 bg-slate-900 dark:bg-slate-900/40 flex flex-col sm:flex-row justify-between items-center   max-md:gap-3 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-l from-emerald-500 via-transparent to-rose-500 opacity-30" />
-          <div className="flex items-center gap-2 z-10">
+          <div className="flex items-center   max-md:gap-2 z-10">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
             <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider">ملخص الأرصدة الختامية</span>
           </div>
 
-          <div className="flex gap-6 sm:gap-10 z-10">
+          <div className="flex gap-6  max-md:gap-3 sm:gap-10 z-10">
             <div className="text-left">
               <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي المدين</span>
               <span dir="ltr" className="text-base sm:text-lg font-bold font-mono text-emerald-400 tracking-tighter">{formatCurrency(totalDr)}</span>

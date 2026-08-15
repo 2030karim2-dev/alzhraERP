@@ -13,8 +13,8 @@ const ProfitLossView: React.FC = () => {
    const [showAllExpenses, setShowAllExpenses] = useState(false);
 
    if (isLoading) return (
-      <div className="flex flex-col items-center justify-center p-8 md:p-20 animate-pulse gap-4">
-         <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+      <div className="flex flex-col items-center justify-center p-8  max-md:p-4 md:p-20 animate-pulse   max-md:gap-4">
+         <div className="w-12 h-12 rounded-2xl max-md:rounded-xl bg-slate-200 dark:bg-slate-800" />
          <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
          <p className="text-xs md:text-sm text-slate-400">جاري تحليل الأداء المالي...</p>
       </div>
@@ -22,14 +22,14 @@ const ProfitLossView: React.FC = () => {
 
    if (isError) {
       return (
-         <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+         <div className="flex flex-col items-center justify-center p-8  max-md:p-4 md:p-12 text-center   max-md:gap-4">
+            <div className="w-14 h-14 rounded-2xl max-md:rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
                <TrendingDown size={24} className="text-rose-500" />
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400">تعذر تحميل البيانات المالية</p>
             <button
                onClick={() => refetch()}
-               className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all active:scale-95 min-h-[44px]"
+               className="flex items-center   max-md:gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-all active:scale-95 min-h-[44px]"
             >
                <RefreshCw size={14} /> إعادة المحاولة
             </button>
@@ -48,7 +48,7 @@ const ProfitLossView: React.FC = () => {
       <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 md:pb-20">
          {/* Premium Hero Stat Card — responsive padding & font sizes */}
          <div className={cn(
-            "glass-card bento-item p-5 md:p-8 lg:p-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between border-none shadow-2xl",
+            "glass-card bento-item   max-md:p-5 md:p-8 lg:p-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between border-none shadow-2xl",
             isProfit ? "bg-emerald-500/5 dark:bg-emerald-500/10" : "bg-rose-500/5 dark:bg-rose-500/10"
          )}>
             {/* Animated Background Elements */}
@@ -58,9 +58,9 @@ const ProfitLossView: React.FC = () => {
             )} />
             <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-20" />
 
-            <div className="relative z-10 flex items-center gap-4 md:gap-6">
+            <div className="relative z-10 flex items-center   max-md:gap-4 md:gap-6">
                <div className={cn(
-                  "p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-xl transition-transform hover:rotate-12 duration-500",
+                  "  max-md:p-4 md:p-5 rounded-2xl max-md:rounded-xl md:rounded-3xl shadow-xl transition-transform hover:rotate-12 duration-500",
                   isProfit ? "bg-emerald-500 text-white shadow-emerald-500/30" : "bg-rose-500 text-white shadow-rose-500/30"
                )}>
                   <DollarSign size={isMobile ? 24 : 32} />
@@ -69,18 +69,18 @@ const ProfitLossView: React.FC = () => {
                   <h2 className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1 md:mb-2">
                      {isProfit ? 'صافي أرباح المنشأة' : 'صافي خسائر المنشأة'}
                   </h2>
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline   max-md:gap-2">
                      <p className={cn(
-                        "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter number-reveal font-mono",
+                        "text-3xl max-md:text-xl md:text-4xl lg:text-5xl font-bold tracking-tighter number-reveal font-mono",
                         isProfit ? "stat-value-profit" : "stat-value-loss"
                      )}>
                         {formatCurrency(Math.abs(data?.netProfit || 0))}
                      </p>
                      <span className="text-[10px] md:text-xs font-bold text-slate-400">ريال</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 md:mt-3">
+                  <div className="flex items-center   max-md:gap-2 mt-2 md:mt-3">
                      <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isProfit ? "bg-emerald-500" : "bg-rose-500")} />
-                     <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                     <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center   max-md:gap-1">
                         <TrendingUp size={12} className={isProfit ? "text-emerald-500" : "text-rose-500"} />
                         تحديث مالي لحظي للنظام المحاسبي
                      </p>
@@ -88,8 +88,8 @@ const ProfitLossView: React.FC = () => {
                </div>
             </div>
 
-            <div className="flex flex-col items-center md:items-end gap-3 md:gap-4 mt-6 md:mt-0 relative z-10">
-               <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center md:items-end   max-md:gap-3 md:gap-4 mt-6 max-md:mt-3 md:mt-0 relative z-10">
+               <div className="flex items-center   max-md:gap-3">
                   <div className="text-right">
                      <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">نسبة الأداء</p>
                      <p className={cn("text-base md:text-lg font-bold font-mono", isProfit ? "text-emerald-500" : "text-rose-500")}>
@@ -101,7 +101,7 @@ const ProfitLossView: React.FC = () => {
                         size="md"
                         eventType="profit_loss"
                         title="مشاركة تقرير الأداء المالي"
-                        className="bg-white/10 hover:bg-white/20 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-white/20 dark:border-slate-700/50 rounded-2xl p-4 transition-all"
+                        className="bg-white/10 hover:bg-white/20 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-white/20 dark:border-slate-700/50 rounded-2xl max-md:rounded-xl   max-md:p-4 transition-all"
                         message={`📊 تقرير الأرباح والخسائر - الزهراء سمارت
 ━━━━━━━━━━━━━━
 📗 إجمالي الإيرادات: ${formatCurrency(totalRevenues)}
@@ -114,11 +114,11 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
             </div>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-2   max-md:gap-4 md:gap-6">
             {/* Revenues Layout */}
             <div className="glass-card bento-item flex flex-col shadow-xl">
-               <div className="bg-emerald-50/50 dark:bg-emerald-900/10 p-4 md:p-5 border-b border-emerald-100 dark:border-emerald-900/20 flex justify-between items-center">
-                  <div className="flex items-center gap-2 md:gap-3">
+               <div className="bg-emerald-50/50 dark:bg-emerald-900/10   max-md:p-4 md:p-5 border-b border-emerald-100 dark:border-emerald-900/20 flex justify-between items-center">
+                  <div className="flex items-center   max-md:gap-2 md:gap-3">
                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600">
                         <TrendingUp size={14} />
                      </div>
@@ -126,10 +126,10 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                   </div>
                   <span dir="ltr" className="text-xs md:text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">{formatCurrency(data?.totalRevenues || 0)}</span>
                </div>
-               <div className="p-4 md:p-6 space-y-3 md:space-y-4 flex-1">
+               <div className="  max-md:p-4 md:p-6 space-y-3 md:space-y-4 flex-1">
                   {displayedRevenues?.map((rev: { id: string; name: string; netBalance: number }) => (
-                     <div key={rev.id} className="group flex justify-between items-center p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors border border-transparent hover:border-emerald-100 dark:hover:border-emerald-900/20">
-                        <div className="flex items-center gap-2 md:gap-3">
+                     <div key={rev.id} className="group flex justify-between items-center   max-md:p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors border border-transparent hover:border-emerald-100 dark:hover:border-emerald-900/20">
+                        <div className="flex items-center   max-md:gap-2 md:gap-3">
                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 group-hover:scale-150 transition-transform" />
                            <span className="text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-300">{rev.name}</span>
                         </div>
@@ -138,10 +138,10 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                   ))}
                </div>
                {(data?.revenues.length || 0) > 5 && (
-                  <div className="p-3 md:p-4 border-t border-slate-50 dark:border-slate-800/50">
+                  <div className="  max-md:p-3 md:p-4 border-t border-slate-50 dark:border-slate-800/50">
                      <button
                         onClick={() => setShowAllRevenues(!showAllRevenues)}
-                        className="w-full text-center text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                        className="w-full text-center text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center justify-center   max-md:gap-2 min-h-[44px]"
                      >
                         {showAllRevenues ? <><ChevronUp size={14} /> عرض ملخص</> : <><ChevronDown size={14} /> عرض التفاصيل ({data?.revenues.length})</>}
                      </button>
@@ -151,8 +151,8 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
 
             {/* Expenses Layout */}
             <div className="glass-card bento-item flex flex-col shadow-xl">
-               <div className="bg-rose-50/50 dark:bg-rose-900/10 p-4 md:p-5 border-b border-rose-100 dark:border-rose-900/20 flex justify-between items-center">
-                  <div className="flex items-center gap-2 md:gap-3">
+               <div className="bg-rose-50/50 dark:bg-rose-900/10   max-md:p-4 md:p-5 border-b border-rose-100 dark:border-rose-900/20 flex justify-between items-center">
+                  <div className="flex items-center   max-md:gap-2 md:gap-3">
                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-600">
                         <TrendingDown size={14} />
                      </div>
@@ -160,10 +160,10 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                   </div>
                   <span dir="ltr" className="text-xs md:text-sm font-bold font-mono text-rose-700 dark:text-rose-400">{formatCurrency(data?.totalExpenses || 0)}</span>
                </div>
-               <div className="p-4 md:p-6 space-y-3 md:space-y-4 flex-1">
+               <div className="  max-md:p-4 md:p-6 space-y-3 md:space-y-4 flex-1">
                   {displayedExpenses?.map((exp: { id: string; name: string; netBalance: number }) => (
-                     <div key={exp.id} className="group flex justify-between items-center p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors border border-transparent hover:border-rose-100 dark:hover:border-rose-900/20">
-                        <div className="flex items-center gap-2 md:gap-3">
+                     <div key={exp.id} className="group flex justify-between items-center   max-md:p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors border border-transparent hover:border-rose-100 dark:hover:border-rose-900/20">
+                        <div className="flex items-center   max-md:gap-2 md:gap-3">
                            <div className="w-1.5 h-1.5 rounded-full bg-rose-300 group-hover:scale-150 transition-transform" />
                            <span className="text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-300">{exp.name}</span>
                         </div>
@@ -172,10 +172,10 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                   ))}
                </div>
                {(data?.expenses.length || 0) > 5 && (
-                  <div className="p-3 md:p-4 border-t border-slate-50 dark:border-slate-800/50">
+                  <div className="  max-md:p-3 md:p-4 border-t border-slate-50 dark:border-slate-800/50">
                      <button
                         onClick={() => setShowAllExpenses(!showAllExpenses)}
-                        className="w-full text-center text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                        className="w-full text-center text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center justify-center   max-md:gap-2 min-h-[44px]"
                      >
                         {showAllExpenses ? <><ChevronUp size={14} /> عرض ملخص</> : <><ChevronDown size={14} /> عرض التفاصيل ({data?.expenses.length})</>}
                      </button>

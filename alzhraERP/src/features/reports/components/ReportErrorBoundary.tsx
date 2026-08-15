@@ -53,8 +53,8 @@ class ReportErrorBoundaryClass extends Component<Props, State> {
 function ErrorFallback({ reportName, errorMessage, onRetry }: FallbackProps) {
     const { t } = useTranslation();
     return (
-        <div className="flex flex-col items-center justify-center p-4 md:p-8 text-center animate-in fade-in zoom-in duration-300">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4 shadow-lg">
+        <div className="flex flex-col items-center justify-center   max-md:p-4 md:p-8 text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl max-md:rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4 shadow-lg">
                 <AlertTriangle size={28} className="text-amber-600 dark:text-amber-400" />
             </div>
             <h3 className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">
@@ -70,7 +70,7 @@ function ErrorFallback({ reportName, errorMessage, onRetry }: FallbackProps) {
             )}
             <button
                 onClick={onRetry}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs md:text-sm transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 active:scale-95 min-h-[44px]"
+                className="flex items-center   max-md:gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs md:text-sm transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 active:scale-95 min-h-[44px]"
             >
                 <RefreshCw size={14} />
                 {t('retry') || 'إعادة المحاولة'}

@@ -24,19 +24,19 @@ const ReportSection: React.FC<ReportSectionProps> = ({ title, items, total, icon
 
     return (
         <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col rounded-none">
-            <div className={`p-3 border-b border-gray-100 dark:border-slate-800 flex items-center gap-2 ${currentTheme.header}`}>
+            <div className={` max-md:p-3 border-b border-gray-100 dark:border-slate-800 flex items-center  max-md:gap-2 ${currentTheme.header}`}>
                 <Icon size={14} />
                 <h3 className="text-[10px] font-bold uppercase tracking-widest">{title}</h3>
             </div>
             <div className="flex-1 divide-y divide-gray-50 dark:divide-slate-800/50">
                 {items.map((item) => (
-                    <div key={item.code} className="flex justify-between items-center p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/20">
+                    <div key={item.code} className="flex justify-between items-center  max-md:p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/20">
                         <span className="text-[10px] font-bold text-gray-700 dark:text-slate-200">{item.name}</span>
                         <span dir="ltr" className="font-mono text-[10px] font-bold text-gray-800 dark:text-slate-100">{formatCurrency(Math.abs(item.net_balance))}</span>
                     </div>
                 ))}
             </div>
-            <div className={`p-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center ${currentTheme.total}`}>
+            <div className={` max-md:p-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center ${currentTheme.total}`}>
                 <span className="text-[10px] font-bold uppercase tracking-widest">الإجمالي</span>
                 <span dir="ltr" className="font-mono text-xl font-bold">{formatCurrency(total)}</span>
             </div>
@@ -59,7 +59,7 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
         </div>
     );
 
-    if (!financials) return <div className="p-8 text-center text-gray-500">لا توجد بيانات مالية متاحة</div>;
+    if (!financials) return <div className="p-8 max-md:p-4 text-center text-gray-500">لا توجد بيانات مالية متاحة</div>;
 
     const { assets, liabilities, equity, netIncome, isBalanced, difference, totals } = financials.balanceSheet;
 
@@ -73,15 +73,15 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
     return (
         <div className="max-w-none mx-auto space-y-4 pb-12 print-area animate-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 rounded-none text-center shadow-sm flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800  max-md:p-4 rounded-none text-center shadow-sm flex justify-between items-center">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tight">المركز المالي</h2>
                     <p className="text-xs text-gray-400">كما في تاريخ <b dir="ltr" className="text-gray-600">{dateRange.to}</b></p>
                 </div>
-                <div className="p-3 bg-slate-900 text-white"><Landmark size={24} /></div>
+                <div className=" max-md:p-3 bg-slate-900 text-white"><Landmark size={24} /></div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-4 items-start">
+            <div className="grid lg:grid-cols-2  max-md:gap-4 items-start">
                 {/* Left Column: Assets */}
                 <ReportSection title="الأصول" icon={Wallet} items={assets} total={totalAssets} color="blue" />
 
@@ -100,7 +100,7 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
 
             {/* Verification Footer */}
             <div className={cn(
-                "mt-4 p-4 rounded-none flex items-center justify-center gap-3 border-2 font-bold",
+                "mt-4  max-md:p-4 rounded-none flex items-center justify-center  max-md:gap-3 border-2 font-bold",
                 isBalanced
                     ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                     : 'bg-rose-50 border-rose-200 text-rose-800'

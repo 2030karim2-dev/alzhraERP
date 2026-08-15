@@ -39,7 +39,7 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-4 items-start h-full">
+        <div className="flex flex-col md:flex-row gap-4 max-md:gap-3 items-start h-full">
             <aside className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-slate-900 h-full border-l dark:border-slate-800">
                 <TreasurySidebar onSelectAccount={setSelectedAccountId} selectedAccountId={selectedAccountId} />
             </aside>
