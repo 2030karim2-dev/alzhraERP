@@ -163,7 +163,7 @@ export const QuotationsTab: React.FC<Props> = ({ onConvertToInvoice }) => {
                         {q.party?.name || 'عميل نقدي'}
                       </td>
                       <td className="py-3 px-4 text-gray-600 dark:text-gray-400 text-xs">
-                        {new Date(q.issue_date).toLocaleDateString('ar-SA')}
+                        {new Date(q.issue_date).toLocaleDateString('ar-SA-u-nu-latn')}
                       </td>
                       <td className="py-3 px-4">
                         {daysLeft !== null ? (

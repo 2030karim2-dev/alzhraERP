@@ -36,7 +36,7 @@ const AuditStats: React.FC<Props> = ({ stats, session }) => {
                     </h3>
                 </div>
                  <p className="text-[10px] text-gray-400 font-bold mt-1.5">
-                    بدء: {new Date(session.created_at).toLocaleDateString('ar-SA')}
+                    بدء: {new Date(session.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
                  </p>
             </div>
             <StatBox icon={Layers} label="الإجمالي" value={stats.total} color="text-blue-500" />

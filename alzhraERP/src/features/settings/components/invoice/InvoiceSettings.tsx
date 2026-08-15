@@ -169,7 +169,7 @@ export const InvoiceSettings: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">التاريخ:</span>
-                                    <span className="font-bold text-gray-600 dark:text-slate-300">{new Date().toLocaleDateString('ar-SA')}</span>
+                                    <span className="font-bold text-gray-600 dark:text-slate-300">{new Date().toLocaleDateString('ar-SA-u-nu-latn')}</span>
                                 </div>
                                 <div className="border-t border-dashed border-gray-200 dark:border-slate-700 pt-2">
                                     <div className="flex justify-between mt-1">

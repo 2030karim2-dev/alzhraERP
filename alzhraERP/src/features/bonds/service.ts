@@ -65,7 +65,7 @@ export const bondsService = {
         currency: data.currency_code || 'SAR',
         description: data.description || '',
         accountName: '',
-        date: new Date().toLocaleDateString('ar-SA'),
+        date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
       }, resultObj.id as string);
     }
 

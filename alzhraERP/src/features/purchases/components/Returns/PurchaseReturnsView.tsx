@@ -151,7 +151,7 @@ const PurchaseReturnsView: React.FC<PurchaseReturnsViewProps> = ({ searchTerm: p
                                 <div className="text-left">
                                     <p className="font-bold text-red-600">-{Number(returnItem.total_amount || 0).toFixed(2)}</p>
                                     <p className="text-xs text-gray-500">
-                                        {new Date(returnItem.issue_date || returnItem.created_at).toLocaleDateString('ar-SA')}
+                                        {new Date(returnItem.issue_date || returnItem.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
                                     </p>
                                 </div>
                             </div>

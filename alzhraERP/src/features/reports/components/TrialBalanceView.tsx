@@ -75,7 +75,7 @@ const TrialBalanceView: React.FC = () => {
             eventType="trial_balance"
             title="مشاركة ميزان المراجعة"
             className="bg-white/50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl max-md:rounded-xl   max-md:p-3 sm:p-4 shadow-sm transition-all"
-            message={`⚖️ ميزان المراجعة الذكي - الزهراء سمارت\n━━━━━━━━━━━━━━\n📊 الحالة: ${isBalanced ? '✅ متزن تماماً' : '❌ غير متزن'}\n📗 إجمالي المدين: ${formatCurrency(totalDr)}\n📕 إجمالي الدائن: ${formatCurrency(totalCr)}\n📐 التباين: ${formatCurrency(diff)}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}`}
+            message={`⚖️ ميزان المراجعة الذكي - الزهراء سمارت\n━━━━━━━━━━━━━━\n📊 الحالة: ${isBalanced ? '✅ متزن تماماً' : '❌ غير متزن'}\n📗 إجمالي المدين: ${formatCurrency(totalDr)}\n📕 إجمالي الدائن: ${formatCurrency(totalCr)}\n📐 التباين: ${formatCurrency(diff)}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
           />
         </div>
       </MobileCard>

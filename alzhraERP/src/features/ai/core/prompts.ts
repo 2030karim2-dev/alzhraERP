@@ -82,7 +82,7 @@ export const STRICT_SYSTEM_ROLE = `أنت مساعد ذكي متخصص في إد
 `;
 
 export function buildRealDataContext(): string {
-    return `الوقت الحالي هو: ${new Date().toLocaleString('ar-SA')}
+    return `الوقت الحالي هو: ${new Date().toLocaleString('en-US')}
 نظام عروض الأسعار مفعل حالياً:
 - يدعم عروض مبيعات العملاء.
 - يدعم طلبات عروض أسعار الموردين (RFQ) والمقارنة بينها.

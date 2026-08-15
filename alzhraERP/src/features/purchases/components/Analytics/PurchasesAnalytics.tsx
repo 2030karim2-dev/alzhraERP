@@ -103,7 +103,7 @@ const PurchasesAnalytics: React.FC = () => {
                                     axisLine={false}
                                     tickLine={false}
                                     dy={10}
-                                    tickFormatter={(val) => new Date(val).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })}
+                                    tickFormatter={(val) => new Date(val).toLocaleDateString('ar-SA-u-nu-latn', { day: 'numeric', month: 'short' })}
                                 />
                                 <YAxis
                                     tick={{ fontSize: 9, fill: '#94a3b8' }}
@@ -117,7 +117,7 @@ const PurchasesAnalytics: React.FC = () => {
                                             return (
                                                 <div className="p-4 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl transition-all duration-300">
                                                     <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest leading-none border-b border-slate-100 dark:border-slate-800 pb-2">
-                                                        {new Date(label).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        {new Date(label).toLocaleDateString('ar-SA-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' })}
                                                     </p>
                                                     <div className="flex flex-col gap-1 py-1">
                                                         <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">قيمة التوريدات</span>

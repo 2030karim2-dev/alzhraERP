@@ -82,7 +82,7 @@ export const useReturnsListView = (returns: any[] | undefined, type: 'sales' | '
             companyName: 'Al-Zahra',
             returns: processedReturns.map((r: any) => ({
                 invoiceNumber: r.invoice_number || '',
-                issueDate: new Date(r.issue_date || r.created_at).toLocaleDateString('ar-SA'),
+                issueDate: new Date(r.issue_date || r.created_at).toLocaleDateString('ar-SA-u-nu-latn'),
                 customerName: type === 'sales' ? (r.party?.name || 'عميل نقدي') : '',
                 supplierName: type === 'purchase' ? (r.party?.name || 'مورد نقدي') : '',
                 referenceInvoice: '',

@@ -106,7 +106,7 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
                     </div>
                     <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5 line-clamp-2">{notif.message}</p>
                     <span className="text-[9px] text-[var(--app-text-secondary)] opacity-60 mt-1 block">
-                      {new Date(notif.timestamp).toLocaleString('ar-SA', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
+                      {new Date(notif.timestamp).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
                     </span>
                     {expandedId === notif.id && (
                       <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--app-border)] animate-in fade-in duration-200">

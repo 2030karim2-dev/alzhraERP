@@ -19,7 +19,7 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        title: `جرد دوري - ${new Date().toLocaleDateString('ar-SA')}`,
+        title: `جرد دوري - ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`,
         warehouse_id: '',
         category: 'all'
     });

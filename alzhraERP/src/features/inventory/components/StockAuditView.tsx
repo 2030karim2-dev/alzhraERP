@@ -158,7 +158,7 @@ const StockAuditView: React.FC = () => {
                       </span>
                     )}
                     <span className="text-[9px] text-gray-400 dark:text-slate-600 flex items-center gap-1 mr-auto">
-                      <Clock size={9} /> {new Date(ad.created_at).toLocaleDateString('ar-SA')}
+                      <Clock size={9} /> {new Date(ad.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
                     </span>
                   </div>
                   <p className="font-bold text-gray-900 dark:text-white text-sm max-md:text-[13px] truncate leading-tight">{ad.title}</p>

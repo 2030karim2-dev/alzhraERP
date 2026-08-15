@@ -184,7 +184,7 @@ export const LocalizationSettings: React.FC = () => {
                             {t.current_time || 'الوقت الحالي'}
                         </label>
                         <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300">
-                            {new Date().toLocaleString('ar-SA', {
+                            {new Date().toLocaleString('en-US', {
                                 timeZone: localization.timezone,
                                 weekday: 'long',
                                 year: 'numeric',

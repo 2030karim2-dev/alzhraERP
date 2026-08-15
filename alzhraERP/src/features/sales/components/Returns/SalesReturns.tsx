@@ -89,7 +89,7 @@ const SalesReturns: React.FC<SalesReturnsProps> = ({
                         <div className="text-left">
                             <p className="font-bold text-red-600">-{returnItem.returnAmount.toFixed(2)}</p>
                             <p className="text-xs text-gray-500">
-                                {new Date(returnItem.date).toLocaleDateString('ar-SA')}
+                                {new Date(returnItem.date).toLocaleDateString('ar-SA-u-nu-latn')}
                             </p>
                         </div>
                     </div>

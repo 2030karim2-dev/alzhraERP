@@ -63,7 +63,7 @@ export const messagingService = {
         const testMessage = `✅ اختبار الاتصال ناجح!
 ━━━━━━━━━━━━━━
 🔗 نظام الزهراء سمارت ERP
-📅 ${new Date().toLocaleDateString('ar-SA')}
+📅 ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}
 ⏰ ${new Date().toLocaleTimeString('ar-SA')}`;
 
         return await messagingApi.sendNotification(companyId, 'test', testMessage);

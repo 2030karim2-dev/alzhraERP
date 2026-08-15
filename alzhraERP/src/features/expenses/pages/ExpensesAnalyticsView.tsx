@@ -106,7 +106,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                                     tickLine={false}
                                     tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
                                     dy={10}
-                                    tickFormatter={(value) => new Date(value).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })}
+                                    tickFormatter={(value) => new Date(value).toLocaleDateString('ar-SA-u-nu-latn', { day: 'numeric', month: 'short' })}
                                 />
                                 <YAxis
                                     tick={{ fontSize: 9, fill: '#94a3b8' }}
@@ -129,7 +129,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                            {new Date(payload[0].payload.date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            {new Date(payload[0].payload.date).toLocaleDateString('ar-SA-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' })}
                                                         </p>
                                                     </div>
                                                     <div className="flex items-baseline gap-1">

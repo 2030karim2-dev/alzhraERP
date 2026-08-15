@@ -208,7 +208,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
               },
               {
                 header: 'تاريخ الإرجاع',
-                accessor: (row: any) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at).toLocaleDateString('ar-SA')}</span>,
+                accessor: (row: any) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at).toLocaleDateString('ar-SA-u-nu-latn')}</span>,
                 accessorKey: 'issue_date',
                 sortKey: 'issue_date',
                 width: '120px',

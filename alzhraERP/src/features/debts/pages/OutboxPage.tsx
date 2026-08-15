@@ -95,7 +95,7 @@ const OutboxPage: React.FC = () => {
                     </td>
                     <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                       <span className="text-[10px] font-mono text-[var(--app-text-secondary)]">
-                        {new Date(m.created_at).toLocaleString('ar-SA')}
+                        {new Date(m.created_at).toLocaleString('en-US')}
                       </span>
                     </td>
                   </tr>

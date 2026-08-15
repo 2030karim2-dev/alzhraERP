@@ -130,7 +130,7 @@ const TeamManager: React.FC = () => {
                                 icon={inv.status === 'pending' ? Clock : (inv.status === 'accepted' ? CheckCircle : XCircle)}
                                 iconColorClass={inv.status === 'pending' ? 'text-amber-500' : (inv.status === 'accepted' ? 'text-emerald-500' : 'text-rose-500')}
                                 title={inv.email}
-                                subtitle={`${t.job_role || 'الدور'}: ${inv.role}${inv.branches?.name ? ` | الفرع: ${inv.branches.name}` : ' | مدير عام'} | إضافة: ${new Date(inv.created_at).toLocaleDateString('ar-SA')}`}
+                                subtitle={`${t.job_role || 'الدور'}: ${inv.role}${inv.branches?.name ? ` | الفرع: ${inv.branches.name}` : ' | مدير عام'} | إضافة: ${new Date(inv.created_at).toLocaleDateString('ar-SA-u-nu-latn')}`}
                                 tags={[
                                     { label: inv.status === 'pending' ? (t.waiting_for_acceptance || 'بانتظار القبول') : (t.accepted || 'مقبولة'), color: inv.status === 'pending' ? 'amber' : 'emerald' },
                                     ...(inv.branches?.name ? [{ label: `📍 ${inv.branches.name}`, color: 'indigo' as const }] : [{ label: '🌐 مدير عام', color: 'gray' as const }])

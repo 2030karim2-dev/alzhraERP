@@ -144,7 +144,7 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                                             {price.supplier_name || 'مورد عام'}
                                         </div>
                                         <div className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">
-                                            {new Date(price.updated_at).toLocaleDateString('ar-SA')}
+                                            {new Date(price.updated_at).toLocaleDateString('ar-SA-u-nu-latn')}
                                         </div>
                                     </td>
                                     <td className="px-4 py-1.5 whitespace-nowrap">

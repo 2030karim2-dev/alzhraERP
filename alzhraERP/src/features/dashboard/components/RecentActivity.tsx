@@ -52,7 +52,7 @@ const RecentActivity: React.FC<Props> = ({ activities = [] }) => {
               <div className="flex-1 pt-1">
                 <div className="flex justify-between items-start">
                   <h4 className="text-[11px] font-bold text-[var(--app-text)] group-hover:text-blue-600 transition-colors">{item.title}</h4>
-                  <span className="text-[9px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA')}</span>
+                  <span className="text-[9px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA-u-nu-latn')}</span>
                 </div>
                 <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5 line-clamp-1">{item.desc}</p>
               </div>

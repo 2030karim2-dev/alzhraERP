@@ -157,7 +157,7 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
                 onChange={(e) => setValidDays(Number(e.target.value) || 7)}
                 className="w-20 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <span className="text-xs text-gray-500">يوم (حتى {new Date(validUntil).toLocaleDateString('ar-SA')})</span>
+              <span className="text-xs text-gray-500">يوم (حتى {new Date(validUntil).toLocaleDateString('ar-SA-u-nu-latn')})</span>
             </div>
           </div>
         </div>

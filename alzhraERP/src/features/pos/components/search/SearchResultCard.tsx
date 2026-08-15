@@ -139,7 +139,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = React.memo(({
                         <span className="font-semibold">تم بيعه {result.sales_count} مرة</span>
                         {result.last_sale_date && (
                             <span className="text-slate-400 dark:text-slate-500">
-                                آخر مرة: {new Date(result.last_sale_date).toLocaleDateString('ar-SA')}
+                                آخر مرة: {new Date(result.last_sale_date).toLocaleDateString('ar-SA-u-nu-latn')}
                             </span>
                         )}
                     </div>

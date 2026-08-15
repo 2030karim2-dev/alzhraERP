@@ -35,9 +35,13 @@ export const calculationStatusLabels: Record<CommissionCalculation['status'], st
 };
 
 export function formatCommissionDate(value: string | null): string {
-  return value === null || value.length === 0 ? '—' : new Intl.DateTimeFormat('ar-SA', { dateStyle: 'medium' }).format(new Date(value));
+  return value === null || value.length === 0 ? '—' : new Intl.DateTimeFormat('ar-SA-u-nu-latn', { dateStyle: 'medium' }).format(new Date(value));
 }
 
 export function formatCommissionMoney(value: number, currency = 'SAR'): string {
-  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat('ar-SA-u-nu-latn', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
+}
+
+export function formatCommissionNumber(value: number): string {
+  return new Intl.NumberFormat('en-US').format(value);
 }

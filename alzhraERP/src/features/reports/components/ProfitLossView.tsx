@@ -107,7 +107,7 @@ const ProfitLossView: React.FC = () => {
 📗 إجمالي الإيرادات: ${formatCurrency(totalRevenues)}
 📕 إجمالي المصروفات: ${formatCurrency(totalExpenses)}
 ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسارة'}: ${formatCurrency(Math.abs(data?.netProfit || 0))}
-📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}`}
+📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
                      />
                   )}
                </div>

@@ -292,7 +292,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
             )}
             <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 max-md:gap-1">
               <Calendar size={12} />
-              {new Date(quotation.issue_date).toLocaleDateString('ar-SA')}
+              {new Date(quotation.issue_date).toLocaleDateString('ar-SA-u-nu-latn')}
             </span>
           </div>
 

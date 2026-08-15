@@ -171,7 +171,7 @@ export const reportService = {
         if (error) throw error;
 
         return (data || []).map((d: any) => ({
-            name: new Date(year, d.month_index, 1).toLocaleString('ar-SA', { month: 'long' }),
+            name: new Date(year, d.month_index, 1).toLocaleString('en-US', { month: 'long' }),
             revenues: Number(d.revenues) || 0,
             expenses: Number(d.expenses) || 0,
             monthIndex: d.month_index

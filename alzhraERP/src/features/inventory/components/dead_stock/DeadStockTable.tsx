@@ -18,7 +18,7 @@ const DeadStockTable: React.FC<Props> = ({ items, daysThreshold }) => {
                 <div className="flex items-center gap-1.5 text-gray-500">
                     <Calendar size={12} />
                     <span className="text-[10px] font-bold">
-                        {item.last_sale_date ? new Date(item.last_sale_date).toLocaleDateString('ar-SA') : 'لا يوجد مبيعات'}
+                        {item.last_sale_date ? new Date(item.last_sale_date).toLocaleDateString('ar-SA-u-nu-latn') : 'لا يوجد مبيعات'}
                     </span>
                 </div>
             ),

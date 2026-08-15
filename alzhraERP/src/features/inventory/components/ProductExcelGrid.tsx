@@ -27,11 +27,11 @@ interface Props {
     visibleColumns?: string[];
 }
 
-const ProductExcelGrid: React.FC<Props> = ({ 
-    products, 
-    isLoading, 
-    onDelete, 
-    onViewDetails, 
+const ProductExcelGrid: React.FC<Props> = ({
+    products,
+    isLoading,
+    onDelete,
+    onViewDetails,
     onEdit,
     onRowClick,
     hideActions = false,
@@ -136,4 +136,4 @@ const ProductExcelGrid: React.FC<Props> = ({
     );
 };
 
-export default ProductExcelGrid;
+export default ProductExcelGrid;

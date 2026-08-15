@@ -58,7 +58,7 @@ const ExchangeRateHistory: React.FC = () => {
     const formatDate = (dateStr: string) => {
         try {
             const date = new Date(dateStr);
-            return date.toLocaleDateString('ar-SA', {
+            return date.toLocaleDateString('ar-SA-u-nu-latn', {
                 year: 'numeric', month: 'short', day: 'numeric'
             });
         } catch {

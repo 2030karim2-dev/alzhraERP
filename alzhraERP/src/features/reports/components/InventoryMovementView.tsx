@@ -42,7 +42,7 @@ const InventoryMovementView: React.FC = () => {
             totalIn,
             totalOut,
             turnover: avgStock > 0 ? (totalOut / avgStock).toFixed(1) : 0,
-            lastMovement: new Date(movementArr[movementArr.length - 1].entry_date || '').toLocaleDateString('ar-SA')
+            lastMovement: new Date(movementArr[movementArr.length - 1].entry_date || '').toLocaleDateString('ar-SA-u-nu-latn')
         };
     }, [movement]);
 
@@ -55,7 +55,7 @@ const InventoryMovementView: React.FC = () => {
     }, [movement]);
 
     const columns = [
-        { header: 'التاريخ المالي', accessor: (row: any) => <span dir="ltr" className="font-mono text-[10px] text-slate-500 font-bold">{new Date(row.entry_date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span> },
+        { header: 'التاريخ المالي', accessor: (row: any) => <span dir="ltr" className="font-mono text-[10px] text-slate-500 font-bold">{new Date(row.entry_date).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span> },
         {
             header: 'نوع الحركة', accessor: (row: any) => {
                 let icon = <CheckCircle2 size={12} />;

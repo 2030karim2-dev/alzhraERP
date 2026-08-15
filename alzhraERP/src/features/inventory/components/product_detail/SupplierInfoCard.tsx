@@ -123,7 +123,7 @@ const SupplierInfoCard: React.FC<Props> = ({
                             <div key={idx} className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
                                 <div>
                                     <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">
-                                        {new Date(purchase.date).toLocaleDateString('ar-SA')}
+                                        {new Date(purchase.date).toLocaleDateString('ar-SA-u-nu-latn')}
                                     </span>
                                     <span className="text-[10px] font-bold text-slate-400 mr-2">
                                         x{purchase.quantity}

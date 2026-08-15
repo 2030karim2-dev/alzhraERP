@@ -41,7 +41,7 @@ const TransferHistoryView: React.FC = () => {
             header: 'التاريخ',
             accessor: (row: any) => (
                 <span className="text-gray-600 dark:text-gray-400 font-mono text-[10px]">
-                    {new Date(row.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(row.created_at).toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
             ),
             width: 'w-32',
@@ -140,7 +140,7 @@ const TransferHistoryView: React.FC = () => {
                                 </span>
                                 <span className="flex items-center gap-1.5 font-mono">
                                     <Clock size={11} className="text-gray-400" />
-                                    {new Date(t.created_at).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    {new Date(t.created_at).toLocaleDateString('ar-SA-u-nu-latn', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
 

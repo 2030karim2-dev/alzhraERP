@@ -80,7 +80,7 @@ const BalanceSheetView: React.FC = () => {
                     </div>
                     <p className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center   max-md:gap-2">
                         <Clock size={12} />
-                        تقرير مالي نهائي كما في <b dir="ltr" className="text-slate-600 dark:text-slate-300 ml-1">{new Date().toLocaleDateString('ar-SA')}</b>
+                        تقرير مالي نهائي كما في <b dir="ltr" className="text-slate-600 dark:text-slate-300 ml-1">{new Date().toLocaleDateString('ar-SA-u-nu-latn')}</b>
                     </p>
                 </div>
 
@@ -95,7 +95,7 @@ const BalanceSheetView: React.FC = () => {
                         eventType="balance_sheet"
                         title="مشاركة الميزانية العمومية"
                         className="bg-slate-900 text-white hover:bg-slate-800 rounded-2xl max-md:rounded-xl   max-md:p-3 sm:p-4 shadow-xl transition-all"
-                        message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(Math.abs(liabilities.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n🏛️ حقوق الملكية: ${formatCurrency(Math.abs(equity.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}`}
+                        message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(Math.abs(liabilities.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n🏛️ حقوق الملكية: ${formatCurrency(Math.abs(equity.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
                     />
                 </div>
             </MobileCard>
