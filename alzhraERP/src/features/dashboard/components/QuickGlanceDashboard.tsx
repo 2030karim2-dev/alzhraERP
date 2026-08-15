@@ -30,7 +30,7 @@ const QuickGlanceDashboard: React.FC<QuickGlanceDashboardProps> = ({ metrics, cl
       {metrics.map((metric, idx) => (
         <div
           key={idx}
-          className="bg-[var(--app-surface)] rounded-2xl p-4 border border-[var(--app-border)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group"
+          className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 border border-[var(--app-border)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group"
         >
           <div className="flex items-center justify-between mb-3">
             <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', metric.color)}>

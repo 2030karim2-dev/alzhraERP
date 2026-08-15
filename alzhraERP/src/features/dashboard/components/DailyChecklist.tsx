@@ -40,9 +40,9 @@ const DailyChecklist: React.FC<DailyChecklistProps> = ({ items, className, onTog
   };
 
   return (
-    <div className={cn('bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] p-4', className)}>
+    <div className={cn('bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl border border-[var(--app-border)] p-4 max-md:p-3 max-md:p-4', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 max-md:mb-3">
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-[var(--accent)]" />
           <h3 className="text-sm font-bold text-[var(--app-text)]">مهام اليوم</h3>
@@ -60,7 +60,7 @@ const DailyChecklist: React.FC<DailyChecklistProps> = ({ items, className, onTog
       </div>
 
       {/* Progress Bar */}
-      <div className="h-1.5 bg-[var(--app-bg)] rounded-full mb-4 overflow-hidden">
+      <div className="h-1.5 bg-[var(--app-bg)] rounded-full mb-4 max-md:mb-3 overflow-hidden">
         <div
           className="h-full bg-emerald-500 rounded-full transition-all duration-500"
           style={{ width: `${stats.percent}%` }}

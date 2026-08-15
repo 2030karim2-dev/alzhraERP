@@ -10,8 +10,8 @@ interface ChartBoxProps {
 
 const ChartBox: React.FC<ChartBoxProps> = ({ title, children, className }) => {
   return (
-    <div className={cn("bg-[var(--app-surface)] p-5 rounded-xl shadow-sm border border-[var(--app-border)]", className)}>
-      <h3 className="text-md font-bold text-[var(--app-text)] mb-4">{title}</h3>
+    <div className={cn("bg-[var(--app-surface)] p-5 max-md:p-3 max-md:p-5 rounded-xl shadow-sm border border-[var(--app-border)]", className)}>
+      <h3 className="text-md font-bold text-[var(--app-text)] mb-4 max-md:mb-3">{title}</h3>
       {children}
     </div>
   );

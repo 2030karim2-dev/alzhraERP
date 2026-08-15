@@ -48,11 +48,11 @@ const QuickInsights: React.FC<QuickInsightsProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 rounded-2xl",
+            "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl",
             className
         )}>
             {/* Header */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 max-md:mb-3">
                 <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
                     <Lightbulb size={16} className="text-amber-500" />
                 </div>
@@ -63,7 +63,7 @@ const QuickInsights: React.FC<QuickInsightsProps> = ({
 
             {/* Insights List */}
             {!hasInsights ? (
-                <div className="text-center py-6">
+                <div className="text-center py-6 max-md:py-3">
                     <Lightbulb size={24} className="mx-auto text-[var(--app-text-secondary)] mb-2" />
                     <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد رؤى</p>
                     <p className="text-[10px] text-[var(--app-text-secondary)] mt-1">أضف بيانات لمشاهدة التحليلات</p>
@@ -98,7 +98,7 @@ const QuickInsights: React.FC<QuickInsightsProps> = ({
 
             {/* Footer - Only show if there are insights */}
             {hasInsights && (
-                <div className="mt-4 pt-3 border-t border-[var(--app-border)]">
+                <div className="mt-4 max-md:mt-3 pt-3 border-t border-[var(--app-border)]">
                     <p className="text-[9px] text-[var(--app-text-secondary)] text-center font-medium">
                         آخر تحديث: الآن
                     </p>

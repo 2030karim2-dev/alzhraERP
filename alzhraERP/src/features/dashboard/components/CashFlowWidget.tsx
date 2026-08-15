@@ -35,16 +35,16 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
     if (!hasData) {
         return (
             <div className={cn(
-                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-2xl",
+                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl",
                 className
             )}>
-                <div className="flex items-center gap-2 mb-5">
+                <div className="flex items-center gap-2 mb-5 max-md:mb-3">
                     <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
                         <Wallet size={16} className="text-blue-400" />
                     </div>
                     <h3 className="text-sm font-bold text-[var(--app-text)]">التدفق النقدي</h3>
                 </div>
-                <div className="text-center py-8">
+                <div className="text-center py-8 max-md:py-4">
                     <Wallet size={40} className="mx-auto text-[var(--app-text-secondary)] mb-3" />
                     <p className="text-xs font-bold text-[var(--app-text-secondary)]">بانتظار حركة مالية</p>
                     <p className="text-[10px] text-[var(--app-text-secondary)] mt-1 opacity-60">قم بتسجيل سندات قبض أو صرف لتفعيل مؤشر التدفق</p>
@@ -55,13 +55,13 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-2xl relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
             <div className="absolute top-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none"></div>
 
-            <div className="flex items-center gap-2 mb-5 relative z-10">
+            <div className="flex items-center gap-2 mb-5 max-md:mb-3 relative z-10">
                 <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
                     <Wallet size={16} className="text-blue-400 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
                 </div>
@@ -134,7 +134,7 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
             </div>
 
             {/* Divider */}
-            <div className="my-4 border-t border-dashed border-white/10 relative z-10" />
+            <div className="my-4 max-md:my-3 border-t border-dashed border-white/10 relative z-10" />
 
             {/* Net */}
             <div className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl relative z-10">

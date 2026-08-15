@@ -81,14 +81,14 @@ const SalesChart: React.FC<SalesChartProps> = ({
     <div className="flex flex-col h-full">
       {/* Period Selector */}
       {showPeriodSelector && (
-        <div className="flex items-center gap-1.5 mb-5 bg-[var(--app-surface)] dark:bg-slate-800/50 p-1 rounded-xl w-fit">
+        <div className="flex items-center gap-1.5 mb-5 max-md:mb-3 bg-[var(--app-surface)] dark:bg-slate-800/50 p-1 rounded-xl w-fit">
           <Calendar size={14} className="text-[var(--app-text-secondary)] ml-2" />
           {(['today', 'week', 'month', 'year'] as PeriodType[]).map(p => (
             <button
               key={p}
               onClick={() => handlePeriodChange(p)}
               className={cn(
-                "px-4 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300",
+                "px-4 max-md:px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300",
                 period === p
                   ? "bg-[var(--app-surface)] text-[var(--app-text)] shadow-sm"
                   : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)]"
@@ -182,12 +182,12 @@ const SalesChart: React.FC<SalesChartProps> = ({
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-2xl" />
+          <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-2xl max-md:rounded-xl" />
         )}
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+      <div className="grid grid-cols-3 gap-2 mt-4 max-md:mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
         <div className="text-center">
           <p className="text-[8px] font-semibold text-[var(--app-text-secondary)] uppercase">الإجمالي</p>
           <p className="text-sm font-bold text-[var(--app-text)] font-mono">

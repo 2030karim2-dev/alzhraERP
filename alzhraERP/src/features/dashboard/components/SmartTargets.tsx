@@ -15,9 +15,9 @@ const SmartTargets: React.FC<Props> = ({ targets }) => {
     const { t } = useTranslation();
 
     return (
-        <div className="bg-[var(--app-surface)] p-5 rounded-2xl text-[var(--app-text)] shadow-2xl relative overflow-hidden group">
+        <div className="bg-[var(--app-surface)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl text-[var(--app-text)] shadow-2xl relative overflow-hidden group">
             <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-5">
+                <div className="flex items-center gap-2 mb-5 max-md:mb-3">
                     <Target size={18} className="text-amber-400 animate-pulse" />
                     <h3 className="text-xs font-bold uppercase tracking-wider">{t('monthly_targets')}</h3>
                 </div>
@@ -49,7 +49,7 @@ const SmartTargets: React.FC<Props> = ({ targets }) => {
                 </div>
             </div>
 
-            <div className="mt-5 bg-white/5 p-3 border border-[var(--app-border)] relative z-10 rounded-xl">
+            <div className="mt-5 max-md:mt-3 bg-white/5 p-3 border border-[var(--app-border)] relative z-10 rounded-xl">
                 <p className="text-[9px] font-bold text-blue-400 mb-1 uppercase tracking-wider">
                     {t('financial_intelligence_alert')}
                 </p>

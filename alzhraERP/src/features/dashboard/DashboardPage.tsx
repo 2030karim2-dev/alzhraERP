@@ -33,7 +33,7 @@ const QuotationSummaryWidget = lazy(() => import('./components/QuotationSummaryW
 const DashboardLoading = () => {
     const { t } = useTranslation();
     return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-4 p-10 text-center animate-pulse">
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-4 max-md:gap-3 p-10 max-md:p-5 max-md:p-10 text-center animate-pulse">
             <div className="w-16 h-16 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
             <div className="font-bold text-gray-400 text-lg">{t('loading_financial_data')}</div>
         </div>
@@ -41,9 +41,10 @@ const DashboardLoading = () => {
 };
 
 const DashboardError = ({ refetch, isFetching }: { refetch: () => void, isFetching: boolean }) => (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-6 p-10 text-center bg-[var(--app-bg)] font-cairo">
-        <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
-            <Activity size={48} className="text-rose-500 animate-pulse" />
+    <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-6 max-md:gap-3 p-10 max-md:p-5 max-md:p-10 text-center bg-[var(--app-bg)] font-cairo">
+        <div className="p-4 max-md:p-3 max-md:p-4 bg-rose-500/10 rounded-2xl max-md:rounded-xl border border-rose-500/20">
+            <Activity size={32} className="max-md:hidden text-rose-500 animate-pulse" />
+            <Activity size={24} className="hidden max-md:block text-rose-500 animate-pulse" />
         </div>
         <div>
             <h2 className="text-xl font-bold text-[var(--app-text)] mb-2">عذراً، حدث خطأ أثناء تجميع البيانات</h2>
@@ -53,7 +54,7 @@ const DashboardError = ({ refetch, isFetching }: { refetch: () => void, isFetchi
         </div>
         <button
             onClick={() => refetch()}
-            className="flex items-center gap-2 px-6 py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--accent)]/20"
+            className="flex items-center gap-2 px-6 max-md:px-3 py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--accent)]/20"
         >
             <RefreshCw size={18} className={isFetching ? 'animate-spin' : ''} />
             إعادة المحاولة
@@ -114,7 +115,7 @@ const DashboardPage: React.FC = () => {
             <div className="flex-1 overflow-y-auto px-1.5 md:px-3 py-3 custom-scrollbar pb-24 relative z-10">
                 <ContentContainer>
 
-                    <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                    <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <FinancialHealthScore
                                 stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }}
@@ -125,7 +126,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </Suspense>
 
-                    <Suspense fallback={<div className="h-32 mt-3 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                    <Suspense fallback={<div className="h-32 mt-3 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="mt-3">
                             <StatsGrid stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }} />
                         </div>
@@ -139,7 +140,7 @@ const DashboardPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3 mt-3">
                         <Suspense fallback={<ChartSkeleton />}>
-                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-4 rounded-2xl relative overflow-hidden group hover:border-[var(--accent)]/30 transition-all duration-500">
+                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-4 max-md:p-3 max-md:p-4 rounded-2xl max-md:rounded-xl relative overflow-hidden group hover:border-[var(--accent)]/30 transition-all duration-500">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] group-hover:bg-emerald-400/20 transition-all duration-700 pointer-events-none"></div>
                                 <div className="flex justify-between items-center mb-3 relative z-10">
                                     <div className="flex items-center gap-2">
@@ -166,12 +167,12 @@ const DashboardPage: React.FC = () => {
                         </Suspense>
 
                         <GlobalErrorBoundary sectionName="الإيرادات والمصروفات">
-                            <Suspense fallback={<div className="h-[220px] min-h-[220px] animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                            <Suspense fallback={<div className="h-[220px] min-h-[220px] animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                                 <RevenueExpensesChart data={revenueExpensesData} />
                             </Suspense>
                         </GlobalErrorBoundary>
 
-                        <Suspense fallback={<div className="h-40 min-h-[160px] animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                        <Suspense fallback={<div className="h-40 min-h-[160px] animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <PerformanceGauge
                                 value={salesValue}
                                 target={Math.max(100000, salesValue * 1.2)}
@@ -179,28 +180,28 @@ const DashboardPage: React.FC = () => {
                             />
                         </Suspense>
 
-                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <CashFlowWidget data={cashFlow} />
                         </Suspense>
 
-                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <InventoryOverview lowStockProducts={lowStockProducts} />
                         </Suspense>
 
-                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <QuotationSummaryWidget />
                         </Suspense>
 
-                        <Suspense fallback={<div className="h-[300px] min-h-[300px] animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
-                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl p-4 h-[350px]">
-                                <h3 className="text-xs font-bold text-[var(--app-text)] mb-4">التصنيفات الأكثر حركة</h3>
+                        <Suspense fallback={<div className="h-[300px] min-h-[300px] animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
+                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 h-[350px]">
+                                <h3 className="text-xs font-bold text-[var(--app-text)] mb-4 max-md:mb-3">التصنيفات الأكثر حركة</h3>
                                 <div className="flex flex-col h-full items-center p-2">
                                     <CategoriesChart data={categoryData} />
                                 </div>
                             </div>
                         </Suspense>
 
-                        <Suspense fallback={<div className="h-60 animate-pulse bg-[var(--app-surface)] rounded-2xl" />}>
+                        <Suspense fallback={<div className="h-60 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <TopPerformers
                                 products={topProducts as any}
                                 customers={topCustomers as any}

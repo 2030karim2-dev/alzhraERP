@@ -71,7 +71,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
     if (value === 0 && target === 0) {
         return (
             <div className={cn(
-                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-2xl flex items-center justify-center h-64",
+                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl flex items-center justify-center h-64",
                 className
             )}>
                 <div className="text-center">
@@ -84,11 +84,11 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-2xl relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
             className
         )}>
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 max-md:mb-3">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
                         <Target size={16} className="text-blue-400" />
@@ -151,13 +151,13 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
                         </PieChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-2xl" />
+                    <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-2xl max-md:rounded-xl" />
                 )}
 
                 {/* Center Text */}
                 <div className="absolute inset-0 flex items-center justify-center pt-10">
                     <div className="text-center">
-                        <p className="text-4xl font-bold text-[var(--app-text)] font-mono tracking-tighter" style={{ textShadow: `0 2px 10px ${color}30` }}>
+                        <p className="text-4xl max-md:text-2xl font-bold text-[var(--app-text)] font-mono tracking-tighter" style={{ textShadow: `0 2px 10px ${color}30` }}>
                             {percentage.toFixed(0)}%
                         </p>
                         <p className="text-[10px] text-[var(--app-text-secondary)] font-bold uppercase tracking-wider mt-1">من الهدف</p>
@@ -166,7 +166,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-2 gap-3 mt-4 max-md:mt-3">
                 <div className="text-center p-2 bg-white/5 border border-white/5 rounded-xl">
                     <p className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase">المحقق</p>
                     <p className="text-sm font-bold text-[var(--app-text)] font-mono">

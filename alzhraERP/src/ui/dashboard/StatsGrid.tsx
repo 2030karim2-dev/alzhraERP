@@ -148,7 +148,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
   }
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-md:gap-3">
       {statItems.map((item) => {
         const trendKey = item.title === t('total_sales') ? 'salesTrend' :
           item.title === (t('total_purchases') || 'المشتريات') ? 'purchasesTrend' :
@@ -174,12 +174,12 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
           >
             {/* Ambient Glow */}
             <div className={cn(
-              "absolute -inset-0.5 rounded-3xl blur-[12px] opacity-0 group-hover:opacity-40 transition duration-300",
+              "absolute -inset-0.5 rounded-3xl max-md:rounded-xl blur-[12px] opacity-0 group-hover:opacity-40 transition duration-300",
               item.gradientClass.replace('to-', 'from-')
             )}></div>
 
             <div className={cn(
-              "relative overflow-hidden bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-3 max-md:p-2.5 rounded-3xl transition-all duration-300",
+              "relative overflow-hidden bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-3 max-md:p-2.5 rounded-3xl max-md:rounded-xl transition-all duration-300",
               "hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:border-[var(--accent)]/30"
             )}>
               {/* Background Pattern */}
@@ -188,7 +188,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                 <div className={cn("absolute -left-10 -bottom-10 w-24 h-24 rounded-full blur-[30px]", item.colorClass.replace('text-', 'bg-'))}></div>
               </div>
 
-              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-2">
+              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-3 max-md:gap-2">
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col">
@@ -202,7 +202,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                     )}
                   </div>
                   <div className={cn(
-                    "p-2.5 max-md:p-2 rounded-2xl shadow-inner border border-white/5 backdrop-blur-md",
+                    "p-2.5 max-md:p-2 rounded-2xl max-md:rounded-xl shadow-inner border border-white/5 backdrop-blur-md",
                     item.gradientClass,
                     "bg-opacity-20"
                   )}>

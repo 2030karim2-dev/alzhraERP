@@ -19,7 +19,7 @@ interface SalesChartSummaryProps {
 
 export const SalesChartSummary: React.FC<SalesChartSummaryProps> = ({ stats, maxSales }) => {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-md:gap-3 mt-6 max-md:mt-3 pt-6 border-t border-slate-100 dark:border-slate-800">
             <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-[var(--app-text-secondary)] font-bold">إجمالي المبيعات</span>
                 <div className="flex items-end gap-2">
@@ -34,7 +34,7 @@ export const SalesChartSummary: React.FC<SalesChartSummaryProps> = ({ stats, max
 
             <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-[var(--app-text-secondary)] font-bold">صافي الأرباح</span>
-                <span className={cn("text-xl font-bold font-mono", stats.totalProfit >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                <span className={cn("text-xl max-md:text-base font-bold font-mono", stats.totalProfit >= 0 ? "text-emerald-600" : "text-rose-600")}>
                     {formatNumber(stats.totalProfit)}
                 </span>
             </div>
@@ -48,7 +48,7 @@ export const SalesChartSummary: React.FC<SalesChartSummaryProps> = ({ stats, max
 
             <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-[var(--app-text-secondary)] font-bold">أفضل أداء</span>
-                <span className="text-xl font-bold text-blue-600 font-mono">
+                <span className="text-xl max-md:text-base font-bold text-blue-600 font-mono">
                     {formatNumber(maxSales)}
                 </span>
             </div>

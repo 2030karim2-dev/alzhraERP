@@ -63,14 +63,14 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl p-4 relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-violet-500/10 rounded-full blur-[60px] group-hover:bg-violet-400/20 transition-all duration-700 pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center justify-between mb-4 max-md:mb-3 relative z-10">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-violet-500/10 rounded-xl border border-violet-500/20">
                         <ArrowRightLeft size={16} className="text-violet-400 drop-shadow-[0_0_6px_rgba(139,92,246,0.6)]" />
@@ -90,7 +90,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
             {/* Content */}
             <div className="relative z-10 space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
                 {!hasSuggestions ? (
-                    <div className="text-center py-6">
+                    <div className="text-center py-6 max-md:py-3">
                         <Package size={32} className="mx-auto text-[var(--app-text-secondary)] mb-2" />
                         <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد اقتراحات حالياً</p>
                         <p className="text-[10px] text-[var(--app-text-secondary)] mt-1 opacity-60">جميع المنتجات متوفرة في المتجر الرئيسي</p>

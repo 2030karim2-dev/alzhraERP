@@ -33,7 +33,7 @@ export const SalesChartHeader: React.FC<SalesChartHeaderProps> = ({
     setChartType
 }) => {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 max-md:mb-3">
             {/* Series Toggles */}
             <div className="flex gap-2 mr-auto order-last lg:order-first overflow-x-auto pb-1 max-w-full no-scrollbar">
                 {(Object.keys(seriesConfig) as SeriesType[]).map(s => (

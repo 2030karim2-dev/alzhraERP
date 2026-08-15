@@ -29,7 +29,7 @@ const ProductItem = React.memo(({ product, index, maxRevenue }: { product: TopPr
     const percentage = maxRevenue > 0 ? (product.revenue / maxRevenue) * 100 : 0;
 
     return (
-        <div className="relative flex items-center justify-between p-3 rounded-2xl overflow-hidden group/item cursor-default">
+        <div className="relative flex items-center justify-between p-3 rounded-2xl max-md:rounded-xl overflow-hidden group/item cursor-default">
             {/* Progress Bar Background */}
             <div
                 className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-amber-500/10 to-transparent transition-all duration-1000 ease-out"
@@ -66,7 +66,7 @@ const CustomerItem = React.memo(({ customer, index, maxTotal }: { customer: TopC
     const percentage = maxTotal > 0 ? (customer.total / maxTotal) * 100 : 0;
 
     return (
-        <div className="relative flex items-center justify-between p-3 rounded-2xl overflow-hidden group/item cursor-default">
+        <div className="relative flex items-center justify-between p-3 rounded-2xl max-md:rounded-xl overflow-hidden group/item cursor-default">
             {/* Progress Bar Background */}
             <div
                 className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-blue-500/10 to-transparent transition-all duration-1000 ease-out"
@@ -116,12 +116,12 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
         [customers, hasCustomers]);
 
     return (
-        <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", className)}>
+        <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6 max-md:gap-3", className)}>
             {/* Top Auto Parts */}
-            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-3xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
+            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] group-hover:bg-amber-400/20 transition-all duration-700 pointer-events-none"></div>
 
-                <div className="flex items-center gap-3 mb-6 relative z-10">
+                <div className="flex items-center gap-3 mb-6 max-md:mb-3 relative z-10">
                     <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-orange-600/20 rounded-xl border border-amber-500/20 shadow-inner">
                         <Box size={18} className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                     </div>
@@ -144,7 +144,7 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
                             />
                         ))
                     ) : (
-                        <div className="text-center py-8">
+                        <div className="text-center py-8 max-md:py-4">
                             <Box size={32} className="mx-auto text-[var(--app-text-secondary)] mb-3" />
                             <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد حركات بيع لقطع الغيار</p>
                         </div>
@@ -153,10 +153,10 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
             </div>
 
             {/* Top Customers (Workshops/Individuals) */}
-            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-3xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
+            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none"></div>
 
-                <div className="flex items-center gap-3 mb-6 relative z-10">
+                <div className="flex items-center gap-3 mb-6 max-md:mb-3 relative z-10">
                     <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-xl border border-blue-500/20 shadow-inner">
                         <Wrench size={18} className="text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
                     </div>
@@ -179,7 +179,7 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
                             />
                         ))
                     ) : (
-                        <div className="text-center py-8">
+                        <div className="text-center py-8 max-md:py-4">
                             <Wrench size={32} className="mx-auto text-[var(--app-text-secondary)] mb-3" />
                             <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد بيانات عملاء</p>
                         </div>

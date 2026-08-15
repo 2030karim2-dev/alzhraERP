@@ -41,19 +41,19 @@ const QuotationSummaryWidget: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-sm animate-pulse">
-                <div className="h-6 w-32 bg-gray-100 dark:bg-slate-800 rounded mb-4"></div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="h-20 bg-gray-50 dark:bg-slate-800/50 rounded-2xl"></div>
-                    <div className="h-20 bg-gray-50 dark:bg-slate-800/50 rounded-2xl"></div>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl max-md:rounded-xl p-6 max-md:p-3 max-md:p-6 border border-gray-100 dark:border-slate-800 shadow-sm animate-pulse">
+                <div className="h-6 w-32 bg-gray-100 dark:bg-slate-800 rounded mb-4 max-md:mb-3"></div>
+                <div className="grid grid-cols-2 gap-4 max-md:gap-3">
+                    <div className="h-20 bg-gray-50 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl"></div>
+                    <div className="h-20 bg-gray-50 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl"></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group">
-            <div className="flex items-center justify-between mb-5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl max-md:rounded-xl p-5 max-md:p-3 max-md:p-5 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between mb-5 max-md:mb-3">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
                         <FileText size={18} />
@@ -71,7 +71,7 @@ const QuotationSummaryWidget: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
                 {/* Sales Quotations */}
                 <div className="space-y-3">
-                    <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-800/20">
+                    <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl max-md:rounded-xl border border-blue-100/50 dark:border-blue-800/20">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">عروض المبيعات</span>
                             <ArrowUpRight size={12} className="text-blue-400" />
@@ -91,7 +91,7 @@ const QuotationSummaryWidget: React.FC = () => {
 
                 {/* Purchase Quotations */}
                 <div className="space-y-3">
-                    <div className="p-3 bg-violet-50/50 dark:bg-violet-900/10 rounded-2xl border border-violet-100/50 dark:border-violet-800/20">
+                    <div className="p-3 bg-violet-50/50 dark:bg-violet-900/10 rounded-2xl max-md:rounded-xl border border-violet-100/50 dark:border-violet-800/20">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400">عروض المشتريات</span>
                             <ArrowDownLeft size={12} className="text-violet-400" />
@@ -108,7 +108,7 @@ const QuotationSummaryWidget: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-800/50">
+            <div className="mt-4 max-md:mt-3 pt-3 border-t border-gray-50 dark:border-slate-800/50">
                 <div className="flex items-center gap-2 text-[10px] text-gray-500">
                     <Clock size={10} />
                     <span>آخر تحديث: {new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>

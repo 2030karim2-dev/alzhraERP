@@ -97,12 +97,12 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl overflow-hidden",
+            "bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl max-md:rounded-xl overflow-hidden",
             className
         )}>
             {/* Header */}
             <div
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                className="flex items-center justify-between p-4 max-md:p-3 max-md:p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">
@@ -155,14 +155,14 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
 
             {/* Alerts List */}
             {isExpanded && (
-                <div className="px-4 pb-4 space-y-2">
+                <div className="px-4 max-md:px-3 pb-4 space-y-2">
                     {!hasAlerts ? (
-                        <div className="text-center py-6">
+                        <div className="text-center py-6 max-md:py-3">
                             <CheckCircle size={24} className="mx-auto text-emerald-500 mb-2" />
                             <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد تنبيهات</p>
                         </div>
                     ) : filteredAlerts.length === 0 ? (
-                        <div className="text-center py-6">
+                        <div className="text-center py-6 max-md:py-3">
                             <Info size={24} className="mx-auto text-[var(--app-text-secondary)] mb-2" />
                             <p className="text-xs font-bold text-[var(--app-text-secondary)]">لا توجد تنبيهات من هذا النوع</p>
                         </div>

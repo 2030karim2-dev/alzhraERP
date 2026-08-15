@@ -98,7 +98,7 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
 
     return (
         <div className={cn(
-            "relative bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl p-4 max-md:p-3 overflow-hidden",
+            "relative bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 max-md:p-3 overflow-hidden",
             className
         )}>
             <div
@@ -133,7 +133,7 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <Heart size={12} style={{ color: scoreColor.main, filter: `drop-shadow(0 0 4px ${scoreColor.glow})` }} />
-                        <span className="text-2xl max-md:text-xl font-bold font-mono tracking-tighter text-[var(--app-text)]" style={{ textShadow: `0 0 16px ${scoreColor.glow}` }}>
+                        <span className="text-2xl max-md:text-lg font-bold font-mono tracking-tighter text-[var(--app-text)]" style={{ textShadow: `0 0 16px ${scoreColor.glow}` }}>
                             {animatedScore}
                         </span>
                         <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: scoreColor.main }}>

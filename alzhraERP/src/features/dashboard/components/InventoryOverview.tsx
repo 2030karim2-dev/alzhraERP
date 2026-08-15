@@ -29,14 +29,14 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({ lowStockProducts,
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl p-4 relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-[60px] group-hover:bg-cyan-400/20 transition-all duration-700 pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center gap-2 mb-4 relative z-10">
+            <div className="flex items-center gap-2 mb-4 max-md:mb-3 relative z-10">
                 <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
                     <Package size={16} className="text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
                 </div>

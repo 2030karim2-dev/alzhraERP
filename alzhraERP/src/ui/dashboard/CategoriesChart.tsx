@@ -71,7 +71,7 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
       ref={containerRef}
       className="h-[300px] min-h-[300px] w-full relative group overflow-hidden"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-slate-800/20 rounded-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-slate-800/20 rounded-3xl max-md:rounded-xl pointer-events-none" />
       {isMounted ? (
         <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
@@ -124,7 +124,7 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
           </PieChart>
         </ResponsiveContainer>
       ) : (
-        <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-3xl flex items-center justify-center">
+        <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-3xl max-md:rounded-xl flex items-center justify-center">
             <div className="w-32 h-32 rounded-full border-8 border-slate-200 dark:border-slate-700 border-t-blue-500 animate-spin opacity-20" />
         </div>
       )}

@@ -31,7 +31,7 @@ interface DailySummaryCardProps {
 }
 
 const DailySummaryCard: React.FC<DailySummaryCardProps> = ({ label, value, icon, color }) => (
-  <div className="bg-[var(--app-surface)] rounded-2xl p-4 border border-[var(--app-border)]">
+  <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 border border-[var(--app-border)]">
     <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3', color)}>
       {icon}
     </div>
@@ -55,7 +55,7 @@ const DailyOpsPage: React.FC<DailyOpsPageProps> = ({ summary, className }) => {
   const { t } = useTranslation();
 
   return (
-    <div className={cn('p-4 space-y-5', className)}>
+    <div className={cn('p-4 max-md:p-3 max-md:p-4 space-y-5', className)}>
       {/* Page Title */}
       <div>
         <h1 className="text-xl font-black text-[var(--app-text)]">{t('daily_operations') || 'العمليات اليومية'}</h1>
@@ -90,9 +90,9 @@ const DailyOpsPage: React.FC<DailyOpsPageProps> = ({ summary, className }) => {
             <button
               key={action.path}
               onClick={() => navigate(action.path)}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-200 active:scale-95 hover:shadow-md"
+              className="flex flex-col items-center gap-2 p-4 max-md:p-3 max-md:p-4 rounded-2xl max-md:rounded-xl transition-all duration-200 active:scale-95 hover:shadow-md"
             >
-              <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center transition-all', action.bgColor, action.color)}>
+              <div className={cn('w-12 h-12 rounded-2xl max-md:rounded-xl flex items-center justify-center transition-all', action.bgColor, action.color)}>
                 {action.icon}
               </div>
               <span className="text-[10px] font-bold text-[var(--app-text-secondary)] text-center leading-tight">

@@ -32,7 +32,7 @@ const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
     };
 
     return (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 rounded-2xl border border-amber-200/50 dark:border-amber-800/30 p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 rounded-2xl max-md:rounded-xl border border-amber-200/50 dark:border-amber-800/30 p-4 max-md:p-3 max-md:p-4 shadow-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-500/20">

@@ -100,8 +100,8 @@ const AISmartNotifications: React.FC<AISmartNotificationsProps> = ({ stats, lowS
     };
 
     return (
-        <div className={`bg-gradient-to-r ${colorMap[current.type]} border rounded-2xl p-3 flex items-center gap-3 transition-all`}>
-            <span className="text-xl flex-shrink-0">{current.icon}</span>
+        <div className={`bg-gradient-to-r ${colorMap[current.type]} border rounded-2xl max-md:rounded-xl p-3 flex items-center gap-3 transition-all`}>
+            <span className="text-xl max-md:text-base flex-shrink-0">{current.icon}</span>
             <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-[var(--app-text)] truncate">{current.title}</p>
                 <p className="text-[10px] text-[var(--app-text-secondary)] truncate">{current.description}</p>

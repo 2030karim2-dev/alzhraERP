@@ -16,7 +16,7 @@ const AlertsSection: React.FC = () => {
 
     return (
         <div className={cn(
-            "p-3 rounded-2xl border-2 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2",
+            "p-3 rounded-2xl max-md:rounded-xl border-2 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2",
             "bg-rose-50/50 dark:bg-rose-950/10 border-rose-100 dark:border-rose-900/30"
         )}>
             <div className="flex items-center gap-3">
