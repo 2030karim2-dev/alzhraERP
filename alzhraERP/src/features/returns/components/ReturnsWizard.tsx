@@ -84,7 +84,7 @@ const ReturnsWizard: React.FC<Props> = ({ isOpen, onClose, returnType, invoices:
                                     <p className="font-bold tracking-widest uppercase text-xs">جاري تحميل الفواتير...</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 max-md:gap-3 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {invoices?.map((invoice: Invoice) => (
                                         <div
                                             key={invoice.id}

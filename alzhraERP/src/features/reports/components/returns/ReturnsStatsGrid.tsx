@@ -15,7 +15,7 @@ interface Props {
 
 const ReturnsStatsGrid: React.FC<Props> = ({ stats }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 max-md:gap-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="glass-card bento-item p-8 group hover:scale-[1.02] transition-all duration-500 border-none shadow-xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl">
                 <div className="flex justify-between items-start mb-6">
                     <div className="p-3 bg-blue-500/10 rounded-2xl group-hover:bg-blue-500/20 transition-colors">

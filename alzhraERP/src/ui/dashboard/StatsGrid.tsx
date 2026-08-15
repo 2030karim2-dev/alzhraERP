@@ -27,7 +27,7 @@ import { cn } from '../../core/utils';
 // };
 
 // Mini sparkline SVG component
-const MiniSparkline: React.FC<{ color: string }> = ({ color }) => {
+const MiniSparkline: React.FC<{ color: string; className?: string }> = ({ color, className }) => {
   // Generate random-ish but consistent sparkline points
   const points = [30, 45, 25, 60, 35, 55, 70];
   const w = 80, h = 28;
@@ -40,7 +40,7 @@ const MiniSparkline: React.FC<{ color: string }> = ({ color }) => {
   const fillCoords = `0,${h} ${coords} ${w},${h}`;
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="opacity-40 group-hover:opacity-70 transition-opacity duration-500">
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={cn("opacity-40 group-hover:opacity-70 transition-opacity duration-500", className)}>
       <defs>
         <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.4" />
@@ -179,7 +179,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
             )}></div>
 
             <div className={cn(
-              "relative overflow-hidden bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 rounded-3xl transition-all duration-300",
+              "relative overflow-hidden bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-3 max-md:p-2.5 rounded-3xl transition-all duration-300",
               "hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:border-[var(--accent)]/30"
             )}>
               {/* Background Pattern */}
@@ -188,7 +188,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                 <div className={cn("absolute -left-10 -bottom-10 w-24 h-24 rounded-full blur-[30px]", item.colorClass.replace('text-', 'bg-'))}></div>
               </div>
 
-              <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-2">
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col">
@@ -202,11 +202,11 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                     )}
                   </div>
                   <div className={cn(
-                    "p-2.5 rounded-2xl shadow-inner border border-white/5 backdrop-blur-md",
+                    "p-2.5 max-md:p-2 rounded-2xl shadow-inner border border-white/5 backdrop-blur-md",
                     item.gradientClass,
                     "bg-opacity-20"
                   )}>
-                    <item.icon size={20} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                    <item.icon size={20} className="text-white max-md:w-4 max-md:h-4 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   </div>
                 </div>
 
@@ -215,7 +215,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                   <h3 className="text-lg md:text-xl font-bold text-[var(--app-text)] font-mono tracking-tighter leading-none drop-shadow-md whitespace-nowrap shrink-0">
                     {item.value}
                   </h3>
-                  <MiniSparkline color={sparkColor} />
+                  <MiniSparkline color={sparkColor} className="hidden md:block" />
                 </div>
 
                 {/* Trend Badge */}

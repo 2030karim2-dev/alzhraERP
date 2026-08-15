@@ -67,13 +67,13 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
     return (
         <>
             {/* KPI Cards Row 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 max-md:gap-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total Sales */}
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-2xl text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 max-md:p-4 rounded-2xl text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                                 <DollarSign size={24} className="text-white" />
                             </div>
                             {salesGrowth !== null && salesGrowth !== undefined && (
@@ -94,9 +94,9 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Net Sales */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <TrendingUp size={24} className="text-emerald-600" />
                         </div>
                         <GrowthBadge value={salesGrowth} />
@@ -108,9 +108,9 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Invoice Count */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Receipt size={24} className="text-purple-600" />
                         </div>
                     </div>
@@ -122,9 +122,9 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Average Invoice */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <BarChart3 size={24} className="text-amber-600" />
                         </div>
                         <GrowthBadge value={salesGrowth} />

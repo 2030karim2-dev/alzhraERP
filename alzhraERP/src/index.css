@@ -703,6 +703,69 @@ a:focus-visible {
     font-size: 1.0625rem;
   }
 
+  .text-5xl {
+    font-size: 2.125rem;
+  }
+
+  /* ضغط gap في الأعمدة والصفوف */
+  .gap-8 {
+    gap: 0.875rem;
+  }
+
+  .gap-3 {
+    gap: 0.5rem;
+  }
+
+  .gap-2 {
+    gap: 0.3125rem;
+  }
+
+  /* ضغط مسافات p-3 وp-8 */
+  .p-3 {
+    padding: 0.5rem;
+  }
+
+  .p-8 {
+    padding: 1rem;
+  }
+
+  .px-3 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .py-3 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* ضغط الظلال القوية لتوفير الأداء على الهاتف */
+  .shadow-2xl {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .shadow-xl {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ضغط الأيقونات الكبيرة في الأزرار التفاعلية */
+  button svg,
+  .btn svg {
+    max-width: 1.25rem;
+    max-height: 1.25rem;
+  }
+
+  /* أحجام لمس ملائمة: أزرار لا تقل عن 44×44px (توصية Apple/Google) */
+  button,
+  .btn {
+    min-width: 2.75rem;
+  }
+
+  /* منع التفاف النصوص الطويلة في الخلايا والعناوين القصيرة */
+  .whitespace-nowrap {
+    overflow: visible;
+  }
+
   /* حجم لمس مناسب للحقول (يمنع التكبير التلقائي في iOS عند focus) */
   input:not([type='checkbox']):not([type='radio']),
   select,

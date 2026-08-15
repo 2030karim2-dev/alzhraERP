@@ -17,7 +17,7 @@ const QuickActions: React.FC<{ className?: string }> = ({ className }) => {
 
   return (
     <div className={cn(
-      "bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl p-4 overflow-hidden relative",
+      "bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl p-4 max-md:p-3 overflow-hidden relative",
       className
     )}>
       {/* Ambient glow */}
@@ -37,13 +37,13 @@ const QuickActions: React.FC<{ className?: string }> = ({ className }) => {
               className="flex flex-col items-center gap-1.5 group"
             >
               <div className={cn(
-                "w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300",
+                "w-11 h-11 max-md:w-10 max-md:h-10 rounded-xl flex items-center justify-center border transition-all duration-300",
                 "group-hover:-translate-y-1 group-hover:scale-110 group:active:scale-95",
                 action.bg
               )}>
                 <action.icon size={18} style={{ color: action.color, filter: `drop-shadow(0 0 4px ${action.color}40)` }} />
               </div>
-              <span className="text-[8px] font-bold text-[var(--app-text-secondary)] group-hover:text-[var(--app-text)] transition-colors">
+              <span className="text-[8px] font-bold text-[var(--app-text-secondary)] group-hover:text-[var(--app-text)] transition-colors text-center leading-tight">
                 {action.label}
               </span>
             </button>

@@ -20,7 +20,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
     return (
         <div className="space-y-10 animate-in fade-in duration-1000 pb-20">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 max-md:gap-3 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Total Expenses */}
                 <div className="bg-gradient-to-br from-rose-600 to-rose-700 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-rose-500/30 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
                     <div className="absolute top-0 right-0 p-6 opacity-20 transform group-hover:rotate-12 transition-transform duration-500">

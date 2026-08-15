@@ -135,7 +135,7 @@ const POSPage: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden flex-row-reverse relative p-2 md:p-4 lg:p-6 md:gap-4 lg:gap-6 bg-gray-50/50 dark:bg-slate-950/50">
                 <aside className={`
-          ${isDesktop ? 'w-[400px] lg:w-[450px] xl:w-[500px] 2xl:w-[550px] 3xl:w-[600px] rounded-3xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] border dark:border-slate-800' : (activeMobileTab === 'cart' ? 'w-full' : 'hidden')}
+          ${isDesktop ? 'w-[400px] lg:w-[450px] xl:w-[500px] 2xl:w-[550px] 3xl:w-[600px] rounded-3xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] border dark:border-slate-800' : (activeMobileTab === 'cart' ? 'w-full min-w-0' : 'hidden')}
           flex flex-col h-full bg-white dark:bg-slate-900 relative z-20 transition-all duration-300 overflow-hidden
         `}>
                     {!isDesktop && (

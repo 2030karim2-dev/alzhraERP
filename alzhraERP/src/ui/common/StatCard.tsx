@@ -34,7 +34,7 @@ const StatCard: React.FC<StatCardProps> = ({
   return (
     <div className={cn(
       "bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:shadow-md hover:border-blue-500/20 stat-card",
-      isCompact ? "p-3 lg:p-4" : "p-3 md:p-4 lg:p-5 xl:p-6 lg:rounded-2xl",
+      isCompact ? "p-3 lg:p-4" : "p-3 max-md:p-2.5 md:p-4 lg:p-5 xl:p-6 lg:rounded-2xl",
       className
     )}>
       <div className={cn("flex justify-between items-start", isCompact ? "mb-1" : "mb-2")}>
@@ -47,7 +47,7 @@ const StatCard: React.FC<StatCardProps> = ({
           </span>
           <h3 className={cn(
             "font-bold font-mono leading-none tracking-tight truncate",
-            isCompact ? "text-lg lg:text-xl" : "text-xl md:text-2xl lg:text-3xl",
+            isCompact ? "text-lg lg:text-xl" : "text-xl max-md:text-lg md:text-2xl lg:text-3xl",
             colorClass
           )}>
             {value}
@@ -55,12 +55,12 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
         <div className={cn(
           "rounded-lg transition-transform group-hover:scale-110 flex items-center justify-center",
-          isCompact ? "p-1.5 lg:p-2" : "p-2 lg:p-3 lg:rounded-xl",
+          isCompact ? "p-1.5 lg:p-2" : "p-2 max-md:p-1.5 lg:p-3 lg:rounded-xl",
           iconBgClass + " bg-opacity-10"
         )}>
           <Icon className={cn(
             colorClass,
-            isCompact ? "w-3.5 h-3.5 lg:w-4 lg:h-4" : "w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
+            isCompact ? "w-3.5 h-3.5 lg:w-4 lg:h-4" : "w-4 h-4 max-md:w-3.5 max-md:h-3.5 md:w-5 md:h-5 lg:w-6 lg:h-6"
           )} />
         </div>
       </div>

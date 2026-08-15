@@ -98,7 +98,7 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
 
     return (
         <div className={cn(
-            "relative bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl p-4 overflow-hidden",
+            "relative bg-[var(--app-surface)]/90 backdrop-blur-2xl border border-[var(--app-border)] rounded-2xl p-4 max-md:p-3 overflow-hidden",
             className
         )}>
             <div
@@ -106,10 +106,10 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
                 style={{ background: `radial-gradient(ellipse at 30% 50%, ${scoreColor.glow} 0%, transparent 70%)` }}
             />
 
-            <div className="relative z-10 flex items-center gap-4">
+            <div className="relative z-10 flex items-center gap-4 max-md:gap-3">
                 {/* Compact SVG Gauge */}
                 <div className="relative flex-shrink-0">
-                    <svg width="120" height="120" viewBox="0 0 120 120" className="transform -rotate-90">
+                    <svg width="120" height="120" viewBox="0 0 120 120" className="transform -rotate-90 w-24 h-24 max-md:w-20 max-md:h-20">
                         <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
                         {Array.from({ length: 16 }).map((_, i) => {
                             const angle = (i / 16) * 360;
@@ -133,7 +133,7 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <Heart size={12} style={{ color: scoreColor.main, filter: `drop-shadow(0 0 4px ${scoreColor.glow})` }} />
-                        <span className="text-2xl font-bold font-mono tracking-tighter text-[var(--app-text)]" style={{ textShadow: `0 0 16px ${scoreColor.glow}` }}>
+                        <span className="text-2xl max-md:text-xl font-bold font-mono tracking-tighter text-[var(--app-text)]" style={{ textShadow: `0 0 16px ${scoreColor.glow}` }}>
                             {animatedScore}
                         </span>
                         <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: scoreColor.main }}>

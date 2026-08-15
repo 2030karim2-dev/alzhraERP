@@ -29,7 +29,7 @@ const SmartSuggestionsSection: React.FC<SmartSuggestionsSectionProps> = ({ sugge
                 </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 max-md:gap-2 md:grid-cols-2 lg:grid-cols-4 gap-2">
                 {suggestions.map((s, i) => (
                     <div key={i} className={cn("rounded-lg border p-2 bg-white/50 dark:bg-slate-900/50", priorityColors[s.priority])}>
                         <div className="flex items-start justify-between gap-1 mb-1.5">

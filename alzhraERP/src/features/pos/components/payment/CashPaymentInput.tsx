@@ -20,7 +20,7 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
     const change = receivedNum - total;
 
     return (
-        <div className="px-4 pt-3 pb-1 space-y-3">
+        <div className="px-4 max-md:px-3 pt-3 pb-1 space-y-3">
             <div>
                 <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                     {t('amount_received_from_customer')}
@@ -30,14 +30,14 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
                     type="number"
                     value={received}
                     onChange={e => onReceivedChange(e.target.value)}
-                    className="w-full text-center text-3xl font-black py-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl outline-none font-mono text-slate-800 dark:text-white focus:bg-blue-50/20 dark:focus:bg-blue-900/10 border border-slate-200 dark:border-slate-700 focus:border-blue-400 transition-all"
+                    className="w-full text-center text-3xl max-md:text-2xl font-black py-4 max-md:py-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl outline-none font-mono text-slate-800 dark:text-white focus:bg-blue-50/20 dark:focus:bg-blue-900/10 border border-slate-200 dark:border-slate-700 focus:border-blue-400 transition-all"
                     dir="ltr"
                     placeholder="0"
                     min={0}
                 />
             </div>
 
-            <div className="grid grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-6 gap-1.5 max-md:gap-1">
                 {QUICK_AMOUNTS.map(amt => (
                     <button
                         key={amt}
@@ -57,7 +57,7 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
 
             {receivedNum > 0 && (
                 <div className={cn(
-                    "flex items-center justify-between rounded-xl px-4 py-3 border",
+                    "flex items-center justify-between rounded-xl px-4 max-md:px-3 py-3 max-md:py-2 border",
                     change >= 0
                         ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30"
                         : "bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/30"
@@ -68,7 +68,7 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
                         )}>
                             {change >= 0 ? t('change_due') : "المبلغ المتبقي"}
                         </p>
-                        <p dir="ltr" className={cn("text-2xl font-black font-mono mt-0.5",
+                        <p dir="ltr" className={cn("text-2xl max-md:text-xl font-black font-mono mt-0.5",
                             change >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600"
                         )}>
                             {change >= 0 && change.toLocaleString()} {change < 0 && '-' + Math.abs(change).toLocaleString()} {currency}
