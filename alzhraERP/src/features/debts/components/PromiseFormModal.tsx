@@ -213,8 +213,8 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-md:mx-2 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 max-md:p-2.5 border-b border-gray-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-amber-500 text-white rounded-xl shadow-lg shadow-amber-500/20">
               <Handshake size={16} />
@@ -234,7 +234,7 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 max-md:p-2.5 space-y-4 max-md:space-y-2.5">
           <PartyField
             id="promise-party"
             value={form.party_id}
@@ -273,19 +273,19 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-2 p-4 max-md:p-2.5 border-t border-gray-200 dark:border-slate-800">
           <button
             onClick={() => {
               onClose();
             }}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className="px-4 max-md:px-2.5 py-2 max-md:py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
           >
             إلغاء
           </button>
           <button
             onClick={handleSubmit}
             disabled={!form.party_id || !(Number(form.amount) > 0) || !form.promise_date || isSaving}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 max-md:px-2.5 py-2 max-md:py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {promise ? 'حفظ التعديل' : 'تسجيل الوعد'}
           </button>

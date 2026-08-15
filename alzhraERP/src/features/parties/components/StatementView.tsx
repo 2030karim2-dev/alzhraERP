@@ -134,7 +134,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         .print-only { display: none; }
       `}</style>
       
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border dark:border-slate-800 flex flex-wrap gap-4 items-end no-print">
+      <div className="bg-white dark:bg-slate-900 p-4 max-md:p-2.5 rounded-xl border dark:border-slate-800 flex flex-wrap gap-4 max-md:gap-2 items-end no-print">
         <div className="flex-1 min-w-[200px]">
           <label className="text-xs font-bold text-gray-500">اختر {partyType === 'customer' ? 'العميل' : 'المورد'}</label>
           <select
@@ -242,7 +242,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
           isLoading ? <div className="p-20 text-center">جاري تحميل الكشف...</div> :
             <>
               {/* Professional Header - Visible on screen and print */}
-              <div className="mb-6 border-b-2 border-[#1F4E78] pb-4 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm">
+              <div className="mb-6 screen:max-md:mb-3 border-b-2 border-[#1F4E78] pb-4 screen:max-md:pb-2 bg-white dark:bg-slate-900 p-6 screen:max-md:p-3 rounded-xl shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                       <div className="text-right flex-1">
                           <h1 className="text-xl font-bold text-[#1F4E78]">{company.nameAr}</h1>
@@ -255,7 +255,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                       </div>
                       <div className="flex-1 text-center">
                           {company.headerText && <p className="text-sm font-bold text-gray-500">{company.headerText}</p>}
-                          <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-2 bg-gray-100 dark:bg-slate-800 inline-block px-4 py-1 rounded">كشف حساب</h2>
+                          <h2 className="text-xl screen:max-md:text-base font-bold text-gray-800 dark:text-white mt-2 bg-gray-100 dark:bg-slate-800 inline-block px-4 py-1 rounded">كشف حساب</h2>
                       </div>
                       <div className="text-left flex-1" dir="ltr">
                           <h1 className="text-xl font-bold text-[#1F4E78]">{company.nameEn}</h1>
@@ -275,7 +275,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
               <ExcelTable columns={columns} data={filteredStatement || []} title={`كشف حساب: ${selectedParty?.name}`} colorTheme={partyType === 'customer' ? 'green' : 'blue'} />
 
               {filteredStatement && filteredStatement.length > 0 && (
-                <div className="mt-6 p-6 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl shadow-xl shadow-blue-500/5 overflow-hidden relative group">
+                <div className="mt-6 screen:max-md:mt-3 p-6 screen:max-md:p-3 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl shadow-xl shadow-blue-500/5 overflow-hidden relative group">
                   {/* Background Accent */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-blue-500/10 transition-colors no-print" />
 
@@ -312,7 +312,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
 
                           <div className="md:col-span-1 bg-gray-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 flex flex-col items-center justify-center text-center shadow-inner">
                             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">صافي الرصيد</span>
-                            <span dir="ltr" className={cn("text-3xl font-bold font-mono tracking-tighter", isDebit ? "text-emerald-600" : isCredit ? "text-rose-600" : "text-gray-800")}>
+                            <span dir="ltr" className={cn("text-3xl screen:max-md:text-2xl font-bold font-mono tracking-tighter", isDebit ? "text-emerald-600" : isCredit ? "text-rose-600" : "text-gray-800")}>
                               {formatCurrency(finalBalance)}
                             </span>
                           </div>
@@ -322,7 +322,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 no-print" />
                               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">التفقيط (كتابةً)</span>
                             </div>
-                            <div className="p-4 bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-900/30">
+                            <div className="p-4 screen:max-md:p-2.5 bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-900/30">
                               <p className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
                                 {finalBalance === 0 ? 'الرصيد مصفر حالياً' : `فقط ${tafqeet(absBalance)} لا غير.`}
                               </p>

@@ -20,14 +20,14 @@ const OutboxPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-md:space-y-2.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1.5">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
               onClick={() => { setStatusFilter(f.value); }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 max-md:px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 statusFilter === f.value
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                   : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
@@ -43,9 +43,9 @@ const OutboxPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-16 text-center text-sm text-[var(--app-text-secondary)]">جاري التحميل...</div>
+        <div className="p-16 max-md:p-8 text-center text-sm text-[var(--app-text-secondary)]">جاري التحميل...</div>
       ) : filtered.length === 0 ? (
-        <div className="p-14 text-center text-sm text-[var(--app-text-secondary)] border-2 border-dashed border-[var(--app-border)] rounded-2xl">
+        <div className="p-14 max-md:p-6 text-center text-sm text-[var(--app-text-secondary)] border-2 border-dashed border-[var(--app-border)] rounded-2xl">
           لا توجد رسائل في هذا التصنيف
         </div>
       ) : (
@@ -53,11 +53,11 @@ const OutboxPage: React.FC = () => {
           <table className="w-full text-right">
             <thead>
               <tr className="text-[10px] font-bold text-[var(--app-text-secondary)] border-b border-[var(--app-border)] bg-[var(--app-surface-hover)]/50">
-                <th className="px-4 py-3">العميل</th>
-                <th className="px-4 py-3">الرسالة</th>
-                <th className="px-4 py-3">القناة</th>
-                <th className="px-4 py-3">الحالة</th>
-                <th className="px-4 py-3">الوقت</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2">العميل</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2">الرسالة</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2">القناة</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2">الحالة</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2">الوقت</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--app-border)]">
@@ -65,7 +65,7 @@ const OutboxPage: React.FC = () => {
                 const meta = MESSAGE_STATUS_META[m.status] ?? MESSAGE_STATUS_META.sent;
                 return (
                   <tr key={m.id} className="hover:bg-[var(--app-surface-hover)] transition-colors">
-                    <td className="px-4 py-3">
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                       <span className="text-xs font-bold text-[var(--app-text)]">
                         {m.parties?.name ?? '—'}
                       </span>
@@ -75,7 +75,7 @@ const OutboxPage: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 max-w-md">
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2 max-w-md">
                       <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-2 leading-relaxed">
                         {m.message_text}
                       </p>
@@ -85,15 +85,15 @@ const OutboxPage: React.FC = () => {
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                       <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">
                         {m.channel}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                       <StatusBadge {...meta} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                       <span className="text-[10px] font-mono text-[var(--app-text-secondary)]">
                         {new Date(m.created_at).toLocaleString('ar-SA')}
                       </span>

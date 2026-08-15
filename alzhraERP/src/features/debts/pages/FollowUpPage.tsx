@@ -27,7 +27,7 @@ const FollowUpPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 gap-4">
+      <div className="flex flex-col items-center justify-center p-20 max-md:p-8 gap-4">
         <div className="w-14 h-14 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
         <p className="text-slate-400 font-bold text-[10px] animate-pulse uppercase">
           جاري تصنيف الديون من الخادم...
@@ -37,7 +37,7 @@ const FollowUpPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-md:space-y-2.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FollowUpTabs active={tab} onChange={setTab} counts={counts} />
         <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">

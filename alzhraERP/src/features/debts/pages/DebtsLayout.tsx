@@ -29,7 +29,7 @@ const SERVICE_TABS: ServiceTab[] = [
 ];
 
 const DebtsLayout: React.FC = () => (
-  <div className="space-y-4 p-4 md:p-6">
+  <div className="space-y-4 max-md:space-y-3 p-4 max-md:p-2.5 md:p-6">
     <header className="flex items-center justify-between flex-wrap gap-3">
       <div>
         <h1 className="text-lg md:text-xl font-extrabold tracking-tight text-[var(--app-text)]">

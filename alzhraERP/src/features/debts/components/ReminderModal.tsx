@@ -91,8 +91,8 @@ const ModalShell: React.FC<{
   footer: React.ReactNode;
 }> = ({ title, subtitle, iconBg, onClose, children, footer }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-md:mx-2 max-h-[90vh] overflow-y-auto">
+      <div className="flex items-center justify-between p-4 max-md:p-2.5 border-b border-gray-200 dark:border-slate-800">
         <div className="flex items-center gap-2">
           <div className={cn('p-2 text-white rounded-xl shadow-lg', iconBg)}>
             <MessageSquare size={16} />
@@ -111,8 +111,8 @@ const ModalShell: React.FC<{
           <X size={18} />
         </button>
       </div>
-      <div className="p-4 space-y-4">{children}</div>
-      <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 dark:border-slate-800">
+      <div className="p-4 max-md:p-2.5 space-y-4 max-md:space-y-2.5">{children}</div>
+      <div className="flex items-center justify-end gap-2 p-4 max-md:p-2.5 border-t border-gray-200 dark:border-slate-800">
         {footer}
       </div>
     </div>
@@ -189,7 +189,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, row }) =
             onClick={() => {
               onClose();
             }}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className="px-4 max-md:px-2.5 py-2 max-md:py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
           >
             إغلاق
           </button>
