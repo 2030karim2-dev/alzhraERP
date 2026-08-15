@@ -59,7 +59,7 @@ const ExpenseBreakdownChart: React.FC<Props> = ({ data }) => {
 
   return (
     <div className="h-[320px] w-full relative group">
-      <div className="absolute top-0 right-0 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-0 right-0 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100">
         Interactive Analysis
       </div>
       <ResponsiveContainer width="100%" height={320} minWidth={1} minHeight={1}>

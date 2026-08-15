@@ -147,7 +147,7 @@ const InventoryMovementView: React.FC = () => {
                                             <p className="text-[10px] font-black opacity-60 uppercase tracking-widest">{p.sku}</p>
                                         </div>
                                     </div>
-                                    <Zap size={14} className="opacity-0 group-hover:opacity-100 transition-all scale-0 group-hover:scale-100" />
+                                    <Zap size={14} className="opacity-0 group-hover:opacity-100 transition-all scale-0 group-hover:scale-100 max-md:opacity-100" />
                                 </div>
                             ))}
                         </div>

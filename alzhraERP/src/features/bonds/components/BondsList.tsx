@@ -97,7 +97,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
     if (displayMode === 'table') {
         return (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
-                <table className="w-full text-right border-collapse min-w-[800px]">
+                <table className="w-full text-right border-collapse max-md:min-w-0 min-w-[800px]">
                     <thead>
                         <tr className="bg-gray-50 dark:bg-slate-800/50 border-b dark:border-slate-800 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
                             <th className="px-4 py-3 font-bold">التاريخ</th>
@@ -154,7 +154,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                     </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                    <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                    <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100">
                                         <button onClick={() => handleWhatsAppShare(bond)} className="p-1.5 rounded-lg text-gray-300 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="إرسال عبر واتساب">
                                             <MessageCircle size={14} />
                                         </button>
@@ -221,7 +221,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                     {bond.payment_method === 'cash' ? 'نقداً' : bond.payment_method === 'bank' ? 'بنك' : bond.payment_method}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100">
                                 <button onClick={() => handleWhatsAppShare(bond)} className="p-1.5 rounded-lg text-gray-300 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="واتساب">
                                     <MessageCircle size={14} />
                                 </button>

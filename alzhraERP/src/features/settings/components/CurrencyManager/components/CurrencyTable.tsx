@@ -163,7 +163,7 @@ export const CurrencyTable: React.FC<CurrencyTableProps> = ({
                                                         المعادل = المبلغ {curr.exchange_operator === 'multiply' ? '×' : '÷'} {currentRate}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 opacity-0 group-hover/edit:opacity-100 transition-all translate-x-4 group-hover/edit:translate-x-0">
+                                                <div className="flex items-center gap-1.5 opacity-0 group-hover/edit:opacity-100 transition-all translate-x-4 max-md:translate-x-0 max-md:opacity-100 group-hover/edit:translate-x-0">
                                                     <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">تعديل</span>
                                                     <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                                         <ArrowRightLeft size={12} />
@@ -176,7 +176,7 @@ export const CurrencyTable: React.FC<CurrencyTableProps> = ({
                                         <div className="absolute inset-0 bg-gradient-to-bl from-rose-500/5 to-transparent opacity-0 hover:opacity-100 transition-opacity rounded-r-2xl pointer-events-none"></div>
                                         <button
                                             onClick={() => { if (confirm('هل أنت متأكد من مسح هذه العملة نهائياً بنظام لا رجعة فيه؟')) deleteCurrency(curr.code); }}
-                                            className="relative p-2.5 mx-auto flex text-gray-300 dark:text-gray-600 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all opacity-0 group-hover:opacity-100 hover:shadow-lg hover:shadow-rose-500/20 hover:scale-110 active:scale-95"
+                                            className="relative p-2.5 mx-auto flex text-gray-300 dark:text-gray-600 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all opacity-0 group-hover:opacity-100 hover:shadow-lg max-md:opacity-100 hover:shadow-rose-500/20 hover:scale-110 active:scale-95"
                                             title="حذف العملة من النظام"
                                         >
                                             <Trash2 size={16} />

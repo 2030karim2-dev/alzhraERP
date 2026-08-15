@@ -68,7 +68,7 @@ const AlternativePartSuggestion: React.FC<AlternativePartSuggestionProps> = ({
               )}
               <p className="text-[10px] text-[var(--app-text-secondary)]">المخزون: {alt.stockQuantity}</p>
             </div>
-            <CheckCircle size={16} className="text-[var(--app-text-secondary)] opacity-0 group-hover:opacity-100 group-hover:text-emerald-500 transition-all flex-shrink-0" />
+            <CheckCircle size={16} className="text-[var(--app-text-secondary)] opacity-0 group-hover:opacity-100 group-hover:text-emerald-500 transition-all flex-shrink-0 max-md:opacity-100" />
           </button>
         ))}
       </div>

@@ -65,7 +65,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       />
                       <button 
                         onClick={() => handleOpenProductSearch(idx, item.description)}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover/search:opacity-100 transition-all"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover/search:opacity-100 max-md:opacity-100 transition-all"
                       >
                         <Search size={14} />
                       </button>

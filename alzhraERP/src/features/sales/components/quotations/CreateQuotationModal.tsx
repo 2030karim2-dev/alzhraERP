@@ -120,7 +120,7 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
                                 <span className="text-xs font-bold">{c.name}</span>
                                 <span className="text-[10px] opacity-60">{c.phone}</span>
                               </div>
-                              <Check size={12} className="opacity-0 group-hover:opacity-100" />
+                              <Check size={12} className="opacity-0 group-hover:opacity-100 max-md:opacity-100" />
                             </li>
                           ))}
                         </ul>

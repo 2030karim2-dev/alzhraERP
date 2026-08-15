@@ -55,7 +55,7 @@ const WarehouseManager: React.FC = () => {
             tags={[]}
             onClick={() => handleEdit(wh)}
             actions={
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100">
                 <button onClick={(e) => { e.stopPropagation(); handleEdit(wh); }} className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:bg-blue-950/20 rounded-lg" title="تعديل">
                   <Edit size={14} />
                 </button>

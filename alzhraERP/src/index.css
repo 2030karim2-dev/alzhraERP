@@ -595,6 +595,149 @@ a:focus-visible {
 }
 
 /* ============================================================
+   Phone Compact Layer — Mobile-First
+   يضغط الأحجام والمسافات والحواف على شاشات الهاتف العمودية
+   مع الحفاظ على أحجام اللمس الملائمة (Touch Targets)
+   ============================================================ */
+@media (max-width: 639px) {
+
+  /* تقليل زاوية الحواف العامة */
+  :root {
+    --radius: 0.375rem;
+    --scale: 0.95;
+  }
+
+  /* ضغط الزوايا الكبيرة في البطاقات والحواف */
+  .rounded-3xl {
+    border-radius: 0.75rem;
+  }
+
+  .rounded-2xl {
+    border-radius: 0.625rem;
+  }
+
+  .rounded-xl {
+    border-radius: 0.5rem;
+  }
+
+  /* ضغط المسافات الداخلية للبطاقات والأقسام */
+  .p-6 {
+    padding: 0.75rem;
+  }
+
+  .p-5 {
+    padding: 0.6875rem;
+  }
+
+  .p-4 {
+    padding: 0.625rem;
+  }
+
+  .px-6 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .px-5 {
+    padding-left: 0.6875rem;
+    padding-right: 0.6875rem;
+  }
+
+  .px-4 {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+
+  .py-6 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .py-5 {
+    padding-top: 0.6875rem;
+    padding-bottom: 0.6875rem;
+  }
+
+  .py-4 {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .gap-6 {
+    gap: 0.75rem;
+  }
+
+  .gap-4 {
+    gap: 0.625rem;
+  }
+
+  /* ضغط أحجام العناوين والنصوص الكبيرة المبالغ فيها */
+  h1 {
+    font-size: 1.25rem;
+    line-height: 1.6;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .text-4xl {
+    font-size: 1.875rem;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+
+  .text-xl {
+    font-size: 1.0625rem;
+  }
+
+  /* حجم لمس مناسب للحقول (يمنع التكبير التلقائي في iOS عند focus) */
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    min-height: 2.5rem;
+    font-size: 1rem;
+  }
+
+  /* حجم لمس مناسب للأزرار */
+  button,
+  .btn {
+    min-height: 2.375rem;
+  }
+
+  /* ضغط خلايا الجداول مع الحفاظ على قابلية القراءة */
+  td,
+  th {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+}
+
+/* منع التمرير الأفقي غير المقصود على مستوى الصفحة في الهاتف */
+@media (max-width: 639px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================
    HiDPI / Retina Display Styles
    ============================================================ */
 

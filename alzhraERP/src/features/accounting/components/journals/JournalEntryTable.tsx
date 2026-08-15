@@ -104,7 +104,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                             <button
                                 type="button"
                                 onClick={() => remove(index)}
-                                className="absolute -left-10 top-2 p-1.5 text-gray-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                className="absolute -left-10 top-2 p-1.5 text-gray-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                             >
                                 <Trash2 size={16} />
                             </button>

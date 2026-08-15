@@ -133,7 +133,7 @@ const SyncStatusModal: React.FC<SyncStatusModalProps> = ({ isOpen, onClose }) =>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => handleRemove(item.id)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all md:opacity-0 group-hover:opacity-100"
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all md:opacity-0 group-hover:opacity-100 max-md:opacity-100"
                                             title="حذف العملية"
                                         >
                                             <Trash2 size={16} />

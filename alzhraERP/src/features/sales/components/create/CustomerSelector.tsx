@@ -93,7 +93,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                         <p className="text-[10px] font-bold">{customer.name}</p>
                         <p className="text-[8px] opacity-60 font-mono">{customer.phone}</p>
                       </div>
-                      <Check size={12} className="opacity-0 group-hover:opacity-100" />
+                      <Check size={12} className="opacity-0 group-hover:opacity-100 max-md:opacity-100" />
                     </li>
                   ))}
                 </ul>

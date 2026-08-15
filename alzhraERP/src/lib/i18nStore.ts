@@ -53,7 +53,7 @@ export const useI18nStore = create<I18nState>()(
           dir: lang === 'ar' ? 'rtl' : 'ltr'
         });
 
-        // Update document direction
+        // تحديث اتجاه الصفحة
         if (typeof document !== 'undefined') {
           document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
           document.documentElement.lang = lang;
@@ -64,6 +64,11 @@ export const useI18nStore = create<I18nState>()(
       name: 'alzhra-i18n',
       partialize: (state) => ({
         lang: state.lang
+      }),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...(persistedState as object),
+        dictionary: dictionaries[(persistedState as any)?.lang || 'ar']
       })
     }
   )

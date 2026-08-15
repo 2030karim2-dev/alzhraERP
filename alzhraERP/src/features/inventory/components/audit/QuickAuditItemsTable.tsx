@@ -109,7 +109,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border-2 border-slate-200 dark:border-slate-800 overflow-hidden max-w-full">
             <div className="overflow-x-auto custom-scrollbar bg-white dark:bg-slate-950">
-                <table className="w-full text-right text-xs border-collapse min-w-[900px]">
+                <table className="w-full text-right text-xs border-collapse max-md:min-w-0 min-w-[900px]">
                     <thead>
                         <tr className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-gray-100 font-black border-b-2 border-slate-200 dark:border-slate-700">
                             <th className="py-3 px-4 border-l border-slate-200 dark:border-slate-700 min-w-[200px] text-start">اسم القطعة</th>
@@ -157,7 +157,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                                     <td className="py-2 px-3 text-center">
                                         <button
                                             onClick={() => onRemoveItem(item.product_id)}
-                                            className="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                                            className="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100 max-md:opacity-100"
                                         >
                                             <X size={14} strokeWidth={3} />
                                         </button>

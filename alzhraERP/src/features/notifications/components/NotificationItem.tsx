@@ -51,7 +51,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onD
                         {/* Delete button - visible on hover */}
                         <button
                             onClick={onDelete}
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 max-md:opacity-100 
                          hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20
                          transition-all duration-200 focus:opacity-100 focus:outline-none"
                             aria-label="حذف الإشعار"
@@ -88,7 +88,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onD
             {/* Hover effect overlay */}
             <div className="absolute inset-0 bg-gradient-to-l from-blue-500/0 via-blue-500/0 to-blue-500/5 
                       dark:from-blue-500/0 dark:via-blue-500/0 dark:to-blue-500/10
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none max-md:opacity-100" />
         </div>
     );
 };

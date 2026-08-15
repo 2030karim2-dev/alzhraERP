@@ -25,7 +25,7 @@ const ReturnsTopParties: React.FC<Props> = ({ topParties, type }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                     {topParties.map((party, index) => (
                         <div key={index} className="group relative flex items-center justify-between p-6 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 overflow-hidden">
-                            <div className="absolute inset-y-0 right-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-y-0 right-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100" />
                             <div className="flex items-center gap-6">
                                 <div className="w-12 h-12 flex items-center justify-center bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl text-lg font-black italic group-hover:scale-110 transition-transform">
                                     #{index + 1}

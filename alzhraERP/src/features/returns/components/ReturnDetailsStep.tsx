@@ -114,7 +114,7 @@ export const ReturnDetailsStep: React.FC = () => {
                                     }`}>
                                     {reason.label}
                                 </span>
-                                <span className="text-[10px] text-slate-500 mt-1 text-center opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-1">
+                                <span className="text-[10px] text-slate-500 mt-1 text-center opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100 absolute bottom-1">
                                     {reason.description}
                                 </span>
                             </button>

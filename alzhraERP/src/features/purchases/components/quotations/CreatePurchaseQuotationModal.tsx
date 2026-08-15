@@ -174,7 +174,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
                                 <span className="text-xs font-bold">{s.name}</span>
                                 <span className="text-[10px] opacity-60">{s.phone}</span>
                               </div>
-                              <Check size={12} className="opacity-0 group-hover:opacity-100" />
+                              <Check size={12} className="opacity-0 group-hover:opacity-100 max-md:opacity-100" />
                             </li>
                           ))}
                         </ul>
@@ -258,7 +258,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
                           />
                           <button 
                             onClick={() => handleOpenProductSearch(idx, item.description)}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-violet-500 opacity-0 group-hover/search:opacity-100 transition-all"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-violet-500 opacity-0 group-hover/search:opacity-100 max-md:opacity-100 transition-all"
                           >
                             <Search size={14} />
                           </button>

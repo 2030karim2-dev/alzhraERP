@@ -374,5 +374,7 @@
   "vin_tab_decode": "فك الشاصي",
   "vin_tab_saved": "الشواصي المحفوظة",
   "vin_tab_inventory": "ربط المخزون",
-  "vin_tab_extract": "استخراج القطع"
+  "vin_tab_extract": "استخراج القطع",
+  "global_search_desc": "ابحث عن عميل، صنف، فاتورة...",
+  "back_to_home": "العودة للرئيسية"
 }

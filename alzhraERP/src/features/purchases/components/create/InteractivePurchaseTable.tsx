@@ -188,7 +188,7 @@ const InteractivePurchaseTable: React.FC = () => {
                                             className="flex-1 p-2 bg-transparent outline-none text-right font-bold text-[11px] text-blue-900 dark:text-slate-100 cursor-pointer placeholder:text-blue-200"
                                             placeholder="اختر صنفاً..."
                                         />
-                                        <Search size={12} className="text-blue-300 opacity-0 group-hover:opacity-100" />
+                                        <Search size={12} className="text-blue-300 opacity-0 group-hover:opacity-100 max-md:opacity-100" />
                                     </div>
                                 </td>
                                 <td className="p-2 border-l dark:border-slate-800 text-center text-[10px] font-mono font-bold text-gray-500">{item.partNumber || '---'}</td>

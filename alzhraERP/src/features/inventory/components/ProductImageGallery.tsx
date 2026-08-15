@@ -44,14 +44,14 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images, class
           <>
             <button
               onClick={() => setSelectedIdx(p => (p - 1 + images.length) % images.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg max-md:opacity-100"
               aria-label="السابق"
             >
               <ChevronUp size={16} className="rotate-90" />
             </button>
             <button
               onClick={() => setSelectedIdx(p => (p + 1) % images.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg max-md:opacity-100"
               aria-label="التالي"
             >
               <ChevronDown size={16} className="rotate-90" />

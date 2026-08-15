@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                             e.stopPropagation();
                             onViewDetails(product);
                         }}
-                        className="absolute top-1.5 left-1.5 w-7 h-7 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-blue-500 hover:text-white text-slate-500 dark:text-slate-300 shadow-md border border-slate-200 dark:border-slate-700 hover:border-blue-500 z-10"
+                        className="absolute top-1.5 left-1.5 w-7 h-7 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100 duration-200 hover:bg-blue-500 hover:text-white text-slate-500 dark:text-slate-300 shadow-md border border-slate-200 dark:border-slate-700 hover:border-blue-500 z-10"
                         title="عرض التفاصيل"
                     >
                         <Eye size={14} />

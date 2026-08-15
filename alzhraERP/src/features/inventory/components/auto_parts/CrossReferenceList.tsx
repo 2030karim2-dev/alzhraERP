@@ -137,7 +137,7 @@ export const CrossReferenceList: React.FC<CrossReferenceListProps> = ({ product 
                                         <td className="px-2 py-1.5 whitespace-nowrap text-left">
                                             <button
                                                 onClick={() => { if (window.confirm('فك الارتباط؟')) removeCrossReference(ref.id) }}
-                                                className="opacity-0 group-hover:opacity-100 p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
+                                                className="opacity-0 group-hover:opacity-100 p-1 text-rose-500 max-md:opacity-100 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
                                             >
                                                 <Trash2 size={11} />
                                             </button>
