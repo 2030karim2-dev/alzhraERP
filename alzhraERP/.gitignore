@@ -61,3 +61,6 @@ tmp/
 tsconfig.tsbuildinfo
 tmp_supabase_test.mjs
 supabase/.temp/
+
+# one-off / secret-bearing scripts
+test.ps1

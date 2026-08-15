@@ -23,14 +23,24 @@ const isValidSupabaseUrl = (url: string): boolean => {
   }
 };
 
-// Allow app to work without Supabase for development
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[Supabase] Missing environment variables. App will run in offline/demo mode.');
-} else if (!isValidSupabaseUrl(supabaseUrl)) {
-  console.error('[Supabase] Invalid URL format. Expected: https://your-project.supabase.co');
-}
+// ── Configuration guard ────────────────────────────────────────────────────────
+// The app MUST fail loudly when Supabase is not configured instead of silently
+// running on a mock client (which returned empty data / fake success and hid
+// real integration failures). The mock client is kept ONLY for unit tests.
+export const SUPABASE_CONFIG_ERROR: string | null = (() => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return 'لم يتم إعداد الاتصال بقاعدة البيانات.\nانسخ ملف .env.example إلى .env واملأ قيمتي VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY.';
+  }
+  if (!isValidSupabaseUrl(supabaseUrl)) {
+    return 'عنوان Supabase غير صالح. يجب أن يكون بصيغة https://your-project.supabase.co';
+  }
+  return null;
+})();
 
-const isSupabasePlaceholder = !supabaseUrl || !supabaseAnonKey || !isValidSupabaseUrl(supabaseUrl);
+export const isSupabaseConfigured = SUPABASE_CONFIG_ERROR === null;
+
+// Vitest runs with MODE='test' — the mock client is a unit-test-only fallback.
+const isUnitTest = import.meta.env.MODE === 'test';
 
 // Custom fetch with timeout and retry logic
 const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
@@ -156,33 +166,54 @@ const createMockClient = () => {
   };
 };
 
-// Export typed supabase client - uses real client when configured, otherwise mock for dev
-export const supabase = isSupabasePlaceholder
-  ? createMockClient() as unknown as ReturnType<typeof createClient<Database>>
-  : createClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        storageKey: STORAGE_KEYS.AUTH_TOKEN,
-      },
-      global: {
-        fetch: customFetch,
-        headers: {
-          'x-application-name': 'alzahra-smart-erp-v5-prod',
+// Export typed supabase client.
+//  - Configured: real client.
+//  - Unit tests (MODE='test'): mock client (declared, not silent).
+//  - Missing/invalid config OUTSIDE tests: a placeholder client that is NEVER
+//    used at runtime — index.tsx renders a setup-error screen instead, so the
+//    app cannot silently run on fake/empty data.
+export const supabase: ReturnType<typeof createClient<Database>> = (() => {
+  if (isSupabaseConfigured) {
+    return createClient<Database>(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: STORAGE_KEYS.AUTH_TOKEN,
         },
-      },
-      db: {
-        schema: 'public',
-      },
-      // Add retry configuration
-      realtime: {
-        timeout: 45000,
-      },
-    }
+        global: {
+          fetch: customFetch,
+          headers: {
+            'x-application-name': 'alzahra-smart-erp-v5-prod',
+          },
+        },
+        db: {
+          schema: 'public',
+        },
+        // Add retry configuration
+        realtime: {
+          timeout: 45000,
+        },
+      }
+    );
+  }
+
+  if (isUnitTest) {
+    return createMockClient() as unknown as ReturnType<typeof createClient<Database>>;
+  }
+
+  // Unconfigured outside tests — placeholder client so the module graph stays
+  // type-stable. It is never invoked because index.tsx blocks the app and
+  // renders a clear setup-error screen instead.
+  console.error('[Supabase] ' + (SUPABASE_CONFIG_ERROR ?? 'Configuration error'));
+  return createClient<Database>(
+    'https://placeholder.supabase.co',
+    'placeholder-anon-key',
+    { auth: { persistSession: false, autoRefreshToken: false } }
   );
+})();
 

@@ -56,4 +56,11 @@ test_stock_structure.mjs
 !alzhraERP/scripts/ts-error-baseline.txt
 tmp/
 tsconfig.tsbuildinfo
-	tmp_supabase_test.mjs
+tmp_supabase_test.mjs
+
+# AI tool caches (Kilo / Kilocode)
+.kilo/
+.kilocode/
+
+# one-off / secret-bearing scripts
+test.ps1

@@ -92,11 +92,12 @@ for (const dir of SCAN_DIRS) {
         if (path.resolve(file) === path.resolve(__filename)) continue;
         const content = fs.readFileSync(file, 'utf8');
         const lines = content.split(/\r?\n/);
+        const fileFindings: Finding[] = [];
         lines.forEach((lineText, idx) => {
             for (const [regex, signature] of SIGNATURES) {
                 regex.lastIndex = 0;
                 if (regex.test(lineText)) {
-                    findings.push({
+                    fileFindings.push({
                         file: path.relative(ROOT, file),
                         line: idx + 1,
                         signature,
@@ -105,6 +106,19 @@ for (const dir of SCAN_DIRS) {
                 }
             }
         });
+
+        // Signature #1 (cp1256-misread Arabic) can legitimately appear ONCE in a
+        // file when an Arabic word ending in Taa/Tah is followed by a
+        // punctuation mark such as the ellipsis (e.g. "saving..."). A file
+        // genuinely corrupted by a wrong codepage produces the pattern across
+        // MANY Arabic words, so a single occurrence is treated as a false
+        // positive and ignored.
+        const cp1256Count = fileFindings.filter(f => f.signature === SIGNATURES[0][1]).length;
+        if (cp1256Count < 2) {
+            findings.push(...fileFindings.filter(f => f.signature !== SIGNATURES[0][1]));
+        } else {
+            findings.push(...fileFindings);
+        }
     }
 }
 

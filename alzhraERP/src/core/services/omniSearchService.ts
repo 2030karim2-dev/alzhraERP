@@ -45,62 +45,75 @@ export const searchAll = async (
 
   const [productsRes, customersRes, suppliersRes, invoicesRes, journalsRes] = await Promise.all([
     supabase.from('products')
-      .select('id, name, name_ar, sku, part_number, sale_price, stock_quantity')
+      .select('id, name_ar, sku, part_number, sale_price')
       .eq('company_id', companyId)
-      .or(`name.ilike.${searchPattern},name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern}`)
+      .or(`name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern}`)
       .limit(5),
     supabase.from('parties')
-      .select('id, name, phone, balance')
+      .select('id, name, phone')
       .eq('company_id', companyId).eq('type', 'customer')
       .ilike('name', searchPattern).limit(5),
     supabase.from('parties')
-      .select('id, name, phone, balance')
+      .select('id, name, phone')
       .eq('company_id', companyId).eq('type', 'supplier')
       .ilike('name', searchPattern).limit(5),
-    supabase.from('sales_invoices')
-      .select('id, invoice_number, total_amount, customer_name')
+    supabase.from('invoices')
+      .select('id, invoice_number, total_amount, party:party_id(name)')
       .eq('company_id', companyId)
-      .or(`invoice_number.ilike.${searchPattern},customer_name.ilike.${searchPattern}`)
+      .or(`invoice_number.ilike.${searchPattern}`)
       .limit(5),
     supabase.from('journal_entries')
-      .select('id, description, total_debit, total_credit')
+      .select('id, description, entry_date')
       .eq('company_id', companyId)
       .ilike('description', searchPattern).limit(5),
   ]);
 
   const mapProducts = (rows: unknown[] | null): OmniSearchResult[] =>
-    (rows || []).map((p: Record<string, unknown>, i: number) => ({
-      id: `product-${p.id as string}`, type: 'product' as const,
-      title: (p.name_ar as string) || (p.name as string) || '',
-      subtitle: `${p.sku || p.part_number || ''} • ${p.sale_price ? Number(p.sale_price).toLocaleString() : '0'} ريال`,
-      path: `/inventory?search=${encodeURIComponent((p.sku as string) || (p.name as string) || '')}`,
-      score: 100 - i, icon: 'package' as const,
-    }));
+    (rows || []).map((row, i) => {
+      const p = row as Record<string, unknown>;
+      return {
+        id: `product-${p.id as string}`, type: 'product' as const,
+        title: (p.name_ar as string) || '',
+        subtitle: `${p.sku || p.part_number || ''} • ${p.sale_price ? Number(p.sale_price).toLocaleString() : '0'} ريال`,
+        path: `/inventory?search=${encodeURIComponent((p.sku as string) || (p.name_ar as string) || '')}`,
+        score: 100 - i, icon: 'package' as const,
+      };
+    });
 
   const mapParties = (type: 'customer' | 'supplier', rows: unknown[] | null): OmniSearchResult[] =>
-    (rows || []).map((c: Record<string, unknown>, i: number) => ({
-      id: `${type}-${c.id as string}`, type,
-      title: c.name as string || '',
-      subtitle: c.phone ? `📞 ${c.phone as string}` : `رصيد: ${Number(c.balance || 0).toLocaleString()}`,
-      path: `/parties?id=${c.id as string}`, score: 90 - i,
-      icon: type === 'customer' ? ('user' as const) : ('truck' as const),
-    }));
+    (rows || []).map((row, i) => {
+      const c = row as Record<string, unknown>;
+      return {
+        id: `${type}-${c.id as string}`, type,
+        title: c.name as string || '',
+        subtitle: c.phone ? `📞 ${c.phone as string}` : '',
+        path: `/parties?id=${c.id as string}`, score: 90 - i,
+        icon: type === 'customer' ? ('user' as const) : ('truck' as const),
+      };
+    });
 
   const mapInvoices = (rows: unknown[] | null): OmniSearchResult[] =>
-    (rows || []).map((inv: Record<string, unknown>, i: number) => ({
-      id: `invoice-${inv.id as string}`, type: 'invoice' as const,
-      title: `فاتورة ${inv.invoice_number as string || ''}`,
-      subtitle: `${inv.customer_name || ''} • ${Number(inv.total_amount || 0).toLocaleString()} ريال`,
-      path: `/sales?id=${inv.id as string}`, score: 80 - i, icon: 'receipt' as const,
-    }));
+    (rows || []).map((row, i) => {
+      const inv = row as Record<string, unknown>;
+      const party = (inv.party ?? null) as { name?: string } | null;
+      return {
+        id: `invoice-${inv.id as string}`, type: 'invoice' as const,
+        title: `فاتورة ${inv.invoice_number as string || ''}`,
+        subtitle: `${party?.name || ''} • ${Number(inv.total_amount || 0).toLocaleString()} ريال`,
+        path: `/sales?id=${inv.id as string}`, score: 80 - i, icon: 'receipt' as const,
+      };
+    });
 
   const mapJournals = (rows: unknown[] | null): OmniSearchResult[] =>
-    (rows || []).map((j: Record<string, unknown>, i: number) => ({
-      id: `journal-${j.id as string}`, type: 'journal' as const,
-      title: j.description as string || '',
-      subtitle: `مدين: ${Number(j.total_debit || 0).toLocaleString()} • دائن: ${Number(j.total_credit || 0).toLocaleString()}`,
-      path: `/accounting?id=${j.id as string}`, score: 70 - i, icon: 'file-text' as const,
-    }));
+    (rows || []).map((row, i) => {
+      const j = row as Record<string, unknown>;
+      return {
+        id: `journal-${j.id as string}`, type: 'journal' as const,
+        title: j.description as string || '',
+        subtitle: j.entry_date ? new Date(j.entry_date as string).toLocaleDateString('ar') : '',
+        path: `/accounting?id=${j.id as string}`, score: 70 - i, icon: 'file-text' as const,
+      };
+    });
 
   const products = mapProducts(productsRes.data);
   const customers = mapParties('customer', customersRes.data);
