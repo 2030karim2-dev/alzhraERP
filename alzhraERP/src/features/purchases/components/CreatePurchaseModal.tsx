@@ -98,27 +98,27 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="max-w-none mx-auto space-y-3 max-md:space-y-1 animate-in fade-in duration-500 pt-2 max-md:pt-0.5 pb-24 max-md:pb-16 px-1 md:px-2">
-      <div ref={printRef} className="bg-white dark:bg-slate-900 border-2 max-md:border dark:border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
+    <div className="max-w-none mx-auto space-y-3 max-md:space-y-0.5 animate-in fade-in duration-500 pt-2 max-md:pt-0 pb-24 max-md:pb-12 px-1 md:px-2">
+      <div ref={printRef} className="bg-white dark:bg-slate-900 border-2 max-md:border dark:border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-visible">
         {company && <InvoiceHeader company={company} />}
         <PurchaseMeta />
         <InteractivePurchaseTable />
 
         {/* Totals Section */}
-        <div className="p-2 max-md:p-1 md:p-3 bg-white dark:bg-slate-900 border-t-2 max-md:border-t border-gray-200 dark:border-slate-800 print:break-inside-avoid">
+        <div className="p-2 max-md:p-0.5 md:p-3 bg-white dark:bg-slate-900 border-t-2 max-md:border-t border-gray-200 dark:border-slate-800 print:break-inside-avoid">
           <div className="flex justify-end">
             <div className="w-full md:w-80 flex flex-col">
               <div className="grid grid-cols-2 border dark:border-slate-800">
-                <div className="p-2 max-md:p-1 border-l border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
+                <div className="p-2 max-md:p-0.5 border-l border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
                   <span className="text-[7px] font-bold text-gray-400 uppercase tracking-widest block">المجموع قبل الخصم</span>
                   <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-600 dark:text-slate-400">{formatCurrency(totals.subTotal || 0)}</span>
                 </div>
-                <div className="p-2 max-md:p-1 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
+                <div className="p-2 max-md:p-0.5 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 text-right">
                   <span className="text-[7px] font-bold text-rose-400 uppercase tracking-widest block">إجمالي الخصومات</span>
                   <span dir="ltr" className="text-[11px] font-bold font-mono text-rose-600 dark:text-rose-400">{formatCurrency(totals.totalDiscount || 0)}</span>
                 </div>
               </div>
-              <div className="bg-slate-950 text-white p-4 max-md:p-2 flex justify-between items-center relative overflow-hidden">
+              <div className="bg-slate-950 text-white p-4 max-md:p-1.5 flex justify-between items-center relative overflow-hidden">
                 <div className="relative z-10">
                   <span className="text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] block">NET PURCHASE TOTAL</span>
                   <h2 dir="ltr" className="text-3xl max-md:text-xl font-bold font-mono tracking-tighter">
@@ -132,9 +132,9 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 max-md:gap-1 print:hidden">
-        <Button onClick={() => handlePrint()} variant="outline" className="border-gray-200 text-gray-500 max-md:h-8 max-md:px-2 max-md:text-[10px]" leftIcon={<Printer size={14} />}>طباعة المستند</Button>
-        <Button onClick={handleSave} isLoading={isPending} className="min-w-[140px] max-md:min-w-0 max-md:h-8 max-md:px-3 max-md:text-[10px]" leftIcon={<Save size={14} />}>اعتماد التوريد</Button>
+      <div className="flex justify-end gap-2 max-md:gap-0.5 print:hidden">
+        <Button onClick={() => handlePrint()} variant="outline" className="border-gray-200 text-gray-500 max-md:h-7 max-md:px-1.5 max-md:text-[9px]" leftIcon={<Printer size={14} />}>طباعة المستند</Button>
+        <Button onClick={handleSave} isLoading={isPending} className="min-w-[140px] max-md:min-w-0 max-md:h-7 max-md:px-2 max-md:text-[9px]" leftIcon={<Save size={14} />}>اعتماد التوريد</Button>
       </div>
     </div>
   );

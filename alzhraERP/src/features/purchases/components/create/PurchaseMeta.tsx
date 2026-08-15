@@ -78,10 +78,10 @@ const PurchaseMeta: React.FC = () => {
     }
 
     const MetaBlock = ({ label, value, icon: Icon, isSelect, options, field, colorClass, type = "text" }: MetaBlockProps): React.JSX.Element => (
-        <div className="relative z-10 flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 flex flex-col group hover:bg-blue-50/40 transition-colors">
-            <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0.5">
+        <div className="relative flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-0.5 flex flex-col group hover:bg-blue-50/40 transition-colors">
+            <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0">
                 <Icon size={10} className={colorClass ?? "text-blue-500"} />
-                <span className="text-[8px] max-md:text-[6px] font-bold text-blue-400 dark:text-blue-600 uppercase tracking-widest">{label}</span>
+                <span className="text-[8px] max-md:text-[5px] font-bold text-blue-400 dark:text-blue-600 uppercase tracking-widest leading-none">{label}</span>
             </div>
             {isSelect === true ? (
                 <MetaSelect
@@ -94,7 +94,7 @@ const PurchaseMeta: React.FC = () => {
                 <input
                     type={type} value={value}
                     onChange={(e) => { setMetadata(field, e.target.value); }}
-                    className="bg-transparent text-[11px] max-md:text-[8px] font-bold outline-none text-blue-900 dark:text-white text-right font-mono"
+                    className="bg-transparent text-[11px] max-md:text-[7px] font-bold outline-none text-blue-900 dark:text-white text-right font-mono leading-none min-h-3"
                 />
             ) : (
                 <span className="text-[11px] max-md:text-[8px] font-bold text-blue-900 dark:text-gray-100 font-mono leading-none">
@@ -121,7 +121,7 @@ const PurchaseMeta: React.FC = () => {
                             type="text" value={query}
                             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
                             placeholder="ابحث عن المورد (Search Supplier)..."
-                            className="w-full px-10 max-md:px-7 py-2.5 max-md:py-1 bg-white dark:bg-slate-800 text-[10px] max-md:text-[8px] font-bold outline-none text-blue-600 placeholder:text-blue-200"
+                            className="w-full px-10 max-md:px-6 py-2.5 max-md:py-0.5 bg-white dark:bg-slate-800 text-[10px] max-md:text-[7px] font-bold outline-none text-blue-600 placeholder:text-blue-200"
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300" size={14} />
                         {isOpen && query.length > 1 && (
@@ -138,7 +138,7 @@ const PurchaseMeta: React.FC = () => {
                 )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 -space-x-px">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 -space-x-px max-md:auto-rows-min">
                 <MetaBlock label="تاريخ الفاتورة" field="issueDate" value={issueDate} icon={Calendar} type="date" colorClass="text-emerald-500" />
                 <MetaBlock label="رقم فاتورة المورد" field="invoiceNumber" value={invoiceNumber} icon={Hash} type="input" colorClass="text-blue-600" />
                 <MetaBlock label="نوع الفاتورة" field="invoiceType" value={invoiceType} icon={CreditCard} isSelect
@@ -151,8 +151,8 @@ const PurchaseMeta: React.FC = () => {
                     options={currencies.data?.map((c: any) => ({ id: c.code, label: c.code })) || [{ id: 'SAR', label: 'SAR' }]} />
                 
                 {currency && currency !== 'SAR' ? (
-                    <div className="bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 flex flex-col group hover:bg-blue-50/40 transition-colors">
-                        <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0.5">
+                    <div className="bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-0.5 flex flex-col group hover:bg-blue-50/40 transition-colors">
+                        <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0">
                             <Coins size={10} className="text-amber-500" />
                             <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest">
                                 سعر الصرف {isDivide ? '(÷)' : '(×)'}
@@ -167,7 +167,7 @@ const PurchaseMeta: React.FC = () => {
                                 if (!val) return;
                                 setMetadata('exchangeRate', isDivide ? (1 / val) : val);
                             }}
-                            className="bg-transparent text-[11px] font-bold outline-none text-amber-600 dark:text-amber-400 text-right font-mono"
+                            className="bg-transparent text-[11px] max-md:text-[7px] font-bold outline-none text-amber-600 dark:text-amber-400 text-right font-mono leading-none"
                         />
                     </div>
                 ) : (
@@ -176,10 +176,10 @@ const PurchaseMeta: React.FC = () => {
                     </div>
                 )}
 
-                <div className="bg-gray-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 col-span-2 md:col-span-1 lg:col-span-1">
+                <div className="bg-gray-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 p-2 max-md:p-0.5 col-span-2 md:col-span-1 lg:col-span-1">
                     <span className="text-[8px] max-md:text-[6px] font-bold text-gray-400 uppercase tracking-widest">ملاحظات التوريد</span>
                     <input 
-                        className="w-full bg-transparent outline-none text-[10px] max-md:text-[8px] font-bold mt-1 max-md:mt-0.5"
+                        className="w-full bg-transparent outline-none text-[10px] max-md:text-[7px] font-bold mt-1 max-md:mt-0"
                         placeholder="ملاحظات..." 
                         value={notes}
                         onChange={(e) => { setMetadata('notes', e.target.value); }}
