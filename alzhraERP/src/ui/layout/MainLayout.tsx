@@ -113,6 +113,7 @@ const MainLayout: React.FC = () => {
     { icon: Store, label: t('pos'), path: ROUTES.DASHBOARD.POS },
     { icon: ShoppingBag, label: t('invoices'), path: ROUTES.DASHBOARD.SALES },
     { icon: Wrench, label: t('products'), path: ROUTES.DASHBOARD.INVENTORY },
+    { icon: Calculator, label: t('commission_dashboard'), path: ROUTES.DASHBOARD.COMMISSIONS },
   ];
 
   const moreItems = [
