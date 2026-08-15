@@ -8,9 +8,9 @@ interface Props {
 
 export const WizardInvoiceDetails: React.FC<Props> = ({ selectedInvoice }) => {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 border-dashed">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-md:gap-4 p-6 max-md:p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 border-dashed">
             <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1 max-md:gap-1.5">
                     <Hash size={12} />
                     رقم الفاتورة
                 </p>
@@ -19,7 +19,7 @@ export const WizardInvoiceDetails: React.FC<Props> = ({ selectedInvoice }) => {
                 </p>
             </div>
             <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1 max-md:gap-1.5">
                     <Building2 size={12} />
                     الطرف المؤسسي
                 </p>
@@ -28,7 +28,7 @@ export const WizardInvoiceDetails: React.FC<Props> = ({ selectedInvoice }) => {
                 </p>
             </div>
             <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1 max-md:gap-1.5">
                     <Calendar size={12} />
                     تاريخ الإصدار
                 </p>
@@ -37,7 +37,7 @@ export const WizardInvoiceDetails: React.FC<Props> = ({ selectedInvoice }) => {
                 </p>
             </div>
             <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1 max-md:gap-1.5">
                     <Package size={12} />
                     عدد الأصناف
                 </p>

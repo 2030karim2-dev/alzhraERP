@@ -11,7 +11,7 @@ const SalesStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
+      <div className="flex justify-center p-8 max-md:p-4">
         <Spinner size="lg" />
       </div>
     );
@@ -33,7 +33,7 @@ const SalesStats: React.FC = () => {
   const growthBg = growth === null ? 'bg-gray-400' : growth >= 0 ? 'bg-amber-500' : 'bg-rose-500';
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-md:gap-2">
       <StatCard
         title="إجمالي المبيعات"
         value={formatCurrency(stats.totalSales)}

@@ -41,7 +41,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
 
     if (items.length === 0) {
         return (
-            <div className="p-8 text-center text-gray-500 bg-gray-50 dark:bg-slate-800 rounded-lg">
+            <div className="p-8 max-md:p-4 text-center text-gray-500 bg-gray-50 dark:bg-slate-800 rounded-lg">
                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                 <p className="text-sm">لا توجد أصناف في هذه الفاتورة</p>
             </div>
@@ -107,7 +107,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
     return (
         <div className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
             {/* Search Box */}
-            <div className="p-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+            <div className="p-3 max-md:p-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
                 <div className="relative">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
@@ -134,7 +134,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
             </div>
 
             {/* Header */}
-            <div className="grid grid-cols-12 gap-2 p-3 bg-gray-100 dark:bg-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300">
+            <div className="grid grid-cols-12 gap-2 max-md:gap-2 p-3 max-md:p-3 bg-gray-100 dark:bg-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300">
                 <div className="col-span-1 text-center">#</div>
                 <div className="col-span-4">المنتج</div>
                 <div className="col-span-2 text-center">الكمية</div>
@@ -145,7 +145,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
             {/* Items List */}
             <div className="max-h-80 overflow-y-auto">
                 {filteredItems.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
+                    <div className="p-8 max-md:p-4 text-center text-gray-500">
                         <Search size={32} className="mx-auto mb-2 opacity-50" />
                         <p className="text-sm">لا توجد نتائج للبحث</p>
                     </div>
@@ -158,7 +158,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                         return (
                             <div
                                 key={`${item.id}-${item.product_id}-${index}`}
-                                className={`grid grid-cols-12 gap-2 p-3 border-b border-gray-100 dark:border-slate-700 items-center transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                                className={`grid grid-cols-12 gap-2 max-md:gap-2 p-3 max-md:p-3 border-b border-gray-100 dark:border-slate-700 items-center transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
                                     } ${focusedRow === index ? 'ring-2 ring-inset ring-indigo-500/50' : ''}`}
                             >
                                 {/* Checkbox */}
@@ -201,7 +201,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
 
                                 {/* Return Quantity */}
                                 <div className="col-span-3">
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 max-md:gap-1">
                                         <input
                                             type="number"
                                             min="0"
@@ -223,7 +223,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                                             ref={el => { if (itemRefs.current[index]) itemRefs.current[index][1] = el; }}
                                             onFocus={() => { setFocusedRow(index); setFocusedCol(1); }}
                                             onKeyDown={(e) => handleKeyDown(e, index, 1, item, maxQty)}
-                                            className="w-16 p-1 text-center text-sm border rounded font-bold transition-all outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 border-gray-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder-transparent hover:border-indigo-400"
+                                            className="w-16 p-1 max-md:p-1 text-center text-sm border rounded font-bold transition-all outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 border-gray-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder-transparent hover:border-indigo-400"
                                             tabIndex={0}
                                         />
                                         <span className="text-xs text-gray-400 font-mono">/ {maxQty}</span>
@@ -236,9 +236,9 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
             </div>
 
             {/* Summary */}
-            <div className="p-3 bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
+            <div className="p-3 max-md:p-3 bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <RotateCcw size={16} className="text-blue-600" />
                         <span className="text-xs font-bold text-gray-600 dark:text-slate-400">
                             الأصناف المحددة: {Object.values(selectedItems).filter(Boolean).length}

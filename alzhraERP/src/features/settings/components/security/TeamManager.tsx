@@ -37,9 +37,9 @@ const TeamManager: React.FC = () => {
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
-            <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-950/50">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/20">
+            <div className="p-5 max-md:p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-950/50">
+                <div className="flex items-center gap-3 max-md:gap-3">
+                    <div className="p-2 max-md:p-2 bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/20">
                         <Users size={18} />
                     </div>
                     <div>
@@ -53,7 +53,7 @@ const TeamManager: React.FC = () => {
                 </div>
             </div>
 
-            <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="p-5 max-md:p-5 grid grid-cols-1 lg:grid-cols-3 gap-8 max-md:gap-3">
                 {/* Invite Form */}
                 <div className="lg:col-span-1 space-y-4">
                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -76,7 +76,7 @@ const TeamManager: React.FC = () => {
                             </label>
                             <select
                                 {...register('role')}
-                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 text-[11px] font-bold outline-none"
+                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2 max-md:p-2.5 text-[11px] font-bold outline-none"
                             >
                                 <option value="manager">مدير (Manager)</option>
                                 <option value="accountant">محاسب (Accountant)</option>
@@ -87,13 +87,13 @@ const TeamManager: React.FC = () => {
 
                         {/* Branch Assignment */}
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase px-1 flex items-center gap-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase px-1 flex items-center gap-1 max-md:gap-1">
                                 <GitBranch size={10} />
                                 الفرع (اختياري)
                             </label>
                             <select
                                 {...register('branch_id')}
-                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 text-[11px] font-bold outline-none"
+                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2 max-md:p-2.5 text-[11px] font-bold outline-none"
                             >
                                 <option value="">-- بدون فرع محدد (مدير عام) --</option>
                                 {branches?.filter((b: any) => b.status === 'active').map((branch: any) => (
@@ -139,7 +139,7 @@ const TeamManager: React.FC = () => {
                                     inv.status === 'pending' && (
                                         <button
                                             onClick={() => handleRemoveInvitation(inv.id)}
-                                            className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                            className="p-2 max-md:p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
                                         >
                                             <Trash2 size={14} />
                                         </button>

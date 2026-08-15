@@ -19,7 +19,7 @@ const MessagingIntegration: React.FC<Props> = ({ companyId }) => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center p-12">
+            <div className="flex items-center justify-center p-12 max-md:p-5">
                 <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
             </div>
         );
@@ -29,7 +29,7 @@ const MessagingIntegration: React.FC<Props> = ({ companyId }) => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 max-md:gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg">
                         <Send className="w-5 h-5" />
                     </div>
@@ -38,11 +38,11 @@ const MessagingIntegration: React.FC<Props> = ({ companyId }) => {
                         <p className="text-sm text-slate-500">إرسال تلقائي للمعاملات عبر واتساب وتليجرام</p>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={handleTest} isLoading={testing} variant="outline" className="gap-2" leftIcon={<TestTube size={16} />}>
+                <div className="flex gap-2 max-md:gap-2">
+                    <Button onClick={handleTest} isLoading={testing} variant="outline" className="gap-2 max-md:gap-2" leftIcon={<TestTube size={16} />}>
                         اختبار
                     </Button>
-                    <Button onClick={handleSave} isLoading={saving} className="gap-2" leftIcon={<Save size={16} />}>
+                    <Button onClick={handleSave} isLoading={saving} className="gap-2 max-md:gap-2" leftIcon={<Save size={16} />}>
                         حفظ
                     </Button>
                 </div>

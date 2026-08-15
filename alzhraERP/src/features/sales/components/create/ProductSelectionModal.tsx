@@ -331,11 +331,11 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
             case 'size': return <span className="opacity-70 truncate block">{p.size || '---'}</span>;
             case 'specs': return <span className="opacity-70 truncate block" title={p.specifications || ''}>{p.specifications || '---'}</span>;
             case 'actions': return (
-                <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-center gap-1 max-md:gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onSelect(p); }}
-                        className="p-1 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 transition-colors"
+                        className="p-1 max-md:p-1 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 transition-colors"
                         title="إضافة مباشرة بنقرة واحدة"
                     >
                         <Plus size={12} />
@@ -343,7 +343,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setViewProduct(p); }}
-                        className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+                        className="p-1 max-md:p-1 rounded bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
                         title="معاينة التفاصيل"
                     >
                         <EyeIcon size={12} />
@@ -376,7 +376,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                 title="مستكشف الأصناف المتقدم"
                 description="انقر مرتين على المنتج لإضافته للفاتورة"
                 footer={
-                    <div className="w-full flex items-center justify-between gap-2">
+                    <div className="w-full flex items-center justify-between gap-2 max-md:gap-2">
                         <span className="text-[9px] text-gray-400 font-mono">{products.length} منتج</span>
                         <button type="button" onClick={onClose} className="flex-1 py-2 text-[10px] font-bold bg-gray-100 dark:bg-slate-800 uppercase hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors rounded">إغلاق</button>
                     </div>
@@ -384,12 +384,12 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
             >
                 <div className="flex flex-col h-[70vh] bg-white dark:bg-slate-900">
                     {/* Toolbar */}
-                    <div className="p-2 border-b dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap gap-2 items-center">
+                    <div className="p-2 max-md:p-2 border-b dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap gap-2 max-md:gap-2 items-center">
                         {/* Add New Product - no need to leave the invoice flow */}
                         <button
                             type="button"
                             onClick={() => setShowAddProduct(true)}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 shadow-sm transition-colors"
+                            className="flex items-center gap-1 max-md:gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 shadow-sm transition-colors"
                             title="إضافة منتج جديد دون مغادرة النافذة"
                         >
                             <Plus size={14} />
@@ -414,7 +414,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                         <button
                             type="button"
                             onClick={() => setShowInStockOnly(!showInStockOnly)}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${showInStockOnly ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-emerald-400 hover:text-emerald-600'}`}
+                            className={`flex items-center gap-1 max-md:gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${showInStockOnly ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-emerald-400 hover:text-emerald-600'}`}
                         >
                             <PackageCheck size={14} />
                             متوفر فقط
@@ -426,7 +426,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                 <button
                                     type="button"
                                     onClick={() => setShowBranchMenu(!showBranchMenu)}
-                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${localBranchId !== null ? 'bg-indigo-500 text-white border-indigo-600' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-indigo-400'}`}
+                                    className={`flex items-center gap-1 max-md:gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${localBranchId !== null ? 'bg-indigo-500 text-white border-indigo-600' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-indigo-400'}`}
                                 >
                                     {localBranchId !== null ? <GitBranch size={14} /> : <Globe size={14} />}
                                     <span className="max-w-[100px] truncate">{selectedBranchName}</span>
@@ -434,11 +434,11 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                 </button>
                                 {showBranchMenu && (
                                     <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl z-[200] overflow-hidden">
-                                        <button type="button" onClick={() => { setLocalBranchId(null); setShowBranchMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-right transition-colors ${localBranchId === null ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300'}`}>
+                                        <button type="button" onClick={() => { setLocalBranchId(null); setShowBranchMenu(false); }} className={`w-full flex items-center gap-2 max-md:gap-2 px-3 py-2.5 text-xs font-semibold text-right transition-colors ${localBranchId === null ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300'}`}>
                                             <Globe size={13} /> جميع الفروع
                                         </button>
                                         {activeBranches.map(branch => (
-                                            <button key={branch.id} type="button" onClick={() => { setLocalBranchId(branch.id); setShowBranchMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-right transition-colors ${localBranchId === branch.id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300'}`}>
+                                            <button key={branch.id} type="button" onClick={() => { setLocalBranchId(branch.id); setShowBranchMenu(false); }} className={`w-full flex items-center gap-2 max-md:gap-2 px-3 py-2.5 text-xs font-semibold text-right transition-colors ${localBranchId === branch.id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300'}`}>
                                                 <GitBranch size={13} /> {branch.name}
                                             </button>
                                         ))}
@@ -452,7 +452,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                             <button
                                 type="button"
                                 onClick={() => setShowSettings(!showSettings)}
-                                className={`p-2 rounded-lg border transition-colors ${showSettings ? 'bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-900/40 dark:border-blue-500' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-blue-400 hover:text-blue-600'}`}
+                                className={`p-2 max-md:p-2 rounded-lg border transition-colors ${showSettings ? 'bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-900/40 dark:border-blue-500' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 hover:border-blue-400 hover:text-blue-600'}`}
                                 title="إعدادات الجدول"
                             >
                                 <Settings size={16} />
@@ -461,7 +461,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                             {/* Settings Popover — isolated from any click propagation */}
                             {showSettings && (
                                 <div
-                                    className="absolute left-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-2xl rounded-2xl z-[200] p-4"
+                                    className="absolute left-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-2xl rounded-2xl z-[200] p-4 max-md:p-4"
                                     onClick={(e) => e.stopPropagation()}
                                     onMouseDown={(e) => e.stopPropagation()}
                                 >
@@ -471,7 +471,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                             type="button"
                                             onMouseDown={(e) => e.stopPropagation()}
                                             onClick={() => { resetConfig(); }}
-                                            className="text-[10px] flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg transition-colors"
+                                            className="text-[10px] flex items-center gap-1 max-md:gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg transition-colors"
                                         >
                                             <RotateCcw size={10} /> استعادة الافتراضي
                                         </button>
@@ -480,7 +480,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                     {/* Font Size */}
                                     <div className="mb-4">
                                         <label className="text-xs font-bold text-gray-500 mb-2 block">حجم الخط</label>
-                                        <div className="flex gap-1 bg-gray-100 dark:bg-slate-900 p-1 rounded-xl">
+                                        <div className="flex gap-1 max-md:gap-1 bg-gray-100 dark:bg-slate-900 p-1 max-md:p-1 rounded-xl">
                                             {(['small', 'medium', 'large'] as const).map(sz => (
                                                 <button
                                                     key={sz}
@@ -501,24 +501,24 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                         <div className="max-h-60 overflow-y-auto custom-scrollbar border dark:border-slate-700 rounded-xl divide-y dark:divide-slate-700">
                                             {config.columns.map((col, index) => (
                                                 <div key={col.id} className="flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 max-md:gap-2">
                                                         <button
                                                             type="button"
                                                             onMouseDown={(e) => e.stopPropagation()}
                                                             onClick={() => toggleColumnVisibility(col.id)}
-                                                            className="text-gray-400 hover:text-blue-500 transition-colors p-1 rounded"
+                                                            className="text-gray-400 hover:text-blue-500 transition-colors p-1 max-md:p-1 rounded"
                                                         >
                                                             {col.visible ? <Eye size={13} className="text-blue-500" /> : <EyeOff size={13} />}
                                                         </button>
                                                         <span className={`text-xs ${!col.visible ? 'line-through opacity-40' : ''}`}>{col.label}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-0.5">
+                                                    <div className="flex items-center gap-0 max-md:gap-0.5">
                                                         <button
                                                             type="button"
                                                             onMouseDown={(e) => e.stopPropagation()}
                                                             onClick={() => moveColumnUp(index)}
                                                             disabled={index === 0}
-                                                            className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-300 disabled:opacity-20 transition-colors rounded"
+                                                            className="p-1 max-md:p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-300 disabled:opacity-20 transition-colors rounded"
                                                         >
                                                             <ArrowUp size={11} />
                                                         </button>
@@ -527,7 +527,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                                             onMouseDown={(e) => e.stopPropagation()}
                                                             onClick={() => moveColumnDown(index)}
                                                             disabled={index === config.columns.length - 1}
-                                                            className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-300 disabled:opacity-20 transition-colors rounded"
+                                                            className="p-1 max-md:p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-300 disabled:opacity-20 transition-colors rounded"
                                                         >
                                                             <ArrowDown size={11} />
                                                         </button>
@@ -560,9 +560,9 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                                             key={col.id}
                                             style={{ width: col.width }}
                                             onClick={() => handleSort(col.id)}
-                                            className={`relative border-l border-gray-300 dark:border-slate-600 p-2 bg-gray-100 dark:bg-slate-800/80 last:border-l-0 select-none ${col.id === 'index' || col.id === 'stock' || col.id === 'actions' ? 'text-center' : 'pr-4'} ${isSortable ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700' : ''}`}
+                                            className={`relative border-l border-gray-300 dark:border-slate-600 p-2 max-md:p-2 bg-gray-100 dark:bg-slate-800/80 last:border-l-0 select-none ${col.id === 'index' || col.id === 'stock' || col.id === 'actions' ? 'text-center' : 'pr-4'} ${isSortable ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700' : ''}`}
                                         >
-                                            <span className="inline-flex items-center gap-1">
+                                            <span className="inline-flex items-center gap-1 max-md:gap-1">
                                                 {col.label}
                                                 {isSorted && (
                                                     <span className="text-blue-500">
@@ -584,13 +584,13 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                             <tbody ref={tableBodyRef} className="divide-y divide-gray-200 dark:divide-slate-700">
                                 {isLoading ? (
                                     <tr>
-                                        <td colSpan={visibleColumns.length} className="p-10 text-center animate-pulse text-[10px] font-bold text-gray-400">
+                                        <td colSpan={visibleColumns.length} className="p-10 max-md:p-5 text-center animate-pulse text-[10px] font-bold text-gray-400">
                                             جاري تحميل المنتجات...
                                         </td>
                                     </tr>
                                 ) : products.length === 0 ? (
                                     <tr>
-                                        <td colSpan={visibleColumns.length} className="p-10 text-center text-gray-300 text-sm">
+                                        <td colSpan={visibleColumns.length} className="p-10 max-md:p-5 text-center text-gray-300 text-sm">
                                             لا توجد نتائج مطابقة
                                         </td>
                                     </tr>

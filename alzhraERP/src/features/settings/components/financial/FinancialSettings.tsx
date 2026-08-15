@@ -13,11 +13,11 @@ const FinancialSettings: React.FC = () => {
    useDefaultExchangeRates();
 
    return (
-      <div className="p-2 md:p-3 animate-in fade-in duration-500 max-w-none mx-auto space-y-6 pb-20">
+      <div className="p-2 max-md:p-2 md:p-3 animate-in fade-in duration-500 max-w-none mx-auto space-y-6 pb-20">
          {/* Header Section */}
-         <div className="flex flex-row justify-between items-center gap-4 border-b dark:border-slate-800 pb-4">
-            <div className="flex items-center gap-2.5">
-               <div className="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
+         <div className="flex flex-row justify-between items-center gap-4 max-md:gap-4 border-b dark:border-slate-800 pb-4">
+            <div className="flex items-center gap-2 max-md:gap-2.5">
+               <div className="p-2 max-md:p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
                   <Banknote size={20} />
                </div>
                <div>
@@ -29,7 +29,7 @@ const FinancialSettings: React.FC = () => {
                   </p>
                </div>
             </div>
-            <div className="bg-emerald-50 dark:bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-2">
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-2 max-md:gap-2">
                <Zap size={14} className="text-emerald-500 animate-pulse" />
                <span className="text-[9px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest hidden sm:inline">
                   {t.active_status || 'Active'}
@@ -39,7 +39,7 @@ const FinancialSettings: React.FC = () => {
 
          {/* Tax & Discount Settings */}
          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 px-1">
+            <div className="flex items-center gap-1 max-md:gap-1.5 px-1">
                <div className="w-1 h-3.5 bg-amber-500 rounded-full"></div>
                <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
                   {t.tax_discount_settings || 'إعدادات الخصومات'}
@@ -50,10 +50,10 @@ const FinancialSettings: React.FC = () => {
             </div>
          </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-md:gap-3">
             {/* Left Column: Fiscal Years */}
             <div className="lg:col-span-5 space-y-3">
-               <div className="flex items-center gap-1.5 px-1">
+               <div className="flex items-center gap-1 max-md:gap-1.5 px-1">
                   <div className="w-1 h-3.5 bg-purple-500 rounded-full"></div>
                   <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
                      {t.fiscal_periods || 'الفترات والسنوات المالية'}
@@ -61,7 +61,7 @@ const FinancialSettings: React.FC = () => {
                </div>
                <FiscalYearManager />
 
-               <div className="p-4 bg-slate-900 rounded-2xl text-white relative overflow-hidden shadow-md border-r-2 border-purple-500">
+               <div className="p-4 max-md:p-4 bg-slate-900 rounded-2xl text-white relative overflow-hidden shadow-md border-r-2 border-purple-500">
                   <div className="relative z-10">
                      <h4 className="text-[9px] font-bold text-purple-400 mb-1.5 uppercase tracking-widest">
                         {t.close_period || 'إغلاق الفترة'}
@@ -78,7 +78,7 @@ const FinancialSettings: React.FC = () => {
 
             {/* Right Column: Currencies */}
             <div className="lg:col-span-7 space-y-3">
-               <div className="flex items-center gap-1.5 px-1">
+               <div className="flex items-center gap-1 max-md:gap-1.5 px-1">
                   <div className="w-1 h-3.5 bg-blue-500 rounded-full"></div>
                   <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
                      {t.currency_settings_desc || 'تعدد العملات وأسواق الصرف'}
@@ -90,7 +90,7 @@ const FinancialSettings: React.FC = () => {
 
          {/* Exchange Rate History — سجل أسعار الصرف التاريخي */}
          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 px-1">
+            <div className="flex items-center gap-1 max-md:gap-1.5 px-1">
                <div className="w-1 h-3.5 bg-amber-500 rounded-full"></div>
                <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
                   سجل أسعار الصرف التاريخي

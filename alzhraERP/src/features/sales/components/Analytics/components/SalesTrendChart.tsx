@@ -24,12 +24,12 @@ const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
         const point = payload[0]?.payload as SalesByDayPoint | undefined;
         const returns = point?.returns ?? 0;
         return (
-            <div className="p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
+            <div className="p-4 max-md:p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
                 <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight border-b border-slate-100 dark:border-slate-800 pb-2">
                     {new Date(label).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
-                <div className="flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-6 max-md:gap-3">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.sales}</span>
                     </div>
@@ -38,8 +38,8 @@ const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
                     </span>
                 </div>
                 {returns > 0 && (
-                    <div className="flex items-center justify-between gap-6 mt-1">
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-6 max-md:gap-3 mt-1">
+                        <div className="flex items-center gap-2 max-md:gap-2">
                             <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.returns}</span>
                         </div>
@@ -193,20 +193,20 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
     };
 
     return (
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2">
                         <Activity size={18} className="text-blue-600" />
                         {t.sales_trend}
                     </h4>
                     <p className="text-xs text-slate-400 mt-1">{periodLabel}</p>
                 </div>
-                <div className="flex gap-1 bg-[var(--app-surface-hover)] p-1 rounded-xl">
+                <div className="flex gap-1 max-md:gap-1 bg-[var(--app-surface-hover)] p-1 max-md:p-1 rounded-xl">
                     <button
                         onClick={() => setActiveChart('area')}
                         className={cn(
-                            "p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
+                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'area' ? "bg-[var(--app-surface)] text-[var(--accent)] shadow-sm" : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)]"
                         )}
                         title={t.area_chart || 'Area'}
@@ -216,7 +216,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                     <button
                         onClick={() => setActiveChart('bar')}
                         className={cn(
-                            "p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
+                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'bar' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
                         )}
                         title={t.bar_chart || 'Bar'}
@@ -226,7 +226,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                     <button
                         onClick={() => setActiveChart('line')}
                         className={cn(
-                            "p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
+                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'line' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
                         )}
                         title={t.line_chart || 'Line'}
@@ -235,12 +235,12 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                     </button>
                 </div>
             </div>
-            <div className="flex items-center gap-4 mt-1 px-1">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-4 max-md:gap-4 mt-1 px-1">
+                <span className="flex items-center gap-1 max-md:gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                     <span className="w-3 h-1 rounded-full bg-blue-500" />
                     {t.sales}
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1 max-md:gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                     <span className="w-3 h-1 rounded-full bg-rose-500" />
                     {t.returns}
                 </span>

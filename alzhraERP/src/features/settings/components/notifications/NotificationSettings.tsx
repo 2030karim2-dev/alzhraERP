@@ -32,10 +32,10 @@ const NotificationSettings: React.FC = () => {
   ];
 
   return (
-    <div className="p-3 md:p-4 animate-in max-w-4xl mx-auto space-y-3">
+    <div className="p-3 max-md:p-3 md:p-4 animate-in max-w-4xl mx-auto space-y-3">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">مركز الإشعارات</h2>
+          <h2 className="text-2xl max-md:text-lg font-bold text-gray-800 dark:text-slate-100">مركز الإشعارات</h2>
           <p className="text-xs font-bold text-gray-400 mt-1 uppercase">إدارة التنبيهات والرسائل</p>
         </div>
         <Button onClick={handleSave} isLoading={isSaving} className="rounded-xl px-6" leftIcon={<Save size={16}/>}>حفظ</Button>

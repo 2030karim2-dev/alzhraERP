@@ -31,7 +31,7 @@ const CurrencyManager: React.FC = () => {
     } = useCurrencyManager();
 
     if (currencies.isLoading || rates.isLoading) {
-        return <div className="p-20 text-center animate-pulse font-bold text-gray-400">جاري مزامنة أسواق الصرف...</div>;
+        return <div className="p-20 max-md:p-6 text-center animate-pulse font-bold text-gray-400">جاري مزامنة أسواق الصرف...</div>;
     }
 
     const allCurrencies = ((currencies.data || []) as CurrencyRow[]);
@@ -55,22 +55,22 @@ const CurrencyManager: React.FC = () => {
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
             {/* Base Currency Highlight */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 dark:from-black dark:via-slate-900/50 dark:to-black rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden flex items-center justify-between border border-white/10 group overflow-hidden">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 dark:from-black dark:via-slate-900/50 dark:to-black rounded-[2rem] p-6 max-md:p-3 text-white shadow-2xl relative overflow-hidden flex items-center justify-between border border-white/10 group overflow-hidden">
                 <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 max-md:gap-2 mb-2">
                         <span className="relative flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span>
                         </span>
                         <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-emerald-100/70">العملة الأساسية للنظام</span>
                     </div>
-                    <div className="flex items-baseline gap-3">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">{baseCurrency?.name_ar || 'ريال سعودي'}</h2>
+                    <div className="flex items-baseline gap-3 max-md:gap-3">
+                        <h2 className="text-3xl max-md:text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">{baseCurrency?.name_ar || 'ريال سعودي'}</h2>
                         <span className="text-lg font-bold text-emerald-400/80 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-inner backdrop-blur-md">{baseCurrency?.symbol}</span>
                     </div>
                     <p className="text-xs font-mono font-bold text-slate-400 mt-2 tracking-widest">{baseCurrency?.code} • BASE CURRENCY</p>
                 </div>
-                <div className="relative z-10 p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500 ease-out shadow-2xl">
+                <div className="relative z-10 p-5 max-md:p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500 ease-out shadow-2xl">
                     <Globe size={40} className="text-emerald-400/80 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]" />
                 </div>
 
@@ -81,12 +81,12 @@ const CurrencyManager: React.FC = () => {
 
             {/* Action Bar */}
             <div className="flex justify-between items-center px-1">
-                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 max-md:gap-2">
                     <TrendingUp size={14} className="text-blue-500" /> أسعار الصرف الحالية
                 </h3>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-blue-500/20"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center gap-1 max-md:gap-1.5 shadow-lg shadow-blue-500/20"
                 >
                     <Plus size={14} /> إضافة عملة
                 </button>
@@ -106,8 +106,8 @@ const CurrencyManager: React.FC = () => {
             />
 
             {/* Info Alert */}
-            <div className="bg-gradient-to-r from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent p-5 rounded-[2rem] border border-blue-100 dark:border-blue-900/30 flex gap-4 items-start shadow-sm mt-2">
-                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/40 rounded-2xl text-blue-600 dark:text-blue-400 shrink-0 shadow-inner">
+            <div className="bg-gradient-to-r from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent p-5 max-md:p-5 rounded-[2rem] border border-blue-100 dark:border-blue-900/30 flex gap-4 max-md:gap-4 items-start shadow-sm mt-2">
+                <div className="p-2 max-md:p-2.5 bg-blue-100 dark:bg-blue-900/40 rounded-2xl text-blue-600 dark:text-blue-400 shrink-0 shadow-inner">
                     <AlertCircle size={20} />
                 </div>
                 <div>

@@ -171,7 +171,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
       description="تفاصيل عرض السعر"
       size="xl"
       footer={
-        <div className="no-print w-full flex items-center gap-2">
+        <div className="no-print w-full flex items-center gap-2 max-md:gap-2">
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
             إغلاق
           </button>
@@ -198,21 +198,21 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
                 });
               }
             }}
-            className="flex items-center gap-2 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-800/20"
+            className="flex items-center gap-2 max-md:gap-2 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-800/20"
           >
             <FileText size={16} />
             <span className="hidden sm:inline">إكسل</span>
           </button>
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-gray-100 dark:border-slate-800"
+            className="flex items-center gap-2 max-md:gap-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-gray-100 dark:border-slate-800"
           >
             <Printer size={16} />
             <span className="hidden sm:inline">طباعة</span>
           </button>
           <button 
             onClick={shareViaWhatsApp}
-            className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-800/20"
+            className="flex items-center gap-2 max-md:gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-800/20"
           >
             <Share2 size={16} />
             <span className="hidden sm:inline">مشاركة واتساب</span>
@@ -222,7 +222,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
               key={idx}
               onClick={() => handleAction(action.nextStatus)}
               disabled={actionLoading}
-              className={`flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${action.color}`}
+              className={`flex items-center gap-2 max-md:gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${action.color}`}
             >
               {actionLoading ? <Loader2 size={14} className="animate-spin" /> : action.icon}
               {action.label}
@@ -266,7 +266,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
                   <div className="text-right flex-1">
                       {/* [FIX] استخدام اسم الشركة الحقيقي */}
                       <h1 className="text-xl font-bold text-[#1F4E78]">{(company as any)?.name_ar || (company as any)?.name || 'الشركة'}</h1>
-                      <div className="flex flex-col gap-1 mt-1 text-xs font-bold text-gray-700">
+                      <div className="flex flex-col gap-1 max-md:gap-1 mt-1 text-xs font-bold text-gray-700">
                           <span>{(company as any)?.phone ? `هاتف: ${(company as any).phone}` : ''}</span>
                       </div>
                   </div>
@@ -280,27 +280,27 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
               </div>
           </div>
           {/* Status & Validity Bar */}
-          <div className="flex flex-wrap items-center gap-3 bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${statusConf.color}`}>
+          <div className="flex flex-wrap items-center gap-3 max-md:gap-3 bg-gray-50 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+            <span className={`inline-flex items-center gap-1 max-md:gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${statusConf.color}`}>
               {statusConf.label}
             </span>
             {daysLeft !== null && (
-              <span className={`flex items-center gap-1 text-xs font-medium ${daysLeft <= 0 ? 'text-rose-500' : daysLeft <= 3 ? 'text-amber-500' : 'text-gray-500'}`}>
+              <span className={`flex items-center gap-1 max-md:gap-1 text-xs font-medium ${daysLeft <= 0 ? 'text-rose-500' : daysLeft <= 3 ? 'text-amber-500' : 'text-gray-500'}`}>
                 <Clock size={12} />
                 {daysLeft <= 0 ? 'انتهت الصلاحية' : `متبقي ${daysLeft} يوم`}
               </span>
             )}
-            <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+            <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 max-md:gap-1">
               <Calendar size={12} />
               {new Date(quotation.issue_date).toLocaleDateString('ar-SA')}
             </span>
           </div>
 
           {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
             {/* Customer */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
-              <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2 text-sm border-b border-gray-100 dark:border-slate-800 pb-2">
+            <div className="bg-white dark:bg-slate-900 p-4 max-md:p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
+              <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2 max-md:gap-2 text-sm border-b border-gray-100 dark:border-slate-800 pb-2">
                 <User size={16} className="text-indigo-500" />
                 معلومات العميل
               </h3>
@@ -309,12 +309,12 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
             </div>
 
             {/* Amount */}
-            <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 rounded-2xl shadow-sm">
-              <h3 className="font-bold mb-3 flex items-center gap-2 text-sm border-b border-white/20 pb-2 text-indigo-100">
+            <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 max-md:p-4 rounded-2xl shadow-sm">
+              <h3 className="font-bold mb-3 flex items-center gap-2 max-md:gap-2 text-sm border-b border-white/20 pb-2 text-indigo-100">
                 <DollarSign size={16} />
                 إجمالي العرض
               </h3>
-              <p className="text-3xl font-bold font-mono" dir="ltr">
+              <p className="text-3xl max-md:text-xl font-bold font-mono" dir="ltr">
                 {formatCurrency(quotation.total_amount, quotation.currency_code || 'SAR')}
               </p>
             </div>
@@ -322,8 +322,8 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
 
           {/* Items */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <div className="p-3 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800">
-              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <div className="p-3 max-md:p-3 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 max-md:gap-2">
                 <Building2 size={14} className="text-indigo-500" />
                 بنود العرض ({quotation.quotation_items?.length || 0})
               </h3>
@@ -359,21 +359,21 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
 
           {/* Terms */}
           {(quotation.payment_terms || quotation.terms_and_conditions || quotation.notes) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
               {quotation.payment_terms && (
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl border border-gray-100 dark:border-slate-700">
                   <h4 className="text-xs font-bold text-gray-500 mb-1">شروط الدفع</h4>
                   <p className="text-sm text-gray-700 dark:text-gray-300">{quotation.payment_terms}</p>
                 </div>
               )}
               {quotation.notes && (
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl border border-gray-100 dark:border-slate-700">
                   <h4 className="text-xs font-bold text-gray-500 mb-1">ملاحظات</h4>
                   <p className="text-sm text-gray-700 dark:text-gray-300">{quotation.notes}</p>
                 </div>
               )}
               {quotation.terms_and_conditions && (
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 md:col-span-2">
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl border border-gray-100 dark:border-slate-700 md:col-span-2">
                   <h4 className="text-xs font-bold text-gray-500 mb-1">الشروط والأحكام</h4>
                   <p className="text-sm text-gray-700 dark:text-gray-300">{quotation.terms_and_conditions}</p>
                 </div>

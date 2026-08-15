@@ -63,17 +63,17 @@ const VoiceInvoiceButton: React.FC = () => {
 
     if (mode === 'idle') {
         return (
-            <div className="flex gap-2">
+            <div className="flex gap-2 max-md:gap-2">
                 <button
                     onClick={startVoice}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-xs font-bold hover:from-violet-500 hover:to-indigo-500 transition-all shadow-lg shadow-violet-600/20"
+                    className="flex items-center gap-2 max-md:gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-xs font-bold hover:from-violet-500 hover:to-indigo-500 transition-all shadow-lg shadow-violet-600/20"
                 >
                     <Mic size={14} />
                     فاتورة بالصوت
                 </button>
                 <button
                     onClick={() => setMode('input')}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                    className="flex items-center gap-2 max-md:gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                 >
                     <MessageSquare size={14} />
                     فاتورة بالنص
@@ -84,27 +84,27 @@ const VoiceInvoiceButton: React.FC = () => {
 
     if (mode === 'input') {
         return (
-            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-bold text-violet-700 dark:text-violet-400">
+            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-4 max-md:p-4 space-y-3">
+                <div className="flex items-center gap-2 max-md:gap-2 text-sm font-bold text-violet-700 dark:text-violet-400">
                     {isListening ? (
                         <><MicOff size={14} className="animate-pulse text-rose-500" /> جاري الاستماع...</>
                     ) : (
                         <><Sparkles size={14} /> اكتب أمر الفاتورة</>
                     )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-md:gap-2">
                     <input
                         type="text"
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleParse(textInput)}
                         placeholder='مثال: "3 فلتر زيت بـ 25 ريال للعميل أحمد"'
-                        className="flex-1 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-slate-900 p-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500/30"
+                        className="flex-1 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-slate-900 p-2 max-md:p-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500/30"
                     />
-                    <button onClick={() => handleParse(textInput)} className="p-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-500 transition-all">
+                    <button onClick={() => handleParse(textInput)} className="p-2 max-md:p-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-500 transition-all">
                         <Send size={14} />
                     </button>
-                    <button onClick={() => { setMode('idle'); setTextInput(''); }} className="p-2.5 bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded-lg">
+                    <button onClick={() => { setMode('idle'); setTextInput(''); }} className="p-2 max-md:p-2.5 bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded-lg">
                         <X size={14} />
                     </button>
                 </div>
@@ -114,7 +114,7 @@ const VoiceInvoiceButton: React.FC = () => {
 
     if (mode === 'loading') {
         return (
-            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-6 text-center">
+            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-6 max-md:p-3 text-center">
                 <Loader2 size={20} className="animate-spin text-violet-600 mx-auto mb-2" />
                 <p className="text-xs font-bold text-violet-600">جاري تحليل الأمر بالذكاء الاصطناعي...</p>
             </div>
@@ -124,11 +124,11 @@ const VoiceInvoiceButton: React.FC = () => {
     if (mode === 'preview' && parsed) {
         const total = parsed.items.reduce((s, i) => s + i.quantity * i.price, 0);
         return (
-            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-4 space-y-3">
+            <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl p-4 max-md:p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-violet-700 dark:text-violet-400">✨ معاينة الفاتورة</span>
-                    <div className="flex gap-1.5">
-                        <button onClick={() => { setMode('idle'); setParsed(null); setTextInput(''); }} className="p-1.5 bg-gray-200 dark:bg-slate-700 rounded-lg text-gray-500">
+                    <div className="flex gap-1 max-md:gap-1.5">
+                        <button onClick={() => { setMode('idle'); setParsed(null); setTextInput(''); }} className="p-1 max-md:p-1.5 bg-gray-200 dark:bg-slate-700 rounded-lg text-gray-500">
                             <X size={12} />
                         </button>
                     </div>
@@ -140,7 +140,7 @@ const VoiceInvoiceButton: React.FC = () => {
 
                 <div className="space-y-1">
                     {parsed.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-xs bg-white/70 dark:bg-slate-900/50 rounded-lg p-2">
+                        <div key={i} className="flex justify-between text-xs bg-white/70 dark:bg-slate-900/50 rounded-lg p-2 max-md:p-2">
                             <span className="font-bold">{item.name}</span>
                             <span className="font-mono">{item.quantity} × {formatCurrency(item.price)} = {formatCurrency(item.quantity * item.price)}</span>
                         </div>

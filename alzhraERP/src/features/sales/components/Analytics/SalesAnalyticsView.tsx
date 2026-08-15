@@ -133,7 +133,7 @@ const SalesAnalyticsView: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-24">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 max-md:gap-4">
                 <div>
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white">
                         {t('sales_analytics')}
@@ -142,7 +142,7 @@ const SalesAnalyticsView: React.FC = () => {
                         {t('track_sales_performance')}
                     </p>
                 </div>
-                <div className="flex flex-wrap gap-1 sm:gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-wrap gap-1 max-md:gap-1 sm:gap-2 bg-white dark:bg-slate-900 p-1 max-md:p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                     {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(renderPeriodButton)}
                 </div>
             </div>
@@ -175,7 +175,7 @@ const SalesAnalyticsView: React.FC = () => {
             />
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-md:gap-3">
                 {/* Main Chart */}
                 <SalesTrendChart
                     salesByDay={salesByDay}
@@ -191,7 +191,7 @@ const SalesAnalyticsView: React.FC = () => {
             </div>
 
             {/* Top Products & Customers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-md:gap-3">
                 {/* Top Products */}
                 <TopProductsList
                     topProducts={topProducts}

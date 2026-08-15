@@ -34,7 +34,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(({ onPay, canPay
             <div className="flex justify-between items-end pt-2 border-t border-white/10">
                 <span className="text-xs font-black uppercase tracking-wider text-blue-400">{t('net_payable')}</span>
                 <div className="text-right">
-                    <span dir="ltr" className="font-black text-3xl text-white font-mono tracking-tighter leading-none block">
+                    <span dir="ltr" className="font-black text-3xl max-md:text-xl text-white font-mono tracking-tighter leading-none block">
                         {formatCurrency(summary.totalAmount)}
                     </span>
                     <span className="text-[10px] font-bold text-blue-400/80 uppercase tracking-widest">{currency}</span>
@@ -45,7 +45,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(({ onPay, canPay
             <button
                 onClick={onPay}
                 disabled={!canPay}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-600 py-4 font-black text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-xl shadow-blue-500/20 rounded-xl group mt-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-600 py-4 font-black text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2 max-md:gap-2 active:scale-[0.98] shadow-xl shadow-blue-500/20 rounded-xl group mt-2"
             >
                 <CreditCard size={20} className="group-hover:rotate-12 transition-transform" />
                 {t('complete_and_pay')}

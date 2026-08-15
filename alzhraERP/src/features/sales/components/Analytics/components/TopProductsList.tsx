@@ -40,8 +40,8 @@ export const TopProductsList: React.FC<TopProductsListProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
-            <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
+            <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2 mb-6">
                 <Package size={18} className="text-emerald-600" />
                 {t.top_products}
             </h4>
@@ -56,9 +56,9 @@ export const TopProductsList: React.FC<TopProductsListProps> = ({
                     topProducts.slice(0, 5).map((product, index) => (
                         <div
                             key={product.productId || `prod-${index}`}
-                            className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group"
+                            className="flex items-center justify-between p-3 max-md:p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 max-md:gap-3">
                                 <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${getRankStyle(index)}`}>
                                     #{index + 1}
                                 </span>

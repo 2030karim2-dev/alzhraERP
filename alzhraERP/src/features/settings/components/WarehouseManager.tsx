@@ -23,13 +23,13 @@ const WarehouseManager: React.FC = () => {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center text-gray-500">جاري تحميل المستودعات...</div>;
+  if (isLoading) return <div className="p-8 max-md:p-4 text-center text-gray-500">جاري تحميل المستودعات...</div>;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3">
-      <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+      <div className="p-6 max-md:p-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+        <div className="flex items-center gap-3 max-md:gap-3">
+          <div className="p-2 max-md:p-2 bg-amber-100 text-amber-600 rounded-lg">
             <Package size={20} />
           </div>
           <div>
@@ -39,15 +39,15 @@ const WarehouseManager: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 max-md:p-3">
         {/* Add Form */}
-        <form onSubmit={handleAdd} className="flex flex-col md:flex-row gap-3 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <form onSubmit={handleAdd} className="flex flex-col md:flex-row gap-3 max-md:gap-3 mb-8 bg-gray-50 p-4 max-md:p-4 rounded-xl border border-gray-100">
           <input
             type="text"
             placeholder="اسم المستودع (مثال: الفرع الرئيسي)"
             value={newWarehouse.name_ar}
             onChange={(e) => setNewWarehouse({ ...newWarehouse, name_ar: e.target.value })}
-            className="flex-1 p-2.5 border border-gray-200 rounded-lg focus:border-amber-500 outline-none"
+            className="flex-1 p-2 max-md:p-2.5 border border-gray-200 rounded-lg focus:border-amber-500 outline-none"
             required
           />
           <input
@@ -55,12 +55,12 @@ const WarehouseManager: React.FC = () => {
             placeholder="الموقع / العنوان"
             value={newWarehouse.location}
             onChange={(e) => setNewWarehouse({ ...newWarehouse, location: e.target.value })}
-            className="flex-1 p-2.5 border border-gray-200 rounded-lg focus:border-amber-500 outline-none"
+            className="flex-1 p-2 max-md:p-2.5 border border-gray-200 rounded-lg focus:border-amber-500 outline-none"
           />
           <button
             type="submit"
             disabled={isAdding}
-            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 max-md:gap-2 whitespace-nowrap"
           >
             {isAdding ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
             إضافة
@@ -68,22 +68,22 @@ const WarehouseManager: React.FC = () => {
         </form>
 
         {/* List */}
-        <div className="grid gap-3">
+        <div className="grid gap-3 max-md:gap-3">
           {warehouses?.map((wh: any) => (
-            <div key={wh.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-amber-200 transition-colors">
-              <div className="flex items-center gap-3">
+            <div key={wh.id} className="flex items-center justify-between p-4 max-md:p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-amber-200 transition-colors">
+              <div className="flex items-center gap-3 max-md:gap-3">
                 <MapPin size={18} className="text-gray-400" />
                 <div>
                   <p className="font-bold text-gray-800">{wh.name_ar || wh.name}</p>
                   {wh.location && <p className="text-xs text-gray-500">{wh.location}</p>}
                 </div>
                 {wh.is_primary && (
-                  <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 max-md:gap-1">
                     <CheckCircle size={12} /> أساسي
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 max-md:gap-2">
                 {!wh.is_primary && (
                   <button
                     onClick={() => setPrimary(wh.id)}
@@ -94,7 +94,7 @@ const WarehouseManager: React.FC = () => {
                 )}
                 <button
                   onClick={() => handleDelete(wh.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 max-md:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <Trash2 size={18} />
                 </button>

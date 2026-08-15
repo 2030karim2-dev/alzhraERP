@@ -200,11 +200,11 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             >
                 {/* Header / Drag Handle */}
                 <div
-                    className={`flex flex-none items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 ${(isMaximized || isMobile) ? '' : 'cursor-move'}`}
+                    className={`flex flex-none items-center justify-between p-4 max-md:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 ${(isMaximized || isMobile) ? '' : 'cursor-move'}`}
                     onMouseDown={(!isMaximized && !isMobile) ? handleDragStart : undefined}
                     onDoubleClick={!isMobile ? () => setIsMaximized(!isMaximized) : undefined}
                 >
-                    <div className="flex items-center gap-3 select-none pointer-events-none">
+                    <div className="flex items-center gap-3 max-md:gap-3 select-none pointer-events-none">
                         <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
                             <RefreshCw size={18} className="text-indigo-600 dark:text-indigo-400" />
                         </div>
@@ -218,18 +218,18 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 pointer-events-auto">
+                    <div className="flex items-center gap-1 max-md:gap-1.5 pointer-events-auto">
                         {!isMobile && (
                             <button
                                 onClick={() => setIsMaximized(!isMaximized)}
-                                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                                className="p-2 max-md:p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
                                 title={isMaximized ? "تصغير" : "تكبير"}
                             >
                                 {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                             </button>
                         )}
                         <button
-                            className="p-2 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                            className="p-2 max-md:p-2 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
                             onClick={onClose}
                             title="إغلاق (Esc)"
                         >
@@ -281,11 +281,11 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                         })}
                     >
                         {/* Scrollable Content Area */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        <div className="flex-1 overflow-y-auto p-6 max-md:p-3 space-y-8">
                             {/* Sections combined into a single scrollable view */}
 
                             <div className="space-y-4">
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 max-md:gap-2">
                                     <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
                                     اختيار الفاتورة والأصناف
                                 </h2>
@@ -295,7 +295,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                             <div className="border-t-2 border-slate-100 dark:border-slate-800/50 block"></div>
 
                             <div className="space-y-4">
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 max-md:gap-2">
                                     <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
                                     تفاصيل ومبررات الإرجاع
                                 </h2>
@@ -304,11 +304,11 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                         </div>
 
                         {/* Footer / Actions */}
-                        <div className="flex flex-none items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80">
+                        <div className="flex flex-none items-center justify-between p-4 max-md:p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80">
                             <div className="text-xs text-slate-500 font-medium">
                                 استخدم مفاتيح <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono">↑↓</span> و <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono">Tab</span> للتنقل.
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 max-md:gap-2">
                                 <button
                                     type="button"
                                     onClick={onClose}
@@ -318,7 +318,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all flex items-center gap-2"
+                                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all flex items-center gap-2 max-md:gap-2"
                                 >
                                     حفظ المرتجع
                                 </button>

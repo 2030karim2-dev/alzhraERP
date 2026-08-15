@@ -181,7 +181,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     >
       <ErrorBoundary inline>
         {showAlert && (
-          <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${showAlert.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
+          <div className={`mb-4 p-3 max-md:p-3 rounded-lg flex items-center gap-2 max-md:gap-2 ${showAlert.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
             showAlert.type === 'warning' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' :
               'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
             }`}>
@@ -196,7 +196,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           <div className="flex justify-end px-4 mt-2">
             <button
               onClick={() => setShowReturnSection(true)}
-              className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 max-md:gap-1.5 transition-all active:scale-95 shadow-sm"
               title="بدء عملية المرتجع لهذه الفاتورة"
             >
               <RotateCcw size={16} />
@@ -206,10 +206,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         )}
 
         {isLoading ? (
-          <div className="p-20 text-center flex justify-center"><Loader2 className="animate-spin text-blue-500" /></div>
+          <div className="p-20 max-md:p-6 text-center flex justify-center"><Loader2 className="animate-spin text-blue-500" /></div>
         ) : invoice ? (
-          <div className="p-4 space-y-4">
-            <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+          <div className="p-4 max-md:p-4 space-y-4">
+            <div className="flex bg-gray-100 dark:bg-slate-800 p-1 max-md:p-1 rounded-xl mb-4">
                 <button 
                   onClick={() => setActiveTab('details')}
                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'details' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
@@ -229,8 +229,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                 <CompanyInfoSection company={company} user={user} />
 
                 {showReturnSection && (
-                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 animate-in slide-in-from-top-4 duration-300">
-                    <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 mb-2">
+                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 max-md:p-4 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-2 max-md:gap-2 text-rose-700 dark:text-rose-400 mb-2">
                       <RotateCcw size={20} />
                       <h3 className="font-bold">إرجاع جزئي - بنفس السعر</h3>
                     </div>
@@ -240,16 +240,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
                   <CustomerInfoSection party={invoice.parties} />
                   <PaymentInfoSection paymentInfo={paymentInfo} currencyCode={invoice.currency_code} />
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-md:gap-2 text-xs">
+                  <div className="p-2 max-md:p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
                     <strong>التاريخ:</strong> {invoice.issue_date}
                   </div>
-                  <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
+                  <div className="p-2 max-md:p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
                     {/* [FIX] ترجمة حالة الفاتورة للعربية */}
                     <strong>الحالة:</strong> {invoice.status === 'posted' ? 'مرحّل' : invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'draft' ? 'مسودة' : invoice.status}
                   </div>
@@ -276,7 +276,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                 )}
               </>
             ) : (
-              <div className="bg-gray-200 dark:bg-slate-800 p-4 rounded-xl overflow-auto flex justify-center custom-scrollbar max-h-[65vh]">
+              <div className="bg-gray-200 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl overflow-auto flex justify-center custom-scrollbar max-h-[65vh]">
                 <div className="bg-white shadow-lg border border-gray-300 w-full max-w-4xl shrink-0">
                   <PrintableInvoice invoice={fullInvoiceData} />
                 </div>

@@ -84,8 +84,8 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
-            <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
+            <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2 mb-6">
                 <Wallet size={18} className="text-purple-600" />
                 {t.payment_methods}
             </h4>
@@ -124,9 +124,9 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
                                         const data = payload[0].payload;
                                         const info = getMethodInfo(data.method);
                                         return (
-                                            <div className="p-3 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <div className={cn("p-1.5 rounded-lg", info.bg)}>
+                                            <div className="p-3 max-md:p-3 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
+                                                <div className="flex items-center gap-2 max-md:gap-2 mb-2">
+                                                    <div className={cn("p-1 max-md:p-1.5 rounded-lg", info.bg)}>
                                                         <info.icon size={12} className={info.color} />
                                                     </div>
                                                     <span className="text-xs font-bold text-slate-800 dark:text-white">{info.label}</span>
@@ -153,15 +153,15 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
                     <span className="text-xl font-bold text-slate-800 dark:text-white font-mono">{formatCurrency(total)}</span>
                 </div>
             </div>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 max-md:gap-2">
                 {salesByPaymentMethod.map((method, _index) => {
                     const percentage = total > 0 ? Math.round((method.amount / total) * 100) : 0;
                     const info = getMethodInfo(method.method);
 
                     return (
-                        <div key={method.method} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                            <div className="flex items-center gap-2">
-                                <div className={cn("p-2 rounded-xl", info.bg)}>
+                        <div key={method.method} className="flex items-center justify-between p-3 max-md:p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                            <div className="flex items-center gap-2 max-md:gap-2">
+                                <div className={cn("p-2 max-md:p-2 rounded-xl", info.bg)}>
                                     <info.icon size={14} className={info.color} />
                                 </div>
                                 <div className="flex flex-col">

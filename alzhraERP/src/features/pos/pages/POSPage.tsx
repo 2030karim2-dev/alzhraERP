@@ -133,14 +133,14 @@ const POSPage: React.FC = () => {
                 onWarehouseChange={setSelectedWarehouseId}
             />
 
-            <div className="flex-1 flex overflow-hidden flex-row-reverse relative p-2 md:p-4 lg:p-6 md:gap-4 lg:gap-6 bg-gray-50/50 dark:bg-slate-950/50">
+            <div className="flex-1 flex overflow-hidden flex-row-reverse relative p-2 max-md:p-2 md:p-4 lg:p-6 md:gap-4 lg:gap-6 bg-gray-50/50 dark:bg-slate-950/50">
                 <aside className={`
           ${isDesktop ? 'w-[400px] lg:w-[450px] xl:w-[500px] 2xl:w-[550px] 3xl:w-[600px] rounded-3xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] border dark:border-slate-800' : (activeMobileTab === 'cart' ? 'w-full min-w-0' : 'hidden')}
           flex flex-col h-full bg-white dark:bg-slate-900 relative z-20 transition-all duration-300 overflow-hidden
         `}>
                     {!isDesktop && (
-                        <div className="shrink-0 p-3 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex items-center justify-between">
-                            <button onClick={() => setActiveMobileTab('products')} className="flex items-center gap-2 text-blue-600 font-bold text-xs">
+                        <div className="shrink-0 p-3 max-md:p-3 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex items-center justify-between">
+                            <button onClick={() => setActiveMobileTab('products')} className="flex items-center gap-2 max-md:gap-2 text-blue-600 font-bold text-xs">
                                 <ChevronLeft size={16} /> العودة للمنتجات
                             </button>
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">مراجعة الطلب</span>
@@ -151,7 +151,7 @@ const POSPage: React.FC = () => {
                     </div>
 
                     {!isQuickMode && (
-                        <div className="shrink-0 p-2 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 hidden md:block">
+                        <div className="shrink-0 p-2 max-md:p-2 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 hidden md:block">
                             <SmartRecommendations cartItems={validCartItems} onAdd={(name) => search.setQuery(name)} />
                         </div>
                     )}
@@ -172,7 +172,7 @@ const POSPage: React.FC = () => {
             </div>
 
             {!isDesktop && activeMobileTab === 'products' && items.length > 0 && (
-                <div className="fixed bottom-0 inset-x-0 p-4 z-40 animate-in slide-in-from-bottom-10 h-24 pointer-events-none">
+                <div className="fixed bottom-0 inset-x-0 p-4 max-md:p-4 z-40 animate-in slide-in-from-bottom-10 h-24 pointer-events-none">
                     <div
                         onClick={() => setActiveMobileTab('cart')}
                         className="w-full max-w-md mx-auto h-full bg-blue-600 text-white rounded-[2rem] shadow-2xl shadow-blue-500/40 flex items-center justify-between px-6 py-3 cursor-pointer pointer-events-auto active:scale-[0.98] transition-all"
@@ -181,8 +181,8 @@ const POSPage: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">إجمالي السلة ({items.length})</span>
                             <span dir="ltr" className="text-xl font-bold font-mono">{formatCurrency(summary.totalAmount, currency)}</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white/20 p-2.5 rounded-2xl">
+                        <div className="flex items-center gap-3 max-md:gap-3">
+                            <div className="bg-white/20 p-2 max-md:p-2.5 rounded-2xl">
                                 <ShoppingCart size={20} />
                             </div>
                             <span className="text-sm font-bold">عرض السلة</span>

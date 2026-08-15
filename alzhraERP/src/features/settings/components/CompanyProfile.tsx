@@ -57,7 +57,7 @@ const CompanyProfile: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-20 text-center">
+      <div className="p-20 max-md:p-6 text-center">
         <div className="inline-block w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-xs font-bold text-gray-400 mt-3">جاري جلب بيانات المنشأة...</p>
       </div>
@@ -65,12 +65,12 @@ const CompanyProfile: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-3 md:p-6 animate-in fade-in duration-500">
+    <form onSubmit={handleSubmit(onSubmit)} className="p-3 max-md:p-3 md:p-6 animate-in fade-in duration-500">
       <div className="max-w-none mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
+          <div className="flex items-center gap-3 max-md:gap-3">
+            <div className="p-2 max-md:p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
               <Building2 size={20} />
             </div>
             <div>
@@ -86,7 +86,7 @@ const CompanyProfile: React.FC = () => {
             type="submit"
             disabled={isPending}
             className={cn(
-              "inline-flex items-center gap-2 px-5 md:px-6 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg",
+              "inline-flex items-center gap-2 max-md:gap-2 px-5 md:px-6 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg",
               saved
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
                 : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20",
@@ -107,14 +107,14 @@ const CompanyProfile: React.FC = () => {
         {/* Company Identity Card */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Identity Section */}
-          <div className="p-4 md:p-6 space-y-4 border-b border-gray-100 dark:border-slate-800">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-4 max-md:p-4 md:p-6 space-y-4 border-b border-gray-100 dark:border-slate-800">
+            <div className="flex items-center gap-2 max-md:gap-2 mb-2">
               <span className="w-1 h-4 bg-blue-600 rounded-full"></span>
               <h3 className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
                 هوية المنشأة
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
               <Input
                 label="اسم الشركة (بالعربية)"
                 placeholder="شركة الزهراء لقطع الغيار"
@@ -132,17 +132,17 @@ const CompanyProfile: React.FC = () => {
           </div>
 
           {/* Financial & Tax Section */}
-          <div className="p-4 md:p-6 space-y-4 bg-gray-50/50 dark:bg-slate-900/50">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-4 max-md:p-4 md:p-6 space-y-4 bg-gray-50/50 dark:bg-slate-900/50">
+            <div className="flex items-center gap-2 max-md:gap-2 mb-2">
               <span className="w-1 h-4 bg-emerald-500 rounded-full"></span>
               <h3 className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
                 المعلومات المالية
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
               {/* Base Currency — العملات المتفق عليها فقط */}
               <div className="space-y-1.5">
-                <label className="text-[9px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mr-1 flex items-center gap-1.5">
+                <label className="text-[9px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mr-1 flex items-center gap-1 max-md:gap-1.5">
                   <Banknote size={12} />
                   العملة الأساسية
                 </label>
@@ -156,7 +156,7 @@ const CompanyProfile: React.FC = () => {
                   <option value="USD">🇺🇸 USD — دولار أمريكي</option>
                   <option value="CNY">🇨🇳 CNY — يوان صيني</option>
                 </select>
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-2 max-md:gap-2 mt-1.5">
                   <Crown size={10} className="text-amber-500" />
                   <span className="text-[8px] md:text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">
                     العملة الأساسية لقيد المعاملات
@@ -165,9 +165,9 @@ const CompanyProfile: React.FC = () => {
               </div>
 
               {/* Tax System Toggle */}
-              <div className="flex items-center justify-between p-3 md:p-4 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl">
-                <div className="space-y-1 w-full flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+              <div className="flex items-center justify-between p-3 max-md:p-3 md:p-4 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl">
+                <div className="space-y-1 w-full flex items-center gap-3 max-md:gap-3">
+                  <div className="p-2 max-md:p-2 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
                     <Percent size={18} />
                   </div>
                   <div className="flex-1">
@@ -179,7 +179,7 @@ const CompanyProfile: React.FC = () => {
                     </p>
                   </div>
                   <div>
-                    <label className="relative inline-flex flex-col items-center cursor-pointer p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <label className="relative inline-flex flex-col items-center cursor-pointer p-2 max-md:p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                       <input type="checkbox" {...register('is_tax_enabled')} className="sr-only peer" />
                       <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[10px] after:left-[10px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                     </label>
@@ -192,8 +192,8 @@ const CompanyProfile: React.FC = () => {
         </div>
 
         {/* Info Banner */}
-        <div className="p-3 md:p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20 flex items-start gap-3">
-          <div className="p-1.5 bg-blue-500 text-white rounded-lg flex-shrink-0 mt-0.5">
+        <div className="p-3 max-md:p-3 md:p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20 flex items-start gap-3 max-md:gap-3">
+          <div className="p-1 max-md:p-1.5 bg-blue-500 text-white rounded-lg flex-shrink-0 mt-0.5">
             <FileText size={12} />
           </div>
           <div>

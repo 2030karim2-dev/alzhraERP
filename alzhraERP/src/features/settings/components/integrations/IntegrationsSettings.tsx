@@ -17,10 +17,10 @@ export const IntegrationsSettings: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 max-md:p-3">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 max-md:gap-3">
                     <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
                         <Link className="w-5 h-5 text-indigo-600" />
                     </div>
@@ -33,7 +33,7 @@ export const IntegrationsSettings: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <button className="flex items-center gap-2 max-md:gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <Save className="w-4 h-4" />
                     <span className="text-sm font-medium">{t.save || 'حفظ'}</span>
                 </button>
@@ -41,15 +41,15 @@ export const IntegrationsSettings: React.FC = () => {
 
 
             {/* Email Integration */}
-            <Card className="p-6">
+            <Card className="p-6 max-md:p-3">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <Mail className="w-5 h-5 text-slate-400" />
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                             {t.email_integration || 'تكامل البريد الإلكتروني'}
                         </h3>
                     </div>
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${integration.email_enabled
+                    <div className={`flex items-center gap-1 max-md:gap-1 px-2 py-1 rounded-full text-xs font-medium ${integration.email_enabled
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                         }`}>
@@ -67,7 +67,7 @@ export const IntegrationsSettings: React.FC = () => {
                     </div>
                 </div>
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <input
                             type="checkbox"
                             id="email_enabled"
@@ -80,7 +80,7 @@ export const IntegrationsSettings: React.FC = () => {
                         </label>
                     </div>
                     {integration.email_enabled && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mr-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4 mr-6">
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                     {t.smtp_server || 'خادم SMTP'}
@@ -132,15 +132,15 @@ export const IntegrationsSettings: React.FC = () => {
             </Card>
 
             {/* SMS Integration */}
-            <Card className="p-6">
+            <Card className="p-6 max-md:p-3">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <MessageSquare className="w-5 h-5 text-slate-400" />
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                             {t.sms_integration || 'تكامل الرسائل النصية'}
                         </h3>
                     </div>
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${integration.sms_enabled
+                    <div className={`flex items-center gap-1 max-md:gap-1 px-2 py-1 rounded-full text-xs font-medium ${integration.sms_enabled
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                         }`}>
@@ -158,7 +158,7 @@ export const IntegrationsSettings: React.FC = () => {
                     </div>
                 </div>
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <input
                             type="checkbox"
                             id="sms_enabled"
@@ -171,7 +171,7 @@ export const IntegrationsSettings: React.FC = () => {
                         </label>
                     </div>
                     {integration.sms_enabled && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mr-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4 mr-6">
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                     {t.sms_provider || 'مزود الخدمة'}
@@ -207,15 +207,15 @@ export const IntegrationsSettings: React.FC = () => {
             {companyId && <MessagingIntegration companyId={companyId} />}
 
             {/* API Keys */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <Key className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.api_keys || 'مفاتيح API'}
                     </h3>
                 </div>
                 <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="p-4 max-md:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                 {t.public_key || 'المفتاح العام'}
@@ -228,7 +228,7 @@ export const IntegrationsSettings: React.FC = () => {
                             {integration.api_public_key || 'pk_xxxxxxxxxxxx'}
                         </code>
                     </div>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="p-4 max-md:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                 {t.secret_key || 'المفتاح السري'}

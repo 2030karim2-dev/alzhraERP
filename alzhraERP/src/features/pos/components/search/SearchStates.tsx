@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2, Zap, Sparkles, AlertCircle } from 'lucide-react';
 
 export const SearchLoadingState: React.FC = React.memo(() => (
-    <div className="p-8 flex flex-col items-center justify-center gap-3">
+    <div className="p-8 max-md:p-4 flex flex-col items-center justify-center gap-3 max-md:gap-3">
         <div className="relative">
             <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
                 <Loader2 size={24} className="animate-spin text-blue-600" />
@@ -20,7 +20,7 @@ SearchLoadingState.displayName = 'SearchLoadingState';
 
 export const SearchPopularHeader: React.FC = React.memo(() => (
     <div className="px-4 py-2 bg-amber-50/50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-800/30">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-md:gap-2">
             <Sparkles size={14} className="text-amber-500" />
             <span className="text-xs md:text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-widest">
                 المنتجات الأكثر رواجاً
@@ -31,7 +31,7 @@ export const SearchPopularHeader: React.FC = React.memo(() => (
 SearchPopularHeader.displayName = 'SearchPopularHeader';
 
 export const SearchEmptyState: React.FC<{ query: string }> = React.memo(({ query }) => (
-    <div className="p-8 flex flex-col items-center justify-center gap-3">
+    <div className="p-8 max-md:p-4 flex flex-col items-center justify-center gap-3 max-md:gap-3">
         <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
             <AlertCircle size={28} className="text-slate-400 dark:text-slate-600" />
         </div>
@@ -57,7 +57,7 @@ export const SearchFooterStats: React.FC<{
             {resultCount} من {total} نتيجة
             {searchTimeMs > 0 && ` • ${Math.round(searchTimeMs)}ms`}
         </span>
-        <span className="flex items-center gap-1 opacity-60">
+        <span className="flex items-center gap-1 max-md:gap-1 opacity-60">
             <Zap size={12} />
             اضغط Enter للإضافة
         </span>

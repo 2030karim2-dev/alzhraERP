@@ -77,7 +77,7 @@ const ExchangeRateHistory: React.FC = () => {
 
     if (rates.isLoading) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 p-8 text-center">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 p-8 max-md:p-4 text-center">
                 <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 <p className="text-[9px] font-bold text-gray-400 mt-2">جاري تحميل السجل...</p>
             </div>
@@ -87,9 +87,9 @@ const ExchangeRateHistory: React.FC = () => {
     return (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="p-4 md:p-5 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-amber-500 text-white rounded-xl shadow-md shadow-amber-500/20">
+            <div className="p-4 max-md:p-4 md:p-5 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 max-md:gap-3">
+                <div className="flex items-center gap-2 max-md:gap-2.5">
+                    <div className="p-2 max-md:p-2 bg-amber-500 text-white rounded-xl shadow-md shadow-amber-500/20">
                         <History size={16} />
                     </div>
                     <div>
@@ -104,7 +104,7 @@ const ExchangeRateHistory: React.FC = () => {
 
                 {/* Currency Filter */}
                 {currencies.length > 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-md:gap-2">
                         <Filter size={12} className="text-gray-400" />
                         <select
                             value={filterCurrency}
@@ -122,7 +122,7 @@ const ExchangeRateHistory: React.FC = () => {
 
             {/* Rate History Table */}
             {filteredRates.length === 0 ? (
-                <div className="p-10 text-center">
+                <div className="p-10 max-md:p-5 text-center">
                     <ArrowLeftRight size={32} className="text-gray-200 dark:text-slate-700 mx-auto mb-3" />
                     <p className="text-xs font-bold text-gray-400 dark:text-slate-500">
                         لا يوجد سجل لأسعار الصرف بعد
@@ -159,7 +159,7 @@ const ExchangeRateHistory: React.FC = () => {
                                             {filteredRates.length - index}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                            <span className="inline-flex items-center gap-1 max-md:gap-1.5 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
                                                 <ArrowLeftRight size={10} className="text-gray-400" />
                                                 <span className="text-[9px] md:text-[10px] font-bold text-gray-700 dark:text-slate-200">
                                                     {rate.currency_code}
@@ -172,7 +172,7 @@ const ExchangeRateHistory: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex items-center gap-1 max-md:gap-1">
                                                 {trend === 'up' && <TrendingUp size={12} className="text-emerald-500" />}
                                                 {trend === 'down' && <TrendingDown size={12} className="text-red-500" />}
                                                 {trend === 'same' && <Minus size={12} className="text-gray-300" />}
@@ -190,7 +190,7 @@ const ExchangeRateHistory: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1 max-md:gap-1.5">
                                                 <Calendar size={10} className="text-gray-300 dark:text-slate-600" />
                                                 <div>
                                                     <span className="text-[9px] md:text-[10px] font-bold text-gray-600 dark:text-slate-300 block">

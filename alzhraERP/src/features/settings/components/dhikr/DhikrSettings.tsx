@@ -52,9 +52,9 @@ export const DhikrSettings: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 max-md:p-3">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 max-md:gap-3">
                     <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
                         <Moon className="w-5 h-5 text-emerald-600" />
                     </div>
@@ -69,16 +69,16 @@ export const DhikrSettings: React.FC = () => {
                 </div>
                 <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    className="flex items-center gap-2 max-md:gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                 >
                     {saved ? 'تم الحفظ ✓' : 'حفظ'}
                 </button>
             </div>
 
             {/* Toggles */}
-            <Card className="p-6 space-y-5">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
+            <Card className="p-6 max-md:p-3 space-y-5">
+                <div className="flex items-center justify-between gap-4 max-md:gap-4">
+                    <div className="flex items-center gap-3 max-md:gap-3">
                         <Moon className="w-5 h-5 text-slate-400" />
                         <div>
                             <p className="text-sm font-bold text-slate-800 dark:text-white">إظهار الشريط</p>
@@ -101,8 +101,8 @@ export const DhikrSettings: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-4 max-md:gap-4">
+                    <div className="flex items-center gap-3 max-md:gap-3">
                         {soundEnabled ? <Volume2 className="w-5 h-5 text-slate-400" /> : <VolumeX className="w-5 h-5 text-slate-400" />}
                         <div>
                             <p className="text-sm font-bold text-slate-800 dark:text-white">صوت الأذان</p>
@@ -126,15 +126,15 @@ export const DhikrSettings: React.FC = () => {
                 </div>
             </Card>
 
-            <Card className="p-6 space-y-4">
-                <div className="flex items-center gap-2">
+            <Card className="p-6 max-md:p-3 space-y-4">
+                <div className="flex items-center gap-2 max-md:gap-2">
                     <MapPin className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">الموقع لحساب أوقات الصلاة</h3>
                 </div>
                 <p className="text-xs text-slate-500 -mt-2">
                     أدخل إحداثيات موقعك (تُحسب الأوقات محلياً دون إنترنت). يمكنك إيجادها من خرائط جوجل — أيمن الفأرة على موقعك.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">المدينة (اختياري)</label>
                         <input
@@ -170,13 +170,13 @@ export const DhikrSettings: React.FC = () => {
 
                 <div>
                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">منهج الحساب</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 max-md:gap-2">
                         {METHODS.map((m) => (
                             <button
                                 key={m.key}
                                 onClick={() => setCalculationMethod(m.key)}
                                 className={cn(
-                                    'p-3 rounded-xl border-2 text-right transition-all',
+                                    'p-3 max-md:p-3 rounded-xl border-2 text-right transition-all',
                                     calculationMethod === m.key
                                         ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
                                         : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300'
@@ -191,14 +191,14 @@ export const DhikrSettings: React.FC = () => {
             </Card>
 
             {preview && (
-                <Card className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
+                <Card className="p-6 max-md:p-3">
+                    <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                         <BellOff className="w-5 h-5 text-slate-400" />
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white">أوقات اليوم (معاينة)</h3>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 max-md:gap-3">
                         {preview.today.map((entry) => (
-                            <div key={entry.name} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 text-center">
+                            <div key={entry.name} className="p-3 max-md:p-3 rounded-xl bg-slate-50 dark:bg-slate-900 text-center">
                                 <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{PRAYER_LABELS[entry.name] ?? entry.name}</p>
                                 <p className="text-sm font-black text-slate-800 dark:text-white mt-1" dir="ltr">
                                     {new Date(entry.time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}

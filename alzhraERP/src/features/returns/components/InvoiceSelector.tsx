@@ -54,7 +54,7 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 rounded-xl text-sm font-bold hover:border-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full flex items-center justify-between p-4 max-md:p-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 rounded-xl text-sm font-bold hover:border-blue-500 focus:border-blue-500 transition-colors"
             >
                 <span className={selectedInvoice ? 'text-gray-900 dark:text-white' : 'text-gray-400'}>
                     {selectedInvoice
@@ -67,7 +67,7 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
             {isOpen && (
                 <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 rounded-xl shadow-xl max-h-96 overflow-hidden">
                     {/* Search Input */}
-                    <div className="p-3 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                    <div className="p-3 max-md:p-3 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                         <div className="relative">
                             <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
@@ -95,7 +95,7 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
                     {/* Invoice List */}
                     <div className="max-h-72 overflow-y-auto">
                         {filteredInvoices.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500 text-sm">
+                            <div className="p-8 max-md:p-4 text-center text-gray-500 text-sm">
                                 <Search size={32} className="mx-auto mb-2 opacity-50" />
                                 <p>لا توجد فواتير مطابقة للبحث</p>
                             </div>
@@ -109,28 +109,28 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
                                         setIsOpen(false);
                                         setSearchTerm('');
                                     }}
-                                    className={`w-full p-4 text-right border-b border-gray-100 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${invoice.id === selectedInvoiceId ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+                                    className={`w-full p-4 max-md:p-4 text-right border-b border-gray-100 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${invoice.id === selectedInvoiceId ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                                         }`}
                                 >
                                     <div className="flex justify-between items-start">
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
+                                            <div className="flex items-center gap-2 max-md:gap-2 mb-1">
                                                 <FileText size={16} className="text-blue-600" />
                                                 <p className="font-bold text-gray-900 dark:text-white">
                                                     {invoice.invoice_number}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <div className="flex items-center gap-2 max-md:gap-2 text-xs text-gray-500">
                                                 <User size={12} />
                                                 <span>{invoice.party?.name || 'عميل نقدي'}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                                            <div className="flex items-center gap-2 max-md:gap-2 text-xs text-gray-400 mt-1">
                                                 <Calendar size={12} />
                                                 <span>{formatDate(invoice.issue_date)}</span>
                                             </div>
                                         </div>
                                         <div className="text-left">
-                                            <div className="flex items-center gap-1 text-green-600">
+                                            <div className="flex items-center gap-1 max-md:gap-1 text-green-600">
                                                 <Banknote size={14} />
                                                 <span className="font-bold">{formatCurrency(invoice.total_amount, invoice.currency_code || 'SAR')}</span>
                                             </div>
@@ -146,7 +146,7 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
 
                     {/* Footer */}
                     {filteredInvoices.length > 0 && (
-                        <div className="p-2 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-xs text-gray-500 text-center">
+                        <div className="p-2 max-md:p-2 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-xs text-gray-500 text-center">
                             Showing {filteredInvoices.length} of {invoices.length} invoices
                         </div>
                     )}

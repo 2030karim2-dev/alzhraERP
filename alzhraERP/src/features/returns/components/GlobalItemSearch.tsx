@@ -78,12 +78,12 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
     }, [invoices, globalSearchTerm]);
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-indigo-100 dark:border-indigo-900/30 shadow-sm relative overflow-hidden mb-6 group">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 max-md:p-3 border-2 border-indigo-100 dark:border-indigo-900/30 shadow-sm relative overflow-hidden mb-6 group">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
+            <div className="relative z-10 flex flex-col md:flex-row gap-4 max-md:gap-4 items-start md:items-center justify-between mb-4">
                 <div>
-                    <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 flex items-center gap-2 max-md:gap-2">
                         <PackageSearch size={22} />
                         البحث الشامل عن الأصناف
                     </h3>
@@ -104,7 +104,7 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                     {globalSearchTerm && (
                         <button
                             onClick={() => setGlobalSearchTerm('')}
-                            className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors bg-white dark:bg-slate-900 rounded-full p-1"
+                            className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors bg-white dark:bg-slate-900 rounded-full p-1 max-md:p-1"
                         >
                             <X size={16} />
                         </button>
@@ -119,14 +119,14 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                         <table className="w-full text-right border-collapse">
                             <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10 shadow-sm border-b-2 border-slate-200 dark:border-slate-700">
                                 <tr>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase w-10 text-center border-l dark:border-slate-700">#</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">التاريخ</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase border-l dark:border-slate-700">اسم القطعة (وصف)</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase border-l dark:border-slate-700">رقم القطعة</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">العميل / المورد</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">البائع</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">سعر الوحدة</th>
-                                    <th className="p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 w-24 text-center">إجراء</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase w-10 text-center border-l dark:border-slate-700">#</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">التاريخ</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase border-l dark:border-slate-700">اسم القطعة (وصف)</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase border-l dark:border-slate-700">رقم القطعة</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">العميل / المورد</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">البائع</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap border-l dark:border-slate-700">سعر الوحدة</th>
+                                    <th className="p-3 max-md:p-3 text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 w-24 text-center">إجراء</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -136,28 +136,28 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                                         onClick={() => onItemSelect(result.invoiceId)}
                                         className="hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors cursor-pointer group"
                                     >
-                                        <td className="p-3 text-xs font-bold text-slate-400 text-center border-l dark:border-slate-800">{idx + 1}</td>
-                                        <td className="p-3 whitespace-nowrap border-l dark:border-slate-800">
-                                            <div className="flex items-center gap-1.5 justify-end">
+                                        <td className="p-3 max-md:p-3 text-xs font-bold text-slate-400 text-center border-l dark:border-slate-800">{idx + 1}</td>
+                                        <td className="p-3 max-md:p-3 whitespace-nowrap border-l dark:border-slate-800">
+                                            <div className="flex items-center gap-1 max-md:gap-1.5 justify-end">
                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(result.issueDate)}</span>
                                                 <Calendar size={12} className="text-slate-400" />
                                             </div>
                                         </td>
-                                        <td className="p-3 border-l dark:border-slate-800">
+                                        <td className="p-3 max-md:p-3 border-l dark:border-slate-800">
                                             <span className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{result.item.description || 'بدون اسم'}</span>
                                         </td>
-                                        <td className="p-3 border-l dark:border-slate-800">
+                                        <td className="p-3 max-md:p-3 border-l dark:border-slate-800">
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">{result.item.product_id || '-'}</span>
                                         </td>
-                                        <td className="p-3 whitespace-nowrap border-l dark:border-slate-800">
-                                            <div className="flex items-center gap-1.5 justify-end">
+                                        <td className="p-3 max-md:p-3 whitespace-nowrap border-l dark:border-slate-800">
+                                            <div className="flex items-center gap-1 max-md:gap-1.5 justify-end">
                                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-400 line-clamp-1 max-w-[120px]" title={result.customerName}>{result.customerName}</span>
                                                 <User size={12} className="text-slate-400" />
                                             </div>
                                         </td>
-                                        <td className="p-3 whitespace-nowrap border-l dark:border-slate-800">
-                                            <div className="flex flex-col items-end gap-0.5">
-                                                <div className="flex items-center gap-1.5 justify-end">
+                                        <td className="p-3 max-md:p-3 whitespace-nowrap border-l dark:border-slate-800">
+                                            <div className="flex flex-col items-end gap-0 max-md:gap-0.5">
+                                                <div className="flex items-center gap-1 max-md:gap-1.5 justify-end">
                                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{result.employeeName}</span>
                                                     <UserSquare size={12} className="text-slate-400" />
                                                 </div>
@@ -166,13 +166,13 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="p-3 whitespace-nowrap border-l dark:border-slate-800">
-                                            <div className="flex items-center gap-1.5 justify-end text-emerald-600 dark:text-emerald-400">
+                                        <td className="p-3 max-md:p-3 whitespace-nowrap border-l dark:border-slate-800">
+                                            <div className="flex items-center gap-1 max-md:gap-1.5 justify-end text-emerald-600 dark:text-emerald-400">
                                                 <span className="text-sm font-bold font-mono">{formatCurrency(result.item.unit_price, result.currency)}</span>
                                                 <Banknote size={14} />
                                             </div>
                                         </td>
-                                        <td className="p-3 text-center">
+                                        <td className="p-3 max-md:p-3 text-center">
                                             <button
                                                 className="w-full px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold transition-all"
                                                 onClick={(e) => {
@@ -188,8 +188,8 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                             </tbody>
                         </table>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/80 p-2 text-center border-t border-slate-200 dark:border-slate-700">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1">
+                    <div className="bg-slate-50 dark:bg-slate-800/80 p-2 max-md:p-2 text-center border-t border-slate-200 dark:border-slate-700">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1 max-md:gap-1">
                             <TableIcon size={12} />
                             يتم عرض النتائج من جميع الفواتير النشطة أعلاه
                         </span>

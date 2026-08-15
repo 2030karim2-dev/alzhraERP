@@ -31,7 +31,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend }) => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
                 {validItems.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-200 dark:text-slate-800 p-6 gap-3">
+                    <div className="h-full flex flex-col items-center justify-center text-slate-200 dark:text-slate-800 p-6 max-md:p-3 gap-3 max-md:gap-3">
                         <ShoppingCart size={48} strokeWidth={1} />
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-center text-slate-300 dark:text-slate-700">
                             {t('waiting_for_items')}
@@ -42,10 +42,10 @@ export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend }) => {
                         <table className="w-full text-right border-collapse table-fixed">
                             <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm">
                                 <tr className="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase">
-                                    <th className="p-2 md:p-3 w-4/12 text-right">اسم القطعة</th>
-                                    <th className="p-2 md:p-3 w-3/12 text-right">رقم القطعة</th>
-                                    <th className="p-2 md:p-3 w-3/12 text-center">الكمية</th>
-                                    <th className="p-2 md:p-3 w-2/12 text-left">الإجمالي</th>
+                                    <th className="p-2 max-md:p-2 md:p-3 w-4/12 text-right">اسم القطعة</th>
+                                    <th className="p-2 max-md:p-2 md:p-3 w-3/12 text-right">رقم القطعة</th>
+                                    <th className="p-2 max-md:p-2 md:p-3 w-3/12 text-center">الكمية</th>
+                                    <th className="p-2 max-md:p-2 md:p-3 w-2/12 text-left">الإجمالي</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">

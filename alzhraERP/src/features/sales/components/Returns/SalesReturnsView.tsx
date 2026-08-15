@@ -133,7 +133,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       {/* Returns List Redesigned as Excel Table */}
       <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="p-8 space-y-4">
+          <div className="p-8 max-md:p-4 space-y-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-10 w-full bg-gray-50 dark:bg-slate-800 animate-pulse rounded" />
             ))}
@@ -158,7 +158,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
               {
                 header: 'الفاتورة الأصلية',
                 accessor: (row: any) => (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 max-md:gap-2">
                     <FileText size={12} className="text-blue-500" />
                     <span className="font-medium text-blue-600">#{row.reference_invoice_id || '---'}</span>
                   </div>
@@ -178,7 +178,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
               {
                 header: 'الأصناف',
                 accessor: (row: any) => (
-                  <div className="flex items-center gap-1.5 text-gray-500">
+                  <div className="flex items-center gap-1 max-md:gap-1.5 text-gray-500">
                     <ShoppingCart size={12} />
                     <span className="text-xs font-bold">{row.invoice_items?.length || 0} أصناف</span>
                   </div>
@@ -231,10 +231,10 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
               {
                 header: 'الإجراءات',
                 accessor: (row: any) => (
-                  <div className="flex items-center gap-1 justify-center">
+                  <div className="flex items-center gap-1 max-md:gap-1 justify-center">
                     <button
                       onClick={(e) => { e.stopPropagation(); onViewDetails(row.id); }}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      className="p-1 max-md:p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                     >
                       <Eye size={14} />
                     </button>
@@ -246,7 +246,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                         }
                       }}
                       disabled={isDeleting}
-                      className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                      className="p-1 max-md:p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -268,7 +268,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
 
       {/* Total Summary */}
       {processedReturns.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800">
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 max-md:p-4 border border-red-200 dark:border-red-800">
           <div className="flex justify-between items-center">
             <span className="font-bold text-red-800 dark:text-red-300">إجمالي المرتجعات المعروضة:</span>
             <div className="text-left flex flex-col items-end">

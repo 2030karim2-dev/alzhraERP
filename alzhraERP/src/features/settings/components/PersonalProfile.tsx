@@ -30,12 +30,12 @@ const PersonalProfile: React.FC = () => {
     const userInitial = fullName ? fullName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');
 
     return (
-        <div className="p-3 md:p-6 animate-in fade-in duration-500">
+        <div className="p-3 max-md:p-3 md:p-6 animate-in fade-in duration-500">
             <div className="max-w-none mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-500/20">
+                    <div className="flex items-center gap-3 max-md:gap-3">
+                        <div className="p-2 max-md:p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-500/20">
                             <User size={20} />
                         </div>
                         <div>
@@ -51,13 +51,13 @@ const PersonalProfile: React.FC = () => {
 
                 {/* Profile Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row items-center gap-8 border-b border-gray-100 dark:border-slate-800">
+                    <div className="p-6 max-md:p-3 md:p-8 flex flex-col md:flex-row items-center gap-8 max-md:gap-3 border-b border-gray-100 dark:border-slate-800">
                         {/* Avatar Section */}
                         <div className="relative group">
-                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-3xl md:text-5xl font-black shadow-2xl shadow-indigo-500/30">
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-3xl max-md:text-xl md:text-5xl font-black shadow-2xl shadow-indigo-500/30">
                                 {userInitial}
                             </div>
-                            <button className="absolute -bottom-2 -right-2 p-2.5 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl text-gray-400 hover:text-indigo-600 hover:scale-110 active:scale-90 transition-all shadow-lg">
+                            <button className="absolute -bottom-2 -right-2 p-2 max-md:p-2.5 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl text-gray-400 hover:text-indigo-600 hover:scale-110 active:scale-90 transition-all shadow-lg">
                                 <Camera size={18} />
                             </button>
                         </div>
@@ -65,19 +65,19 @@ const PersonalProfile: React.FC = () => {
                         {/* Basic Info */}
                         <div className="flex-1 text-center md:text-right space-y-2">
                             <h3 className="text-xl font-black text-gray-800 dark:text-white">{fullName}</h3>
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-gray-500 dark:text-slate-400 font-bold text-sm">
+                            <div className="flex items-center justify-center md:justify-start gap-2 max-md:gap-2 text-gray-500 dark:text-slate-400 font-bold text-sm">
                                 <Mail size={14} />
                                 {user?.email}
                             </div>
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full w-fit mx-auto md:mx-0">
+                            <div className="flex items-center justify-center md:justify-start gap-2 max-md:gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full w-fit mx-auto md:mx-0">
                                 <Shield size={10} />
                                 حساب نشط ومؤمن
                             </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="p-6 md:p-8 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form onSubmit={handleUpdateProfile} className="p-6 max-md:p-3 md:p-8 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-md:gap-3">
                             <Input
                                 label="الاسم الكامل"
                                 value={fullName}
@@ -101,7 +101,7 @@ const PersonalProfile: React.FC = () => {
                                 type="submit"
                                 disabled={updateProfile.isPending || fullName === user?.full_name}
                                 className={cn(
-                                    "inline-flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl",
+                                    "inline-flex items-center gap-2 max-md:gap-2 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl",
                                     saved
                                         ? "bg-emerald-600 text-white shadow-emerald-500/20"
                                         : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25",
@@ -122,9 +122,9 @@ const PersonalProfile: React.FC = () => {
                 </div>
 
                 {/* Security Section Shortcut */}
-                <div className="bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white dark:bg-slate-900 rounded-xl text-amber-500 shadow-sm">
+                <div className="bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 p-6 max-md:p-3 flex flex-col md:flex-row items-center justify-between gap-6 max-md:gap-3">
+                    <div className="flex items-center gap-4 max-md:gap-4">
+                        <div className="p-3 max-md:p-3 bg-white dark:bg-slate-900 rounded-xl text-amber-500 shadow-sm">
                             <Shield size={24} />
                         </div>
                         <div className="text-right">

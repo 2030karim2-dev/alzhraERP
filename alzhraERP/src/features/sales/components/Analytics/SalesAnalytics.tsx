@@ -41,57 +41,57 @@ const SalesAnalytics: React.FC<SalesAnalyticsProps> = ({ period = 'month' }) => 
     return (
         <div className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-md:gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center gap-3 max-md:gap-3">
+                        <div className="p-3 max-md:p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <TrendingUp size={24} className="text-green-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">إجمالي المبيعات</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-2xl max-md:text-lg font-bold text-gray-900 dark:text-white">
                                 {formatNumber(totalSales)}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center gap-3 max-md:gap-3">
+                        <div className="p-3 max-md:p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
                             <TrendingDown size={24} className="text-red-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">المردودات</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-2xl max-md:text-lg font-bold text-gray-900 dark:text-white">
                                 {formatNumber(totalReturns)}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center gap-3 max-md:gap-3">
+                        <div className="p-3 max-md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                             <BarChart3 size={24} className="text-blue-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">المبيعات الصافية</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-2xl max-md:text-lg font-bold text-gray-900 dark:text-white">
                                 {formatNumber(netSales)}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center gap-3 max-md:gap-3">
+                        <div className="p-3 max-md:p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                             <PieChart size={24} className="text-purple-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">متوسط الفاتورة</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-2xl max-md:text-lg font-bold text-gray-900 dark:text-white">
                                 {formatNumber(averageInvoiceValue)}
                             </p>
                         </div>
@@ -100,7 +100,7 @@ const SalesAnalytics: React.FC<SalesAnalyticsProps> = ({ period = 'month' }) => 
             </div>
 
             {/* Chart Area */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     المبيعات اليومية
                 </h3>

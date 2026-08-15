@@ -49,14 +49,14 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b dark:border-slate-800 bg-gradient-to-r from-indigo-600 to-blue-600">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl">
+        <div className="flex items-center justify-between p-5 max-md:p-5 border-b dark:border-slate-800 bg-gradient-to-r from-indigo-600 to-blue-600">
+          <div className="flex items-center gap-3 max-md:gap-3">
+            <div className="p-2 max-md:p-2 bg-white/20 rounded-xl">
               <GitBranch size={20} className="text-white" />
             </div>
             <div>
@@ -70,14 +70,14 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+            className="p-2 max-md:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 max-md:p-3 space-y-4">
           {/* Branch Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
@@ -141,7 +141,7 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 max-md:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
@@ -152,7 +152,7 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <button
               type="submit"
               disabled={isLoading || !form.name.trim()}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-indigo-200 dark:shadow-none"
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all text-sm font-bold flex items-center justify-center gap-2 max-md:gap-2 shadow-md shadow-indigo-200 dark:shadow-none"
             >
               {isLoading ? (
                 <>

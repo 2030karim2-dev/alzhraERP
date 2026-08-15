@@ -19,10 +19,10 @@ export const LocalizationSettings: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 max-md:p-3">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 max-md:gap-3">
                     <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center">
                         <Globe className="w-5 h-5 text-teal-600" />
                     </div>
@@ -35,29 +35,29 @@ export const LocalizationSettings: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                <button className="flex items-center gap-2 max-md:gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                     <Save className="w-4 h-4" />
                     <span className="text-sm font-medium">{t.save || 'حفظ'}</span>
                 </button>
             </div>
 
             {/* Language Settings */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <Languages className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.language_settings || 'إعدادات اللغة'}
                     </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {t.default_language || 'اللغة الافتراضية'}
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2 max-md:gap-2">
                             <button
                                 onClick={() => handleLanguageChange('ar')}
-                                className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl transition-all ${localization.default_language === 'ar'
+                                className={`flex items-center justify-center gap-2 max-md:gap-2 p-3 max-md:p-3 border-2 rounded-xl transition-all ${localization.default_language === 'ar'
                                     ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'
                                     }`}
@@ -67,7 +67,7 @@ export const LocalizationSettings: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => handleLanguageChange('en')}
-                                className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl transition-all ${localization.default_language === 'en'
+                                className={`flex items-center justify-center gap-2 max-md:gap-2 p-3 max-md:p-3 border-2 rounded-xl transition-all ${localization.default_language === 'en'
                                     ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'
                                     }`}
@@ -94,14 +94,14 @@ export const LocalizationSettings: React.FC = () => {
             </Card>
 
             {/* Currency Settings */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <DollarSign className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.currency_settings || 'إعدادات العملة'}
                     </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {t.default_currency || 'العملة الافتراضية'}
@@ -151,14 +151,14 @@ export const LocalizationSettings: React.FC = () => {
             </Card>
 
             {/* Timezone Settings */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <Clock className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.timezone_settings || 'إعدادات المنطقة الزمنية'}
                     </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {t.timezone || 'المنطقة الزمنية'}
@@ -199,14 +199,14 @@ export const LocalizationSettings: React.FC = () => {
             </Card>
 
             {/* Date Format Settings */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <Calendar className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.date_format_settings || 'إعدادات تنسيق التاريخ'}
                     </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {t.date_format || 'تنسيق التاريخ'}
@@ -239,14 +239,14 @@ export const LocalizationSettings: React.FC = () => {
             </Card>
 
             {/* Number Format Settings */}
-            <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
+            <Card className="p-6 max-md:p-3">
+                <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                     <Hash className="w-5 h-5 text-slate-400" />
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                         {t.number_format_settings || 'إعدادات تنسيق الأرقام'}
                     </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-md:gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {t.thousand_separator || 'فاصل الآلاف'}
