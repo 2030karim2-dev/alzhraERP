@@ -7,6 +7,7 @@ import { usePurchaseStore } from '../../store';
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
 import { useCurrencies } from '../../../settings/hooks';
 import { useWarehouses } from '../../../inventory/hooks/useWarehouses';
+import MetaSelect from './MetaSelect';
 // import { cn } from '../../../../core/utils';
 
 const PurchaseMeta: React.FC = () => {
@@ -65,20 +66,30 @@ const PurchaseMeta: React.FC = () => {
     const currencyObj = currencies.data?.find((c: any) => c.code === currency);
     const isDivide = currencyObj?.exchange_operator === 'divide';
 
-    const MetaBlock = ({ label, value, icon: Icon, isSelect, options, field, colorClass, type = "text" }: any) => (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 flex flex-col group hover:bg-blue-50/40 transition-colors">
+    interface MetaBlockProps {
+        label: string;
+        value: string;
+        icon: React.ElementType;
+        isSelect?: boolean;
+        options?: Array<{ id: string; label: string }>;
+        field: string;
+        colorClass?: string;
+        type?: string;
+    }
+
+    const MetaBlock = ({ label, value, icon: Icon, isSelect, options, field, colorClass, type = "text" }: MetaBlockProps): React.JSX.Element => (
+        <div className="relative z-10 flex-1 bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 p-2 max-md:p-1 flex flex-col group hover:bg-blue-50/40 transition-colors">
             <div className="flex items-center gap-1 max-md:gap-0.5 mb-1 max-md:mb-0.5">
-                <Icon size={10} className={colorClass || "text-blue-500"} />
+                <Icon size={10} className={colorClass ?? "text-blue-500"} />
                 <span className="text-[8px] max-md:text-[6px] font-bold text-blue-400 dark:text-blue-600 uppercase tracking-widest">{label}</span>
             </div>
-            {isSelect ? (
-                <select
+            {isSelect === true ? (
+                <MetaSelect
                     value={value}
-                    onChange={(e) => { setMetadata(field, e.target.value); }}
-                    className="bg-transparent text-[11px] max-md:text-[8px] font-bold outline-none appearance-none cursor-pointer text-blue-900 dark:text-white text-right"
-                >
-                    {options.map((opt: any) => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                </select>
+                    onChange={(val) => { setMetadata(field, val); }}
+                    options={options ?? []}
+                    placeholder={field === 'cashboxId' ? 'اختر الصندوق...' : field === 'warehouseId' ? 'اختر المستودع...' : 'اختر...'}
+                />
             ) : type === "date" || type === "input" ? (
                 <input
                     type={type} value={value}
@@ -171,7 +182,7 @@ const PurchaseMeta: React.FC = () => {
                         className="w-full bg-transparent outline-none text-[10px] max-md:text-[8px] font-bold mt-1 max-md:mt-0.5"
                         placeholder="ملاحظات..." 
                         value={notes}
-                        onChange={(e) => setMetadata('notes', e.target.value)}
+                        onChange={(e) => { setMetadata('notes', e.target.value); }}
                     />
                 </div>
             </div>
