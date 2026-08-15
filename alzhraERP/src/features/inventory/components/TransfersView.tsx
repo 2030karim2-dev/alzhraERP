@@ -68,8 +68,8 @@ const TransfersView: React.FC = () => {
                 <div className="flex-1 overflow-hidden">
                     {activeSubTab === 'overview' && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-6 shadow-sm">
-                                <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner">
+                            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-8 max-md:p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-6 max-md:gap-3 shadow-sm">
+<div className="w-16 h-16 max-md:w-12 max-md:h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner">
                                     <ArrowLeftRight size={32} />
                                 </div>
                                 <div className="max-w-md">
@@ -100,10 +100,10 @@ const TransfersView: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4 max-md:gap-2">
                                 <button 
                                     onClick={() => setActiveSubTab('suggestions')}
-                                    className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/50 p-4 rounded-xl flex items-center gap-4 text-right hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-all group"
+                                    className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/50 p-4 max-md:p-2.5 rounded-xl flex items-center gap-4 max-md:gap-2 text-right hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-all group"
                                 >
                                     <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                         <Sparkles size={20} />
@@ -115,7 +115,7 @@ const TransfersView: React.FC = () => {
                                 </button>
                                 <button 
                                     onClick={() => setActiveSubTab('history')}
-                                    className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 p-4 rounded-xl flex items-center gap-4 text-right hover:bg-blue-100/50 dark:hover:bg-blue-900/20 transition-all group"
+                                    className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 p-4 max-md:p-2.5 rounded-xl flex items-center gap-4 max-md:gap-2 text-right hover:bg-blue-100/50 dark:hover:bg-blue-900/20 transition-all group"
                                 >
                                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                         <HistoryIcon size={20} />

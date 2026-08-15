@@ -27,7 +27,7 @@ const StatBox: React.FC<{ icon: any, label: string, value: number, color: string
 
 const AuditStats: React.FC<Props> = ({ stats, session }) => {
     return (
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 shadow-xl shadow-gray-200/20 dark:shadow-none grid grid-cols-4 md:grid-cols-5 overflow-hidden rounded-2xl">
+        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 shadow-xl shadow-gray-200/20 dark:shadow-none grid grid-cols-4 max-md:grid-cols-2 max-md:gap-1 max-md:p-1 md:grid-cols-5 overflow-hidden rounded-2xl">
             <div className="hidden md:flex col-span-1 p-4 flex-col justify-center bg-gray-50/50 dark:bg-slate-950/50 border-l dark:border-slate-800">
                 <div className="flex items-center gap-2">
                     <Warehouse size={16} className="text-blue-500" />
