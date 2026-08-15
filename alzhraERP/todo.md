@@ -172,3 +172,14 @@
 - [ ] إعادة مزامنة migrations وdatabase.types.ts مع مخطط Supabase المنشور وتصنيف الفروقات.
 - [ ] توسيع خريطة Realtime وinvalidation لتشمل العمولات والمجالات المالية والمخزنية مع company scoping.
 - [ ] إزالة التكرارات والتحويلات غير الآمنة من طبقات Settings وSupabase وكتابة اختبارات تفويض سالبة.
+
+## جولة توحيد الصلاحيات والتنقل (2026-08-15)
+
+- [x] توحيد عقد صلاحيات العمولات تحت بادئة `incentive:*` في `authorization.ts` عبر `COMMISSION_PERMISSIONS` ودوال `canManagePlansByAccess`/`canCalculatePeriodByAccess`/`transitionPermission`، وإزالة الاسم المنحرف `commission:calculate` من لوحة العمولات.
+- [x] تحويل `useCommissionDashboardData`/`useCommissionConfigurationData`/`useCommissionPeriodsController` إلى استخدام `authorization.ts` بدل الشيكات المبعثرة؛ وأصبح `manager` دورًا معترفًا (يطابق `user_is_admin_or_manager()` خادميًا).
+- [x] إضافة migration `20260815000001_add_commission_permissions.sql` يزرع `incentive:*` في `role_permissions` للأدوار `admin`/`manager` مع `ON CONFLICT DO NOTHING`.
+- [x] توسيع نوع `Permission` في `common.ts` والخريطة القديمة في `core/permissions/index.tsx` بصلاحيات `incentive:*`.
+- [x] إصلاح التكرارات: `useCommissionReportData` يستخدم `commissionQueryKeys.reportPeriods/reportCalculations`، وإزالة `companyId ?? ''` من تعيينات المهندسين.
+- [x] توطين عناوين العمولات في `MainLayout` و`MENU_ITEMS` عبر `t()` + إضافة وحدة العمولات للقائمة الجانبية الرئيسية.
+- [x] إصلاح أخطاء `exactOptionalPropertyTypes` القائمة مسبقًا في hooks وحدة العمولات (تغيير `x?` إلى `x: T | undefined`).
+- [x] اختبارات Vitest 12/12 ناجحة، وفحص TypeScript مجزأ خالٍ من الأخطاء في ملفات الوحدة، مع بقاء الأخطاء العامة في وحدات أخرى (محاسبة/سندات) خارج نطاق الجولة.

@@ -27,6 +27,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { id: 'inventory', labelKey: 'products', icon: Wrench, path: ROUTES.DASHBOARD.INVENTORY, color: 'orange' },
   { id: 'expenses', labelKey: 'expenses', icon: Receipt, path: ROUTES.DASHBOARD.EXPENSES, color: 'red' },
   { id: 'accounting', labelKey: 'accounting', icon: Calculator, path: ROUTES.DASHBOARD.ACCOUNTING, color: 'indigo' },
+  { id: 'commissions', labelKey: 'commission_dashboard', icon: Calculator, path: ROUTES.DASHBOARD.COMMISSIONS, color: 'teal' },
   { id: 'pos', labelKey: 'pos', icon: Package, path: ROUTES.DASHBOARD.POS, color: 'pink' },
   { id: 'vin', labelKey: 'vin_intelligence', icon: Car, path: ROUTES.DASHBOARD.VIN, color: 'blue' },
 

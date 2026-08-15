@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import type { AuthUser } from '../../auth/types';
 import { calculateCommissionPeriod, listCommissionPeriods, transitionCommissionPeriod } from '../api';
+import { transitionPermission } from '../authorization';
 import type { CommissionPeriod, CommissionPeriodState } from '../types';
 
 const nextStates = new Map<CommissionPeriodState, CommissionPeriodState>([
@@ -10,21 +11,9 @@ const nextStates = new Map<CommissionPeriodState, CommissionPeriodState>([
   ['under_review', 'approved'], ['approved', 'locked'], ['locked', 'paid'],
 ]);
 
-function transitionPermission(state: CommissionPeriodState): string {
-  switch (state) {
-    case 'open': return 'incentive:period_calculating';
-    case 'calculating': return 'incentive:period_calculated';
-    case 'calculated': return 'incentive:period_under_review';
-    case 'under_review': return 'incentive:period_approved';
-    case 'approved': return 'incentive:period_locked';
-    case 'locked':
-    case 'paid': return 'incentive:period_paid';
-  }
-}
-
 function usePeriodData(companyId: string | undefined, hasCompany: boolean, selectedId: string | null): {
   periods: CommissionPeriod[];
-  selected?: CommissionPeriod;
+  selected: CommissionPeriod | undefined;
 } {
   const query = useQuery({
     queryKey: ['commission-periods', companyId],
@@ -73,12 +62,12 @@ function usePeriodMutations(companyId: string | undefined, selected: CommissionP
 }
 
 export function useCommissionPeriodsController(): {
-  companyId?: string;
+  companyId: string | undefined;
   periods: CommissionPeriod[];
-  selected?: CommissionPeriod;
+  selected: CommissionPeriod | undefined;
   selectedId: string | null;
   setSelectedId: (id: string) => void;
-  target?: CommissionPeriodState;
+  target: CommissionPeriodState | undefined;
   isProtectedTest: boolean;
   isCalculating: boolean;
   isTransitioning: boolean;

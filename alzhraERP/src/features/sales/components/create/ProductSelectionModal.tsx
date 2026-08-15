@@ -1,23 +1,17 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Search, Box, Settings, Eye, EyeOff, Eye as EyeIcon, ArrowUp, ArrowDown, RotateCcw, GitBranch, Globe, PackageCheck, ChevronDown, Plus } from 'lucide-react';
-import { useProducts, useProductMutations } from '../../../inventory/hooks/index';
+import { useProductMutations } from '../../../inventory/hooks/index';
 import type { Product, ProductFormData } from '../../../inventory/types';
 import Modal from '../../../../ui/base/Modal';
 import { PaginationBar } from '../../../../ui/common/PaginationBar';
 import { useProductTableConfig, ColumnConfig } from '../../hooks/useProductTableConfig';
+import { useProductSelectionTable } from '../../hooks/useProductSelectionTable';
 import ProductDetailModal from '../../../inventory/components/ProductDetailModal';
 import AddProductModal from '../../../inventory/components/AddProductModal';
 import { productService } from '../../../inventory/service';
 import { useBranchFilterStore } from '../../../branches/store';
 import { useBranches } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
-import { useFeedbackStore } from '../../../feedback/store';
-
-interface BranchData {
-    id: string;
-    name: string;
-    status: string;
-}
 
 interface Props {
     isOpen: boolean;
@@ -28,28 +22,13 @@ interface Props {
 }
 
 const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, initialQuery = '', mode = 'sale' }) => {
-    const [localQuery, setLocalQuery] = useState(initialQuery);
-    const [submittedQuery, setSubmittedQuery] = useState(initialQuery);
-    const [showInStockOnly, setShowInStockOnly] = useState(false);
     const [localBranchId, setLocalBranchId] = useState<string | null>(null);
     const [showBranchMenu, setShowBranchMenu] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const branchMenuRef = useRef<HTMLDivElement>(null);
     const settingsRef = useRef<HTMLDivElement>(null);
-    const tableBodyRef = useRef<HTMLTableSectionElement>(null);
-
-    // [FIX #8] Keyboard navigation state
-    const [focusedIndex, setFocusedIndex] = useState<number>(-1);
-
-    // [FIX #9] Column sorting state
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
-
-    // [FIX #4] Client-side pagination state
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(50);
 
     const { user } = useAuthStore();
-    const { showToast } = useFeedbackStore();
     const isManager = user?.role === 'owner' || user?.role === 'admin';
     const { activeBranchId } = useBranchFilterStore();
     const { data: branches } = useBranches();
@@ -60,7 +39,15 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     // Use the local branch filter for this modal, falling back to global
     const effectiveBranchId = localBranchId ?? activeBranchId;
 
-    const { products: allProducts, isLoading } = useProducts(submittedQuery, { limitNum: 5000, warehouseId: effectiveBranchId || undefined });
+    // Product table logic (search / filter / sort / pagination / keyboard / double-click)
+    const {
+        localQuery, setLocalQuery, showInStockOnly, setShowInStockOnly,
+        products, isLoading, sortConfig, handleSort,
+        pageSize, setPageSize, totalPages, safePage, setPage,
+        paginatedProducts,
+        handlePageChange, focusedIndex, setFocusedIndex, tableBodyRef,
+        handleKeyDown, handleTableKeyDown, handleRowClick,
+    } = useProductSelectionTable({ isOpen, initialQuery, effectiveBranchId, onSelect });
 
     // Modals state for actions
     const [viewProduct, setViewProduct] = useState<Product | null>(null);
@@ -86,78 +73,6 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         }
     };
 
-    // Filter products
-    const filteredProducts = allProducts.filter(p => {
-        if (showInStockOnly && p.stock_quantity <= 0) return false;
-        return true;
-    });
-
-    // [FIX #9] Sort products based on sortConfig
-    const products = React.useMemo(() => {
-        if (!sortConfig) return filteredProducts;
-        const { key, direction } = sortConfig;
-        const sorted = [...filteredProducts].sort((a, b) => {
-            let aVal: string | number = '';
-            let bVal: string | number = '';
-            
-            // Map column key to product field
-            switch (key) {
-                case 'name': aVal = a.name || ''; bVal = b.name || ''; break;
-                case 'part_number': aVal = a.part_number || ''; bVal = b.part_number || ''; break;
-                case 'brand': aVal = a.brand || ''; bVal = b.brand || ''; break;
-                case 'stock': {
-                    const aQty = a.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ?? a.stock_quantity;
-                    const bQty = b.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ?? b.stock_quantity;
-                    aVal = aQty; bVal = bQty; break;
-                }
-                case 'price': aVal = (a.selling_price || a.sale_price) ?? 0; bVal = (b.selling_price || b.sale_price) ?? 0; break;
-                case 'size': aVal = a.size || ''; bVal = b.size || ''; break;
-                default: return 0;
-            }
-            
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return direction === 'asc' ? aVal - bVal : bVal - aVal;
-            }
-            const strA = String(aVal).toLowerCase();
-            const strB = String(bVal).toLowerCase();
-            if (strA < strB) return direction === 'asc' ? -1 : 1;
-            if (strA > strB) return direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-        return sorted;
-    }, [filteredProducts, sortConfig, effectiveBranchId]);
-
-    // [FIX #9] Handle column header click for sorting
-    const handleSort = (colId: string) => {
-        // Don't sort index or actions columns
-        if (colId === 'index' || colId === 'actions' || colId === 'branch' || colId === 'specs') return;
-        setSortConfig(prev => {
-            if (prev?.key === colId) {
-                return { key: colId, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
-            }
-            return { key: colId, direction: 'asc' };
-        });
-    };
-
-    // [FIX #4] Pagination logic
-    const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
-    const safePage = Math.min(page, totalPages);
-    
-    // Reset to page 1 when filters/sort change
-    React.useEffect(() => {
-        setPage(1);
-    }, [submittedQuery, showInStockOnly, sortConfig, effectiveBranchId]);
-    
-    const paginatedProducts = React.useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return products.slice(start, start + pageSize);
-    }, [products, safePage, pageSize]);
-    
-    const handlePageChange = (newPage: number) => {
-        setPage(Math.max(1, Math.min(totalPages, newPage)));
-        setFocusedIndex(-1); // Reset keyboard focus
-    };
-
     const {
         config,
         setColumnWidth,
@@ -180,14 +95,6 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
-
-    // Reset local query when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            setLocalQuery(initialQuery);
-            setSubmittedQuery(initialQuery);
-        }
-    }, [isOpen, initialQuery]);
 
     // --- Column Resizing Logic ---
     const resizingRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
@@ -225,12 +132,6 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         };
     }, [onMouseMove, onMouseUp]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            setSubmittedQuery(localQuery);
-        }
-    };
-
     const fontSizeClasses = { small: 'text-[9px]', medium: 'text-[11px]', large: 'text-[13px]' };
     const headerFontSizeClasses = { small: 'text-[9px]', medium: 'text-[10px]', large: 'text-[12px]' };
 
@@ -238,75 +139,6 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     const moveColumnDown = (index: number) => { if (index < config.columns.length - 1) reorderColumn(index, index + 1); };
 
     const visibleColumns = config.columns.filter(c => c.visible);
-
-    // Track double-click state
-    const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const clickCountRef = useRef<Record<string, number>>({});
-
-    const handleRowClick = (p: Product) => {
-        const id = p.id;
-        clickCountRef.current[id] = (clickCountRef.current[id] ?? 0) + 1;
-
-        if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-
-        clickTimerRef.current = setTimeout(() => {
-            clickCountRef.current[id] = 0;
-        }, 300);
-
-        if (clickCountRef.current[id] >= 2) {
-            clickCountRef.current[id] = 0;
-            if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-            
-            // [FIX #5] التحقق من توفر المخزون قبل الإضافة
-            const branchQty = p.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity;
-            const effectiveQty = branchQty ?? p.stock_quantity;
-            if (effectiveQty <= 0) {
-                showToast(`المنتج "${p.name}" غير متوفر في المخزون حالياً`, 'warning');
-                return;
-            }
-            
-            onSelect(p);
-        }
-    };
-
-    // [FIX #8] Keyboard navigation: Arrow Up/Down + Enter for selection
-    const handleTableKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            setFocusedIndex(prev => {
-                const max = paginatedProducts.length - 1;
-                if (max < 0) return -1;
-                if (prev < 0) return 0;
-                const next = e.key === 'ArrowDown' ? prev + 1 : prev - 1;
-                return Math.max(0, Math.min(max, next));
-            });
-        } else if (e.key === 'Enter' && focusedIndex >= 0 && focusedIndex < paginatedProducts.length) {
-            e.preventDefault();
-            const product = paginatedProducts[focusedIndex];
-            if (product) {
-                const branchQty = product.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity;
-                const effectiveQty = branchQty ?? product.stock_quantity;
-                if (effectiveQty <= 0) {
-                    showToast(`المنتج "${product.name}" غير متوفر في المخزون حالياً`, 'warning');
-                    return;
-                }
-                onSelect(product);
-            }
-        }
-    }, [paginatedProducts, focusedIndex, effectiveBranchId, showToast, onSelect]);
-
-    // Scroll focused row into view when focusedIndex changes
-    useEffect(() => {
-        if (focusedIndex >= 0 && tableBodyRef.current) {
-            const row = tableBodyRef.current.children[focusedIndex] as HTMLElement | undefined;
-            row?.scrollIntoView({ block: 'nearest' });
-        }
-    }, [focusedIndex]);
-
-    // Reset keyboard focus when products change or modal opens/closes
-    useEffect(() => {
-        setFocusedIndex(-1);
-    }, [products, isOpen]);
 
     const renderCellContent = (col: ColumnConfig, p: Product, idx: number) => {
         switch (col.id) {

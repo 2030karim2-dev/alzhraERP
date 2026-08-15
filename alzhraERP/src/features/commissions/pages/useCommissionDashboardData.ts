@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { useAllPermissions } from '../../../core/hooks/usePermission';
 import { calculateCommissionPeriod, detectPendingInvoices, listCommissionCalculations, listCommissionPeriods, listPendingInvoices } from '../api';
+import { canCalculatePeriodByAccess } from '../authorization';
 import type { CommissionPeriod } from '../types';
 import { commissionQueryKeys } from './commissionQueryKeys';
 
@@ -12,10 +13,10 @@ function requiredText(value: string | undefined): string {
 }
 
 export function useCommissionDashboardData(): {
-  companyId?: string;
+  companyId: string | undefined;
   canCalculate: boolean;
   periods: Awaited<ReturnType<typeof listCommissionPeriods>>;
-  selectedPeriod?: CommissionPeriod;
+  selectedPeriod: CommissionPeriod | undefined;
   calculations: Awaited<ReturnType<typeof listCommissionCalculations>>;
   pending: Awaited<ReturnType<typeof listPendingInvoices>>;
   total: number;
@@ -31,7 +32,7 @@ export function useCommissionDashboardData(): {
   const user = useAuthStore(state => state.user);
   const companyId = user?.company_id;
   const { permissions } = useAllPermissions();
-  const canCalculate = permissions.includes('commission:calculate') || ['admin', 'owner', 'finance_manager'].includes(user?.role ?? '');
+  const canCalculate = canCalculatePeriodByAccess(permissions, user?.role);
   const queryClient = useQueryClient();
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const hasCompany = companyId !== undefined && companyId.length > 0;

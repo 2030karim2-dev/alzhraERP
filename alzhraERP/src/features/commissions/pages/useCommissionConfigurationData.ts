@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { useAllPermissions } from '../../../core/hooks/usePermission';
 import { createCommissionPlan, listCommissionPlans, listCommissionRules, listCommissionTiers, updateCommissionPlan } from '../api';
+import { canManagePlansByAccess } from '../authorization';
 import type { CommissionPlan } from '../types';
 import { commissionQueryKeys } from './commissionQueryKeys';
 
@@ -13,7 +14,7 @@ function requiredText(value: string | undefined): string {
 
 function useConfigurationQueries(companyId: string | undefined, selectedId: string): {
   plans: Awaited<ReturnType<typeof listCommissionPlans>>;
-  selected?: CommissionPlan;
+  selected: CommissionPlan | undefined;
   rules: Awaited<ReturnType<typeof listCommissionRules>>;
   tiers: Awaited<ReturnType<typeof listCommissionTiers>>;
 } {
@@ -27,7 +28,7 @@ function useConfigurationQueries(companyId: string | undefined, selectedId: stri
   return { plans, selected, rules: rulesQuery.data ?? [], tiers: tiersQuery.data ?? [] };
 }
 
-function useConfigurationMutations(input: { companyId: string | undefined; selected?: CommissionPlan; name: string; basis: CommissionPlan['calculation_basis']; currency: string; invalidatePlans: () => Promise<void> }): {
+function useConfigurationMutations(input: { companyId: string | undefined; selected: CommissionPlan | undefined; name: string; basis: CommissionPlan['calculation_basis']; currency: string; invalidatePlans: () => Promise<void> }): {
   create: () => void;
   toggleActive: () => void;
   creating: boolean;
@@ -40,10 +41,10 @@ function useConfigurationMutations(input: { companyId: string | undefined; selec
 }
 
 export function useCommissionConfigurationData(): {
-  companyId?: string;
+  companyId: string | undefined;
   canManage: boolean;
   plans: Awaited<ReturnType<typeof listCommissionPlans>>;
-  selected?: CommissionPlan;
+  selected: CommissionPlan | undefined;
   rules: Awaited<ReturnType<typeof listCommissionRules>>;
   tiers: Awaited<ReturnType<typeof listCommissionTiers>>;
   name: string;
@@ -62,7 +63,7 @@ export function useCommissionConfigurationData(): {
   const user = useAuthStore(state => state.user);
   const companyId = user?.company_id;
   const { permissions } = useAllPermissions();
-  const canManage = permissions.includes('incentive:manage_plans') || ['admin', 'owner', 'finance_manager'].includes(user?.role ?? '');
+  const canManage = canManagePlansByAccess(permissions, user?.role);
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState('');
   const [name, setName] = useState('');

@@ -363,5 +363,10 @@
   "vin_tab_inventory": "Inventory Match",
   "vin_tab_extract": "Parts Extract",
   "global_search_desc": "Search for a customer, category, invoice...",
-  "back_to_home": "Back to Home"
+  "back_to_home": "Back to Home",
+  "commission_dashboard": "Engineer Commissions",
+  "commission_config": "Commission Settings",
+  "commission_assignments": "Engineer Assignments",
+  "commission_periods": "Period Lifecycle",
+  "commission_reports": "Commission Reports"
 }

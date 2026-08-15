@@ -5,6 +5,11 @@ import type { AuthUser } from '../../auth/types';
 import { createEngineerLink, listPendingInvoices, resolvePendingInvoice } from '../api';
 import { commissionQueryKeys } from './commissionQueryKeys';
 
+function requiredText(value: string | undefined): string {
+  if (value === undefined || value.length === 0) throw new Error('company_required');
+  return value;
+}
+
 export function useCommissionAssignmentsController(): {
   hasCompany: boolean;
   companyId: string | undefined;
@@ -39,7 +44,10 @@ export function useCommissionAssignmentsController(): {
   const pendingQuery = useQuery({ queryKey: commissionQueryKeys.pending(companyId), queryFn: () => (hasCompany ? listPendingInvoices(companyId) : Promise.resolve([])), enabled: hasCompany });
   const reset = (): void => { setSelected(null); setInvoiceId(''); setEngineerId(''); setAllocation('100'); setReason(''); };
   const linkMutation = useMutation({
-    mutationFn: async (): Promise<string> => createEngineerLink({ invoiceId, companyId: companyId ?? '', userId: engineerId, allocationPct: Number(allocation), assignmentType: reason.trim().length > 0 ? 'historical' : 'direct', reason: reason.trim() || null, source: reason.trim().length > 0 ? 'historical' : 'manual' }),
+    mutationFn: async (): Promise<string> => {
+      const company = requiredText(companyId);
+      return createEngineerLink({ invoiceId, companyId: company, userId: engineerId, allocationPct: Number(allocation), assignmentType: reason.trim().length > 0 ? 'historical' : 'direct', reason: reason.trim() || null, source: reason.trim().length > 0 ? 'historical' : 'manual' });
+    },
     onSuccess: async (): Promise<void> => { if (selected !== null && hasCompany) await resolvePendingInvoice({ pendingId: selected, companyId, status: 'resolved', reason: reason.trim() || 'تم اكتمال توزيع المهندس' }); reset(); await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.pending(companyId) }); },
   });
   const ignoreMutation = useMutation({ mutationFn: async (pendingId: string): Promise<void> => { if (hasCompany) await resolvePendingInvoice({ pendingId, companyId, status: 'ignored', reason: 'تم التجاهل من مدير العمولات' }); }, onSuccess: async (): Promise<void> => { await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.pending(companyId) }); } });

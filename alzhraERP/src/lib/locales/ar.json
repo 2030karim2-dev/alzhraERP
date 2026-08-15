@@ -376,5 +376,10 @@
   "vin_tab_inventory": "ربط المخزون",
   "vin_tab_extract": "استخراج القطع",
   "global_search_desc": "ابحث عن عميل، صنف، فاتورة...",
-  "back_to_home": "العودة للرئيسية"
+  "back_to_home": "العودة للرئيسية",
+  "commission_dashboard": "عمولات المهندسين",
+  "commission_config": "إعدادات العمولات",
+  "commission_assignments": "توزيعات المهندسين",
+  "commission_periods": "دورة حياة الفترات",
+  "commission_reports": "تقارير العمولات"
 }

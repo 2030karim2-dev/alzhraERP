@@ -30,6 +30,7 @@ const FILES = [
     '20260814000004_add_vin_parts_rpc.sql',
     '20260814000005_vin_analyses_updated_at.sql',
     '20260814000006_create_debt_module.sql',
+    '20260815000001_add_commission_permissions.sql',
 ];
 
 async function runSql(sql) {

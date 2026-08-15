@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import type { AuthUser } from '../../auth/types';
 import { listCommissionCalculations, listCommissionPeriods } from '../api';
+import { commissionQueryKeys } from './commissionQueryKeys';
 
 export function useCommissionReportData(): {
-  companyId?: string;
+  companyId: string | undefined;
   periods: Awaited<ReturnType<typeof listCommissionPeriods>>;
-  period?: Awaited<ReturnType<typeof listCommissionPeriods>>[number];
+  period: Awaited<ReturnType<typeof listCommissionPeriods>>[number] | undefined;
   rows: Awaited<ReturnType<typeof listCommissionCalculations>>;
   totals: { commission: number; sales: number; collected: number };
   setSelectedPeriodId: (id: string | undefined) => void;
@@ -16,14 +17,14 @@ export function useCommissionReportData(): {
   const companyId = user?.company_id;
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>(undefined);
   const periodsQuery = useQuery({
-    queryKey: ['commission-report-periods', companyId],
+    queryKey: commissionQueryKeys.reportPeriods(companyId),
     queryFn: () => (companyId !== undefined && companyId.length > 0 ? listCommissionPeriods(companyId) : Promise.resolve([])),
     enabled: typeof companyId === 'string',
   });
   const periods = useMemo(() => periodsQuery.data ?? [], [periodsQuery.data]);
   const period = periods.find(item => item.id === selectedPeriodId) ?? periods.at(0);
   const calculationsQuery = useQuery({
-    queryKey: ['commission-report-calculations', companyId, period?.id],
+    queryKey: commissionQueryKeys.reportCalculations(companyId, period?.id),
     queryFn: () => (companyId !== undefined && companyId.length > 0 && period !== undefined ? listCommissionCalculations(companyId, period.id) : Promise.resolve([])),
     enabled: companyId !== undefined && companyId.length > 0 && period !== undefined,
   });

@@ -29,7 +29,11 @@ const rolePermissions: Record<Role, Permission[]> = {
         'customers:create', 'customers:read', 'customers:update', 'customers:delete',
         'expenses:create', 'expenses:read', 'expenses:update', 'expenses:delete',
         'reports:read', 'reports:export',
-        'ai:use', 'admin:access'
+        'ai:use', 'admin:access',
+        'incentive:manage_plans', 'incentive:calculate_period',
+        'incentive:period_calculating', 'incentive:period_calculated',
+        'incentive:period_under_review', 'incentive:period_approved',
+        'incentive:period_locked', 'incentive:period_paid'
     ],
     manager: [
         'sales:create', 'sales:read', 'sales:update',
@@ -39,7 +43,11 @@ const rolePermissions: Record<Role, Permission[]> = {
         'customers:create', 'customers:read', 'customers:update',
         'expenses:create', 'expenses:read', 'expenses:update',
         'reports:read', 'reports:export',
-        'ai:use'
+        'ai:use',
+        'incentive:manage_plans', 'incentive:calculate_period',
+        'incentive:period_calculating', 'incentive:period_calculated',
+        'incentive:period_under_review', 'incentive:period_approved',
+        'incentive:period_locked', 'incentive:period_paid'
     ],
     accountant: [
         'sales:read', 'sales:update',
