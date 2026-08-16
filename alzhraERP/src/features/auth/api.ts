@@ -110,13 +110,14 @@ export const authApi = {
     const fetchPromise = (async (): Promise<ProfileResult> => {
       try {
         // 1. Try RPC first
-        const rpc = supabase.rpc as unknown as (
-          fn: 'get_user_profile',
-          args: { p_user_id: string }
-        ) => Promise<ProfileRpcResult>;
-        const { data, error } = await rpc('get_user_profile', {
+        // ⚡ MUST be invoked as supabase.rpc(...) — extracting the method into a
+        // standalone variable drops `this`, and supabase-js's rpc() reads
+        // this.rest internally, throwing
+        // "Cannot read properties of undefined (reading 'rest')".
+        const rpcResult = (await supabase.rpc('get_user_profile', {
           p_user_id: userId,
-        });
+        })) as unknown as ProfileRpcResult;
+        const { data, error } = rpcResult;
 
         if (!error && data && Object.keys(data).length > 2) {
           // Fetch email from session as RPC does not return it
