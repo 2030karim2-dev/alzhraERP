@@ -146,7 +146,7 @@ const PurchaseMeta: React.FC = () => {
                 <MetaBlock label="الصندوق / البنك" field="cashboxId" value={cashboxId} icon={Wallet} isSelect
                     options={cashAccounts?.map((a: any) => ({ id: a.id, label: a.name_ar })) || []} />
                 <MetaBlock label="المستودع المستلم" field="warehouseId" value={warehouseId} icon={Warehouse} isSelect
-                    options={warehouses?.map((w: any) => ({ id: w.id, label: w.name })) || [{ id: 'wh_main', label: 'المستودع الرئيسي' }]} />
+                    options={warehouses?.map((w: any) => ({ id: w.id, label: w.name })) || []} />
                 <MetaBlock label="العملة" field="currency" value={currency} icon={Coins} isSelect
                     options={currencies.data?.map((c: any) => ({ id: c.code, label: c.code })) || [{ id: 'SAR', label: 'SAR' }]} />
                 

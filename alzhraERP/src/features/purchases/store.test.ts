@@ -138,7 +138,7 @@ describe('Purchases Store Logic', () => {
     const state = usePurchaseStore.getState();
 
     expect(state.notes).toBe('');
-    expect(state.warehouseId).toBe('wh_main');
+    expect(state.warehouseId).toBe('');
     expect(state.showDiscount).toBe(false);
   });
 });

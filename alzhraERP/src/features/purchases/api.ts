@@ -80,6 +80,8 @@ export const purchasesApi = {
         product_id: item.productId,
         quantity: item.quantity,
         unit_cost: Number(item.costPrice),
+        discount: Number(item.discount || 0),
+        line_total: Math.max(0, (Number(item.quantity) * Number(item.costPrice)) - Number(item.discount || 0)),
         ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
       })),
       ...(data.notes ? { p_notes: data.notes } : {}),
@@ -107,6 +109,8 @@ export const purchasesApi = {
         product_id: item.productId,
         quantity: item.quantity,
         unit_cost: Number(item.costPrice),
+        discount: Number(item.discount || 0),
+        line_total: Math.max(0, (Number(item.quantity) * Number(item.costPrice)) - Number(item.discount || 0)),
         ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
       })),
       p_currency: data.currency || 'SAR',

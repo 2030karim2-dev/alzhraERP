@@ -62,6 +62,16 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
       showToast('يرجى تحديد تاريخ الفاتورة', 'error');
       return;
     }
+    if (!warehouseId) {
+      showToast('يرجى اختيار مستودع فعلي قبل اعتماد الفاتورة', 'error');
+      return;
+    }
+
+    const hasInvalidDiscount = validItems.some(item => item.discount < 0 || item.discount > (item.quantity * item.costPrice));
+    if (hasInvalidDiscount) {
+      showToast('يوجد خصم غير صالح؛ يجب ألا يتجاوز الخصم إجمالي الصنف', 'error');
+      return;
+    }
 
     // Validate: Cash purchases require a real cashbox account
     if (invoiceType === 'cash' && !cashboxId) {
@@ -81,9 +91,9 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         brand: i.brand || '',
         quantity: i.quantity,
         costPrice: i.costPrice,
+        discount: i.discount,
         warehouseId,
-
-        total: (i.quantity * i.costPrice) - i.discount
+        total: Math.max(0, (i.quantity * i.costPrice) - i.discount)
       })),
       status: 'posted',
       notes: notes.trim() || undefined,
