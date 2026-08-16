@@ -22,7 +22,7 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   const { data: company } = useCompany();
   const {
     items, supplier, totals, resetCart, initializeItems,
-    invoiceNumber, issueDate, invoiceType, cashboxId, currency, exchangeRate,
+    invoiceNumber, issueDate, invoiceType, cashboxId, warehouseId, notes, currency, exchangeRate,
     setMetadata
   } = usePurchaseStore();
   const { mutate: createPurchase, isPending } = useCreatePurchase();
@@ -81,10 +81,12 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         brand: i.brand || '',
         quantity: i.quantity,
         costPrice: i.costPrice,
+        warehouseId,
 
         total: (i.quantity * i.costPrice) - i.discount
       })),
       status: 'posted',
+      notes: notes.trim() || undefined,
       paymentMethod: invoiceType,
       cashAccountId: cashboxId,
       currency: currency,

@@ -128,4 +128,17 @@ describe('Purchases Store Logic', () => {
     ]);
     expect(usePurchaseStore.getState().items[0].costPrice).toBe(75);
   });
+
+  it('clears invoice metadata when starting a new purchase invoice', () => {
+    usePurchaseStore.getState().setMetadata('notes', 'ملاحظة قديمة');
+    usePurchaseStore.getState().setMetadata('warehouseId', 'warehouse-2');
+    usePurchaseStore.getState().toggleColumn('showDiscount');
+
+    usePurchaseStore.getState().resetCart();
+    const state = usePurchaseStore.getState();
+
+    expect(state.notes).toBe('');
+    expect(state.warehouseId).toBe('wh_main');
+    expect(state.showDiscount).toBe(false);
+  });
 });

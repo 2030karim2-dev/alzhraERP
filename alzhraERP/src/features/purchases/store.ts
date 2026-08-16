@@ -196,8 +196,11 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
     totals: { grandTotal: 0, subTotal: 0, totalDiscount: 0 },
     currency: 'SAR',
     exchangeRate: 1,
+    warehouseId: 'wh_main',
     invoiceType: 'cash',
     cashboxId: '',
+    notes: '',
+    showDiscount: false,
     invoiceNumber: '',
     issueDate: new Date().toISOString().split('T')[0]
   })

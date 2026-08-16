@@ -67,17 +67,20 @@ export const purchasesApi = {
    * @param data بيانات الفاتورة (الأصناف، المورد، الإجماليات، إلخ)
    * @returns نتيجة العملية (معرّف الفاتورة المنشأة أو خطأ)
    */
-  createPurchaseRPC: async (companyId: string, _userId: string, data: CreatePurchaseDTO) => {
+  createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
     const idempotencyKey = `pur_${companyId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
+      p_company_id: companyId,
+      p_user_id: userId,
       p_supplier_id: data.supplierId || '',
       p_invoice_number: data.invoiceNumber,
       p_issue_date: data.issueDate,
       p_items: data.items.map(item => ({
         product_id: item.productId,
         quantity: item.quantity,
-        unit_cost: Number(item.costPrice)
+        unit_cost: Number(item.costPrice),
+        ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
       })),
       ...(data.notes ? { p_notes: data.notes } : {}),
       p_currency: data.currency || 'SAR',
@@ -93,15 +96,18 @@ export const purchasesApi = {
     return result;
   },
 
-  createPurchaseReturnRPC: async (_companyId: string, _userId: string, data: CreatePurchaseDTO) => {
+  createPurchaseReturnRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
     const rate = data.exchangeRate || 1;
     const idempotencyKey = `pur_ret_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const rpcParams = {
+      p_company_id: companyId,
+      p_user_id: userId,
       p_supplier_id: data.supplierId || '',
       p_items: data.items.map(item => ({
         product_id: item.productId,
         quantity: item.quantity,
-        unit_cost: Number(item.costPrice)
+        unit_cost: Number(item.costPrice),
+        ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
       })),
       p_currency: data.currency || 'SAR',
       p_exchange_rate: rate,

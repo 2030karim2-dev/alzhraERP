@@ -14,6 +14,7 @@ export interface PurchaseItem {
   brand: string;
   quantity: number;
   costPrice: number; // سعر الشراء (قد يختلف عن المسجل في النظام)
+  warehouseId?: string;
 
   total: number;
 }
