@@ -108,31 +108,37 @@ export interface PurchaseInvoiceResult {
 
 import { MoneyUtils } from '../../sales/types/domain';
 
+const isCurrencyCode = (value: string | null): value is CurrencyCode =>
+    value === 'SAR' || value === 'YER' || value === 'USD' || value === 'EUR' || value === 'OMR' || value === 'CNY';
+
+const toMoney = (value: number | null, currency: CurrencyCode, exchangeRate: number): Money => MoneyUtils.create(value ?? 0, currency, exchangeRate);
+const toOptionalDate = (value: string | null): Date | null => value === null ? null : new Date(value);
+const toPurchaseItems = (items: PurchaseInvoiceItemRow[] | undefined): PurchaseInvoiceItem[] => items?.map(item => PurchaseInvoiceItemMapper.fromDB(item)) ?? [];
+
 export const PurchaseInvoiceMapper = {
     fromDB(row: PurchaseInvoiceRow & { items?: PurchaseInvoiceItemRow[] }): PurchaseInvoice {
-        const currency: CurrencyCode = (row.currency_code as CurrencyCode) || 'SAR';
-        const total = row.total_amount || 0;
-        const paid = row.paid_amount || 0;
-
+        const currency: CurrencyCode = isCurrencyCode(row.currency_code) ? row.currency_code : 'SAR';
+        const exchangeRate = row.exchange_rate;
+        const total = row.total_amount;
+        const paid = row.paid_amount;
         return {
             id: row.id,
-            invoiceNumber: row.invoice_number || '',
+            invoiceNumber: row.invoice_number ?? '',
             supplierId: row.party_id,
-            supplierName: null, // Will be populated from join
+            supplierName: null,
             issueDate: new Date(row.issue_date),
-            dueDate: row.due_date ? new Date(row.due_date) : null,
-            items: row.items?.map(PurchaseInvoiceItemMapper.fromDB) || [],
-            subtotal: MoneyUtils.create(row.subtotal || 0, currency, row.exchange_rate || 1),
-            discount: MoneyUtils.create(row.discount_amount || 0, currency, row.exchange_rate || 1),
-
-            total: MoneyUtils.create(total, currency, row.exchange_rate || 1),
-            paidAmount: MoneyUtils.create(paid, currency, row.exchange_rate || 1),
-            balanceDue: MoneyUtils.create(total - paid, currency, row.exchange_rate || 1),
-            status: (row.status as PurchaseInvoiceStatus) || 'draft',
-            paymentMethod: (row.payment_method as PaymentMethod) || 'cash',
+            dueDate: toOptionalDate(row.due_date),
+            items: toPurchaseItems(row.items),
+            subtotal: toMoney(row.subtotal, currency, exchangeRate),
+            discount: toMoney(row.discount_amount, currency, exchangeRate),
+            total: toMoney(total, currency, exchangeRate),
+            paidAmount: toMoney(paid, currency, exchangeRate),
+            balanceDue: toMoney(total - paid, currency, exchangeRate),
+            status: row.status as PurchaseInvoiceStatus,
+            paymentMethod: row.payment_method as PaymentMethod,
             notes: row.notes,
             currency,
-            exchangeRate: row.exchange_rate || 1,
+            exchangeRate,
             createdAt: new Date(row.created_at),
         };
     },

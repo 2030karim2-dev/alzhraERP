@@ -5,9 +5,7 @@ import { Settings } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import { PurchaseProductCell, PurchaseNumericCell, PurchaseTotalCell, PurchaseRemoveCell } from './PurchaseInvoiceCells';
 
-interface ColumnWidths {
-    index: number; name: number; partNumber: number; brand: number; quantity: number; costPrice: number; discount: number; total: number;
-}
+type ColumnWidths = Record<string, number>;
 interface TableHeaderProps { colWidths: ColumnWidths; showDiscount: boolean; onResizeMouseDown: (event: React.MouseEvent<HTMLElement>, field: string) => void; }
 
 const ResizeHandle: React.FC<{ field: string; onResizeMouseDown: TableHeaderProps['onResizeMouseDown'] }> = ({ field, onResizeMouseDown }) => (

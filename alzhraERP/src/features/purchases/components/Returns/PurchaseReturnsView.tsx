@@ -4,217 +4,77 @@ import { usePurchaseReturns, usePurchaseReturnsStats } from '../../hooks/usePurc
 import Button from '../../../../ui/base/Button';
 import { exportToPDF } from '../../../../core/utils/pdfExporter';
 import { AdvancedReturnModal } from '../../../returns/components/AdvancedReturnModal';
-import { useReturnsListView } from '../../../returns/hooks/useReturnsListView';
+import { useReturnsListView, type ReturnsListRow } from '../../../returns/hooks/useReturnsListView';
 import { ReturnsStatsHeader } from '../../../returns/components/view/ReturnsStatsHeader';
 import { ReturnsFilterControls } from '../../../returns/components/view/ReturnsFilterControls';
 
-// Status labels
-const STATUS_LABELS: Record<string, string> = {
-    'draft': 'مسودة',
-    'posted': 'معتمد',
-    'paid': 'مدفوع',
+const getStatusLabel = (status: string | null): string => {
+    if (status === 'draft') return 'مسودة';
+    if (status === 'posted') return 'معتمد';
+    if (status === 'paid') return 'مدفوع';
+    return status ?? '';
 };
+const statusClass = (status: string | null): string => {
+    if (status === 'posted' || status === 'paid') return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+    return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
+};
+interface PurchaseReturnsViewProps { searchTerm: string; onViewDetails: (id: string) => void; }
+interface ReturnCardProps { returnItem: ReturnsListRow; onViewDetails: (id: string) => void; }
+type PurchaseReturnRecord = NonNullable<ReturnType<typeof usePurchaseReturns>['data']>[number];
+const normalizePurchaseReturns = (rows: PurchaseReturnRecord[] | undefined): ReturnsListRow[] | undefined => rows?.map(row => ({ ...row, return_reason: null, notes: null, reference_invoice: null, reference_invoice_id: null, issue_date: row.issue_date, created_at: row.issue_date, invoice_items: row.invoice_items, exchange_rate: row.exchange_rate, party: row.party === null ? null : { name: row.party.name } }));
+const partyName = (row: ReturnsListRow): string => row.party?.name ?? 'غير محدد';
+const originalInvoice = (row: ReturnsListRow): string => row.reference_invoice?.invoice_number ?? row.reference_invoice_id ?? '';
+const returnNotes = (row: ReturnsListRow): string => row.notes ?? '';
+const returnAmount = (row: ReturnsListRow): string => Number(row.total_amount ?? 0).toFixed(2);
+const returnDate = (row: ReturnsListRow): string => new Date(row.issue_date ?? row.created_at).toLocaleDateString('ar-SA-u-nu-latn');
+const itemCount = (row: ReturnsListRow): number => row.invoice_items?.length ?? 0;
 
-interface PurchaseReturnsViewProps {
-    searchTerm: string;
-    onViewDetails: (id: string) => void;
-}
+const ReturnCardHeader = ({ returnItem }: { returnItem: ReturnsListRow }): React.ReactElement => {
+    const referenceInvoice = originalInvoice(returnItem);
+    const notes = returnNotes(returnItem);
+    return <div className="flex justify-between items-start"><div className="flex items-start gap-3"><div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg"><RotateCcw size={20} className="text-red-600" /></div><div><p className="font-medium text-gray-900 dark:text-white">مرتجع #{returnItem.invoice_number ?? ''}</p><p className="text-sm text-gray-500">المورد: {partyName(returnItem)}</p>{referenceInvoice !== '' && <p className="text-xs text-blue-600">فاتورة أصلية: {referenceInvoice}</p>}{notes !== '' && <p className="text-xs text-gray-400 mt-1">{notes}</p>}</div></div><div className="text-left"><p className="font-bold text-red-600">-{returnAmount(returnItem)}</p><p className="text-xs text-gray-500">{returnDate(returnItem)}</p></div></div>;
+};
+const ReturnCardFooter = ({ returnItem, viewDetails }: { returnItem: ReturnsListRow; viewDetails: () => void }): React.ReactElement => <div className="mt-3 flex items-center justify-between"><div className="flex items-center gap-2"><FileText size={14} className="text-gray-400" /><span className="text-sm text-gray-600 dark:text-slate-300">{itemCount(returnItem)} أصناف</span></div><div className="flex items-center gap-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass(returnItem.status)}`}>{getStatusLabel(returnItem.status)}</span><button type="button" aria-label="عرض تفاصيل المرتجع" onClick={(event) => { event.stopPropagation(); viewDetails(); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Eye size={16} /></button></div></div>;
+const ReturnCard = ({ returnItem, onViewDetails }: ReturnCardProps): React.ReactElement => {
+    const viewDetails = (): void => { onViewDetails(returnItem.id); };
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); viewDetails(); } };
+    return <div role="button" tabIndex={0} onClick={viewDetails} onKeyDown={handleKeyDown} className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-100 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-600 transition-colors cursor-pointer"><ReturnCardHeader returnItem={returnItem} /><ReturnCardFooter returnItem={returnItem} viewDetails={viewDetails} /></div>;
+};
+const LoadingReturns = (): React.ReactElement => <div className="animate-pulse">{Array.from({ length: 3 }, (_, index) => <div key={index} className="h-20 bg-gray-100 dark:bg-slate-800 rounded mb-3" />)}</div>;
+const EmptyReturns = (): React.ReactElement => <div className="text-center py-12 text-gray-500"><RotateCcw size={48} className="mx-auto mb-4 opacity-50" /><p className="font-medium">لا توجد مرتجعات مشتريات</p><p className="text-sm text-gray-400 mt-1">قم بإنشاء مرتجع جديد للبدء</p></div>;
+const ReturnsSummary = ({ totalAmount, count, totalCount }: { totalAmount: number; count: number; totalCount: number }): React.ReactElement => <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800"><div className="flex justify-between items-center"><span className="font-bold text-red-800 dark:text-red-300">إجمالي المرتجعات المعروضة:</span><span className="font-bold text-xl text-red-600 dark:text-red-400">{totalAmount.toFixed(2)}</span></div><div className="text-xs text-gray-500 mt-1">عدد النتائج: {count} من {totalCount}</div></div>;
+const averageReturn = (stats: unknown): number => {
+    if (typeof stats !== 'object' || stats === null) return 0;
+    const candidate = stats as { returnCount?: unknown; totalReturns?: unknown };
+    if (typeof candidate.returnCount !== 'number' || typeof candidate.totalReturns !== 'number' || candidate.returnCount <= 0) return 0;
+    return candidate.totalReturns / candidate.returnCount;
+};
+type ReturnsViewModel = ReturnType<typeof useReturnsListView>;
+interface ReturnsToolbarProps { view: ReturnsViewModel; isLoading: boolean; handlePrint: () => Promise<void>; refetch: () => Promise<unknown>; }
+const ReturnsToolbar = ({ view, isLoading, handlePrint, refetch }: ReturnsToolbarProps): React.ReactElement => <ReturnsFilterControls localSearchTerm={view.localSearchTerm} setLocalSearchTerm={view.setLocalSearchTerm} showFilters={view.showFilters} setShowFilters={view.setShowFilters} filters={view.filters} setFilters={view.setFilters} sortField={view.sortField} setSortField={view.setSortField} sortDirection={view.sortDirection} setSortDirection={view.setSortDirection} hasActiveFilters={view.hasActiveFilters} clearFilters={view.clearFilters} handleExportExcel={() => { void view.handleExportExcel(); }} handlePrint={() => { void handlePrint(); }} refetch={() => { void refetch(); }} isLoading={isLoading} hasData={view.processedReturns.length > 0} type="purchase" />;
+const ReturnsResults = ({ view, isLoading, returns, onViewDetails }: { view: ReturnsViewModel; isLoading: boolean; returns: ReturnsListRow[] | undefined; onViewDetails: (id: string) => void }): React.ReactElement => {
+    if (isLoading) return <LoadingReturns />;
+    if (view.processedReturns.length === 0) return <EmptyReturns />;
+    return <><div className="space-y-3">{view.processedReturns.map(returnItem => <ReturnCard key={returnItem.id} returnItem={returnItem} onViewDetails={onViewDetails} />)}</div><ReturnsSummary totalAmount={view.totalAmount} count={view.processedReturns.length} totalCount={returns?.length ?? 0} /></>;
+};
 
 const PurchaseReturnsView: React.FC<PurchaseReturnsViewProps> = ({ searchTerm: propSearchTerm, onViewDetails }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
-
     const { data: returns, isLoading, refetch } = usePurchaseReturns();
     const { data: stats } = usePurchaseReturnsStats();
-
-    const {
-        localSearchTerm, setLocalSearchTerm,
-        showFilters, setShowFilters,
-        filters, setFilters,
-        sortField, setSortField,
-        sortDirection, setSortDirection,
-        processedReturns,
-        totalAmount,
-        handleExportExcel,
-        clearFilters,
-        hasActiveFilters
-    } = useReturnsListView(returns, 'purchase');
-
-    // Sync initial search term
-    React.useEffect(() => {
-        if (propSearchTerm) {
-            setLocalSearchTerm(propSearchTerm);
-        }
-    }, [propSearchTerm, setLocalSearchTerm]);
-
-    // Handle print
-    const handlePrint = async () => {
-        if (!printRef.current) return;
-        try {
-            await exportToPDF(printRef.current, `مرتجعات_المشتريات_${new Date().toISOString().split('T')[0]}`);
-        } catch (error) {
-            console.error('Print error:', error);
-        }
-    };
-
-    return (
-        <div className="space-y-3 animate-in fade-in duration-300 pt-2" ref={printRef}>
-            {/* Stats Cards */}
-            <ReturnsStatsHeader 
-                returnCount={stats?.returnCount || 0}
-                totalReturns={stats?.totalReturns || 0}
-                avgReturn={stats?.returnCount ? ((stats?.totalReturns || 0) / stats.returnCount) : 0}
-                pendingCount={stats?.pendingCount || 0}
-                type="purchase"
-            />
-
-            {/* Search and Filter Bar */}
-            <ReturnsFilterControls
-                localSearchTerm={localSearchTerm}
-                setLocalSearchTerm={setLocalSearchTerm}
-                showFilters={showFilters}
-                setShowFilters={setShowFilters}
-                filters={filters}
-                setFilters={setFilters}
-                sortField={sortField}
-                setSortField={setSortField}
-                sortDirection={sortDirection}
-                setSortDirection={setSortDirection}
-                hasActiveFilters={hasActiveFilters}
-                clearFilters={clearFilters}
-                handleExportExcel={handleExportExcel}
-                handlePrint={handlePrint}
-                refetch={refetch}
-                isLoading={isLoading}
-                hasData={processedReturns.length > 0}
-                type="purchase"
-            />
-
-            {/* Add Return Button */}
-            <div className="flex justify-end">
-                <Button
-                    onClick={() => setIsModalOpen(true)}
-                    variant="danger"
-                    size="sm"
-                    leftIcon={<Plus size={14} />}
-                >
-                    مرتجع مشتريات جديد
-                </Button>
-            </div>
-
-            {/* Returns List */}
-            {isLoading ? (
-                <div className="animate-pulse">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="h-20 bg-gray-100 dark:bg-slate-800 rounded mb-3" />
-                    ))}
-                </div>
-            ) : processedReturns.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                    <RotateCcw size={48} className="mx-auto mb-4 opacity-50" />
-                    <p className="font-medium">لا توجد مرتجعات مشتريات</p>
-                    <p className="text-sm text-gray-400 mt-1">قم بإنشاء مرتجع جديد للبدء</p>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    {processedReturns.map((returnItem: any) => (
-                        <div
-                            key={returnItem.id}
-                            onClick={() => onViewDetails(returnItem.id)}
-                            className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-100 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-600 transition-colors cursor-pointer"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                                        <RotateCcw size={20} className="text-red-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900 dark:text-white">
-                                            مرتجع #{returnItem.invoice_number}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            المورد: {returnItem.party?.name || 'غير محدد'}
-                                        </p>
-                                        {returnItem.reference_invoice && (
-                                            <p className="text-xs text-blue-600">
-                                                فاتورة أصلية: {returnItem.reference_invoice.invoice_number || returnItem.reference_invoice_id}
-                                            </p>
-                                        )}
-                                        {returnItem.notes && (
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                {returnItem.notes}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="text-left">
-                                    <p className="font-bold text-red-600">-{Number(returnItem.total_amount || 0).toFixed(2)}</p>
-                                    <p className="text-xs text-gray-500">
-                                        {new Date(returnItem.issue_date || returnItem.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <FileText size={14} className="text-gray-400" />
-                                    <span className="text-sm text-gray-600 dark:text-slate-300">
-                                        {returnItem.invoice_items?.length || 0} أصناف
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${returnItem.status === 'posted' || returnItem.status === 'paid'
-                                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                        }`}>
-                                        {STATUS_LABELS[returnItem.status] || returnItem.status}
-                                    </span>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onViewDetails(returnItem.id);
-                                        }}
-                                        className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
-                                    >
-                                        <Eye size={16} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Total Summary */}
-            {processedReturns.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800">
-                    <div className="flex justify-between items-center">
-                        <span className="font-bold text-red-800 dark:text-red-300">إجمالي المرتجعات المعروضة:</span>
-                        <span className="font-bold text-xl text-red-600 dark:text-red-400">
-                            {totalAmount.toFixed(2)}
-                        </span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                        عدد النتائج: {processedReturns.length} من {returns?.length || 0}
-                    </div>
-                </div>
-            )}
-
-            {/* Advanced Return Modal */}
-            <AdvancedReturnModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                returnType="purchase"
-                partyName="مورد"
-                onSuccess={() => {
-                    setIsModalOpen(false);
-                    refetch();
-                }}
-            />
-        </div>
-    );
+    const normalizedReturns = normalizePurchaseReturns(returns);
+    const view = useReturnsListView(normalizedReturns, 'purchase');
+    const setLocalSearchTerm = view.setLocalSearchTerm;
+    React.useEffect(() => { if (propSearchTerm !== '') setLocalSearchTerm(propSearchTerm); }, [propSearchTerm, setLocalSearchTerm]);
+    const handlePrint = async (): Promise<void> => { if (printRef.current === null) return; await exportToPDF(printRef.current, `مرتجعات_المشتريات_${new Date().toISOString().split('T')[0]}`); };
+    return <div className="space-y-3 animate-in fade-in duration-300 pt-2" ref={printRef}>
+        <ReturnsStatsHeader returnCount={stats?.returnCount ?? 0} totalReturns={stats?.totalReturns ?? 0} avgReturn={averageReturn(stats)} pendingCount={stats?.pendingCount ?? 0} type="purchase" />
+        <ReturnsToolbar view={view} isLoading={isLoading} handlePrint={handlePrint} refetch={refetch} />
+        <div className="flex justify-end"><Button onClick={() => { setIsModalOpen(true); }} variant="danger" size="sm" leftIcon={<Plus size={14} />}>مرتجع مشتريات جديد</Button></div>
+        <ReturnsResults view={view} isLoading={isLoading} returns={normalizedReturns} onViewDetails={onViewDetails} />
+        <AdvancedReturnModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); }} returnType="purchase" partyName="مورد" onSuccess={() => { setIsModalOpen(false); void refetch(); }} />
+    </div>;
 };
 
 export default PurchaseReturnsView;

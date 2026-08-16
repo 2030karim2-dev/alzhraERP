@@ -3,7 +3,7 @@
 // import { accountsService } from '../../accounting/services/accountsService';
 // import { journalService } from '../../accounting/services/journalService';
 // import { bondsService } from '../../bonds/service';
-import { CreatePurchaseDTO } from '../types';
+import type { CreatePurchaseDTO } from '../types';
 // import { routeToChildByCurrency } from '../../../core/utils/accountRouting';
 
 export const purchaseAccountingService = {
@@ -17,21 +17,10 @@ export const purchaseAccountingService = {
      * - Cash: Create a transfer entry Dr Supplier / Cr Cash (to move amount from payable to cash)
      * - Credit: Do nothing (RPC already handled it correctly)
      */
-    handleNewPurchase: async (
-        invoiceId: string,
-        data: CreatePurchaseDTO,
-        _companyId: string,
-        _userId: string,
-        _totalAmount: number
-    ) => {
-        try {
-            console.info('📦 Purchase accounting atomic RPC executed for:', invoiceId, 'Method:', data.paymentMethod);
-            console.info('📋 The RPC commit_purchase_invoice already handled all accounting entries natively.');
-            return;
-        } catch (error: unknown) {
-            console.error('❌ Error processing purchase accounting reference:', error);
-            throw error;
-        }
+    handleNewPurchase: (...args: [string, CreatePurchaseDTO, string, string, number]): void => {
+        const [invoiceId, data] = args;
+        console.info('Purchase accounting atomic RPC executed for:', invoiceId, 'Method:', data.paymentMethod);
+        console.info('The RPC commit_purchase_invoice already handled all accounting entries natively.');
     }
 };
 

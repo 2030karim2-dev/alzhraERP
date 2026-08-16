@@ -18,8 +18,8 @@ const PurchaseStats: React.FC = () => {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
       <StatCard
         title="فواتير الفترة"
-        value={formatNumberDisplay(stats?.invoiceCount || 0)}
-        subtitle="جميع الأوقات"
+        value={formatNumberDisplay(stats?.invoiceCount ?? 0)}
+        subtext="جميع الأوقات"
         icon={FileText}
         colorClass="text-gray-500"
         iconBgClass="bg-gray-500"
@@ -27,8 +27,8 @@ const PurchaseStats: React.FC = () => {
 
       <StatCard
         title="إجمالي المشتريات"
-        value={formatCurrency(stats?.totalPurchases || 0)}
-        subtitle="جميع الأوقات"
+        value={formatCurrency(stats?.totalPurchases ?? 0)}
+        subtext="جميع الأوقات"
         icon={TrendingDown}
         colorClass="text-blue-500"
         iconBgClass="bg-blue-500"
@@ -36,8 +36,8 @@ const PurchaseStats: React.FC = () => {
 
       <StatCard
         title="فواتير آجلة"
-        value={formatNumberDisplay(stats?.pendingPaymentCount || 0)}
-        subtitle="جميع الأوقات"
+        value={formatNumberDisplay(stats?.pendingPaymentCount ?? 0)}
+        subtext="جميع الأوقات"
         icon={AlertCircle}
         colorClass="text-amber-500"
         iconBgClass="bg-amber-500"
@@ -45,8 +45,8 @@ const PurchaseStats: React.FC = () => {
 
       <StatCard
         title="إجمالي المديونية"
-        value={formatCurrency(stats?.totalDebt || 0)}
-        subtitle="جميع الأوقات"
+        value={formatCurrency(stats?.totalDebt ?? 0)}
+        subtext="جميع الأوقات"
         icon={CreditCard}
         colorClass="text-red-500"
         iconBgClass="bg-red-500"

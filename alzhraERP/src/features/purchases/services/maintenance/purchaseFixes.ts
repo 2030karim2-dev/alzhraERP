@@ -1,187 +1,132 @@
 import { supabase } from '../../../../lib/supabaseClient';
 import { accountsService } from '../../../accounting/services/accountsService';
+import type { Database } from '../../../../core/database.types';
 
-export const purchaseFixesService = {
-    /**
-     * Fix Script: Correct old Cash Purchase entries that wrongly credited the Supplier account.
-     * For each cash invoice, creates a corrective journal entry:
-     *   Dr Supplier (2201) — removes the liability
-     *   Cr Cash (1010)    — records the actual cash payment
-     */
-    fixMissingCashPayments: async (companyId: string, userId: string) => {
-        try {
-            console.info('Starting Fix for Incorrect Cash Purchase Entries...');
+type DisplayValue = string | number | null;
+type CashPurchaseInvoice = Pick<Database['public']['Tables']['invoices']['Row'], 'invoice_number' | 'issue_date'>;
+type Account = Awaited<ReturnType<typeof accountsService.getAccounts>>[number];
+interface FixContext {
+    invoice: CashPurchaseInvoice;
+    supplierAccount: Account;
+    cashAccount: Account;
+    companyId: string;
+    userId: string;
+}
 
-            // 1. Get all Cash Purchases
-            const { data: invoices, error } = await (supabase.from('invoices') as any)
-                .select('*')
-                .eq('company_id', companyId)
-                .eq('type', 'purchase')
-                .eq('payment_method', 'cash');
+const display = (value: DisplayValue): string => value === null ? '' : String(value);
 
-            if (error) throw error;
-            if (!invoices || invoices.length === 0) {
-                console.info('No cash invoices found.');
-                return { count: 0, message: 'No cash invoices found' };
-            }
+const findAccount = (accounts: Account[], code: string, name: string, type: string): Account | undefined =>
+    accounts.find(account => account.code === code) ?? accounts.find(account => account.name.includes(name)) ?? accounts.find(account => account.type === type);
 
-            console.info(`Found ${invoices.length} cash invoices. Checking for incorrect supplier entries...`);
+const createCorrection = async (context: FixContext, creditAmount: number): Promise<boolean> => {
+    const { invoice, supplierAccount, cashAccount, companyId, userId } = context;
+    const { data: latestJournal } = await supabase.from('journal_entries')
+        .select('entry_number')
+        .eq('company_id', companyId)
+        .order('entry_number', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    const entryNumber = (latestJournal?.entry_number ?? 1000) + 1;
+    const { data: journal, error: journalError } = await supabase.from('journal_entries').insert({
+        company_id: companyId,
+        entry_number: entryNumber,
+        entry_date: invoice.issue_date,
+        description: `تصحيح فاتورة مشتريات نقدية #${display(invoice.invoice_number)} — نقل من ذمم الموردين إلى الصندوق`,
+        status: 'posted',
+        created_by: userId,
+        reference_type: 'correction',
+    }).select().single();
 
-            // 2. Get necessary accounts
-            const accounts = await accountsService.getAccounts(companyId);
-            const cashAccount = accounts.find(a => a.code === '1010') ||
-                accounts.find(a => a.type === 'asset' && a.name.includes('صندوق'));
+    if (journalError) {
+        console.error(`Error creating corrective journal for #${display(invoice.invoice_number)}:`, journalError);
+        return false;
+    }
 
-            if (!cashAccount) throw new Error('Cash account (1010) not found');
+    const { error: lineError } = await supabase.from('journal_entry_lines').insert([
+        { journal_entry_id: journal.id, company_id: companyId, account_id: supplierAccount.id, debit_amount: creditAmount, credit_amount: 0, description: `تصحيح: إلغاء ذمة مورد — فاتورة نقدية #${display(invoice.invoice_number)}` },
+        { journal_entry_id: journal.id, company_id: companyId, account_id: cashAccount.id, debit_amount: 0, credit_amount: creditAmount, description: `تصحيح: سداد نقدي فاتورة #${display(invoice.invoice_number)}` },
+    ]);
 
-            const supplierAccount = accounts.find(a => a.code === '2201') ||
-                accounts.find(a => a.name.includes('موردين')) ||
-                accounts.find(a => a.type === 'liability');
+    if (lineError) {
+        console.error(`Error creating corrective lines for #${display(invoice.invoice_number)}:`, lineError);
+        await supabase.from('journal_entries').delete().eq('id', journal.id);
+        return false;
+    }
 
-            if (!supplierAccount) throw new Error('Supplier account (2201) not found');
+    console.info(`Corrective entry created for Invoice #${display(invoice.invoice_number)}`);
+    return true;
+};
 
-            let fixedCount = 0;
+const fixCashInvoice = async (context: FixContext): Promise<boolean> => {
+    const { invoice, supplierAccount } = context;
+    const { data: supplierCreditsData } = await supabase.from('journal_entry_lines')
+        .select('id, credit_amount, description, journal:journal_entry_id(id, entry_date, description, status, company_id)')
+        .eq('account_id', supplierAccount.id).gt('credit_amount', 0)
+        .like('description', `%${display(invoice.invoice_number)}%`);
 
-            // 3. For each cash invoice, check if supplier account was credited
-            for (const invoice of invoices) {
-                // Find journal lines that credit the supplier account for this invoice
-                const { data: supplierCredits } = await (supabase.from('journal_entry_lines') as any)
-                    .select(`
-                        id, credit_amount, description,
-                        journal:journal_entry_id(id, entry_date, description, status, company_id)
-                    `)
-                    .eq('account_id', supplierAccount.id)
-                    .gt('credit_amount', 0)
-                    .like('description', `%${invoice.invoice_number}%`);
+    const supplierCredits = supplierCreditsData ?? [];
+    if (supplierCredits.length === 0) {
+        console.info(`Invoice #${display(invoice.invoice_number)} — no supplier credit found (already correct)`);
+        return false;
+    }
 
-                if (!supplierCredits || supplierCredits.length === 0) {
-                    console.info(`Invoice #${invoice.invoice_number} — no supplier credit found (already correct)`);
-                    continue;
-                }
+    const { data: existingCorrectionData } = await supabase.from('journal_entry_lines').select('id')
+        .eq('account_id', supplierAccount.id).gt('debit_amount', 0)
+        .like('description', `%تصحيح%${display(invoice.invoice_number)}%`);
+    const existingCorrection = existingCorrectionData ?? [];
+    if (existingCorrection.length > 0) {
+        console.info(`Invoice #${display(invoice.invoice_number)} — corrective entry already exists, skipping`);
+        return false;
+    }
 
-                // Check if a corrective entry already exists (debit on supplier for same invoice)
-                const { data: existingCorrection } = await (supabase.from('journal_entry_lines') as any)
-                    .select('id')
-                    .eq('account_id', supplierAccount.id)
-                    .gt('debit_amount', 0)
-                    .like('description', `%تصحيح%${invoice.invoice_number}%`);
+    const creditAmount = supplierCredits[0].credit_amount;
+    console.info(`Invoice #${display(invoice.invoice_number)} — creating corrective entry for SAR ${display(creditAmount)}`);
+    return createCorrection(context, creditAmount);
+};
 
-                if (existingCorrection && existingCorrection.length > 0) {
-                    console.info(`Invoice #${invoice.invoice_number} — corrective entry already exists, skipping`);
-                    continue;
-                }
+const fixMissingCashPayments = async (companyId: string, userId: string): Promise<{ count: number; message: string }> => {
+    console.info('Starting Fix for Incorrect Cash Purchase Entries...');
+    const { data: invoicesData, error } = await supabase.from('invoices').select('invoice_number, issue_date')
+        .eq('company_id', companyId).eq('type', 'purchase').eq('payment_method', 'cash');
+    if (error) throw error;
+    const invoices = invoicesData;
+    if (invoices.length === 0) return { count: 0, message: 'No cash invoices found' };
 
-                const creditAmount = supplierCredits[0].credit_amount;
-                console.info(`Invoice #${invoice.invoice_number} — creating corrective entry for SAR ${creditAmount}`);
+    console.info(`Found ${display(invoices.length)} cash invoices. Checking for incorrect supplier entries...`);
+    const accounts = await accountsService.getAccounts(companyId);
+    const cashAccount = findAccount(accounts, '1010', 'صندوق', 'asset');
+    const supplierAccount = findAccount(accounts, '2201', 'موردين', 'liability');
+    if (cashAccount === undefined) throw new Error('Cash account (1010) not found');
+    if (supplierAccount === undefined) throw new Error('Supplier account (2201) not found');
 
-                // Create corrective journal entry: Dr Supplier / Cr Cash
-                const { data: journal, error: jError } = await (supabase.from('journal_entries') as any)
-                    .insert({
-                        company_id: companyId,
-                        entry_date: invoice.issue_date,
-                        description: `تصحيح فاتورة مشتريات نقدية #${invoice.invoice_number} — نقل من ذمم الموردين إلى الصندوق`,
-                        status: 'posted',
-                        created_by: userId,
-                        reference_type: 'correction'
-                    })
-                    .select()
-                    .single();
+    let fixedCount = 0;
+    for (const invoice of invoices) {
+        const fixed = await fixCashInvoice({ invoice, supplierAccount, cashAccount, companyId, userId });
+        if (fixed) fixedCount += 1;
+    }
+    console.info(`Fix Complete. Created ${display(fixedCount)} corrective entries.`);
+    return { count: fixedCount, message: `تم تصحيح ${display(fixedCount)} فاتورة مشتريات نقدية` };
+};
 
-                if (jError) {
-                    console.error(`Error creating corrective journal for #${invoice.invoice_number}:`, jError);
-                    continue;
-                }
-
-                const { error: lError } = await (supabase.from('journal_entry_lines') as any)
-                    .insert([
-                        {
-                            journal_entry_id: journal.id,
-                            account_id: supplierAccount.id,
-                            debit_amount: creditAmount,
-                            credit_amount: 0,
-                            description: `تصحيح: إلغاء ذمة مورد — فاتورة نقدية #${invoice.invoice_number}`
-                        },
-                        {
-                            journal_entry_id: journal.id,
-                            account_id: cashAccount.id,
-                            debit_amount: 0,
-                            credit_amount: creditAmount,
-                            description: `تصحيح: سداد نقدي فاتورة #${invoice.invoice_number}`
-                        }
-                    ]);
-
-                if (lError) {
-                    console.error(`Error creating corrective lines for #${invoice.invoice_number}:`, lError);
-                    // Rollback header
-                    await (supabase.from('journal_entries') as any).delete().eq('id', journal.id);
-                    continue;
-                }
-
-                console.info(`Corrective entry created for Invoice #${invoice.invoice_number}`);
-                fixedCount++;
-            }
-
-            console.info(`Fix Complete. Created ${fixedCount} corrective entries.`);
-            return { count: fixedCount, message: `تم تصحيح ${fixedCount} فاتورة مشتريات نقدية` };
-
-        } catch (error) {
-            console.error('Error in fixMissingCashPayments:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Fix Script: Remove Duplicate Journal Entries for Purchases
-     * Finds cases where multiple Journal Entries exist for the same Invoice Number (excluding corrections).
-     * Keeps the EARLIEST entry (likely the RPC one) and deletes the others.
-     */
-    removeDuplicatePurchaseEntries: async (companyId: string) => {
-        try {
-            console.info('Starting Duplicate Cleanup...');
-            let deletedCount = 0;
-
-            // 1. Get all invoices to check against
-            const { data: invoices } = await (supabase.from('invoices') as any)
-                .select('invoice_number')
-                .eq('company_id', companyId)
-                .eq('type', 'purchase');
-
-            if (!invoices) return { count: 0, message: 'No invoices found' };
-
-            // 2. Iterate and check for duplicates
-            for (const inv of invoices) {
-                // Find all Journals that mention this invoice # in description
-                // and are NOT corrections (reference_type != correction)
-                const { data: journals } = await (supabase.from('journal_entries') as any)
-                    .select('id, entry_date, created_at, description')
-                    .eq('company_id', companyId)
-                    .neq('reference_type', 'correction')
-                    .like('description', `%${inv.invoice_number}%`)
-                    .order('created_at', { ascending: true }); // Oldest first
-
-                if (journals && journals.length > 1) {
-                    console.info(`Found ${journals.length} entries for Invoice #${inv.invoice_number}`);
-
-                    // Keep the first one (index 0), delete the rest
-                    const toDelete = journals.slice(1);
-
-                    for (const dup of toDelete) {
-                        console.info(`Deleting Duplicate Journal: ${dup.id} - ${dup.description}`);
-                        // Delete lines first (cascade usually handles this, but being safe)
-                        await (supabase.from('journal_entry_lines') as any).delete().eq('journal_entry_id', dup.id);
-                        // Delete header
-                        await (supabase.from('journal_entries') as any).delete().eq('id', dup.id);
-                        deletedCount++;
-                    }
-                }
-            }
-
-            console.info(`Cleanup Complete. Removed ${deletedCount} duplicate entries.`);
-            return { count: deletedCount, message: `تم حذف ${deletedCount} قيد مكرر بنجاح` };
-
-        } catch (error) {
-            console.error('Error in removeDuplicatePurchaseEntries:', error);
-            throw error;
+const removeDuplicatePurchaseEntries = async (companyId: string): Promise<{ count: number; message: string }> => {
+    console.info('Starting Duplicate Cleanup...');
+    let deletedCount = 0;
+    const { data: invoicesData } = await supabase.from('invoices').select('invoice_number').eq('company_id', companyId).eq('type', 'purchase');
+    const invoices = invoicesData ?? [];
+    for (const invoice of invoices) {
+        const { data: journalsData } = await supabase.from('journal_entries').select('id, entry_date, created_at, description')
+            .eq('company_id', companyId).neq('reference_type', 'correction')
+            .like('description', `%${display(invoice.invoice_number)}%`).order('created_at', { ascending: true });
+        const journals = journalsData ?? [];
+        for (const duplicate of journals.slice(1)) {
+            console.info(`Deleting Duplicate Journal: ${display(duplicate.id)} - ${display(duplicate.description)}`);
+            await supabase.from('journal_entry_lines').delete().eq('journal_entry_id', duplicate.id);
+            await supabase.from('journal_entries').delete().eq('id', duplicate.id);
+            deletedCount += 1;
         }
     }
+    console.info(`Cleanup Complete. Removed ${display(deletedCount)} duplicate entries.`);
+    return { count: deletedCount, message: `تم حذف ${display(deletedCount)} قيد مكرر بنجاح` };
 };
+
+export const purchaseFixesService = { fixMissingCashPayments, removeDuplicatePurchaseEntries };

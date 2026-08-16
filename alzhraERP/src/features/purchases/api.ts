@@ -1,192 +1,149 @@
-
 import { supabase } from '../../lib/supabaseClient';
 import { parseError } from '../../core/utils/errorUtils';
-import { CreatePurchaseDTO, SupplierPaymentData } from './types';
+import type { CreatePurchaseDTO, SupplierPaymentData } from './types';
+import type { Json } from '../../core/database.types';
 
+type PurchaseItem = CreatePurchaseDTO['items'][number];
+interface PurchaseItemPayload {
+  product_id: string;
+  quantity: number;
+  unit_cost: number;
+  discount: number;
+  line_total: number;
+  warehouse_id?: string;
+}
+interface PurchaseRpcParams {
+  p_company_id: string;
+  p_user_id: string;
+  p_supplier_id: string;
+  p_items: Json;
+  p_currency: string;
+  p_exchange_rate: number;
+  p_payment_method: string;
+  p_payment_account_id?: string;
+  p_invoice_number?: string;
+  p_issue_date?: string;
+  p_notes?: string;
+  p_branch_id?: string;
+}
+interface PurchaseReturnRpcParams {
+  p_company_id: string;
+  p_user_id: string;
+  p_supplier_id: string;
+  p_items: Json;
+  p_currency: string;
+  p_exchange_rate: number;
+  p_notes: string;
+  p_branch_id?: string;
+}
+
+const hasText = (value: string | null | undefined): value is string => value !== null && value !== undefined && value !== '';
+const requireText = (value: string | null | undefined, field: string): string => {
+  if (!hasText(value)) throw new Error(`${field} is required`);
+  return value;
+};
+const asError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error));
+const warehousePayload = (warehouseId: string | null | undefined): Pick<PurchaseItemPayload, 'warehouse_id'> => hasText(warehouseId) ? { warehouse_id: warehouseId } : {};
+
+const itemPayload = (item: PurchaseItem): PurchaseItemPayload => {
+  const discount = item.discount ?? 0;
+  return {
+    product_id: item.productId,
+    quantity: item.quantity,
+    unit_cost: item.costPrice,
+    discount,
+    line_total: Math.max(0, item.quantity * item.costPrice - discount),
+    ...warehousePayload(item.warehouseId),
+  };
+};
+
+const buildPurchaseParams = (companyId: string, userId: string, data: CreatePurchaseDTO): PurchaseRpcParams => {
+  const paymentAccountId = data.paymentMethod === 'cash' ? data.cashAccountId : data.bankAccountId;
+  return {
+    p_company_id: companyId,
+    p_user_id: userId,
+    p_supplier_id: requireText(data.supplierId, 'Supplier'),
+    ...(hasText(data.invoiceNumber) ? { p_invoice_number: data.invoiceNumber } : {}),
+    ...(hasText(data.issueDate) ? { p_issue_date: data.issueDate } : {}),
+    p_items: data.items.map(itemPayload) as unknown as Json,
+    ...(hasText(data.notes) ? { p_notes: data.notes } : {}),
+    p_currency: data.currency ?? 'SAR',
+    p_exchange_rate: data.exchangeRate ?? 1,
+    p_payment_method: data.paymentMethod,
+    ...(hasText(paymentAccountId) ? { p_payment_account_id: paymentAccountId } : {}),
+    ...(hasText(data.branchId) ? { p_branch_id: data.branchId } : {}),
+  };
+};
+
+const buildReturnParams = (companyId: string, userId: string, data: CreatePurchaseDTO): PurchaseReturnRpcParams => ({
+  p_company_id: companyId,
+  p_user_id: userId,
+  p_supplier_id: requireText(data.supplierId, 'Supplier'),
+  p_items: data.items.map(itemPayload) as unknown as Json,
+  p_currency: data.currency ?? 'SAR',
+  p_exchange_rate: data.exchangeRate ?? 1,
+  p_notes: data.notes ?? '',
+  ...(hasText(data.branchId) ? { p_branch_id: data.branchId } : {}),
+});
 
 export const purchasesApi = {
-  /**
-   * يجلب قائمة فواتير المشتريات والمرتجعات للشركة المحددة، مع دعم التصفية حسب الفرع.
-   * @param companyId معرّف الشركة
-   * @param branchId معرّف الفرع (اختياري)
-   * @returns قائمة الفواتير مرتبة حسب تاريخ الإصدار تنازلياً
-   */
   getPurchases: async (companyId: string, branchId?: string | null) => {
-    let query = supabase
-      .from('invoices')
-      .select(`
-        id,
-        invoice_number,
-        issue_date,
-        total_amount,
-        status,
-        type,
-        payment_method,
-        currency_code,
-        exchange_rate,
-        party:party_id(name),
-        invoice_items(id)
-      `)
-      .eq('company_id', companyId)
-      .in('type', ['purchase', 'return_purchase'])
-      .is('deleted_at', null);
-
-    if (branchId) {
-      query = query.eq('branch_id', branchId);
-    }
-
-    return await query.order('issue_date', { ascending: false });
+    let query = supabase.from('invoices').select(`
+      id, invoice_number, issue_date, total_amount, status, type, payment_method,
+      currency_code, exchange_rate, party:party_id(name), invoice_items(id)
+    `).eq('company_id', companyId).in('type', ['purchase', 'return_purchase']).is('deleted_at', null);
+    if (hasText(branchId)) query = query.eq('branch_id', branchId);
+    return query.order('issue_date', { ascending: false });
   },
 
-  /**
-   * يجلب تفاصيل فاتورة شراء واحدة مع الأصناف المرتبطة بها وبيانات المورد.
-   * @param purchaseId معرّف فاتورة الشراء
-   * @returns تفاصيل الفاتورة
-   */
   getPurchaseDetails: async (purchaseId: string) => {
-    const { data, error } = await supabase
-      .from('invoices')
-      .select(`
-        *,
-        party:party_id(*),
-        invoice_items(
-          *,
-          product:product_id(name_ar, sku)
-        )
-      `)
-      .eq('id', purchaseId)
-      .single();
-
+    const { data, error } = await supabase.from('invoices').select(`
+      *, party:party_id(*), invoice_items(*, product:product_id(name_ar, sku))
+    `).eq('id', purchaseId).single();
     return { data, error };
   },
 
-  /**
-   * ينشئ فاتورة شراء جديدة في النظام مع معالجة القيود المحاسبية عبر RPC.
-   * @param companyId معرّف الشركة
-   * @param userId معرّف المستخدم المنشئ
-   * @param data بيانات الفاتورة (الأصناف، المورد، الإجماليات، إلخ)
-   * @returns نتيجة العملية (معرّف الفاتورة المنشأة أو خطأ)
-   */
   createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
-    const rate = data.exchangeRate || 1;
-    const idempotencyKey = `pur_${companyId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
-      p_supplier_id: data.supplierId || '',
-      p_invoice_number: data.invoiceNumber,
-      p_issue_date: data.issueDate,
-      p_items: data.items.map(item => ({
-        product_id: item.productId,
-        quantity: item.quantity,
-        unit_cost: Number(item.costPrice),
-        discount: Number(item.discount || 0),
-        line_total: Math.max(0, (Number(item.quantity) * Number(item.costPrice)) - Number(item.discount || 0)),
-        ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
-      })),
-      ...(data.notes ? { p_notes: data.notes } : {}),
-      p_currency: data.currency || 'SAR',
-      p_exchange_rate: rate,
-      p_payment_method: data.paymentMethod || 'credit',
-      ...(data.paymentMethod === 'cash' && data.cashAccountId ? { p_payment_account_id: data.cashAccountId } : data.bankAccountId ? { p_payment_account_id: data.bankAccountId } : {}),
-      p_branch_id: data.branchId || null,
-      p_idempotency_key: idempotencyKey,
-    };
-
-    const { data: result, error } = await supabase.rpc('commit_purchase_invoice', rpcParams);
-    if (error) throw parseError(error);
+    const { data: result, error } = await supabase.rpc('commit_purchase_invoice', buildPurchaseParams(companyId, userId, data));
+    if (error) throw asError(parseError(error));
     return result;
   },
 
   createPurchaseReturnRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
-    const rate = data.exchangeRate || 1;
-    const idempotencyKey = `pur_ret_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
-      p_supplier_id: data.supplierId || '',
-      p_items: data.items.map(item => ({
-        product_id: item.productId,
-        quantity: item.quantity,
-        unit_cost: Number(item.costPrice),
-        discount: Number(item.discount || 0),
-        line_total: Math.max(0, (Number(item.quantity) * Number(item.costPrice)) - Number(item.discount || 0)),
-        ...(item.warehouseId ? { warehouse_id: item.warehouseId } : {})
-      })),
-      p_currency: data.currency || 'SAR',
-      p_exchange_rate: rate,
-      p_notes: data.notes || '',
-      p_branch_id: data.branchId || null,
-      p_idempotency_key: idempotencyKey,
-    };
-
-    const { data: result, error } = await supabase.rpc('commit_purchase_return', rpcParams);
-    if (error) throw parseError(error);
+    const { data: result, error } = await supabase.rpc('commit_purchase_return', buildReturnParams(companyId, userId, data));
+    if (error) throw asError(parseError(error));
     return result;
   },
 
-  createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, _userId: string) => {
-    const { data: cashAccount } = await supabase
-      .from('accounts')
-      .select('id')
-      .eq('company_id', companyId)
-      .eq('code', '1010')
-      .single();
-
-    const idempotencyKey = `bond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    return await supabase.rpc('create_financial_bond', {
+  createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, userId: string) => {
+    const { data: cashAccount } = await supabase.from('accounts').select('id').eq('company_id', companyId).eq('code', '1010').single();
+    if (cashAccount === null) throw new Error('Cash account (1010) not found');
+    return supabase.rpc('create_financial_bond', {
       p_bond_type: 'payment',
+      p_company_id: companyId,
+      p_user_id: userId,
       p_amount: paymentData.amount,
       p_date: paymentData.date,
-      p_cash_account_id: cashAccount?.id || '',
+      p_cash_account_id: cashAccount.id,
       p_counterparty_type: 'party',
-      p_counterparty_id: paymentData.supplierId || '',
-      p_description: paymentData.notes || 'سند صرف لمورد',
-      p_currency_code: paymentData.currencyCode || 'SAR',
-      p_exchange_rate: paymentData.exchangeRate || 1,
-      ...((paymentData.foreignAmount || paymentData.amount) ? { p_foreign_amount: paymentData.foreignAmount || paymentData.amount } : {}),
-      p_idempotency_key: idempotencyKey,
+      p_counterparty_id: paymentData.supplierId,
+      p_description: paymentData.notes ?? 'سند صرف لمورد',
+      p_currency_code: paymentData.currencyCode ?? 'SAR',
+      p_exchange_rate: paymentData.exchangeRate ?? 1,
+      p_foreign_amount: paymentData.foreignAmount ?? paymentData.amount,
     });
   },
 
-  // Get purchase invoices that can be used for returns
   getPurchaseInvoicesForReturn: async (companyId: string, supplierId: string | null, branchId?: string | null) => {
-    let query = supabase
-      .from('invoices')
-      .select(`
-        id,
-        invoice_number,
-        issue_date,
-        total_amount,
-        status,
-        type,
-        payment_method,
-        currency_code,
-        exchange_rate,
-        party:party_id(id, name),
-        invoice_items(id, product_id, description, quantity, unit_price, total)
-      `)
-      .eq('company_id', companyId)
-      .eq('type', 'purchase')
-      .eq('status', 'posted')
-      .is('deleted_at', null);
-
-    if (branchId) {
-      query = query.eq('branch_id', branchId);
-    }
-
-    if (supplierId) {
-      query = query.eq('party_id', supplierId);
-    }
-
-    return await query
-      .order('issue_date', { ascending: false });
+    let query = supabase.from('invoices').select(`
+      id, invoice_number, issue_date, total_amount, status, type, payment_method,
+      currency_code, exchange_rate, party:party_id(id, name),
+      invoice_items(id, product_id, description, quantity, unit_price, total)
+    `).eq('company_id', companyId).eq('type', 'purchase').eq('status', 'posted').is('deleted_at', null);
+    if (hasText(branchId)) query = query.eq('branch_id', branchId);
+    if (hasText(supplierId)) query = query.eq('party_id', supplierId);
+    return query.order('issue_date', { ascending: false });
   },
 
-  deletePurchase: async (id: string) => {
-    return await supabase
-      .from('invoices')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
-  }
+  deletePurchase: async (id: string) => supabase.from('invoices').update({ deleted_at: new Date().toISOString() }).eq('id', id),
 };

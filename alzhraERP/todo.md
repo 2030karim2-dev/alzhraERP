@@ -218,3 +218,44 @@
 - [x] تمرير الخصم الفعلي ضمن عناصر Payload أو منع إظهاره كخصم قابل للحفظ إذا كان RPC لا يدعمه.
 - [x] إضافة تحقق واضح لتطابق إجمالي الشاشة مع بيانات الحفظ ورسائل خطأ آمنة.
 - [x] إضافة اختبارات للإصلاحات وتشغيل الفحوصات ثم رفع التحديثات إلى الفرع الرئيسي.
+
+- [ ] حصر مخالفات ESLint وأخطاء TypeScript في كامل وحدة المشتريات.
+- [ ] إصلاح مخالفات ESLint المتعلقة بالأنواع والأمان والأسلوب في ملفات المشتريات.
+- [ ] إصلاح أخطاء TypeScript والتحقق من عقود المشتريات وSupabase.
+- [ ] إعادة تشغيل الاختبارات والفحوصات ورفع إصلاحات وحدة المشتريات.
+
+- [ ] تثبيت خط أساس موثق لـ ESLint وTypeScript وتقسيم أخطاء وحدة المشتريات حسب الملف والقاعدة.
+- [ ] إصلاح عقود وخدمات ومسار فاتورة المشتريات مع اختبارات قبل أي رفع.
+- [ ] إصلاح المكونات المتبقية دون إسكات عام لقواعد ESLint، مع مراجعة diff لكل مجموعة.
+- [ ] تشغيل ESLint وTypeScript والاختبارات النهائية، وعدم الرفع إلا بعد نجاح الفحوصات المعلنة.
+
+## جولة تنظيف وحدة المشتريات
+
+- [x] إزالة any والأنواع غير الآمنة من `src/features/purchases/service.ts` و`hooks.ts` مع نجاح ESLint المجزأ.
+- [x] تفكيك `services/maintenance/purchaseFixes.ts` إلى دوال typed قصيرة مع نجاح ESLint وTypeScript الخاص بالملف.
+- [x] إعادة بناء `src/features/purchases/api.ts` حول helpers typed لعقود RPC ومعالجة nullish، مع نجاح ESLint وTypeScript الخاص بالملف.
+- [x] تفكيك `PurchasesPage.tsx` إلى hooks ومكونات typed، مع نجاح ESLint وTypeScript الخاص بالملف.
+- [x] توحيد القيم الفارغة في `PurchaseStats.tsx` مع نجاح ESLint وTypeScript الخاص بالملف.
+- [ ] استكمال المكونات المتبقية في وحدة المشتريات، بدءاً بالمكونات الأعلى مخالفات.
+- [ ] تشغيل الاختبارات والفحوصات النهائية ومراجعة diff قبل إنشاء checkpoint والرفع إلى المستودع الرئيسي.
+
+- [x] تنظيف purchaseAccounting.ts مع الحفاظ على عقد الاستدعاء العام ونجاح ESLint وTypeScript المجزأ.
+- [x] إعادة بناء quotationsApi.ts بمساعدات typed وعقود RPC واضحة مع نجاح ESLint وTypeScript المجزأ.
+- [x] تخفيض تعقيد MetaSelect باستخراج منطق التنسيق، مع نجاح ESLint وTypeScript المجزأ.
+- [x] تفكيك CreatePaymentModal وإغلاق مخالفات النوع والتعقيد والوصول، مع نجاح ESLint وTypeScript المجزأ.
+- [x] تفكيك PurchasesAnalytics وإغلاق مخالفات Recharts وany والتعقيد، مع نجاح ESLint وTypeScript المجزأ.
+- [x] تفكيك PurchaseMeta وإغلاق مخالفات any والـstrict boolean والتعقيد، مع الحفاظ على اختيار المورد والصندوق والمستودع وسعر الصرف.
+
+## جولة تنظيف وحدة المشتريات — متابعة
+
+- [x] تفكيك `PurchaseMeta.tsx` وإغلاق مخالفات الأنواع والتعقيد مع الحفاظ على اختيار المورد والصندوق والمستودع وسعر الصرف.
+- [x] تنظيف `usePurchaseReturns.ts` مع حراسة الهوية وinvalidations صريحة.
+- [x] تنظيف `types/domain.ts` وفصل mapper المحاسبي إلى helpers typed.
+- [ ] مراجعة `PurchaseDetailsModal.tsx` و`PurchasesTable.tsx` والمكونات الكبيرة المتبقية.
+- [ ] تشغيل الاختبارات والفحوصات النهائية ومراجعة diff قبل checkpoint والرفع إلى المستودع الرئيسي.
+
+## فحص TypeScript مع الاختبارات
+
+- [ ] إصلاح أخطاء TypeScript التي ظهرت عند إدراج الاختبارات في مشروع الفحص: nullability وعقود React Query وSupabase في `PurchaseMeta.tsx` و`hooks.ts` و`usePurchaseReturns.ts` و`PurchasesPage.tsx` و`purchaseFixes.ts` و`store.ts` و`types/domain.ts`.
+- [x] إضافة `tsconfig.eslint.json` وربطه بإعداد ESLint حتى تُفحص الاختبارات type-aware بدلاً من أخطاء parser الوهمية.
+- [ ] اعتماد فحص `tsconfig.eslint.json` وVitest النهائيين بعد معالجة أخطاء النوع الفعلية.

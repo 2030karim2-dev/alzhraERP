@@ -22,6 +22,14 @@ interface MetaSelectProps {
     disabled?: boolean;
 }
 
+const optionClassName = (isHighlighted: boolean, isSelected: boolean): string => {
+    if (isHighlighted) return 'bg-blue-600 text-white';
+    if (isSelected) return 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300';
+    return 'text-gray-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800';
+};
+
+const selectedLabelClassName = (selected: MetaSelectOption | undefined): string => selected === undefined ? 'text-blue-300 dark:text-slate-500' : '';
+
 const MetaSelect: React.FC<MetaSelectProps> = ({
     value,
     onChange,
@@ -127,7 +135,8 @@ const MetaSelect: React.FC<MetaSelectProps> = ({
                 aria-expanded={isOpen}
                 className="w-full min-h-4 max-md:min-h-3 flex items-center justify-between gap-1 bg-transparent text-[11px] max-md:text-[7px] font-bold outline-none cursor-pointer text-blue-900 dark:text-white text-right leading-none"
             >
-                <span className={`truncate ${selected ? '' : 'text-blue-300 dark:text-slate-500'}`}>
+                                    <span className={`truncate ${selectedLabelClassName(selected)}`}>
+
                     {selected?.label ?? placeholder}
                 </span>
                 <ChevronDown size={12} className={`shrink-0 transition-transform text-blue-400 dark:text-blue-600 ${isOpen ? 'rotate-180' : ''}`} />
@@ -154,13 +163,7 @@ const MetaSelect: React.FC<MetaSelectProps> = ({
                                     aria-selected={isSelected}
                                     onClick={() => { selectOption(opt.id); }}
                                     onMouseEnter={() => { setHighlightedIndex(index); }}
-                                    className={`w-full flex items-center justify-between gap-2 px-3 max-md:px-1.5 py-1.5 max-md:py-1 text-[10px] max-md:text-[8px] md:text-[11px] font-bold text-right transition-colors ${
-                                        isHighlighted
-                                            ? 'bg-blue-600 text-white'
-                                            : isSelected
-                                                ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-                                                : 'text-gray-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800'
-                                    }`}
+                                    className={`w-full flex items-center justify-between gap-2 px-3 max-md:px-1.5 py-1.5 max-md:py-1 text-[10px] max-md:text-[8px] md:text-[11px] font-bold text-right transition-colors ${optionClassName(isHighlighted, isSelected)}`}
                                 >
                                     <span className="truncate">{opt.label}</span>
                                     {isSelected && <Check size={12} className="shrink-0" />}
