@@ -334,7 +334,7 @@ features/<module>/
 | Phase C1 — أمان الصلاحيات | قيد العمل | ✅ **مكتمل (2026-08-16):** Task 4 (لا استيراد للصلاحيات القديمة)، Task 5 (قائمة جانبية server-driven عبر `useAllPermissions()` + `MenuItem.requiredPermission`)، Task 6 (حُذف `core/permissions/index.tsx` وبقي `offlineRolePermissions.ts` كـ fallback) |
 | Phase C2 — TypeScript | هدف baseline=0 | ✅ **مكتمل:** 0 أخطاء + **Task 12 مكتمل** (`any` 877 → **698** < 700): api/services 76→0، ai/service 27→0، hooks/pages (useStockAudit, useInventorySession, AuditSessionPage…) |
 | Phase C3 — AI | بانتظار قرار | ⏳ smart-import: ربط أم إزالة |
-| Phase D — Backend | تسلسلي | ✅ **تقدّم كبير (2026-08-16):** Task 15 (search_path: 55→0) + Task 16 (Realtime: 8→23 جدولاً) + Task 17 (حذف 7 overloads قديمة) منجزة ومطبقة على الخادم الحي وسجلت نسخها في schema_migrations؛ Tasks 18/19 قديمة (لا `prc_*`/`fin_*` حي)؛ Task 14 قيد الانتظار (647 migration عن بُعد ↔ 35 محلياً) + إصلاح `stock_movements`→`inventory_transactions` |
+| Phase D — Backend | تسلسلي | ✅ **تقدّم كبير (2026-08-16):** Task 15 (search_path: 55→0) + Task 16 (Realtime: 8→23) + Task 17 (حذف 7 overloads) منجزة. Task 18/19 صحيحة (43 جدول `prc_*`/`fin_*` موجودة عن بُعد — تصحيح). Task 14 قيد الانتظار (647↔35). **إصلاح حرج:** `commit_purchase_invoice` 400 → trigger الترحيل `draft→lines→posted` + `v_net` من total-tax (متحقق، قيد متوازن)؛ و`commit_sales_invoice_v2` أُصلحت 12 مشكلة (متحقق) |
 | Phase E — i18n | — | ⏳ تدقيق النصوص + توحيد husky |
 
 > **إجراء سريع مقترح:** تحديث `scripts/ts-error-baseline.txt` إلى `0` (في نفس commit) لتثبيت الإنجاز وجعل البوابة حاجبة فعلاً — ملاحظة السكربت نفسه تطلب ذلك ("Lower scripts/ts-error-baseline.txt in the same commit to lock it in").
