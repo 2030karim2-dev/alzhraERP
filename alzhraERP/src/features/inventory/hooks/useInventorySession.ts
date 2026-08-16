@@ -8,17 +8,17 @@ import { useFeedbackStore } from '../../feedback/store';
 interface UseInventorySessionProps {
     sessionId: string;
     warehouseId?: string;
-    initialItems: any[];
+    initialItems: Record<string, unknown>[];
     autoSave?: boolean;
 }
 
 export function useInventorySession({ sessionId, warehouseId, initialItems, autoSave = true }: UseInventorySessionProps) {
     const { showToast } = useFeedbackStore();
-    const [items, setItems] = useState<any[]>(initialItems);
+    const [items, setItems] = useState<Record<string, unknown>[]>(initialItems);
     const [isRestoring, setIsRestoring] = useState(true);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const isDirtyRef = useRef(false);
-    const lastItemsRef = useRef<any[]>(initialItems);
+    const lastItemsRef = useRef<Record<string, unknown>[]>(initialItems);
 
     // Restore session on mount
     useEffect(() => {
@@ -30,9 +30,9 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
                 // Merge draft quantities into initialItems to preserve full product details
                 const mergedItems = [...initialItems];
                 
-                draft.items.forEach((draftItem: any) => {
+                draft.items.forEach((draftItem) => {
                     const existingIndex = mergedItems.findIndex(
-                        (i: any) => (i.product_id || i.id) === draftItem.productId
+                        (i) => (i.product_id || i.id) === draftItem.productId
                     );
                     
                     if (existingIndex >= 0) {
@@ -84,12 +84,12 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
     }, []);
 
     // Helper to build draft
-    const buildDraft = useCallback((currentItems: any[]): InventorySessionDraft => {
+    const buildDraft = useCallback((currentItems: Record<string, unknown>[]): InventorySessionDraft => {
         const draft: InventorySessionDraft = {
             sessionId,
             items: currentItems.map(item => ({
-                productId: item.product_id || item.id,
-                countedQuantity: item.counted_quantity ?? null,
+                productId: String(item.product_id || item.id || ''),
+                countedQuantity: (item.counted_quantity as number) ?? null,
                 timestamp: Date.now(),
                 synced: false,
             })),
@@ -125,7 +125,7 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [items, buildDraft]);
 
-    const updateItems = useCallback((newItems: any[]) => setItems(newItems), []);
+    const updateItems = useCallback((newItems: Record<string, unknown>[]) => setItems(newItems), []);
     const updateItemQuantity = useCallback((productId: string, quantity: number | null) => {
         setItems(prev => prev.map(item =>
             (item.product_id || item.id) === productId
@@ -133,7 +133,7 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
                 : item
         ));
     }, []);
-    const addItem = useCallback((item: any) => {
+    const addItem = useCallback((item: Record<string, unknown>) => {
         setItems(prev => {
             const exists = prev.find(i => (i.product_id || i.id) === (item.product_id || item.id));
             if (exists) return prev;
@@ -149,7 +149,7 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
         isDirtyRef.current = false;
         inventoryPersistence.clearSession();
     }, []);
-    const mergeWithServer = useCallback((serverItems: any[]) => {
+    const mergeWithServer = useCallback((serverItems: Record<string, unknown>[]) => {
         setItems(prev => {
             const merged = [...prev];
             serverItems.forEach(serverItem => {

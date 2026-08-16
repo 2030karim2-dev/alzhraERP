@@ -27,7 +27,7 @@ export const useInventoryCategories = () => {
     const { user } = useAuthStore();
     return useQuery({
         queryKey: ['inventory_categories', user?.company_id],
-        queryFn: () => user?.company_id ? inventoryService.getInventoryCategories(user.company_id) : Promise.resolve([] as any[]),
+        queryFn: () => user?.company_id ? inventoryService.getInventoryCategories(user.company_id) : Promise.resolve<Awaited<ReturnType<typeof inventoryService.getInventoryCategories>>>([]),
         enabled: !!user?.company_id
     });
 };
@@ -64,7 +64,7 @@ export const useTransfers = () => {
     const { user } = useAuthStore();
     return useQuery({
         queryKey: ['transfers', user?.company_id],
-        queryFn: () => user?.company_id ? inventoryService.getTransfers(user.company_id) : Promise.resolve([] as any[]),
+        queryFn: () => user?.company_id ? inventoryService.getTransfers(user.company_id) : Promise.resolve<Awaited<ReturnType<typeof inventoryService.getTransfers>>>([]),
         enabled: !!user?.company_id
     });
 };

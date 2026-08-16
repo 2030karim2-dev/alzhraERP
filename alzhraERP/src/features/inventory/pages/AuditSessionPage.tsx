@@ -14,6 +14,14 @@ import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import SearchInput from '../../../ui/components/SearchInput';
 import SearchDropdown from '../../../ui/components/SearchDropdown';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
+import type { Product } from '../types';
+
+/** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
+type AuditProgressItem = {
+    id?: string;
+    product_id: string;
+    counted_quantity: number;
+};
 
 const AuditSessionPage: React.FC = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -97,7 +105,7 @@ const AuditSessionPage: React.FC = () => {
             const serialized = JSON.stringify(formItems);
             if (serialized !== lastSyncedRef.current) {
                 lastSyncedRef.current = serialized;
-                updateItems(formItems as any[]);
+                updateItems(formItems);
             }
         }
     }, [getValues, updateItems]);
@@ -107,7 +115,7 @@ const AuditSessionPage: React.FC = () => {
         const handleBeforeUnload = () => {
             const formItems = getValues('items');
             if (formItems && formItems.length > 0) {
-                updateItems(formItems as any[]);
+                updateItems(formItems);
             }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -137,7 +145,7 @@ const AuditSessionPage: React.FC = () => {
 
     const handleSave = () => {
         const currentItems = getValues('items');
-        saveAuditProgress(currentItems as any[]);
+        saveAuditProgress(currentItems as AuditProgressItem[]);
     };
 
     const handleFinalize = () => {
@@ -147,8 +155,8 @@ const AuditSessionPage: React.FC = () => {
             }
         }
         if (sessionId) {
-            const currentItems = getValues('items') as any[];
-            finalizeAudit({ sessionId, items: currentItems }, {
+            const currentItems = getValues('items');
+            finalizeAudit({ sessionId, items: currentItems as AuditProgressItem[] }, {
                 onSuccess: () => {
                     clearSession();
                     navigate('/inventory');
@@ -163,11 +171,11 @@ const AuditSessionPage: React.FC = () => {
         setIsScannerOpen(false);
     };
 
-    const handleAddItem = async (product: any) => {
+    const handleAddItem = async (product: Product) => {
         if (data?.session?.status === 'completed') return;
 
         const currentItems = getValues('items');
-        const existingIndex = currentItems.findIndex((i: any) => i.product_id === product.id);
+        const existingIndex = currentItems.findIndex((i) => i.product_id === product.id);
 
         if (existingIndex >= 0) {
             const newItems = [...currentItems];
@@ -206,7 +214,7 @@ const AuditSessionPage: React.FC = () => {
         let expectedQuantity = 0;
         const warehouseId = data?.session?.warehouse_id;
         if (fullProduct.warehouse_distribution) {
-            const stockInfo = fullProduct.warehouse_distribution.find((w: any) => w.warehouse_id === warehouseId);
+            const stockInfo = fullProduct.warehouse_distribution.find((w) => w.warehouse_id === warehouseId);
             if (stockInfo) {
                 expectedQuantity = Number(stockInfo.quantity) || 0;
             } else if (warehouseId && fullProduct.warehouse_distribution.length > 0) {
@@ -236,7 +244,7 @@ const AuditSessionPage: React.FC = () => {
                 onSuccess: () => {
                     setItemToDelete(null);
                     const current = getValues('items');
-                    const filtered = current.filter((i: any) => i.id !== itemToDelete && i.product_id !== itemToDelete && i.audit_item_id !== itemToDelete);
+                    const filtered = current.filter((i) => i.id !== itemToDelete && i.product_id !== itemToDelete && i.audit_item_id !== itemToDelete);
                     lastSyncedRef.current = JSON.stringify(filtered);
                     reset({ items: filtered });
                     updateItems(filtered);
@@ -249,16 +257,16 @@ const AuditSessionPage: React.FC = () => {
     const handleBulkAddWarehouseProducts = useCallback(async () => {
         if (!sessionId || !data?.session?.warehouse_id) return;
         const warehouseId_val = data.session.warehouse_id;
-        const currentItems = getValues('items') as any[];
-        const existingProductIds = new Set(currentItems.map((i: any) => i.product_id));
+        const currentItems = getValues('items');
+        const existingProductIds = new Set(currentItems.map((i) => i.product_id));
 
         const { products: allProducts } = await import('../service').then(async (m) => {
             // [CRITICAL FIX]: Pass warehouseId_val to getProducts to ensure stock is isolated to this warehouse
             const result = await m.inventoryService.getProducts(data?.session?.company_id, 1, 99999, warehouseId_val);
-            return { products: Array.isArray(result) ? result : (result as any).data ?? [] };
-        }).catch(() => ({ products: [] as any[] }));
+            return { products: Array.isArray(result) ? result : (result as unknown as { data?: Product[] }).data ?? [] };
+        }).catch(() => ({ products: [] as Product[] }));
 
-        const newProducts = allProducts.filter((p: any) => !existingProductIds.has(p.id));
+        const newProducts = allProducts.filter((p) => !existingProductIds.has(p.id));
         if (newProducts.length === 0) {
             setShowBulkConfirm(false);
             return;
@@ -384,7 +392,7 @@ const AuditSessionPage: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                                        {searchResults?.map((p: any) => (
+                                        {searchResults?.map((p) => (
                                             <tr
                                                 key={p.id}
                                                 onClick={() => {
@@ -423,7 +431,7 @@ const AuditSessionPage: React.FC = () => {
                         >
                             الكل
                         </button>
-                        {categories?.map((cat: any) => (
+                        {categories?.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.name)}

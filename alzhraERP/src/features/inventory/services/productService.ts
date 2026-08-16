@@ -37,6 +37,17 @@ interface RawProduct {
     uoms?: Array<{ id: string; uom_name: string; conversion_factor: number }>;
 }
 
+/** Shape returned by the `search_inventory` RPC — minimal fields for dropdowns/rows. */
+export interface SearchResultProduct {
+    id: string;
+    name?: string;
+    name_ar?: string;
+    part_number?: string | null;
+    sku?: string | null;
+    brand?: string | null;
+    size?: string | null;
+}
+
 export const productService = {
     /**
      * Get all products for a company
@@ -137,13 +148,13 @@ export const productService = {
     /**
      * Search products using advanced database search
      */
-    searchProducts: async (companyId: string, term: string): Promise<Record<string, unknown>[]> => {
+    searchProducts: async (companyId: string, term: string): Promise<SearchResultProduct[]> => {
         const { data, error } = await supabase.rpc('search_inventory', {
             p_term: term,
             p_company_id: companyId
         });
         if (error) throw error;
-        return data || [];
+        return (data || []) as SearchResultProduct[];
     },
 
     /**

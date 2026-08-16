@@ -9,16 +9,35 @@ import { useFeedbackStore } from '../../feedback/store';
 import { cn } from '../../../core/utils';
 
 // 🔒 Lazy-load the heavy xlsx library only when actually needed.
-let xlsxPromise: Promise<any> | null = null;
-const loadXLSX = (): Promise<any> => {
-  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
-  return xlsxPromise;
+interface XlsxLike {
+    utils: {
+        json_to_sheet(data: unknown[]): unknown;
+        book_new(): unknown;
+        book_append_sheet(workbook: unknown, worksheet: unknown, name?: string): void;
+    };
+    writeFile(workbook: unknown, filename: string): void;
+}
+
+let xlsxPromise: Promise<XlsxLike> | null = null;
+const loadXLSX = (): Promise<XlsxLike> => {
+    xlsxPromise ??= import('xlsx-js-style').then((m) => (m.default ?? m) as XlsxLike);
+    return xlsxPromise;
+};
+
+type ImportItem = {
+    name?: string;
+    quantity?: number | string;
+    unitPrice?: number | string;
+    sku?: string;
+    stock_quantity?: number | string;
+    cost_price?: number | string;
+    [key: string]: unknown;
 };
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (items: any[]) => void;
+    onConfirm: (items: ImportItem[]) => void;
     mode: 'invoice' | 'inventory';
 }
 
@@ -28,7 +47,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
 
     const [step, setStep] = useState<'upload' | 'review'>('upload');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [extractedItems, setExtractedItems] = useState<any[]>([]);
+    const [extractedItems, setExtractedItems] = useState<ImportItem[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_filePreview, setFilePreview] = useState<string | null>(null);
 
@@ -53,23 +72,23 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
             if (!items || items.length === 0) {
                 throw new Error("لم يتم العثور على جداول بيانات واضحة في الملف");
             }
-            setExtractedItems(items);
+            setExtractedItems(items as ImportItem[]);
             setStep('review');
             showToast(`تم استخراج ${items.length} صنف بنجاح`, 'success');
-        } catch (err: any) {
-            showToast(err.message, 'error');
+        } catch (err) {
+            showToast(err instanceof Error ? err.message : 'حدث خطأ أثناء معالجة الملف', 'error');
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const handleUpdateCell = (rowIndex: number, key: string, value: any) => {
+    const handleUpdateCell = (rowIndex: number, key: string, value: unknown) => {
         const updated = [...extractedItems];
         updated[rowIndex] = { ...updated[rowIndex], [key]: value };
         setExtractedItems(updated);
     };
 
-    const handleRemoveRow = (row: any) => {
+    const handleRemoveRow = (row: ImportItem) => {
         const index = extractedItems.indexOf(row);
         if (index > -1) {
             setExtractedItems(prev => prev.filter((_, i) => i !== index));
@@ -87,25 +106,25 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
     };
 
     const columns = mode === 'invoice' ? [
-        { header: 'اسم الصنف', accessor: (row: any) => row.name, isEditable: true, accessorKey: 'name' },
-        { header: 'الكمية', accessor: (row: any) => row.quantity, isEditable: true, accessorKey: 'quantity', width: 'w-20' },
-        { header: 'السعر', accessor: (row: any) => row.unitPrice, isEditable: true, accessorKey: 'unitPrice', width: 'w-24' },
-        { header: 'SKU', accessor: (row: any) => row.sku || '---', isEditable: true, accessorKey: 'sku', width: 'w-24' },
+        { header: 'اسم الصنف', accessor: (row: ImportItem) => row.name, isEditable: true, accessorKey: 'name' },
+        { header: 'الكمية', accessor: (row: ImportItem) => row.quantity, isEditable: true, accessorKey: 'quantity', width: 'w-20' },
+        { header: 'السعر', accessor: (row: ImportItem) => row.unitPrice, isEditable: true, accessorKey: 'unitPrice', width: 'w-24' },
+        { header: 'SKU', accessor: (row: ImportItem) => row.sku || '---', isEditable: true, accessorKey: 'sku', width: 'w-24' },
         {
             header: 'حذف',
-            accessor: (_: any) => <X size={14} />,
+            accessor: (_: ImportItem) => <X size={14} />,
             width: 'w-10',
             className: 'text-center text-rose-500 cursor-pointer hover:bg-rose-50'
         }
     ] : [
         // Inventory Columns
-        { header: 'اسم الصنف', accessor: (row: any) => row.name, isEditable: true, accessorKey: 'name' },
-        { header: 'الكمية', accessor: (row: any) => row.stock_quantity, isEditable: true, accessorKey: 'stock_quantity', width: 'w-24' },
-        { header: 'التكلفة', accessor: (row: any) => row.cost_price, isEditable: true, accessorKey: 'cost_price', width: 'w-24' },
-        { header: 'الباركود/SKU', accessor: (row: any) => row.sku || '---', isEditable: true, accessorKey: 'sku', width: 'w-32' },
+        { header: 'اسم الصنف', accessor: (row: ImportItem) => row.name, isEditable: true, accessorKey: 'name' },
+        { header: 'الكمية', accessor: (row: ImportItem) => row.stock_quantity, isEditable: true, accessorKey: 'stock_quantity', width: 'w-24' },
+        { header: 'التكلفة', accessor: (row: ImportItem) => row.cost_price, isEditable: true, accessorKey: 'cost_price', width: 'w-24' },
+        { header: 'الباركود/SKU', accessor: (row: ImportItem) => row.sku || '---', isEditable: true, accessorKey: 'sku', width: 'w-32' },
         {
             header: 'حذف',
-            accessor: (_: any) => <X size={14} />,
+            accessor: (_: ImportItem) => <X size={14} />,
             width: 'w-10',
             className: 'text-center text-rose-500 cursor-pointer hover:bg-rose-50'
         }
