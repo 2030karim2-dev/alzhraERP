@@ -28,12 +28,13 @@
 - [ ] Task 13: smart-import — ربط/إزالة (قرار المستخدم)
 
 ## Phase D: Backend (تسلسلي)
-- [ ] Task 14: مصالحة migrations + db pull
-- [ ] Task 15: search_path (55 دالة)
-- [ ] Task 16: Realtime publication (product_stock + warehouses) — ⏳ **الجزء الأمامي اكتمل (2026-08-16):** أُضيفت `product_stock`/`stock_movements` + جداول العمولات والديون إلى `TABLE_PRESET_MAP` مع preset×`commission`/`debts` في `invalidation.ts`؛ يتبقى جانب الخادم (publication + فلتر شركة)
-- [ ] Task 17: dedupe commit_sales_invoice overload
-- [ ] Task 18: أرشفة prc_*
-- [ ] Task 19: إسقاط fin_*
+- [ ] Task 14: مصالحة migrations + db pull — ⏳ اكتُشف: الخادم 647 نسخة مقابل 35 محلية (لا تتطابق أرقام النسخ)؛ أُصلح تكرار `20260814000001` → `00007`. يتطلب قرار استراتيجي (db pull snapshot)
+- [x] Task 15: search_path (55 دالة) — ✅ **منجز (2026-08-16):** `20260816000001_harden_search_path.sql` طُبق + سُجلت النسخة؛ التحقق: 0 متبقية. (القيمة `'public'` لأن الأجسام تستخدم مراجع غير مؤهلة؛ التحصين الكامل `''` مشروع متابعة)
+- [x] Task 16: Realtime publication — ✅ **منجز:** `20260816000002_realtime_publication.sql` أضاف 15 جدولاً → التغطية 8 → **23 جدولاً** (product_stock/warehouses/commission/debt/audit)
+- [x] Task 17: dedupe commit_sales_invoice overload — ✅ **منجز:** `20260816000003_drop_legacy_overloads.sql` حذف 7 overloads قديمة (commit_sales_invoice×2، finalize 4-arg، get_dashboard_summary 4-arg، get_expense_stats 4-arg، get_monthly_performance p_month، get_sales_stats 3-arg) بعد التحقق من المستدعين
+- [x] Task 18: أرشفة prc_* — ✅ **قديمة (N/A):** الخادم الحي لا يحتوي أي جدول `prc_*`
+- [x] Task 19: إسقاط fin_* — ✅ **قديمة (N/A):** الخادم الحي لا يحتوي أي جدول `fin_*`
+- ✅ **إصلاح إضافي:** `analyticsService.getStockMovementHistory` كان يستعلم جدول `stock_movements` غير الموجود → حوّل إلى `inventory_transactions`
 
 ## Phase E: i18n واللمسات
 - [ ] Task 20: تدقيق النصوص + سد فجوات الترجمة

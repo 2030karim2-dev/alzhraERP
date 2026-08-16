@@ -2,31 +2,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { inventoryApi } from '../api';
 
-// `stock_movements` is not yet present in `database.types.ts` (schema drift),
-// so we use a minimal, explicitly-typed client for that table instead of untyped casts.
-interface StockMovementRow {
-    id: string;
-    type: string;
-    quantity: number;
-    created_at: string;
-    products?: unknown;
-}
-
-const stockMovementsClient = (supabase as unknown as {
-    from(table: 'stock_movements'): {
-        select(columns: string): {
-            eq(column: string, value: string): {
-                gte(column: string, value: string): {
-                    order(column: string, options?: { ascending?: boolean }): Promise<{
-                        data: StockMovementRow[] | null;
-                        error: unknown;
-                    }>;
-                };
-            };
-        };
-    };
-});
-
 export const analyticsService = {
     /**
      * Get inventory summary statistics
@@ -106,29 +81,29 @@ export const analyticsService = {
 
     /**
      * Get stock movement history
+     * NOTE: `stock_movements` does not exist in the live schema — the real
+     * table is `inventory_transactions`. Fixed 2026-08-16 (Phase D).
      */
     getStockMovementHistory: async (companyId: string, days: number = 30) => {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
 
-        const { data, error } = await stockMovementsClient
-            .from('stock_movements')
-            .select('id, type, quantity, created_at, products(name_ar)')
+        const { data, error } = await supabase
+            .from('inventory_transactions')
+            .select('id, transaction_type, quantity, created_at, products(name_ar)')
             .eq('company_id', companyId)
+            .is('deleted_at', null)
             .gte('created_at', startDate.toISOString())
             .order('created_at', { ascending: false });
         if (error) throw error;
 
-        return (data || []).map((m) => {
-            const products = m.products as { name_ar?: string } | undefined;
-            return {
-                id: m.id,
-                type: m.type,
-                quantity: m.quantity,
-                date: m.created_at,
-                productName: products?.name_ar
-            };
-        });
+        return (data || []).map((m) => ({
+            id: m.id,
+            type: m.transaction_type,
+            quantity: m.quantity,
+            date: m.created_at,
+            productName: m.products?.name_ar,
+        }));
     },
 
     /**
