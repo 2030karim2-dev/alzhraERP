@@ -5,7 +5,12 @@ import { useDiscountStore } from '../../../settings/taxDiscountStore';
 import { formatCurrency, cn } from '../../../../core/utils';
 import { Wallet } from 'lucide-react';
 
-const InvoiceTotals: React.FC = () => {
+interface InvoiceTotalsProps {
+    notes: string;
+    onNotesChange: (value: string) => void;
+}
+
+const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) => {
     const { summary, currency } = useSalesStore();
     // [FIX] استخدام hook بدلاً من getState() لضمان التحديث التفاعلي عند تغيير الإعدادات
     const { discountEnabled } = useDiscountStore();
@@ -16,6 +21,8 @@ const InvoiceTotals: React.FC = () => {
                 <div className="flex-1 p-4 max-md:p-4">
                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ملاحظات الفاتورة</h4>
                     <textarea
+                        value={notes}
+                        onChange={(event) => onNotesChange(event.target.value)}
                         className="w-full h-full mt-2 bg-transparent text-xs font-bold outline-none resize-none"
                         placeholder="أضف أي ملاحظات أو شروط خاصة بالفاتورة هنا..."
                     />

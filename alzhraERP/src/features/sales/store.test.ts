@@ -54,3 +54,11 @@ describe('Sales Store Logic', () => {
     expect(summary.totalAmount).toBe(90);
   });
 });
+
+  it('should persist invoice notes and clear them when the cart is reset', () => {
+    useSalesStore.getState().setMetadata('notes', 'تسليم صباحي');
+    expect(useSalesStore.getState().notes).toBe('تسليم صباحي');
+
+    useSalesStore.getState().resetCart();
+    expect(useSalesStore.getState().notes).toBe('');
+  });

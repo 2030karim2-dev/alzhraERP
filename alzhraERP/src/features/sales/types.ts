@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   unitPrice: number;
   costPrice: number; // Hidden from UI, needed for profit calc
+  warehouseId?: string;
 
   maxStock: number; // To prevent overselling
   estimatedPrice?: number;
@@ -26,12 +27,16 @@ export interface InvoiceSummary {
 
 export interface CreateInvoicePayload {
   partyId: string | null;
-  items: {
+  items: Array<{
     productId: string;
     quantity: number;
     unitPrice: number;
-  }[];
+    taxRate?: number;
+    warehouseId?: string;
+  }>;
   paymentMethod: 'cash' | 'credit';
+  issueDate?: string;
+  dueDate?: string;
   notes?: string;
   treasuryAccountId?: string;
   discount?: number;

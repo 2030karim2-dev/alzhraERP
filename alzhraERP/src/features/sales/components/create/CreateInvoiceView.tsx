@@ -26,7 +26,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   const comp = company as { id: string;[key: string]: unknown } | null;
   const { data: nextInvoiceNumber, isLoading: numberLoading, error: numberError } = useNextInvoiceNumber();
   const {
-    items, selectedCustomer, summary, resetCart, invoiceType, cashboxId, currency, exchangeRate,
+    items, selectedCustomer, summary, resetCart, invoiceType, cashboxId, warehouseId, currency, exchangeRate, notes,
     setMetadata, setCustomer
   } = useSalesStore();
   const { mutate: createInvoice, isPending } = useCreateInvoice();
@@ -113,12 +113,14 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         quantity: item.quantity,
         unitPrice: item.price,
         costPrice: item.costPrice || 0,
+        warehouseId,
         // [FIX #3] maxStock من بيانات المنتج الحقيقية لا قيمة ثابتة
         maxStock: item.warehouse_distribution
           ? item.warehouse_distribution.reduce((sum, w) => sum + w.quantity, 0)
           : 9999,
       })),
       discount: summary.discountAmount,
+      notes: notes.trim() || undefined,
       status: status,
       type: 'sale' as const,
       paymentMethod: invoiceType,
@@ -155,7 +157,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
           {comp && <InvoiceHeader company={comp} />}
           <InvoiceMeta invoiceNumber={nextInvoiceNumber as string} />
           <InteractiveInvoiceTable />
-          <InvoiceTotals />
+          <InvoiceTotals notes={notes} onNotesChange={(value) => setMetadata('notes', value)} />
         </div>
 
         <div className="flex justify-end">

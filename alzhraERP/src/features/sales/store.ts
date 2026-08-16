@@ -41,6 +41,7 @@ interface SalesState {
   warehouseId: string;
   cashboxId: string;
   showDiscount: boolean;
+  notes: string;
 
   // Actions
   initializeItems: (count: number) => void;
@@ -83,6 +84,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
   cashboxId: '',
   showDiscount: false,
+  notes: '',
 
   initializeItems: (count) => set({ items: Array.from({ length: count }, createNewItem) }),
 
@@ -293,7 +295,14 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     items: [],
     selectedCustomer: null,
     summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
-    invoiceType: 'cash'
+    invoiceType: 'cash',
+    currency: 'SAR',
+    exchangeRate: 1,
+    exchangeOperator: 'multiply',
+    warehouseId: 'wh_main',
+    cashboxId: '',
+    showDiscount: false,
+    notes: ''
   }))
 }));
 
