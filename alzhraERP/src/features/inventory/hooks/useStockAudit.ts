@@ -15,7 +15,7 @@ export const useAuditSessions = () => {
     const { user } = useAuthStore();
     return useQuery({
         queryKey: ['audit_sessions', user?.company_id],
-        queryFn: () => user?.company_id ? inventoryService.getAuditSessions(user.company_id) : Promise.resolve([] as any[]),
+        queryFn: () => user?.company_id ? inventoryService.getAuditSessions(user.company_id) : Promise.resolve<Awaited<ReturnType<typeof inventoryService.getAuditSessions>>>([]),
         enabled: !!user?.company_id
     });
 };
@@ -34,11 +34,16 @@ export const useAuditSession = (sessionId: string | undefined) => {
         if (!sessionId) return;
 
         const channelKey = `audit_session_${sessionId}`;
-        const globalAny = window as any;
-        if (!globalAny.__ALZ_AUDIT_CHANNELS__) {
-            globalAny.__ALZ_AUDIT_CHANNELS__ = new Map<string, any>();
+        type AuditChannel = ReturnType<typeof supabase.channel>;
+        interface AuditChannelRegistry {
+            __ALZ_AUDIT_CHANNELS__?: Map<string, AuditChannel>;
         }
-        const registry: Map<string, any> = globalAny.__ALZ_AUDIT_CHANNELS__;
+        const registryRef = window as unknown as AuditChannelRegistry;
+        let registry = registryRef.__ALZ_AUDIT_CHANNELS__;
+        if (!registry) {
+            registry = new Map<string, AuditChannel>();
+            registryRef.__ALZ_AUDIT_CHANNELS__ = registry;
+        }
 
         // Reuse existing channel if already subscribed (prevents race condition)
         if (!registry.has(channelKey)) {
@@ -47,12 +52,12 @@ export const useAuditSession = (sessionId: string | undefined) => {
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'audit_items', filter: `session_id=eq.${sessionId}` },
-                    (payload: any) => {
+                    (payload: Record<string, unknown>) => {
                         logger.debug('Audit item changed:', payload);
                         queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
                     }
                 )
-                .subscribe((status: any) => {
+                .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
                         logger.debug('Audit', `Realtime channel [${channelKey}] subscribed`);
                     }
@@ -74,7 +79,7 @@ export const useInventoryMutations = () => {
     const { showToast } = useFeedbackStore();
 
     const transfer = useMutation({
-        mutationFn: (data: any) => {
+        mutationFn: (data: Omit<Parameters<typeof inventoryService.createTransfer>[0], 'company_id' | 'user_id'>) => {
             if (!user?.company_id || !user.id) throw new Error("Auth error");
             return inventoryService.createTransfer({ ...data, company_id: user.company_id, user_id: user.id });
         },
@@ -83,8 +88,8 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['transfers'] });
             showToast("تمت المناقلة بنجاح", 'success');
         },
-        onError: (err: any, variables) => {
-            if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
+        onError: (err, variables) => {
+            if (!navigator.onLine || err.message?.includes('Failed to fetch') || (err as Error & { status?: number }).status === 0) {
                 syncStore.enqueue({
                     mutationKey: ['inventory', 'transfer'],
                     variables: { ...variables, company_id: user?.company_id, user_id: user?.id }
@@ -97,17 +102,17 @@ export const useInventoryMutations = () => {
     });
 
     const audit = useMutation({
-        mutationFn: (data: any) => {
+        mutationFn: (data: { warehouse_id: string; title: string }) => {
             if (!user?.company_id || !user.id) throw new Error("Auth error");
             return inventoryService.startAudit(data, user.company_id, user.id);
         },
-        onSuccess: (newSession: any) => {
+        onSuccess: (newSession) => {
             queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
             showToast("تم بدء جلسة الجرد", 'success');
             return newSession;
         },
-        onError: (err: any, variables) => {
-            if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
+        onError: (err, variables) => {
+            if (!navigator.onLine || err.message?.includes('Failed to fetch') || (err as Error & { status?: number }).status === 0) {
                 syncStore.enqueue({
                     mutationKey: ['inventory', 'start_audit'],
                     variables: { ...variables, company_id: user?.company_id, user_id: user?.id }
@@ -120,7 +125,7 @@ export const useInventoryMutations = () => {
     });
 
     const finalize = useMutation({
-        mutationFn: ({ sessionId, items }: { sessionId: string, items: any[] }) => {
+        mutationFn: ({ sessionId, items }: { sessionId: string, items: Parameters<typeof inventoryService.finalizeAudit>[1] }) => {
             if (!user?.company_id || !user.id) throw new Error("Auth error");
             return inventoryService.finalizeAudit(sessionId, items, user.company_id, user.id);
         },
@@ -130,19 +135,19 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
             showToast("تم إغلاق الجرد وترحيل الفروقات", 'success');
         },
-        onError: (err: any) => {
+        onError: (err) => {
             showToast("فشل إنهاء الجرد: " + err.message, 'error');
             console.error("Finalize Audit Error:", err);
         }
     });
 
     const saveProgress = useMutation({
-        mutationFn: (items: any[]) => inventoryService.saveAuditProgress(items),
+        mutationFn: (items: Parameters<typeof inventoryService.saveAuditProgress>[0]) => inventoryService.saveAuditProgress(items),
         onSuccess: () => {
             showToast("تم حفظ التقدم", 'info', { hideAfter: 2000 });
         },
-        onError: (err: any, items) => {
-            if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
+        onError: (err, items) => {
+            if (!navigator.onLine || err.message?.includes('Failed to fetch') || (err as Error & { status?: number }).status === 0) {
                 syncStore.enqueue({ mutationKey: ['inventory', 'save_audit_progress'], variables: { items } });
                 return;
             }
@@ -159,7 +164,7 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
             showToast("تم إضافة التسويات السريعة بنجاح", 'success');
         },
-        onError: (err: any) => {
+        onError: (err) => {
             showToast("فشلت التسوية السريعة: " + err.message, 'error');
         }
     });
@@ -171,7 +176,7 @@ export const useInventoryMutations = () => {
         onSuccess: (_, { sessionId }) => {
             queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             showToast("فشل إضافة الصنف: " + err.message, 'error');
         }
     });
@@ -186,7 +191,7 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['audit_session'] });
             showToast("تم إزالة الصنف من الجلسة", 'info');
         },
-        onError: (err: any) => {
+        onError: (err) => {
             showToast("فشل إزالة الصنف: " + err.message, 'error');
         }
     });
@@ -197,7 +202,7 @@ export const useInventoryMutations = () => {
             queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
             showToast("تم حذف جلسة الجرد", 'success');
         },
-        onError: (err: any) => {
+        onError: (err) => {
             showToast("فشل حذف الجلسة: " + err.message, 'error');
         }
     });

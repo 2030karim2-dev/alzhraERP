@@ -1,8 +1,47 @@
 import { supabase } from '../../lib/supabaseClient';
 import { logger } from '../../core/utils/logger';
 
+// Types for the user profile resolution chain
+interface AuthProfileData {
+    id: string;
+    email?: string;
+    full_name?: string;
+    avatar_url?: string | null;
+    role?: string;
+    company_id?: string | null;
+    company_name?: string | null;
+    branch_id?: string | null;
+    branch_name?: string | null;
+}
+
+interface GetUserProfilePayload {
+    id: string;
+    full_name?: string;
+    avatar_url?: string | null;
+    companies?: Array<{
+        role?: string;
+        company_id?: string | null;
+        company_name?: string | null;
+        branch_id?: string | null;
+        branch_name?: string | null;
+    }>;
+}
+
+type ProfileRpcError = Error & { code?: string; details?: unknown };
+
+interface ProfileRpcResult {
+    data: GetUserProfilePayload | null;
+    error: ProfileRpcError | null;
+}
+
+interface ProfileResult {
+    data: AuthProfileData | null;
+    error: unknown;
+    isAborted?: boolean;
+}
+
 // Registry to deduplicate in-flight profile requests
-const profileRequests = new Map<string, Promise<{ data: any, error: any, isAborted?: boolean }>>();
+const profileRequests = new Map<string, Promise<ProfileResult>>();
 
 export const authApi = {
   signInWithPassword: async (email: string, pass: string) => {
@@ -62,16 +101,20 @@ export const authApi = {
     });
   },
 
-  getProfile: async (userId: string): Promise<{ data: any, error: any, isAborted?: boolean }> => {
+  getProfile: async (userId: string): Promise<ProfileResult> => {
     // 1. Check if a request for this user is already in progress
     if (profileRequests.has(userId)) {
       return profileRequests.get(userId)!;
     }
 
-    const fetchPromise = (async () => {
+    const fetchPromise = (async (): Promise<ProfileResult> => {
       try {
         // 1. Try RPC first
-        const { data, error } = await (supabase.rpc as any)('get_user_profile', {
+        const rpc = supabase.rpc as unknown as (
+          fn: 'get_user_profile',
+          args: { p_user_id: string }
+        ) => Promise<ProfileRpcResult>;
+        const { data, error } = await rpc('get_user_profile', {
           p_user_id: userId,
         });
 
@@ -124,7 +167,7 @@ export const authApi = {
           return { data: null, error: profileRes.error };
         }
 
-        const profileData = profileRes.data as any;
+        const profileData = profileRes.data;
 
         // Get email from session user if missing
         const { data: authData } = await supabase.auth.getUser();
@@ -135,11 +178,11 @@ export const authApi = {
           email: user?.email || '',
           full_name: profileData?.full_name || user?.user_metadata?.full_name || '',
           avatar_url: profileData?.avatar_url || user?.user_metadata?.avatar_url,
-          role: (roleRes.data as any)?.role || 'viewer',
-          company_id: (roleRes.data as any)?.company_id,
-          company_name: (roleRes.data as any)?.companies?.name_ar,
-          branch_id: (roleRes.data as any)?.branch_id ?? null,
-          branch_name: (roleRes.data as any)?.branches?.name ?? null,
+          role: roleRes.data?.role || 'viewer',
+          company_id: roleRes.data?.company_id,
+          company_name: roleRes.data?.companies?.name_ar,
+          branch_id: roleRes.data?.branch_id ?? null,
+          branch_name: roleRes.data?.branches?.name ?? null,
         };
 
         return { data: fallbackData, error: null };
@@ -156,7 +199,7 @@ export const authApi = {
         // 3. Clear request from registry once finished/failed
         profileRequests.delete(userId);
       }
-    })() as Promise<{ data: any, error: any, isAborted?: boolean }>;
+    })();
 
     // Store promise in registry
     profileRequests.set(userId, fetchPromise);
