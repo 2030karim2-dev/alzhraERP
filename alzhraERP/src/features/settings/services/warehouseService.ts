@@ -8,7 +8,7 @@ export const warehouseService = {
     return data;
   },
 
-  saveWarehouse: async (companyId: string, data: any) => {
+  saveWarehouse: async (companyId: string, data: Record<string, unknown>) => {
     const { error } = await warehouseApi.upsertWarehouse({
       ...data,
       company_id: companyId

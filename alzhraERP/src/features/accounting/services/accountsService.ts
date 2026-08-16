@@ -106,7 +106,7 @@ export const accountsService = {
       .eq('company_id', companyId)
       .eq('parent_id', mainCashbox.id);
 
-    const existingCurrencies = new Set(existingChildren?.map((c: any) => c.currency_code) || []);
+    const existingCurrencies = new Set(existingChildren?.map((c) => c.currency_code) || []);
 
     // 3. Define the desired sub-cashboxes
     const desiredBoxes = [
@@ -169,7 +169,7 @@ export const accountsService = {
       .eq('company_id', companyId)
       .eq('parent_id', exchangeParent.id);
 
-    const existingCodes = new Set(existingChildren?.map((c: any) => c.code) || []);
+    const existingCodes = new Set(existingChildren?.map((c) => c.code) || []);
 
     const exchanges = [
       { code: '103001', name_ar: 'شركة الكريمي للصرافة', currency_code: 'SAR' },

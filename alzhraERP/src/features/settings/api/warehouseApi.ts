@@ -1,5 +1,6 @@
 
 import { supabase } from '../../../lib/supabaseClient';
+import { TableInsert } from '@/core/types/supabase-helpers';
 
 export const warehouseApi = {
   fetchWarehouses: async (companyId: string) => {
@@ -12,7 +13,7 @@ export const warehouseApi = {
   },
 
   upsertWarehouse: async (data: Record<string, unknown>) => {
-    return await supabase.from('warehouses').upsert(data as any).select().single();
+    return await supabase.from('warehouses').upsert(data as TableInsert<'warehouses'>).select().single();
   },
 
   deleteWarehouse: async (id: string) => {

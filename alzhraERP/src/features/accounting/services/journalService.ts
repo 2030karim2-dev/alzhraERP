@@ -74,7 +74,7 @@ export const journalService = {
         description: j.description || '',
         reference_type: j.reference_type,
         reference_id: j.reference_id,
-        status: j.status as any,
+        status: j.status as string,
         created_at: j.created_at,
         created_by: j.created_by || '',
         journal_entry_lines: lines.map((l) => ({

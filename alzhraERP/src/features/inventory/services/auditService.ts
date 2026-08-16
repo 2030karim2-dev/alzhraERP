@@ -1,10 +1,20 @@
 // Audit Service - Handles stock audit operations
 import { supabase } from '../../../lib/supabaseClient';
+import { TableInsert } from '@/core/types/supabase-helpers';
 
 interface AuditItemInput {
     id?: string;
     product_id: string;
     counted_quantity: number;
+}
+
+interface AuditProductRow {
+    name_ar?: string;
+    sku?: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+    size?: string | null;
+    product_categories?: { name?: string } | null;
 }
 
 export const auditService = {
@@ -72,8 +82,8 @@ export const auditService = {
      */
     finalizeAudit: async (sessionId: string, items: AuditItemInput[], userId: string, _companyId?: string) => {
         const payloadItems = items.map(i => {
-            let qty = i.counted_quantity;
-            if (typeof qty === 'string' && qty === '') qty = null as any;
+            let qty: number | string | null = i.counted_quantity;
+            if (typeof qty === 'string' && qty === '') qty = null;
             return { product_id: i.product_id, counted_quantity: qty };
         }).filter(i => i.counted_quantity !== null && i.counted_quantity !== undefined);
 
@@ -122,7 +132,7 @@ export const auditService = {
         return {
             session: { ...session, warehouse_name: (session?.warehouses as { name_ar?: string })?.name_ar } as Record<string, unknown>,
             items: (items || []).map((i: Record<string, unknown>) => {
-                const pRaw = i.products as any;
+                const pRaw = i.products as AuditProductRow | AuditProductRow[] | null | undefined;
                 const p = Array.isArray(pRaw) ? pRaw[0] : pRaw;
 
                 return {
@@ -145,14 +155,14 @@ export const auditService = {
      */
     saveAuditProgress: async (items: AuditItemInput[]) => {
         const updates = items.map(i => {
-            let qty = i.counted_quantity;
-            if (typeof qty === 'string' && qty === '') qty = null as any;
+            let qty: number | string | null = i.counted_quantity;
+            if (typeof qty === 'string' && qty === '') qty = null;
             return {
                 id: i.id,
                 counted_quantity: qty
             };
         });
-        const { error } = await supabase.from('audit_items').upsert(updates as any); // using any for now since upsert requires full type OR we can map it.
+        const { error } = await supabase.from('audit_items').upsert(updates as unknown as TableInsert<'audit_items'>[]);
         if (error) throw error;
     },
 

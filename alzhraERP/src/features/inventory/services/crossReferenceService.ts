@@ -43,7 +43,7 @@ export const crossReferenceService = {
             throw error;
         }
 
-        return (data || []).map((row: any) => ({
+        return (data || []).map((row) => ({
             productId: row.product_id,
             productName: row.product_name,
             productNameAr: row.product_name_ar,

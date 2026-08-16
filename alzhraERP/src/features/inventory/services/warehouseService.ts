@@ -2,6 +2,16 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { inventoryApi } from '../api';
 
+interface WarehouseStockRow {
+    quantity: number;
+    product: {
+        name_ar: string;
+        sale_price: number | null;
+        location?: string | null;
+    } | null;
+    warehouse: { name_ar?: string | null; location?: string | null } | null;
+}
+
 export const warehouseService = {
     /**
      * Get all warehouses for a company
@@ -28,7 +38,7 @@ export const warehouseService = {
 
         if (error) throw error;
 
-        return (data || []).map((item: any) => {
+        return (data || []).map((item: WarehouseStockRow) => {
             const product = item.product || {};
             const warehouse = item.warehouse || {};
             

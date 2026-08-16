@@ -1,5 +1,6 @@
 // Category Service - Handles product category operations
 import { inventoryApi } from '../api';
+import type { Product } from '../types';
 
 interface RawCategory {
     id: string;
@@ -18,20 +19,20 @@ export const categoryService = {
             inventoryApi.getProducts(companyId)
         ]);
 
-        const categories = Array.isArray(categoriesResponse)
+        const categories: RawCategory[] = Array.isArray(categoriesResponse)
             ? categoriesResponse
-            : (categoriesResponse as any)?.data || [];
+            : ((categoriesResponse as unknown as { data?: RawCategory[] })?.data ?? []);
 
-        const products = Array.isArray(productsResponse)
+        const products: Product[] = Array.isArray(productsResponse)
             ? productsResponse
-            : (productsResponse as any)?.data || [];
+            : ((productsResponse as unknown as { data?: Product[] })?.data ?? []);
 
         return categories.map((cat: RawCategory) => {
-            const categoryProducts = products.filter((p: any) => p.category_id === cat.id || p.category === (cat.name || cat.name_ar));
+            const categoryProducts = products.filter((p) => p.category_id === cat.id || p.category === (cat.name || cat.name_ar));
             const productsCount = categoryProducts.length;
-            const totalStock = categoryProducts.reduce((sum: number, p: any) => sum + (Number(p.stock_quantity) || 0), 0);
-            const totalValue = categoryProducts.reduce((sum: number, p: any) => sum + ((Number(p.cost_price) || 0) * (Number(p.stock_quantity) || 0)), 0);
-            const hasAlert = categoryProducts.some((p: any) => (Number(p.stock_quantity) || 0) <= (Number(p.min_stock_level) || 0));
+            const totalStock = categoryProducts.reduce((sum: number, p) => sum + (Number(p.stock_quantity) || 0), 0);
+            const totalValue = categoryProducts.reduce((sum: number, p) => sum + ((Number(p.cost_price) || 0) * (Number(p.stock_quantity) || 0)), 0);
+            const hasAlert = categoryProducts.some((p) => (Number(p.stock_quantity) || 0) <= (Number(p.min_stock_level) || 0));
 
             return {
                 id: cat.id,

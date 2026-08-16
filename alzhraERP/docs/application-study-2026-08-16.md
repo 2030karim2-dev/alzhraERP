@@ -332,7 +332,7 @@ features/<module>/
 |---|---|---|
 | Phase 0 — بوابات | ✅ مكتمل | ✅ إصلاح 3 اختبارات، كنس TS6133، CI بآلية ratchet |
 | Phase C1 — أمان الصلاحيات | قيد العمل | ✅ **مكتمل (2026-08-16):** Task 4 (لا استيراد للصلاحيات القديمة)، Task 5 (قائمة جانبية server-driven عبر `useAllPermissions()` + `MenuItem.requiredPermission`)، Task 6 (حُذف `core/permissions/index.tsx` وبقي `offlineRolePermissions.ts` كـ fallback) |
-| Phase C2 — TypeScript | هدف baseline=0 | ✅ **مكتمل فعلياً: 0 أخطاء** (الخط الأساسي 166 → 0). يتبقى: تخفيض الرقم في الملف + تقليص `any` (833 → <700) |
+| Phase C2 — TypeScript | هدف baseline=0 | ✅ **مكتمل:** 0 أخطاء (الخط الأساسي 166 → 0). Task 12 (تقليص `any`) قيد التنفيذ: الموجة الأولى (api/services) **76 → 0**، والإجمالي 877 → 800 |
 | Phase C3 — AI | بانتظار قرار | ⏳ smart-import: ربط أم إزالة |
 | Phase D — Backend | تسلسلي | ⏳ مصالحة migrations، `search_path` للدوال، Realtime مفلتر، أرشفة `prc_*`، إسقاط `fin_*` |
 | Phase E — i18n | — | ⏳ تدقيق النصوص + توحيد husky |

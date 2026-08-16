@@ -32,10 +32,10 @@ describe('journalService', () => {
                     { account_id: 'acc1', debit: 100, credit: 0 },
                     { account_id: 'acc2', debit: 0, credit: 100 }
                 ]
-            } as any;
+            } as unknown as Parameters<typeof journalService.createJournal>[0];
 
             const expectedJournalId = 'journal-999';
-            (PostTransactionUsecase.execute as any).mockResolvedValue(expectedJournalId);
+            vi.mocked(PostTransactionUsecase.execute).mockResolvedValue(expectedJournalId);
 
             const result = await journalService.createJournal(mockFormData, mockCompanyId, mockUserId);
 
@@ -76,13 +76,13 @@ describe('journalService', () => {
                 }
             ];
 
-            (journalsApi.fetchJournals as any).mockResolvedValue({ data: rawData, error: null });
+            vi.mocked(journalsApi.fetchJournals).mockResolvedValue({ data: rawData, error: null } as unknown as Awaited<ReturnType<typeof journalsApi.fetchJournals>>);
 
             const result = await journalService.formatJournalsForUI(mockCompanyId, undefined, 0);
 
             expect(result).toHaveLength(1);
 
-            const formatted = result[0] as any;
+            const formatted = result[0];
             expect(formatted.id).toBe('j-1');
             expect(formatted.total_amount).toBe(500); // Because it matched code 11001
             expect(formatted.party_name).toBe('Customer A'); // extracted from invoice.party
@@ -118,20 +118,20 @@ describe('journalService', () => {
                 }
             ];
 
-            (journalsApi.fetchJournals as any).mockResolvedValue({ data: rawData, error: null });
+            vi.mocked(journalsApi.fetchJournals).mockResolvedValue({ data: rawData, error: null } as unknown as Awaited<ReturnType<typeof journalsApi.fetchJournals>>);
 
             const result = await journalService.formatJournalsForUI(mockCompanyId, undefined, 0);
 
             expect(result).toHaveLength(1);
 
-            const formatted = result[0] as any;
+            const formatted = result[0];
             expect(formatted.id).toBe('j-2');
             expect(formatted.total_amount).toBe(1500); // Fallback to max amount across all lines
         });
 
         it('should throw error if API fails', async () => {
             const apiError = new Error('Fetch failed');
-            (journalsApi.fetchJournals as any).mockResolvedValue({ data: null, error: apiError });
+            vi.mocked(journalsApi.fetchJournals).mockResolvedValue({ data: null, error: apiError } as unknown as Awaited<ReturnType<typeof journalsApi.fetchJournals>>);
 
             await expect(journalService.formatJournalsForUI(mockCompanyId, undefined, 0)).rejects.toThrow('Fetch failed');
         });

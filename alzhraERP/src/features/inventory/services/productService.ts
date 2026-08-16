@@ -2,6 +2,7 @@ import { Product, ProductFormData } from '../types';
 import { inventoryApi } from '../api';
 import { supabase } from '../../../lib/supabaseClient';
 import { InsertDto } from '../../../core/database.helpers';
+import { TableUpdate } from '@/core/types/supabase-helpers';
 import { logger } from '../../../core/utils/logger';
 
 interface RawStock {
@@ -47,7 +48,7 @@ export const productService = {
     },
 
     /**
-     * Maps raw DB rows (any shape) to the Product domain type.
+     * Maps raw DB rows (arbitrary shape) to the Product domain type.
      * Used both internally and by the paginated hook.
      * @param warehouseId Optional. If provided, `stock_quantity` will reflect ONLY this warehouse's stock.
      */
@@ -178,7 +179,7 @@ export const productService = {
             alternative_numbers: data.alternative_numbers || null,
             barcode: data.barcode || null,
             category_id: (data.category && data.category.length === 36) ? data.category : null
-        } as any;
+        };
 
         const { data: product, error } = await inventoryApi.createProduct(payload);
         if (error) throw error;
@@ -186,7 +187,7 @@ export const productService = {
         // Save UOMs
         if (product && data.uoms && data.uoms.length > 0) {
             // using type assertion since api aggregation might not have exact types
-            await (inventoryApi as any).saveProductUoMs(product.id, data.uoms);
+            await inventoryApi.saveProductUoMs(product.id, data.uoms);
         }
 
         // Initialize stock in default warehouse
@@ -217,7 +218,7 @@ export const productService = {
         logger.debug('ProductService', `Updating product ${id}`, data);
 
         try {
-            const payload: any = {
+            const payload: TableUpdate<'products'> = {
                 name_ar: data.name,
                 sale_price: Number(data.selling_price),
                 purchase_price: Number(data.cost_price),
@@ -235,7 +236,7 @@ export const productService = {
             if (data.category) payload.category_id = data.category.length === 36 ? data.category : null;
 
             logger.debug('ProductService', `Sending update payload to API`, payload);
-            const { data: product, error } = await inventoryApi.updateProduct(id, payload as any);
+            const { data: product, error } = await inventoryApi.updateProduct(id, payload);
 
             if (error) {
                 logger.error('ProductService', `API update failed`, error);
@@ -244,7 +245,7 @@ export const productService = {
 
             // Update UOMs
             if (data.uoms) {
-                await (inventoryApi as any).saveProductUoMs(id, data.uoms);
+                await inventoryApi.saveProductUoMs(id, data.uoms);
             }
 
             logger.debug('ProductService', `Product metadata updated successfully`, product);
@@ -255,7 +256,7 @@ export const productService = {
             // Stock should only be updated via dedicated inventory transactions (purchases, transfers, audits, sales).
 
             return product;
-        } catch (err: any) {
+        } catch (err) {
             logger.error('ProductService', `Critical failure in updateProduct`, err);
             throw err;
         }

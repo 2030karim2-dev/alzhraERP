@@ -9,8 +9,8 @@ export const analyticsService = {
     const financials = await reportsService.getBalanceSheet(companyId);
     const { totalRevenues, totalExpenses, netProfit } = await reportsService.getProfitAndLoss(companyId);
 
-    const currentAssets = financials.assets.reduce((s: number, a: any) => s + a.netBalance, 0);
-    const currentLiabilities = Math.abs(financials.liabilities.reduce((s: number, l: any) => s + l.netBalance, 0));
+    const currentAssets = financials.assets.reduce((s: number, a) => s + a.netBalance, 0);
+    const currentLiabilities = Math.abs(financials.liabilities.reduce((s: number, l) => s + l.netBalance, 0));
 
     return {
       // نسبة السيولة: القدرة على سداد الالتزامات قصيرة الأجل (المثالي > 1.5)

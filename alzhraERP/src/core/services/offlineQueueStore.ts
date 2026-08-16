@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import { get, set as idbSet, del } from 'idb-keyval';
 import { logger } from '../utils/logger';
 import { inventoryService } from '../../features/inventory/service';
@@ -11,7 +11,7 @@ import { salesService } from '../../features/sales/service';
 export interface OfflineAction {
     id: string;
     type: 'CREATE_INVOICE' | 'UPDATE_STOCK' | 'CREATE_PRODUCT' | 'DELETE_PRODUCT' | 'POST_JOURNAL';
-    payload: any;
+    payload: unknown;
     timestamp: number;
     retryCount: number;
 }
@@ -21,7 +21,7 @@ interface OfflineQueueState {
     isProcessing: boolean;
 
     // Actions
-    enqueue: (type: OfflineAction['type'], payload: any) => void;
+    enqueue: (type: OfflineAction['type'], payload: unknown) => void;
     removeFromQueue: (id: string) => void;
     updateAction: (id: string, updates: Partial<OfflineAction>) => void;
     setProcessing: (processing: boolean) => void;
@@ -30,10 +30,10 @@ interface OfflineQueueState {
 }
 
 // Custom storage for zustand using idb-keyval to handle large offline queues safely
-const idbStorage = {
-    getItem: async (name: string) => (await get(name)) || null,
-    setItem: async (name: string, value: string) => await idbSet(name, value),
-    removeItem: async (name: string) => await del(name),
+const idbStorage: StateStorage = {
+    getItem: async (name: string) => ((await get(name)) as string | null) ?? null,
+    setItem: async (name: string, value: string) => { await idbSet(name, value); },
+    removeItem: async (name: string) => { await del(name); },
 };
 
 export const useOfflineQueueStore = create<OfflineQueueState>()(
@@ -42,7 +42,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
             queue: [],
             isProcessing: false,
 
-            enqueue: (type: OfflineAction['type'], payload: any) => {
+            enqueue: (type: OfflineAction['type'], payload: unknown) => {
                 const newAction: OfflineAction = {
                     id: crypto.randomUUID(),
                     type,
@@ -78,14 +78,17 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
                 for (const action of queue) {
                     try {
-                        const { company_id, user_id, ...data } = action.payload;
+                        const { company_id, user_id, ...data } = action.payload as {
+                            company_id: string;
+                            user_id: string;
+                        } & Record<string, unknown>;
 
                         switch (action.type) {
                             case 'CREATE_PRODUCT':
-                                await inventoryService.createProduct(data, company_id, user_id);
+                                await inventoryService.createProduct(data as Parameters<typeof inventoryService.createProduct>[0], company_id, user_id);
                                 break;
                             case 'CREATE_INVOICE':
-                                await salesService.processNewSale(company_id, user_id, data);
+                                await salesService.processNewSale(company_id, user_id, data as Parameters<typeof salesService.processNewSale>[2]);
                                 break;
                             case 'UPDATE_STOCK':
                                 // await inventoryService.updateStock(data);
@@ -94,7 +97,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
                         removeFromQueue(action.id);
                         logger.info('OfflineQueue', `Successfully synced action ${action.id}`);
-                    } catch (err: any) {
+                    } catch (err) {
                         logger.error('OfflineQueue', `Failed to sync action ${action.id}`, err);
                         updateAction(action.id, { retryCount: (action.retryCount || 0) + 1 });
 
@@ -108,7 +111,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         }),
         {
             name: 'alzhra-offline-queue',
-            storage: createJSONStorage(() => idbStorage as any),
+            storage: createJSONStorage(() => idbStorage),
         }
     )
 );

@@ -1,6 +1,19 @@
+interface GoogleIdentityOAuth2 {
+    initTokenClient(config: {
+        client_id: string;
+        scope: string;
+        callback: (response: { access_token?: string }) => void;
+        error_callback?: (error: unknown) => void;
+    }): { requestAccessToken(): void };
+}
+
 declare global {
     interface Window {
-        google: any;
+        google?: {
+            accounts?: {
+                oauth2?: GoogleIdentityOAuth2;
+            };
+        };
     }
 }
 
@@ -32,17 +45,23 @@ export class GoogleDriveService {
         await this.loadGsiScript();
 
         return new Promise((resolve, reject) => {
-            const client = window.google.accounts.oauth2.initTokenClient({
+            const oauth2 = window.google?.accounts?.oauth2;
+            if (!oauth2) {
+                reject(new Error('تعذر تهيئة Google Identity Services'));
+                return;
+            }
+
+            const client = oauth2.initTokenClient({
                 client_id: this.CLIENT_ID,
                 scope: this.SCOPES,
-                callback: (tokenResponse: any) => {
+                callback: (tokenResponse) => {
                     if (tokenResponse && tokenResponse.access_token) {
                         resolve(tokenResponse.access_token);
                     } else {
                         reject(new Error('فشل الحصول على إذن الدخول من Google'));
                     }
                 },
-                error_callback: (_error: any) => {
+                error_callback: (_error) => {
                     reject(new Error('تم إلغاء عملية المصادقة أو حدث خطأ'));
                 }
             });
@@ -50,7 +69,7 @@ export class GoogleDriveService {
         });
     }
 
-    public static async uploadJSONFile(filename: string, jsonContent: any, accessToken: string): Promise<string> {
+    public static async uploadJSONFile(filename: string, jsonContent: unknown, accessToken: string): Promise<string> {
         const fileMetadata = {
             name: `${filename}.json`,
             mimeType: 'application/json',

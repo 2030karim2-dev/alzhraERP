@@ -81,19 +81,19 @@ export const warehouseApi = {
     saveWarehouse: async (companyId: string, data: { id?: string, name_ar: string, location: string, branch_id?: string | null }) => {
         const { id, ...formData } = data;
         if (id) {
-            return await supabase.from('warehouses').update(formData as any).eq('id', id);
+            return await supabase.from('warehouses').update(formData).eq('id', id);
         } else {
             return await supabase.from('warehouses').insert({
                 ...formData,
                 company_id: companyId,
                 status: 'active'
-            } as any);
+            });
         }
     },
 
     deleteWarehouse: async (id: string) => {
         return await supabase.from('warehouses')
-            .update({ deleted_at: new Date().toISOString() } as any)
+            .update({ deleted_at: new Date().toISOString() })
             .eq('id', id);
     },
 };

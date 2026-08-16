@@ -2,6 +2,31 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { inventoryApi } from '../api';
 
+// `stock_movements` is not yet present in `database.types.ts` (schema drift),
+// so we use a minimal, explicitly-typed client for that table instead of untyped casts.
+interface StockMovementRow {
+    id: string;
+    type: string;
+    quantity: number;
+    created_at: string;
+    products?: unknown;
+}
+
+const stockMovementsClient = (supabase as unknown as {
+    from(table: 'stock_movements'): {
+        select(columns: string): {
+            eq(column: string, value: string): {
+                gte(column: string, value: string): {
+                    order(column: string, options?: { ascending?: boolean }): Promise<{
+                        data: StockMovementRow[] | null;
+                        error: unknown;
+                    }>;
+                };
+            };
+        };
+    };
+});
+
 export const analyticsService = {
     /**
      * Get inventory summary statistics
@@ -86,14 +111,15 @@ export const analyticsService = {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
 
-        const { data, error } = await supabase.from('stock_movements' as any)
+        const { data, error } = await stockMovementsClient
+            .from('stock_movements')
             .select('id, type, quantity, created_at, products(name_ar)')
             .eq('company_id', companyId)
             .gte('created_at', startDate.toISOString())
             .order('created_at', { ascending: false });
         if (error) throw error;
 
-        return ((data as any) || []).map((m: any) => {
+        return (data || []).map((m) => {
             const products = m.products as { name_ar?: string } | undefined;
             return {
                 id: m.id,

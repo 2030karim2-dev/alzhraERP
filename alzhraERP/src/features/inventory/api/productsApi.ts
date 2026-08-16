@@ -78,10 +78,14 @@ export const productsApi = {
             const errCode = pgError.code || '';
             const errMessage = pgError.message?.toLowerCase() || '';
             if (errCode === 'PGRST202' || errMessage.includes('could not find the function') || errMessage.includes('404')) {
-                await supabase.from('product_uoms' as any).delete().eq('product_id', productId);
+                await supabase.from('product_uoms').delete().eq('product_id', productId);
                 if (uoms && uoms.length > 0) {
-                    const uomsToInsert = uoms.map(u => ({ ...u, product_id: productId }));
-                    return await supabase.from('product_uoms' as any).insert(uomsToInsert);
+                    const uomsToInsert = uoms.map(u => ({
+                        uom_name: u.uom_name ?? '',
+                        conversion_factor: u.conversion_factor ?? 1,
+                        product_id: productId,
+                    }));
+                    return await supabase.from('product_uoms').insert(uomsToInsert);
                 }
                 return { error: null };
             }
@@ -89,10 +93,14 @@ export const productsApi = {
         } catch (_) {
             // Safe fallback for connection/unexpected exceptions
             try {
-                await supabase.from('product_uoms' as any).delete().eq('product_id', productId);
+                await supabase.from('product_uoms').delete().eq('product_id', productId);
                 if (uoms && uoms.length > 0) {
-                    const uomsToInsert = uoms.map(u => ({ ...u, product_id: productId }));
-                    return await supabase.from('product_uoms' as any).insert(uomsToInsert);
+                    const uomsToInsert = uoms.map(u => ({
+                        uom_name: u.uom_name ?? '',
+                        conversion_factor: u.conversion_factor ?? 1,
+                        product_id: productId,
+                    }));
+                    return await supabase.from('product_uoms').insert(uomsToInsert);
                 }
             } catch (__) { /* table not yet migrated */ }
         }
