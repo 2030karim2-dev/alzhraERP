@@ -21,19 +21,18 @@ export const accountsService = {
       const { data: balances, error: balancesError } = await supabase.rpc('report_trial_balance', {
         p_company_id: companyId,
         p_from: `${now.getFullYear()}-01-01`,
-        p_to: now.toISOString().split('T')[0],
-        p_branch_id: null
+        p_to: now.toISOString().split('T')[0]
       });
       // Fail loudly rather than silently zeroing every account balance.
       if (balancesError) throw balancesError;
 
-      for (const row of (balances || []) as any[]) {
+      for (const row of balances ?? []) {
         balanceMap.set(row.account_id, Number(row.balance) || 0);
       }
     }
 
     // Map to Account model
-    return (data || []).map((acc: any) => ({
+    return (data ?? []).map((acc) => ({
       id: acc.id,
       company_id: acc.company_id,
       code: acc.code,

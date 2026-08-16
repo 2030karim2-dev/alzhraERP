@@ -2,6 +2,79 @@
 import { TrialBalanceItem, LedgerEntry } from '../types/index';
 import { supabase } from '../../../lib/supabaseClient';
 
+interface LedgerRpcLine {
+    entry_date: string | undefined;
+    journal_id: string | undefined;
+    entry_number: number | undefined;
+    description: string | undefined;
+    debit_amount: number | undefined;
+    credit_amount: number | undefined;
+    balance: number | undefined;
+    currency_code: string | undefined;
+    exchange_rate: number | undefined;
+    foreign_amount: number | undefined;
+    party_id: string | undefined;
+    party_name: string | undefined;
+}
+
+interface LedgerRpcResult {
+    entries?: LedgerRpcLine[];
+}
+
+interface TrialBalanceRpcRow {
+    account_id: string;
+    account_code: string;
+    account_name: string;
+    account_type: string;
+    total_debit: number;
+    total_credit: number;
+    balance: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
+
+const toLedgerResult = (value: unknown): LedgerRpcResult => {
+    if (!isRecord(value) || !Array.isArray(value.entries)) return { entries: [] };
+    return { entries: value.entries.filter(isRecord).map((line) => ({
+        entry_date: typeof line.entry_date === 'string' ? line.entry_date : undefined,
+        journal_id: typeof line.journal_id === 'string' ? line.journal_id : undefined,
+        entry_number: typeof line.entry_number === 'number' ? line.entry_number : undefined,
+        description: typeof line.description === 'string' ? line.description : undefined,
+        debit_amount: typeof line.debit_amount === 'number' ? line.debit_amount : undefined,
+        credit_amount: typeof line.credit_amount === 'number' ? line.credit_amount : undefined,
+        balance: typeof line.balance === 'number' ? line.balance : undefined,
+        currency_code: typeof line.currency_code === 'string' ? line.currency_code : undefined,
+        exchange_rate: typeof line.exchange_rate === 'number' ? line.exchange_rate : undefined,
+        foreign_amount: typeof line.foreign_amount === 'number' ? line.foreign_amount : undefined,
+        party_id: typeof line.party_id === 'string' ? line.party_id : undefined,
+        party_name: typeof line.party_name === 'string' ? line.party_name : undefined,
+    })) };
+};
+
+const toTrialBalanceRows = (value: unknown): TrialBalanceRpcRow[] => {
+    if (!Array.isArray(value)) return [];
+    return value.filter(isRecord).flatMap((row) => {
+        if (
+            typeof row.account_id !== 'string' ||
+            typeof row.account_code !== 'string' ||
+            typeof row.account_name !== 'string' ||
+            typeof row.account_type !== 'string' ||
+            typeof row.total_debit !== 'number' ||
+            typeof row.total_credit !== 'number' ||
+            typeof row.balance !== 'number'
+        ) return [];
+        return [{
+            account_id: row.account_id,
+            account_code: row.account_code,
+            account_name: row.account_name,
+            account_type: row.account_type,
+            total_debit: row.total_debit,
+            total_credit: row.total_credit,
+            balance: row.balance,
+        }];
+    });
+};
 
 export const reportService = {
     // ⚡ Server-side ledger via RPC
@@ -15,22 +88,21 @@ export const reportService = {
         });
         if (error) throw error;
 
-        const result = data as any;
-        // DB returns { openingBalance, entries, accountType } - note camelCase openingBalance
-        return (result?.entries || []).map((line: any) => ({
-            date: line.entry_date,
-            journal_id: line.journal_id || '',
-            journal_entry_id: line.journal_id || '',
-            entry_number: line.entry_number,
-            description: line.description || '',
-            debit_amount: Number(line.debit_amount) || 0,
-            credit_amount: Number(line.credit_amount) || 0,
-            balance: Number(line.balance) || 0,
-            currency_code: line.currency_code || 'SAR',
-            exchange_rate: Number(line.exchange_rate) || 1,
-            foreign_amount: Number(line.foreign_amount) || 0,
-            party_id: line.party_id,
-            party_name: line.party_name
+        const result = toLedgerResult(data);
+        return (result.entries ?? []).map((line: LedgerRpcLine) => ({
+            date: line.entry_date ?? '',
+            journal_id: line.journal_id ?? '',
+            journal_entry_id: line.journal_id ?? '',
+            entry_number: line.entry_number ?? 0,
+            description: line.description ?? '',
+            debit_amount: line.debit_amount ?? 0,
+            credit_amount: line.credit_amount ?? 0,
+            balance: line.balance ?? 0,
+            currency_code: line.currency_code ?? 'SAR',
+            exchange_rate: line.exchange_rate ?? 1,
+            foreign_amount: line.foreign_amount ?? 0,
+            ...(line.party_id ? { party_id: line.party_id } : {}),
+            ...(line.party_name ? { party_name: line.party_name } : {}),
         }));
     },
 
@@ -44,18 +116,18 @@ export const reportService = {
             p_company_id: companyId,
             p_from: from,
             p_to: to,
-            p_branch_id: branchId || null
+            ...(branchId ? { p_branch_id: branchId } : {})
         });
         if (error) throw error;
 
-        return (data || []).map((row: any) => ({
+        return toTrialBalanceRows(data).map((row: TrialBalanceRpcRow) => ({
             account_id: row.account_id,
             code: row.account_code,
             name: row.account_name,
             type: row.account_type,
-            total_debit: Number(row.total_debit) || 0,
-            total_credit: Number(row.total_credit) || 0,
-            net_balance: Number(row.balance) || 0,
+            total_debit: row.total_debit,
+            total_credit: row.total_credit,
+            net_balance: row.balance,
             currency_code: 'SAR'
         }));
     },

@@ -259,3 +259,10 @@
 - [ ] إصلاح أخطاء TypeScript التي ظهرت عند إدراج الاختبارات في مشروع الفحص: nullability وعقود React Query وSupabase في `PurchaseMeta.tsx` و`hooks.ts` و`usePurchaseReturns.ts` و`PurchasesPage.tsx` و`purchaseFixes.ts` و`store.ts` و`types/domain.ts`.
 - [x] إضافة `tsconfig.eslint.json` وربطه بإعداد ESLint حتى تُفحص الاختبارات type-aware بدلاً من أخطاء parser الوهمية.
 - [ ] اعتماد فحص `tsconfig.eslint.json` وVitest النهائيين بعد معالجة أخطاء النوع الفعلية.
+
+## Accounting & Core stabilization pass
+- [x] تثبيت خط أساس أخطاء TypeScript وESLint في وحدتي accounting وcore وتقسيمها حسب الملف.
+- [x] إصلاح أخطاء TypeScript في وحدة accounting مع الحفاظ على عقود Supabase والمنطق المحاسبي؛ ما زالت مخالفات ESLint legacy واسعة خارج الملفات المعدلة.
+- [x] إصلاح أخطاء TypeScript في وحدة core والاختبارات التابعة لها؛ ما زالت مخالفات ESLint legacy واسعة خارج الملفات المعدلة.
+- [x] تشغيل Vitest المستهدف وTypeScript النهائيين وتوثيق أن ESLint الشامل ما زال يحتوي على مخالفات legacy خارج الإصلاحات المحددة.
+- [ ] رفع الإصلاحات المؤكدة إلى المستودع الرئيسي وإنشاء checkpoint جديد.

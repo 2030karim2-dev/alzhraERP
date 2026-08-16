@@ -9,11 +9,17 @@ export interface AppError {
   actionLabel?: string;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
 export const parseError = (error: unknown): AppError => {
-  const errorObj = error instanceof Error ? error : (typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : new Error(String(error)));
-  
-  const code = (errorObj?.code as string) || 'UNKNOWN';
-  const rawMessage = (errorObj?.message as string) || String(errorObj);
+  const errorRecord = isRecord(error) ? error : undefined;
+  const code = typeof errorRecord?.code === 'string' ? errorRecord.code : 'UNKNOWN';
+  const rawMessage = error instanceof Error
+    ? error.message
+    : typeof errorRecord?.message === 'string'
+      ? errorRecord.message
+      : String(error);
   const lowerMsg = rawMessage.toLowerCase();
 
   // Network Errors - Catch generic fetch failures

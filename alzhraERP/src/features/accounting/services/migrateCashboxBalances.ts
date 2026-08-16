@@ -24,7 +24,15 @@ export const migrateCashboxBalances = async (companyId: string) => {
 
     if (err2 || !sarCashbox) throw new Error("لم يتم العثور على صندوق الكاش السعودي. قم بتقسيم الصندوق أولاً.");
 
-    if (mainCashbox.balance === 0 || mainCashbox.balance === null) {
+    const { data: balanceRows, error: balanceError } = await supabase.rpc('report_trial_balance', {
+        p_company_id: companyId,
+        p_from: `${new Date().getFullYear()}-01-01`,
+        p_to: new Date().toISOString().split('T')[0]
+    });
+    if (balanceError) throw balanceError;
+
+    const mainBalance = balanceRows.find((row) => row.account_id === mainCashbox.id)?.balance ?? 0;
+    if (mainBalance === 0) {
         return { message: "لا يوجد رصيد لنقله في الصندوق الرئيسي." };
     }
 

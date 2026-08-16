@@ -2,7 +2,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StockMovementUsecase } from './StockMovementUsecase';
 import { inventoryApi } from '../../../features/inventory/api';
-import { costingService } from '../../../features/inventory/services/costingService';
 import { supabase } from '../../../lib/supabaseClient';
 
 // Mock dependencies

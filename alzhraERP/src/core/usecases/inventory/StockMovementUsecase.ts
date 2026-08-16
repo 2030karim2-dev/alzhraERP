@@ -32,6 +32,8 @@ export class StockMovementUsecase {
       transaction_type: StockMovementUsecase.mapTransactionType(params.type, params.quantity),
       reference_type: params.referenceType,
       reference_id: params.referenceId,
+      unit_cost: params.unitPrice ?? 0,
+      total_cost: Math.abs(params.quantity) * (params.unitPrice ?? 0),
       created_by: params.userId
     }]);
 

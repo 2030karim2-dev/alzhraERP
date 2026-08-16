@@ -55,7 +55,7 @@ export const treasuryApi = {
       p_company_id:      companyId,
       p_name:            input.name,
       p_currency_code:   input.currency_code,
-      p_branch_id:       input.branch_id ?? null,
+      ...(input.branch_id ? { p_branch_id: input.branch_id } : {}),
       p_opening_balance: input.opening_balance ?? 0,
     });
     if (error) throw error;
@@ -85,7 +85,7 @@ export const treasuryApi = {
       p_company_id:      companyId,
       p_name:            input.name,
       p_currency_code:   input.currency_code,
-      p_branch_id:       input.branch_id ?? null,
+      ...(input.branch_id ? { p_branch_id: input.branch_id } : {}),
       p_opening_balance: input.opening_balance ?? 0,
     });
     if (error) throw error;

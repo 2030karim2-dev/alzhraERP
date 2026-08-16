@@ -69,7 +69,7 @@ export const journalsApi = {
     const { data: journalId, error } = await supabase.rpc('post_manual_journal', {
       p_company_id: companyId,
       p_user_id: userId,
-      p_branch_id: data.branchId || null,
+      ...(data.branchId ? { p_branch_id: data.branchId } : {}),
       p_date: data.date,
       p_description: data.description,
       p_reference_type: data.reference_type || 'manual',

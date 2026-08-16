@@ -41,7 +41,9 @@ export const useNavigationStore = create<NavigationState>()(
       hidden: new Set<string>(),
       favorites: [],
 
-      reorder: (newOrder: string[]): void => set({ order: newOrder }),
+      reorder: (newOrder: string[]): void => {
+        set({ order: newOrder });
+      },
 
       toggleHidden: (id: string): void => {
         const newHidden = new Set(get().hidden);

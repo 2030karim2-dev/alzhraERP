@@ -2,11 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   uuidSchema,
   emailSchema,
-  phoneSchema,
   passwordSchema,
   dateSchema,
-  paginationSchema,
-  invoiceItemSchema,
   invoiceSchema,
   journalLineSchema,
   journalEntrySchema,

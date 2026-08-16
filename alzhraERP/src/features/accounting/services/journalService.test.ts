@@ -78,7 +78,7 @@ describe('journalService', () => {
 
             (journalsApi.fetchJournals as any).mockResolvedValue({ data: rawData, error: null });
 
-            const result = await journalService.formatJournalsForUI(mockCompanyId, 0);
+            const result = await journalService.formatJournalsForUI(mockCompanyId, undefined, 0);
 
             expect(result).toHaveLength(1);
 
@@ -120,7 +120,7 @@ describe('journalService', () => {
 
             (journalsApi.fetchJournals as any).mockResolvedValue({ data: rawData, error: null });
 
-            const result = await journalService.formatJournalsForUI(mockCompanyId, 0);
+            const result = await journalService.formatJournalsForUI(mockCompanyId, undefined, 0);
 
             expect(result).toHaveLength(1);
 
@@ -133,7 +133,7 @@ describe('journalService', () => {
             const apiError = new Error('Fetch failed');
             (journalsApi.fetchJournals as any).mockResolvedValue({ data: null, error: apiError });
 
-            await expect(journalService.formatJournalsForUI(mockCompanyId, 0)).rejects.toThrow('Fetch failed');
+            await expect(journalService.formatJournalsForUI(mockCompanyId, undefined, 0)).rejects.toThrow('Fetch failed');
         });
     });
 });

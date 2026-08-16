@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { logger } from './logger';
 
 describe('logger', () => {
-    let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
-    let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
-    let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
-    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-    let consoleTimeSpy: ReturnType<typeof vi.spyOn>;
-    let consoleTimeEndSpy: ReturnType<typeof vi.spyOn>;
+    let consoleDebugSpy: MockInstance<Parameters<Console['debug']>, ReturnType<Console['debug']>>;
+    let consoleInfoSpy: MockInstance<Parameters<Console['info']>, ReturnType<Console['info']>>;
+    let consoleWarnSpy: MockInstance<Parameters<Console['warn']>, ReturnType<Console['warn']>>;
+    let consoleErrorSpy: MockInstance<Parameters<Console['error']>, ReturnType<Console['error']>>;
+    let consoleTimeSpy: MockInstance<Parameters<Console['time']>, ReturnType<Console['time']>>;
+    let consoleTimeEndSpy: MockInstance<Parameters<Console['timeEnd']>, ReturnType<Console['timeEnd']>>;
 
     beforeEach(() => {
         consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => { });
