@@ -37,6 +37,19 @@ const DOMAIN_KEYS = {
     reports: ['profit_loss', 'debt_report', 'cash_flow', 'daily_sales', 'debt_aging', 'operational_expenses'],
     // AI insights
     ai: ['ai_insights', 'pos_ai_suggestions'],
+    // Commissions (incentive engine) — prefixes from `commissionQueryKeys`
+    commissions: [
+        'commission-plans',
+        'commission-periods',
+        'commission-pending',
+        'commission-calculations',
+        'commission-rules',
+        'commission-tiers',
+        'commission-report-periods',
+        'commission-report-calculations',
+    ],
+    // Debts & collection — all debt queries are prefixed with `debts`
+    debts: ['debts'],
 } as const;
 
 /**
@@ -115,6 +128,18 @@ const INVALIDATION_PRESETS = {
         'fiscal_years',
         'exchange_rates', 'supported_currencies',
         'warehouses', 'settings_warehouses',
+        ...DOMAIN_KEYS.dashboard,
+    ],
+
+    /** After modifying incentive plans/periods/engineer links/calculations */
+    commission: [
+        ...DOMAIN_KEYS.commissions,
+        ...DOMAIN_KEYS.dashboard,
+    ],
+
+    /** After modifying debt follow-ups, promises, templates, reminders */
+    debts: [
+        ...DOMAIN_KEYS.debts,
         ...DOMAIN_KEYS.dashboard,
     ],
 } as const;

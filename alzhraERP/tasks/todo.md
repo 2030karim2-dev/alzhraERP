@@ -30,7 +30,7 @@
 ## Phase D: Backend (تسلسلي)
 - [ ] Task 14: مصالحة migrations + db pull
 - [ ] Task 15: search_path (55 دالة)
-- [ ] Task 16: Realtime publication (product_stock + warehouses)
+- [ ] Task 16: Realtime publication (product_stock + warehouses) — ⏳ **الجزء الأمامي اكتمل (2026-08-16):** أُضيفت `product_stock`/`stock_movements` + جداول العمولات والديون إلى `TABLE_PRESET_MAP` مع preset×`commission`/`debts` في `invalidation.ts`؛ يتبقى جانب الخادم (publication + فلتر شركة)
 - [ ] Task 17: dedupe commit_sales_invoice overload
 - [ ] Task 18: أرشفة prc_*
 - [ ] Task 19: إسقاط fin_*

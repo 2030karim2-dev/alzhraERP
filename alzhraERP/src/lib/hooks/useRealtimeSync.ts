@@ -14,15 +14,29 @@ import { logger } from '../../core/utils/logger';
  */
 const FALLBACK_POLL_MS = 60_000;
 
-// Using 'any' for global to avoid complex typing for this specific fix
-const globalAny = window as any;
+type RealtimeChannel = ReturnType<typeof supabase.channel>;
+
+/** Minimal shape of the postgres_changes payload this hook consumes. */
+interface RealtimeChangePayload {
+    table: string;
+    eventType: string;
+    new?: Record<string, unknown>;
+    old?: Record<string, unknown>;
+}
+
+interface AlZahraGlobalRegistry {
+    __ALZ_FALLBACK_INTERVALS__?: Map<string, ReturnType<typeof setInterval>>;
+    __ALZ_CHANNELS__?: Map<string, RealtimeChannel>;
+}
 
 // Registry lives on `window` (like __ALZ_CHANNELS__) so a Vite HMR module
 // swap does not orphan a running interval that the new module cannot stop.
-if (!globalAny.__ALZ_FALLBACK_INTERVALS__) {
-    globalAny.__ALZ_FALLBACK_INTERVALS__ = new Map<string, ReturnType<typeof setInterval>>();
+const registryRef = window as unknown as AlZahraGlobalRegistry;
+let fallbackIntervals = registryRef.__ALZ_FALLBACK_INTERVALS__;
+if (!fallbackIntervals) {
+    fallbackIntervals = new Map<string, ReturnType<typeof setInterval>>();
+    registryRef.__ALZ_FALLBACK_INTERVALS__ = fallbackIntervals;
 }
-const fallbackIntervals: Map<string, ReturnType<typeof setInterval>> = globalAny.__ALZ_FALLBACK_INTERVALS__;
 
 const startFallbackPolling = (channelId: string, queryClient: QueryClient) => {
     if (fallbackIntervals.has(channelId)) return;
@@ -41,7 +55,9 @@ const stopFallbackPolling = (channelId: string) => {
     }
 };
 
-// Map database tables to invalidation presets
+// Map database tables to invalidation presets.
+// NOTE: postgres_changes respects RLS, so cross-company data is never leaked;
+// this map only decides WHICH cached queries to refresh (throttled to 5s).
 const TABLE_PRESET_MAP: Record<string, InvalidationPreset> = {
     'invoices': 'sale',
     'invoice_items': 'sale',
@@ -49,11 +65,24 @@ const TABLE_PRESET_MAP: Record<string, InvalidationPreset> = {
     'expenses': 'expense',
     'journal_entries': 'journal',
     'products': 'inventory',
+    'product_stock': 'inventory',
+    'stock_movements': 'inventory',
     'parties': 'party',
     'companies': 'settings',
     'product_categories': 'inventory',
     'warehouses': 'settings',
-    'expense_categories': 'expense'
+    'expense_categories': 'expense',
+    // Commission / incentive engine tables
+    'incentive_plans': 'commission',
+    'incentive_periods': 'commission',
+    'incentive_engineer_links': 'commission',
+    'incentive_calculations': 'commission',
+    // Debts & collection tables
+    'debt_followup_config': 'debts',
+    'debt_payment_promises': 'debts',
+    'debt_message_templates': 'debts',
+    'debt_message_log': 'debts',
+    'party_opening_balances': 'debts',
 };
 
 export const useRealtimeSync = () => {
@@ -67,11 +96,11 @@ export const useRealtimeSync = () => {
         const channelId = `global-sync-${companyId}`;
 
         // Initialize global registry if not exists
-        if (!globalAny.__ALZ_CHANNELS__) {
-            globalAny.__ALZ_CHANNELS__ = new Map<string, any>();
+        let registry = registryRef.__ALZ_CHANNELS__;
+        if (!registry) {
+            registry = new Map<string, RealtimeChannel>();
+            registryRef.__ALZ_CHANNELS__ = registry;
         }
-
-        const registry = globalAny.__ALZ_CHANNELS__;
 
         if (!registry.has(channelId)) {
             logger.debug('Realtime', `🔌 Initializing semi-persistent channel for company [${companyId}]`);
@@ -86,14 +115,14 @@ export const useRealtimeSync = () => {
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public' },
-                    (payload: any) => {
+                    (payload: RealtimeChangePayload) => {
                         useConnectionStore.getState().reportRealtimeEvent();
 
                         const now = Date.now();
                         if (now - lastInvalidated < THROTTLE_MS) return;
 
                         const table = payload.table;
-                        const preset = (TABLE_PRESET_MAP as any)[table];
+                        const preset = TABLE_PRESET_MAP[table];
                         if (preset) {
                             logger.info('Realtime', `🔄 Sync: [${table}] updated, refreshing...`);
                             invalidateByPreset(queryClient, preset);
@@ -105,7 +134,7 @@ export const useRealtimeSync = () => {
                     }
                 );
 
-            channel.subscribe((status: any) => {
+            channel.subscribe((status) => {
                 const { setRealtimeStatus } = useConnectionStore.getState();
                 if (status === 'SUBSCRIBED') {
                     logger.debug('Realtime', '✅ Realtime Connection Active');
