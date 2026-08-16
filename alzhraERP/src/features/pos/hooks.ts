@@ -21,7 +21,7 @@ export const usePOSCheckout = () => {
       return salesService.processNewSale(user.company_id, user.id, finalData);
     },
     onSuccess: (invoice) => {
-      showToast(`تمت عملية البيع بنجاح (رقم: ${invoice.invoice_number})`, 'success');
+      showToast(`تمت عملية البيع بنجاح (رقم: ${invoice?.invoice_number ?? ''})`, 'success');
       // تحديث البيانات في الخلفية
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });

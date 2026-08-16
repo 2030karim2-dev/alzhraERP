@@ -33,12 +33,12 @@
 | واجهة العرض | عربية RTL أساساً + إنجليزية (LTR) عبر `ar.json`/`en.json` |
 | حجم `src/` | 873 ملف (474 TSX + 399 TS) ≈ ~99,000 سطر |
 | أكبر ملف | `src/core/database.types.ts` (350KB) |
-| Migrations محلية | 35 (2026-05-19 → 2026-08-15) |
+| Migrations محلية | 40 (2026-05-19 → 2026-08-16) |
 | Edge Functions | 11 (Deno) |
 | اختبارات الوحدة | 30 ملف `*.test.*` + تغطية مُثبتة عند threshold ≥ 30% |
 | E2E (Playwright) | 3 سيناريوهات (auth, sales-flow, accounting-flow) عبر 5 مشاريع متصفحات |
 | حالة TS وقت الكتابة | **0 خطأ** (راجع الملخص التنفيذي) |
-| حالة Git | شجرة نظيفة، أحدث commit: `e374869` (إصلاح ESLint security plugin) |
+| حالة Git | شجرة نظيفة، أحدث commit: `46b0e63` (إصلاح 400 فواتير الشراء/البيع + مزامنة الجرد) |
 
 ### ملفات ومجلدات الحوكمة الرئيسية
 
@@ -374,11 +374,84 @@ features/<module>/
 | `src/lib/invalidation.ts` | خريطة إبطال الكاش المركزية |
 | `src/lib/hooks/useRealtimeSync.ts` | المزامنة الفورية + fallback |
 | `src/features/auth/store.ts` | جلسة المستخدم (Optimistic + onAuthStateChange) |
-| `src/core/permissions/index.tsx` | الصلاحيات (قديم) + hooks الجديدة |
+| `src/core/permissions/offlineRolePermissions.ts` | خريطة أدوار (fallback دون اتصال فقط) |
 | `src/features/inventory/service.ts` | نموذج طبقة Service للميزة الأكبر |
 | `src/features/sales/service.ts` | تدفق البيع الكامل (validation → routing → RPC → messaging) |
-| `supabase/migrations/` | المخطط الكامل (35 ملفاً) |
+| `supabase/migrations/` | المخطط الكامل (40 ملفاً) |
 | `supabase/functions/ai-proxy/index.ts` | نموذج Edge Function آمن |
+
+---
+
+---
+
+## 15. دراسة مُعمّقة لاحقة — الانهيار الأمامي بعد نجاح RPC (جلسة 2026-08-16)
+
+### 15.1 الأعراض (سجل متصفح الإنتاج)
+
+بعد تطبيق إصلاح الـ 400 على `commit_purchase_invoice`، نجحت أول فاتورتا شراء
+(المعرّفان `9a5059ab…` و`4b5d5a54…`، طريقة `cash`) ثم انهارت واجهة **المشتريات** فوراً:
+
+```
+Purchase accounting atomic RPC executed for: 9a5059ab-… Method: cash
+TypeError: Cannot read properties of undefined (reading 'invoice_number')
+    at fa (PurchasesPage-H4upeAyj.js:16:6034)
+[ERROR] [ErrorBoundary] Caught error
+[ERROR] [FeatureBoundary] Error in feature: purchases
+```
+
+### 15.2 السبب الجذري — Frontend (كان كامناً ولا يظهر إلا بعد نجاح RPC)
+
+`src/features/purchases/components/PurchaseDetailsModal.tsx`:
+
+```tsx
+const { data, isLoading } = usePurchaseDetails(invoiceId);
+const invoice = data as PurchaseDetailInvoice | null;   // أثناء أول تحميل: data === undefined
+...
+if (invoiceId === null) return null;
+...
+{invoice !== null && <ModalHeader invoice={invoice} … />}  // undefined !== null → TRUE → انهيار
+```
+
+- في **TanStack Query v5** تكون قيمة `data` هي `undefined` قبل اكتمال أول جلب (وليس `null`).
+- في JavaScript: `undefined !== null` → `true`، لذا تُمرَّر قيمة `undefined` إلى
+  `ModalHeader` الذي يقرأ `invoice.invoice_number` → `TypeError`.
+- **لماذا لم يظهر سابقاً؟** الكاش المديم في IndexedDB كان يعيد `data` فوراً عند فتح
+  تفاصيل فاتورة قديمة، فيختبئ خطأ أول-التحميل. الفاتورة **الجديدة** بلا كاش → أول
+  render أثناء التحميل يكشفه.
+
+### 15.3 الإصلاح (سطر واحد)
+
+```tsx
+const invoice = (data ?? null) as PurchaseDetailInvoice | null;
+```
+
+- `data ?? null` يطبع `undefined → null` في زمن التشغيل، فتصبح الحُراسة `invoice !== null`
+  صحيحة، ويتحول العرض إلى حالة التحميل (`ModalBody` يستخدم `isLoading`).
+- التحقق: `ModalBody` (فحص truthiness) و`ModalFooter` و`handlePrint` (optional chaining)
+  آمنة أصلاً. مودال **المبيعات** (`InvoiceDetailsModal`) سليم لأنه يستخدم
+  `isLoading ? … : invoice ? …`، وعقد `salesService.processNewSale` محمي بـ `if (result)`.
+
+### 15.4 دروس مستخلصة
+
+1. **لا** تكتب `data as T | null` ثم تحرس بـ `!== null` — طبّع أولاً: `data ?? null`.
+2. الكاش المديم (IndexedDB) **يُخفي** أخطاء أول-تحميل للبيانات القديمة ويُظهرها
+   للبيانات الجديدة فقط — ظاهرة تستحق الانتباه في كل المودالات.
+3. فحص شامل للنمط عبر `src/features/**/*.tsx` أظهر أن هذه الحالة هي الوحيدة من
+   نوعها (الباقي يستخدم فحوص truthiness/optional chaining).
+
+### 15.5 نقاط تعمّق إضافية من الجلسة
+
+- **الواجهة المعمارية سليمة**: `Component → Hook → Service → API → Supabase` مفروض
+  فعلياً (لا استدعاء `supabase` داخل المكونات؛ القراءة عبر `useQuery` والكتابة عبر
+  `useMutation` مع `invalidateByPreset`).
+- **الصلاحيات server-side مكتملة**: `assertPermission`/`usePermission` يستخدمان RPC
+  `has_permission` مع owner-bypass وfallback دون اتصال `offlineRolePermissions.ts`
+  (الحظر الحقيقي يبقى عبر RLS).
+- **المزامنة اللحظية**: `useRealtimeSync` يعتمد قناة شبه دائمة لكل `company_id` مع
+  خريطة `TABLE_PRESET_MAP` (23 جدولاً) وThrottle 5s وFallback polling 60s — متوافق
+  مع سجل المتصفح (`CHANNEL_CLOSED → 60s fallback`).
+- **مقاييس المصدر الحالية**: 873 ملف (474 TSX/399 TS)؛ 683 ملف ميزة؛ 40 ميغريشن؛
+  30 ملف اختبار وحدة.
 
 ---
 

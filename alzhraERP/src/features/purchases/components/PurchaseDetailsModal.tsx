@@ -83,7 +83,11 @@ const ModalBody = ({ invoice, isLoading, printRef }: { invoice: PurchaseDetailIn
 
 const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({ invoiceId, onClose }) => {
     const { data, isLoading } = usePurchaseDetails(invoiceId);
-    const invoice = data as PurchaseDetailInvoice | null;
+    // Fix: `useQuery` returns `data === undefined` during the first load (or on error).
+    // The `invoice !== null` guard below would then let `undefined` through and crash
+    // on `invoice.invoice_number` (TypeError: Cannot read properties of undefined).
+    // Normalize `undefined` -> `null` so the guard behaves correctly.
+    const invoice = (data ?? null) as PurchaseDetailInvoice | null;
     const { user } = useAuth();
     const { showToast } = useFeedbackStore();
     const printRef = useRef<HTMLDivElement>(null);

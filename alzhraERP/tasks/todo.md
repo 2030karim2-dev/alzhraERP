@@ -36,6 +36,7 @@
 - [x] Task 19: إسقاط fin_* — ✅ **قديمة (N/A):** الخادم الحي لا يحتوي أي جدول `fin_*`
 - ✅ **إصلاح خطأ إنتاجي حرج (2026-08-16):** `commit_purchase_invoice` كان يفشل دائماً بـ 400 — التشخيص: `fn_auto_post_invoice_journal` يُدرج القيد `posted` ثم السطور (مخالفة `prevent_posted_journal_line_modification`). أُصلح: `draft→lines→posted` + `v_net` من `total-tax`. **مُتحقق**: شراء/بيع بقيد `posted` متوازن (`balance_diff=0`).
 - ✅ **إصلاح `commit_sales_invoice_v2` (12 خطأ schema/تشغيل):** أُضيف `invoices.idempotency_key` (00005)، وأُصلحت المراجع الخاطئة (is_default, invoice_date, total_tax, payment_type, tax_rate, notes/performed_by, parties.balance, `v_item jsonb→record`, COALESCE الضريبة, `'sale'→'sales'`) — migration `00006`.
+- ✅ **إصلاح انهيار واجهة المشتريات بعد نجاح RPC (2026-08-16):** ظهر `TypeError: Cannot read properties of undefined (reading 'invoice_number')` في `PurchasesPage` بعد أول إنشاء ناجح لفواتير شراء — السبب: `PurchaseDetailsModal.tsx` يحوّل `useQuery.data` بـ `as … | null` بينما قيمتها `undefined` أثناء أول تحميل، والحُراسة `invoice !== null` تُمرّر `undefined` (لأن `undefined !== null`). أُصلح بـ `(data ?? null)`. (نفس نمط الحماية مؤكد سليم في `InvoiceDetailsModal` المبيعات)
 
 ## Phase E: i18n واللمسات
 - [ ] Task 20: تدقيق النصوص + سد فجوات الترجمة
