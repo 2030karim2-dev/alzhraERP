@@ -269,3 +269,9 @@
 
 ## GitHub فعلي
 - [ ] التحقق من التغييرات المحلية غير المرفوعة وإنشاء commit ورفعها فعلياً إلى الفرع main ثم إثبات التطابق مع origin/main.
+
+## Verification after latest GitHub sync
+- [ ] تشغيل Build وTypeScript وESLint وVitest الكاملين وتوثيق النتائج وأي إخفاقات مرتبطة بالبيئة.
+
+## ESLint 9 compatibility
+- [x] تحديث `eslint-plugin-security` إلى 4.0.1؛ زال crash الخاص بـ ESLint 9 ونجحت دفعات `src/core` و`src/features/accounting` في التشغيل، بينما أوقف الفحص الشامل لاحقاً بسبب ضغط الذاكرة مع بقاء مخالفات legacy.
