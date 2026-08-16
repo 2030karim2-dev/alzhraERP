@@ -9,16 +9,19 @@
 - [x] 224/224 + CI أخضر-واقعي + baseline 191 (≤ 192)
 
 ## Phase C1: الأمان والصلاحيات
-- [ ] Task 4: استبدال AuthorizeActionUsecase بـ usePermission (6 مواقع)
-- [ ] Task 5: القائمة الجانبية server-driven
-- [ ] Task 6: حذف المنظومة القديمة (ADR-003 Phase 3)
+- [x] Task 4: استبدال AuthorizeActionUsecase بـ usePermission (6 مواقع) — ✅ لا وجود لأي استيراد للصلاحيات القديمة؛ `assertPermission`/`usePermission` مستخدمان في accounting/bonds
+- [x] Task 5: القائمة الجانبية server-driven — ✅ `MenuItem.requiredPermission` + `useAllPermissions()` (get_user_permissions RPC) مع owner-bypass مطابق لـ assertPermission
+- [x] Task 6: حذف المنظومة القديمة (ADR-003 Phase 3) — ✅ حُذف `core/permissions/index.tsx`؛ بقي فقط `offlineRolePermissions.ts` كـ fallback دون اتصال
+
+### Checkpoint C1
+- [x] صفر استيرادات للصلاحيات القديمة + `tsc --noEmit` = 0 خطأ
 
 ## Phase C2: تصفية أخطاء TypeScript
-- [ ] Task 7: useReturnsReport.ts (15)
-- [ ] Task 8: عنقود Dashboard (~28)
-- [ ] Task 9: عنقود APIs المالية (~23)
-- [ ] Task 10: عنقود Inventory/POS (~25)
-- [ ] Task 11: الذيل المتبقي → baseline 0
+- [x] Task 7: useReturnsReport.ts (15)
+- [x] Task 8: عنقود Dashboard (~28)
+- [x] Task 9: عنقود APIs المالية (~23)
+- [x] Task 10: عنقود Inventory/POS (~25)
+- [x] Task 11: الذيل المتبقي → baseline 0 — ✅ `tsc --noEmit` = 0 والخط الأساسي مثبت في الملف (166 → 0)
 - [ ] Task 12: تقليص any (موجة أولى) → <700
 
 ## Phase C3: الذكاء الاصطناعي

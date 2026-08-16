@@ -33,7 +33,7 @@ export const MENU_ITEMS: MenuItem[] = [
 
   { id: 'purchases', labelKey: 'purchases', icon: ShoppingCart, path: ROUTES.DASHBOARD.PURCHASES, color: 'teal' },
   { id: 'reports', labelKey: 'reports', icon: BarChart3, path: ROUTES.DASHBOARD.REPORTS, color: 'slate' },
-  { id: 'settings', labelKey: 'settings', icon: Settings, path: ROUTES.DASHBOARD.SETTINGS, isOwner: true, color: 'slate' },
+  { id: 'settings', labelKey: 'settings', icon: Settings, path: ROUTES.DASHBOARD.SETTINGS, requiredPermission: 'settings:manage', color: 'slate' },
 ];
 
 export const APP_NAME = 'Alzhra Smart';

@@ -1,5 +1,6 @@
 
 import { LucideIcon } from 'lucide-react';
+import type { Permission } from './types/common';
 
 export type IconColor =
   | 'purple'
@@ -21,7 +22,13 @@ export interface MenuItem {
   icon: LucideIcon;
   path: string;
   color: IconColor;
-  isOwner?: boolean;
+  /**
+   * Server-side permission required to see this menu item.
+   * When present, visibility is decided by `useAllPermissions()`
+   * (via the `get_user_permissions()` RPC), not by client-side role
+   * checks. Replaces the legacy `isOwner` flag (ADR-003 Phase 3).
+   */
+  requiredPermission?: Permission;
 }
 
 export type ThemeColor = 'emerald' | 'purple' | 'amber' | 'blue' | 'slate' | 'red' | 'rose' | 'indigo';

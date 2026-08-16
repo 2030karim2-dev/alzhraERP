@@ -6,6 +6,7 @@ import Icon from '../../common/Icon';
 import { IconColor } from '../../../core/types';
 import { cn } from '../../../core/utils';
 import { useAuthStore } from '../../../features/auth/store';
+import { useAllPermissions } from '../../../core/hooks/usePermission';
 import { prefetchRoute } from '../../../core/utils/routePrefetcher';
 
 // This map contains all the Tailwind classes so they are not purged
@@ -34,16 +35,26 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
   const navigate = useNavigate();
   const { t, dir } = useTranslation();
   const { user } = useAuthStore();
+  // Server-driven visibility: `get_user_permissions()` RPC decides which
+  // permission-gated items this user may see (ADR-003 Phase 3).
+  const { permissions, isLoading } = useAllPermissions();
+
+  const isOwner = user?.role?.toLowerCase() === 'owner';
 
   const filteredItems = MENU_ITEMS.filter(item => {
-    // Only show items if user has permission. 
-    // Basic check: if 'isOwner' is true, user must be 'owner'.
-    // Can be expanded with AuthorizeActionUsecase if needed for finer grain.
-    if (item.isOwner) {
-      const role = user?.role?.toLowerCase();
-      return role === 'owner' || role === 'admin';
-    }
-    return true;
+    // Items without a required permission are visible to everyone.
+    if (!item.requiredPermission) return true;
+
+    // Owner bypass — `owner` is not seeded in `role_permissions`, so the
+    // server reports no permissions for it. This mirrors the server-side
+    // `assertPermission()` behavior exactly.
+    if (isOwner) return true;
+
+    // Hide permission-gated items until the server confirms access
+    // (never flash an unauthorized menu entry).
+    if (isLoading) return false;
+
+    return permissions.includes(item.requiredPermission);
   });
 
   return (

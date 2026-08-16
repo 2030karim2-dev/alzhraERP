@@ -1,7 +1,9 @@
 /**
  * usePermission — Server-Side Permission Check
  * 
- * Replaces the client-side `hasPermission()` from `src/core/permissions/index.tsx`.
+ * Replaces the deleted client-side `hasPermission()` module
+ * (`src/core/permissions/index.tsx`, removed in ADR-003 Phase 3). Only the
+ * plain offline fallback map remains at `src/core/permissions/offlineRolePermissions.ts`.
  * Queries the `has_permission()` RPC to verify permissions against the database.
  * 
  * @example
@@ -12,7 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../../features/auth/store';
 import { logger } from '../utils/logger';
-import { Role, Permission } from '../types/common';
+import { offlineHasPermission } from '../permissions/offlineRolePermissions';
 
 const PERMISSION_STALE_TIME = 5 * 60 * 1000; // 5 دقائق
 
@@ -77,16 +79,11 @@ export function assertOwner(user: { role?: string } | null): void {
   }
 }
 
-// Minimal safe wrapper over the legacy role map for the offline fallback.
+// Minimal safe offline fallback over the legacy role map. The full legacy
+// module was deleted (ADR-003 Phase 3); only the plain role→permission map
+// remains in `offlineRolePermissions.ts` for the offline/degraded case.
 async function legacyRoleHasPermission(role: string | undefined, permission: string): Promise<boolean> {
-  try {
-    const { hasPermission } = await import('../permissions/index');
-    if (!role) return false;
-    const normalized = (role.toLowerCase() === 'owner' ? 'admin' : role) as Role;
-    return hasPermission(normalized, permission as Permission);
-  } catch {
-    return false;
-  }
+  return offlineHasPermission(role, permission);
 }
 
 export function usePermission(permission: string) {
