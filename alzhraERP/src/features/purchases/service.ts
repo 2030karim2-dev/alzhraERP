@@ -88,25 +88,18 @@ export const purchasesService = {
 
     {
       const typedResult = result as unknown as PurchaseInvoiceResponse;
-      const totalAmount = data.items.reduce((sum, item) => sum + item.quantity * item.costPrice, 0);
+      // Include per-line discounts so notifications match the screen total.
+      const totalAmount = data.items.reduce((sum, item) => sum + Math.max(0, item.quantity * item.costPrice - (item.discount ?? 0)), 0);
 
-      try {
-        purchaseAccountingService.handleNewPurchase(
-          typedResult.id,
-          data,
-          companyId,
-          userId,
-          totalAmount,
-        );
-      } catch (accountingError) {
-        logger.error('PurchaseService', 'Failed to create accounting entries for invoice', {
-          invoiceId: typedResult.id,
-          companyId,
-          totalAmount,
-          error: accountingError,
-        });
-        throw accountingError;
-      }
+      // Fire-and-forget verification: warns if the RPC did not create the
+      // journal entry (never blocks the save flow).
+      void purchaseAccountingService.handleNewPurchase(
+        typedResult.id,
+        data,
+        companyId,
+        userId,
+        totalAmount,
+      );
 
       messagingService.notify(companyId, 'purchase', {
         invoiceNumber: typedResult.invoice_number,

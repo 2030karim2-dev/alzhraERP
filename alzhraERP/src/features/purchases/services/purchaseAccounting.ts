@@ -1,26 +1,37 @@
 
-// import { supabase } from '../../../lib/supabaseClient';
-// import { accountsService } from '../../accounting/services/accountsService';
-// import { journalService } from '../../accounting/services/journalService';
-// import { bondsService } from '../../bonds/service';
+import { supabase } from '../../../lib/supabaseClient';
+import { logger } from '../../../core/utils/logger';
 import type { CreatePurchaseDTO } from '../types';
-// import { routeToChildByCurrency } from '../../../core/utils/accountRouting';
 
 export const purchaseAccountingService = {
     /**
-     * Handle accounting side-effects for a new purchase.
-     * 
-     * IMPORTANT: The `commit_purchase_invoice` RPC already creates:
-     *   Dr Purchases (5201) / Cr Supplier (2201)
-     * 
-     * So we do NOT create that entry again. We only need to handle cash purchases:
-     * - Cash: Create a transfer entry Dr Supplier / Cr Cash (to move amount from payable to cash)
-     * - Credit: Do nothing (RPC already handled it correctly)
+     * Post-commit accounting verification (fire-and-forget).
+     *
+     * `commit_purchase_invoice` is expected to create the journal entry
+     * (Dr Purchases / Cr Supplier) natively. This check queries the journal
+     * and warns when it is missing, so a "successful save without a journal
+     * entry" is never silent. It never throws — the save flow must not be
+     * blocked by verification.
      */
-    handleNewPurchase: (...args: [string, CreatePurchaseDTO, string, string, number]): void => {
-        const [invoiceId, data] = args;
-        console.info('Purchase accounting atomic RPC executed for:', invoiceId, 'Method:', data.paymentMethod);
-        console.info('The RPC commit_purchase_invoice already handled all accounting entries natively.');
+    handleNewPurchase: async (...args: [string, CreatePurchaseDTO, string, string, number]): Promise<void> => {
+        const [invoiceId] = args;
+        try {
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .select('id')
+                .eq('reference_id', invoiceId)
+                .is('deleted_at', null)
+                .limit(1);
+
+            if (error) throw error;
+
+            if (data.length === 0) {
+                logger.warn('PurchaseAccounting', 'No journal entry found for purchase invoice after commit', { invoiceId });
+            }
+        } catch (err) {
+            logger.warn('PurchaseAccounting', 'Post-commit journal verification failed', { invoiceId, error: err });
+        }
     }
 };
+
 
