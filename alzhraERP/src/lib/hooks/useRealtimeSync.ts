@@ -12,7 +12,16 @@ import { logger } from '../../core/utils/logger';
  * refetchOnMount=false). While the channel is down we invalidate all
  * active queries every 60s so users keep seeing fresh data.
  */
-const FALLBACK_POLL_MS = 60_000;
+const FALLBACK_POLL_BASE_MS = 60_000;
+const FALLBACK_POLL_MAX_MS = 240_000;
+
+interface FallbackPollState {
+    interval: ReturnType<typeof setInterval>;
+    /** Guards against overlapping polls during slow/degraded networks. */
+    running: boolean;
+    /** Consecutive poll cycles while the channel stays down (drives backoff). */
+    failures: number;
+}
 
 type RealtimeChannel = ReturnType<typeof supabase.channel>;
 
@@ -25,32 +34,75 @@ interface RealtimeChangePayload {
 }
 
 interface AlZahraGlobalRegistry {
-    __ALZ_FALLBACK_INTERVALS__?: Map<string, ReturnType<typeof setInterval>>;
+    __ALZ_FALLBACK_INTERVALS__?: Map<string, FallbackPollState>;
     __ALZ_CHANNELS__?: Map<string, RealtimeChannel>;
 }
 
 // Registry lives on `window` (like __ALZ_CHANNELS__) so a Vite HMR module
 // swap does not orphan a running interval that the new module cannot stop.
 const registryRef = window as unknown as AlZahraGlobalRegistry;
-let fallbackIntervals = registryRef.__ALZ_FALLBACK_INTERVALS__;
-if (!fallbackIntervals) {
-    fallbackIntervals = new Map<string, ReturnType<typeof setInterval>>();
-    registryRef.__ALZ_FALLBACK_INTERVALS__ = fallbackIntervals;
+let fallbackPolls = registryRef.__ALZ_FALLBACK_INTERVALS__;
+if (!fallbackPolls) {
+    fallbackPolls = new Map<string, FallbackPollState>();
+    registryRef.__ALZ_FALLBACK_INTERVALS__ = fallbackPolls;
 }
 
+/**
+ * One fallback-poll cycle while the Realtime channel is down.
+ *
+ * The previous implementation called `queryClient.invalidateQueries()` (ALL keys,
+ * every 60s) — a thundering herd that re-fired products(10000), quotations,
+ * parties, permissions and 6 dashboard RPCs at once. This poll instead:
+ *   - refetches ONLY queries mounted on screen (`type: 'active'`),
+ *   - never overlaps itself (skips a tick while the previous poll is in flight),
+ *   - skips entirely while the tab is hidden or the browser is offline,
+ *   - backs off 60s → 120s → 240s while the channel stays down.
+ */
+const pollNow = async (channelId: string, queryClient: QueryClient, state: FallbackPollState) => {
+    if (state.running) return;
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    state.running = true;
+    try {
+        await queryClient.refetchQueries({ type: 'active' });
+    } catch {
+        // `refetchQueries` resolves even when individual queries fail; this only
+        // guards against synchronous throws.
+    } finally {
+        state.running = false;
+        // Adaptive backoff while the outage persists (reset when the channel restores).
+        clearInterval(state.interval);
+        const delay = Math.min(
+            FALLBACK_POLL_BASE_MS * 2 ** Math.min(state.failures, 2),
+            FALLBACK_POLL_MAX_MS
+        );
+        state.failures = Math.min(state.failures + 1, 10);
+        state.interval = setInterval(() => void pollNow(channelId, queryClient, state), delay);
+    }
+};
+
 const startFallbackPolling = (channelId: string, queryClient: QueryClient) => {
-    if (fallbackIntervals.has(channelId)) return;
-    logger.warn('Realtime', `⚠️ Channel down — starting ${FALLBACK_POLL_MS / 1000}s fallback polling`);
-    fallbackIntervals.set(channelId, setInterval(() => {
-        queryClient.invalidateQueries();
-    }, FALLBACK_POLL_MS));
+    if (fallbackPolls.has(channelId)) return;
+    logger.warn('Realtime', `⚠️ Channel down — starting fallback polling (every ${FALLBACK_POLL_BASE_MS / 1000}s, active queries only)`);
+
+    const state: FallbackPollState = {
+        interval: setInterval(() => void pollNow(channelId, queryClient, state), FALLBACK_POLL_BASE_MS),
+        running: false,
+        failures: 0,
+    };
+
+    fallbackPolls.set(channelId, state);
+    // Kick off an immediate first poll so users aren't stuck with stale data
+    // for up to 60s.
+    void pollNow(channelId, queryClient, state);
 };
 
 const stopFallbackPolling = (channelId: string) => {
-    const handle = fallbackIntervals.get(channelId);
-    if (handle) {
-        clearInterval(handle);
-        fallbackIntervals.delete(channelId);
+    const state = fallbackPolls.get(channelId);
+    if (state) {
+        clearInterval(state.interval);
+        fallbackPolls.delete(channelId);
         logger.info('Realtime', '✅ Channel restored — fallback polling stopped');
     }
 };

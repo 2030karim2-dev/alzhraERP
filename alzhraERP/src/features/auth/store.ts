@@ -142,7 +142,11 @@ export const useAuthStore = create<AuthState>()(
                 isLoading: false,
                 isReady: true,
               });
-              queryClient.invalidateQueries();
+              // ⚡ Targeted invalidation instead of a blanket invalidateQueries():
+              // a global invalidation refires EVERY mounted query (products×10000,
+              // dashboard 6×RPC, quotations, parties, ...) at once — a request
+              // storm on a flaky connection.
+              queryClient.invalidateQueries({ type: 'active' });
             } else if (!persistedUser) {
               // ⚡ Profile RPC failed — try direct query to get company_id before giving up
               let recoveredCompanyId: string | undefined;
@@ -175,7 +179,7 @@ export const useAuthStore = create<AuthState>()(
                 isLoading: false,
                 isReady: true,
               });
-              queryClient.invalidateQueries();
+              queryClient.invalidateQueries({ type: 'active' });
             }
 
           } else if (!persistedUser) {
@@ -221,7 +225,8 @@ export const useAuthStore = create<AuthState>()(
                       isLoading: false,
                       isReady: true
                     });
-                    queryClient.invalidateQueries();
+                    // ⚡ Targeted invalidation (active-only) — see initialize().
+                    queryClient.invalidateQueries({ type: 'active' });
                   }
                 } catch (e) {
                   logger.warn('Auth', `Profile fetch after ${event} failed`);

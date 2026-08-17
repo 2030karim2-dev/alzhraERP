@@ -52,8 +52,8 @@ export const productService = {
     /**
      * Get all products for a company
      */
-    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000, warehouseId?: string): Promise<Product[]> => {
-        const { data, error } = await inventoryApi.getProducts(companyId, page, limitNum);
+    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000, warehouseId?: string, signal?: AbortSignal): Promise<Product[]> => {
+        const { data, error } = await inventoryApi.getProducts(companyId, page, limitNum, signal);
         if (error) throw error;
         return productService.mapRawProducts(data || [], warehouseId);
     },

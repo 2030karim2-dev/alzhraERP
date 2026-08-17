@@ -5,11 +5,11 @@ import type { ProductUOM } from '../types';
 
 /** Products CRUD and search */
 export const productsApi = {
-    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000) => {
+    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000, signal?: AbortSignal) => {
         const from = (page - 1) * limitNum;
         const to = from + limitNum - 1;
 
-        return await supabase.from('products')
+        const query = supabase.from('products')
             .select(`
                 id,
                 company_id,
@@ -41,6 +41,11 @@ export const productsApi = {
             .is('deleted_at', null)
             .order('created_at', { ascending: false })
             .range(from, to);
+
+        // Let TanStack Query cancel this heavy request (10000 products + stock
+        // join) at the network layer when a newer fetch supersedes it, instead
+        // of leaving it hanging in the browser connection pool for up to 45s.
+        return signal ? query.abortSignal(signal) : query;
     },
 
     getProductById: async (id: string) => {

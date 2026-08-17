@@ -16,6 +16,13 @@ function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { mes
         return fallback;
     }
     if (result.status === 'rejected') {
+        const reason = result.reason as { name?: string } | null | undefined;
+        // Requests aborted because a newer fetch superseded them (e.g. the
+        // fallback poll fired while the previous one was still in flight) are
+        // not real failures — stay quiet and use the fallback.
+        if (reason?.name === 'AbortError') {
+            return fallback;
+        }
         console.warn(`[Dashboard API] ${name} rejected, using fallback:`, result.reason);
         return fallback;
     }
@@ -99,13 +106,19 @@ export const dashboardApi = {
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
         const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes] = await Promise.allSettled([
+            // NOTE: dashboard RPCs are non-critical (safeData falls back to
+            // zeros/empty arrays). They opt out of network retries via the
+            // `x-skip-network-retry` header so a flaky connection cannot amplify
+            // 6 parallel calls × retries into a request storm.
             // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
             supabase.rpc('get_dashboard_summary', {
                 p_company_id: companyId,
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
 
             // 2. Sales Chart Data
             supabase.rpc('get_sales_chart_data', {
@@ -113,20 +126,26 @@ export const dashboardApi = {
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
 
             // 3. Top Products & Customers
             supabase.rpc('get_top_products_and_customers', {
                 p_company_id: companyId,
                 p_limit: 5,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
 
             // 4. Low Stock Products
             supabase.rpc('get_low_stock_products', {
                 p_company_id: companyId,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
 
             // 5. Expense Categories Summary
             supabase.rpc('get_expense_categories_summary', {
@@ -134,7 +153,9 @@ export const dashboardApi = {
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
 
             // 6. Trial Balance for Net Profit
             supabase.rpc('report_trial_balance', {
@@ -142,7 +163,9 @@ export const dashboardApi = {
                 p_from: '2000-01-01',
                 p_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            }).abortSignal(activeSignal),
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array

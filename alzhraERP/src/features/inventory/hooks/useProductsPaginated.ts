@@ -153,37 +153,10 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
   }, [page, query.data, companyId, pageSize, debouncedSearch, sortKey, sortDir, branchId, queryClient]);
 
   // ── Real-time invalidation ───────────────────────────────────────────────
-
-  // Semi-persistent channel (singleton per company) to prevent the
-  // "cannot add callbacks after subscribe()" race during StrictMode/HMR.
-  useEffect(() => {
-    if (!companyId) return;
-
-    const channelKey = `products_paginated_rt_${companyId}`;
-    const globalAny = window as any;
-    if (!globalAny.__ALZ_PAGINATED_CHANNELS__) {
-      globalAny.__ALZ_PAGINATED_CHANNELS__ = new Map<string, any>();
-    }
-    const registry: Map<string, any> = globalAny.__ALZ_PAGINATED_CHANNELS__;
-
-    if (!registry.has(channelKey)) {
-      const channel = supabase
-        .channel(channelKey)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'products', filter: `company_id=eq.${companyId}` },
-          () => {
-            // Invalidate all paginated product queries so all pages refresh
-            void queryClient.invalidateQueries({ queryKey: ['products_paginated', companyId] });
-          }
-        )
-        .subscribe();
-
-      registry.set(channelKey, channel);
-    }
-
-    return () => { /* no-op: keep channel alive for stability */ };
-  }, [companyId, queryClient]);
+  // Handled by the app-wide `useRealtimeSync` global channel: 'products' changes
+  // map to the 'inventory' preset, which now includes the 'products_paginated'
+  // key prefix (see src/lib/invalidation.ts). A dedicated per-hook channel was
+  // redundant and only added WebSocket subscribe churn.
 
   // ── Navigation helpers ───────────────────────────────────────────────────
 

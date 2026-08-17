@@ -24,13 +24,13 @@ const DOMAIN_KEYS = {
     // Purchases related
     purchases: ['purchases', 'purchase_stats', 'purchase_details', 'purchases_analytics'],
     // Inventory related
-    inventory: ['products', 'product_search', 'warehouses', 'inventory_categories', 'transfers', 'audit_sessions'],
+    inventory: ['products', 'product_search', 'products_paginated', 'warehouses', 'inventory_categories', 'transfers', 'audit_sessions'],
     // Expenses related
     expenses: ['expenses', 'expense_categories', 'next_expense_number'],
     // Accounting related
     accounting: ['journals', 'accounts', 'financials', 'journal_entries'],
     // Dashboard
-    dashboard: ['dashboard_data', 'dashboard'],
+    dashboard: ['dashboard_data', 'dashboard', 'dashboard_raw_data'],
     // Parties (Customers & Suppliers)
     parties: ['parties', 'party_categories', 'customers', 'suppliers'],
     // Reports

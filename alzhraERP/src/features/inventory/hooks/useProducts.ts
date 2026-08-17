@@ -3,70 +3,27 @@ import { inventoryService } from '../service';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { ProductFormData } from '../types';
-import { useMemo, useEffect } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
-import { logger } from '../../../core/utils/logger';
+import { useMemo } from 'react';
 import { syncStore } from '../../../core/lib/sync-store';
 
-// Global registry to prevent duplicate/racing realtime channels
-// Follows the same semi-persistent pattern used in useRealtimeSync.ts
-const globalAny = window as any;
-if (!globalAny.__ALZ_PRODUCT_CHANNELS__) {
-    globalAny.__ALZ_PRODUCT_CHANNELS__ = new Map<string, any>();
-}
-const channelRegistry: Map<string, any> = globalAny.__ALZ_PRODUCT_CHANNELS__;
-
 export const useProducts = (searchTerm: string = '', options: { limitNum?: number, enabled?: boolean, warehouseId?: string } = {}) => {
-    const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const companyId = user?.company_id;
 
     const query = useQuery({
         queryKey: ['products', companyId, options.limitNum, options.warehouseId],
-        queryFn: () => companyId ? inventoryService.getProducts(companyId, 1, options.limitNum || 10000, options.warehouseId) : Promise.resolve([]),
+        // The signal lets TanStack Query cancel this heavy (up to 10000-row)
+        // fetch at the network layer when it is superseded or unmounted.
+        queryFn: ({ signal }) => companyId ? inventoryService.getProducts(companyId, 1, options.limitNum || 10000, options.warehouseId, signal) : Promise.resolve([]),
         enabled: (options.enabled !== undefined ? options.enabled : true) && !!companyId,
         staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent tab-switching lag
     });
 
-    // Semi-persistent Realtime channel (singleton per company).
-    // We intentionally do NOT remove the channel on unmount to avoid the
-    // "cannot add postgres_changes callbacks after subscribe()" race condition
-    // that occurs during StrictMode double-mount, HMR, or rapid tab switching.
-    useEffect(() => {
-        if (!companyId) return;
-
-        const channelKey = `products_realtime_${companyId}`;
-
-        // Reuse existing channel if already subscribed
-        if (!channelRegistry.has(channelKey)) {
-            logger.debug('Products', `Creating realtime channel [${channelKey}]`);
-            const channel = supabase
-                .channel(channelKey)
-                .on(
-                    'postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'products',
-                        filter: `company_id=eq.${companyId}`
-                    },
-                    (payload: any) => {
-                        logger.debug('Products', 'Inventory updated via realtime', JSON.stringify(payload));
-                        queryClient.invalidateQueries({ queryKey: ['products', companyId] });
-                    }
-                )
-                .subscribe((status: any) => {
-                    if (status === 'SUBSCRIBED') {
-                        logger.debug('Products', `Realtime channel [${channelKey}] subscribed`);
-                    }
-                });
-
-            channelRegistry.set(channelKey, channel);
-        }
-
-        // No-op cleanup: keep the channel alive to prevent the subscribe race
-        return () => { /* intentional no-op for channel stability */ };
-    }, [companyId, queryClient]);
+    // NOTE: live updates for `products` are handled by the app-wide
+    // `useRealtimeSync` global channel (TABLE_PRESET_MAP['products'] → the
+    // 'inventory' preset → invalidates ['products', ...]). A dedicated per-hook
+    // channel was redundant and only added extra WebSocket subscribe churn on
+    // an already-flaky connection.
 
     const filteredProducts = useMemo(() => {
         const products = query.data || [];

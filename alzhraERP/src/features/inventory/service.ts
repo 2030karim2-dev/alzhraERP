@@ -32,8 +32,8 @@ export const inventoryService = {
   // Product Operations (delegated to productService)
   // ==========================================
 
-  getProducts: async (companyId: string, page?: number, limitNum?: number, warehouseId?: string): Promise<Product[]> => {
-    return productService.getProducts(companyId, page, limitNum, warehouseId);
+  getProducts: async (companyId: string, page?: number, limitNum?: number, warehouseId?: string, signal?: AbortSignal): Promise<Product[]> => {
+    return productService.getProducts(companyId, page, limitNum, warehouseId, signal);
   },
 
   searchProducts: async (companyId: string, term: string) => {

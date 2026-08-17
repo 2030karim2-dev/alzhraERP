@@ -42,10 +42,51 @@ export const isSupabaseConfigured = SUPABASE_CONFIG_ERROR === null;
 // Vitest runs with MODE='test' — the mock client is a unit-test-only fallback.
 const isUnitTest = import.meta.env.MODE === 'test';
 
-// Custom fetch with timeout and retry logic
+// ── Network circuit breaker ────────────────────────────────────────────────────
+// When the Supabase host is unreachable (ISP outage, region issue, firewall),
+// retrying EVERY in-flight request 3× turns a short hiccup into a self-sustaining
+// request storm (thundering herd) that saturates the browser connection pool and
+// delays recovery. After N consecutive network failures the circuit opens: every
+// request fails fast (single attempt, no retry) until a request succeeds again.
+const CIRCUIT_THRESHOLD = 3;      // consecutive network failures before opening
+const CIRCUIT_RESET_MS = 30_000;  // cooldown before retries are allowed again
+let consecutiveNetworkFailures = 0;
+let circuitOpenedAt = 0;
+
+const isCircuitOpen = (): boolean =>
+  consecutiveNetworkFailures >= CIRCUIT_THRESHOLD &&
+  Date.now() - circuitOpenedAt < CIRCUIT_RESET_MS;
+
+const reportNetworkFailure = (): void => {
+  consecutiveNetworkFailures += 1;
+  if (consecutiveNetworkFailures === CIRCUIT_THRESHOLD) {
+    circuitOpenedAt = Date.now();
+    logger.warn('Supabase', `⚠️ Circuit open — ${CIRCUIT_THRESHOLD} consecutive network failures; failing fast for ${CIRCUIT_RESET_MS / 1000}s`);
+  }
+};
+
+const reportNetworkSuccess = (): void => {
+  if (consecutiveNetworkFailures >= CIRCUIT_THRESHOLD) {
+    logger.info('Supabase', '✅ Network recovered — circuit closed');
+  }
+  consecutiveNetworkFailures = 0;
+  circuitOpenedAt = 0;
+};
+
+// Custom fetch with timeout, bounded retry and circuit breaker
 const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 2;
   let lastError: Error | unknown;
+
+  const skipRetry =
+    (() => {
+      const headers = options.headers;
+      if (headers && typeof (headers as Record<string, string>).has === 'function') {
+        // `Headers` instance
+        return (headers as Headers).get('x-skip-network-retry') === '1';
+      }
+      return (headers as Record<string, string> | undefined)?.['x-skip-network-retry'] === '1';
+    })();
 
   for (let i = 0; i <= MAX_RETRIES; i++) {
     const timeoutController = new AbortController();
@@ -85,6 +126,7 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
 
       // Notify store of success
       useConnectionStore.getState().reportSuccess();
+      reportNetworkSuccess();
 
       return response;
     } catch (error: unknown) {
@@ -122,9 +164,20 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
         errorMessage.includes('etimedout') ||
         error instanceof TypeError;
 
-      if (i < MAX_RETRIES && isNetworkError) {
-        const reason = isOffline ? 'offline' : 'network instability';
-        logger.warn('Supabase', `Request failed (${reason}), retrying ${i + 1}/${MAX_RETRIES}...`, { attempt: i + 1 });
+      // Offline → fail fast; retrying an unreachable network is pure waste.
+      if (isOffline) {
+        reportNetworkFailure();
+        lastError = err;
+        break;
+      }
+
+      if (isNetworkError) {
+        reportNetworkFailure();
+      }
+
+      // Retry only while the circuit is closed and the request opted in.
+      if (i < MAX_RETRIES && isNetworkError && !skipRetry && !isCircuitOpen()) {
+        logger.warn('Supabase', `Request failed (network instability), retrying ${i + 1}/${MAX_RETRIES}...`, { attempt: i + 1 });
 
         const backoff = (Math.pow(2, i) * 1000) + Math.random() * 500;
         await new Promise(resolve => setTimeout(resolve, backoff));
@@ -194,9 +247,11 @@ export const supabase: ReturnType<typeof createClient<Database>> = (() => {
         db: {
           schema: 'public',
         },
-        // Add retry configuration
+        // Realtime channel subscribe timeout. A shorter timeout lets a dead socket
+        // surface as CHANNEL_ERROR faster, so fallback polling starts sooner
+        // instead of leaving users staring at stale data for 45s.
         realtime: {
-          timeout: 45000,
+          timeout: 15000,
         },
       }
     );
