@@ -4,6 +4,31 @@ import { accountsApi } from '../api/accountsApi';
 // Fix: Added missing supabase import
 import { supabase } from '../../../lib/supabaseClient';
 
+// دليل الحسابات الافتراضي (بالريال السعودي) — يستخدمه seedDefaultAccounts
+const DEFAULT_CHART_OF_ACCOUNTS: Array<{
+  code: string;
+  name_ar: string;
+  type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  parent?: string;
+}> = [
+  { code: '1000', name_ar: 'الأصول', type: 'asset' },
+  { code: '1010', name_ar: 'الصناديق', type: 'asset', parent: '1000' },
+  { code: '1020', name_ar: 'البنوك', type: 'asset', parent: '1000' },
+  { code: '1030', name_ar: 'شركات الصرافة', type: 'asset', parent: '1000' },
+  { code: '1100', name_ar: 'ذمم العملاء', type: 'asset', parent: '1000' },
+  { code: '1200', name_ar: 'المخزون', type: 'asset', parent: '1000' },
+  { code: '2000', name_ar: 'الخصوم', type: 'liability' },
+  { code: '2100', name_ar: 'ذمم الموردين', type: 'liability', parent: '2000' },
+  { code: '2200', name_ar: 'ضريبة القيمة المضافة', type: 'liability', parent: '2000' },
+  { code: '3000', name_ar: 'حقوق الملكية', type: 'equity' },
+  { code: '3100', name_ar: 'رأس المال', type: 'equity', parent: '3000' },
+  { code: '3900', name_ar: 'رصيد افتتاحي', type: 'equity', parent: '3000' },
+  { code: '4000', name_ar: 'الإيرادات', type: 'revenue' },
+  { code: '4100', name_ar: 'المبيعات', type: 'revenue', parent: '4000' },
+  { code: '5000', name_ar: 'المصروفات', type: 'expense' },
+  { code: '5100', name_ar: 'تكلفة البضاعة المباعة', type: 'expense', parent: '5000' },
+];
+
 // Verification point
 export const accountsService = {
   getAccounts: async (companyId: string, options?: { includeBalances?: boolean }): Promise<Account[]> => {
@@ -32,18 +57,26 @@ export const accountsService = {
     }
 
     // Map to Account model
-    return (data ?? []).map((acc) => ({
-      id: acc.id,
-      company_id: acc.company_id,
-      code: acc.code,
-      name: acc.name_ar,
-      type: acc.type as Account['type'],
-      balance: balanceMap.get(acc.id) ?? 0,
-      currency_code: acc.currency_code || 'SAR',
-      is_system: acc.is_system,
-      parent_id: acc.parent_id ?? undefined,
-      allow_posting: acc.allow_posting ?? true
-    }));
+    return (data ?? []).map((acc) => {
+        // report_trial_balance returns flat `balance = SUM(debit) - SUM(credit)`
+        // for every account type. Normalise the sign by type so that
+        // liabilities / equity / revenue appear as positive CREDIT balances
+        // (standard accounting presentation) instead of negative numbers.
+        const rawBalance = balanceMap.get(acc.id) ?? 0;
+        const isCreditNormal = acc.type === 'liability' || acc.type === 'equity' || acc.type === 'revenue';
+        return {
+            id: acc.id,
+            company_id: acc.company_id,
+            code: acc.code,
+            name: acc.name_ar,
+            type: acc.type as Account['type'],
+            balance: isCreditNormal ? -rawBalance : rawBalance,
+            currency_code: acc.currency_code || 'SAR',
+            is_system: acc.is_system,
+            parent_id: acc.parent_id ?? undefined,
+            allow_posting: acc.allow_posting ?? true
+        };
+    });
   },
 
 
@@ -54,7 +87,7 @@ export const accountsService = {
       name_ar: data.name,
       type: data.type,
       parent_id: data.parent_id || null,
-      currency_code: 'SAR',
+      currency_code: data.currency_code ?? 'SAR',
       is_system: false
     });
 
@@ -81,8 +114,45 @@ export const accountsService = {
   },
 
   // Fix: Added missing seedDefaultAccounts method
-  seedDefaultAccounts: async (_companyId: string) => {
-    // Logic for seeding default chart of accounts
+  // إنشاء دليل الحسابات الافتراضي — إدراج الرموز الناقصة فقط (idempotent)
+  seedDefaultAccounts: async (companyId: string) => {
+    const { data: existing } = await supabase
+      .from('accounts')
+      .select('code')
+      .eq('company_id', companyId)
+      .is('deleted_at', null);
+    const existingCodes = new Set(existing?.map((a) => a.code) || []);
+    const codeToId = new Map<string, string>();
+
+    for (const acc of DEFAULT_CHART_OF_ACCOUNTS) {
+      if (existingCodes.has(acc.code)) {
+        const { data: row } = await supabase
+          .from('accounts')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('code', acc.code)
+          .maybeSingle();
+        if (row) codeToId.set(acc.code, row.id);
+        continue;
+      }
+
+      const { data: created, error } = await supabase
+        .from('accounts')
+        .insert({
+          company_id: companyId,
+          code: acc.code,
+          name_ar: acc.name_ar,
+          type: acc.type,
+          currency_code: 'SAR',
+          is_system: true,
+          parent_id: typeof acc.parent === 'string' ? codeToId.get(acc.parent) ?? null : null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      codeToId.set(acc.code, created.id);
+    }
+
     return true;
   },
 

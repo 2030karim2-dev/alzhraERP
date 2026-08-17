@@ -7,6 +7,7 @@ export interface LedgerEntry {
   debit_amount: number;
   credit_amount: number;
   balance: number; // Running balance
+  branch_id?: string | null;
   currency_code?: string;
   exchange_rate?: number;
   foreign_amount?: number;

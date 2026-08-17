@@ -41,6 +41,7 @@ export const useJournalMutation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
+  const { branchId } = useBranchFilter();
 
   const mutation = useMutation({
     mutationFn: async (data: JournalEntryFormData) => {
@@ -50,7 +51,7 @@ export const useJournalMutation = () => {
       await assertPermission('accounting:create', 'ترحيل قيود محاسبية');
 
       // 2. التنفيذ عبر Usecase لضمان صحة السنة المالية والتوازن
-      return PostTransactionUsecase.execute(data, user.company_id, user.id);
+      return PostTransactionUsecase.execute(data, user.company_id, user.id, branchId);
     },
     onSuccess: () => {
       invalidateByPreset(queryClient, 'journal');

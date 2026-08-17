@@ -47,7 +47,9 @@ describe('PostTransactionUsecase', () => {
                     { account_id: validUUID1, debit: 100, credit: 0, description: 'Line 1' },
                     { account_id: validUUID2, debit: 0, credit: 100, description: 'Line 2' }
                 ],
-                reference_type: 'manual'
+                reference_type: 'manual',
+                currency_code: 'SAR',
+                exchange_rate: 1
             }
         );
         expect(result).toBe(expectedJournalId);

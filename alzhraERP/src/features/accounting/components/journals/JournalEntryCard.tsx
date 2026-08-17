@@ -134,7 +134,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
                     <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
                         <div className="flex items-center  max-md:gap-2">
                             <User size={12} />
-                            <span>تم الإنشاء بواسطة: {entry.created_by_user?.email || 'System'}</span>
+                            <span>تم الإنشاء بواسطة: {entry.created_by_profile?.full_name || 'System'}</span>
                         </div>
                         <div className="font-mono tracking-widest opacity-50">{entry.id}</div>
                     </div>

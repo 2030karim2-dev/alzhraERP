@@ -96,9 +96,9 @@ export const useAccountMutations = () => {
 
   const migrateCashboxBalances = useMutation({
     mutationFn: async () => {
-      if (!user?.company_id) throw new Error("No Company ID");
+      if (!user?.company_id || !user?.id) throw new Error("No Company ID");
       const { migrateCashboxBalances: migrateScript } = await import('../services/migrateCashboxBalances');
-      return migrateScript(user.company_id);
+      return migrateScript(user.company_id, user.id);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });

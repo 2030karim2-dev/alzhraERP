@@ -34,8 +34,19 @@ export const accountsApi = {
       .is('deleted_at', null);
 
     if (checkError) throw checkError;
-    if (count && count > 0) {
+    if ((count ?? 0) > 0) {
       throw new Error('لا يمكن حذف حساب له قيود محاسبية مرتبطة. قم بتصفير الرصيد أولاً.');
+    }
+
+    // Safety check: prevent deleting an account that has children accounts
+    const { count: childrenCount, error: childrenError } = await supabase.from('accounts')
+      .select('id', { count: 'exact', head: true })
+      .eq('parent_id', id)
+      .is('deleted_at', null);
+
+    if (childrenError) throw childrenError;
+    if ((childrenCount ?? 0) > 0) {
+      throw new Error('لا يمكن حذف حساب رئيسي له حسابات فرعية مرتبطة.');
     }
 
     return await supabase.from('accounts')

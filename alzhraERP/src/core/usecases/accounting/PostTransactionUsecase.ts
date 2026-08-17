@@ -3,7 +3,7 @@ import { journalEntrySchema, type JournalEntry } from '../../validators';
 import { journalsApi } from '../../../features/accounting/api/journalsApi';
 
 export class PostTransactionUsecase {
-  static async execute(data: JournalEntry, companyId: string, userId: string): Promise<string> {
+  static async execute(data: JournalEntry, companyId: string, userId: string, branchId?: string | null): Promise<string> {
     // 1. التحقق من صحة البيانات (Client-Side Validation)
     const validatedData = journalEntrySchema.parse(data);
 
@@ -20,7 +20,10 @@ export class PostTransactionUsecase {
                 credit: line.credit_amount,
                 description: line.description
             })),
-            reference_type: validatedData.reference_type || 'manual'
+            reference_type: validatedData.reference_type ?? 'manual',
+            currency_code: validatedData.currency_code ?? 'SAR',
+            exchange_rate: validatedData.exchange_rate ?? 1,
+            ...(branchId != null ? { branchId } : {})
         }
     );
 

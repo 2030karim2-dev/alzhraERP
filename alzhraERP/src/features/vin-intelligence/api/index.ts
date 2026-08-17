@@ -98,9 +98,12 @@ export const vinApi = {
   },
 
   saveVinAnalysis: async (payload: TableInsert<'vin_analyses'>) => {
+    // PostgREST expects COLUMN names in `on_conflict` (not the constraint name).
+    // Passing the constraint name ("uq_vin_analyses_company_vin") returns 400:
+    //   column "uq_vin_analyses_company_vin" does not exist
     const { data, error } = await supabase
       .from('vin_analyses')
-      .upsert(payload, { onConflict: 'uq_vin_analyses_company_vin' })
+      .upsert(payload, { onConflict: 'company_id,vin' })
       .select()
       .single();
     if (error) throw error;
@@ -115,9 +118,10 @@ export const vinApi = {
   },
 
   linkVehicleProduct: async (payload: TableInsert<'vehicle_products'>): Promise<VehicleProductLink> => {
+    // PostgREST expects COLUMN names in `on_conflict` (not the constraint name).
     const { data, error } = await supabase
       .from('vehicle_products')
-      .upsert(payload, { onConflict: 'uq_vehicle_product' })
+      .upsert(payload, { onConflict: 'vehicle_id,product_id' })
       .select()
       .single();
     if (error) throw error;
@@ -131,9 +135,13 @@ export const vinApi = {
 
   // ── part_compatibility (graph edge) ──────────────────────
   upsertPartCompatibility: async (payload: TableInsert<'part_compatibility'>) => {
+    // PostgREST expects COLUMN names in `on_conflict` (not the constraint name).
     const { data, error } = await supabase
       .from('part_compatibility')
-      .upsert(payload, { onConflict: 'uq_part_compat' })
+      .upsert(payload, {
+        onConflict:
+          'company_id,part_number,vehicle_make,vehicle_model,vehicle_year_from,vehicle_year_to',
+      })
       .select()
       .single();
     if (error) throw error;

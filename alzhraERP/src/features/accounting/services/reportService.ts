@@ -6,6 +6,7 @@ interface LedgerRpcLine {
     entry_date: string | undefined;
     journal_id: string | undefined;
     entry_number: number | undefined;
+    branch_id?: string | null | undefined;
     description: string | undefined;
     debit_amount: number | undefined;
     credit_amount: number | undefined;
@@ -47,6 +48,7 @@ const toLedgerResult = (value: unknown): LedgerRpcResult => {
         currency_code: typeof line.currency_code === 'string' ? line.currency_code : undefined,
         exchange_rate: typeof line.exchange_rate === 'number' ? line.exchange_rate : undefined,
         foreign_amount: typeof line.foreign_amount === 'number' ? line.foreign_amount : undefined,
+        branch_id: typeof line.branch_id === 'string' ? line.branch_id : undefined,
         party_id: typeof line.party_id === 'string' ? line.party_id : undefined,
         party_name: typeof line.party_name === 'string' ? line.party_name : undefined,
     })) };
@@ -78,18 +80,26 @@ const toTrialBalanceRows = (value: unknown): TrialBalanceRpcRow[] => {
 
 export const reportService = {
     // ⚡ Server-side ledger via RPC
-    // DB: get_account_ledger(p_company_id, p_account_id, p_from, p_to) → json { openingBalance, entries[], accountType }
-    getLedger: async (companyId: string, accountId: string, _branchId?: string | null, fromDate?: string, toDate?: string): Promise<LedgerEntry[]> => {
+    // DB: get_account_ledger(p_company_id, p_account_id, p_from, p_to, p_branch_id)
+    //     → json { openingBalance, entries[], accountType }
+    getLedger: async (companyId: string, accountId: string, branchId?: string | null, fromDate?: string, toDate?: string): Promise<LedgerEntry[]> => {
         const { data, error } = await supabase.rpc('get_account_ledger', {
             p_company_id: companyId,
             p_account_id: accountId,
             ...(fromDate ? { p_from: fromDate } : {}),
-            ...(toDate ? { p_to: toDate } : {})
+            ...(toDate ? { p_to: toDate } : {}),
+            ...(branchId ? { p_branch_id: branchId } : {})
         });
         if (error) throw error;
 
         const result = toLedgerResult(data);
-        return (result.entries ?? []).map((line: LedgerRpcLine) => ({
+        // NOTE: the RPC returns `openingBalance` (camelCase) — e.g.
+        // json_build_object('openingBalance', v_opening_balance, 'entries', …)
+        const openingBalance = Number(
+            (data as unknown as { openingBalance?: number | null } | null)?.openingBalance ?? 0
+        );
+
+        const entries = (result.entries ?? []).map((line: LedgerRpcLine) => ({
             date: line.entry_date ?? '',
             journal_id: line.journal_id ?? '',
             journal_entry_id: line.journal_id ?? '',
@@ -101,9 +111,29 @@ export const reportService = {
             currency_code: line.currency_code ?? 'SAR',
             exchange_rate: line.exchange_rate ?? 1,
             foreign_amount: line.foreign_amount ?? 0,
+            ...(line.branch_id != null ? { branch_id: line.branch_id } : {}),
             ...(line.party_id ? { party_id: line.party_id } : {}),
             ...(line.party_name ? { party_name: line.party_name } : {}),
         }));
+
+        // عرض الرصيد الافتتاحي (الأرصدة قبل تاريخ البداية) كسطر أول في كشف الحساب
+        if (openingBalance !== 0) {
+            entries.unshift({
+                date: fromDate || '',
+                journal_id: '',
+                journal_entry_id: '',
+                entry_number: 0,
+                description: 'رصيد افتتاحي',
+                debit_amount: 0,
+                credit_amount: 0,
+                balance: openingBalance,
+                currency_code: 'SAR',
+                exchange_rate: 1,
+                foreign_amount: 0,
+            });
+        }
+
+        return entries;
     },
 
     // DB: report_trial_balance(p_company_id, p_from, p_to, p_branch_id) → TABLE rows with correct column names
@@ -186,9 +216,13 @@ export const reportService = {
         const liabilityRow = bsData.find(r => r.type === 'liability');
         const equityRow    = bsData.find(r => r.type === 'equity');
 
+        const equityFromServer = Number(equityRow?.amount)    || 0;
         const totalAssets      = Number(assetRow?.amount)     || 0;
         const totalLiabilities = Number(liabilityRow?.amount) || 0;
-        const totalEquity      = Number(equityRow?.amount)    || 0;
+        // حقوق الملكية تُعرض منفصلة عن بند صافي أرباح/خسائر الفترة، لكن إجمالي
+        // الميزانية يجب أن يشمل صافي الربح حتى يتحقق التوازن:
+        //   الأصول = الخصوم + حقوق الملكية + صافي الربح
+        const totalEquity      = equityFromServer + netIncome;
 
         const assetTBI: TrialBalanceItem[] = assetRow ? [{
             account_id: 'asset-total', code: '1', name: assetRow.category,
@@ -202,8 +236,8 @@ export const reportService = {
         }] : [];
         const equityTBI: TrialBalanceItem[] = equityRow ? [{
             account_id: 'equity-total', code: '3', name: equityRow.category,
-            type: 'equity', total_debit: 0, total_credit: totalEquity,
-            net_balance: totalEquity, currency_code: 'SAR'
+            type: 'equity', total_debit: 0, total_credit: equityFromServer,
+            net_balance: equityFromServer, currency_code: 'SAR'
         }] : [];
 
         const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1;

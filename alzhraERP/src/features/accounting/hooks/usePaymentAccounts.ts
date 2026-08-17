@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useCashboxes, useExchangeCompanies } from './useTreasury';
+import { useAccounts } from './useAccounts';
 
 // ─── Payment Account type used throughout POS & payments ─────────────────────
 export interface PaymentAccount {
@@ -16,15 +17,21 @@ export interface PaymentAccount {
 
 export const useCashPaymentAccounts = () => {
   const { data: cashboxes, isLoading } = useCashboxes();
+  // Live balance comes from the linked chart-of-accounts entry (trial balance),
+  // not the static opening_balance stored on the cashbox row.
+  const { data: allAccounts } = useAccounts();
   const accounts = useMemo<PaymentAccount[]>(() =>
-    (cashboxes ?? []).map(cb => ({
-      id: cb.account_id ?? cb.id,   // account_id for journal entries
-      cashbox_id: cb.id,
-      name_ar: cb.name,
-      code: '',
-      currency_code: cb.currency_code,
-      balance: Number(cb.opening_balance) || 0,
-    })), [cashboxes]);
+    (cashboxes ?? []).map(cb => {
+      const linked = allAccounts?.find(a => a.id === cb.account_id);
+      return {
+        id: cb.account_id ?? cb.id,   // account_id for journal entries
+        cashbox_id: cb.id,
+        name_ar: cb.name,
+        code: linked?.code ?? '',
+        currency_code: cb.currency_code,
+        balance: linked?.balance ?? (Number(cb.opening_balance) || 0),
+      };
+    }), [cashboxes, allAccounts]);
   return { data: accounts, isLoading };
 };
 
@@ -32,15 +39,19 @@ export const useCashPaymentAccounts = () => {
 
 export const useExchangePaymentAccounts = () => {
   const { data: companies, isLoading } = useExchangeCompanies();
+  const { data: allAccounts } = useAccounts();
   const accounts = useMemo<PaymentAccount[]>(() =>
-    (companies ?? []).map(ec => ({
-      id: ec.account_id ?? ec.id,
-      exchange_company_id: ec.id,
-      name_ar: ec.name,
-      code: '',
-      currency_code: ec.currency_code,
-      balance: Number(ec.opening_balance) || 0,
-    })), [companies]);
+    (companies ?? []).map(ec => {
+      const linked = allAccounts?.find(a => a.id === ec.account_id);
+      return {
+        id: ec.account_id ?? ec.id,
+        exchange_company_id: ec.id,
+        name_ar: ec.name,
+        code: linked?.code ?? '',
+        currency_code: ec.currency_code,
+        balance: linked?.balance ?? (Number(ec.opening_balance) || 0),
+      };
+    }), [companies, allAccounts]);
   return { data: accounts, isLoading };
 };
 

@@ -76,4 +76,5 @@ export interface AccountFormData {
   name: string;
   type: AccountType;
   parent_id?: string | undefined;
+  currency_code?: string | undefined;
 }

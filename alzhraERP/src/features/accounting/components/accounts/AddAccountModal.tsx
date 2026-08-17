@@ -87,6 +87,21 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
         </div>
 
         <div className="flex flex-col border-b dark:border-slate-800">
+          <label htmlFor="account-currency" className="text-[8px] font-bold text-gray-400 px-2 py-1 bg-gray-50 dark:bg-slate-800/30 uppercase tracking-widest">العملة (Currency)</label>
+          <select
+            id="account-currency"
+            {...register('currency_code')}
+            className="bg-white dark:bg-slate-900 text-[10px] font-bold p-3 outline-none appearance-none dark:text-white border-b dark:border-slate-800"
+          >
+            <option value="SAR">SAR — ريال سعودي</option>
+            <option value="YER">YER — ريال يمني</option>
+            <option value="USD">USD — دولار أمريكي</option>
+            <option value="OMR">OMR — ريال عماني</option>
+            <option value="CNY">CNY — يوان صيني</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col border-b dark:border-slate-800">
           <label className="text-[8px] font-bold text-gray-400 px-2 py-1 bg-gray-50 dark:bg-slate-800/30 uppercase tracking-widest flex items-center gap-2">
             <FolderTree size={10} />
             الحساب الرئيسي (اختياري)

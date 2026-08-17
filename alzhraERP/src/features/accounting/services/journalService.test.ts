@@ -84,7 +84,8 @@ describe('journalService', () => {
 
             const formatted = result[0];
             expect(formatted.id).toBe('j-1');
-            expect(formatted.total_amount).toBe(500); // Because it matched code 11001
+            // total_amount = max(sum(debit), sum(credit)) = max(500, 500) = 500
+            expect(formatted.total_amount).toBe(500);
             expect(formatted.party_name).toBe('Customer A'); // extracted from invoice.party
             expect(formatted.journal_entry_lines).toHaveLength(2);
         });
@@ -112,7 +113,7 @@ describe('journalService', () => {
                         {
                             debit_amount: null,
                             credit_amount: 1500,
-                            account: { name_ar: 'مجمع الإهلاك', code: '20501' } // Not matching the smart total prefixes exactly (101, 102, 110, 210)
+                            account: { name_ar: 'مجمع الإهلاك', code: '20501' }
                         }
                     ]
                 }

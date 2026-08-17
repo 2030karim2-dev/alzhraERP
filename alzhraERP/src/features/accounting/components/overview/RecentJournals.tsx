@@ -24,7 +24,7 @@ const RecentJournals: React.FC = () => {
           <div key={j.id} className="flex justify-between items-center  max-md:p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/30">
             <div className="min-w-0">
               <p className="text-[10px] font-bold text-gray-700 dark:text-slate-200 truncate">{j.description}</p>
-              <span className="text-[9px] text-gray-400 font-mono">{j.date}</span>
+              <span className="text-[9px] text-gray-400 font-mono">{j.entry_date}</span>
             </div>
             <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-800 dark:text-slate-100">
               {formatCurrency(j.total_amount)}

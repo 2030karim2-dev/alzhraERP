@@ -2,6 +2,11 @@
 -- Migration: Fix auto-post journal ordering (invoice 400s)
 -- Date: 2026-08-16
 --
+-- ⚠️ SUPERSEDED by 20260818000001_fix_accounting_engine.sql
+--    The Arabic strings in this file are mojibake (double-encoded) and the
+--    function it defines is replaced by the clean-Arabic, discount-balanced
+--    version in 20260818000001. Keep this file only as historical record.
+--
 -- BUG: commit_purchase_invoice / commit_sales_invoice_v2 returned
 -- 400 (SQLSTATE 23514): 'Cannot add lines to a posted journal entry'.
 --
