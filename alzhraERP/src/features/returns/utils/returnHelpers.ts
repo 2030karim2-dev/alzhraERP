@@ -69,3 +69,32 @@ export const totalReturnQuantity = (items: ReturnItemDraft[]): number =>
 /** هل توجد أي كمية إرجاع صالحة؟ */
 export const hasReturnableItems = (items: ReturnItemDraft[]): boolean =>
     items.some(item => item.returnQuantity > 0);
+
+/**
+ * تحويل أصناف المرتجع (على شكل الواجهة) إلى صيغة `p_items` المطلوبة من الـ RPCs
+ * (snake_case: product_id, quantity, unit_price, cost_price, line_total).
+ * يدعم مفاتيح camelCase (ReturnItemDraft) و snake_case كاحتياط للتوافق،
+ * ويحسب line_total تلقائياً لحفظ القيم المالية بشكل صحيح.
+ */
+export const toReturnPayloadItems = (items: Array<{
+    productId?: string;
+    product_id?: string;
+    quantity?: number;
+    returnQuantity?: number;
+    unitPrice?: number;
+    unit_price?: number;
+    costPrice?: number;
+    cost_price?: number;
+}>): Array<Record<string, number | string>> => {
+    return (items ?? []).map((item) => {
+        const quantity = Number(item.quantity ?? item.returnQuantity ?? 0);
+        const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
+        return {
+            product_id: item.productId ?? item.product_id ?? '',
+            quantity,
+            unit_price: unitPrice,
+            cost_price: Number(item.costPrice ?? item.cost_price ?? 0),
+            line_total: quantity * unitPrice,
+        };
+    });
+};

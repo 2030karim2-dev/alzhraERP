@@ -29,6 +29,7 @@ const returnSchema = z.object({
         name: z.string(),
         quantity: z.number(),
         unitPrice: z.number(),
+        costPrice: z.number().optional(),
         returnQuantity: z.number().min(0),
         maxQuantity: z.number()
     })).min(1, 'يجب دمج عناصر للإرجاع')
@@ -59,7 +60,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const modalRef = useRef<HTMLDivElement>(null);
-    const { } = useFeedbackStore();
+    const { showToast } = useFeedbackStore();
 
     // Need to fetch invoices based on type
     const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn((returnType === 'sale' ? partyId : null) as string | null);
@@ -303,6 +304,8 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                 onClose();
                             } catch (error) {
                                 console.error('Error saving return:', error);
+                                const err = error as { message?: string };
+                                showToast(err?.message || 'فشل حفظ المرتجع، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error');
                             }
                         })}
                     >

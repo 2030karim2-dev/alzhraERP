@@ -10,6 +10,8 @@ import { useFeedbackStore } from '../../feedback/store';
 import { invalidateByPreset } from '../../../lib/invalidation';
 import type { Invoice, Party, InvoiceItem } from '../../../core/types/supabase-helpers';
 import type { InvoiceStatus } from '../types';
+import { toReturnPayloadItems } from '../../returns/utils/returnHelpers';
+import type { Json } from '../../../core/database.types';
 
 export interface SalesReturn {
     id: string;
@@ -193,7 +195,7 @@ export const useCreateSalesReturn = () => {
                 p_invoice_id: data.invoiceId,
                 p_party_id: data.partyId,
                 p_payment_method: data.paymentMethod || 'cash',
-                p_items: data.items,
+                p_items: toReturnPayloadItems(data.items ?? []) as unknown as Json,
                 p_return_reason: data.returnReason || '',
                 p_status: data.status || 'posted',
                 p_notes: data.notes || '',

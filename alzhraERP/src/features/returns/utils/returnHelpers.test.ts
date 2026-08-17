@@ -8,6 +8,7 @@ import {
     sumReturnItems,
     totalReturnQuantity,
     hasReturnableItems,
+    toReturnPayloadItems,
     type ReturnItemDraft
 } from './returnHelpers';
 import type { InvoiceItem } from '../types';
@@ -111,6 +112,48 @@ describe('returnHelpers', () => {
             expect(hasReturnableItems(items)).toBe(true);
             expect(hasReturnableItems([buildReturnItem(makeInvoiceItem(), 0)])).toBe(false);
             expect(hasReturnableItems([])).toBe(false);
+        });
+    });
+
+    describe('toReturnPayloadItems', () => {
+        it('يحوّل أصناف camelCase إلى snake_case مع حساب line_total', () => {
+            const payload = toReturnPayloadItems([
+                { productId: 'product-1', quantity: 3, unitPrice: 100, costPrice: 60 },
+            ]);
+            expect(payload).toEqual([
+                { product_id: 'product-1', quantity: 3, unit_price: 100, cost_price: 60, line_total: 300 },
+            ]);
+        });
+
+        it('يدعم مفاتيح snake_case كاحتياط ويملأ القيم الناقصة بالأصفار', () => {
+            const payload = toReturnPayloadItems([
+                { product_id: 'product-2', quantity: 2, unit_price: 50 },
+            ]);
+            expect(payload[0]).toEqual({
+                product_id: 'product-2',
+                quantity: 2,
+                unit_price: 50,
+                cost_price: 0,
+                line_total: 100,
+            });
+        });
+
+        it('يستخدم returnQuantity عندما تكون quantity غير متاحة', () => {
+            const payload = toReturnPayloadItems([
+                { productId: 'product-3', returnQuantity: 7, unitPrice: 10 },
+            ]);
+            expect(payload[0]).toEqual({
+                product_id: 'product-3',
+                quantity: 7,
+                unit_price: 10,
+                cost_price: 0,
+                line_total: 70,
+            });
+        });
+
+        it('يعيد مصفوفة فارغة عند غياب الأصناف', () => {
+            expect(toReturnPayloadItems(undefined as never)).toEqual([]);
+            expect(toReturnPayloadItems([])).toEqual([]);
         });
     });
 });
