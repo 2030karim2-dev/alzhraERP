@@ -55,11 +55,14 @@ export const useKitComponents = (kitId: string | null) => {
 
 export const useKitMutations = (kitId: string) => {
     const queryClient = useQueryClient();
+    const { user } = useAuthStore();
     const { showToast } = useFeedbackStore();
 
     const add = useMutation({
-        mutationFn: (data: { component_product_id: string; quantity: number }) =>
-            inventoryApi.addKitComponent({ ...data, kit_product_id: kitId }),
+        mutationFn: (data: { component_product_id: string; quantity: number }) => {
+            if (!user?.company_id) throw new Error("Auth error");
+            return inventoryApi.addKitComponent({ ...data, kit_product_id: kitId, company_id: user.company_id });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['kit_components', kitId] });
             showToast("تمت إضافة المكون إلى الباقة", 'success');

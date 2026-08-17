@@ -88,7 +88,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
           amount: foreignAmount,
           currencyCode: selectedCurrency,
           exchangeRate: exchangeRate,
-          exchangeOperator: currencyObj?.exchange_operator || 'multiply'
+          exchangeOperator: (currencyObj?.exchange_operator as 'multiply' | 'divide') || 'multiply'
         });
         setValue('amount', baseAmount);
       } catch (e) {

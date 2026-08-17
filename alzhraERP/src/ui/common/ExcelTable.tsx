@@ -535,10 +535,10 @@ function ExcelTable<T>({
                 selectedRowIds={selectedRowIds}
                 selection={selection}
                 getRowId={getRowId}
-                handleDragStart={handleDragStart as React.DragEventHandler<HTMLTableRowElement>}
-                handleDragEnter={handleDragEnter as React.DragEventHandler<HTMLTableRowElement>}
-                handleDragEnd={handleDragEnd as React.DragEventHandler<HTMLTableRowElement>}
-                handleDrop={handleDrop as React.DragEventHandler<HTMLTableRowElement>}
+                handleDragStart={handleDragStart}
+                handleDragEnter={handleDragEnter}
+                handleDragEnd={handleDragEnd}
+                handleDrop={handleDrop}
                 onRowClick={onRowClick}
                 onOrderChange={onOrderChange}
                 currentTheme={currentTheme}

@@ -65,7 +65,7 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                         issueDate: invoice.issue_date,
                         customerName: invoice.party?.name || 'عميل نقدي / عام',
                         employeeName: invoice.created_by?.full_name || 'موظف المبيعات',
-                        paymentMethod: invoice.payment_method === 'credit' ? 'آجل' : 'نقشبند', // Default fallback map
+                        paymentMethod: invoice.payment_method === 'credit' ? 'آجل' : 'نقداً', // Default fallback map
                         currency: invoice.currency_code || 'SAR',
                         item: item
                     });

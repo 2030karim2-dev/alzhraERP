@@ -23,7 +23,7 @@ export function getActiveProvider(): string {
 export function getActiveModel(): string {
     const stored = localStorage.getItem('ai_model');
     const allowedIds = AI_MODELS.map(m => m.id);
-    if (stored && allowedIds.includes(stored)) {
+    if (stored && (allowedIds as string[]).includes(stored)) {
         return stored;
     }
     return 'deepseek-chat';

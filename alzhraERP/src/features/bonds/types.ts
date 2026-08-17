@@ -19,6 +19,7 @@ export interface BondFormData {
 
   description: string;
   reference_number?: string;
+  branchId?: string | null;
 }
 
 export interface Bond {

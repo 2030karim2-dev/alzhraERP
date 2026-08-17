@@ -13,9 +13,9 @@ interface ExcelTableBodyProps<T> {
     selectedRowIds: Set<string>;
     selection: any; // Using any for selection state type from useTableKeyboardNavigation
     getRowId?: ((row: T) => string) | undefined;
-    handleDragStart: (e: React.DragEvent, idx: number) => void;
-    handleDragEnter: (e: React.DragEvent, idx: number) => void;
-    handleDragEnd: () => void;
+    handleDragStart: (e: React.DragEvent<HTMLTableRowElement>, idx: number) => void;
+    handleDragEnter: (e: React.DragEvent<HTMLTableRowElement>, idx: number) => void;
+    handleDragEnd: (e: React.DragEvent<HTMLTableRowElement>) => void;
     handleDrop: () => void;
     onRowClick?: ((row: T) => void) | undefined;
     onOrderChange?: ((data: T[]) => void) | undefined;
@@ -28,7 +28,7 @@ interface ExcelTableBodyProps<T> {
     handleCellClick: (row: number, col: number, shiftKey: boolean) => void;
     handleMouseDownCell: (e: React.MouseEvent, row: number, col: number) => void;
     handleMouseEnterCell: () => void;
-    onRowDoubleClick?: (row: T) => void;
+    onRowDoubleClick?: ((row: T) => void) | undefined;
     startEditing: (row: number, col: number) => void;
     editValue: string;
     setEditValue: (val: string) => void;
@@ -142,10 +142,10 @@ export function ExcelTableBody<T>({
                         ref={rowVirtualizer.measureElement}
                         data-index={virtualRow.index}
                         draggable={!!onOrderChange}
-                        onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, rowIdx)}
-                        onDragEnter={(e) => handleDragEnter(e as unknown as React.DragEvent, rowIdx)}
-                        onDragEnd={() => handleDragEnd()}
-                        onDrop={() => handleDrop()}
+                        onDragStart={(e) => handleDragStart(e, rowIdx)}
+                        onDragEnter={(e) => handleDragEnter(e, rowIdx)}
+                        onDragEnd={handleDragEnd}
+                        onDrop={handleDrop}
                         onDragOver={(e) => e.preventDefault()}
                         onClick={() => onRowClick && onRowClick(row)}
                         className={cn(

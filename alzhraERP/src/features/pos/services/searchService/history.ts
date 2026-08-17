@@ -52,7 +52,8 @@ export async function getRecentSales(
                 image_url: product.image_url || null,
                 alternative_numbers: product.alternative_numbers || null,
                 score: 15,
-                last_sale_date: typed.invoices?.created_at,
+                // لا نمرر undefined صراحةً لحقل اختياري (exactOptionalPropertyTypes)
+                ...(typed.invoices?.created_at ? { last_sale_date: typed.invoices.created_at } : {}),
             });
         }
 
@@ -93,7 +94,7 @@ export async function getSalesCounts(
                     existing.last_date = createdAt;
                 }
             } else {
-                map.set(productId, { count: 1, last_date: createdAt });
+                map.set(productId, createdAt ? { count: 1, last_date: createdAt } : { count: 1 });
             }
         }
 

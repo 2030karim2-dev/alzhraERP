@@ -86,7 +86,7 @@ export const salesApi = {
         ...(i.warehouseId ? { warehouse_id: i.warehouseId } : {}),
       })),
       p_payment_type: payload.paymentMethod || 'cash',
-      p_notes: payload.notes || null,
+      ...(payload.notes ? { p_notes: payload.notes } : {}),
       p_currency_code: payload.currency || 'SAR',
       p_exchange_rate: payload.exchangeRate || 1,
       p_idempotency_key: idempotencyKey,
@@ -156,7 +156,7 @@ export const salesApi = {
     try {
       const { data, error } = await supabase.rpc('get_next_sequence', {
         p_company_id: companyId,
-        p_type: type
+        p_sequence_name: type
       });
       if (error) {
         // Graceful fallback when RPC doesn't exist (migration not yet applied)

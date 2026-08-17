@@ -30,7 +30,7 @@ export const warehouseService = {
             .from('product_stock')
             .select(`
                 quantity,
-                product:products!inner(*),
+                product:products!inner(id, name_ar, sale_price, location),
                 warehouse:warehouses(name_ar, location)
             `)
             .eq('warehouse_id', warehouseId)
@@ -38,9 +38,11 @@ export const warehouseService = {
 
         if (error) throw error;
 
-        return (data || []).map((item: WarehouseStockRow) => {
-            const product = item.product || {};
-            const warehouse = item.warehouse || {};
+        // cast صريح: النوع المستنتج من الاستعلام قد يكون {} رغم تحديد الحقول
+        return (data || []).map((item) => {
+            const typed = item as unknown as WarehouseStockRow;
+            const product = typed.product ?? { name_ar: '', sale_price: null, location: null };
+            const warehouse = typed.warehouse ?? { name_ar: null, location: null };
             
             // Combine Warehouse Name and Product Shelf Location
             const warehouseName = warehouse.name_ar || '';
@@ -51,7 +53,7 @@ export const warehouseService = {
 
             return {
                 ...product,
-                stock_quantity: Number(item.quantity) || 0,
+                stock_quantity: Number(typed.quantity) || 0,
                 name_ar: product.name_ar || '',
                 sale_price: Number(product.sale_price) || 0,
                 location: compositeLocation

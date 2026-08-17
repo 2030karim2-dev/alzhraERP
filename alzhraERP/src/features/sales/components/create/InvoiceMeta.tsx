@@ -92,7 +92,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
             const searchTerms = currency === 'SAR' ? ['SAR', 'سعودي', 'ريال سعودي'] : ['YER', 'يمني', 'ريال يمني'];
             const matchingAccount = paymentAccounts.find(acc =>
                 acc.currency_code === currency ||
-                searchTerms.some(term => acc.name.toLowerCase().includes(term.toLowerCase()))
+                searchTerms.some(term => acc.name_ar.toLowerCase().includes(term.toLowerCase()))
             );
 
             if (matchingAccount) {

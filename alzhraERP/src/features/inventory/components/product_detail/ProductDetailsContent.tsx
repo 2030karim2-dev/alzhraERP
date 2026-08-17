@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Info, FileClock, Link2, Sparkles, Loader2, Building2, Activity } from 'lucide-react';
-import { Product } from '../../types';
+import { Product, warehouseStock } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
 import StatCard from './StatCard';
 import AlternativesSection from './AlternativesSection';
 import HistorySection from './HistorySection';
-import BranchStockBreakdown from './BranchStockBreakdown';
+import BranchStockBreakdown, { type BranchInfo } from './BranchStockBreakdown';
 import SupplierInfoCard from './SupplierInfoCard';
 import ProductAnalyticsChart from './ProductAnalyticsChart';
 import { ProductKitList } from '../auto_parts/ProductKitList';
@@ -75,7 +75,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
         }));
     }, [branches, product.warehouse_distribution]);
 
-    const tabs: { id: TabType; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
+    const tabs: { id: TabType; label: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }[] = [
         { id: 'overview', label: 'نظرة عامة', icon: Info },
         { id: 'inventory', label: 'المخزون', icon: Box },
         { id: 'relations', label: 'الارتباطات', icon: Link2 },
@@ -192,8 +192,8 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                     </h4>
                                 </div>
                                 <BranchStockBreakdown
-                                    warehouseDistribution={(product.warehouse_distribution || []) as WarehouseDist[]}
-                                    branches={branchStockData}
+                                    warehouseDistribution={(product.warehouse_distribution || []) as unknown as warehouseStock[]}
+                                    branches={branchStockData as unknown as BranchInfo[]}
                                     totalStock={product.stock_quantity}
                                     minStockLevel={product.min_stock_level}
                                 />

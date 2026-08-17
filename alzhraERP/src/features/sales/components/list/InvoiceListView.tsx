@@ -45,7 +45,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
     const handleViewDetails = useCallback((id: string) => onViewDetails(id), [onViewDetails]);
     const handleDelete = useCallback((e: React.MouseEvent, row: InvoiceListItem) => {
         e.stopPropagation();
-        if (row.status === 'posted' || row.status === 'paid' || row.status === 'partially_paid') {
+        if (row.status === 'posted' || row.status === 'paid' || (row.status as string) === 'partially_paid') {
             showToast('لا يمكن حذف فاتورة معتمدة أو مدفوعة. يرجى إنشاء مرتجع بدلاً من ذلك.', 'error');
             return;
         }

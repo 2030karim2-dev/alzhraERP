@@ -129,7 +129,7 @@ export function useWarehousesWithBranches() {
         if (!user?.company_id) return;
 
         setIsLoading(true);
-        supabase
+        Promise.resolve(supabase
             .from('warehouses')
             .select(`
         id,
@@ -150,7 +150,7 @@ export function useWarehousesWithBranches() {
                 }
                 setWarehouses(result.data || []);
             })
-            .finally(() => setIsLoading(false));
+        ).finally(() => setIsLoading(false));
     }, [user?.company_id]);
 
     return { warehouses, isLoading };

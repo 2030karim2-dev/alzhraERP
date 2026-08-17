@@ -35,7 +35,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
     const handleWhatsAppShare = async (bond: Bond) => {
         try {
             const company = {
-                name_ar: invoiceSettings?.company_name_ar || settingsCompany?.name || 'اسم الشركة',
+                name_ar: invoiceSettings?.company_name_ar || settingsCompany?.name_ar || 'اسم الشركة',
                 address: invoiceSettings?.company_address || settingsCompany?.address || '',
                 phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
                 tax_number: settingsCompany?.tax_number || '---',
@@ -66,7 +66,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
     const handleExport = async (bond: Bond) => {
         const company = {
-            name_ar: invoiceSettings?.company_name_ar || settingsCompany?.name || 'اسم الشركة',
+            name_ar: invoiceSettings?.company_name_ar || settingsCompany?.name_ar || 'اسم الشركة',
             address: invoiceSettings?.company_address || settingsCompany?.address || '',
             phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
             tax_number: settingsCompany?.tax_number || '---',

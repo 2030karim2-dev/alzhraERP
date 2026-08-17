@@ -89,8 +89,8 @@ const SalesAnalyticsView: React.FC = () => {
         salesByPaymentMethod
     } = useSalesAnalytics({
         companyId: user?.company_id || '',
-        startDate: startDate || undefined,
-        endDate: endDate || undefined
+        ...(startDate ? { startDate } : {}),
+        ...(endDate ? { endDate } : {}),
     });
 
     // Use shared utility functions

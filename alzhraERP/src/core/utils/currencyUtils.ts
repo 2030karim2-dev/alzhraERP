@@ -164,11 +164,11 @@ export function convertCurrency(amount: number, rate: number, direction: 'toBase
 }
 
 export const toBaseCurrency = (entity: {
-    amount?: number;
-    total_amount?: number;
-    currency_code?: string;
-    exchange_rate?: number;
-    exchange_operator?: string;
+    amount?: number | null;
+    total_amount?: number | null;
+    currency_code?: string | null;
+    exchange_rate?: number | null;
+    exchange_operator?: string | null;
 }): number => {
     const amount = Number(entity.amount ?? entity.total_amount ?? 0);
     const exchangeRate = Number(entity.exchange_rate ?? 1);
@@ -190,10 +190,10 @@ export const toBaseCurrency = (entity: {
 
 export const sumInBaseCurrency = (
     items: Array<{
-        amount?: number;
-        total_amount?: number;
-        currency_code?: string;
-        exchange_rate?: number;
+        amount?: number | null;
+        total_amount?: number | null;
+        currency_code?: string | null;
+        exchange_rate?: number | null;
     }>
 ): number => {
     return items.reduce((sum, item) => sum + toBaseCurrency(item), 0);

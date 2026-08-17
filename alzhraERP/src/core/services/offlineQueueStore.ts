@@ -85,10 +85,10 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
                         switch (action.type) {
                             case 'CREATE_PRODUCT':
-                                await inventoryService.createProduct(data as Parameters<typeof inventoryService.createProduct>[0], company_id, user_id);
+                                await inventoryService.createProduct(data as unknown as Parameters<typeof inventoryService.createProduct>[0], company_id, user_id);
                                 break;
                             case 'CREATE_INVOICE':
-                                await salesService.processNewSale(company_id, user_id, data as Parameters<typeof salesService.processNewSale>[2]);
+                                await salesService.processNewSale(company_id, user_id, data as unknown as Parameters<typeof salesService.processNewSale>[2]);
                                 break;
                             case 'UPDATE_STOCK':
                                 // await inventoryService.updateStock(data);

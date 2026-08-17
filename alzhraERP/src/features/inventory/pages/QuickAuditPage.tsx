@@ -203,7 +203,7 @@ const QuickAuditPage: React.FC = () => {
                         filter={filter}
                         onFilterChange={setFilter}
                         onScannerOpen={() => setIsScannerOpen(true)}
-                        searchResults={searchResults}
+                        searchResults={(searchResults ?? []) as unknown as SearchResult[]}
                         isLoadingSearch={isLoadingSearch}
                         onAddItem={handleAddItem}
                     />

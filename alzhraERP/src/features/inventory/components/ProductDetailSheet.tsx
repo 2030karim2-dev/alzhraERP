@@ -54,7 +54,7 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({ product, classN
           <Hash size={12} className="text-[var(--app-text-secondary)]" />
           <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">أرقام القطعة</span>
         </div>
-        <OEMNumbersDisplay partNumber={product.partNumber} alternativeNumbers={product.alternativeNumbers} />
+        <OEMNumbersDisplay partNumber={product.partNumber} {...(product.alternativeNumbers ? { alternativeNumbers: product.alternativeNumbers } : {})} />
       </div>
 
       {/* Pricing Grid */}

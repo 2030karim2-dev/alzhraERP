@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabaseClient';
+import type { TableUpdate } from '@/core/types/supabase-helpers';
 import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
 
 export const settingsApi = {
@@ -13,7 +14,7 @@ export const settingsApi = {
   updateCompany: async (companyId: string, data: CompanyFormData) => {
     return await supabase
       .from('companies')
-      .update(data)
+      .update(data as unknown as TableUpdate<'companies'>)
       .eq('id', companyId)
       .select()
       .single();

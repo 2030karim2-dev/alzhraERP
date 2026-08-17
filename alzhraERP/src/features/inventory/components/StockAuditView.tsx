@@ -3,7 +3,6 @@ import { ClipboardCheck, Plus, Loader2, CheckCircle2, Activity, Clock, Zap, Tras
 import { useNavigate } from 'react-router-dom';
 import StartAuditModal from './StartAuditModal';
 import { useAuditSessions, useInventoryMutations } from '../hooks/useInventoryManagement';
-import { useFeedbackStore } from '../../feedback/store';
 import { cn } from '../../../core/utils';
 
 const StockAuditView: React.FC = () => {
@@ -11,7 +10,6 @@ const StockAuditView: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const { data: audits, isLoading } = useAuditSessions();
   const { deleteAuditSession, isDeletingSession } = useInventoryMutations();
-  const { showToast } = useFeedbackStore();
   const navigate = useNavigate();
 
   const handleDeleteClick = (e: React.MouseEvent, session: any) => {

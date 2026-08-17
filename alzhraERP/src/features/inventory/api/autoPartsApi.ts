@@ -7,7 +7,7 @@ const fetchProductsByIds = async (productIds: string[]) => {
 
     const { data, error } = await supabase
         .from('products')
-        .select('id, name_ar, name_en, sku, part_number, brand, purchase_price, sale_price, unit, image_url')
+        .select('id, name_ar, sku, part_number, brand, purchase_price, sale_price, unit, image_url')
         .in('id', productIds);
 
     if (error) throw error;

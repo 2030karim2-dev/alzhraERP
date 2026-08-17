@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Plus, Eye, RotateCcw, FileText, Trash2, ShoppingCart } from 'lucide-react';
 import ExcelTable from '../../../../ui/common/ExcelTable';
-import { useSalesReturns, useSalesReturnsStats } from '../../hooks/useSalesReturns';
+import { useSalesReturns, useSalesReturnsStats, type SalesReturn } from '../../hooks/useSalesReturns';
 import { useDeleteInvoice } from '../../hooks/index';
 import { formatCurrency, sumInBaseCurrency } from '../../../../core/utils';
 import Button from '../../../../ui/base/Button';
 import { exportToPDF } from '../../../../core/utils/pdfExporter';
 import { AdvancedReturnModal } from '../../../returns/components/AdvancedReturnModal';
-import { useReturnsListView } from '../../../returns/hooks/useReturnsListView';
+import { useReturnsListView, type ReturnsListRow } from '../../../returns/hooks/useReturnsListView';
 import { ReturnsStatsHeader } from '../../../returns/components/view/ReturnsStatsHeader';
 import { ReturnsFilterControls } from '../../../returns/components/view/ReturnsFilterControls';
 
@@ -17,6 +17,25 @@ const STATUS_LABELS: Record<string, string> = {
   'posted': 'معتمد',
   'paid': 'مدفوع',
 };
+
+/**
+ * توحيد سجل مرتجع مبيعات مع ReturnsListRow حتى يتوافق مع
+ * useReturnsListView (كانت SalesReturn[] لا تطابق ReturnsListRow[]).
+ */
+const normalizeSalesReturn = (row: SalesReturn): ReturnsListRow => ({
+    id: row.id,
+    invoice_number: row.invoice_number,
+    issue_date: row.issue_date,
+    created_at: row.created_at,
+    total_amount: row.total_amount,
+    exchange_rate: row.exchange_rate ?? null,
+    status: row.status,
+    notes: row.notes ?? null,
+    invoice_items: row.invoice_items ?? [],
+    party: row.party === null || row.party === undefined ? null : { name: row.party.name },
+    reference_invoice_id: row.reference_invoice_id ?? null,
+    return_reason: null,
+});
 
 interface SalesReturnsViewProps {
   searchTerm: string;
@@ -46,6 +65,9 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
     endDate: queryFilters.endDate || undefined,
   });
 
+  // توحيد النوع مع ReturnsListRow قبل تمريره لعرض القائمة
+  const normalizedReturns = (returns || []).map(normalizeSalesReturn);
+
   const {
       localSearchTerm, setLocalSearchTerm,
       showFilters, setShowFilters,
@@ -57,7 +79,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       handleExportExcel,
       clearFilters,
       hasActiveFilters
-  } = useReturnsListView(returns, 'sales', (filteredReturns) => sumInBaseCurrency(filteredReturns as any[]));
+  } = useReturnsListView(normalizedReturns, 'sales', (filteredReturns) => sumInBaseCurrency(filteredReturns as any[]));
 
   // Sync initial search term
   React.useEffect(() => {
@@ -279,7 +301,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
             </div>
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            عدد النتائج: {processedReturns.length} من {returns?.length || 0}
+            عدد النتائج: {processedReturns.length} من {normalizedReturns.length}
           </div>
         </div>
       )}

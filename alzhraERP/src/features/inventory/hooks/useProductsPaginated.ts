@@ -108,7 +108,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
         p_offset: from,
         p_sort_key: sortKey,
         p_sort_dir: sortDir,
-        p_branch_id: branchId || null
+        ...(branchId ? { p_branch_id: branchId } : {}),
       });
       if (error) throw error;
 
@@ -140,7 +140,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
           p_offset: from,
           p_sort_key: sortKey,
           p_sort_dir: sortDir,
-          p_branch_id: branchId || null
+          ...(branchId ? { p_branch_id: branchId } : {}),
         });
         if (error) throw error;
 

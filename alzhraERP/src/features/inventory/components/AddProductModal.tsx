@@ -115,7 +115,7 @@ const AddProductModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubmitt
       title={initialData ? t('edit_product_title') : t('new_product_title')}
       description={t('product_card_desc')}
       footer={footer}
-      zIndex={zIndex}
+      {...(zIndex ? { zIndex } : {})}
     >
       <div className="flex flex-col">
         <div className="p-5 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex flex-row gap-6">

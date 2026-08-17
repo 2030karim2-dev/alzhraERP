@@ -35,7 +35,7 @@ export const bondsApi = {
     return await query;
   },
 
-  createPaymentRPC: async (_companyId: string, _userId: string, data: BondFormData & { branchId?: string | null }) => {
+  createPaymentRPC: async (companyId: string, userId: string, data: BondFormData & { branchId?: string | null }) => {
     if (!data.cash_account_id || !data.counterparty_id) {
       throw new Error("يجب اختيار الحسابات المطلوبة");
     }
@@ -45,10 +45,11 @@ export const bondsApi = {
     }
 
     const paymentType = data.type === 'receipt' ? 'receipt' : (data.type === 'transfer' ? 'transfer' : 'disbursement');
-    const idempotencyKey = `bond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     const { data: result, error } = await supabase.rpc('commit_payment', {
       p_type: paymentType,
+      p_company_id: companyId,
+      p_user_id: userId,
       p_amount: data.amount,
       p_date: data.date,
       p_cash_account_id: data.cash_account_id,
@@ -60,8 +61,7 @@ export const bondsApi = {
       ...(data.currency_code ? { p_currency_code: data.currency_code } : {}),
       ...(data.exchange_rate ? { p_exchange_rate: data.exchange_rate } : {}),
       ...(data.foreign_amount ? { p_foreign_amount: data.foreign_amount } : {}),
-      p_branch_id: data.branchId || null,
-      p_idempotency_key: idempotencyKey,
+      ...(data.branchId ? { p_branch_id: data.branchId } : {}),
     });
 
     if (error) {
@@ -87,6 +87,9 @@ export const bondsApi = {
   },
 
   getBondsStats: async (companyId: string, branchId?: string | null) => {
-    return await supabase.rpc('get_bonds_stats', { p_company_id: companyId, p_branch_id: branchId || null });
+    return await supabase.rpc('get_bonds_stats', {
+      p_company_id: companyId,
+      ...(branchId ? { p_branch_id: branchId } : {}),
+    });
   }
 };

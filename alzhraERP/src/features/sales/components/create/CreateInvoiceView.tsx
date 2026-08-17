@@ -120,7 +120,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
           : 9999,
       })),
       discount: summary.discountAmount,
-      notes: notes.trim() || undefined,
+      ...(notes.trim() ? { notes: notes.trim() } : {}),
       status: status,
       type: 'sale' as const,
       paymentMethod: invoiceType,

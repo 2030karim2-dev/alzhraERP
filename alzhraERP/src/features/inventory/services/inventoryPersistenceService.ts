@@ -153,9 +153,11 @@ class InventoryPersistenceService {
 
             const draft: InventorySessionDraft = {
                 sessionId: data.session_id,
-                warehouseId: data.warehouse_id || undefined,
-                items: Array.isArray(data.items) ? data.items : [],
-                lastSavedAt: new Date(data.updated_at).getTime(),
+                ...(data.warehouse_id ? { warehouseId: data.warehouse_id } : {}),
+                items: Array.isArray(data.items)
+                    ? (data.items as unknown as InventorySessionDraft['items'])
+                    : [],
+                lastSavedAt: new Date(data.updated_at ?? new Date().toISOString()).getTime(),
                 isDirty: false
             };
 

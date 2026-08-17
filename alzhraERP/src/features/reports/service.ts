@@ -163,17 +163,24 @@ export const reportsService = {
     const rows = (data || []) as { customer_name: string; total: number; days_0_30: number; days_31_60: number; days_61_90: number; days_90_plus: number }[];
     const totalDebt = rows.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
 
+    // RPC report_debt_aging يعيد مديونيات العملاء فقط (total = إجمالي الاستحقاق).
+    // الحقول غير المتوفرة من RPC تُملأ بقيم افتراضية آمنة.
     const debts: PartyDebt[] = rows.map(r => ({
+      id: r.customer_name,
       name: r.customer_name,
-      total: Number(r.total) || 0,
-      days_0_30: Number(r.days_0_30) || 0,
-      days_31_60: Number(r.days_31_60) || 0,
-      days_61_90: Number(r.days_61_90) || 0,
-      days_90_plus: Number(r.days_90_plus) || 0,
+      type: 'customer',
+      currency: 'SAR',
+      total_sales: Number(r.total) || 0,
+      paid_amount: 0,
+      remaining_amount: Number(r.total) || 0,
     }));
 
     return {
-      summary: { totalDebt },
+      summary: {
+        receivables: totalDebt,
+        payables: 0,
+        currency: 'SAR',
+      },
       debts
     };
   },

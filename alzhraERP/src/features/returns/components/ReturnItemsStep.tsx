@@ -5,6 +5,14 @@ import InvoiceItemsList from './InvoiceItemsList';
 import InvoiceSelector from './InvoiceSelector';
 import GlobalItemSearch from './GlobalItemSearch';
 import { Invoice } from '../types';
+import {
+    buildReturnItem,
+    mergeReturnItem,
+    removeReturnItem,
+    setReturnQuantity,
+    hasReturnableItems,
+    type ReturnItemDraft
+} from '../utils/returnHelpers';
 
 interface ReturnItemsStepProps {
     invoices: Invoice[];
@@ -18,25 +26,27 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
     const { watch, setValue, formState: { errors } } = useFormContext();
 
     const selectedInvoiceId = watch('invoiceId');
-    const items = watch('items') || [];
+    const items: ReturnItemDraft[] = watch('items') || [];
 
     const selectedInvoice = useMemo(() => {
         return invoices.find(inv => inv.id === selectedInvoiceId);
     }, [invoices, selectedInvoiceId]);
 
     // Derived states for InvoiceItemsList
+    // المفتاح الموحد هو item.id (معرّف سطر الفاتورة) — يطابق المفتاح
+    // الذي يقرأه InvoiceItemsList عبر returnQuantities[item.id]
     const returnQuantities = useMemo(() => {
         const qtyMap: Record<string, number> = {};
-        items.forEach((item: any) => {
-            qtyMap[item.productId] = item.returnQuantity;
+        items.forEach((item) => {
+            qtyMap[item.id] = item.returnQuantity;
         });
         return qtyMap;
     }, [items]);
 
     const selectedItemsMap = useMemo(() => {
         const selMap: Record<string, boolean> = {};
-        items.forEach((item: any) => {
-            selMap[item.productId] = true;
+        items.forEach((item) => {
+            selMap[item.id] = true;
         });
         return selMap;
     }, [items]);
@@ -47,28 +57,23 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
         setValue('items', [], { shouldValidate: true });
     };
 
-    const handleItemSelect = (itemId: string, isSelected: boolean) => {
+    /**
+     * تحديد/إلغاء تحديد صنف.
+     * initialQty: كمية ابتدائية تُستخدم عند إضافة الصنف لأول مرة
+     * (تُمرَّر من حقل الكمية حتى لا تُفقد القيمة المدخلة).
+     */
+    const handleItemSelect = (itemId: string, isSelected: boolean, initialQty?: number) => {
         if (!selectedInvoice) return;
 
         const invoiceItem = selectedInvoice.invoice_items?.find(i => i.id === itemId);
         if (!invoiceItem) return;
 
-        let newItems = [...items];
+        let newItems: ReturnItemDraft[] = items;
 
         if (isSelected) {
-            // Add item with 0 quantity initially
-            newItems.push({
-                productId: invoiceItem.product_id || invoiceItem.id, // fallback
-                name: invoiceItem.description,
-                quantity: invoiceItem.quantity,
-                unitPrice: invoiceItem.unit_price,
-                costPrice: invoiceItem.cost_price || 0,
-                returnQuantity: 1, // Default to 1 for better control
-                maxQuantity: invoiceItem.quantity
-            });
+            newItems = mergeReturnItem(newItems, buildReturnItem(invoiceItem, Math.max(1, initialQty ?? 1)));
         } else {
-            // Remove item
-            newItems = newItems.filter((i: any) => i.productId !== (invoiceItem.product_id || invoiceItem.id));
+            newItems = removeReturnItem(newItems, itemId);
         }
 
         setValue('items', newItems, { shouldValidate: true });
@@ -77,15 +82,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
     const handleQuantityChange = (itemId: string, quantity: number, _maxQty?: number) => {
         if (!selectedInvoice) return;
 
-        const invoiceItem = selectedInvoice.invoice_items?.find(i => i.id === itemId);
-        const prodId = invoiceItem?.product_id || itemId;
-
-        const newItems = items.map((item: any) => {
-            if (item.productId === prodId) {
-                return { ...item, returnQuantity: quantity };
-            }
-            return item;
-        });
+        const newItems = setReturnQuantity(items, itemId, quantity);
 
         setValue('items', newItems, { shouldValidate: true });
     };
@@ -147,15 +144,9 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const allItems = selectedInvoice.invoice_items?.map(invoiceItem => ({
-                                        productId: invoiceItem.product_id || invoiceItem.id,
-                                        name: invoiceItem.description,
-                                        quantity: invoiceItem.quantity,
-                                        unitPrice: invoiceItem.unit_price,
-                                        costPrice: invoiceItem.cost_price || 0,
-                                        returnQuantity: invoiceItem.quantity,
-                                        maxQuantity: invoiceItem.quantity
-                                    })) || [];
+                                    const allItems = (selectedInvoice.invoice_items || []).map(invoiceItem =>
+                                        buildReturnItem(invoiceItem, invoiceItem.quantity)
+                                    );
                                     setValue('items', allItems, { shouldValidate: true });
                                 }}
                                 className="flex items-center gap-2 max-md:gap-2 px-4 py-2 text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all active:scale-95"
@@ -185,7 +176,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                         )}
 
                         {/* Selected Items Summary for Quick Return */}
-                        {items.length > 0 && items.some((i: any) => i.returnQuantity > 0) && (
+                        {hasReturnableItems(items) && (
                             <div className="mt-6 border-2 border-indigo-100 dark:border-indigo-900/50 rounded-2xl p-4 max-md:p-4 bg-indigo-50/50 dark:bg-indigo-900/10 animate-in fade-in slide-in-from-top-4 duration-300">
                                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 max-md:gap-4">
                                     <div className="flex-1 w-full space-y-2">
@@ -195,7 +186,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                                         </h4>
                                         <div className="flex flex-wrap gap-2 max-md:gap-2">
                                             {items.filter((i: any) => i.returnQuantity > 0).map((item: any, idx: number) => (
-                                                <span key={`${item.productId}-${idx}`} className="inline-flex items-center gap-1 max-md:gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-100 dark:border-indigo-800 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm">
+                                                <span key={`${item.id}-${idx}`} className="inline-flex items-center gap-1 max-md:gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-100 dark:border-indigo-800 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm">
                                                     <span className="truncate max-w-[120px]" title={item.name}>{item.name}</span>
                                                     <span className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded font-mono text-[10px]">{item.returnQuantity}x</span>
                                                 </span>
@@ -214,13 +205,15 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                                         </div>
                                         <div className="w-px h-10 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
                                         <button
-                                            type="submit"
+                                            type="button"
                                             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 text-sm font-bold rounded-xl transition-all flex items-center gap-2 max-md:gap-2"
                                             onClick={() => {
-                                                // Ensure returning reason has a default if bypassing step 2
+                                                // تعيين سبب افتراضي عند الإرجاع السريع ثم إرسال النموذج
+                                                // عبر requestSubmit حتى تمر التحققات (Zod) وتُعرض الأخطاء عند الحاجة
                                                 if (!watch('returnReason')) {
                                                     setValue('returnReason', 'إرجاع سريع للعميل/المورد', { shouldValidate: true });
                                                 }
+                                                (document.getElementById('advanced-return-form') as HTMLFormElement | null)?.requestSubmit();
                                             }}
                                         >
                                             موافقة وإرجاع

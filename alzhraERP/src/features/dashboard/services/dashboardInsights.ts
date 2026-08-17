@@ -17,8 +17,10 @@ export const calculateDashboardInsights = (data: {
         salesChartData = [], 
         lowStockProducts = [], 
         overdueInvoices = [], 
-        totalDebts = data.totalSupplierDebts ?? 0  // FIX: use totalSupplierDebts from input
+        totalSupplierDebts = 0
     } = data;
+
+    const totalDebts = totalSupplierDebts ?? 0;
 
     // Use salesChartData to calculate trends
     // Assuming salesChartData contains 30 days of data ordered chronologically

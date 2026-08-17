@@ -28,8 +28,8 @@ export const analyticsApi = {
         return await query;
     },
 
-    getDeadStock: async (daysThreshold: number) => {
-        return await supabase.rpc('get_dead_stock', { days_threshold: daysThreshold });
+    getDeadStock: async (companyId: string, daysThreshold: number) => {
+        return await supabase.rpc('get_dead_stock', { p_company_id: companyId, days_threshold: daysThreshold });
     },
 
     getProductAnalytics: async (productId: string) => {

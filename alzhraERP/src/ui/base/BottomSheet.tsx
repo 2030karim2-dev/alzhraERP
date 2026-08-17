@@ -37,11 +37,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     if (isOpen) {
       setIsAnimating(true);
       document.body.style.overflow = 'hidden';
-    } else {
-      const timer = setTimeout(() => setIsAnimating(false), 300);
-      document.body.style.overflow = '';
-      return () => clearTimeout(timer);
+      return;
     }
+    const timer = setTimeout(() => setIsAnimating(false), 300);
+    document.body.style.overflow = '';
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   if (!isOpen && !isAnimating) return null;

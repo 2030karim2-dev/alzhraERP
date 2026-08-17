@@ -2,6 +2,13 @@ import { useState, useMemo } from 'react';
 import { useSalesReturns } from '../../sales/hooks/useSalesReturns';
 import { usePurchaseReturns } from '../../purchases/hooks/usePurchaseReturns';
 import { exportReturnsToExcel } from '../../../core/utils/returnsExcelExporter';
+import {
+    normalizeSalesReturn,
+    normalizePurchaseReturn,
+    type ReturnReportRow
+} from './returnsNormalizers';
+
+export { normalizeSalesReturn, normalizePurchaseReturn, type ReturnReportRow } from './returnsNormalizers';
 
 export type DateRange = 'today' | 'week' | 'month' | 'year' | 'custom';
 export type ReturnsType = 'all' | 'sales' | 'purchase';
@@ -14,19 +21,6 @@ export interface FilterState {
     reason: string;
     startDate?: string;
     endDate?: string;
-}
-
-interface ReturnRecord {
-    invoice_number?: string;
-    issue_date?: string;
-    created_at?: string;
-    party?: { name?: string };
-    reference_invoice?: { invoice_number?: string };
-    return_reason?: string;
-    invoice_items?: unknown[];
-    total_amount?: number | string;
-    status?: string;
-    notes?: string;
 }
 
 export const useReturnsReport = () => {
@@ -76,29 +70,37 @@ export const useReturnsReport = () => {
 
     const { data: purchaseReturns, isLoading: purchaseLoading } = usePurchaseReturns();
 
+    // توحيد نوعي البيانات (مبيعات/مشتريات) في مصفوفتين موحدتين
+    const normalizedSalesReturns = useMemo(
+        () => (salesReturns || []).map(normalizeSalesReturn),
+        [salesReturns]
+    );
+    const normalizedPurchaseReturns = useMemo(
+        () => (purchaseReturns || []).map(normalizePurchaseReturn),
+        [purchaseReturns]
+    );
+
     // Filter returns based on status and reason
     const filteredSalesReturns = useMemo(() => {
-        if (!salesReturns) return [];
-        return salesReturns.filter((r: ReturnRecord) => {
+        return normalizedSalesReturns.filter((r: ReturnReportRow) => {
             if (filters.status !== 'all' && r.status !== filters.status) return false;
             if (filters.reason !== 'all' && r.return_reason !== filters.reason) return false;
             return true;
         });
-    }, [salesReturns, filters.status, filters.reason]);
+    }, [normalizedSalesReturns, filters.status, filters.reason]);
 
     const filteredPurchaseReturns = useMemo(() => {
-        if (!purchaseReturns) return [];
-        return purchaseReturns.filter((r: ReturnRecord) => {
+        return normalizedPurchaseReturns.filter((r: ReturnReportRow) => {
             if (filters.status !== 'all' && r.status !== filters.status) return false;
             if (filters.reason !== 'all' && r.return_reason !== filters.reason) return false;
             return true;
         });
-    }, [purchaseReturns, filters.status, filters.reason]);
+    }, [normalizedPurchaseReturns, filters.status, filters.reason]);
 
     // Calculate statistics
     const stats = useMemo(() => {
-        const salesTotal = filteredSalesReturns.reduce((sum: number, r: ReturnRecord) => sum + (Number(r.total_amount) || 0), 0);
-        const purchaseTotal = filteredPurchaseReturns.reduce((sum: number, r: ReturnRecord) => sum + (Number(r.total_amount) || 0), 0);
+        const salesTotal = filteredSalesReturns.reduce((sum: number, r: ReturnReportRow) => sum + (Number(r.total_amount) || 0), 0);
+        const purchaseTotal = filteredPurchaseReturns.reduce((sum: number, r: ReturnReportRow) => sum + (Number(r.total_amount) || 0), 0);
 
         return {
             salesCount: filteredSalesReturns.length,
@@ -119,7 +121,7 @@ export const useReturnsReport = () => {
             filters.type === 'purchase' ? filteredPurchaseReturns :
                 [...filteredSalesReturns, ...filteredPurchaseReturns];
 
-        returns.forEach((r: ReturnRecord) => {
+        returns.forEach((r: ReturnReportRow) => {
             const reason = r.return_reason || 'أخرى';
             reasonMap[reason] = (reasonMap[reason] || 0) + (Number(r.total_amount) || 0);
         });
@@ -140,7 +142,7 @@ export const useReturnsReport = () => {
         }
 
         // Aggregate sales returns
-        filteredSalesReturns.forEach((r: ReturnRecord) => {
+        filteredSalesReturns.forEach((r: ReturnReportRow) => {
             const date = new Date(r.issue_date || r.created_at);
             const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             if (monthMap[key]) {
@@ -149,7 +151,7 @@ export const useReturnsReport = () => {
         });
 
         // Aggregate purchase returns
-        filteredPurchaseReturns.forEach((r: ReturnRecord) => {
+        filteredPurchaseReturns.forEach((r: ReturnReportRow) => {
             const date = new Date(r.issue_date || r.created_at);
             const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             if (monthMap[key]) {
@@ -170,7 +172,7 @@ export const useReturnsReport = () => {
             filters.type === 'purchase' ? filteredPurchaseReturns :
                 [...filteredSalesReturns, ...filteredPurchaseReturns];
 
-        returns.forEach((r: ReturnRecord) => {
+        returns.forEach((r: ReturnReportRow) => {
             const partyName = r.party?.name || 'غير معروف';
             if (!partyMap[partyName]) {
                 partyMap[partyName] = { name: partyName, count: 0, total: 0 };
@@ -192,16 +194,16 @@ export const useReturnsReport = () => {
 
         const excelData = {
             companyName: 'Al-Zahra Smart',
-            returns: returns.map((r: ReturnRecord) => ({
-                invoiceNumber: r.invoice_number,
-                issueDate: r.issue_date,
-                customerName: r.party?.name,
-                referenceInvoice: r.reference_invoice?.invoice_number,
-                returnReason: r.return_reason,
+            returns: returns.map((r: ReturnReportRow) => ({
+                invoiceNumber: r.invoice_number ?? '',
+                issueDate: r.issue_date ?? '',
+                customerName: r.party?.name ?? '',
+                referenceInvoice: r.reference_invoice?.invoice_number ?? r.reference_invoice_id ?? '',
+                returnReason: r.return_reason ?? '',
                 items: r.invoice_items?.length || 0,
                 totalAmount: Number(r.total_amount) || 0,
-                status: r.status,
-                notes: r.notes
+                status: r.status ?? 'draft',
+                notes: r.notes ?? ''
             })),
             summary: {
                 totalReturns: stats.totalAmount,

@@ -49,7 +49,7 @@ export interface Invoice {
     payment_method?: string;
     created_by?: {
         full_name?: string;
-    } | any;
+    };
     invoice_items?: InvoiceItem[];
 }
 

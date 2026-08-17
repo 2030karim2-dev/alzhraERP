@@ -11,7 +11,7 @@ import { invalidateByPreset } from '../../../lib/invalidation';
 import type { Invoice, Party, InvoiceItem } from '../../../core/types/supabase-helpers';
 import type { InvoiceStatus } from '../types';
 
-interface SalesReturn {
+export interface SalesReturn {
     id: string;
     invoice_number: string;
     issue_date: string;
@@ -36,7 +36,7 @@ interface SalesReturn {
     created_at: string;
 }
 
-type SalesReturnQueryResult = Pick<Invoice, 'id' | 'invoice_number' | 'issue_date' | 'total_amount' | 'status' | 'notes' | 'created_at' | 'reference_invoice_id' | 'currency_code' | 'exchange_rate'> & {
+export type SalesReturnQueryResult = Pick<Invoice, 'id' | 'invoice_number' | 'issue_date' | 'total_amount' | 'status' | 'notes' | 'created_at' | 'reference_invoice_id' | 'currency_code' | 'exchange_rate'> & {
     party: Pick<Party, 'id' | 'name'> | null;
     invoice_items: Pick<InvoiceItem, 'id' | 'product_id' | 'description' | 'quantity' | 'unit_price' | 'total'>[];
 };
@@ -82,7 +82,8 @@ export const useSalesReturns = (filters?: {
             description,
             quantity,
             unit_price,
-            total
+            total,
+            cost_price
           ),
           reference_invoice_id,
           created_at
@@ -237,7 +238,7 @@ export const useSalesInvoicesForReturn = (customerId?: string | null) => {
           payment_method,
           created_by,
           party:party_id(id, name),
-          invoice_items(id, product_id, description, quantity, unit_price, total)
+          invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
         `)
                 .eq('company_id', user.company_id)
                 .eq('type', 'sale')

@@ -35,7 +35,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
             );
             const mainQty = mainStock?.quantity || 0;
 
-            const threshold = product.min_quantity || 3;
+            const threshold = product.min_stock_level || 3;
             if (mainQty <= threshold) {
                 // Product is low or missing from main warehouse — find it in branches
                 product.warehouse_distribution.forEach((wd) => {

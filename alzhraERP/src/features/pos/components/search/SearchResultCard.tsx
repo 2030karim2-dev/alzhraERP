@@ -7,7 +7,7 @@ interface SearchResultCardProps {
     result: POSSearchResult;
     isSelected: boolean;
     onSelect: (result: POSSearchResult) => void;
-    onViewDetails?: (result: POSSearchResult) => void;
+    onViewDetails?: ((result: POSSearchResult) => void) | undefined;
     onMouseEnter: () => void;
 }
 
@@ -95,7 +95,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = React.memo(({
                             <TrendingUp size={13} className="text-amber-500 flex-shrink-0" />
                         </span>
                     )}
-                    <MatchBadge type={result.match_type} />
+                    {result.match_type !== undefined && <MatchBadge type={result.match_type} />}
                 </div>
 
                 {/* Meta tags row */}

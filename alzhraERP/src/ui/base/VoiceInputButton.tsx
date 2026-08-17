@@ -2,6 +2,26 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import { cn } from '../../core/utils';
 
+// Web Speech API types (غير متوفرة في lib DOM القياسية)
+interface SpeechRecognitionResultLike {
+  transcript: string;
+}
+interface SpeechRecognitionEventLike {
+  results: { [index: number]: { [index: number]: SpeechRecognitionResultLike } };
+}
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  maxAlternatives: number;
+  onresult: (event: SpeechRecognitionEventLike) => void;
+  onerror: () => void;
+  onend: () => void;
+  start: () => void;
+  stop: () => void;
+}
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
 interface VoiceInputButtonProps {
   onResult: (text: string) => void;
   lang?: 'ar-SA' | 'en-US';
@@ -14,20 +34,20 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
 }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const startListening = useCallback((): void => {
-    const SpeechRecognitionAPI = (window as unknown as Record<string, unknown>).SpeechRecognition ||
-      (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    const windowWithSpeech = window as unknown as Record<string, SpeechRecognitionCtor | undefined>;
+    const SpeechRecognitionAPI = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) { setIsSupported(false); return; }
 
-    const recognition = new (SpeechRecognitionAPI as new () => SpeechRecognition)();
+    const recognition = new SpeechRecognitionAPI();
     recognition.lang = lang;
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: SpeechRecognitionEvent): void => {
+    recognition.onresult = (event: SpeechRecognitionEventLike): void => {
       const transcript = event.results[0]?.[0]?.transcript || '';
       if (transcript.trim()) {
         onResult(transcript.trim());

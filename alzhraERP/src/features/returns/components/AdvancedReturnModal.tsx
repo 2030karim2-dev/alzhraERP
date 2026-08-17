@@ -9,7 +9,8 @@ import { ReturnType } from '../types';
 import { ReturnItemsStep } from './ReturnItemsStep';
 import { ReturnDetailsStep } from './ReturnDetailsStep';
 import { useSalesInvoicesForReturn, useCreateSalesReturn } from '../../sales/hooks/useSalesReturns';
-import { usePurchaseInvoicesForReturn } from '../../purchases/hooks/usePurchaseReturns';
+import { usePurchaseInvoicesForReturn, useCreatePurchaseReturn } from '../../purchases/hooks/usePurchaseReturns';
+import { mapReturnStatus } from '../utils/returnHelpers';
 
 interface AdvancedReturnModalProps {
     isOpen: boolean;
@@ -36,7 +37,7 @@ const returnSchema = z.object({
             path: ['items'] // show error on the items array
         }),
     returnReason: z.string().min(1, 'يرجى اختيار سبب الإرجاع'),
-    status: z.enum(['draft', 'posted', 'paid', 'void']),
+    status: z.enum(['processing', 'accepted', 'rejected']),
     notes: z.string().optional(),
     date: z.string().min(1, 'يرجى تحديد تاريخ الإرجاع'),
 });
@@ -69,15 +70,14 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
 
     // Mutations
     const createSalesReturn = useCreateSalesReturn();
-    // (Assuming purchase return mutation exists or will be similar)
-    // const createPurchaseReturn = useCreatePurchaseReturn();
+    const createPurchaseReturn = useCreatePurchaseReturn();
 
     // Form Hook
     const methods = useForm<ReturnFormValues>({
         resolver: zodResolver(returnSchema),
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
-            status: 'posted',
+            status: 'processing',
             items: [],
             returnReason: ''
         },
@@ -241,6 +241,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                 {/* Form Provider Context */}
                 <FormProvider {...methods}>
                     <form
+                        id="advanced-return-form"
                         className="flex flex-col flex-1 overflow-hidden"
                         onSubmit={methods.handleSubmit(async (data) => {
                             try {
@@ -251,19 +252,20 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                         name: item.name,
                                         quantity: item.returnQuantity,
                                         unitPrice: item.unitPrice,
-                                        costPrice: (item as any).costPrice || 0 // Include cost price if available
+                                        costPrice: (item as any).costPrice || 0
                                     }));
 
-                                if (returnType === 'sale') {
-                                    const selectedInvoice = invoices.find((inv: any) => inv.id === data.invoiceId);
+                                const selectedInvoice = invoices.find((inv: any) => inv.id === data.invoiceId);
+                                if (!selectedInvoice) throw new Error('الفاتورة الأصلية غير موجودة');
 
+                                if (returnType === 'sale') {
                                     const payload: any = {
                                         invoiceId: data.invoiceId,
-                                        partyId: selectedInvoice?.party?.id || (selectedInvoice as any)?.party_id,
+                                        partyId: (selectedInvoice as any)?.party?.id || (selectedInvoice as any)?.party_id,
                                         paymentMethod: (selectedInvoice as any)?.payment_method,
                                         items: selectedItems,
                                         returnReason: data.returnReason,
-                                        status: data.status,
+                                        status: mapReturnStatus(data.status),
                                         issueDate: data.date,
                                         currency: (selectedInvoice as any)?.currency || (selectedInvoice as any)?.currency_code,
                                         exchangeRate: (selectedInvoice as any)?.exchange_rate
@@ -271,6 +273,30 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                     if (data.notes) payload.notes = data.notes;
 
                                     await createSalesReturn.mutateAsync(payload);
+                                } else if (returnType === 'purchase') {
+                                    // إصلاح: مرتجع المشتريات لم يكن يُنشأ إطلاقاً
+                                    const payload: any = {
+                                        supplierId: (selectedInvoice as any)?.party?.id || (selectedInvoice as any)?.party_id,
+                                        items: selectedItems.map(item => ({
+                                            productId: item.productId,
+                                            name: item.name,
+                                            quantity: item.quantity,
+                                            unitPrice: item.unitPrice,
+                                            costPrice: item.costPrice || 0,
+                                            discount: 0
+                                        })),
+                                        invoiceNumber: (selectedInvoice as any)?.invoice_number || '',
+                                        issueDate: data.date,
+                                        notes: data.notes || '',
+                                        status: data.status === 'accepted' ? 'posted' : 'draft',
+                                        paymentMethod: 'cash',
+                                        currency: (selectedInvoice as any)?.currency_code || 'SAR',
+                                        exchangeRate: (selectedInvoice as any)?.exchange_rate || 1,
+                                        referenceInvoiceId: data.invoiceId,
+                                        returnReason: data.returnReason
+                                    };
+
+                                    await createPurchaseReturn.mutateAsync(payload);
                                 }
 
                                 onSuccess();

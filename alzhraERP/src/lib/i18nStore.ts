@@ -65,11 +65,14 @@ export const useI18nStore = create<I18nState>()(
       partialize: (state) => ({
         lang: state.lang
       }),
-      merge: (persistedState: any, currentState) => ({
-        ...currentState,
-        ...(persistedState as object),
-        dictionary: dictionaries[(persistedState as any)?.lang || 'ar']
-      })
+      merge: (persistedState: any, currentState) => {
+        const persistedLang = (persistedState as { lang?: 'ar' | 'en' })?.lang;
+        return {
+          ...currentState,
+          ...(persistedState as object),
+          dictionary: dictionaries[persistedLang || 'ar']
+        };
+      }
     }
   )
 );

@@ -161,7 +161,7 @@ const DashboardPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="relative z-10">
-                                    <SalesFlowChart data={salesData} showPeriodSelector={true} />
+                                    <SalesFlowChart data={salesData.map(d => ({ name: d.name, value: d.value ?? 0, sales: d.sales ?? 0 }))} showPeriodSelector={true} />
                                 </div>
                             </div>
                         </Suspense>
@@ -196,7 +196,7 @@ const DashboardPage: React.FC = () => {
                             <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 h-[350px]">
                                 <h3 className="text-xs font-bold text-[var(--app-text)] mb-4 max-md:mb-3">التصنيفات الأكثر حركة</h3>
                                 <div className="flex flex-col h-full items-center p-2">
-                                    <CategoriesChart data={categoryData} />
+                                    <CategoriesChart data={categoryData.map(d => ({ name: d.name, value: d.value ?? 0 }))} />
                                 </div>
                             </div>
                         </Suspense>

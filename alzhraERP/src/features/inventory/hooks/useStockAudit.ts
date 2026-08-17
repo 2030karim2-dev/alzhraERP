@@ -53,7 +53,7 @@ export const useAuditSession = (sessionId: string | undefined) => {
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'audit_items', filter: `session_id=eq.${sessionId}` },
                     (payload: Record<string, unknown>) => {
-                        logger.debug('Audit item changed:', payload);
+                        logger.debug('Audit item changed:', JSON.stringify(payload));
                         queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
                     }
                 )

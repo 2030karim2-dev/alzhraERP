@@ -13,7 +13,7 @@ function transitionLabel(target: CommissionPeriodState | undefined, labels: Labe
   return `الانتقال إلى ${labels.get(target) ?? target}`;
 }
 
-function PeriodActionButtons({ target, labels, protectedTest, terminal, calculating, transitioning, onCalculate, onTransition }: { target?: CommissionPeriodState; labels: Labels; protectedTest: boolean; terminal: boolean; calculating: boolean; transitioning: boolean; onCalculate: () => void; onTransition: () => void }): React.JSX.Element {
+function PeriodActionButtons({ target, labels, protectedTest, terminal, calculating, transitioning, onCalculate, onTransition }: { target?: CommissionPeriodState | undefined; labels: Labels; protectedTest: boolean; terminal: boolean; calculating: boolean; transitioning: boolean; onCalculate: () => void; onTransition: () => void }): React.JSX.Element {
   const transitionBlocked = terminal || transitioning || (protectedTest && (target === 'locked' || target === 'paid'));
   const actionLabel = transitionLabel(target, labels, terminal);
   return <>
@@ -25,7 +25,7 @@ function PeriodActionButtons({ target, labels, protectedTest, terminal, calculat
 interface CommissionPeriodControlsProps {
   selected: CommissionPeriod;
   state: CommissionPeriodState;
-  target?: CommissionPeriodState;
+  target?: CommissionPeriodState | undefined;
   labels: Labels;
   states: CommissionPeriodState[];
   isProtectedTest: boolean;

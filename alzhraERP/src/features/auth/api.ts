@@ -132,8 +132,8 @@ export const authApi = {
             full_name: data.full_name || user?.user_metadata?.full_name || '',
             avatar_url: data.avatar_url || user?.user_metadata?.avatar_url,
             role: firstCompany?.role || 'viewer',
-            company_id: firstCompany?.company_id,
-            company_name: firstCompany?.company_name,
+            company_id: firstCompany?.company_id ?? null,
+            company_name: firstCompany?.company_name ?? null,
             branch_id: firstCompany?.branch_id ?? null,
             branch_name: firstCompany?.branch_name ?? null,
           };
@@ -180,8 +180,8 @@ export const authApi = {
           full_name: profileData?.full_name || user?.user_metadata?.full_name || '',
           avatar_url: profileData?.avatar_url || user?.user_metadata?.avatar_url,
           role: roleRes.data?.role || 'viewer',
-          company_id: roleRes.data?.company_id,
-          company_name: roleRes.data?.companies?.name_ar,
+          company_id: roleRes.data?.company_id ?? null,
+          company_name: roleRes.data?.companies?.name_ar ?? null,
           branch_id: roleRes.data?.branch_id ?? null,
           branch_name: roleRes.data?.branches?.name ?? null,
         };

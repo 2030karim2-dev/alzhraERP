@@ -8,7 +8,7 @@ interface GetProductColumnsProps {
     onDeleteRequest?: ((p: Product) => void) | undefined;
     hideActions?: boolean;
     extraColumns?: Column<Product>[];
-    visibleColumns?: string[];
+    visibleColumns?: string[] | undefined;
 }
 
 export const getProductColumns = ({ 

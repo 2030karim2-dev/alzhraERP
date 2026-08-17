@@ -40,7 +40,7 @@ export const kitService = {
             .select(`
                 *,
                 component_product:products!component_product_id(
-                    id, name, name_ar, sku, stock_quantity
+                    id, name_ar, sku
                 )
             `)
             .eq('kit_product_id', kitProductId);
@@ -70,14 +70,14 @@ export const kitService = {
 
             if (availableQty < requiredQty) {
                 errors.push(
-                    `Insufficient stock for ${component.component_product?.name || component.component_product_id}: ` +
+                    `Insufficient stock for ${component.component_product?.name_ar || component.component_product_id}: ` +
                     `need ${requiredQty}, available ${availableQty}`
                 );
             }
 
             componentsUsed.push({
                 productId: component.component_product_id,
-                name: component.component_product?.name || component.component_product?.name_ar || '',
+                name: component.component_product?.name_ar || '',
                 quantity: requiredQty
             });
         }
@@ -172,7 +172,7 @@ export const kitService = {
             .select(`
                 *,
                 component_product:products!component_product_id(
-                    id, name, name_ar, sku, part_number, brand, cost_price, sale_price
+                    id, name_ar, sku, part_number, brand, cost_price, sale_price
                 )
             `)
             .eq('kit_product_id', kitProductId);
@@ -197,7 +197,7 @@ export const kitService = {
                         .single();
                     availableStock = Number(stock?.quantity || 0);
                 }
-                return { ...item, availableStock } as ProductKitItem & { availableStock: number };
+                return { ...item, availableStock } as unknown as ProductKitItem & { availableStock: number };
             })
         );
 

@@ -1,5 +1,14 @@
 export type InventoryView = 'products' | 'categories' | 'warehouses' | 'history' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
 
+/** سجل توافق منتج مع مركبة (VIN / طراز) */
+export interface CarCompatibility {
+  car_id?: string | null;
+  car_name?: string | null;
+  vin?: string | null;
+  notes?: string | null;
+  created_at?: string;
+}
+
 export interface warehouseStock {
   warehouse_id: string;
   warehouse_name: string;

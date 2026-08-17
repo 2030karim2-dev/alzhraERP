@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
+import type { Json } from '../../../core/database.types';
 import type { ProductUOM } from '../types';
 
 /** Products CRUD and search */
@@ -69,7 +70,7 @@ export const productsApi = {
         try {
             const { data, error } = await supabase.rpc('save_product_uoms', {
                 p_product_id: productId,
-                p_uoms: uoms
+                p_uoms: uoms as unknown as Json
             });
             if (!error) return { data, error: null };
 

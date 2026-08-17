@@ -234,7 +234,7 @@ export const productService = {
                 sale_price: Number(data.selling_price),
                 purchase_price: Number(data.cost_price),
                 min_stock_level: Number(data.min_stock_level),
-                unit: data.unit,
+                ...(data.unit ? { unit: data.unit } : {}),
             };
 
             if (data.part_number !== undefined) payload.part_number = data.part_number || null;

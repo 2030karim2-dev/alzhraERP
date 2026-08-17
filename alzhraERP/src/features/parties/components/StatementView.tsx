@@ -90,8 +90,8 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   ];
 
   const company = {
-      nameAr: invoiceSettings?.company_name_ar || settingsCompany?.name || 'اسم الشركة',
-      nameEn: invoiceSettings?.company_name_en || settingsCompany?.english_name || 'Company Name',
+      nameAr: invoiceSettings?.company_name_ar || settingsCompany?.name_ar || 'اسم الشركة',
+      nameEn: invoiceSettings?.company_name_en || settingsCompany?.name_en || 'Company Name',
       address: invoiceSettings?.company_address || settingsCompany?.address || '',
       phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
       taxNumber: settingsCompany?.tax_number || '---',

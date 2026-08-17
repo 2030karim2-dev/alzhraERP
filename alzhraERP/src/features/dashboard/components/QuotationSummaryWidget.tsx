@@ -16,9 +16,11 @@ const QuotationSummaryWidget: React.FC = () => {
         enabled: !!companyId,
     });
 
-    const { data: purchaseQuots, isLoading: purchaseLoading } = useQuery({
+    const { data: purchaseQuots, isLoading: purchaseLoading } = useQuery<{ data: Array<Record<string, unknown>>; error: unknown }>({
         queryKey: ['purchase_quotations_summary', companyId],
-        queryFn: () => companyId ? purchaseQuotationsApi.getQuotations(companyId) : Promise.resolve({ data: [], error: null }),
+        queryFn: () => companyId
+            ? (purchaseQuotationsApi.getQuotations(companyId) as unknown as Promise<{ data: Array<Record<string, unknown>>; error: unknown }>)
+            : Promise.resolve({ data: [], error: null }),
         enabled: !!companyId,
     });
 

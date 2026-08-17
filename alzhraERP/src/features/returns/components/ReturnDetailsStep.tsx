@@ -21,8 +21,8 @@ const RETURN_STATUSES = [
 
 export const ReturnDetailsStep: React.FC = () => {
     const { register, watch, setValue, formState: { errors } } = useFormContext();
-    const selectedReason = watch('returnReason');
-    const selectedStatus = watch('status');
+    const selectedReason = watch('returnReason') as string;
+    const selectedStatus = watch('status') as string;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -36,9 +36,9 @@ export const ReturnDetailsStep: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Return Date */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        <p className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                             تاريخ الإرجاع <span className="text-red-500">*</span>
-                        </label>
+                        </p>
                         <div className="relative">
                             <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
@@ -57,9 +57,9 @@ export const ReturnDetailsStep: React.FC = () => {
 
                     {/* Return Status */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        <p className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                             حالة المرتجع <span className="text-red-500">*</span>
-                        </label>
+                        </p>
                         <div className="grid grid-cols-3 gap-2">
                             {RETURN_STATUSES.map(status => {
                                 const Icon = status.icon;
@@ -68,7 +68,7 @@ export const ReturnDetailsStep: React.FC = () => {
                                     <button
                                         key={status.value}
                                         type="button"
-                                        onClick={() => setValue('status', status.value, { shouldValidate: true })}
+                                        onClick={() => { setValue('status', status.value, { shouldValidate: true }); }}
                                         className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${isSelected
                                             ? `border-${status.color}-500 ${status.bgColor}`
                                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
@@ -93,15 +93,15 @@ export const ReturnDetailsStep: React.FC = () => {
 
                 {/* Return Reason */}
                 <div className="mt-6">
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                    <p className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                         سبب الإرجاع <span className="text-red-500">*</span>
-                    </label>
+                    </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {RETURN_REASONS.map(reason => (
                             <button
                                 key={reason.value}
                                 type="button"
-                                onClick={() => setValue('returnReason', reason.value, { shouldValidate: true })}
+                                onClick={() => { setValue('returnReason', reason.value, { shouldValidate: true }); }}
                                 className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all group ${selectedReason === reason.value
                                     ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800 bg-slate-50 dark:bg-slate-900'
@@ -130,10 +130,11 @@ export const ReturnDetailsStep: React.FC = () => {
 
                 {/* Notes */}
                 <div className="mt-6">
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                    <label htmlFor="return-notes" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                         ملاحظات إضافية
                     </label>
                     <textarea
+                        id="return-notes"
                         {...register('notes')}
                         rows={3}
                         placeholder="أي تفاصيل أخرى حول المرتجع..."

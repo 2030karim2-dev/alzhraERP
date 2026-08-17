@@ -57,9 +57,9 @@ export const aiPartLookupApi = {
         if (!data) return null;
 
         return {
-            alternatives: data.alternatives || [],
+            alternatives: (data.alternatives ?? []) as unknown as AIAlternative[],
             image_url: data.image_url,
-            source_sites: data.source_sites || [],
+            source_sites: (data.source_sites ?? []) as unknown as string[],
             cached: true,
             part_number: cleanPN,
         };

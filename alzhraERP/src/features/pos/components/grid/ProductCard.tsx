@@ -7,7 +7,7 @@ interface ProductCardProps {
     product: Product;
     searchTerm: string;
     onAddToCart: (product: Product) => void;
-    onViewDetails?: (product: Product) => void;
+    onViewDetails?: ((product: Product) => void) | undefined;
     playNotificationSound: () => void;
 }
 

@@ -211,7 +211,7 @@ export const useAuthStore = create<AuthState>()(
 
                 try {
                   const profileResult = await authApi.getProfile(session.user.id);
-                  const resolved = profileResult as { data?: Record<string, unknown> } | Record<string, unknown>;
+                  const resolved = profileResult as unknown as { data?: Record<string, unknown> } | Record<string, unknown>;
                   const profile = ('data' in resolved && resolved.data ? resolved.data : resolved) as Record<string, unknown>;
 
                   if (profile && typeof profile === 'object' && profile.id) {

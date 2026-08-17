@@ -9,8 +9,6 @@ import type {
   ChartDataPoint,
   TopPerformer,
   LowStockProduct,
-  DashboardAlert,
-  DashboardInsight,
 } from '../models';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 
@@ -27,6 +25,7 @@ interface RawSummary {
   payment_bonds?: number | string;
   total_debts?: number | string;
   total_supplier_debts?: number | string;
+  invoice_count?: number | string;
 }
 
 interface RawTrialBalanceRow {
@@ -34,22 +33,6 @@ interface RawTrialBalanceRow {
   account_code?: string;
   netBalance?: number;
   balance?: number;
-}
-
-interface RawProductStock {
-  quantity?: number;
-}
-
-interface RawProduct {
-  id?: string;
-  name_ar?: string;
-  min_stock_level?: number;
-  product_stock?: RawProductStock[];
-}
-
-interface RawExpense {
-  amount?: number;
-  expense_categories?: { name: string } | null;
 }
 
 interface RawTopData {
@@ -224,7 +207,6 @@ export const useDashboardData = (): UseDashboardDataResult => {
       totalPurchases: toNumber(summary.total_purchases),
       totalExpenses: toNumber(summary.total_expenses),
       netProfit,
-      totalDebts: toNumber(summary.total_debts),
       totalSupplierDebts: toNumber(summary.total_supplier_debts),
       salesChartData: safeSalesChart,
       lowStockProducts: safeLowStockProducts,

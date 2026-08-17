@@ -1,5 +1,6 @@
 
 import { supabase } from '../../lib/supabaseClient';
+import type { Json } from '../../core/database.types';
 import { ExpenseFormData } from './types';
 
 // Typed interfaces for category create payload
@@ -40,19 +41,21 @@ export const expensesApi = {
   },
 
   // استخدام RPC الموحد v2 الذي يدعم الربط المباشر بالحسابات وتحسين الأداء
-  createExpenseRPC: async (companyId: string, _userId: string, data: ExpenseFormData) => {
-    const idempotencyKey = `exp_${companyId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  createExpenseRPC: async (companyId: string, userId: string, data: ExpenseFormData) => {
     return await supabase.rpc('commit_expense_v2', {
-      p_category_id: data.category_id,
-      p_amount: data.amount,
-      p_description: data.description,
-      p_date: data.expense_date,
-      p_payment_method: data.payment_method,
-      ...(data.voucher_number ? { p_voucher_number: data.voucher_number } : {}),
-      p_currency: data.currency_code || 'SAR',
-      p_exchange_rate: data.exchange_rate || 1,
-      ...(data.branch_id ? { p_branch_id: data.branch_id } : {}),
-      p_idempotency_key: idempotencyKey,
+      p_company_id: companyId,
+      p_user_id: userId,
+      p_data: {
+        category_id: data.category_id,
+        amount: data.amount,
+        description: data.description,
+        date: data.expense_date,
+        payment_method: data.payment_method,
+        ...(data.voucher_number ? { voucher_number: data.voucher_number } : {}),
+        currency: data.currency_code || 'SAR',
+        exchange_rate: data.exchange_rate || 1,
+        ...(data.branch_id ? { branch_id: data.branch_id } : {}),
+      } as unknown as Json,
     });
   },
 

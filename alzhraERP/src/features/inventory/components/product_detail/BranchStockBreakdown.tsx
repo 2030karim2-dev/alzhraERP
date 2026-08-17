@@ -3,7 +3,7 @@ import { Warehouse, MapPin, Building2, ChevronDown, ChevronUp, Layers } from 'lu
 import { cn, formatNumberDisplay } from '../../../../core/utils';
 import { warehouseStock } from '../../types';
 
-interface BranchInfo {
+export interface BranchInfo {
     id: string;
     name: string;
     warehouses: {

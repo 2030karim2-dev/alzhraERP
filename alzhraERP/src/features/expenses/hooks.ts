@@ -19,7 +19,7 @@ export const useNextExpenseNumber = () => {
       if (!user?.company_id) return '---';
       const { data, error } = await supabase.rpc('get_next_sequence', {
         p_company_id: user.company_id,
-        p_type: 'expense'
+        p_sequence_name: 'expense'
       });
 
       if (error) {

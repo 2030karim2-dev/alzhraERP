@@ -67,7 +67,7 @@ export const useProductSearch = (searchTerm: string, options?: UseProductSearchO
             if (data === null) return [];
             
             if (error !== null) {
-                throw new Error(error.message || 'Failed to search products');
+                throw new Error((error as { message?: string })?.message || 'Failed to search products');
             }
 
             // Map results to sum quantities from the nested stock array

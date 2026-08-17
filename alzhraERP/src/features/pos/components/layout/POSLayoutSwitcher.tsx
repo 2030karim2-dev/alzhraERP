@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutGrid, Columns, AlignJustify, Monitor } from 'lucide-react';
-import { cn } from '../../../core/utils';
+import { cn } from '@/core/utils';
 
 export type POSLayout = 'classic' | 'compact' | 'arabic' | 'fullscreen';
 

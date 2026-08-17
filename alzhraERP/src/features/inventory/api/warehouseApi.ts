@@ -4,7 +4,10 @@ import { TableInsert } from '@/core/types/supabase-helpers';
 /** Warehouse and stock management */
 export const warehouseApi = {
     getWarehouses: async (companyId: string, branchId?: string | null) => {
-        return await supabase.rpc('get_warehouses_with_stats', { p_company_id: companyId, p_branch_id: branchId || null });
+        return await supabase.rpc('get_warehouses_with_stats', {
+            p_company_id: companyId,
+            ...(branchId ? { p_branch_id: branchId } : {}),
+        });
     },
 
     createInventoryTransactions: async (transactions: TableInsert<'inventory_transactions'>[]) => {
@@ -47,6 +50,8 @@ export const warehouseApi = {
                 product_id: stockData.product_id,
                 warehouse_id: stockData.warehouse_id,
                 quantity: stockData.quantity,
+                total_cost: 0,
+                unit_cost: 0,
                 transaction_type: 'initial',
                 reference_type: 'opening_balance'
             });
@@ -69,10 +74,12 @@ export const warehouseApi = {
         return await supabase.from('inventory_transactions')
             .insert({
                 company_id: companyId,
-                created_by: userId,
+                ...(userId ? { created_by: userId } : {}),
                 product_id: productId,
                 warehouse_id: warehouseId,
                 quantity: adjustment,
+                total_cost: 0,
+                unit_cost: 0,
                 transaction_type: 'adjustment',
                 reference_type: 'manual_update'
             });

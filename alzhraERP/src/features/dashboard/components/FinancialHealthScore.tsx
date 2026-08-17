@@ -4,10 +4,10 @@ import { cn } from '../../../core/utils';
 
 interface FinancialHealthProps {
     stats?: {
-        sales: string;
-        purchases?: string;
-        expenses: string;
-        debts: string;
+        sales: number | string;
+        purchases?: number | string;
+        expenses: number | string;
+        debts: number | string;
     };
     cashFlow?: {
         inflow: number;
@@ -50,9 +50,10 @@ const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
     stats, cashFlow, targets, className
 }) => {
     // Stats are now numbers directly from the models
-    const sales = stats?.sales || 0;
-    const expenses = stats?.expenses || 0;
-    const debts = stats?.debts || 0;
+    // (تحويل آمن لأنها قد تأتي كنصوص من قاعدة البيانات)
+    const sales = Number(stats?.sales) || 0;
+    const expenses = Number(stats?.expenses) || 0;
+    const debts = Number(stats?.debts) || 0;
 
     const profitMargin = sales > 0 ? Math.max(-100, Math.min(100, ((sales - expenses) / sales) * 100)) : 0;
     const profitScore = Math.max(0, Math.min(30, (profitMargin > 0 ? profitMargin * 0.3 : 0)));

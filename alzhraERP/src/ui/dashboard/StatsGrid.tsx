@@ -55,7 +55,7 @@ const MiniSparkline: React.FC<{ color: string; className?: string }> = ({ color,
 
 interface StatItem {
   title: string;
-  value: string;
+  value: string | number;
   previousValue?: number;
   currentValue?: number;
   icon: React.ElementType;
@@ -67,12 +67,12 @@ interface StatItem {
 
 interface StatsGridProps {
   stats: {
-    sales: string;
-    purchases?: string;
-    expenses: string;
-    debts: string;
-    invoices?: string;
-    profit?: string;
+    sales: number | string;
+    purchases?: number | string;
+    expenses: number | string;
+    debts: number | string;
+    invoices?: number | string;
+    profit?: number | string;
     // Trend data
     salesTrend?: number;
     purchasesTrend?: number;

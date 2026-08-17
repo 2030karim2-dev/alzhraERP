@@ -39,7 +39,7 @@ export const useBondMutation = () => {
       // فحص الصلاحية لإصدار السندات
       await assertPermission('accounting:create', 'إصدار سندات مالية');
 
-      return bondsService.createBond(user.company_id, user.id, { ...data, branch_id: branchId });
+      return bondsService.createBond(user.company_id, user.id, { ...data, ...(branchId ? { branchId } : {}) });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['bonds', user?.company_id] });

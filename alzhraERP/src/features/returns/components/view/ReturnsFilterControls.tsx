@@ -1,15 +1,15 @@
 import React from 'react';
 import { Search, Filter, Download, Printer, RefreshCw, X } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
-import { SortField, SortDirection } from '../../hooks/useReturnsListView';
+import { SortField, SortDirection, ReturnsListFilters } from '../../hooks/useReturnsListView';
 
 interface Props {
     localSearchTerm: string;
     setLocalSearchTerm: (term: string) => void;
     showFilters: boolean;
     setShowFilters: (show: boolean) => void;
-    filters: any;
-    setFilters: (filters: any) => void;
+    filters: ReturnsListFilters;
+    setFilters: (filters: ReturnsListFilters) => void;
     sortField: SortField;
     setSortField: (field: SortField) => void;
     sortDirection: SortDirection;
@@ -27,7 +27,7 @@ interface Props {
 export const ReturnsFilterControls: React.FC<Props> = ({
     localSearchTerm, setLocalSearchTerm,
     showFilters, setShowFilters,
-    filters = {}, setFilters,
+    filters, setFilters,
     sortField, setSortField,
     sortDirection, setSortDirection,
     hasActiveFilters, clearFilters,
@@ -35,8 +35,8 @@ export const ReturnsFilterControls: React.FC<Props> = ({
     refetch, isLoading, hasData,
     type
 }) => {
-    // حاجز أمان: ضمان أن filters دائماً كائن صالح لتجنب انهيار .filter()
-    const safeFilters = (filters && typeof filters === 'object' && !Array.isArray(filters)) ? filters : {};
+    // filters مضمون النوع الآن (ReturnsListFilters) — لا حاجة لحاجز التحويل
+    const safeFilters = filters;
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
             <div className="flex flex-col lg:flex-row gap-3">

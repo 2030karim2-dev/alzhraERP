@@ -8,7 +8,7 @@ interface InvoiceItemsListProps {
     invoiceCurrency?: string;
     returnQuantities: Record<string, number>;
     selectedItems: Record<string, boolean>;
-    onItemSelect: (itemId: string, selected: boolean) => void;
+    onItemSelect: (itemId: string, selected: boolean, initialQty?: number) => void;
     onQuantityChange: (itemId: string, quantity: number, maxQty?: number) => void;
 }
 
@@ -39,6 +39,15 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
         );
     }, [items, searchTerm]);
 
+    // Initialize refs array based on filtered items
+    // ملاحظة: يجب استدعاء كل الـ Hooks قبل أي return شرطي (قاعدة Hooks)
+    useEffect(() => {
+        itemRefs.current = itemRefs.current.slice(0, filteredItems.length).map((row: any) => row ? row.slice(0, 2) : [null, null]);
+        while (itemRefs.current.length < filteredItems.length) {
+            itemRefs.current.push([null, null]);
+        }
+    }, [filteredItems.length]);
+
     if (items.length === 0) {
         return (
             <div className="p-8 max-md:p-4 text-center text-gray-500 bg-gray-50 dark:bg-slate-800 rounded-lg">
@@ -47,14 +56,6 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
             </div>
         );
     }
-
-    // Initialize refs array based on filtered items
-    useEffect(() => {
-        itemRefs.current = itemRefs.current.slice(0, filteredItems.length).map((row: any) => row ? row.slice(0, 2) : [null, null]);
-        while (itemRefs.current.length < filteredItems.length) {
-            itemRefs.current.push([null, null]);
-        }
-    }, [filteredItems.length]);
 
     const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number, item: any, _maxQty: number) => {
         let newRow = rowIndex;
@@ -128,7 +129,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                 </div>
                 {searchTerm && (
                     <p className="text-xs text-gray-500 mt-1">
-                        найдено: {filteredItems.length} из {items.length}
+                        تم العثور على {filteredItems.length} من أصل {items.length} صنف
                     </p>
                 )}
             </div>
@@ -211,13 +212,14 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                                                 const rawVal = e.target.value;
                                                 const val = Math.min(Math.max(0, parseInt(rawVal) || 0), maxQty);
 
-                                                onQuantityChange(item.id, val, maxQty);
-
-                                                // Automatic selection/deselection based on quantity typed
+                                                // إصلاح فقدان الكمية: عند كتابة كمية لصنف غير محدد بعد،
+                                                // نضيف الصنف مباشرة بالكمية المدخلة بدلاً من الكمية الافتراضية 1
                                                 if (val > 0 && !isSelected) {
-                                                    onItemSelect(item.id, true);
+                                                    onItemSelect(item.id, true, val);
                                                 } else if (val === 0 && isSelected) {
                                                     onItemSelect(item.id, false);
+                                                } else {
+                                                    onQuantityChange(item.id, val, maxQty);
                                                 }
                                             }}
                                             ref={el => { if (itemRefs.current[index]) itemRefs.current[index][1] = el; }}

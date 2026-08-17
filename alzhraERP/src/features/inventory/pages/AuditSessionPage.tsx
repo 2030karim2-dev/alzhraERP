@@ -60,7 +60,10 @@ const AuditSessionPage: React.FC = () => {
         clearSession,
     } = useInventorySession({
         sessionId: sessionId ?? '',
-        warehouseId: (data?.session?.warehouse_id as string | undefined),
+        // لا نمرر undefined صراحةً (exactOptionalPropertyTypes)
+        ...(data?.session?.warehouse_id
+            ? { warehouseId: (data.session as { warehouse_id?: string }).warehouse_id as string }
+            : {}),
         initialItems: data?.items ?? [],
     });
 
@@ -198,7 +201,10 @@ const AuditSessionPage: React.FC = () => {
                 const res = await inventoryService.getProductById(product.id);
                 // Map the raw product to our domain model to get warehouse_distribution
                 if (res && res.data) {
-                    const mapped = (await import('./../services/productService')).productService.mapRawProducts([res.data], data?.session?.warehouse_id);
+                    const mapped = (await import('./../services/productService')).productService.mapRawProducts(
+                        [res.data as unknown as Product],
+                        (data?.session as { warehouse_id?: string })?.warehouse_id
+                    );
                     if (mapped && mapped.length > 0) {
                         fullProduct = mapped[0];
                     }
@@ -256,13 +262,13 @@ const AuditSessionPage: React.FC = () => {
     /** إضافة كل منتجات المستودع المحدد للجلسة دفعةً واحدة */
     const handleBulkAddWarehouseProducts = useCallback(async () => {
         if (!sessionId || !data?.session?.warehouse_id) return;
-        const warehouseId_val = data.session.warehouse_id;
+        const warehouseId_val = (data.session as { warehouse_id: string }).warehouse_id;
         const currentItems = getValues('items');
         const existingProductIds = new Set(currentItems.map((i) => i.product_id));
 
         const { products: allProducts } = await import('../service').then(async (m) => {
             // [CRITICAL FIX]: Pass warehouseId_val to getProducts to ensure stock is isolated to this warehouse
-            const result = await m.inventoryService.getProducts(data?.session?.company_id, 1, 99999, warehouseId_val);
+            const result = await m.inventoryService.getProducts(((data?.session as { company_id?: string })?.company_id) || '', 1, 99999, warehouseId_val);
             return { products: Array.isArray(result) ? result : (result as unknown as { data?: Product[] }).data ?? [] };
         }).catch(() => ({ products: [] as Product[] }));
 
@@ -275,7 +281,7 @@ const AuditSessionPage: React.FC = () => {
         setIsBulkAdding(true);
         setBulkProgress({ current: 0, total: newProducts.length });
 
-        if (currentItems.length > 0) saveAuditProgress(currentItems);
+        if (currentItems.length > 0) saveAuditProgress(currentItems as unknown as { id?: string; product_id: string; counted_quantity: number }[]);
 
         for (let i = 0; i < newProducts.length; i++) {
             const p = newProducts[i];
@@ -284,7 +290,7 @@ const AuditSessionPage: React.FC = () => {
             await new Promise<void>((resolve) => {
                 addItemToAudit(
                     { sessionId, productId: p.id, expectedQuantity },
-                    { onSuccess: resolve, onError: () => resolve() }
+                    { onSuccess: () => resolve(), onError: () => resolve() }
                 );
             });
             setBulkProgress({ current: i + 1, total: newProducts.length });
@@ -315,7 +321,7 @@ const AuditSessionPage: React.FC = () => {
                         {session?.status !== 'completed' && (
                             <Button
                                 variant="outline"
-                                size="xs"
+                                size="sm"
                                 onClick={() => setShowBulkConfirm(true)}
                                 isLoading={isBulkAdding}
                                 leftIcon={isBulkAdding
@@ -327,12 +333,12 @@ const AuditSessionPage: React.FC = () => {
                                 <span className="hidden sm:inline">جرد كامل</span>
                             </Button>
                         )}
-                        <Button variant="outline" size="xs" onClick={handleSave} isLoading={isSavingProgress} leftIcon={<Save size={12} />} title="حفظ مسودة" className="px-2 sm:px-3">
+                        <Button variant="outline" size="sm" onClick={handleSave} isLoading={isSavingProgress} leftIcon={<Save size={12} />} title="حفظ مسودة" className="px-2 sm:px-3">
                             <span className="hidden sm:inline">حفظ</span>
                         </Button>
                         <Button 
                             variant="success" 
-                            size="xs" 
+                            size="sm" 
                             onClick={handleFinalize} 
                             isLoading={isFinalizing} 
                             disabled={session?.status === 'completed'}
@@ -396,7 +402,7 @@ const AuditSessionPage: React.FC = () => {
                                             <tr
                                                 key={p.id}
                                                 onClick={() => {
-                                                    handleAddItem(p);
+                                                    handleAddItem(p as unknown as Product);
                                                     setShowResults(false);
                                                 }}
                                                 className="hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
@@ -434,7 +440,7 @@ const AuditSessionPage: React.FC = () => {
                         {categories?.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => setSelectedCategory(cat.name)}
+                                onClick={() => setSelectedCategory(cat.name ?? null)}
                                 className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 dark:bg-slate-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
                             >
                                 {cat.name}

@@ -156,6 +156,7 @@ export const salesQuotationsApi = {
     // Insert items
     const itemRows = items.map((item, idx) => ({
       quotation_id: quotation.id,
+      company_id: companyId,
       product_id: item.productId || null,
       description: item.description,
       quantity: item.quantity,

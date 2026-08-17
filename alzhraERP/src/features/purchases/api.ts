@@ -90,7 +90,7 @@ export const purchasesApi = {
   getPurchases: async (companyId: string, branchId?: string | null) => {
     let query = supabase.from('invoices').select(`
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
-      currency_code, exchange_rate, party:party_id(name), invoice_items(id)
+      currency_code, exchange_rate, party:party_id(name), invoice_items(id, cost_price)
     `).eq('company_id', companyId).in('type', ['purchase', 'return_purchase']).is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     return query.order('issue_date', { ascending: false });
@@ -138,7 +138,7 @@ export const purchasesApi = {
     let query = supabase.from('invoices').select(`
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(id, name),
-      invoice_items(id, product_id, description, quantity, unit_price, total)
+      invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
     `).eq('company_id', companyId).eq('type', 'purchase').eq('status', 'posted').is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     if (hasText(supplierId)) query = query.eq('party_id', supplierId);

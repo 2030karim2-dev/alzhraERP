@@ -151,8 +151,10 @@ export const settingsService = {
 
         for (const table of tables) {
             try {
-                const tableName = table as keyof import('../../core/database.types').Database['public']['Tables'];
-                const { data, error } = await supabase.from(tableName).select('*');
+                // تجنب التقييم العميق لـ keyof Tables (كان يسبب TS2589)
+                const { data, error } = await supabase
+                    .from(table as unknown as never)
+                    .select('*');
                 if (!error && data) {
                     (exportData.data as Record<string, unknown>)[table] = data;
                 }

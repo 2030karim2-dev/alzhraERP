@@ -48,7 +48,7 @@ export const crossReferenceService = {
             productName: row.product_name,
             productNameAr: row.product_name_ar,
             productSku: row.product_sku,
-            matchQuality: row.match_quality,
+            matchQuality: (row.match_quality as CrossReferenceSearchResult['matchQuality']) || 'partial',
             sourceNumber: row.source_number,
             targetNumber: row.target_number,
             brand: row.brand,
@@ -67,6 +67,7 @@ export const crossReferenceService = {
         matchQuality: 'exact' | 'partial' | 'interchangeable',
         notes?: string
     ): Promise<void> => {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
         const { error } = await supabase
             .from('product_cross_references')
             .insert({
@@ -75,7 +76,7 @@ export const crossReferenceService = {
                 alternative_product_id: alternativeProductId,
                 match_quality: matchQuality,
                 notes: notes || null,
-                created_by: (await supabase.auth.getUser()).data.user?.id
+                ...(userId ? { created_by: userId } : {}),
             });
 
         if (error) {

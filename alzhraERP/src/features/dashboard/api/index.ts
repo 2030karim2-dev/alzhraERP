@@ -5,14 +5,19 @@
 
 import { supabase } from '@/lib/supabaseClient';
 
-// Helper to extract data or throw error on failure
+// Helper to extract data or fall back gracefully on RPC failure.
+// IMPORTANT: we deliberately do NOT throw here. The dashboard widgets
+// must keep rendering with zeroed/empty fallbacks when a dashboard RPC
+// is missing or temporarily failing (e.g. PGRST202 404), instead of
+// taking the whole page down and triggering endless refetch loops.
 function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name: string = 'RPC'): T {
     if (result.status === 'fulfilled' && result.value.error) {
-        console.error(`[Dashboard API] ${name} error:`, result.value.error.message);
-        throw new Error(`فشل في جلب بيانات (${name}): ${result.value.error.message}`);
+        console.warn(`[Dashboard API] ${name} unavailable, using fallback:`, result.value.error.message);
+        return fallback;
     }
     if (result.status === 'rejected') {
-        throw new Error(`فشل في جلب بيانات (${name}): ${result.reason}`);
+        console.warn(`[Dashboard API] ${name} rejected, using fallback:`, result.reason);
+        return fallback;
     }
     if (result.status === 'fulfilled' && result.value.data !== null) {
         return result.value.data;
@@ -84,7 +89,7 @@ export const dashboardApi = {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
         const dateTo = new Date().toISOString().split('T')[0];
-        const branchParam = branchId || null;
+        const branchParam = branchId ?? undefined;
 
         // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
         const activeSignal: AbortSignal =
@@ -97,30 +102,30 @@ export const dashboardApi = {
             // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
             supabase.rpc('get_dashboard_summary', {
                 p_company_id: companyId,
-                p_branch_id: branchParam,
                 p_date_from: dateFrom,
-                p_date_to: dateTo
+                p_date_to: dateTo,
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
 
             // 2. Sales Chart Data
             supabase.rpc('get_sales_chart_data', {
                 p_company_id: companyId,
-                p_branch_id: branchParam,
                 p_date_from: dateFrom,
-                p_date_to: dateTo
+                p_date_to: dateTo,
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
 
             // 3. Top Products & Customers
             supabase.rpc('get_top_products_and_customers', {
                 p_company_id: companyId,
-                p_branch_id: branchParam,
-                p_limit: 5
+                p_limit: 5,
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
 
             // 4. Low Stock Products
             supabase.rpc('get_low_stock_products', {
                 p_company_id: companyId,
-                p_branch_id: branchParam
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
 
             // 5. Expense Categories Summary
@@ -128,7 +133,7 @@ export const dashboardApi = {
                 p_company_id: companyId,
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
-                p_branch_id: branchParam
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
 
             // 6. Trial Balance for Net Profit
@@ -136,7 +141,7 @@ export const dashboardApi = {
                 p_company_id: companyId,
                 p_from: '2000-01-01',
                 p_to: dateTo,
-                p_branch_id: branchParam
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }).abortSignal(activeSignal),
         ]);
 
@@ -151,7 +156,11 @@ export const dashboardApi = {
 
         const salesChart = safeData(chartRes, [], 'get_sales_chart_data');
 
-        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(topRes, { top_products: [], top_customers: [] }, 'get_top_products_and_customers');
+        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(
+            topRes as unknown as PromiseSettledResult<{ data: RawTopPayload | RawTopPayload[] | null; error: { message?: string } | null }>,
+            { top_products: [], top_customers: [] },
+            'get_top_products_and_customers'
+        );
         const topDataObj: RawTopPayload = Array.isArray(rawTop) ? rawTop[0] : rawTop;
 
         const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');

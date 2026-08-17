@@ -58,7 +58,7 @@ export const useTableKeyboardNavigation = <T,>({
 }: UseTableKeyboardNavigationProps<T>) => {
     const [focusedCell, setFocusedCell] = useState<CellPosition>({ row: 0, col: 0 });
     const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
-    const [editValue, setEditValue] = useState<unknown>('');
+    const [editValue, setEditValue] = useState<string>('');
     const [selection, setSelection] = useState<SelectionRange | null>(null);
     const [clipboard, setClipboard] = useState<unknown[]>([]);
     const pageSizeRef = useRef(20);
@@ -109,7 +109,7 @@ export const useTableKeyboardNavigation = <T,>({
         const col = columns[colIdx];
         if (col && col.isEditable && onCellUpdate && col.accessorKey) {
             const row = orderedData[rowIdx];
-            setEditValue(row ? (row as Record<string, unknown>)[col.accessorKey as string] : '');
+            setEditValue(row ? String((row as Record<string, unknown>)[col.accessorKey as string] ?? '') : '');
             setEditingCell({ row: rowIdx, col: colIdx });
         }
     }, [columns, onCellUpdate, orderedData]);

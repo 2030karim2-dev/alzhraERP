@@ -113,5 +113,4 @@ const PageLoader: React.FC<PageLoaderProps> = ({ variant = 'default', className 
 };
 
 export default PageLoader;
-export type { PageLoaderVariant };
 

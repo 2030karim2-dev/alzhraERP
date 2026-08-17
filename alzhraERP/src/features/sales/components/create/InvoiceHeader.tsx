@@ -5,8 +5,8 @@ import { useInvoiceSettings } from '../../../settings/settingsStore';
 const InvoiceHeader = ({ company }: { company: any }) => {
     const settings = useInvoiceSettings();
 
-    const nameAr = settings.company_name_ar || company?.name || 'اسم المنشأة';
-    const nameEn = settings.company_name_en || company?.english_name || 'Company Name';
+    const nameAr = settings.company_name_ar || company?.name_ar || 'اسم المنشأة';
+    const nameEn = settings.company_name_en || company?.name_en || 'Company Name';
     const address = settings.company_address || company?.address || 'المملكة العربية السعودية';
     const specialization = settings.company_specialization || '';
 

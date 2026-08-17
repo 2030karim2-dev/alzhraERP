@@ -53,7 +53,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const { data: cashAccounts } = useCashPaymentAccounts();
     const { data: exchangeAccounts } = useExchangePaymentAccounts();
     const { data: paymentAccounts } = usePaymentAccounts();
-    const accounts: PaymentAccount[] = paymentAccounts || [];
+    // تحويل آمن: النوع القادم من usePaymentAccounts (accounting) يختلف عن
+    // النوع المحلي PaymentAccount رغم تطابق الحقول وظيفياً
+    const accounts: PaymentAccount[] = (paymentAccounts || []) as unknown as PaymentAccount[];
 
     useEffect(() => {
         if (method === 'exchange') {

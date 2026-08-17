@@ -133,7 +133,7 @@ const TeamManager: React.FC = () => {
                                 subtitle={`${t.job_role || 'الدور'}: ${inv.role}${inv.branches?.name ? ` | الفرع: ${inv.branches.name}` : ' | مدير عام'} | إضافة: ${new Date(inv.created_at).toLocaleDateString('ar-SA-u-nu-latn')}`}
                                 tags={[
                                     { label: inv.status === 'pending' ? (t.waiting_for_acceptance || 'بانتظار القبول') : (t.accepted || 'مقبولة'), color: inv.status === 'pending' ? 'amber' : 'emerald' },
-                                    ...(inv.branches?.name ? [{ label: `📍 ${inv.branches.name}`, color: 'indigo' as const }] : [{ label: '🌐 مدير عام', color: 'gray' as const }])
+                                    ...(inv.branches?.name ? [{ label: `📍 ${inv.branches.name}`, color: 'blue' as const }] : [{ label: '🌐 مدير عام', color: 'slate' as const }])
                                 ]}
                                 actions={
                                     inv.status === 'pending' && (

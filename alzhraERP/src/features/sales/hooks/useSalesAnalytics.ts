@@ -63,8 +63,10 @@ const toNum = (value: unknown): number => {
 const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
     if (!raw) return null;
 
-    const numberField = (name: string, snakeName?: string): number =>
-        toNum(raw[name] ?? raw[snakeName]);
+    const numberField = (name: string, snakeName?: string): number => {
+        const fallback = snakeName !== undefined ? raw[snakeName] : undefined;
+        return toNum(raw[name] ?? fallback);
+    };
 
     const listField = (key: string, snakeKey: string): any[] =>
         Array.isArray(raw[key]) ? raw[key]
