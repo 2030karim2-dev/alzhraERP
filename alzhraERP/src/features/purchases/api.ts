@@ -9,6 +9,10 @@ interface PurchaseItemPayload {
   quantity: number;
   unit_cost: number;
   discount: number;
+  /** The create RPC (`commit_purchase_invoice`) reads `discount_amount`,
+   *  while the return RPC (`commit_purchase_return`) reads `discount` — send
+   *  both keys so the two functions each get the value they expect. */
+  discount_amount: number;
   line_total: number;
   warehouse_id?: string;
 }
@@ -23,6 +27,7 @@ interface PurchaseRpcParams {
   p_payment_account_id?: string;
   p_invoice_number?: string;
   p_issue_date?: string;
+  p_due_date?: string;
   p_notes?: string;
   p_branch_id?: string;
 }
@@ -52,6 +57,7 @@ const itemPayload = (item: PurchaseItem): PurchaseItemPayload => {
     quantity: item.quantity,
     unit_cost: item.costPrice,
     discount,
+    discount_amount: discount,
     line_total: Math.max(0, item.quantity * item.costPrice - discount),
     ...warehousePayload(item.warehouseId),
   };
@@ -65,6 +71,7 @@ const buildPurchaseParams = (companyId: string, userId: string, data: CreatePurc
     p_supplier_id: requireText(data.supplierId, 'Supplier'),
     ...(hasText(data.invoiceNumber) ? { p_invoice_number: data.invoiceNumber } : {}),
     ...(hasText(data.issueDate) ? { p_issue_date: data.issueDate } : {}),
+    ...(hasText(data.dueDate) ? { p_due_date: data.dueDate } : {}),
     p_items: data.items.map(itemPayload) as unknown as Json,
     ...(hasText(data.notes) ? { p_notes: data.notes } : {}),
     p_currency: data.currency ?? 'SAR',

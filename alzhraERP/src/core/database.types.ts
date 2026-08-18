@@ -10135,6 +10135,7 @@ export type Database = {
           p_exchange_rate?: number
           p_invoice_number?: string
           p_issue_date?: string
+          p_due_date?: string
           p_items: Json
           p_notes?: string
           p_payment_account_id?: string

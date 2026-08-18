@@ -1,5 +1,37 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-18) — المرحلة ج: الأمان والخلفية (Supabase مباشر) ✅
+- [x] **إلغاء صلاحية EXECUTE عن `anon`/`PUBLIC`** من **15 دالة مالية SECURITY DEFINER** (commit_purchase_invoice, commit_sales_invoice_v2, commit_payment, post_manual_journal, void_expense, void_bond, create_financial_bond, process_sales_return, process_stock_transfer, recalculate_* …) وإعادة المنح حصرياً لـ `authenticated`. تم التطبيق والتحقق مباشرة: anon = 0، authenticated = 15. Migration: `20260818000005_revoke_anon_execute.sql`.
+- [x] **إضافة `p_due_date` إلى `commit_purchase_invoice`** + حفظه في `invoices.due_date` (كان يُفقد صامتاً). إسقاط التحميل القديم 12-معامل + تحصين صلاحيات التحميل الجديد. تم التطبيق والتحقق (التوقيع 13 معامل، anon=false, authenticated=true, الرسائل العربية سليمة). Migration: `20260818000006_add_purchase_due_date.sql`.
+- [x] **إصلاح عدم تطابق الخصم**: `commit_purchase_invoice` يقرأ `discount_amount` بينما `commit_purchase_return` يقرأ `discount` — الواجهة ترسل **كلا المفتاحين** الآن.
+- [x] ربط `p_due_date` في `purchases/api.ts` (buildPurchaseParams) + تحديث `database.types.ts`.
+- [x] فحوصات مباشرة للقاعدة: جميع دوال RPC الأساسية موجودة (73/73 سابقاً)، `commit_sales_invoice_v2` يدعم due_date، لا اعتماديات على الدالة المحدّثة.
+
+## Checkpoint (2026-08-18) — المرحلة د (جولة 1): استبدال console.* بـ logger ✅
+- [x] تحويل **83 استدعاء `console.*` في 54 ملفاً** إلى `logger` الموحّد (error/warn/info/debug) عبر سكربت تحويل مؤقت + مراجعة يدوية للحالات الخاصة (`PurchaseDetailsModal`).
+- [x] لم يتبقَّ أي `console.*` في كود التطبيق؛ الباقي (42 سطراً في 8 ملفات) مستثنى عمداً: `logger.ts` (التنفيذ)، `index.tsx` (إخفاء أخطاء الإنتاج)، `errorUtils.ts`، `featureFlags.ts` (dev-only)، `supabaseClient.ts` (رسالة الإعداد)، `scripts/*` (أدوات CLI).
+- [x] التحقق: `tsc --noEmit` = 0 خطأ.
+
+## Checkpoint (2026-08-18) — المرحلة ب: توحيد البنية وتنظيف الكود الميت ✅
+- [x] توحيد المزامنة دون اتصال: `useCreateInvoice` انتقل من `offlineQueueStore` (النظام القديم) إلى `syncStore` الموحد بمفتاح `['sales', 'create']`؛ `offlineQueueStore` + `OfflineManager` يبقيان فقط كتصريف (drain) للطابور القديم حتى يفرغ.
+- [x] `useSyncQueue`: إضافة سقف أقصى `MAX_SYNC_RETRIES = 5` (إسقاط الطفرات الفاشلة دائماً مع log حرج) + إصلاح `break` الذي كان يعطّل بقية الطابور نهائياً عند أول فشل دائم (أصبح `continue`).
+- [x] حذف 9 ملفات كود ميت مؤكدة: `LoginPage.tsx`, `RegisterPage.tsx`, `localDB.ts`, `ImportProductsModal.tsx`, `WarehouseManager.tsx` (القديم), مجلد `settings/components/warehouses/` بالكامل (WarehouseManager + WarehouseModal) — التطبيق يستخدم نظام المخازن داخل ميزة `inventory`.
+- [x] حذف ثابت `ROUTES.DASHBOARD.AI` غير المستخدم + تنظيف برميل `auth/index.ts`.
+- [x] حل تعارضات الدمج في `plans/comprehensive-audit-report.md` (5 مناطق تعارض → 0، بإزالة 147 سطراً مكرراً).
+- [x] التحقق: `tsc --noEmit` = 0 خطأ، Vitest كامل أخضر.
+
+## Checkpoint (2026-08-18) — المرحلة أ: احتواء الخطر المالي ✅
+- [x] إزالة أزرار الصيانة المدمرة («حذف التكرار»، «تصحيح القيود») من `PurchasesPage.tsx` وحذف `purchaseFixes.ts` كلياً (كانت كتابات/حذوفات مالية غير ذرية من المتصفح). أُبقي زر «فحص النظام» (قراءة فقط).
+- [x] تحصين `importSystemData`: owner-only عبر `assertOwner` + تحقق `company_id` لكل الصفوف قبل أي كتابة + فشل صوتي عالٍ + استبعاد `supported_currencies` (جدول مرجعي عام).
+- [x] إصلاح `offlineQueueStore.syncQueue`: الأنواع غير المعالجة تبقى في الطابور مع خطأ بدلاً من حذفها صامتاً.
+- [x] توحيد `convertCurrency` مع `convertToBaseCurrency`/`convertFromBaseCurrency` (كانت معكوسة لعملات divide) + تمرير `exchangeOperator` من sales store.
+- [x] `toBaseCurrency` ترمي `CurrencyError` بدلاً من إرجاع المبلغ الخام صامتاً؛ حُسّنت الحماية في قوائم المبيعات/المشتريات/المصروفات والمرتجعات.
+- [x] منع حفظ سعر صرف ≤ 0 في `useCurrencyManager` و`setRate` mutation.
+- [x] إزالة المسار الاحتياطي الخطير في `deleteExpenseRecord` (كان يسوي المصروف دون عكس القيد المحاسبي).
+- [x] توسيع `TABLE_PRESET_MAP` في Realtime ليشمل `journal_entry_lines`, `accounts`, `inventory_transactions`, `stock_transfers`, `audit_*`, `exchange_rates`, `branches`, `fiscal_years`, `supported_currencies`.
+- [x] استبدال `console.*` بـ `logger` في auth/hooks + settings/service.
+- [x] التحقق: `tsc --noEmit` = 0 خطأ، Vitest = 321/321 ناجحة.
+
 ## Phase 0: البوابات والمكاسب السريعة
 - [x] Task 1: إصلاح 3 اختبارات فاشلة (localStorage mock + StockMovementUsecase RPC stale) — ✅ 224/224
 - [x] Task 2: كنس TS6133 (83 خطأً) — ✅ baseline 275 → 191
