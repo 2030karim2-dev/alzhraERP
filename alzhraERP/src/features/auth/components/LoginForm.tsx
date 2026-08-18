@@ -5,10 +5,11 @@ import { useLogin, useGoogleLogin } from '../hooks';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { FloatingInput } from './FloatingInput';
 
-// Google OAuth is NOT enabled in the Supabase project (external_providers is empty).
-// The button is gated behind this flag so a broken "Sign in with Google" flow is
-// never shown. Enable only after configuring the Google provider in Supabase Auth.
-const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN === 'true';
+// Google OAuth is enabled in the Supabase project (external_google_enabled=true)
+// and real users sign in with it. The button therefore shows BY DEFAULT and is
+// only hidden when explicitly disabled via VITE_ENABLE_GOOGLE_LOGIN=false
+// (e.g. to temporarily remove the flow during provider maintenance).
+const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN !== 'false';
 
 export const LoginForm: React.FC = () => {
     const [email, setEmail] = useState('');
