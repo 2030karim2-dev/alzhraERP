@@ -18,11 +18,11 @@ export const calculateDashboardInsights = (data: {
     salesTarget?: number;
 }) => {
     const {
-        totalSales,
+        totalSales = 0,
         salesChartData = [],
-        lowStockProducts,
-        overdueInvoices,
-        totalSupplierDebts,
+        lowStockProducts = [],
+        overdueInvoices = [],
+        totalSupplierDebts = 0,
         salesTarget,
     } = data;
 

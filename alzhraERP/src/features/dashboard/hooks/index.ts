@@ -230,8 +230,21 @@ export const useDashboardData = (): UseDashboardDataResult => {
       return null;
     }
 
-    const { summary, salesChart, topData, lowStockProducts, categoryData, trialBalanceRows, recentInvoices, recentExpenses, overdueInvoices } =
-      rawDataQuery.data;
+    const {
+      summary,
+      salesChart,
+      topData,
+      lowStockProducts,
+      categoryData,
+      trialBalanceRows,
+      // ⚠️ Defensive defaults: the 24h IndexedDB persister can restore a payload
+      // written by an OLDER build whose API did not return these fields yet.
+      // Without defaults, `calculateDashboardInsights` used to crash with
+      // `Cannot read properties of undefined (reading 'length')` inside this useMemo.
+      recentInvoices = [],
+      recentExpenses = [],
+      overdueInvoices = [],
+    } = rawDataQuery.data;
 
     // Guard: if summary is missing (RPC failed or old cache), return null
     if (!summary || typeof summary !== 'object') {

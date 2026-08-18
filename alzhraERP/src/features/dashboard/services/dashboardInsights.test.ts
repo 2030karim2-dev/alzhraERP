@@ -164,3 +164,55 @@ describe('Targets', () => {
   });
 });
 
+// ── Resilience against stale/partial persisted payloads ──────────────────────
+//
+// Regression: the dashboard API started returning `overdueInvoices` later than
+// the (24h) persisted IndexedDB cache was written, so a stale cache could still
+// hold a payload WITHOUT that field. `calculateDashboardInsights` is invoked
+// from inside the `processedData` useMemo, so a missing field used to throw
+// `Cannot read properties of undefined (reading 'length')` and take down the
+// whole dashboard. It must degrade to empty arrays / zeros instead.
+
+describe('Resilience to partial data', () => {
+  it('does not crash when overdueInvoices is undefined', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 0,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalSupplierDebts: 0, salesChartData: [],
+      // overdueInvoices deliberately omitted (stale cache shape)
+    } as Parameters<typeof calculateDashboardInsights>[0]);
+
+    expect(result.alerts.some(a => a.id === 'overdue-invoices')).toBe(false);
+    expect(Number.isNaN(result.targets.salesProgress)).toBe(false);
+  });
+
+  it('does not crash when lowStockProducts is undefined', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 0,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalSupplierDebts: 0, salesChartData: [], overdueInvoices: [],
+      // lowStockProducts deliberately omitted
+    } as Parameters<typeof calculateDashboardInsights>[0]);
+
+    expect(result.alerts.some(a => a.id === 'low-stock')).toBe(false);
+  });
+
+  it('does not crash when salesChartData is undefined', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 0,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalSupplierDebts: 0, lowStockProducts: [], overdueInvoices: [],
+      // salesChartData deliberately omitted (it is optional in the signature)
+    });
+
+    expect(result.salesTrend).toBe(0);
+  });
+
+  it('does not crash when all dashboard fields are missing', () => {
+    const result = calculateDashboardInsights({} as Parameters<typeof calculateDashboardInsights>[0]);
+
+    expect(result.targets.salesProgress).toBe(0);
+    expect(Number.isNaN(result.salesTrend)).toBe(false);
+  });
+});
+
