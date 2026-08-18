@@ -145,7 +145,7 @@ export const salesApi = {
   getNextInvoiceNumber: async (companyId: string) => {
     const { data, error } = await supabase.rpc('get_next_invoice_number', {
       p_company_id: companyId,
-      p_prefix: 'INV'
+      p_type: 'INV'
     });
 
     if (error) return { data: null, error };

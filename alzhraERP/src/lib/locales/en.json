@@ -368,5 +368,19 @@
   "commission_config": "Commission Settings",
   "commission_assignments": "Engineer Assignments",
   "commission_periods": "Period Lifecycle",
-  "commission_reports": "Commission Reports"
+  "commission_reports": "Commission Reports",
+  "vehicles": "Vehicle Management",
+  "cash_flow": "Cash Flow",
+  "debt_aging": "Debt Aging",
+  "operational_expenses": "Operational Expenses",
+  "returns_report": "Returns Report",
+  "daily_sales_report": "Daily Sales Report",
+  "reports_all": "All",
+  "reports_sales_inventory": "Sales & Inventory",
+  "reports_financial": "Financial Statements",
+  "reports_accounting": "Accounting",
+  "report_loading": "Loading report...",
+  "message_text": "Message text",
+  "refresh": "Refresh",
+  "all": "All"
 }

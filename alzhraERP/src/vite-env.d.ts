@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   // configured server-side only (Supabase Edge Functions: ai-proxy).
   readonly VITE_ENABLE_AI_FEATURES?: string;
   readonly VITE_DEV_MODE?: string;
+  // Google OAuth sign-in — only enable after configuring the provider in Supabase Auth.
+  readonly VITE_ENABLE_GOOGLE_LOGIN?: string;
 }
 
 interface ImportMeta {

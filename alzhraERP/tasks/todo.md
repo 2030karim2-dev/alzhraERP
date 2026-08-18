@@ -1,5 +1,16 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-18) — إصلاحات جاهزية الإنتاج (تدقيق شامل) ✅
+- [x] **G1 — إنشاء جدول `file_attachments`** (كان مفقوداً من القاعدة الحية مع أن `storage.service.ts` يكتب إليه): جدول + فهارس + RLS (نمط `is_super_admin() OR company_id IN (SELECT get_auth_companies())`) + منح. Migration: `20260819000005_file_attachments_storage.sql` (مطبّق + مسجّل في سجل الخادم).
+- [x] **G2 — إنشاء حاويتي التخزين الناقصتين** `invoices` و `company-assets` + سياسات storage لـ `invoices` (نفس نمط product-images).
+- [x] **G4 — نشر دالة Edge Function الناقصة** `zatca-integration` (11/11 نشطة الآن، verify_jwt=True).
+- [x] **G5 — إنشاء `.env` محلي** من القيم المتاحة (مستثنى من Git).
+- [x] **G6 — إخفاء زر Google Login خلف flag** `VITE_ENABLE_GOOGLE_LOGIN` (الموفّر غير مفعّل في Supabase Auth؛ الزر المعروض كان سيفشل).
+- [x] **ربط `aiService` الفعلي**: استبدال 18 دالة stub في `src/features/ai/service.ts` باستدعاءات حقيقية عبر `generateAIContent` (ai-proxy) مع parse آمن للـ JSON و fallback يحافظ على أشكال الاستهلاك.
+- [x] **i18n**: مزامنة `ar.json` (384) و `en.json` (384) — صفر اختلاف في الاتجاهين (أُضيف 14 مفتاحاً للإنجليزية + `tax_vat` للعربية).
+- [x] **إصلاح `get_next_invoice_number`**: `p_prefix` → `p_type` (مطابقة توقيع القاعدة الحية).
+- [x] **تنظيف `storage.service.ts`**: استخدام العميل المطبع مباشرة بعد إضافة الجدول لـ `database.types.ts`.
+
 ## Checkpoint (2026-08-18) — المرحلة ج (جولة 3): إعادة توليد baseline migrations ✅
 - [x] **توليد baseline كامل من القاعدة الحية** عبر `scripts/generate-baseline.mjs` (بعد إصلاحه لاستبعاد مخططات auth/storage المُدارة من Supabase من أنواع ENUM والتسلسلات):
   - `20260819000001_baseline_schema.sql` (243KB) — امتدادات، أنواع، جداول، قيود، فهارس

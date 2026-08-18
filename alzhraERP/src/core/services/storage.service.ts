@@ -16,22 +16,6 @@ export interface FileAttachment {
 
 export type BucketName = 'product-images' | 'invoices' | 'company-assets';
 
-// `file_attachments` is not yet present in `database.types.ts` (schema drift),
-// so we use a minimal, explicitly-typed client for that table instead of untyped casts.
-interface FileAttachmentsSelectQuery {
-    eq(column: string, value: string | number): FileAttachmentsSelectQuery;
-    order(column: string, options?: { ascending?: boolean }): Promise<{ data: unknown; error: unknown }>;
-    single(): Promise<{ data: unknown; error: unknown }>;
-}
-
-interface FileAttachmentsTable {
-    insert(rows: unknown[]): { select(): { single(): Promise<{ data: unknown; error: unknown }> } };
-    select(columns: string): FileAttachmentsSelectQuery;
-    delete(): { eq(column: string, value: string): Promise<{ error: unknown }> };
-}
-
-const fileAttachmentsDb = (supabase as unknown as { from(table: 'file_attachments'): FileAttachmentsTable }).from('file_attachments');
-
 export const storageService = {
     /**
      * Uploads a file to a specific storage bucket and records it in `file_attachments`.
@@ -77,7 +61,8 @@ export const storageService = {
                 mime_type: file.type,
             };
 
-            const { data, error: dbError } = await fileAttachmentsDb
+            const { data, error: dbError } = await supabase
+                .from('file_attachments')
                 .insert([attachmentRecord])
                 .select()
                 .single();
@@ -115,7 +100,8 @@ export const storageService = {
      * Fetches metadata for all files attached to a specific entity.
      */
     async getEntityAttachments(companyId: string, entityType: FileAttachment['entity_type'], entityId: string): Promise<FileAttachment[]> {
-        const { data, error } = await fileAttachmentsDb
+        const { data, error } = await supabase
+            .from('file_attachments')
             .select('*')
             .eq('company_id', companyId)
             .eq('entity_type', entityType)
@@ -135,7 +121,8 @@ export const storageService = {
     async deleteAttachment(attachmentId: string): Promise<boolean> {
         try {
             // 1. Get attachment record to find the path
-            const { data: record, error: fetchError } = await fileAttachmentsDb
+            const { data: record, error: fetchError } = await supabase
+                .from('file_attachments')
                 .select('storage_path')
                 .eq('id', attachmentId)
                 .single();
@@ -156,7 +143,8 @@ export const storageService = {
             if (storageError) throw storageError;
 
             // 3. Delete from database
-            const { error: dbError } = await fileAttachmentsDb
+            const { error: dbError } = await supabase
+                .from('file_attachments')
                 .delete()
                 .eq('id', attachmentId);
 
