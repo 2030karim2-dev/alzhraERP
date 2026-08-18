@@ -150,6 +150,16 @@ export type Database = {
           },
         ]
       }
+      ai_request_log: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
       ai_usage_logs: {
         Row: {
           company_id: string | null
@@ -8577,6 +8587,76 @@ export type Database = {
           },
         ]
       },
+      incentive_adjustments: {
+        Row: {
+          id: string; calculation_id: string; company_id: string; adjustment_type: string
+          amount: number; reason: string; original_calculation_id: string | null
+          status: string; created_by: string; approved_by: string | null
+          created_at: string; approved_at: string | null
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_assignments: {
+        Row: {
+          id: string; company_id: string; user_id: string; plan_id: string
+          branch_id: string | null; status: string; effective_from: string; effective_to: string | null
+          created_by: string | null; updated_by: string | null
+          created_at: string; updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_calculation_lines: {
+        Row: {
+          id: string; calculation_id: string; company_id: string; source_type: string
+          source_id: string | null; invoice_id: string | null; invoice_line_id: string | null
+          rule_id: string | null; tier_id: string | null; description: string | null
+          base_amount: number; rate: number | null; calculated_amount: number; currency_code: string
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_engineer_links: {
+        Row: {
+          id: string; invoice_id: string; company_id: string; user_id: string
+          allocation_pct: number; assignment_type: string; source: string | null; reason: string | null
+          assigned_by: string; assigned_at: string; status: string; allocation_status: string
+          created_at: string; updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_payments: {
+        Row: {
+          id: string; calculation_id: string; company_id: string; user_id: string
+          amount: number; payment_date: string; payment_method: string; reference: string | null
+          account_id: string | null; accounting_transaction_id: string | null
+          reference_type: string | null; notes: string | null; currency_code: string
+          created_by: string; created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      incentive_targets: {
+        Row: {
+          id: string; company_id: string; target_scope: string; target_owner_type: string
+          target_owner_id: string; user_id: string | null; branch_id: string | null
+          target_type: string; period_type: string; period_start: string; period_end: string
+          target_value: number; currency_code: string; status: string
+          created_by: string | null; updated_by: string | null
+          created_at: string; updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
       incentive_periods: {
         Row: {
           id: string; company_id: string; branch_id: string | null; period_label: string

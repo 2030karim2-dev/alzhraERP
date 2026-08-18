@@ -1,17 +1,30 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-18) — جولة التدقيق الرابعة: سد الفجوات المتبقية ✅
+
+- [x] **H1 — إضافة 7 جداول ناقصة إلى `database.types.ts`**: ai_request_log + incentive_adjustments/assignments/calculation_lines/engineer_links/payments/targets (كانت تستخدم عبر RPC فقط بدون عقد مطبّع). التحقق: `tsc --noEmit` = 0 أخطاء.
+- [x] **H2 — تفعيل Google Login**: `VITE_ENABLE_GOOGLE_LOGIN=true` في `.env` (الموفّر مفعّل فعلاً في Supabase: `external_google_enabled=true` — التعليق السابق كان قديماً).
+- [x] **H3 — سد فجوات الترجمات (Task 20)**: أداة `scripts/check-i18n-keys.mjs` (تفحص `t('key')` مقابل ar/en) اكتشفت **24 مفتاحاً ناقصاً** من الملفين معاً — أُضيفت الترجمة العربية والإنجليزية. النتيجة: ar=408, en=408, صفر ناقص في الاتجاهين.
+- [x] **H4 — توحيد husky (Task 21)**: `core.hooksPath=.husky` (جذر المستودع)، إنشاء `pre-commit` نظيف (lint-staged في alzhraERP)، حذف `alzhraERP/.husky/pre-commit` المشوّه (mojibake) وإزالة `"prepare": "husky"` المكرر من `alzhraERP/package.json`، حذف 3 ملفات 0-byte.
+- [x] **H5 — Advisor جولة 4 (تطبيق مباشر على القاعدة الحية)**: تثبيت `search_path='public'` على آخر 4 دوال (normalize_oem_v1 + 3 triggers) → 0 متبقٍ، وإنشاء **141 فهرساً** تغطّي المفاتيح الأجنبية غير المفهرسة → 0 متبقٍ. Migration موثّق: `20260819000006_index_fk_search_path.sql` (idempotent).
+- [ ] **H6 — HIBP (حماية كلمات المرور المسربة)**: غير متاح — `password_hibp_enabled` يتطلب خطة مدفوعة (402 Payment Required). يتطلب قرار ترقية الخطة.
+- [ ] **H7 — views SECURITY DEFINER** (`user_profiles`, `party_balances_by_currency`): يُبقيان عمداً (تحويلهما إلى SECURITY INVOKER يكسر قراءة بيانات auth.users للمستخدمين) — موثّق كقرار.
+- [ ] **H8 — سياسات RLS permissive المتعددة (203)**: تؤجَّل — تتطلب بيئة staging لاختبار إعادة كتابة السياسات بأمان.
+
 ## Checkpoint (2026-08-18) — إصلاحات جاهزية الإنتاج (تدقيق شامل) ✅
+
 - [x] **G1 — إنشاء جدول `file_attachments`** (كان مفقوداً من القاعدة الحية مع أن `storage.service.ts` يكتب إليه): جدول + فهارس + RLS (نمط `is_super_admin() OR company_id IN (SELECT get_auth_companies())`) + منح. Migration: `20260819000005_file_attachments_storage.sql` (مطبّق + مسجّل في سجل الخادم).
 - [x] **G2 — إنشاء حاويتي التخزين الناقصتين** `invoices` و `company-assets` + سياسات storage لـ `invoices` (نفس نمط product-images).
 - [x] **G4 — نشر دالة Edge Function الناقصة** `zatca-integration` (11/11 نشطة الآن، verify_jwt=True).
 - [x] **G5 — إنشاء `.env` محلي** من القيم المتاحة (مستثنى من Git).
-- [x] **G6 — إخفاء زر Google Login خلف flag** `VITE_ENABLE_GOOGLE_LOGIN` (الموفّر غير مفعّل في Supabase Auth؛ الزر المعروض كان سيفشل).
+- [x] **G6 — إخفاء زر Google Login خلف flag** `VITE_ENABLE_GOOGLE_LOGIN` (الموفّر غير مفعّل في Supabase Auth؛ الزر المعروض كان سيفشل). ثم **H2** (2026-08-18): تفعيله — تبين أن الموفّر مفعّل فعلاً (`external_google_enabled=true`) وضُبط `VITE_ENABLE_GOOGLE_LOGIN=true` في `.env`.
 - [x] **ربط `aiService` الفعلي**: استبدال 18 دالة stub في `src/features/ai/service.ts` باستدعاءات حقيقية عبر `generateAIContent` (ai-proxy) مع parse آمن للـ JSON و fallback يحافظ على أشكال الاستهلاك.
 - [x] **i18n**: مزامنة `ar.json` (384) و `en.json` (384) — صفر اختلاف في الاتجاهين (أُضيف 14 مفتاحاً للإنجليزية + `tax_vat` للعربية).
 - [x] **إصلاح `get_next_invoice_number`**: `p_prefix` → `p_type` (مطابقة توقيع القاعدة الحية).
 - [x] **تنظيف `storage.service.ts`**: استخدام العميل المطبع مباشرة بعد إضافة الجدول لـ `database.types.ts`.
 
 ## Checkpoint (2026-08-18) — المرحلة ج (جولة 3): إعادة توليد baseline migrations ✅
+
 - [x] **توليد baseline كامل من القاعدة الحية** عبر `scripts/generate-baseline.mjs` (بعد إصلاحه لاستبعاد مخططات auth/storage المُدارة من Supabase من أنواع ENUM والتسلسلات):
   - `20260819000001_baseline_schema.sql` (243KB) — امتدادات، أنواع، جداول، قيود، فهارس
   - `20260819000002_baseline_functions.sql` (460KB) — كل الدوال (تتضمن commit_purchase_invoice بـ p_due_date)
@@ -22,12 +35,14 @@
 - [x] **التحقق**: القاعدة سليمة (156 جدولاً، 286 دالة، 403 سياسة RLS، 202 مشغل)، الأمن محفوظ (anon-executable SD = 12)، والسجل نظيف.
 
 ## Checkpoint (2026-08-18) — المرحلة ج (جولة 2): تحصين دوال SECURITY DEFINER ✅
-- [x] **إلغاء صلاحية `anon`/`PUBLIC` من 180 دالة SECURITY DEFINER إضافية** (من أصل 192 متبقية) — تضم: api_v1_fin_post_journal_entry, api_v1_prc_* (مشتريات)، bulk_adjust_stock/bulk_update_product_prices, fn_reverse_journal_entries, جميع دوال الـ triggers (prevent_*, trg_*, log_*)، دوال البحث والتقارير.
+
+- [x] **إلغاء صلاحية `anon`/`PUBLIC` من 180 دالة SECURITY DEFINER إضافية** (من أصل 192 متبقية) — تضم: api_v1_fin_post_journal_entry, api_v1_prc_* (مشتريات)، bulk_adjust_stock/bulk_update_product_prices, fn_reverse_journal_entries, جميع دوال الـ triggers (prevent__, trg__, log_*)، دوال البحث والتقارير.
 - [x] **الإبقاء على 12 دالة anon-executable عمداً** (مرجعية في سياسات RLS/views/مستدعين غير SD): has_permission, get_user_role, is_super_admin, is_valid_branch, get_user_company_id, user_can_manage_debts, user_is_admin_or_manager, api_v1_sys_publish_event, get_auth_companies, get_next_journal_entry_number, generate_invoice_number, generate_payment_number.
 - [x] **المنح**: REVOKE PUBLIC + REVOKE anon + GRANT authenticated (service_role يحتفظ بمنحه الصريح).
 - [x] **التحقق المباشر**: anon-executable انخفض من 192 إلى **12**، authenticated يحتفظ بـ **233**. Migration: `20260818000007_revoke_anon_execute_remaining.sql` (557 سطراً).
 
 ## Checkpoint (2026-08-18) — المرحلة ج (جولة 1): الأمان والخلفية (Supabase مباشر) ✅
+
 - [x] **إلغاء صلاحية EXECUTE عن `anon`/`PUBLIC`** من **15 دالة مالية SECURITY DEFINER** (commit_purchase_invoice, commit_sales_invoice_v2, commit_payment, post_manual_journal, void_expense, void_bond, create_financial_bond, process_sales_return, process_stock_transfer, recalculate_* …) وإعادة المنح حصرياً لـ `authenticated`. تم التطبيق والتحقق مباشرة: anon = 0، authenticated = 15. Migration: `20260818000005_revoke_anon_execute.sql`.
 - [x] **إضافة `p_due_date` إلى `commit_purchase_invoice`** + حفظه في `invoices.due_date` (كان يُفقد صامتاً). إسقاط التحميل القديم 12-معامل + تحصين صلاحيات التحميل الجديد. تم التطبيق والتحقق (التوقيع 13 معامل، anon=false, authenticated=true, الرسائل العربية سليمة). Migration: `20260818000006_add_purchase_due_date.sql`.
 - [x] **إصلاح عدم تطابق الخصم**: `commit_purchase_invoice` يقرأ `discount_amount` بينما `commit_purchase_return` يقرأ `discount` — الواجهة ترسل **كلا المفتاحين** الآن.
@@ -35,11 +50,13 @@
 - [x] فحوصات مباشرة للقاعدة: جميع دوال RPC الأساسية موجودة (73/73 سابقاً)، `commit_sales_invoice_v2` يدعم due_date، لا اعتماديات على الدالة المحدّثة.
 
 ## Checkpoint (2026-08-18) — المرحلة د (جولة 1): استبدال console.* بـ logger ✅
+
 - [x] تحويل **83 استدعاء `console.*` في 54 ملفاً** إلى `logger` الموحّد (error/warn/info/debug) عبر سكربت تحويل مؤقت + مراجعة يدوية للحالات الخاصة (`PurchaseDetailsModal`).
 - [x] لم يتبقَّ أي `console.*` في كود التطبيق؛ الباقي (42 سطراً في 8 ملفات) مستثنى عمداً: `logger.ts` (التنفيذ)، `index.tsx` (إخفاء أخطاء الإنتاج)، `errorUtils.ts`، `featureFlags.ts` (dev-only)، `supabaseClient.ts` (رسالة الإعداد)، `scripts/*` (أدوات CLI).
 - [x] التحقق: `tsc --noEmit` = 0 خطأ.
 
 ## Checkpoint (2026-08-18) — المرحلة ب: توحيد البنية وتنظيف الكود الميت ✅
+
 - [x] توحيد المزامنة دون اتصال: `useCreateInvoice` انتقل من `offlineQueueStore` (النظام القديم) إلى `syncStore` الموحد بمفتاح `['sales', 'create']`؛ `offlineQueueStore` + `OfflineManager` يبقيان فقط كتصريف (drain) للطابور القديم حتى يفرغ.
 - [x] `useSyncQueue`: إضافة سقف أقصى `MAX_SYNC_RETRIES = 5` (إسقاط الطفرات الفاشلة دائماً مع log حرج) + إصلاح `break` الذي كان يعطّل بقية الطابور نهائياً عند أول فشل دائم (أصبح `continue`).
 - [x] حذف 9 ملفات كود ميت مؤكدة: `LoginPage.tsx`, `RegisterPage.tsx`, `localDB.ts`, `ImportProductsModal.tsx`, `WarehouseManager.tsx` (القديم), مجلد `settings/components/warehouses/` بالكامل (WarehouseManager + WarehouseModal) — التطبيق يستخدم نظام المخازن داخل ميزة `inventory`.
@@ -48,6 +65,7 @@
 - [x] التحقق: `tsc --noEmit` = 0 خطأ، Vitest كامل أخضر.
 
 ## Checkpoint (2026-08-18) — المرحلة أ: احتواء الخطر المالي ✅
+
 - [x] إزالة أزرار الصيانة المدمرة («حذف التكرار»، «تصحيح القيود») من `PurchasesPage.tsx` وحذف `purchaseFixes.ts` كلياً (كانت كتابات/حذوفات مالية غير ذرية من المتصفح). أُبقي زر «فحص النظام» (قراءة فقط).
 - [x] تحصين `importSystemData`: owner-only عبر `assertOwner` + تحقق `company_id` لكل الصفوف قبل أي كتابة + فشل صوتي عالٍ + استبعاد `supported_currencies` (جدول مرجعي عام).
 - [x] إصلاح `offlineQueueStore.syncQueue`: الأنواع غير المعالجة تبقى في الطابور مع خطأ بدلاً من حذفها صامتاً.
@@ -60,22 +78,27 @@
 - [x] التحقق: `tsc --noEmit` = 0 خطأ، Vitest = 321/321 ناجحة.
 
 ## Phase 0: البوابات والمكاسب السريعة
+
 - [x] Task 1: إصلاح 3 اختبارات فاشلة (localStorage mock + StockMovementUsecase RPC stale) — ✅ 224/224
 - [x] Task 2: كنس TS6133 (83 خطأً) — ✅ baseline 275 → 191
 - [x] Task 3: إصلاح CI (encoding + ratchet بدل tsc الحاجب) — ci.yml + quality-gate.yml
 
 ### Checkpoint 0
+
 - [x] 224/224 + CI أخضر-واقعي + baseline 191 (≤ 192)
 
 ## Phase C1: الأمان والصلاحيات
+
 - [x] Task 4: استبدال AuthorizeActionUsecase بـ usePermission (6 مواقع) — ✅ لا وجود لأي استيراد للصلاحيات القديمة؛ `assertPermission`/`usePermission` مستخدمان في accounting/bonds
 - [x] Task 5: القائمة الجانبية server-driven — ✅ `MenuItem.requiredPermission` + `useAllPermissions()` (get_user_permissions RPC) مع owner-bypass مطابق لـ assertPermission
 - [x] Task 6: حذف المنظومة القديمة (ADR-003 Phase 3) — ✅ حُذف `core/permissions/index.tsx`؛ بقي فقط `offlineRolePermissions.ts` كـ fallback دون اتصال
 
 ### Checkpoint C1
+
 - [x] صفر استيرادات للصلاحيات القديمة + `tsc --noEmit` = 0 خطأ
 
 ## Phase C2: تصفية أخطاء TypeScript
+
 - [x] Task 7: useReturnsReport.ts (15)
 - [x] Task 8: عنقود Dashboard (~28)
 - [x] Task 9: عنقود APIs المالية (~23)
@@ -84,9 +107,11 @@
 - [x] Task 12: تقليص any (موجة أولى) → <700 — ✅ **اكتمل (2026-08-16):** الموجة الأولى (api/services) 76→0، ثم AI/hooks/pages؛ الإجمالي 877 → **698**
 
 ## Phase C3: الذكاء الاصطناعي
+
 - [ ] Task 13: smart-import — ربط/إزالة (قرار المستخدم)
 
 ## Phase D: Backend (تسلسلي)
+
 - [ ] Task 14: مصالحة migrations + db pull — ⏳ اكتُشف: الخادم 647 نسخة مقابل 35 محلية (لا تتطابق أرقام النسخ)؛ أُصلح تكرار `20260814000001` → `00007`. يتطلب قرار استراتيجي (db pull snapshot)
 - [x] Task 15: search_path (55 دالة) — ✅ **منجز (2026-08-16):** `20260816000001_harden_search_path.sql` طُبق + سُجلت النسخة؛ التحقق: 0 متبقية. (القيمة `'public'` لأن الأجسام تستخدم مراجع غير مؤهلة؛ التحصين الكامل `''` مشروع متابعة)
 - [x] Task 16: Realtime publication — ✅ **منجز:** `20260816000002_realtime_publication.sql` أضاف 15 جدولاً → التغطية 8 → **23 جدولاً** (product_stock/warehouses/commission/debt/audit)
@@ -98,5 +123,6 @@
 - ✅ **إصلاح انهيار واجهة المشتريات بعد نجاح RPC (2026-08-16):** ظهر `TypeError: Cannot read properties of undefined (reading 'invoice_number')` في `PurchasesPage` بعد أول إنشاء ناجح لفواتير شراء — السبب: `PurchaseDetailsModal.tsx` يحوّل `useQuery.data` بـ `as … | null` بينما قيمتها `undefined` أثناء أول تحميل، والحُراسة `invoice !== null` تُمرّر `undefined` (لأن `undefined !== null`). أُصلح بـ `(data ?? null)`. (نفس نمط الحماية مؤكد سليم في `InvoiceDetailsModal` المبيعات)
 
 ## Phase E: i18n واللمسات
-- [ ] Task 20: تدقيق النصوص + سد فجوات الترجمة
-- [ ] Task 21: توحيد husky + حذف ملفات 0-byte
+
+- [x] Task 20: تدقيق النصوص + سد فجوات الترجمة — ✅ (24 مفتاحاً ناقصاً أُضيفت للعربية والإنجليزية، أداة `scripts/check-i18n-keys.mjs`، ar/en = 408/408)
+- [x] Task 21: توحيد husky + حذف ملفات 0-byte — ✅ (hooksPath جذر موحّد + pre-commit نظيف + حذف الملفات الفارغة)

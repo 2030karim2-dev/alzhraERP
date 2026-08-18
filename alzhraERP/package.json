@@ -31,7 +31,6 @@
     "test:e2e:ui": "playwright test --ui",
     "coverage": "vitest run --coverage",
     "quality:report": "tsx scripts/quality-report.ts",
-    "prepare": "husky",
     "validate:barrels": "tsx scripts/validate-barrels.ts",
     "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts"
   },

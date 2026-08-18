@@ -1,0 +1,12 @@
+#!/bin/sh
+# Husky pre-commit hook - Al-Zahra Smart ERP
+# Runs lint-staged (eslint --fix + prettier --write) on staged files.
+# Heavy gates (encoding + TS ratchet + build) run in pre-push.
+
+echo "[pre-commit] Running lint-staged in alzhraERP..."
+
+cd alzhraERP || exit 1
+
+npx lint-staged || exit 1
+
+echo "[pre-commit] lint-staged passed."

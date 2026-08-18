@@ -24,6 +24,11 @@
 *.txt         text eol=lf working-tree-encoding=UTF-8
 *.env.example text eol=lf working-tree-encoding=UTF-8
 
+# Git hooks must stay LF or sh cannot execute them
+.husky/*     text eol=lf
+*.mjs        text eol=lf working-tree-encoding=UTF-8
+
+
 # Binary assets: never touch
 *.png  binary
 *.jpg  binary
