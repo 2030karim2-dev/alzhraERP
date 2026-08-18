@@ -3,7 +3,7 @@ import { salesService } from '../service';
 import { useAuthStore } from '@/features/auth/store';
 import { useFeedbackStore } from '@/features/feedback/store';
 import { invalidateByPreset } from '@/lib/invalidation';
-import { useOfflineQueueStore } from '@/core/services/offlineQueueStore';
+import { syncStore } from '@/core/lib/sync-store';
 import { CreateInvoiceDTO } from '../types';
 
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
@@ -36,7 +36,6 @@ export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
-  const { enqueue } = useOfflineQueueStore();
   const { branchId } = useBranchFilter();
 
   return useMutation({
@@ -54,7 +53,12 @@ export const useCreateInvoice = () => {
       const isNetworkError = error?.status === 0;
 
       if (!navigator.onLine || isFetchError || isNetworkError) {
-        enqueue('CREATE_INVOICE', { ...variables, company_id: user?.company_id, user_id: user?.id });
+        // Unified offline queue (sync-store): replayed by ReactQueryProvider's
+        // useSyncQueue via processSyncMutation(['sales', 'create']).
+        void syncStore.enqueue({
+          mutationKey: ['sales', 'create'],
+          variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
+        });
         showToast("تم حفظ الفاتورة محلياً. سيتم مزامنتها عند عودة الاتصال.", 'info');
         return;
       }

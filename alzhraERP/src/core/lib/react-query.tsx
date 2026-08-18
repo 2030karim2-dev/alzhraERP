@@ -162,10 +162,16 @@ const useSyncQueue = (queryClient: QueryClient) => {
     const { isOnline } = useNetworkStatus();
     const isProcessingRef = useRef(false);
 
+    // A permanently-failing mutation (e.g. a product CONFLICT that no retry can
+    // resolve) must not wedge the whole offline queue forever. After this many
+    // failed processing cycles the mutation is dropped with a critical log.
+    const MAX_SYNC_RETRIES = 5;
+
     useEffect(() => {
         if (isOnline) {
-            processQueue();
+            void processQueue();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnline]);
 
     const processQueue = async () => {
@@ -180,6 +186,18 @@ const useSyncQueue = (queryClient: QueryClient) => {
 
         try {
             for (const mutation of pending) {
+                // Exhausted retries: drop the mutation with a critical log instead
+                // of blocking every later mutation indefinitely.
+                if (mutation.retryCount >= MAX_SYNC_RETRIES) {
+                    logger.error(
+                        'SyncModule',
+                        `Dropping mutation ${mutation.id} after ${MAX_SYNC_RETRIES} failed attempts`,
+                        { key: mutation.mutationKey }
+                    );
+                    await syncStore.dequeue(mutation.id);
+                    continue;
+                }
+
                 try {
                     // We use mutationCache directly to avoid creating new observers
                     await queryClient.getMutationCache().build(queryClient, {
@@ -193,7 +211,9 @@ const useSyncQueue = (queryClient: QueryClient) => {
                 } catch (error) {
                     logger.error('SyncModule', `Sync failed for mutation ${mutation.id}`, error);
                     await syncStore.incrementRetry(mutation.id);
-                    break;
+                    // Continue with the next pending mutation — a single failure
+                    // must not wedge the rest of the offline queue. Ordering
+                    // dependencies are resolved by retries on later cycles.
                 }
             }
         } finally {

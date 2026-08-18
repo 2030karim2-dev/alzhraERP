@@ -31,7 +31,6 @@ export const ROUTES = {
     COMMISSIONS_PERIODS: '/commissions/periods',
     COMMISSIONS_REPORTS: '/commissions/reports',
     VIN: '/vin',
-    AI: '/ai',
     // Debts & Collection module (each main service = its own route)
     DEBTS: '/debts',
     DEBTS_FOLLOWUP: '/debts/followup',
