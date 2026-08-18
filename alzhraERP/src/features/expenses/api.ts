@@ -70,20 +70,15 @@ export const expensesApi = {
   },
 
   deleteExpenseRecord: async (id: string) => {
-    // Try RPC that both voids the expense and creates a reversal journal entry
+    // Use the void_expense RPC: it voids the expense AND creates the reversal
+    // journal entry atomically. There is deliberately NO soft-delete fallback —
+    // voiding without reversing the journal would leave the ledger unbalanced.
     const { error: rpcError } = await supabase.rpc('void_expense', {
       p_expense_id: id
     });
 
     if (rpcError) {
-      // Fallback: if RPC doesn't exist yet, do a soft delete (status = void)
-      // WARNING: this does NOT reverse the journal entry
-      console.warn('void_expense RPC not available, falling back to soft delete:', rpcError.message);
-      const { error } = await supabase.from('expenses')
-        .update({ status: 'void' })
-        .eq('id', id);
-      if (error) throw error;
-      return;
+      throw new Error('تعذر إلغاء المصروف: فشل في إنشاء القيد العكسي (' + rpcError.message + ')');
     }
   }
 };

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BarChart3, FileText, History, Plus, RefreshCw, ShoppingCart, ShieldCheck, Sparkles, Wallet, Wrench } from 'lucide-react';
+import { BarChart3, FileText, History, Plus, RefreshCw, ShoppingCart, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
 import PurchaseStats from '../components/PurchaseStats';
 import PurchasesTable from '../components/PurchasesTable';
 import CreatePurchaseModal from '../components/CreatePurchaseModal';
@@ -12,10 +12,8 @@ import MicroHeader from '../../../ui/base/MicroHeader';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import SmartImportView, { type ExtractedItem } from '../../smart-import/components/SmartImportView';
 import { usePurchaseStore } from '../store';
-import { purchaseFixesService } from '../services/maintenance/purchaseFixes';
 import { useAuthStore } from '../../auth/store';
 import type { AuthUser } from '../../auth/types';
-import { useFeedbackStore } from '../../feedback/store';
 import PurchaseReturnsView from '../components/Returns/PurchaseReturnsView';
 import PurchaseQuotationsTab from '../components/quotations/PurchaseQuotationsTab';
 import { useAIPrefillStore } from '../../ai/store';
@@ -23,12 +21,9 @@ import type { AIEntityItem } from '../../ai/core/types';
 
 type PurchaseTab = 'create' | 'list' | 'returns' | 'analytics' | 'smart_import' | 'quotations';
 type AuthUserState = AuthUser | null;
-type CompanyUser = AuthUser & { company_id: string };
-const hasCompanyUser = (user: AuthUserState): user is CompanyUser => user?.company_id !== undefined && user.company_id !== '';
 type PurchaseRows = React.ComponentProps<typeof PurchasesTable>['data'];
 
 const isPurchaseTab = (value: string): value is PurchaseTab => ['create', 'list', 'returns', 'analytics', 'smart_import', 'quotations'].includes(value);
-const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
 
 const usePurchasePrefill = (setActiveTab: React.Dispatch<React.SetStateAction<PurchaseTab>>): void => {
   const { bulkLoadItems, setMetadata, setSupplier } = usePurchaseStore();
@@ -51,42 +46,16 @@ const usePurchasePrefill = (setActiveTab: React.Dispatch<React.SetStateAction<Pu
 
 interface HeaderActionsProps {
   user: AuthUserState;
-  isRepairing: boolean;
-  setIsRepairing: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPaymentModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsAuditOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const PurchaseHeaderActions: React.FC<HeaderActionsProps> = ({ user, isRepairing, setIsRepairing, setIsPaymentModalOpen, setIsAuditOpen }) => {
-  const { showToast } = useFeedbackStore();
-  const repairLedger = async (): Promise<void> => {
-    if (!hasCompanyUser(user)) return;
-    setIsRepairing(true);
-    try {
-      const result = await purchaseFixesService.fixMissingCashPayments(user.company_id, user.id);
-      showToast(result.message, 'success');
-    } catch (error: unknown) {
-      showToast(`خطأ في التصحيح: ${errorMessage(error)}`, 'error');
-    } finally {
-      setIsRepairing(false);
-    }
-  };
-  const removeDuplicates = async (): Promise<void> => {
-    if (!hasCompanyUser(user)) return;
-    if (!window.confirm('هل أنت متأكد من حذف القيود المكررة؟ سيتم الاحتفاظ بأقدم قيد فقط لكل فاتورة.')) return;
-    setIsRepairing(true);
-    try {
-      const result = await purchaseFixesService.removeDuplicatePurchaseEntries(user.company_id);
-      showToast(result.message, 'success');
-    } catch (error: unknown) {
-      showToast(`خطأ: ${errorMessage(error)}`, 'error');
-    } finally {
-      setIsRepairing(false);
-    }
-  };
+// NOTE: The destructive maintenance actions (delete duplicates / fix ledger)
+// previously exposed here have been REMOVED. They performed non-transactional
+// direct DB writes from the browser (see docs/frontend-backend-deep-audit).
+// Any repair must go through a protected server-side RPC with dry-run + audit.
+const PurchaseHeaderActions: React.FC<HeaderActionsProps> = ({ user, setIsPaymentModalOpen, setIsAuditOpen }) => {
   return <div className="flex gap-3">
-    {user?.role === 'admin' && <button onClick={() => { void removeDuplicates(); }} disabled={isRepairing} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-bold disabled:opacity-50"><Sparkles size={20} className={isRepairing ? 'animate-spin' : ''} /><span className="hidden md:inline">حذف التكرار</span></button>}
-    {user?.role === 'admin' && <button onClick={() => { void repairLedger(); }} disabled={isRepairing} className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors font-bold disabled:opacity-50"><Wrench size={20} className={isRepairing ? 'animate-spin' : ''} /><span className="hidden md:inline">{isRepairing ? 'جاري التصحيح...' : 'تصحيح القيود'}</span></button>}
     {user?.role === 'admin' && <button onClick={() => { setIsAuditOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors font-bold"><ShieldCheck size={20} /><span className="hidden md:inline">فحص النظام</span></button>}
     <button onClick={() => { setIsPaymentModalOpen(true); }} className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg active:scale-95 shadow-lg shadow-purple-500/20 text-[10px] font-bold uppercase tracking-widest"><Wallet size={14} />سند صرف</button>
   </div>;
@@ -111,7 +80,6 @@ const PurchasesPage: React.FC = () => {
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isRepairing, setIsRepairing] = useState(false);
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { data: allPurchases = [], isLoading } = usePurchases();
@@ -132,7 +100,7 @@ const PurchasesPage: React.FC = () => {
   }), [activeTab, allPurchases, searchTerm]);
   const TABS = [{ id: 'list', label: t('purchases_log'), icon: History }, { id: 'create', label: t('new_invoice'), icon: Plus }, { id: 'smart_import', label: 'استيراد ذكي (AI)', icon: Sparkles }, { id: 'returns', label: t('supplier_returns'), icon: RefreshCw }, { id: 'quotations', label: 'عروض الأسعار', icon: FileText }, { id: 'analytics', label: t('financial_analytics'), icon: BarChart3 }];
   return <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 font-cairo">
-    <MicroHeader title={t('purchasing_and_supply')} icon={ShoppingCart} iconColor="text-blue-600" actions={<PurchaseHeaderActions user={user} isRepairing={isRepairing} setIsRepairing={setIsRepairing} setIsPaymentModalOpen={setIsPaymentModalOpen} setIsAuditOpen={setIsAuditOpen} />} tabs={TABS} activeTab={activeTab} onTabChange={(id: string): void => { if (isPurchaseTab(id)) setActiveTab(id); }} searchPlaceholder={t('search_by_invoice_or_supplier')} searchValue={searchTerm} onSearchChange={setSearchTerm} />
+    <MicroHeader title={t('purchasing_and_supply')} icon={ShoppingCart} iconColor="text-blue-600" actions={<PurchaseHeaderActions user={user} setIsPaymentModalOpen={setIsPaymentModalOpen} setIsAuditOpen={setIsAuditOpen} />} tabs={TABS} activeTab={activeTab} onTabChange={(id: string): void => { if (isPurchaseTab(id)) setActiveTab(id); }} searchPlaceholder={t('search_by_invoice_or_supplier')} searchValue={searchTerm} onSearchChange={setSearchTerm} />
     <div className="flex-1 overflow-y-auto px-2 pt-0 pb-16 custom-scrollbar"><div className="space-y-3 pt-2 h-full">{activeTab !== 'analytics' && activeTab !== 'create' && activeTab !== 'smart_import' && <PurchaseStats />}<div className="animate-in fade-in slide-in-from-bottom-1 h-full"><PurchasePageContent activeTab={activeTab} data={filteredData} isLoading={isLoading} searchTerm={searchTerm} setViewInvoiceId={setViewInvoiceId} setActiveTab={setActiveTab} handleSmartImportConfirm={handleSmartImportConfirm} /></div></div></div>
     <PurchaseDetailsModal invoiceId={viewInvoiceId} onClose={() => { setViewInvoiceId(null); }} /><CreatePaymentModal isOpen={isPaymentModalOpen} onClose={() => { setIsPaymentModalOpen(false); }} />{isAuditOpen && <AuditModal onClose={() => { setIsAuditOpen(false); }} />}
   </div>;

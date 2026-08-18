@@ -3,7 +3,27 @@ import { expensesApi } from './api';
 import { Expense, ExpenseFormData, ExpenseCategorySummary, ExpenseStats } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
+import { logger } from '../../core/utils/logger';
 import { supabase } from '../../lib/supabaseClient';
+
+/** Converts an expense amount to base currency without throwing on bad rates. */
+const safeToBase = (expense: Expense): number => {
+  try {
+    return toBaseCurrency({
+      amount: Number(expense.amount),
+      currency_code: expense.currency_code,
+      exchange_rate: expense.exchange_rate,
+    });
+  } catch (err) {
+    logger.warn('ExpenseService', 'Invalid exchange rate — expense amount treated as 0', {
+      id: expense.id,
+      currency_code: expense.currency_code,
+      exchange_rate: expense.exchange_rate,
+      error: err,
+    });
+    return 0;
+  }
+};
 
 export const expensesService = {
   getExpensesList: async (companyId: string, branchId?: string | null): Promise<Expense[]> => {
@@ -71,9 +91,9 @@ export const expensesService = {
 
   // Legacy: Used when expenses list is already loaded in memory
   calculateStats: (expenses: Expense[]): ExpenseStats => {
-    const totalExpenses = expenses.reduce((sum, e) => sum + toBaseCurrency({ amount: Number(e.amount), currency_code: e.currency_code, exchange_rate: e.exchange_rate }), 0);
-    const paidExpenses = expenses.filter(e => e.status === 'paid' || e.status === 'posted').reduce((sum, e) => sum + toBaseCurrency({ amount: Number(e.amount), currency_code: e.currency_code, exchange_rate: e.exchange_rate }), 0);
-    const pendingExpenses = expenses.filter(e => e.status === 'draft').reduce((sum, e) => sum + toBaseCurrency({ amount: Number(e.amount), currency_code: e.currency_code, exchange_rate: e.exchange_rate }), 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + safeToBase(e), 0);
+    const paidExpenses = expenses.filter(e => e.status === 'paid' || e.status === 'posted').reduce((sum, e) => sum + safeToBase(e), 0);
+    const pendingExpenses = expenses.filter(e => e.status === 'draft').reduce((sum, e) => sum + safeToBase(e), 0);
     const categoriesCount = new Set(expenses.map(e => e.category_id)).size;
 
     return {
@@ -90,7 +110,7 @@ export const expensesService = {
 
     expenses.forEach(exp => {
       const cat = exp.category_name || 'أخرى';
-      const baseAmount = toBaseCurrency({ amount: Number(exp.amount), currency_code: exp.currency_code, exchange_rate: exp.exchange_rate });
+      const baseAmount = safeToBase(exp);
       map[cat] = (map[cat] || 0) + baseAmount;
     });
 

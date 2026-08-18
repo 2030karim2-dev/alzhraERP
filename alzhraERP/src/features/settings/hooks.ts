@@ -4,6 +4,7 @@ import { settingsService } from './service';
 import { settingsApi } from './api';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
+import { assertOwner } from '../../core/hooks/usePermission';
 import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
 
 export const useCompany = () => {
@@ -130,12 +131,19 @@ export const useCurrencyMutation = () => {
   const setRate = useMutation({
     mutationFn: (data: ExchangeRateFormData) => {
       if (!user?.company_id || !user?.id) throw new Error("Missing Auth");
+      // Reject zero/negative/non-finite rates — they would corrupt every
+      // future conversion for this currency (server-side validation stays the
+      // source of truth, this is a client-side guard).
+      if (!Number.isFinite(data.rate_to_base) || data.rate_to_base <= 0) {
+        throw new Error("سعر الصرف يجب أن يكون رقماً موجباً أكبر من صفر");
+      }
       return settingsService.setExchangeRate(user.company_id, data, user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
       showToast("تم تحديث سعر الصرف بنجاح", 'success');
-    }
+    },
+    onError: (error: any) => showToast(error?.message || "فشل تحديث سعر الصرف", 'error')
   });
 
   const addCurrency = useMutation({
@@ -176,6 +184,7 @@ export const useCurrencyMutation = () => {
 
 export const useBackupActions = () => {
   const { showToast } = useFeedbackStore();
+  const { user } = useAuthStore();
 
   const exportData = async () => {
     try {
@@ -201,7 +210,12 @@ export const useBackupActions = () => {
 
   const importData = async (file: File) => {
     try {
-      await settingsService.importSystemData(file);
+      // Restore can overwrite existing financial rows — owner-only gate, and the
+      // service layer independently validates that every imported row belongs
+      // to the current company before writing anything.
+      assertOwner(user);
+      if (!user?.company_id) throw new Error('لا يوجد شركة نشطة لهذا الحساب');
+      await settingsService.importSystemData(file, user.company_id);
       showToast("تم استيراد البيانات بنجاح، سيتم إعادة التحميل", 'success');
       setTimeout(() => window.location.reload(), 1500);
     } catch (err: any) {

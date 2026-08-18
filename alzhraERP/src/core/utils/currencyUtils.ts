@@ -152,15 +152,38 @@ export const calculateExchangeRate = (
     return fromRate / toRate;
 };
 
-export function convertCurrency(amount: number, rate: number, direction: 'toBase' | 'fromBase'): number {
-    if (!Number.isFinite(rate) || rate <= 0) {
-        throw new CurrencyError(`Invalid exchange rate: ${rate}. Must be a positive number.`);
-    }
-    if (!Number.isFinite(amount)) {
-        throw new CurrencyError(`Invalid amount: ${amount}. Must be a finite number.`);
-    }
-    const converted = direction === 'toBase' ? amount * rate : amount / rate;
-    return Math.round((converted + Number.EPSILON) * 100) / 100;
+/**
+ * Convert an amount between base and foreign currency.
+ *
+ * IMPORTANT: the arithmetic is delegated to `convertToBaseCurrency` /
+ * `convertFromBaseCurrency` so all call sites share ONE convention. Previously
+ * this helper hard-coded the MULTIPLY convention and silently disagreed with
+ * the two sibling functions when `exchange_operator === 'divide'`, producing
+ * inverted conversions for divide-based currencies.
+ *
+ * @param amount       The amount to convert.
+ * @param rate         Exchange rate against the base currency (must be > 0).
+ * @param direction    `'toBase'` = foreign → base, `'fromBase'` = base → foreign.
+ * @param exchangeOperator Per-currency convention (`'multiply'` default,
+ *                         backward compatible with the old behavior).
+ */
+export function convertCurrency(
+    amount: number,
+    rate: number,
+    direction: 'toBase' | 'fromBase',
+    exchangeOperator: 'multiply' | 'divide' = 'multiply'
+): number {
+    const params: CurrencyConversionParams = {
+        // `currencyCode` is only used by callers that build a full entity; the
+        // conversion arithmetic itself does not depend on it.
+        amount,
+        currencyCode: 'SAR',
+        exchangeRate: rate,
+        exchangeOperator,
+    };
+    return direction === 'toBase'
+        ? convertToBaseCurrency(params)
+        : convertFromBaseCurrency(params);
 }
 
 export const toBaseCurrency = (entity: {
@@ -176,16 +199,15 @@ export const toBaseCurrency = (entity: {
 
     if (isNaN(amount)) return 0;
 
-    try {
-        return convertToBaseCurrency({
-            amount,
-            currencyCode: entity.currency_code || 'SAR',
-            exchangeRate,
-            exchangeOperator,
-        });
-    } catch (e) {
-        return amount;
-    }
+    // Fail loudly instead of silently returning the foreign amount as if it were
+    // base currency. A missing/zero/negative rate makes the stored amount
+    // meaningless — surfacing the error beats showing a wrong financial total.
+    return convertToBaseCurrency({
+        amount,
+        currencyCode: entity.currency_code || 'SAR',
+        exchangeRate,
+        exchangeOperator,
+    });
 };
 
 export const sumInBaseCurrency = (

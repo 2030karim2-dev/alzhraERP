@@ -12,6 +12,29 @@ import { supabase } from '../../lib/supabaseClient';
 // Constants (These should eventually be migrated to an i18n translation file e.g., t('cash_customer'))
 const CASH_CUSTOMER_LABEL = 'عميل نقدي';
 
+/**
+ * Convert a row amount to base currency, never throwing for display lists.
+ * A corrupted exchange rate (<= 0 / non-finite) is logged and treated as 0 so
+ * the sales log stays usable instead of crashing — while the underlying
+ * `toBaseCurrency` utility still fails loudly for callers that need correctness.
+ */
+const safeBaseTotal = (
+    amount: number | null | undefined,
+    currency: string | null | undefined,
+    rate: number | null | undefined
+): number => {
+    try {
+        return toBaseCurrency({
+            amount: Number(amount) || 0,
+            currency_code: currency || 'SAR',
+            exchange_rate: Number(rate) || 1,
+        });
+    } catch (err) {
+        logger.warn('SalesService', 'Invalid exchange rate — baseTotal set to 0', { currency, rate, error: err });
+        return 0;
+    }
+};
+
 // Type for raw invoice data from Supabase
 interface RawInvoice {
   id: string;
@@ -40,11 +63,7 @@ export const salesService = {
           customerName: _inv.party?.name || CASH_CUSTOMER_LABEL,
           date: new Date(_inv.issue_date).toLocaleDateString('en-GB'),
           total: Number(_inv.total_amount) || 0,
-          baseTotal: toBaseCurrency({
-            amount: Number(_inv.total_amount) || 0,
-            currency_code: _inv.currency_code || 'SAR',
-            exchange_rate: Number(_inv.exchange_rate) || 1
-          }),
+          baseTotal: safeBaseTotal(_inv.total_amount, _inv.currency_code, _inv.exchange_rate),
           status: _inv.status,
           type: _inv.type,
           paymentMethod: _inv.payment_method,

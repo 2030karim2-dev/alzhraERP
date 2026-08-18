@@ -50,7 +50,7 @@ export const useBackupManager = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            if (window.confirm("تنبيه حرج: استيراد البيانات سيقوم بحذف كافة السجلات الحالية نهائياً واستبدالها بمحتويات الملف. هل تود الاستمرار؟")) {
+            if (window.confirm("تحذير حرج: استيراد البيانات سيقوم باستبدال السجلات الحالية التي تطابق المعرفات (ID) بمحتويات الملف وإضافة السجلات الجديدة. هذه العملية خاصة بمالك النظام (Owner) وقد تلمس بيانات مالية. هل تود الاستمرار؟")) {
                 importData(file);
             }
         }

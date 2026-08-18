@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
     convertToBaseCurrency,
     convertFromBaseCurrency,
+    convertCurrency,
+    toBaseCurrency,
     formatCurrency,
     CurrencyError,
     CURRENCY_SYMBOLS,
@@ -9,6 +11,64 @@ import {
 } from './currencyUtils';
 
 describe('currencyUtils', () => {
+    describe('convertCurrency (unified with operator semantics)', () => {
+        it('toBase with default multiply matches convertToBaseCurrency', () => {
+            // 100 USD @ multiply 3.75 → 375 base
+            expect(convertCurrency(100, 3.75, 'toBase')).toBe(375);
+        });
+
+        it('toBase with divide matches convertToBaseCurrency divide', () => {
+            // 375 foreign ÷ 3.75 → 100 base (divide convention)
+            expect(convertCurrency(375, 3.75, 'toBase', 'divide')).toBe(100);
+        });
+
+        it('fromBase with default multiply matches convertFromBaseCurrency', () => {
+            // 375 base ÷ 3.75 → 100 foreign (multiply convention)
+            expect(convertCurrency(375, 3.75, 'fromBase')).toBe(100);
+        });
+
+        it('fromBase with divide matches convertFromBaseCurrency divide', () => {
+            // 100 base × 3.75 → 375 foreign (divide convention)
+            expect(convertCurrency(100, 3.75, 'fromBase', 'divide')).toBe(375);
+        });
+
+        it('returns the amount unchanged when rate is 1', () => {
+            expect(convertCurrency(100, 1, 'toBase')).toBe(100);
+            expect(convertCurrency(100, 1, 'fromBase')).toBe(100);
+        });
+
+        it('throws CurrencyError for zero/negative rate', () => {
+            expect(() => convertCurrency(100, 0, 'toBase')).toThrow(CurrencyError);
+            expect(() => convertCurrency(100, -3.75, 'fromBase')).toThrow(CurrencyError);
+        });
+
+        it('throws CurrencyError for non-finite amount', () => {
+            expect(() => convertCurrency(NaN, 3.75, 'toBase')).toThrow(CurrencyError);
+        });
+    });
+
+    describe('toBaseCurrency (fails loudly on bad rate)', () => {
+        it('converts a valid entity to base currency', () => {
+            expect(toBaseCurrency({
+                amount: 100,
+                currency_code: 'USD',
+                exchange_rate: 3.75,
+                exchange_operator: 'multiply',
+            })).toBe(375);
+        });
+
+        it('defaults missing rate to 1 and missing currency to SAR', () => {
+            expect(toBaseCurrency({ amount: 100 })).toBe(100);
+        });
+
+        it('throws CurrencyError instead of silently returning the raw amount for a zero rate', () => {
+            expect(() => toBaseCurrency({
+                amount: 100,
+                currency_code: 'USD',
+                exchange_rate: 0,
+            })).toThrow(CurrencyError);
+        });
+    });
     describe('convertToBaseCurrency', () => {
         it('should convert USD to SAR with multiply operator', () => {
             const params: CurrencyConversionParams = {

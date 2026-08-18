@@ -69,6 +69,24 @@ const asPurchaseStats = (value: unknown): PurchaseStatsPayload => {
 const isPurchaseReturn = (purchase: PurchaseListRow): boolean =>
   purchase.type === 'return_purchase';
 
+/** Converts a purchase amount to base currency without throwing on bad rates. */
+const safeToBase = (purchase: PurchaseListRow): number => {
+  try {
+    return toBaseCurrency({
+      amount: purchase.total_amount,
+      currency_code: purchase.currency_code,
+      exchange_rate: purchase.exchange_rate,
+    });
+  } catch (err) {
+    logger.warn('PurchaseService', 'Invalid exchange rate — purchase amount treated as 0', {
+      currency_code: purchase.currency_code,
+      exchange_rate: purchase.exchange_rate,
+      error: err,
+    });
+    return 0;
+  }
+};
+
 export { purchasesApi };
 
 export const purchasesService = {
@@ -169,11 +187,7 @@ export const purchasesService = {
 
     const returns = data.filter(isPurchaseReturn);
     const totalReturns = returns.reduce(
-      (sum, purchase) => sum + toBaseCurrency({
-        amount: purchase.total_amount,
-        currency_code: purchase.currency_code,
-        exchange_rate: purchase.exchange_rate,
-      }),
+      (sum, purchase) => sum + safeToBase(purchase),
       0,
     );
     const pendingCount = returns.filter(

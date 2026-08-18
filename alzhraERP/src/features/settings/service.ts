@@ -1,6 +1,7 @@
 import { settingsApi } from './api';
 import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, AutoBackupConfig, BranchFormData } from './types.ts';
 import { supabase } from '../../lib/supabaseClient';
+import { logger } from '../../core/utils/logger';
 
 export const settingsService = {
     fetchCompany: async (companyId: string) => {
@@ -159,7 +160,7 @@ export const settingsService = {
                     (exportData.data as Record<string, unknown>)[table] = data;
                 }
             } catch (err) {
-                console.warn(`Failed to export table ${table}:`, err);
+                logger.warn('SettingsService', `Failed to export table ${table}`, err);
             }
         }
 
@@ -167,7 +168,7 @@ export const settingsService = {
         return exportData;
     },
 
-    importSystemData: async (file: File) => {
+    importSystemData: async (file: File, companyId: string) => {
         try {
             const text = await file.text();
             const json = JSON.parse(text);
@@ -176,26 +177,57 @@ export const settingsService = {
                 throw new Error("ملف غير صالح أو تالف");
             }
 
-            // Tables in order of dependencies (roughly)
+            const isRecord = (value: unknown): value is Record<string, unknown> =>
+                typeof value === 'object' && value !== null && !Array.isArray(value);
+
+            // Security: never write rows that belong to another tenant. A row is
+            // scoped to the target company either by `company_id` or — for the
+            // `companies` table itself — by its own `id`.
+            const assertRowBelongsToCompany = (table: string, row: Record<string, unknown>): void => {
+                const companyKey = table === 'companies' ? 'id' : 'company_id';
+                const rowCompany = row[companyKey];
+                if (rowCompany !== undefined && rowCompany !== null && String(rowCompany) !== companyId) {
+                    throw new Error(
+                        `ملف الاستيراد يحتوي على بيانات لشركة أخرى (جدول ${table}) — تم إيقاف الاستيراد حفاظاً على عزل البيانات.`
+                    );
+                }
+            };
+
+            // Tables in order of dependencies (roughly).
+            // NOTE: `supported_currencies` is intentionally EXCLUDED from the
+            // write set — it is a global reference table owned by the platform,
+            // not tenant data, so a restore must never upsert into it.
             const tables = [
                 'companies', 'branches', 'warehouses', 'product_categories', 'products',
                 'product_stock', 'product_cross_references', 'product_supplier_prices', 'product_kit_items',
                 'inventory_transactions', 'stock_transfers', 'stock_transfer_items',
                 'party_categories', 'parties',
-                'fiscal_years', 'supported_currencies', 'exchange_rates',
+                'fiscal_years', 'exchange_rates',
                 'invoices', 'invoice_items',
                 'accounts', 'journal_entries', 'journal_entry_lines',
                 'expense_categories', 'expenses'
             ];
 
-            // Warning: This implementation assumes the user wants to upsert/replace.
-            // In a production app, we would handle this with extreme care or via a Postgres function.
+            // Validate ALL rows for tenant isolation BEFORE writing anything.
+            for (const table of tables) {
+                const tableData = json.data[table];
+                if (tableData && Array.isArray(tableData)) {
+                    for (const row of tableData) {
+                        if (isRecord(row)) assertRowBelongsToCompany(table, row);
+                    }
+                }
+            }
+
+            // Perform the restore. Any failure aborts the remaining tables so a
+            // partial import cannot masquerade as a successful restore.
             for (const table of tables) {
                 const tableData = json.data[table];
                 if (tableData && Array.isArray(tableData) && tableData.length > 0) {
                     const tableName = table as keyof import('../../core/database.types').Database['public']['Tables'];
                     const { error } = await (supabase.from(tableName) as unknown as { upsert: (data: unknown[], opts: { onConflict: string }) => Promise<{ error: unknown }> }).upsert(tableData, { onConflict: 'id' });
-                    if (error) console.error(`Error importing ${table}:`, error);
+                    if (error) {
+                        throw new Error(`فشل استيراد جدول ${table}: ${(error as { message?: string }).message ?? String(error)}`);
+                    }
                 }
             }
 
@@ -214,7 +246,7 @@ export const settingsService = {
         try {
             return await settingsApi.fetchMarketRates(companyId);
         } catch (error) {
-            console.error('[Settings] Failed to refresh market rates:', error);
+            logger.error('SettingsService', 'Failed to refresh market rates', error);
             throw error;
         }
     }

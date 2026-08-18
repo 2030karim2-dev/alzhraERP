@@ -90,9 +90,12 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
                             case 'CREATE_INVOICE':
                                 await salesService.processNewSale(company_id, user_id, data as unknown as Parameters<typeof salesService.processNewSale>[2]);
                                 break;
-                            case 'UPDATE_STOCK':
-                                // await inventoryService.updateStock(data);
-                                break;
+                            default:
+                                // Never silently drop an action we cannot replay:
+                                // it stays queued, is logged, and blocks the sync so
+                                // the bug surfaces instead of losing data.
+                                logger.error('OfflineQueue', `Unhandled offline action type: ${action.type} — keeping in queue`, { id: action.id });
+                                throw new Error(`Unhandled offline action type: ${action.type}`);
                         }
 
                         removeFromQueue(action.id);

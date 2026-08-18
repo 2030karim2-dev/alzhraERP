@@ -134,7 +134,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       if (state.currency !== 'SAR') {
         try {
           // Convert from base (SAR) to foreign currency
-          convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
+          convertedPrice = convertCurrency(basePrice, rate, 'fromBase', state.exchangeOperator);
         } catch (e) {
           // [FIX #2] لن نصل هنا نظرياً بعد التحقق أعلاه، لكن نحتفظ بـ safety net
           logger.error('SalesStore', 'Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
@@ -193,7 +193,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       let convertedPrice = basePrice;
       if (state.currency !== 'SAR') {
         try {
-          convertedPrice = convertCurrency(basePrice, rate, 'fromBase');
+          convertedPrice = convertCurrency(basePrice, rate, 'fromBase', state.exchangeOperator);
         } catch (e) {
           logger.error('SalesStore', 'Invalid exchange rate for addProductToCart', { rate, currency: state.currency });
           useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
@@ -272,7 +272,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           if (!isForeign) return { ...item, price: item.basePrice };
 
           try {
-            const newPrice = convertCurrency(item.basePrice, rate, 'fromBase');
+            const newPrice = convertCurrency(item.basePrice, rate, 'fromBase', newState.exchangeOperator);
             return { ...item, price: newPrice };
           } catch (e) {
             logger.error('SalesStore', 'Invalid rate in setMetadata', { rate, currency: newState.currency });

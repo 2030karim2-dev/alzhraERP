@@ -10,6 +10,7 @@ import { AdvancedReturnModal } from '../../../returns/components/AdvancedReturnM
 import { useReturnsListView, type ReturnsListRow } from '../../../returns/hooks/useReturnsListView';
 import { ReturnsStatsHeader } from '../../../returns/components/view/ReturnsStatsHeader';
 import { ReturnsFilterControls } from '../../../returns/components/view/ReturnsFilterControls';
+import { logger } from '../../../../core/utils/logger';
 
 // Status labels
 const STATUS_LABELS: Record<string, string> = {
@@ -79,7 +80,15 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       handleExportExcel,
       clearFilters,
       hasActiveFilters
-  } = useReturnsListView(normalizedReturns, 'sales', (filteredReturns) => sumInBaseCurrency(filteredReturns as any[]));
+  } = useReturnsListView(normalizedReturns, 'sales', (filteredReturns) => {
+      // Guard the display total: a corrupted historical exchange rate must not
+      // crash the returns view — it is logged by sumInBaseCurrency/toBaseCurrency.
+      try {
+          return sumInBaseCurrency(filteredReturns as any[]);
+      } catch {
+          return 0;
+      }
+  });
 
   // Sync initial search term
   React.useEffect(() => {
@@ -103,7 +112,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
     try {
       await exportToPDF(printRef.current, `مرتجعات_المبيعات_${new Date().toISOString().split('T')[0]}`);
     } catch (error) {
-      console.error('Print error:', error);
+      logger.error("SalesReturnsView", 'Print error:', error);
     }
   };
 
