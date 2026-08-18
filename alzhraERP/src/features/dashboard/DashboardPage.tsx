@@ -28,6 +28,7 @@ const InventoryOverview = lazy(() => import('./components/InventoryOverview'));
 const QuickActions = lazy(() => import('./components/QuickActions'));
 const CategoriesChart = lazy(() => import('../../ui/dashboard/CategoriesChart'));
 const QuotationSummaryWidget = lazy(() => import('./components/QuotationSummaryWidget'));
+const RecentActivity = lazy(() => import('./components/RecentActivity'));
 
 // Sub-components for state management
 const DashboardLoading = () => {
@@ -53,7 +54,7 @@ const DashboardError = ({ refetch, isFetching }: { refetch: () => void, isFetchi
             </p>
         </div>
         <button
-            onClick={() => refetch()}
+            onClick={() => { refetch(); }}
             className="flex items-center gap-2 px-6 max-md:px-3 py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--accent)]/20"
         >
             <RefreshCw size={18} className={isFetching ? 'animate-spin' : ''} />
@@ -82,7 +83,9 @@ const DashboardPage: React.FC = () => {
         isFetching,
         revenueExpensesData,
         growthRate,
-        salesValue
+        salesValue,
+        salesTarget,
+        recentActivities
     } = useDashboardMetrics();
 
     if (isLoading) return <DashboardLoading />;
@@ -103,7 +106,7 @@ const DashboardPage: React.FC = () => {
                 actions={
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => refetch()}
+                            onClick={() => { refetch(); }}
                             className="p-2 text-[var(--app-text-secondary)] hover:text-[var(--accent)] active:scale-90 transition-all rounded-lg hover:bg-[var(--app-surface-hover)]"
                         >
                             <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
@@ -128,7 +131,7 @@ const DashboardPage: React.FC = () => {
 
                     <Suspense fallback={<div className="h-32 mt-3 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="mt-3">
-                            <StatsGrid stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }} />
+                            <StatsGrid stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }} sparklineData={salesData.map(d => Number(d.value) || 0)} />
                         </div>
                     </Suspense>
 
@@ -161,7 +164,7 @@ const DashboardPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="relative z-10">
-                                    <SalesFlowChart data={salesData.map(d => ({ name: d.name, value: d.value ?? 0, sales: d.sales ?? 0 }))} showPeriodSelector={true} />
+                                    <SalesFlowChart data={salesData.map(d => ({ name: d.name, value: d.value ?? 0, sales: d.value ?? d.sales ?? 0 }))} showPeriodSelector={true} />
                                 </div>
                             </div>
                         </Suspense>
@@ -175,7 +178,7 @@ const DashboardPage: React.FC = () => {
                         <Suspense fallback={<div className="h-40 min-h-[160px] animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <PerformanceGauge
                                 value={salesValue}
-                                target={Math.max(100000, salesValue * 1.2)}
+                                target={salesTarget}
                                 title="هدف المبيعات الشهري"
                             />
                         </Suspense>
@@ -186,6 +189,10 @@ const DashboardPage: React.FC = () => {
 
                         <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <InventoryOverview lowStockProducts={lowStockProducts} />
+                        </Suspense>
+
+                        <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
+                            <RecentActivity activities={recentActivities} />
                         </Suspense>
 
                         <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
@@ -221,7 +228,7 @@ const DashboardPage: React.FC = () => {
                         </Suspense>
 
                         <Suspense fallback={null}>
-                            <SmartPurchaseAlert lowStockItems={lowStockProducts as any} />
+                            <SmartPurchaseAlert lowStockItems={lowStockProducts} />
                         </Suspense>
 
                         <Suspense fallback={null}>

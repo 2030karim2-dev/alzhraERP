@@ -11,13 +11,19 @@ export const calculateDashboardInsights = (data: {
     salesChartData?: Array<{ sales?: number; purchases?: number; expenses?: number; value?: number }>;
     lowStockProducts: Array<{ id: string; name?: string }>;
     overdueInvoices: Array<{ id: string }>;
+    /**
+     * Explicit sales target for the period. When omitted, a dynamic target is
+     * derived from the actual sales (current × 1.2) instead of a hardcoded 100k.
+     */
+    salesTarget?: number;
 }) => {
-    const { 
-        totalSales = 0, 
-        salesChartData = [], 
-        lowStockProducts = [], 
-        overdueInvoices = [], 
-        totalSupplierDebts = 0
+    const {
+        totalSales,
+        salesChartData = [],
+        lowStockProducts,
+        overdueInvoices,
+        totalSupplierDebts,
+        salesTarget,
     } = data;
 
     const totalDebts = totalSupplierDebts ?? 0;
@@ -57,7 +63,7 @@ export const calculateDashboardInsights = (data: {
         alerts.push({
             id: 'overdue-invoices',
             type: 'warning' as const,
-            message: `${overdueInvoices.length} فواتير متأخرة التحصيل`,
+            message: `${overdueInvoices.length} حسابات متأخرة التحصيل`,
             time: 'تحتاج متابعة'
         });
     }
@@ -95,12 +101,17 @@ export const calculateDashboardInsights = (data: {
         insights.push({
             id: 'collection',
             type: 'info' as const,
-            message: `${overdueInvoices.length} فواتير متأخرة التحصيل`,
+            message: `${overdueInvoices.length} حسابات متأخرة التحصيل`,
             detail: `المجموع: ${formatCurrency(totalDebts)}`
         });
     }
 
-    const salesProgress = totalSales > 0 ? Math.min(100, (totalSales / 100000) * 100) : 0;
+    // Dynamic sales target: explicit value when provided, otherwise a 20%
+    // growth target over the current period's actual sales (no more 100k magic).
+    const effectiveSalesTarget = salesTarget !== undefined && salesTarget > 0
+        ? salesTarget
+        : Math.max(1, totalSales * 1.2);
+    const salesProgress = totalSales > 0 ? Math.min(100, (totalSales / effectiveSalesTarget) * 100) : 0;
     insights.push({
         id: 'target',
         type: 'target' as const,
@@ -118,6 +129,7 @@ export const calculateDashboardInsights = (data: {
             salesProgress: Math.round(salesProgress),
             collectionRate: Math.round(collectionRate)
         },
+        salesTarget: Math.round(effectiveSalesTarget),
         olderSales,
         olderPurchases,
         olderExpenses,

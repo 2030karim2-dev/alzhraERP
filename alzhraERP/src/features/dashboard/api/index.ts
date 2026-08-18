@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabaseClient';
 // must keep rendering with zeroed/empty fallbacks when a dashboard RPC
 // is missing or temporarily failing (e.g. PGRST202 404), instead of
 // taking the whole page down and triggering endless refetch loops.
-function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name: string = 'RPC'): T {
+function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name = 'RPC'): T {
     if (result.status === 'fulfilled' && result.value.error) {
         logger.warn("api", `[Dashboard API] ${name} unavailable, using fallback:`, result.value.error.message);
         return fallback;
@@ -78,6 +78,32 @@ interface RawCategoryDatum {
     total_amount: number | string;
 }
 
+interface RawRecentInvoice {
+    id: string;
+    type?: string | null;
+    issue_date: string;
+    party_id?: string | null;
+    total_amount?: number | null;
+    parties?: { name?: string | null } | null;
+}
+
+interface RawRecentExpense {
+    id: string;
+    expense_date: string;
+    description?: string | null;
+    amount?: number | null;
+    expense_categories?: { name?: string | null } | null;
+}
+
+interface RawDebtFollowupRow {
+    party_id: string;
+    party_name?: string | null;
+    classification?: string;
+    days_overdue?: number | null;
+    outstanding_balance?: number | null;
+    invoice_count?: number | null;
+}
+
 const CATEGORY_COLORS = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'] as const;
 
 interface RawTopPayload {
@@ -106,7 +132,7 @@ export const dashboardApi = {
                 : new AbortController().signal;
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
-        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes] = await Promise.allSettled([
+        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes] = await Promise.allSettled([
             // NOTE: dashboard RPCs are non-critical (safeData falls back to
             // zeros/empty arrays). They opt out of network retries via the
             // `x-skip-network-retry` header so a flaky connection cannot amplify
@@ -167,6 +193,39 @@ export const dashboardApi = {
             })
                 .setHeader('x-skip-network-retry', '1')
                 .abortSignal(activeSignal),
+
+            // 7. Recent invoices (recent-activity feed) — direct table read, RLS-scoped
+            supabase
+                .from('invoices')
+                .select('id, type, issue_date, total_amount, party_id, parties(name)')
+                .eq('company_id', companyId)
+                .is('deleted_at', null)
+                .in('type', ['sale', 'purchase', 'return_sale', 'return_purchase'])
+                .order('issue_date', { ascending: false })
+                .limit(5)
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
+
+            // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped
+            supabase
+                .from('expenses')
+                .select('id, expense_date, description, amount, expense_categories(name)')
+                .eq('company_id', companyId)
+                .is('deleted_at', null)
+                .order('expense_date', { ascending: false })
+                .limit(3)
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
+
+            // 9. Debt follow-up engine (overdue parties → dashboard alerts)
+            supabase.rpc('get_debt_followup_dashboard', {
+                p_company_id: companyId,
+                p_due_soon_days: 7,
+                p_critical_days: 30,
+                p_reminder_window_days: 3,
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array
@@ -190,6 +249,18 @@ export const dashboardApi = {
         const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
         const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
         const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
+
+        const recentInvoices = safeData<RawRecentInvoice[]>(recentInvoicesRes, [], 'recent_invoices');
+        const recentExpenses = safeData<RawRecentExpense[]>(recentExpensesRes, [], 'recent_expenses');
+
+        const rawDebtFollowup = safeData<RawDebtFollowupRow[]>(debtFollowupRes, [], 'get_debt_followup_dashboard');
+        const overdueInvoices = (Array.isArray(rawDebtFollowup) ? rawDebtFollowup : [])
+            .filter((row) => row.classification === 'overdue' || row.classification === 'critical')
+            .map((row) => ({
+                id: row.party_id,
+                partyName: row.party_name ?? 'غير محدد',
+                daysOverdue: Number(row.days_overdue) || 0,
+            }));
 
         return {
             summary,
@@ -222,7 +293,10 @@ export const dashboardApi = {
                 value: Number(c.total_amount),
                 color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
             })),
-            trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : []
+            trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : [],
+            recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
+            recentExpenses: Array.isArray(recentExpenses) ? recentExpenses : [],
+            overdueInvoices,
         };
     }
 };

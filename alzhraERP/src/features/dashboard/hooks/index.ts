@@ -9,6 +9,7 @@ import type {
   ChartDataPoint,
   TopPerformer,
   LowStockProduct,
+  RecentActivityItem,
 } from '../models';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
@@ -49,7 +50,66 @@ interface RawDashboardData {
   lowStockProducts: LowStockProduct[];
   categoryData: ChartDataPoint[];
   trialBalanceRows: unknown[];
+  // Real data feeds (added via dashboardApi): recent activity + overdue alerts
+  recentInvoices: Array<{
+    id: string;
+    type?: string | null;
+    issue_date: string;
+    total_amount?: number | null;
+    parties?: { name?: string | null } | null;
+  }>;
+  recentExpenses: Array<{
+    id: string;
+    expense_date: string;
+    description?: string | null;
+    amount?: number | null;
+    expense_categories?: { name?: string | null } | null;
+  }>;
+  overdueInvoices: Array<{ id: string; partyName?: string; daysOverdue?: number }>;
 }
+
+// ------------------------------------------
+// Recent-activity builder (driven by real invoices/expenses)
+// ------------------------------------------
+const INVOICE_ACTIVITY_META: Record<string, { title: string; color: string }> = {
+  sale: { title: 'فاتورة مبيعات', color: 'blue' },
+  purchase: { title: 'فاتورة مشتريات', color: 'violet' },
+  return_sale: { title: 'مرتجع مبيعات', color: 'orange' },
+  return_purchase: { title: 'مرتجع مشتريات', color: 'amber' },
+};
+
+const buildRecentActivities = (
+  invoices: RawDashboardData['recentInvoices'],
+  expenses: RawDashboardData['recentExpenses'],
+): RecentActivityItem[] => {
+  const items: RecentActivityItem[] = [
+    ...(invoices || []).map((inv) => {
+      const meta = INVOICE_ACTIVITY_META[inv.type ?? ''] ?? { title: 'فاتورة', color: 'gray' };
+      return {
+        id: inv.id,
+        type: inv.type ?? 'invoice',
+        title: meta.title,
+        desc: `${toNumber(inv.total_amount).toLocaleString('ar-EG')} ر.س — ${inv.parties?.name ?? 'غير محدد'}`,
+        date: inv.issue_date,
+        time: inv.issue_date,
+        color: meta.color,
+      };
+    }),
+    ...(expenses || []).map((exp) => ({
+      id: exp.id,
+      type: 'expense',
+      title: `مصروف: ${exp.description || exp.expense_categories?.name || 'غير محدد'}`,
+      desc: `${toNumber(exp.amount).toLocaleString('ar-EG')} ر.س`,
+      date: exp.expense_date,
+      time: exp.expense_date,
+      color: 'rose',
+    })),
+  ];
+  return items
+    .filter((item) => !!item.time)
+    .sort((a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime())
+    .slice(0, 6);
+};
 
 // ------------------------------------------
 // Helper functions (extracted to keep hooks concise)
@@ -170,7 +230,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       return null;
     }
 
-    const { summary, salesChart, topData, lowStockProducts, categoryData, trialBalanceRows } =
+    const { summary, salesChart, topData, lowStockProducts, categoryData, trialBalanceRows, recentInvoices, recentExpenses, overdueInvoices } =
       rawDataQuery.data;
 
     // Guard: if summary is missing (RPC failed or old cache), return null
@@ -211,7 +271,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       totalSupplierDebts: toNumber(summary.total_supplier_debts),
       salesChartData: safeSalesChart,
       lowStockProducts: safeLowStockProducts,
-      overdueInvoices: [],
+      overdueInvoices,
     });
 
     // Assemble final payload directly from RPC data
@@ -235,7 +295,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       categoryData: safeCategoryData.length
         ? safeCategoryData
         : [{ name: 'لا توجد بيانات', value: 0, color: '#94a3b8' }],
-      recentActivities: [],
+      recentActivities: buildRecentActivities(recentInvoices, recentExpenses),
       customers: safeTopData.top_customers ?? [],
       topProducts: safeTopData.top_products ?? [],
       topCustomers: safeTopData.top_customers ?? [],
@@ -302,17 +362,17 @@ export const useInventoryChart = () => {
   return { chartData: categoryData, isLoading };
 };
 
-export const useRecentActivity = (limit: number = 5) => {
+export const useRecentActivity = (limit = 5) => {
   const { recentActivities, isLoading } = useDashboardData();
   return { activities: recentActivities.slice(0, limit), isLoading };
 };
 
-export const useTopProducts = (limit: number = 5) => {
+export const useTopProducts = (limit = 5) => {
   const { topProducts, isLoading } = useDashboardData();
   return { products: topProducts.slice(0, limit), isLoading };
 };
 
-export const useTopCustomers = (limit: number = 5) => {
+export const useTopCustomers = (limit = 5) => {
   const { topCustomers, isLoading } = useDashboardData();
   return { customers: topCustomers.slice(0, limit), isLoading };
 };

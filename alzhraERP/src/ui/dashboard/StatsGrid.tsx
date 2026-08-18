@@ -26,15 +26,16 @@ import { cn } from '../../core/utils';
 //   return count;
 // };
 
-// Mini sparkline SVG component
-const MiniSparkline: React.FC<{ color: string; className?: string }> = ({ color, className }) => {
-  // Generate random-ish but consistent sparkline points
-  const points = [30, 45, 25, 60, 35, 55, 70];
+// Mini sparkline SVG component — driven by real data instead of fixed points
+const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({ data, color, className }) => {
+  const points = data && data.length > 0 ? data : [0];
   const w = 80, h = 28;
   const maxVal = Math.max(...points);
+  const minVal = Math.min(...points);
+  const range = (maxVal - minVal) || 1;
   const coords = points.map((p, i) => {
     const x = (i / (points.length - 1)) * w;
-    const y = h - (p / maxVal) * h;
+    const y = h - ((p - minVal) / range) * (h - 4) - 2;
     return `${x},${y}`;
   }).join(' ');
   const fillCoords = `0,${h} ${coords} ${w},${h}`;
@@ -80,9 +81,11 @@ interface StatsGridProps {
     debtsTrend?: number;
     profitTrend?: number;
   };
+  /** Real series used to draw the mini sparklines (e.g. daily sales). */
+  sparklineData?: number[];
 }
 
-const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
+const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -215,7 +218,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                   <h3 className="text-lg md:text-xl font-bold text-[var(--app-text)] font-mono tracking-tighter leading-none drop-shadow-md whitespace-nowrap shrink-0">
                     {item.value}
                   </h3>
-                  <MiniSparkline color={sparkColor} className="hidden md:block" />
+                  <MiniSparkline data={sparklineData} color={sparkColor} className="hidden md:block" />
                 </div>
 
                 {/* Trend Badge */}

@@ -121,12 +121,12 @@ describe('Alerts', () => {
 // ── Targets ────────────────────────────────────────────
 
 describe('Targets', () => {
-  it('calculates sales progress against 100k target', () => {
+  it('calculates sales progress against an explicit target', () => {
     const result = calculateDashboardInsights({
       receiptBonds: 0, paymentBonds: 0, totalSales: 50000,
       totalPurchases: 0, totalExpenses: 0, netProfit: 0,
       totalSupplierDebts: 0, salesChartData: [], lowStockProducts: [],
-      overdueInvoices: [],
+      overdueInvoices: [], salesTarget: 100000,
     });
     expect(result.targets.salesProgress).toBe(50);
   });
@@ -136,9 +136,31 @@ describe('Targets', () => {
       receiptBonds: 0, paymentBonds: 0, totalSales: 200000,
       totalPurchases: 0, totalExpenses: 0, netProfit: 0,
       totalSupplierDebts: 0, salesChartData: [], lowStockProducts: [],
-      overdueInvoices: [],
+      overdueInvoices: [], salesTarget: 100000,
     });
     expect(result.targets.salesProgress).toBe(100);
+  });
+
+  it('derives a dynamic target (sales × 1.2) when no explicit target is given', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 50000,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalSupplierDebts: 0, salesChartData: [], lowStockProducts: [],
+      overdueInvoices: [],
+    });
+    // target = 60000 → progress = 50000/60000*100 ≈ 83
+    expect(result.targets.salesProgress).toBe(83);
+    expect(result.salesTarget).toBe(60000);
+  });
+
+  it('returns zero progress when there are no sales', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 0,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalSupplierDebts: 0, salesChartData: [], lowStockProducts: [],
+      overdueInvoices: [],
+    });
+    expect(result.targets.salesProgress).toBe(0);
   });
 });
 

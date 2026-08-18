@@ -2,18 +2,10 @@
 import React from 'react';
 import { Clock,   ShoppingBag, FileText, UserPlus, Receipt } from 'lucide-react';
 import { cn } from '../../../core/utils';
-
-interface ActivityItem {
-  id: string;
-  type: string;
-  title: string;
-  desc: string;
-  time: string;
-  color: string;
-}
+import type { RecentActivityItem } from '../models';
 
 interface Props {
-  activities?: ActivityItem[];
+  activities?: RecentActivityItem[];
 }
 
 const RecentActivity: React.FC<Props> = ({ activities = [] }) => {
@@ -41,20 +33,25 @@ const RecentActivity: React.FC<Props> = ({ activities = [] }) => {
           <div className="text-center py-8 max-md:py-4 text-[var(--app-text-secondary)] text-[10px]">لا توجد نشاطات حديثة</div>
         ) : activities.map((item) => {
           const Icon = getIcon(item.type);
+          const color = item.color || 'gray';
           return (
             <div key={item.id} className="relative flex gap-4 max-md:gap-3 items-start group">
               <div className={cn(
                 "relative z-10 w-10 h-10 rounded-xl flex items-center justify-center border-4 border-[var(--app-surface)] shadow-sm transition-transform group-hover:scale-110",
-                `bg-${item.color}-50 text-${item.color}-600 dark:bg-${item.color}-900/20`
+                `bg-${color}-50 text-${color}-600 dark:bg-${color}-900/20`
               )}>
                 <Icon size={16} />
               </div>
               <div className="flex-1 pt-1">
                 <div className="flex justify-between items-start">
                   <h4 className="text-[11px] font-bold text-[var(--app-text)] group-hover:text-blue-600 transition-colors">{item.title}</h4>
-                  <span className="text-[9px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA-u-nu-latn')}</span>
+                  {item.time && (
+                    <span className="text-[9px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA-u-nu-latn')}</span>
+                  )}
                 </div>
-                <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5 line-clamp-1">{item.desc}</p>
+                {item.desc && (
+                  <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5 line-clamp-1">{item.desc}</p>
+                )}
               </div>
             </div>
           )

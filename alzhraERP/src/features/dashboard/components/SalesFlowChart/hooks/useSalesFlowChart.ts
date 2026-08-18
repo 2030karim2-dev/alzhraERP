@@ -49,7 +49,12 @@ export const useSalesFlowChart = ({ data, onPeriodChange }: UseSalesFlowChartPar
             case 'all': return data;
         }
 
-        return data.filter(d => new Date(d.name) >= cutoff).map(d => ({
+        return data.filter(d => {
+            const time = new Date(d.name).getTime();
+            // Non-date labels (e.g. fallback "اليوم") are kept as-is
+            if (Number.isNaN(time)) return true;
+            return time >= cutoff.getTime();
+        }).map(d => ({
             ...d,
             sales: Math.max(0, d.sales || 0),
             purchases: Math.max(0, d.purchases || 0),

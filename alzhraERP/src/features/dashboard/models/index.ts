@@ -71,6 +71,10 @@ export interface RecentActivityItem {
     amount?: number;
     date: string;
     status?: string;
+    // Presentation extras used by the RecentActivity widget
+    desc?: string;
+    time?: string;
+    color?: string;
 }
 
 export interface LowStockProduct {
