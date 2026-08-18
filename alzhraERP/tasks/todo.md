@@ -1,6 +1,12 @@
 # TODO — الإصلاح والتحسين الشامل
 
-## Checkpoint (2026-08-18) — المرحلة ج: الأمان والخلفية (Supabase مباشر) ✅
+## Checkpoint (2026-08-18) — المرحلة ج (جولة 2): تحصين دوال SECURITY DEFINER ✅
+- [x] **إلغاء صلاحية `anon`/`PUBLIC` من 180 دالة SECURITY DEFINER إضافية** (من أصل 192 متبقية) — تضم: api_v1_fin_post_journal_entry, api_v1_prc_* (مشتريات)، bulk_adjust_stock/bulk_update_product_prices, fn_reverse_journal_entries, جميع دوال الـ triggers (prevent_*, trg_*, log_*)، دوال البحث والتقارير.
+- [x] **الإبقاء على 12 دالة anon-executable عمداً** (مرجعية في سياسات RLS/views/مستدعين غير SD): has_permission, get_user_role, is_super_admin, is_valid_branch, get_user_company_id, user_can_manage_debts, user_is_admin_or_manager, api_v1_sys_publish_event, get_auth_companies, get_next_journal_entry_number, generate_invoice_number, generate_payment_number.
+- [x] **المنح**: REVOKE PUBLIC + REVOKE anon + GRANT authenticated (service_role يحتفظ بمنحه الصريح).
+- [x] **التحقق المباشر**: anon-executable انخفض من 192 إلى **12**، authenticated يحتفظ بـ **233**. Migration: `20260818000007_revoke_anon_execute_remaining.sql` (557 سطراً).
+
+## Checkpoint (2026-08-18) — المرحلة ج (جولة 1): الأمان والخلفية (Supabase مباشر) ✅
 - [x] **إلغاء صلاحية EXECUTE عن `anon`/`PUBLIC`** من **15 دالة مالية SECURITY DEFINER** (commit_purchase_invoice, commit_sales_invoice_v2, commit_payment, post_manual_journal, void_expense, void_bond, create_financial_bond, process_sales_return, process_stock_transfer, recalculate_* …) وإعادة المنح حصرياً لـ `authenticated`. تم التطبيق والتحقق مباشرة: anon = 0، authenticated = 15. Migration: `20260818000005_revoke_anon_execute.sql`.
 - [x] **إضافة `p_due_date` إلى `commit_purchase_invoice`** + حفظه في `invoices.due_date` (كان يُفقد صامتاً). إسقاط التحميل القديم 12-معامل + تحصين صلاحيات التحميل الجديد. تم التطبيق والتحقق (التوقيع 13 معامل، anon=false, authenticated=true, الرسائل العربية سليمة). Migration: `20260818000006_add_purchase_due_date.sql`.
 - [x] **إصلاح عدم تطابق الخصم**: `commit_purchase_invoice` يقرأ `discount_amount` بينما `commit_purchase_return` يقرأ `discount` — الواجهة ترسل **كلا المفتاحين** الآن.
