@@ -7325,7 +7325,7 @@ BEGIN
 
   SELECT incentive_check_allocation_complete(p_invoice_id) INTO v_complete;
   IF NOT v_complete THEN
-    RAISE EXCEPTION 'allocation_not_100: invoice % allocation sum is not 100%% â full rollback, no partial state', p_invoice_id;
+    RAISE EXCEPTION 'allocation_not_100: invoice % allocation sum is not 100%% — full rollback, no partial state', p_invoice_id;
   END IF;
 
   UPDATE incentive_engineer_links
