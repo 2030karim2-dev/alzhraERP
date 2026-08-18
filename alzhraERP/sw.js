@@ -1,7 +1,7 @@
 
 import { get, set, del, clear } from 'idb-keyval';
 
-const CACHE_NAME = 'alz-erp-v4.1';
+const CACHE_NAME = 'alz-erp-v4.2';
 const APP_SHELL_URLS = [
   '/',
   '/index.html'

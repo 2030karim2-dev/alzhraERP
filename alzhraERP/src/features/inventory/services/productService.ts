@@ -1,8 +1,8 @@
-import { Product, ProductFormData } from '../types';
+import type { Product, ProductFormData } from '../types';
 import { inventoryApi } from '../api';
 import { supabase } from '../../../lib/supabaseClient';
-import { InsertDto } from '../../../core/database.helpers';
-import { TableUpdate } from '@/core/types/supabase-helpers';
+import type { InsertDto } from '../../../core/database.helpers';
+import type { TableUpdate } from '@/core/types/supabase-helpers';
 import { logger } from '../../../core/utils/logger';
 
 interface RawStock {
@@ -37,7 +37,7 @@ interface RawProduct {
     uoms?: Array<{ id: string; uom_name: string; conversion_factor: number }>;
 }
 
-/** Shape returned by the `search_inventory` RPC — minimal fields for dropdowns/rows. */
+/** Shape returned by the product search RPC — minimal fields for dropdowns/rows. */
 export interface SearchResultProduct {
     id: string;
     name?: string;
@@ -48,11 +48,55 @@ export interface SearchResultProduct {
     size?: string | null;
 }
 
+/** Raw row fields consumed by `mapSearchRow` (subset shared by RPC + table fallback). */
+interface SearchRow {
+    id: string;
+    name_ar?: string | null;
+    sku?: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+    size?: string | null;
+}
+
+/** Maps a raw product row to the minimal search-result shape used by dropdowns/pickers. */
+function mapSearchRow(row: SearchRow): SearchResultProduct {
+    return {
+        id: row.id,
+        name: row.name_ar ?? '',
+        name_ar: row.name_ar ?? '',
+        sku: row.sku ?? null,
+        part_number: row.part_number ?? null,
+        brand: row.brand ?? null,
+        size: row.size ?? null,
+    };
+}
+
+/**
+ * Fallback product search using ILIKE when the smart search RPC is unavailable
+ * (mirrors the POS fallback so pickers keep working even if the RPC is missing).
+ */
+async function searchProductsFallback(companyId: string, term: string, limit = 50): Promise<SearchResultProduct[]> {
+    const { data, error } = await supabase
+        .from('products')
+        .select('id, name_ar, sku, part_number, brand, size')
+        .eq('company_id', companyId)
+        .eq('status', 'active')
+        .or(
+            `name_ar.ilike.%${term}%,sku.ilike.%${term}%,` +
+            `part_number.ilike.%${term}%,alternative_numbers.ilike.%${term}%,` +
+            `barcode.ilike.%${term}%`
+        )
+        .limit(limit);
+
+    if (error) return [];
+    return data.map(mapSearchRow);
+}
+
 export const productService = {
     /**
      * Get all products for a company
      */
-    getProducts: async (companyId: string, page: number = 1, limitNum: number = 10000, warehouseId?: string, signal?: AbortSignal): Promise<Product[]> => {
+    getProducts: async (companyId: string, page = 1, limitNum = 10000, warehouseId?: string, signal?: AbortSignal): Promise<Product[]> => {
         const { data, error } = await inventoryApi.getProducts(companyId, page, limitNum, signal);
         if (error) throw error;
         return productService.mapRawProducts(data || [], warehouseId);
@@ -65,7 +109,7 @@ export const productService = {
      */
     mapRawProducts: (rows: unknown[], warehouseId?: string): Product[] => {
         return (rows as RawProduct[]).map((prod) => {
-            if (!prod || !prod.id) return null;
+            if (!prod?.id) return null;
 
             const stockList = Array.isArray(prod.stock) ? prod.stock : [];
             
@@ -146,15 +190,30 @@ export const productService = {
     },
 
     /**
-     * Search products using advanced database search
+     * Search products using advanced database search.
+     * Uses the paginated search RPC (granted to `authenticated`) with an ILIKE
+     * fallback so product pickers keep working even if the RPC is unavailable.
      */
     searchProducts: async (companyId: string, term: string): Promise<SearchResultProduct[]> => {
-        const { data, error } = await supabase.rpc('search_inventory', {
-            p_term: term,
-            p_company_id: companyId
-        });
-        if (error) throw error;
-        return (data || []) as SearchResultProduct[];
+        try {
+            const { data, error } = await supabase.rpc('search_inventory_paginated', {
+                p_company_id: companyId,
+                p_term: term,
+                p_limit: 50,
+                p_offset: 0,
+                p_sort_key: 'updated_at',
+                p_sort_dir: 'desc',
+            });
+            if (error) {
+                logger.warn('inventory', 'searchProducts RPC error, falling back to ILIKE:', error.message);
+                return await searchProductsFallback(companyId, term);
+            }
+            return data.map(mapSearchRow);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            logger.warn('inventory', 'searchProducts failed, using fallback:', message);
+            return searchProductsFallback(companyId, term);
+        }
     },
 
     /**
@@ -210,7 +269,7 @@ export const productService = {
                 .limit(1);
 
             if (warehouses && warehouses.length > 0) {
-                const warehouse = warehouses[0] as { id: string };
+                const warehouse = warehouses[0];
                 await inventoryApi.initializeStock(companyId, _userId, {
                     product_id: product.id,
                     warehouse_id: warehouse.id,
