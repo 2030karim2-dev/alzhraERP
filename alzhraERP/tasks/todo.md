@@ -1,5 +1,15 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-18) — المرحلة ج (جولة 3): إعادة توليد baseline migrations ✅
+- [x] **توليد baseline كامل من القاعدة الحية** عبر `scripts/generate-baseline.mjs` (بعد إصلاحه لاستبعاد مخططات auth/storage المُدارة من Supabase من أنواع ENUM والتسلسلات):
+  - `20260819000001_baseline_schema.sql` (243KB) — امتدادات، أنواع، جداول، قيود، فهارس
+  - `20260819000002_baseline_functions.sql` (460KB) — كل الدوال (تتضمن commit_purchase_invoice بـ p_due_date)
+  - `20260819000003_baseline_triggers_policies.sql` (131KB) — views، triggers، سياسات RLS
+  - `20260819000004_privileges.sql` — تحصين EXECUTE (REVOKE PUBLIC/anon + GRANT authenticated لـ 195 دالة)
+- [x] **أرشفة الـ 49 migration قديمة** في `supabase/migrations_archive/` + نسخة احتياطية من سجل الخادم القديم (653 إدخالاً).
+- [x] **إعادة تعيين سجل الخادم** (`supabase_migrations.schema_migrations`): 653 إدخالاً → 4 (تطابق الملفات الجديدة) في معاملة واحدة آمنة.
+- [x] **التحقق**: القاعدة سليمة (156 جدولاً، 286 دالة، 403 سياسة RLS، 202 مشغل)، الأمن محفوظ (anon-executable SD = 12)، والسجل نظيف.
+
 ## Checkpoint (2026-08-18) — المرحلة ج (جولة 2): تحصين دوال SECURITY DEFINER ✅
 - [x] **إلغاء صلاحية `anon`/`PUBLIC` من 180 دالة SECURITY DEFINER إضافية** (من أصل 192 متبقية) — تضم: api_v1_fin_post_journal_entry, api_v1_prc_* (مشتريات)، bulk_adjust_stock/bulk_update_product_prices, fn_reverse_journal_entries, جميع دوال الـ triggers (prevent_*, trg_*, log_*)، دوال البحث والتقارير.
 - [x] **الإبقاء على 12 دالة anon-executable عمداً** (مرجعية في سياسات RLS/views/مستدعين غير SD): has_permission, get_user_role, is_super_admin, is_valid_branch, get_user_company_id, user_can_manage_debts, user_is_admin_or_manager, api_v1_sys_publish_event, get_auth_companies, get_next_journal_entry_number, generate_invoice_number, generate_payment_number.

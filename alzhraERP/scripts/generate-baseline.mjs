@@ -60,7 +60,7 @@ async function genExtensions() {
   return ['-- Extensions', ...lines, ''].join('\n');
 }
 
-// ── 2. Enum types ────────────────────────────────────────────────────────────
+// ── 2. Enum types (public only — auth/storage/extensions enums are Supabase-managed) ─
 async function genEnums() {
   const r = await runQuery(q(`
     SELECT t.typname,
@@ -70,7 +70,7 @@ async function genEnums() {
     FROM pg_type t
     JOIN pg_namespace n ON n.oid = t.typnamespace
     WHERE t.typtype = 'e'
-      AND n.nspname NOT IN ('pg_catalog','information_schema')
+      AND n.nspname = 'public'
     ORDER BY n.nspname, t.typname;
   `));
   const lines = r.map((x) => `CREATE TYPE ${x.schema}.${x.typname} AS ENUM (${x.labels});`);
@@ -83,7 +83,7 @@ async function genSequences() {
     SELECT s.schemaname, s.sequencename, s.data_type,
            s.start_value, s.min_value, s.max_value, s.increment_by, s.cycle
     FROM pg_sequences s
-    WHERE s.schemaname NOT IN ('pg_catalog','information_schema')
+    WHERE s.schemaname = 'public'
     ORDER BY s.schemaname, s.sequencename;
   `));
   const lines = r.map((x) => [
@@ -261,30 +261,30 @@ console.log('Baseline generator started…');
 const [ext, enums, seqs, tables, constraints, indexes] = await Promise.all([
   genExtensions(), genEnums(), genSequences(), genTables(), genConstraints(), genIndexes(),
 ]);
-writeFileSync(path.join(OUT_DIR, '20260818000002_baseline_schema.sql'),
+writeFileSync(path.join(OUT_DIR, '20260819000001_baseline_schema.sql'),
   `-- ============================================================\n` +
   `-- BASELINE: current live schema (extensions/enums/sequences/tables/constraints/indexes)\n` +
-  `-- Generated 2026-08-18 from project ${REF} (schema-only).\n` +
+  `-- Generated 2026-08-18 from project ${REF} (schema-only, public schema).\n` +
   `-- ============================================================\n\n` +
   `${ext}\n${enums}\n${seqs}\n${tables}\n${constraints}\n${indexes}\n`, 'utf8');
-console.log('✓ 20260818000002_baseline_schema.sql');
+console.log('✓ 20260819000001_baseline_schema.sql');
 
 const fn = await genFunctions();
-writeFileSync(path.join(OUT_DIR, '20260818000003_baseline_functions.sql'),
+writeFileSync(path.join(OUT_DIR, '20260819000002_baseline_functions.sql'),
   `-- ============================================================\n` +
   `-- BASELINE: all public functions (exact definitions)\n` +
-  `-- Generated 2026-08-18 from project ${REF} (schema-only).\n` +
+  `-- Generated 2026-08-18 from project ${REF} (schema-only, public schema).\n` +
   `-- ============================================================\n\n` +
   `${fn}\n`, 'utf8');
-console.log('✓ 20260818000003_baseline_functions.sql');
+console.log('✓ 20260819000002_baseline_functions.sql');
 
 const [views, triggers, policies] = await Promise.all([genViews(), genTriggers(), genPolicies()]);
-writeFileSync(path.join(OUT_DIR, '20260818000004_baseline_triggers_policies.sql'),
+writeFileSync(path.join(OUT_DIR, '20260819000003_baseline_triggers_policies.sql'),
   `-- ============================================================\n` +
   `-- BASELINE: views + triggers + RLS policies\n` +
-  `-- Generated 2026-08-18 from project ${REF} (schema-only).\n` +
+  `-- Generated 2026-08-18 from project ${REF} (schema-only, public schema).\n` +
   `-- ============================================================\n\n` +
   `${views}\n${triggers}\n${policies}\n`, 'utf8');
-console.log('✓ 20260818000004_baseline_triggers_policies.sql');
+console.log('✓ 20260819000003_baseline_triggers_policies.sql');
 console.log('Baseline generation complete.');
 
