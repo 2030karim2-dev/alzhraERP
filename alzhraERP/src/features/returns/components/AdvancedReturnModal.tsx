@@ -11,6 +11,7 @@ import { ReturnDetailsStep } from './ReturnDetailsStep';
 import { useSalesInvoicesForReturn, useCreateSalesReturn } from '../../sales/hooks/useSalesReturns';
 import { usePurchaseInvoicesForReturn, useCreatePurchaseReturn } from '../../purchases/hooks/usePurchaseReturns';
 import { mapReturnStatus } from '../utils/returnHelpers';
+import { logger } from '../../../core/utils/logger';
 
 interface AdvancedReturnModalProps {
     isOpen: boolean;
@@ -303,7 +304,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                 onSuccess();
                                 onClose();
                             } catch (error) {
-                                console.error('Error saving return:', error);
+                                logger.error("AdvancedReturnModal", 'Error saving return:', error);
                                 const err = error as { message?: string };
                                 showToast(err?.message || 'فشل حفظ المرتجع، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error');
                             }

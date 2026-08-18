@@ -6,6 +6,7 @@ import { useAuthStore } from '../../../auth/store';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { cn, formatCurrency } from '@/core/utils';
 import { useBranchFilter } from '../../../branches/hooks/useBranchFilter';
+import { logger } from '../../../../core/utils/logger';
 
 const FinancialPerformanceChart: React.FC = () => {
   const { theme } = useThemeStore();
@@ -26,7 +27,7 @@ const FinancialPerformanceChart: React.FC = () => {
         const result = await reportService.getMonthlyPerformance(user.company_id, currentYear, branchId);
         setData(result);
       } catch (error) {
-        console.error('Error fetching chart data:', error);
+        logger.error("FinancialPerformanceChart", 'Error fetching chart data:', error);
       } finally {
         setIsLoading(false);
       }

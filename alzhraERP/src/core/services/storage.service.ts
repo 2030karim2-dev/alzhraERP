@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabaseClient';
+import { logger } from '../../core/utils/logger';
 
 export interface FileAttachment {
     id: string;
@@ -85,7 +86,7 @@ export const storageService = {
 
             return { data: data as FileAttachment, error: null };
         } catch (error) {
-            console.error('Storage Upload Error:', error);
+            logger.error("storage.service", 'Storage Upload Error:', error);
             return { data: null, error: error as Error };
         }
     },
@@ -104,7 +105,7 @@ export const storageService = {
     async downloadFile(bucket: BucketName, filePath: string): Promise<Blob | null> {
         const { data, error } = await supabase.storage.from(bucket).download(filePath);
         if (error) {
-            console.error('Download error:', error);
+            logger.error("storage.service", 'Download error:', error);
             return null;
         }
         return data;
@@ -122,7 +123,7 @@ export const storageService = {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Error fetching attachments:', error);
+            logger.error("storage.service", 'Error fetching attachments:', error);
             return [];
         }
         return (data || []) as FileAttachment[];
@@ -163,7 +164,7 @@ export const storageService = {
 
             return true;
         } catch (error) {
-            console.error('Error deleting attachment:', error);
+            logger.error("storage.service", 'Error deleting attachment:', error);
             return false;
         }
     }

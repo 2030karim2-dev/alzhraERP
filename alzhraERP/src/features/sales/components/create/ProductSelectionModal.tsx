@@ -12,6 +12,7 @@ import { productService } from '../../../inventory/service';
 import { useBranchFilterStore } from '../../../branches/store';
 import { useBranches } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
+import { logger } from '../../../../core/utils/logger';
 
 interface Props {
     isOpen: boolean;
@@ -69,7 +70,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
             }
         } catch (err) {
             // Error toast is already shown by useProductMutations.onError
-            console.error('[ProductSelectionModal] فشل إضافة المنتج:', err);
+            logger.error("ProductSelectionModal", '[ProductSelectionModal] فشل إضافة المنتج:', err);
         }
     };
 

@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * Dashboard API Layer
  * Pure functions for fetching raw data from Supabase
@@ -12,7 +13,7 @@ import { supabase } from '@/lib/supabaseClient';
 // taking the whole page down and triggering endless refetch loops.
 function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name: string = 'RPC'): T {
     if (result.status === 'fulfilled' && result.value.error) {
-        console.warn(`[Dashboard API] ${name} unavailable, using fallback:`, result.value.error.message);
+        logger.warn("api", `[Dashboard API] ${name} unavailable, using fallback:`, result.value.error.message);
         return fallback;
     }
     if (result.status === 'rejected') {
@@ -23,7 +24,7 @@ function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { mes
         if (reason?.name === 'AbortError') {
             return fallback;
         }
-        console.warn(`[Dashboard API] ${name} rejected, using fallback:`, result.reason);
+        logger.warn("api", `[Dashboard API] ${name} rejected, using fallback:`, result.reason);
         return fallback;
     }
     if (result.status === 'fulfilled' && result.value.data !== null) {

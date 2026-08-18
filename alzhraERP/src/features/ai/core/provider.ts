@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * AI Module - Provider (OpenRouter API client)
  * Handles communication with the AI model API.
@@ -105,7 +106,7 @@ export async function generateAIContent(
                 errorType
             });
 
-            console.error('AI Proxy Error:', error);
+            logger.error("provider", 'AI Proxy Error:', error);
 
             // Provide user-friendly error messages
             if (errorType === 'insufficient_funds') {
@@ -146,7 +147,7 @@ export async function generateAIContent(
         const content = aiResponse?.choices?.[0]?.message?.content ?? '';
 
         if (!content) {
-            console.warn('[AI Provider] Empty response from AI model');
+            logger.warn("provider", '[AI Provider] Empty response from AI model');
             throw new Error('رد فارغ من المساعد الذكي. يرجى المحاولة مرة أخرى.');
         }
 

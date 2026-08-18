@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -92,7 +93,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
         });
         setValue('amount', baseAmount);
       } catch (e) {
-        console.error('Conversion failed', e);
+        logger.error("CreateBondModal", 'Conversion failed', e);
       }
     }
   }, [selectedCurrency, foreignAmount, exchangeRate, currencyObj, setValue]);

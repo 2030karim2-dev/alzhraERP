@@ -137,7 +137,7 @@ export const useInventoryMutations = () => {
         },
         onError: (err) => {
             showToast("فشل إنهاء الجرد: " + err.message, 'error');
-            console.error("Finalize Audit Error:", err);
+            logger.error("useStockAudit", "Finalize Audit Error:", err);
         }
     });
 

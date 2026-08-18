@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Product } from '../types';
 import { formatCurrency } from '../../../core/utils';
 import { useFeedbackStore } from '../../../features/feedback/store';
+import { logger } from '../../../core/utils/logger';
 
 export const useProductBulkActions = (products: Product[]) => {
     const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
@@ -27,7 +28,7 @@ export const useProductBulkActions = (products: Product[]) => {
             await navigator.clipboard.writeText(text);
             showToast('تم نسخ البيانات للحافظة', 'success');
         } catch (err) {
-            console.error('Failed to copy text: ', err);
+            logger.error("useProductBulkActions", 'Failed to copy text: ', err);
         }
     };
 

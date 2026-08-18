@@ -18,6 +18,7 @@ import { cn } from '../../core/utils';
 import InventoryViewRenderer from './components/InventoryViewRenderer';
 import { getInventoryTabs } from './constants';
 import ServerPaginationBar from '../../ui/common/ServerPaginationBar';
+import { logger } from '../../core/utils/logger';
 
 const InventoryPage: React.FC = () => {
     const {
@@ -276,7 +277,7 @@ const InventoryPage: React.FC = () => {
                             await saveProduct(editingProduct?.id ? { data, id: editingProduct.id } : { data });
                             handleCloseModal();
                         } catch (err) {
-                            console.error('Validation or API error:', err);
+                            logger.error("InventoryPage", 'Validation or API error:', err);
                         }
                     }}
                     isSubmitting={isSaving}

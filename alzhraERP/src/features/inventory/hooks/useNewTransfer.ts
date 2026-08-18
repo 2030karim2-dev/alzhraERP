@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useInventoryMutations } from './useInventoryManagement';
 import { useFeedbackStore } from '../../feedback/store';
+import { logger } from '../../../core/utils/logger';
 
 export const useNewTransfer = (onSuccess: () => void) => {
     const { createTransfer, isTransferring } = useInventoryMutations();
@@ -27,7 +28,7 @@ export const useNewTransfer = (onSuccess: () => void) => {
                     }
                 }
             } catch (e) {
-                console.error("Failed to fetch full product details", e);
+                logger.error("useNewTransfer", "Failed to fetch full product details", e);
             }
         }
         

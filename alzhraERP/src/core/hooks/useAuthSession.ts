@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { logger } from '../../core/utils/logger';
 
 export function useAuthSession() {
   const ensureValidSession = useCallback(async (): Promise<{ userId: string | null; token: string | null }> => {
@@ -17,7 +18,7 @@ export function useAuthSession() {
       
       return { userId: null, token: null };
     } catch (err) {
-      console.error('[AuthSession] Critical error during session check:', err);
+      logger.error("useAuthSession", '[AuthSession] Critical error during session check:', err);
       return { userId: null, token: null };
     }
   }, []);

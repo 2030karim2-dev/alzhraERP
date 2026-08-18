@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 import { generateAIContent } from '../../ai/core/provider';
 import { CATEGORY_CLASSIFICATION_PROMPT, buildCategorizationPrompt } from './aiCategoryPrompts';
@@ -125,7 +126,7 @@ export const aiCategoryService = {
                 };
             });
         } catch (error) {
-            console.error('Failed to parse AI response:', response);
+            logger.error("aiCategoryService", 'Failed to parse AI response:', response);
             throw new Error('فشل تحليل رد الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.');
         }
     },
@@ -158,7 +159,7 @@ export const aiCategoryService = {
             if (!categoryMap[catName]) {
                 const { data, error } = await inventoryApi.createCategory(companyId, catName);
                 if (error) {
-                    console.error(`Failed to create category ${catName}:`, error);
+                    logger.error("aiCategoryService", `Failed to create category ${catName}:`, error);
                     throw new Error(`فشل إنشاء القسم الجديد "${catName}". قد يكون القسم موجوداً بالفعل باسم مشابه.`);
                 }
                 if (data) {
@@ -187,7 +188,7 @@ export const aiCategoryService = {
 
         const errors = results_data.filter(r => r.error).map(r => r.error);
         if (errors.length > 0) {
-            console.error('Errors updating products:', errors);
+            logger.error("aiCategoryService", 'Errors updating products:', errors);
             throw new Error(`فشل تحديث بعض المنتجات (${errors.length} خطأ). يرجى مراجعة سجلات المتصفح.`);
         }
     }

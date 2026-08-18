@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 
 import { inventoryApi } from '../inventory/api';
 import { partiesApi } from '../parties/api';
@@ -40,7 +41,7 @@ export const notificationService = {
       }
 
     } catch (error) {
-      console.error("Health Check Failed", error);
+      logger.error("service", "Health Check Failed", error);
     }
   }
 };

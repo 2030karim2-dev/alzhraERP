@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '../../core/utils/logger';
 
 /** مفتاح localStorage لتخزين سجل الأخطاء */
 const ERROR_LOG_KEY = 'app_error_log';
@@ -54,7 +55,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("Uncaught error:", error, errorInfo);
+    logger.error("ErrorBoundary", "Uncaught error:", [error, errorInfo]);
     logErrorToStorage(error, errorInfo);
     this.setState({ error, errorInfo, autoReloadSeconds: 8 });
 

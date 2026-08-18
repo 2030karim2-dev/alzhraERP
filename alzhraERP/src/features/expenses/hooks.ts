@@ -10,6 +10,7 @@ import { invalidateByPreset } from '../../lib/invalidation';
 import { useNetworkStatus } from '../../lib/hooks/useNetworkStatus';
 import { syncStore } from '../../core/lib/sync-store';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
+import { logger } from '../../core/utils/logger';
 
 export const useNextExpenseNumber = () => {
   const { user } = useAuthStore();
@@ -23,7 +24,7 @@ export const useNextExpenseNumber = () => {
       });
 
       if (error) {
-        console.warn('Failed to fetch sequence:', error);
+        logger.warn("hooks", 'Failed to fetch sequence:', error);
         return '';
       }
       return data;

@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 import React, { useState, useMemo } from 'react';
 import { useParties, useStatement } from '../hooks';
@@ -194,7 +195,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                     alert('تم تنزيل ملف الإكسل. يمكنك الآن إرساله عبر واتساب ويب.');
                   }
                 } catch (err) {
-                  console.error('Share failed', err);
+                  logger.error("StatementView", 'Share failed', err);
                 } finally {
                   setIsExporting(false);
                 }
@@ -219,7 +220,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                     logo_url: companyDetails.logo_url || ''
                   } as any, selectedParty.name, statement as any);
                 } catch (err) {
-                  console.error('Export failed', err);
+                  logger.error("StatementView", 'Export failed', err);
                 } finally {
                   setIsExporting(false);
                 }

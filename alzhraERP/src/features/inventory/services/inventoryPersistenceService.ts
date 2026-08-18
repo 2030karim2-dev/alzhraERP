@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * InventoryPersistenceService - Handles saving/restoring inventory session drafts
  * 
@@ -70,7 +71,7 @@ class InventoryPersistenceService {
                 sessionStorage.setItem(STORAGE_KEY, serialized);
                 this.setStatus('saved');
             } catch (error) {
-                console.error('Failed to save to sessionStorage:', error);
+                logger.error("inventoryPersistenceService", 'Failed to save to sessionStorage:', error);
                 this.setStatus('error');
             }
         }, SAVE_DEBOUNCE_MS);
@@ -115,7 +116,7 @@ class InventoryPersistenceService {
 
             return true;
         } catch (error) {
-            console.error('Failed to save draft to server:', error);
+            logger.error("inventoryPersistenceService", 'Failed to save draft to server:', error);
             this.setStatus('error');
             return false;
         }
@@ -136,7 +137,7 @@ class InventoryPersistenceService {
                 }
             }
         } catch (error) {
-            console.error('Failed to parse sessionStorage data:', error);
+            logger.error("inventoryPersistenceService", 'Failed to parse sessionStorage data:', error);
         }
 
         // 2. Try server draft
@@ -167,7 +168,7 @@ class InventoryPersistenceService {
 
             return draft;
         } catch (error) {
-            console.error('Failed to restore from server:', error);
+            logger.error("inventoryPersistenceService", 'Failed to restore from server:', error);
             return null;
         }
     }
@@ -185,7 +186,7 @@ class InventoryPersistenceService {
             sessionStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(STORAGE_KEY);
         } catch (error) {
-            console.error('Failed to clear session storage:', error);
+            logger.error("inventoryPersistenceService", 'Failed to clear session storage:', error);
         }
 
         this.lastServerSave = 0;
@@ -207,7 +208,7 @@ class InventoryPersistenceService {
             const serialized = JSON.stringify({ ...draft, lastSavedAt: Date.now() });
             sessionStorage.setItem(STORAGE_KEY, serialized);
         } catch (error) {
-            console.error('Failed to force save:', error);
+            logger.error("inventoryPersistenceService", 'Failed to force save:', error);
         }
 
         // Try server save

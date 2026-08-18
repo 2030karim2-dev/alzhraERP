@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { reportsService } from './service';
 import { useAuthStore } from '../auth/store';
 import { supabase } from '../../lib/supabaseClient';
+import { logger } from '../../core/utils/logger';
 
 // Typed result shape from report_trial_balance RPC
 interface TrialBalanceRow {
@@ -53,7 +54,7 @@ export const useProfitAndLoss = (fromDate?: string, toDate?: string, options: { 
             });
 
             if (error) {
-                console.error("Profit and Loss RPC Error:", error);
+                logger.error("hooks", "Profit and Loss RPC Error:", error);
                 throw error;
             }
 

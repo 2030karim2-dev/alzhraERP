@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 
 import React, { useEffect, useRef } from 'react';
 import { X, Zap, Maximize, Scan } from 'lucide-react';
@@ -33,11 +34,11 @@ const ScannerOverlay: React.FC<Props> = ({ onScan: _onScan, onClose }) => {
               const det = new (window as any).BarcodeDetector({ formats: ['code_128', 'ean_13', 'qr_code', 'code_39'] });
               startDetection(det);
             } else {
-              console.warn("BarcodeDetector not supported in this browser");
+              logger.warn("ScannerOverlay", "BarcodeDetector not supported in this browser");
             }
           }
         } catch (err) {
-          console.error("Camera access denied", err);
+          logger.error("ScannerOverlay", "Camera access denied", err);
           alert("فشل الوصول للكاميرا. يرجى منح الصلاحية من إعدادات المتصفح.");
           onClose();
         }
@@ -59,7 +60,7 @@ const ScannerOverlay: React.FC<Props> = ({ onScan: _onScan, onClose }) => {
                 return;
               }
             } catch (e) {
-              console.error("Detection error:", e);
+              logger.error("ScannerOverlay", "Detection error:", e);
             }
             animationFrameId = requestAnimationFrame(detect);
           })();

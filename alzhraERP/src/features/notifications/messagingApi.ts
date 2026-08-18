@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 // ============================================
 // Messaging API - Supabase Integration
 // ============================================
@@ -80,7 +81,7 @@ export const messagingApi = {
             .maybeSingle();
 
         if (error) {
-            console.error('[MessagingAPI] Error fetching config:', error);
+            logger.error("messagingApi", '[MessagingAPI] Error fetching config:', error);
         }
         if (!data) return null;
         // 🔒 Redact secrets so raw keys never enter app state / logs.
@@ -108,7 +109,7 @@ export const messagingApi = {
             );
 
         if (error) {
-            console.error('[MessagingAPI] Error saving config:', error);
+            logger.error("messagingApi", '[MessagingAPI] Error saving config:', error);
         }
         return { error };
     },
@@ -145,13 +146,13 @@ export const messagingApi = {
             const result = await response.json();
 
             if (!response.ok) {
-                console.error('[MessagingAPI] Edge function error:', result);
+                logger.error("messagingApi", '[MessagingAPI] Edge function error:', result);
                 return { success: false };
             }
 
             return { success: true, results: result.results };
         } catch (error) {
-            console.error('[MessagingAPI] Send notification error:', error);
+            logger.error("messagingApi", '[MessagingAPI] Send notification error:', error);
             return { success: false };
         }
     },
@@ -168,7 +169,7 @@ export const messagingApi = {
             .limit(limit);
 
         if (error) {
-            console.error('[MessagingAPI] Error fetching log:', error);
+            logger.error("messagingApi", '[MessagingAPI] Error fetching log:', error);
             return [];
         }
         return (data || []) as NotificationLogEntry[];

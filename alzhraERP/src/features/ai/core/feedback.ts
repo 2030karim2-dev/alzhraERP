@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * AI Module - Feedback & Evaluation
  * Handles user feedback on AI suggestions to improve accuracy over time.
@@ -35,7 +36,7 @@ class AIFeedbackTracker {
         }
 
         // In production, sync to backend
-        console.debug('[AI Feedback]', newFeedback);
+        logger.debug("feedback", '[AI Feedback]', newFeedback);
     }
 
     /**

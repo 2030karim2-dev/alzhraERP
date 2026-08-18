@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
+import { logger } from '../../../core/utils/logger';
 
 interface Props {
     children: ReactNode;
@@ -29,7 +30,7 @@ class ReportErrorBoundaryClass extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error(`[ReportErrorBoundary] ${this.props.reportName || 'Unknown'} error:`, error, errorInfo);
+        logger.error("ReportErrorBoundary", `[ReportErrorBoundary] ${this.props.reportName || 'Unknown'} error:`, [error, errorInfo]);
     }
 
     handleRetry = () => {

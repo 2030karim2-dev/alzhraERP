@@ -1,3 +1,4 @@
+import { logger } from '../../../../../core/utils/logger';
 // ============================================
 // useMessagingConfig — Hook لجلب/حفظ/اختبار إعدادات الرسائل
 // ============================================
@@ -20,7 +21,7 @@ export const useMessagingConfig = (companyId: string) => {
                 const data = await messagingApi.getConfig(companyId);
                 setConfig(data ?? { company_id: companyId, ...DEFAULT_MESSAGING_CONFIG });
             } catch {
-                console.error('[useMessagingConfig] Load config error');
+                logger.error("useMessagingConfig", '[useMessagingConfig] Load config error');
             } finally {
                 setLoading(false);
             }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '../../../core/utils/logger';
 
 export type FontSize = 'small' | 'medium' | 'large';
 
@@ -61,7 +62,7 @@ const loadInitialConfig = (): TableConfig => {
             };
         }
     } catch (e) {
-        console.error('Failed to load table config', e);
+        logger.error("useProductTableConfig", 'Failed to load table config', e);
     }
     return DEFAULT_CONFIG;
 };

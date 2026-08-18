@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 /**
  * Party Cache Utility
@@ -26,7 +27,7 @@ export const partyCache = {
 
             return data as Party[];
         } catch (e) {
-            console.error('Failed to read party cache:', e);
+            logger.error("party-cache", 'Failed to read party cache:', e);
             return [];
         }
     },
@@ -42,7 +43,7 @@ export const partyCache = {
                 timestamp: Date.now()
             }));
         } catch (e) {
-            console.error('Failed to update party cache:', e);
+            logger.error("party-cache", 'Failed to update party cache:', e);
         }
     },
 

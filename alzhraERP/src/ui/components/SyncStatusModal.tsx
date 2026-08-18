@@ -10,6 +10,7 @@ import {
     CloudOff
 } from 'lucide-react';
 import { syncStore } from '../../core/lib/sync-store';
+import { logger } from '../../core/utils/logger';
 
 interface SyncStatusModalProps {
     isOpen: boolean;
@@ -24,7 +25,7 @@ const SyncStatusModal: React.FC<SyncStatusModalProps> = ({ isOpen, onClose }) =>
             const data = await syncStore.getPending();
             setPending(data);
         } catch (error) {
-            console.error('Failed to load pending mutations:', error);
+            logger.error("SyncStatusModal", 'Failed to load pending mutations:', error);
         }
     };
 

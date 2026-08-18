@@ -15,6 +15,7 @@ import SearchInput from '../../../ui/components/SearchInput';
 import SearchDropdown from '../../../ui/components/SearchDropdown';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import type { Product } from '../types';
+import { logger } from '../../../core/utils/logger';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
 type AuditProgressItem = {
@@ -210,7 +211,7 @@ const AuditSessionPage: React.FC = () => {
                     }
                 }
             } catch (e) {
-                console.error("Failed to fetch full product details", e);
+                logger.error("AuditSessionPage", "Failed to fetch full product details", e);
             }
         }
 

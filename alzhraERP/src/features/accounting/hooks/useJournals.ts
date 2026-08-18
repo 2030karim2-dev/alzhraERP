@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { journalService } from '../services/journalService';
@@ -22,7 +23,7 @@ export const useJournals = () => {
         const result = await journalService.formatJournalsForUI(companyId, branchId, pageParam);
         return Array.isArray(result) ? result : [];
       } catch (error) {
-        console.error("useJournals fetch error:", error);
+        logger.error("useJournals", "useJournals fetch error:", error);
         throw error;
       }
     },

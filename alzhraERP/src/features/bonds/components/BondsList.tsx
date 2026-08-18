@@ -6,6 +6,7 @@ import { useDeleteBond } from '../hooks';
 import { exportSingleBondToExcel } from '../../../core/utils/bondExcelExporter';
 import { useCompany } from '../../settings/hooks';
 import { useInvoiceSettings } from '../../settings/settingsStore';
+import { logger } from '../../../core/utils/logger';
 
 interface Props {
     bonds: Bond[];
@@ -60,7 +61,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                 window.open(`https://wa.me/?text=${text}`, '_blank');
             }
         } catch (err) {
-            console.error('WhatsApp share failed', err);
+            logger.error("BondsList", 'WhatsApp share failed', err);
         }
     };
 

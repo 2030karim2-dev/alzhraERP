@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabaseClient';
 import type { TableUpdate } from '@/core/types/supabase-helpers';
 import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
+import { logger } from '../../core/utils/logger';
 
 export const settingsApi = {
   getCompany: async (companyId: string) => {
@@ -133,7 +134,7 @@ export const settingsApi = {
 
     // Rollback: إذا فشل التعيين، نعيد المستودع الأصلي
     if (result.error) {
-      console.error('[Settings] setPrimaryWarehouse failed, attempting no rollback available:', result.error);
+      logger.error("api", '[Settings] setPrimaryWarehouse failed, attempting no rollback available:', result.error);
     }
 
     return result;

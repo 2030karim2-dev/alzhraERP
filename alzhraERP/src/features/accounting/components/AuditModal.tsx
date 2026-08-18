@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
@@ -31,7 +32,7 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
         if (!isAuditing || isLoading) return;
 
         if (fetchError) {
-            console.error('Audit failed:', fetchError);
+            logger.error("AuditModal", 'Audit failed:', fetchError);
             const err = fetchError as Error;
             showToast('فشل التدقيق: ' + err.message, 'error');
             setIsAuditing(false);

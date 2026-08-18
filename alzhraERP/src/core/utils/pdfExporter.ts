@@ -1,7 +1,8 @@
+import { logger } from '../../core/utils/logger';
 
 export const exportToPDF = async (element: HTMLElement, fileName: string) => {
   if (!element) {
-    console.error(`Export element not provided`);
+    logger.error("pdfExporter", `Export element not provided`);
     return;
   }
 
@@ -46,7 +47,7 @@ export const exportToPDF = async (element: HTMLElement, fileName: string) => {
 
     pdf.save(`${fileName}.pdf`);
   } catch (error) {
-    console.error('PDF Export Failed:', error);
+    logger.error("pdfExporter", 'PDF Export Failed:', error);
     throw error;
   }
 };

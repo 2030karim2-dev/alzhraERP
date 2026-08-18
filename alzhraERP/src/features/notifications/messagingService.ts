@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 // ============================================
 // Messaging Service - Central Notification Hub
 // ============================================
@@ -41,7 +42,7 @@ export const messagingService = {
             try {
                 const templateFn = messageTemplates[eventType];
                 if (!templateFn) {
-                    console.warn(`[MessagingService] No template for event: ${eventType}`);
+                    logger.warn("messagingService", `[MessagingService] No template for event: ${eventType}`);
                     return;
                 }
 
@@ -51,7 +52,7 @@ export const messagingService = {
                 await messagingApi.sendNotification(companyId, dbEventType, message, referenceId);
             } catch (error) {
                 // Never let notification errors affect the main flow
-                console.error('[MessagingService] Notification failed (non-blocking):', error);
+                logger.error("messagingService", '[MessagingService] Notification failed (non-blocking):', error);
             }
         })();
     },

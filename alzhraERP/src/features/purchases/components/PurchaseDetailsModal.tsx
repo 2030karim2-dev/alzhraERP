@@ -6,6 +6,7 @@ import { useReactToPrint } from 'react-to-print';
 import { useAuth } from '../../../features/auth';
 import { useFeedbackStore } from '../../../features/feedback/store';
 import PurchaseInvoicePrintTemplate, { type PurchasePrintInvoice, type PurchasePrintItem } from './PurchaseInvoicePrintTemplate';
+import { logger } from '../../../core/utils/logger';
 
 interface PurchaseDetailInvoice extends PurchasePrintInvoice {
     id: string;
@@ -57,7 +58,7 @@ const shareInvoice = async (invoice: PurchaseDetailInvoice, companyName: string,
         const file = new File([blob], `فاتورة_شراء_${invoiceNumber}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) { void navigator.share({ files: [file], title: `فاتورة شراء ${invoiceNumber}`, text: `مرفق فاتورة شراء رقم ${invoiceNumber}` }); }
         else { await exportInvoiceToExcel(data); alert('تم تنزيل الفاتورة بنجاح. يمكنك الآن إرسالها للجهة المطلوبة.'); }
-    } catch (error) { console.error('Share invoice failed', error); showToast('فشل في مشاركة الفاتورة', 'error'); }
+    } catch (error) { logger.error("PurchaseDetailsModal", 'Share invoice failed', error); showToast('فشل في مشاركة الفاتورة', 'error'); }
 };
 
 const getPaymentMethod = (method: string | null): 'credit' | 'cash' => method === 'credit' ? 'credit' : 'cash';
@@ -68,7 +69,7 @@ const DebugAccounting = ({ invoice, user, showToast }: { invoice: PurchaseDetail
             const { purchaseAccountingService } = await import('../services/purchaseAccounting');
             purchaseAccountingService.handleNewPurchase(invoice.id, { supplierId: invoice.party_id, invoiceNumber: invoice.invoice_number ?? '', items: [], issueDate: invoice.issue_date, status: 'posted', paymentMethod: getPaymentMethod(invoice.payment_method), cashAccountId: undefined }, invoice.company_id, user.id, invoice.total_amount);
             showToast('Accounting Run Successfully! Check Ledger.', 'success');
-        } catch (error: unknown) { showToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error'); console.error(error); }
+        } catch (error: unknown) { showToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error'); logger.error('PurchaseDetailsModal', 'Debug Accounting failed', error); }
     };
     return <button onClick={() => { void run(); }} className="px-6 py-2.5 text-rose-600 font-bold hover:bg-rose-50 rounded-xl">Debug Accounting</button>;
 };

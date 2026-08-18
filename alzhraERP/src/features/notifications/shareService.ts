@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 // ============================================
 // Share Service - Send invoices, reports, statements
 // as text or images via WhatsApp & Telegram
@@ -76,7 +77,7 @@ export const shareService = {
             const result = await response.json();
             return { success: response.ok, results: result.results };
         } catch (error) {
-            console.error('[ShareService] Image share failed:', error);
+            logger.error("shareService", '[ShareService] Image share failed:', error);
             return { success: false };
         }
     },

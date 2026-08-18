@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 
 import { supabase } from '../../lib/supabaseClient';
 import { BondFormData, BondType } from './types';
@@ -79,7 +80,7 @@ export const bondsApi = {
 
     if (rpcError) {
       // Must fail strictly to prevent double-entry imbalance
-      console.error('Fatal: void_bond RPC failed', rpcError);
+      logger.error("api", 'Fatal: void_bond RPC failed', rpcError);
       throw new Error('تعذر إلغاء السند: فشل في إنشاء القيود العكسية');
     }
 

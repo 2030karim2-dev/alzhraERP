@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * AI Module - Metrics & Performance Tracking
  * Handles tracking of AI API calls, latency, success rates, and token usage.
@@ -42,7 +43,7 @@ class AIMetricsTracker {
 
         // In a real production environment, we would periodically sync this to the backend
         // For now, we log it to console in development
-        console.debug('[AI Metrics]', newMetric);
+        logger.debug("metrics", '[AI Metrics]', newMetric);
     }
 
     /**

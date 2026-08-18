@@ -8,6 +8,7 @@ import { useSalesStore } from '../../store';
 import { exportQuotationToExcel } from '../../../../core/utils/quotationExcelExporter';
 import { useCompany } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
+import { logger } from '../../../../core/utils/logger';
 
 interface Props {
   quotationId: string;
@@ -150,7 +151,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
         window.open(`https://wa.me/?text=${text}`, '_blank');
       }
     } catch (err) {
-      console.error('Share via WhatsApp failed', err);
+      logger.error("QuotationDetailsModal", 'Share via WhatsApp failed', err);
     }
   };
 

@@ -11,6 +11,7 @@ import type {
   LowStockProduct,
 } from '../models';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
+import { logger } from '../../../core/utils/logger';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -149,11 +150,11 @@ export const useDashboardData = (): UseDashboardDataResult => {
         return result as unknown as RawDashboardData;
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
-          console.info('Dashboard data fetch aborted');
+          logger.info("hooks", 'Dashboard data fetch aborted');
           return null;
         }
         if (signal.aborted) {
-          console.info('Dashboard data fetch aborted (signal)');
+          logger.info("hooks", 'Dashboard data fetch aborted (signal)');
           return null;
         }
         throw error;

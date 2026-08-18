@@ -1,3 +1,4 @@
+import { logger } from '../../../../core/utils/logger';
 /**
  * POS Smart Search — database-backed lookups (RPC, ILIKE fallback, barcode).
  */
@@ -26,7 +27,7 @@ export async function searchDatabase(
         });
 
         if (error) {
-            console.warn('POS Search RPC error, falling back to ILIKE:', error.message);
+            logger.warn("database", 'POS Search RPC error, falling back to ILIKE:', error.message);
             return searchDatabaseFallback(companyId, query, filters, limit);
         }
 
@@ -73,7 +74,7 @@ export async function searchDatabase(
             };
         });
     } catch (err: any) {
-        console.warn('POS Search failed, using fallback:', err.message);
+        logger.warn("database", 'POS Search failed, using fallback:', err.message);
         return searchDatabaseFallback(companyId, query, filters, limit);
     }
 }

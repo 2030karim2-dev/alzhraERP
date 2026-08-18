@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Product } from '@/features/inventory/types';
 import { salesQuotationsApi } from '@/features/sales/api';
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
+import { logger } from '../../../core/utils/logger';
 
 export interface ItemRow {
   productId: string;
@@ -92,7 +93,7 @@ export const useQuotationForm = (companyId: string | undefined, userId: string |
       });
       onSuccess();
     } catch (err) {
-      console.error('Failed to create quotation:', err);
+      logger.error("useQuotationForm", 'Failed to create quotation:', err);
       throw err;
     } finally {
       setSaving(false);

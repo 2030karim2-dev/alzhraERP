@@ -8,6 +8,7 @@ import { formatCurrency } from '../../../../core/utils';
 import ProductSelectionModal from '../../../sales/components/create/ProductSelectionModal';
 import type { Product } from '../../../inventory/types';
 import type { Party } from '../../../parties/types';
+import { logger } from '../../../../core/utils/logger';
 
 interface Props {
   onClose: () => void;
@@ -113,7 +114,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
     try {
       await purchaseQuotationsApi.createQuotation(user.company_id, user.id, { partyId: selectedParty?.id ?? null, issueDate, items: validItems, notes: notes.trim() !== '' ? notes : undefined, deliveryTerms: deliveryTerms.trim() !== '' ? deliveryTerms : undefined, paymentTerms: paymentTerms.trim() !== '' ? paymentTerms : undefined, rfqGroupId });
       onSuccess();
-    } catch (error) { console.error('Failed to create purchase quotation:', error); } finally { setSaving(false); }
+    } catch (error) { logger.error("CreatePurchaseQuotationModal", 'Failed to create purchase quotation:', error); } finally { setSaving(false); }
   };
   const hasValidItem = items.some((item) => item.description.trim() !== '');
   return <Modal isOpen={true} onClose={onClose} icon={FileText} title="تسجيل عرض سعر مورد" description={rfqGroupId !== undefined && rfqGroupId !== '' ? 'إضافة رد مورد لطلب عرض سعر قائم' : 'تسجيل عرض سعر جديد من مورد'} size="xl" footer={<><button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">إلغاء</button><button type="button" onClick={() => { void handleSave(); }} disabled={saving || !hasValidItem} className="flex items-center gap-2 px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shadow-sm">{saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} حفظ عرض المورد</button></>}><div className="space-y-6"><SupplierSection selectedParty={selectedParty} partyQuery={partyQuery} isOpen={isPartyDropdownOpen} suppliers={filteredSuppliers} loading={suppliersLoading} onQueryChange={setPartyQuery} onOpenChange={setIsPartyDropdownOpen} onSelect={setSelectedParty} onClear={() => { setSelectedParty(null); }} issueDate={issueDate} deliveryTerms={deliveryTerms} onIssueDateChange={setIssueDate} onDeliveryTermsChange={setDeliveryTerms} /><ItemTable items={items} productModal={productModal} onAdd={addItem} onRemove={removeItem} onUpdate={updateItem} onSearch={openProductSearch} /><Totals total={totals.total} /><TermsSection paymentTerms={paymentTerms} notes={notes} onPaymentTermsChange={setPaymentTerms} onNotesChange={setNotes} /></div><ProductSelectionModal isOpen={productModal.isOpen} onClose={() => { setProductModal((previous) => ({ ...previous, isOpen: false })); }} onSelect={selectProduct} initialQuery={productModal.query} mode="purchase" /></Modal>;

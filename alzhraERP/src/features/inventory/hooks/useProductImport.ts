@@ -2,6 +2,7 @@ import { useProductMutations } from './useProducts';
 import { useCurrencies } from '../../settings/hooks';
 import { useFeedbackStore } from '../../feedback/store';
 import { Product } from '../types';
+import { logger } from '../../../core/utils/logger';
 
 export const useProductImport = (products: Product[]) => {
     const { saveProduct } = useProductMutations();
@@ -17,7 +18,7 @@ export const useProductImport = (products: Product[]) => {
             for (const item of items) {
                 const isDuplicate = products.some(p => p.name.trim().toLowerCase() === item.name.trim().toLowerCase());
                 if (isDuplicate) {
-                    console.warn(`Skipping duplicate product: ${item.name}`);
+                    logger.warn("useProductImport", `Skipping duplicate product: ${item.name}`);
                     continue;
                 }
 

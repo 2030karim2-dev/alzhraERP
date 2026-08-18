@@ -1,3 +1,4 @@
+import { logger } from '../../../../core/utils/logger';
 
 import React, { useState } from 'react';
 import { FileText, Loader2, RotateCcw, CheckCircle, AlertTriangle } from 'lucide-react';
@@ -137,7 +138,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         window.open(`https://wa.me/?text=${text}`, '_blank');
       }
     } catch (err) {
-      console.error('Share via WhatsApp failed', err);
+      logger.error("InvoiceDetailsModal", 'Share via WhatsApp failed', err);
       setShowAlert({ type: 'error', message: 'حدث خطأ أثناء المشاركة' });
     } finally {
       setIsExporting(false);

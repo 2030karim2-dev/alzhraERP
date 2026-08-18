@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../core/routes/paths';
 import { parseError } from '../../core/utils/errorUtils';
+import { logger } from '../../core/utils/logger';
 
 export const useAuth = () => {
     const { user, isAuthenticated, isLoading, isReady, initialize, logout } = useAuthStore();
@@ -31,7 +32,7 @@ export const useLogout = () => {
             await logout();
             navigate(ROUTES.AUTH.LOGIN);
         } catch (error) {
-            console.error('Logout error:', error);
+            logger.error('Auth', 'Logout error', error as Error);
         } finally {
             setIsLoggingOut(false);
         }

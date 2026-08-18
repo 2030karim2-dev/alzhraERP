@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuthStore } from '../../auth/store';
+import { logger } from '../../../core/utils/logger';
 
 export interface WarehouseStockInfo {
     warehouse_id: string;
@@ -97,7 +98,7 @@ export function useWarehouseStock(productId: string | null) {
 
             setBranchGroups(Array.from(branchMap.values()));
         } catch (err: any) {
-            console.error('useWarehouseStock error:', err);
+            logger.error("useWarehouseStock", 'useWarehouseStock error:', err);
             setError(err.message || 'فشل في تحميل بيانات المخزون');
         } finally {
             setIsLoading(false);
@@ -145,7 +146,7 @@ export function useWarehousesWithBranches() {
             .is('deleted_at', null)
             .then((result: { data: any; error: any }) => {
                 if (result.error) {
-                    console.error('useWarehousesWithBranches error:', result.error);
+                    logger.error("useWarehouseStock", 'useWarehousesWithBranches error:', result.error);
                     return;
                 }
                 setWarehouses(result.data || []);

@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * Cross-Reference Service for Automotive Parts
  * 
@@ -39,7 +40,7 @@ export const crossReferenceService = {
         });
 
         if (error) {
-            console.error('CrossReferenceService: searchByOEM failed', error);
+            logger.error("crossReferenceService", 'CrossReferenceService: searchByOEM failed', error);
             throw error;
         }
 
@@ -80,7 +81,7 @@ export const crossReferenceService = {
             });
 
         if (error) {
-            console.error('CrossReferenceService: addCrossReference failed', error);
+            logger.error("crossReferenceService", 'CrossReferenceService: addCrossReference failed', error);
             throw error;
         }
     },
@@ -105,7 +106,7 @@ export const crossReferenceService = {
             .order('match_quality', { ascending: true });
 
         if (error) {
-            console.error('CrossReferenceService: getCrossReferences failed', error);
+            logger.error("crossReferenceService", 'CrossReferenceService: getCrossReferences failed', error);
             throw error;
         }
 
@@ -122,7 +123,7 @@ export const crossReferenceService = {
             .eq('id', id);
 
         if (error) {
-            console.error('CrossReferenceService: deleteCrossReference failed', error);
+            logger.error("crossReferenceService", 'CrossReferenceService: deleteCrossReference failed', error);
             throw error;
         }
     }

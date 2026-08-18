@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 
 import { reportsApi } from './api';
 import { PartyDebt, ReportsStats } from './types';
@@ -249,8 +250,8 @@ export const reportsService = {
       supabase.rpc('get_cash_liquidity', { p_company_id: companyId })
     ]);
 
-    if (error) console.warn('[reports] report_cash_flow error:', error?.message);
-    if (liqError) console.warn('[reports] get_cash_liquidity error:', liqError?.message);
+    if (error) logger.warn("service", '[reports] report_cash_flow error:', error?.message);
+    if (liqError) logger.warn("service", '[reports] get_cash_liquidity error:', liqError?.message);
 
     // RPC returns rows: [{category, inflow, outflow}]
     const rows = (cashFlowData || []) as { category: string; inflow: number; outflow: number }[];

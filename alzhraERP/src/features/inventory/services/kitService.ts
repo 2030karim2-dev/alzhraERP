@@ -1,3 +1,4 @@
+import { logger } from '../../../core/utils/logger';
 /**
  * Kit Assembly/Disassembly Service for Automotive Parts
  * 
@@ -180,7 +181,7 @@ export const kitService = {
         const { data, error } = await query;
 
         if (error || !data) {
-            console.error('KitService: getKitComponents failed', error);
+            logger.error("kitService", 'KitService: getKitComponents failed', error);
             return [];
         }
 

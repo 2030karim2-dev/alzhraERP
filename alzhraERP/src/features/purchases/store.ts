@@ -2,6 +2,7 @@ import { create, type StoreApi } from 'zustand';
 import type { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
 import { convertCurrency } from '../../core/utils/currencyUtils';
+import { logger } from '../../core/utils/logger';
 
 export interface PurchaseInvoiceItem {
   id: string;
@@ -97,7 +98,7 @@ const createProductActions = (set: PurchaseStoreSet, get: PurchaseStoreGet): Pic
         try {
           convertedCost = convertCurrency(product.cost_price, rate, 'fromBase');
         } catch {
-          console.error('PurchaseStore: Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
+          logger.error("store", 'PurchaseStore: Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
           return state;
         }
       }

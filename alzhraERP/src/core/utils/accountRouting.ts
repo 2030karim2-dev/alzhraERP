@@ -1,3 +1,4 @@
+import { logger } from '../../core/utils/logger';
 /**
  * Smart Account Routing Utilities
  * M1: Extracted shared logic from sales/service.ts and purchases/purchaseAccounting.ts
@@ -48,10 +49,8 @@ export const routeToChildByCurrency = (
         );
 
         if (matchedChild) {
-            console.info(
-                `Smart Routing: Redirected from parent ${selectedAccount.id} (${selectedAccount.name}) ` +
-                `to child ${matchedChild.id} (${matchedChild.name}) matching currency ${currency}`
-            );
+            logger.info("accountRouting", `Smart Routing: Redirected from parent ${selectedAccount.id} (${selectedAccount.name}) ` +
+                `to child ${matchedChild.id} (${matchedChild.name}) matching currency ${currency}`);
             return matchedChild;
         }
     }
