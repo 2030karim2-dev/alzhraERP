@@ -3,37 +3,24 @@
 // React Query Configuration
 // ============================================
 
-import React, { ReactNode, useState, useEffect, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createIndexedDBPersister } from './persistence';
+import { del } from 'idb-keyval';
+import {
+  queryClient as appQueryClient,
+  persister,
+  QUERY_PERSIST_MAX_AGE_MS,
+  QUERY_PERSIST_BUSTER,
+} from '../../lib/queryClient';
 import { useNetworkStatus } from '../../lib/hooks/useNetworkStatus';
 import { syncStore } from './sync-store';
 import { logger } from '../utils/logger';
 import { processSyncMutation } from './sync-registry';
 
 // ------------------------------------------
-// Query Configuration
+// Query Keys
 // ------------------------------------------
-export const QUERY_CONFIG = {
-    // Default stale time (15 minutes) - Increased for better offline experience
-    DEFAULT_STALE_TIME: 15 * 60 * 1000,
-
-    // Cache time (24 hours) - Store in IndexedDB for much longer
-    DEFAULT_CACHE_TIME: 24 * 60 * 60 * 1000,
-
-    // Retry configuration
-    DEFAULT_RETRY: 3,
-    RETRY_DELAY: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
-
-    // Refetch configuration
-    REFETCH_ON_WINDOW_FOCUS: false,
-    REFETCH_ON_RECONNECT: true,
-
-    // Timeout for queries
-    DEFAULT_QUERY_TIMEOUT: 20000, // 20 seconds
-} as const;
-
 export const queryKeys = {
     // Auth
     auth: {
@@ -126,28 +113,6 @@ export const queryKeys = {
 } as const;
 
 // ------------------------------------------
-// Query Client Factory
-// ------------------------------------------
-export const createQueryClient = (options?: Partial<typeof QUERY_CONFIG>) => {
-    return new QueryClient({
-        defaultOptions: {
-            queries: {
-                staleTime: options?.DEFAULT_STALE_TIME ?? QUERY_CONFIG.DEFAULT_STALE_TIME,
-                gcTime: options?.DEFAULT_CACHE_TIME ?? QUERY_CONFIG.DEFAULT_CACHE_TIME,
-                retry: options?.DEFAULT_RETRY ?? QUERY_CONFIG.DEFAULT_RETRY,
-                refetchOnWindowFocus: options?.REFETCH_ON_WINDOW_FOCUS ?? QUERY_CONFIG.REFETCH_ON_WINDOW_FOCUS,
-                refetchOnReconnect: options?.REFETCH_ON_RECONNECT ?? QUERY_CONFIG.REFETCH_ON_RECONNECT,
-            },
-            mutations: {
-                // Mutations should retry more aggressively when offline/network failure
-                retry: 3,
-                retryDelay: QUERY_CONFIG.RETRY_DELAY,
-            },
-        },
-    });
-};
-
-// ------------------------------------------
 // React Query Provider Component
 // ------------------------------------------
 interface ReactQueryProviderProps {
@@ -226,16 +191,29 @@ export const ReactQueryProvider: React.FC<ReactQueryProviderProps> = ({
     children,
     client
 }) => {
-    const [queryClient] = useState(() => client ?? createQueryClient());
-    const [persister] = useState(() => createIndexedDBPersister());
+    // Single shared client + persister instance. This is THE client used by the
+    // whole app (and by src/features/auth/store.ts on logout), so clearing it on
+    // logout actually clears the persisted IndexedDB cache (`AL_ZAHRA_OFFLINE_CACHE`).
+    const activeClient = client ?? appQueryClient;
+
+    // One-time cleanup: drop the legacy IndexedDB cache key that predates the
+    // unified persister — it may hold stale/cross-user data and must never be
+    // restored again. Runs once per provider mount (cheap, idempotent).
+    useEffect(() => {
+        void del('alzhra-query-cache');
+    }, []);
 
     // Initialize sync queue
-    useSyncQueue(queryClient);
+    useSyncQueue(activeClient);
 
     return (
         <PersistQueryClientProvider
-            client={queryClient}
-            persistOptions={{ persister }}
+            client={activeClient}
+            persistOptions={{
+                persister,
+                maxAge: QUERY_PERSIST_MAX_AGE_MS,
+                buster: QUERY_PERSIST_BUSTER,
+            }}
         >
             {children}
         </PersistQueryClientProvider>
