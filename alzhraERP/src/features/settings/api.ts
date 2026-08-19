@@ -5,11 +5,16 @@ import { logger } from '../../core/utils/logger';
 
 export const settingsApi = {
   getCompany: async (companyId: string) => {
+    // ⚡ maybeSingle (وليس single): عندما لا توجد الشركة أو لا تُرى عبر RLS،
+    // .single() تجعل PostgREST يرد بـ HTTP 406 / PGRST116
+    // ("JSON object requested, multiple (or no) rows returned") وتُعالجه
+    // React Query كخطأ يُعاد 3 مرات — عاصفة طلبات متكررة.
+    // maybeSingle ترجع { data: null, error: null } بدلاً من رمي خطأ.
     return await supabase
       .from('companies')
       .select('*')
       .eq('id', companyId)
-      .single();
+      .maybeSingle();
   },
 
   updateCompany: async (companyId: string, data: CompanyFormData) => {

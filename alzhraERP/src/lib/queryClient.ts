@@ -12,6 +12,37 @@ export const QUERY_PERSIST_MAX_AGE_MS = 1000 * 60 * 60 * 24; // 24 hours
 // Bump this string to force-discard all persisted caches on deploy.
 export const QUERY_PERSIST_BUSTER = 'alz-erp-v2';
 
+/**
+ * Whether a failed query should be retried.
+ *
+ * Deterministic failures must fail fast instead of multiplying requests:
+ *  - 401 / 403 / PGRST301 / jwt / refresh token — auth errors route to the
+ *    login flow; retrying them is pointless.
+ *  - 406 / PGRST116 — `.single()` with ZERO visible rows: the row either does
+ *    not exist or is filtered out by RLS. The outcome is deterministic, so
+ *    retrying 3× per mount across many consumers (e.g. `useCompany` used by
+ *    9 components) produces the exact self-sustaining request storm that
+ *    previously flooded the console with repeated
+ *    `companies?id=eq.<stale-id>&select=*` 406 requests.
+ */
+const NO_RETRY_CODES = [401, 403, 'PGRST301', 'PGRST116', 406] as const;
+const NO_RETRY_FRAGMENTS = ['jwt expired', 'refresh token', 'not authenticated'] as const;
+
+export const shouldRetryQuery = (
+  failureCount: number,
+  error: { code?: number | string; status?: number; message?: string } | null | undefined = {}
+): boolean => {
+  const err = error ?? {};
+  const code = err.code ?? err.status;
+  const msg = (err.message ?? '').toLowerCase();
+
+  const noRetryCode = NO_RETRY_CODES.some((c) => c === code);
+  const noRetryMessage = NO_RETRY_FRAGMENTS.some((fragment) => msg.includes(fragment));
+
+  if (noRetryCode || noRetryMessage) return false;
+  return failureCount < 3;
+};
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,21 +50,7 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5,
       // Keep in cache for 24 hours (persister handles longer storage)
       gcTime: 1000 * 60 * 60 * 24,
-      retry: (failureCount, error: Error & { code?: number | string; status?: number }) => {
-        // ⚡ No retry for auth errors — fail fast and route to the login flow
-        const code = error?.code || error?.status || '';
-        const msg = (error?.message || '').toLowerCase();
-        if (
-          code === 401 || code === 403 ||
-          code === 'PGRST301' ||
-          msg.includes('jwt expired') ||
-          msg.includes('refresh token') ||
-          msg.includes('not authenticated')
-        ) {
-          return false;
-        }
-        return failureCount < 3;
-      },
+      retry: (failureCount, error) => shouldRetryQuery(failureCount, error),
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // ⚡ DISABLED — useRealtimeSync handles live updates via Supabase WebSocket.
       // Enabling these causes ALL queries to fire on every page navigation = slow.

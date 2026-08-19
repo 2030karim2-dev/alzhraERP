@@ -3,16 +3,58 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingsService } from './service';
 import { settingsApi } from './api';
 import { useAuthStore } from '../auth/store';
+import { authApi } from '../auth/api';
+import type { AuthUser } from '../auth/types';
 import { useFeedbackStore } from '../feedback/store';
 import { assertOwner } from '../../core/hooks/usePermission';
-import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
+import { logger } from '../../core/utils/logger';
+import type { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
+
+/**
+ * ⚡ Self-heal: when the stored company_id no longer resolves to a visible
+ * `companies` row (deleted company, revoked membership, DB restore), re-fetch
+ * the server profile — it reflects the CURRENT user_company_roles. If the real
+ * company differs, update the auth store so the ['company', <newId>] query
+ * re-runs against the correct tenant instead of repeating 406/PGRST116.
+ */
+const healStaleCompanyId = async (user: AuthUser): Promise<void> => {
+  try {
+    const profile = await authApi.getProfile(user.id);
+    const freshUser = profile.data as AuthUser | null;
+    if (freshUser !== null && freshUser.company_id !== user.company_id) {
+      logger.warn('Settings', 'useCompany: stored company not found — refreshing profile to heal stale company_id', {
+        stored: user.company_id,
+        fresh: freshUser.company_id ?? null,
+      });
+      useAuthStore.setState({
+        user: { ...user, ...freshUser },
+        isAuthenticated: true,
+        isLoading: false,
+        isReady: true,
+      });
+    }
+  } catch {
+    // Best effort — فشل تحديث البروفايل يجب ألا يكسر الاستعلام.
+  }
+};
 
 export const useCompany = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['company', user?.company_id],
-    queryFn: () => user?.company_id ? settingsService.fetchCompany(user.company_id) : Promise.resolve(null),
-    enabled: !!user?.company_id
+    queryFn: async () => {
+      if (user?.company_id == null) return null;
+
+      const company = await settingsService.fetchCompany(user.company_id);
+
+      // `null` تعني أن company_id المخزّن لم يعد يُحل إلى صف مرئي في companies.
+      if (company == null) {
+        await healStaleCompanyId(user);
+      }
+
+      return company;
+    },
+    enabled: Boolean(user?.company_id)
   });
 };
 

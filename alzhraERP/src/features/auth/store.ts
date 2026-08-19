@@ -206,7 +206,12 @@ export const useAuthStore = create<AuthState>()(
               }
 
               const currentUser = get().user;
-              if (currentUser && currentUser.id === session.user.id && (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+              // ⚡ TOKEN_REFRESHED فقط هو ما يُتخطّى: إعادة جلب البروفايل كل ساعة بلا
+              // داعٍ. أما INITIAL_SESSION فيجب أن يُعيد التحقق من البروفايل دائماً —
+              // المستخدم المحفوظ (localStorage) قد يحمل company_id قديماً (شركة
+              // محذوفة / عضوية ملغاة) وإعادة جلب get_user_profile عند كل تحميل
+              // تطبيق تصحّحه بدلاً من إطلاق عاصفة 406 من استعلامات companies.
+              if (currentUser && currentUser.id === session.user.id && event === 'TOKEN_REFRESHED') {
                 return;
               }
 
