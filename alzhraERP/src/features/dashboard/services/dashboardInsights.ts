@@ -1,5 +1,59 @@
 import { formatCurrency } from '../../../core/utils/currencyUtils';
 
+/**
+ * صف ميزان المراجعة كما يُستقبل من RPC `report_trial_balance` (أو طبقة API).
+ * يقبل كلاً من تسمية camelCase و snake_case لمرونة العقود.
+ */
+export interface TrialBalanceRowLike {
+    code?: string;
+    account_code?: string;
+    netBalance?: number;
+    balance?: number;
+}
+
+/**
+ * صف قائمة الدخل كما تُستقبل من RPC `report_profit_loss`.
+ * الصفوف: [{ category, amount, type }] حيث type ∈ ('revenue' | 'expense' | 'net_profit').
+ */
+export interface ProfitLossRowLike {
+    type?: string;
+    amount?: number | string;
+}
+
+/**
+ * تجميع أرصدة ميزان المراجعة حسب بادئة كود الحساب (مثال: '4' للإيرادات، '5' للمصروفات).
+ * هذه مساعدة احتياطية فقط — المصدر المعتمد لصافي الربح هو `report_profit_loss`.
+ */
+export const sumTrialBalanceByPrefix = (rows: TrialBalanceRowLike[], prefix: string): number => {
+    return rows.reduce((sum, row) => {
+        const code = row.code ?? row.account_code ?? '';
+        if (String(code).startsWith(prefix)) {
+            const value = Number(row.netBalance ?? row.balance);
+            return sum + (Number.isFinite(value) ? value : 0);
+        }
+        return sum;
+    }, 0);
+};
+
+/**
+ * حساب صافي الربح المعتمد:
+ * 1) المصدر الأساسي: صف `net_profit` من RPC `report_profit_loss` (إشارات محاسبية موثوقة).
+ * 2) الاحتياط فقط عند غياب/فشل الـ RPC: ميزان المراجعة بأكواد 4 (إيرادات) / 5 (مصروفات).
+ */
+export const resolveNetProfit = (
+    profitLossRows: ProfitLossRowLike[],
+    trialBalanceRows: TrialBalanceRowLike[]
+): number => {
+    const netRow = profitLossRows.find((r) => r.type === 'net_profit');
+    const serverNetProfit = netRow ? Number(netRow.amount) : Number.NaN;
+
+    const legacyNetProfit =
+        sumTrialBalanceByPrefix(trialBalanceRows, '4') -
+        sumTrialBalanceByPrefix(trialBalanceRows, '5');
+
+    return Number.isFinite(serverNetProfit) ? serverNetProfit : legacyNetProfit;
+};
+
 export const calculateDashboardInsights = (data: {
     receiptBonds: number;
     paymentBonds: number;

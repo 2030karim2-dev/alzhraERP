@@ -28,7 +28,7 @@ const SalesPage: React.FC = () => {
     { id: 'list' as const, label: t('sales_log'), icon: History },
     { id: 'create' as const, label: t('new_sale'), icon: Plus },
     { id: 'returns' as const, label: t('returns'), icon: RefreshCw },
-    { id: 'quotations' as const, label: 'عروض الأسعار', icon: FileText },
+    { id: 'quotations' as const, label: t('quotations'), icon: FileText },
     { id: 'analytics' as const, label: t('analytics'), icon: BarChart3 },
   ];
 

@@ -36,35 +36,35 @@ const SettingsPage: React.FC = () => {
 
   const menuGroups: MenuGroup[] = [
     {
-      title: 'عام',
+      title: t('settings_section_general'),
       items: [
-        { id: 'profile', label: 'الملف الشخصي', icon: User, desc: 'إدارة بياناتك الشخصية وحسابك', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
-        { id: 'company', label: t('company_profile'), icon: Building, desc: 'الهوية والمعلومات القانونية', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
-        { id: 'branches', label: 'فروع الشركة', icon: GitBranch, desc: 'إدارة الفروع والمواقع الجغرافية', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
-        { id: 'preferences', label: 'تفضيلات النظام', icon: Settings, desc: 'المظهر واللغة والإشعارات', color: 'text-violet-600 bg-violet-50 dark:bg-violet-900/30' },
-        { id: 'dhikr', label: 'ذكر وأوقات الصلاة', icon: Moon, desc: 'شريط الذكر وصوت الأذان', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+        { id: 'profile', label: t('profile'), icon: User, desc: t('profile_desc'), color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
+        { id: 'company', label: t('company_profile'), icon: Building, desc: t('company_profile_desc'), color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+        { id: 'branches', label: t('branches'), icon: GitBranch, desc: t('branches_desc'), color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
+        { id: 'preferences', label: t('preferences'), icon: Settings, desc: t('preferences_desc'), color: 'text-violet-600 bg-violet-50 dark:bg-violet-900/30' },
+        { id: 'dhikr', label: t('dhikr'), icon: Moon, desc: t('dhikr_desc'), color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
       ]
     },
     {
-      title: 'مالي ومحاسبي',
+      title: t('settings_section_financial'),
       items: [
-        { id: 'financial', label: t('financial_settings'), icon: Banknote, desc: 'العملات والضرائب والفترات', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
-        { id: 'invoice', label: t('invoice_settings'), icon: FileText, desc: 'تخصيص الفواتير والطباعة', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
-        { id: 'pos', label: t('pos_settings'), icon: Calculator, desc: 'نقطة البيع والكاشير', color: 'text-pink-600 bg-pink-50 dark:bg-pink-900/30' },
+        { id: 'financial', label: t('financial_settings'), icon: Banknote, desc: t('financial_settings_desc'), color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+        { id: 'invoice', label: t('invoice_settings'), icon: FileText, desc: t('invoice_settings_desc'), color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
+        { id: 'pos', label: t('pos_settings'), icon: Calculator, desc: t('pos_settings_desc'), color: 'text-pink-600 bg-pink-50 dark:bg-pink-900/30' },
       ]
     },
     {
-      title: 'المخزون والتكامل',
+      title: t('settings_section_inventory'),
       items: [
-        { id: 'inventory', label: t('inventory_settings'), icon: Package, desc: 'المستودعات والتتبع', color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' },
-        { id: 'integrations', label: t('integrations_settings'), icon: Link, desc: 'الربط مع أنظمة خارجية', color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/30' },
+        { id: 'inventory', label: t('inventory_settings'), icon: Package, desc: t('inventory_settings_desc'), color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' },
+        { id: 'integrations', label: t('integrations_settings'), icon: Link, desc: t('integrations_settings_desc'), color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/30' },
       ]
     },
     {
-      title: 'الأمان والفريق',
+      title: t('settings_section_security'),
       items: [
-        { id: 'team', label: t('team_settings'), icon: Users, desc: 'إدارة المستخدمين والأدوار', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
-        { id: 'security', label: t('security_settings'), icon: ShieldCheck, desc: 'الأمان والنسخ الاحتياطي', color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/30' },
+        { id: 'team', label: t('team_settings'), icon: Users, desc: t('team_settings_desc'), color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+        { id: 'security', label: t('security_settings'), icon: ShieldCheck, desc: t('security_settings_desc'), color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/30' },
       ]
     },
   ];

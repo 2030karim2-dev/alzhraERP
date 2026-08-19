@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { reportsApi } from '../api';
@@ -9,6 +9,23 @@ import StatCard from '../../../ui/common/StatCard';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import ShareButton from '../../../ui/common/ShareButton';
 import { MobileCard, MobileSectionTitle, ResponsiveGrid, MobileEmptyState } from './MobileComponents';
+
+/** فاتورة يومية كما تُستقبل من `getDailySalesInvoices`. */
+interface DailyInvoice {
+  issue_date?: string;
+  invoice_number?: string;
+  type?: string;
+  status?: string;
+  total_amount?: number | null;
+  paid_amount?: number | null;
+  exchange_rate?: number | null;
+  parties?: { name?: string | null } | null;
+}
+
+/** صف الفاتورة المعروض في الجدول (مع المبلغ المحوَّل للعملة الأساسية). */
+interface DailyInvoiceRow extends DailyInvoice {
+  converted_amount?: number;
+}
 
 const useDailySalesReport = (days: number = 30) => {
     const { user } = useAuthStore();
@@ -25,7 +42,7 @@ const useDailySalesReport = (days: number = 30) => {
 
             // Group by date and handle currency conversion + returns
             const dailyMap: Record<string, { date: string; total: number; count: number }> = {};
-            (invoices || []).forEach((inv: any) => {
+            (invoices || []).forEach((inv: DailyInvoice) => {
                 const date = inv.issue_date?.split('T')[0] || inv.issue_date;
                 if (!dailyMap[date]) dailyMap[date] = { date, total: 0, count: 0 };
 
@@ -57,7 +74,7 @@ const useDailySalesReport = (days: number = 30) => {
             const todaySales = dailyMap[today] || { date: today, total: 0, count: 0 };
 
             return {
-                invoices: (invoices || []).map((inv: any) => ({
+                invoices: (invoices || []).map((inv: DailyInvoice) => ({
                     ...inv,
                     // Store converted amount for individual invoice display if needed
                     converted_amount: Number(inv.total_amount || 0) * Number(inv.exchange_rate || 1) * (inv.type === 'return_sale' ? -1 : 1)
@@ -89,21 +106,21 @@ const DailySalesReport: React.FC = () => {
     const columns = useMemo(() => [
         {
             header: 'رقم الفاتورة',
-            accessor: (row: any) => <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.invoice_number || '---'}</span>,
+            accessor: (row: DailyInvoiceRow) => <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.invoice_number || '---'}</span>,
             width: '120px',
         },
         {
             header: 'التاريخ',
-            accessor: (row: any) => <span className="text-[10px] text-gray-500 font-mono">{row.issue_date?.split('T')[0] || row.issue_date}</span>,
+            accessor: (row: DailyInvoiceRow) => <span className="text-[10px] text-gray-500 font-mono">{row.issue_date?.split('T')[0] || row.issue_date}</span>,
             width: '100px',
         },
         {
             header: 'العميل',
-            accessor: (row: any) => <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{(row.parties as any)?.name || '---'}</span>,
+            accessor: (row: DailyInvoiceRow) => <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{(row.parties as any)?.name || '---'}</span>,
         },
         {
             header: 'النوع',
-            accessor: (row: any) => (
+            accessor: (row: DailyInvoiceRow) => (
                 <span className={cn(
                     "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase",
                     row.type === 'sale' ? 'bg-blue-50 text-blue-700' : 'bg-rose-50 text-rose-700'
@@ -116,7 +133,7 @@ const DailySalesReport: React.FC = () => {
         },
         {
             header: 'المبلغ (ر.س)',
-            accessor: (row: any) => (
+            accessor: (row: DailyInvoiceRow) => (
                 <span dir="ltr" className={cn(
                     "font-bold font-mono text-[10px]",
                     row.type === 'sale' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
@@ -129,7 +146,7 @@ const DailySalesReport: React.FC = () => {
         },
         {
             header: 'الحالة',
-            accessor: (row: any) => (
+            accessor: (row: DailyInvoiceRow) => (
                 <span className={cn(
                     "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase",
                     row.status === 'paid' ? 'bg-emerald-50 text-emerald-700' :
@@ -199,7 +216,7 @@ const DailySalesReport: React.FC = () => {
                                     <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={(v) => v.slice(5)} />
                                     <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                                     <Tooltip
-                                        formatter={(value: any) => [formatCurrency(Number(value) || 0), 'المبيعات']}
+                                        formatter={(value: number | string) => [formatCurrency(Number(value) || 0), 'المبيعات']}
                                         labelFormatter={(label) => `التاريخ: ${label}`}
                                         contentStyle={{ fontSize: 11, borderRadius: 8 }}
                                     />

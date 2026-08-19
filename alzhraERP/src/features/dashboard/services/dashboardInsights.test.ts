@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDashboardInsights } from './dashboardInsights';
+import { calculateDashboardInsights, resolveNetProfit, sumTrialBalanceByPrefix } from './dashboardInsights';
 
 // ── Trend Calculations ─────────────────────────────────
 
@@ -206,6 +206,87 @@ describe('Collection rate uses customer receivables (not supplier debts)', () =>
     expect(result.targets.collectionRate).toBe(100);
   });
 });
+// ── Net Profit resolution (server RPC primary, trial-balance fallback) ────────
+// المشكلة رقم 3: كان صافي الربح يُحسب محلياً بأكواد حسابات (4/5) مع إشارات مشكوك بها.
+// بعد الإصلاح: `report_profit_loss` هو المصدر المعتمد، والميزان احتياط فقط.
+
+describe('resolveNetProfit', () => {
+  it('prefers the server net_profit row from report_profit_loss', () => {
+    const result = resolveNetProfit(
+      [
+        { type: 'revenue', amount: 2000 },
+        { type: 'expense', amount: 700 },
+        { type: 'net_profit', amount: 1300 },
+      ],
+      // سينتج الاحتياط 800 هنا لو استُخدم — يجب ألا يُستخدم أبداً عندما يكون RPC متاحاً
+      [
+        { code: '4001', netBalance: 1000 },
+        { code: '5001', netBalance: 200 },
+      ]
+    );
+    expect(result).toBe(1300);
+  });
+
+  it('falls back to trial-balance code math when the P&L RPC row is missing', () => {
+    const result = resolveNetProfit(
+      // لا يوجد صف net_profit (فشل/غياب الـ RPC → fallback)
+      [
+        { type: 'revenue', amount: 2000 },
+        { type: 'expense', amount: 700 },
+      ],
+      [
+        { code: '4001', netBalance: 5000 },
+        { code: '5001', netBalance: 2000 },
+      ]
+    );
+    // legacy = 5000 - 2000 = 3000
+    expect(result).toBe(3000);
+  });
+
+  it('returns zero when there is no P&L data and no trial-balance rows', () => {
+    expect(resolveNetProfit([], [])).toBe(0);
+  });
+
+  it('handles NaN amounts from the server defensively', () => {
+    const result = resolveNetProfit(
+      [{ type: 'net_profit', amount: Number.NaN }],
+      [{ code: '4001', netBalance: 100 }, { code: '5001', netBalance: 40 }]
+    );
+    // NaN من الخادم → fallback: 100 - 40 = 60
+    expect(result).toBe(60);
+  });
+});
+
+// ── Trial-balance prefix aggregation (used as the net-profit fallback) ─────────
+
+describe('sumTrialBalanceByPrefix', () => {
+  it('aggregates rows whose code starts with the prefix (camelCase netBalance)', () => {
+    const rows = [
+      { code: '4001', netBalance: 1500 },
+      { code: '4010', netBalance: 500 },
+      { code: '5001', netBalance: 300 }, // يُستبعد (لا يبدأ بـ 4)
+    ];
+    expect(sumTrialBalanceByPrefix(rows, '4')).toBe(2000);
+  });
+
+  it('supports snake_case fields (account_code / balance) from the raw RPC', () => {
+    const rows = [
+      { account_code: '5001', balance: 800 },
+      { account_code: '5002', balance: 200 },
+    ];
+    expect(sumTrialBalanceByPrefix(rows, '5')).toBe(1000);
+  });
+
+  it('ignores non-finite balance values instead of corrupting the sum', () => {
+    const rows = [
+      { code: '4001', netBalance: Number.NaN },
+      { code: '4002', netBalance: 250 },
+    ];
+    expect(sumTrialBalanceByPrefix(rows, '4')).toBe(250);
+  });
+});
+
+
 
 // ── Resilience against stale/partial persisted payloads ──────────────────────
 //

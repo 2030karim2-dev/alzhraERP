@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { reportsApi } from '../api';
@@ -12,6 +12,50 @@ import { MobileCard, MobileSectionTitle, ResponsiveGrid, MobileEmptyState } from
 
 const AGING_COLORS = ['#22c55e', '#eab308', '#f97316', '#ef4444'];
 const AGING_LABELS = ['حالية (0-30)', 'متأخرة (31-60)', 'متأخرة (61-90)', 'حرجة (90+)'];
+
+/** صف أعمار الديون لكل جهة — يُعرض في الجدول. */
+interface AgingPartyRow {
+  id: string;
+  name: string;
+  type: string;
+  current: number;
+  days30: number;
+  days60: number;
+  days90: number;
+  total: number;
+  oldestDate: string;
+}
+
+/** فاتورة غير مسددة كما تُستقبل من `getDebtAgingInvoices`. */
+interface AgingInvoice {
+  issue_date: string;
+  total_amount?: number | null;
+  paid_amount?: number | null;
+  party_id: string;
+  parties?: { name?: string | null; type?: string | null } | null;
+}
+
+/** فاتورة غير مسددة كما تُستقبل من `reportsApi.getDebtAgingInvoices`. */
+interface AgingInvoice {
+    issue_date: string;
+    total_amount?: number | null;
+    paid_amount?: number | null;
+    party_id: string;
+    parties?: { name?: string | null; type?: string | null } | null;
+}
+
+/** صف تجميع أعمار الديون لكل جهة (عرض الجدول). */
+interface AgingPartyRow {
+    id: string;
+    name: string;
+    type: string;
+    current: number;
+    days30: number;
+    days60: number;
+    days90: number;
+    total: number;
+    oldestDate: string;
+}
 
 const useDebtAging = () => {
     const { user } = useAuthStore();
@@ -27,13 +71,9 @@ const useDebtAging = () => {
 
             const today = new Date();
             const agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0 };
-            const partyAging: Record<string, {
-                id: string; name: string; type: string;
-                current: number; days30: number; days60: number; days90: number;
-                total: number; oldestDate: string;
-            }> = {};
+            const partyAging: Record<string, AgingPartyRow> = {};
 
-            (invoices || []).forEach((inv: any) => {
+            (invoices || []).forEach((inv: AgingInvoice) => {
                 const issueDate = new Date(inv.issue_date);
                 const daysDiff = Math.floor((today.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
                 const remaining = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
@@ -41,8 +81,8 @@ const useDebtAging = () => {
                 if (remaining <= 0) return;
 
                 const partyId = inv.party_id;
-                const partyName = (inv.parties as any)?.name || 'غير محدد';
-                const partyType = (inv.parties as any)?.type || 'customer';
+                const partyName = inv.parties?.name || 'غير محدد';
+                const partyType = inv.parties?.type || 'customer';
 
                 if (!partyAging[partyId]) {
                     partyAging[partyId] = { id: partyId, name: partyName, type: partyType, current: 0, days30: 0, days60: 0, days90: 0, total: 0, oldestDate: inv.issue_date };
@@ -97,7 +137,7 @@ const DebtAgingReport: React.FC = () => {
     const columns = useMemo(() => [
         {
             header: 'العميل',
-            accessor: (row: any) => (
+            accessor: (row: AgingPartyRow) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.name}</span>
                     <span className="text-[8px] text-gray-400">أقدم فاتورة: {row.oldestDate?.split('T')[0]}</span>
@@ -106,35 +146,35 @@ const DebtAgingReport: React.FC = () => {
         },
         {
             header: 'حالية',
-            accessor: (row: any) => row.current > 0 ? (
+            accessor: (row: AgingPartyRow) => row.current > 0 ? (
                 <span dir="ltr" className="font-mono text-[9px] font-bold text-emerald-600">{formatCurrency(row.current)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '31-60',
-            accessor: (row: any) => row.days30 > 0 ? (
+            accessor: (row: AgingPartyRow) => row.days30 > 0 ? (
                 <span dir="ltr" className="font-mono text-[9px] font-bold text-amber-600">{formatCurrency(row.days30)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '61-90',
-            accessor: (row: any) => row.days60 > 0 ? (
+            accessor: (row: AgingPartyRow) => row.days60 > 0 ? (
                 <span dir="ltr" className="font-mono text-[9px] font-bold text-orange-600">{formatCurrency(row.days60)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '90+',
-            accessor: (row: any) => row.days90 > 0 ? (
+            accessor: (row: AgingPartyRow) => row.days90 > 0 ? (
                 <span dir="ltr" className="font-mono text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded">{formatCurrency(row.days90)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: 'الإجمالي',
-            accessor: (row: any) => (
+            accessor: (row: AgingPartyRow) => (
                 <span dir="ltr" className="font-bold font-mono text-[10px] text-gray-800 dark:text-slate-100">{formatCurrency(row.total)}</span>
             ),
             width: '110px', align: 'center' as const,
@@ -186,7 +226,7 @@ const DebtAgingReport: React.FC = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                                 <YAxis type="category" dataKey="name" tick={{ fontSize: 9 }} width={100} />
-                                <Tooltip formatter={(value: any) => [formatCurrency(Number(value)), 'المبلغ']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                                <Tooltip formatter={(value: number | string) => [formatCurrency(Number(value)), 'المبلغ']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                                 <Bar dataKey="value" radius={[0, 4, 4, 0]} minPointSize={1}>
                                     {data?.chartData.map((_, i) => (
                                         <Cell key={i} fill={AGING_COLORS[i]} />

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { dashboardApi } from '../api/index';
-import { calculateDashboardInsights } from '../services/dashboardInsights';
+import { calculateDashboardInsights, resolveNetProfit } from '../services/dashboardInsights';
 import { useMemo, useEffect } from 'react';
 import { useFeedbackStore } from '../../feedback/store';
 import type {
@@ -121,28 +121,11 @@ const toNumber = (value: number | string | undefined | null): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const getAccountCode = (row: RawTrialBalanceRow): string => {
-  const code = row.code ?? row.account_code ?? '';
-  return typeof code === 'string' ? code : String(code);
-};
-
-const sumTrialBalance = (rows: RawTrialBalanceRow[], prefix: string): number => {
-  return rows.reduce((sum, row) => {
-    const code = getAccountCode(row);
-    if (code.startsWith(prefix)) {
-      // Revenues (4) are naturally credit (negative in our logic usually, or positive depending on entry)
-      // Since it's Trial Balance, normally Debit = Positive, Credit = Negative.
-      // Net Profit = (Credit Balance of 4) - (Debit Balance of 5).
-      // We will keep the raw number (no Math.abs) so signs reflect properly.
-      return sum + toNumber(row.netBalance ?? row.balance);
-    }
-    return sum;
-  }, 0);
-};
-
 // Note: computeLowStockProducts() and computeCategoryData() have been moved to
 // Postgres RPC functions (get_low_stock_products, get_expense_categories_summary).
 // The API layer now returns pre-computed results directly.
+// Note: sumTrialBalance/getAccountCode were removed — their logic now lives in the
+// pure, unit-tested `resolveNetProfit`/`sumTrialBalanceByPrefix` in dashboardInsights.ts.
 
 
 // ------------------------------------------
@@ -259,15 +242,9 @@ export const useDashboardData = (): UseDashboardDataResult => {
       ? (trialBalanceRows as RawTrialBalanceRow[])
       : [];
 
-    const totalRevenues = sumTrialBalance(safeTrialBalance, '4');
-    const totalExpensesAcc = sumTrialBalance(safeTrialBalance, '5');
-
-    // المصدر الأساسي لصافي الربح: RPC الخادمي `report_profit_loss` (إشارات محاسبية موثوقة).
-    // يُحتفظ بالحساب المحلي القديم (أكواد 4/5 + ميزان المراجعة) كاحتياط فقط عند غياب/فشل RPC.
-    const netProfitRow = profitLossRows.find((r) => r.type === 'net_profit');
-    const serverNetProfit = netProfitRow ? Number(netProfitRow.amount) : Number.NaN;
-    const legacyNetProfit = totalRevenues - totalExpensesAcc;
-    const netProfit = Number.isFinite(serverNetProfit) ? serverNetProfit : legacyNetProfit;
+    // المصدر الأساسي لصافي الربح: RPC `report_profit_loss` (إشارات محاسبية موثوقة).
+    // الاحتياط: ميزان المراجعة بأكواد 4/5 — المغلف داخل دالة نقية مختبرة (resolveNetProfit).
+    const netProfit = resolveNetProfit(profitLossRows, safeTrialBalance);
 
     const netCashPosition = toNumber(summary.receipt_bonds) - toNumber(summary.payment_bonds);
 

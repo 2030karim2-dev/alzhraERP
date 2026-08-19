@@ -1,4 +1,4 @@
-
+﻿
 import React from 'react';
 import { useTrialBalance } from '../hooks';
 import ExcelTable from '../../../ui/common/ExcelTable';
@@ -8,19 +8,29 @@ import ShareButton from '../../../ui/common/ShareButton';
 import { cn } from '../../../core/utils';
 import { MobileCard } from './MobileComponents';
 
+/** صف ميزان المراجعة كما يعيده \useTrialBalance\/\eportsService.getTrialBalance\. */
+interface TrialBalanceRowView {
+  id: string;
+  code: string;
+  name: string;
+  totalDebit: number;
+  totalCredit: number;
+  netBalance: number;
+}
+
 const TrialBalanceView: React.FC = () => {
   const { data, isLoading } = useTrialBalance();
 
   if (isLoading) return <div className="p-20  max-md:p-6 text-center animate-pulse text-slate-400 font-bold tracking-widest">تحميل ميزان المراجعة الذكي...</div>;
 
   const columns = [
-    { header: 'كود الحساب', accessor: (row: any) => <span className="font-mono text-[10px] text-blue-600 font-bold">{row.code}</span>, width: 'w-24' },
-    { header: 'اسم الحساب المحاسبي', accessor: (row: any) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
-    { header: 'إجمالي المدين', accessor: (row: any) => <span dir="ltr" className="font-mono font-bold text-emerald-600">{formatCurrency(row.totalDebit)}</span>, className: 'text-left bg-emerald-500/5' },
-    { header: 'إجمالي الدائن', accessor: (row: any) => <span dir="ltr" className="font-mono font-bold text-rose-600">{formatCurrency(row.totalCredit)}</span>, className: 'text-left bg-rose-500/5' },
+    { header: 'كود الحساب', accessor: (row: TrialBalanceRowView) => <span className="font-mono text-[10px] text-blue-600 font-bold">{row.code}</span>, width: 'w-24' },
+    { header: 'اسم الحساب المحاسبي', accessor: (row: TrialBalanceRowView) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
+    { header: 'إجمالي المدين', accessor: (row: TrialBalanceRowView) => <span dir="ltr" className="font-mono font-bold text-emerald-600">{formatCurrency(row.totalDebit)}</span>, className: 'text-left bg-emerald-500/5' },
+    { header: 'إجمالي الدائن', accessor: (row: TrialBalanceRowView) => <span dir="ltr" className="font-mono font-bold text-rose-600">{formatCurrency(row.totalCredit)}</span>, className: 'text-left bg-rose-500/5' },
     {
       header: 'الرصيد الصافي',
-      accessor: (row: any) => (
+      accessor: (row: TrialBalanceRowView) => (
         <span dir="ltr" className={cn("flex items-center   max-md:gap-1 text-[10px] font-bold", row.netBalance >= 0 ? "text-emerald-700 bg-emerald-50  .5 " : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full")}>
           <span>{row.netBalance >= 0 ? 'مدين' : 'دائن'}</span>
           <span className="font-mono">{formatCurrency(Math.abs(row.netBalance))}</span>
@@ -30,8 +40,8 @@ const TrialBalanceView: React.FC = () => {
     },
   ];
 
-  const totalDr = data?.reduce((s: number, r: any) => s + r.totalDebit, 0) || 0;
-  const totalCr = data?.reduce((s: number, r: any) => s + r.totalCredit, 0) || 0;
+  const totalDr = data?.reduce((s: number, r: TrialBalanceRowView) => s + r.totalDebit, 0) || 0;
+  const totalCr = data?.reduce((s: number, r: TrialBalanceRowView) => s + r.totalCredit, 0) || 0;
   const diff = Math.abs(totalDr - totalCr);
   const isBalanced = diff < 0.1;
 
