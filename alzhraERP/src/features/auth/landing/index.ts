@@ -11,8 +11,6 @@ export { default as PricingSection } from '../components/landing/PricingSection'
 export { default as TestimonialsSection } from '../components/landing/TestimonialsSection';
 export { default as FAQSection } from '../components/landing/FAQSection';
 export { default as ScrollIndicator } from '../components/landing/ScrollIndicator';
-export { GradientBorder } from '../components/landing/GradientBorder';
-export { ParallaxLayer, ParallaxSection } from '../components/landing/ParallaxSection';
 export { SectionHeader } from '../components/SectionHeader';
 
 // ── Data & Utilities ──

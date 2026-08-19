@@ -7,7 +7,17 @@ import eslintPluginSecurity from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
-    { ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts', 'src/core/database.types.ts'] },
+    {
+        ignores: [
+            'dist',
+            'node_modules',
+            'coverage',
+            '*.config.js',
+            '*.config.ts',
+            'src/core/database.types.ts',
+            'e2e/**',
+        ],
+    },
     {
         extends: [
             js.configs.recommended,
