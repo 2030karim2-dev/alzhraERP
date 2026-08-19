@@ -11,6 +11,7 @@ import { ReturnDetailsStep } from './ReturnDetailsStep';
 import { useSalesInvoicesForReturn, useCreateSalesReturn } from '../../sales/hooks/useSalesReturns';
 import { usePurchaseInvoicesForReturn, useCreatePurchaseReturn } from '../../purchases/hooks/usePurchaseReturns';
 import { mapReturnStatus } from '../utils/returnHelpers';
+import type { Invoice } from '../types';
 import { logger } from '../../../core/utils/logger';
 
 interface AdvancedReturnModalProps {
@@ -46,6 +47,13 @@ const returnSchema = z.object({
 
 type ReturnFormValues = z.infer<typeof returnSchema>;
 
+/** فاتورة مرجعية (مبيعات/مشتريات) كما يعيدها hooks الإرجاع — تمدّد `Invoice` بالحقول الإضافية المستعملة فقط. */
+interface SourceReturnInvoice extends Invoice {
+  party_id?: string | null;
+  currency?: string | null;
+  created_at?: string | null;
+}
+
 export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     isOpen,
     onClose,
@@ -67,7 +75,9 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn((returnType === 'sale' ? partyId : null) as string | null);
     const { data: purchaseInvoices, isLoading: isLoadingPurchases } = usePurchaseInvoicesForReturn((returnType === 'purchase' ? partyId : null) as string | null);
 
-    const invoices = returnType === 'sale' ? (salesInvoices || []) : (purchaseInvoices || []);
+    const invoices: SourceReturnInvoice[] = returnType === 'sale'
+        ? (salesInvoices || []) as SourceReturnInvoice[]
+        : (purchaseInvoices || []) as SourceReturnInvoice[];
     const isLoadingInvoices = returnType === 'sale' ? isLoadingSales : isLoadingPurchases;
 
     // Mutations
@@ -254,51 +264,47 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                         name: item.name,
                                         quantity: item.returnQuantity,
                                         unitPrice: item.unitPrice,
-                                        costPrice: (item as any).costPrice || 0
+                                        costPrice: item.costPrice ?? 0
                                     }));
 
-                                const selectedInvoice = invoices.find((inv: any) => inv.id === data.invoiceId);
+                                const selectedInvoice = invoices.find((inv) => inv.id === data.invoiceId);
                                 if (!selectedInvoice) throw new Error('الفاتورة الأصلية غير موجودة');
 
                                 if (returnType === 'sale') {
-                                    const payload: any = {
+                                    await createSalesReturn.mutateAsync({
                                         invoiceId: data.invoiceId,
-                                        partyId: (selectedInvoice as any)?.party?.id || (selectedInvoice as any)?.party_id,
-                                        paymentMethod: (selectedInvoice as any)?.payment_method,
+                                        partyId: selectedInvoice.party?.id ?? selectedInvoice.party_id,
+                                        paymentMethod: selectedInvoice.payment_method,
                                         items: selectedItems,
                                         returnReason: data.returnReason,
                                         status: mapReturnStatus(data.status),
                                         issueDate: data.date,
-                                        currency: (selectedInvoice as any)?.currency || (selectedInvoice as any)?.currency_code,
-                                        exchangeRate: (selectedInvoice as any)?.exchange_rate
-                                    };
-                                    if (data.notes) payload.notes = data.notes;
-
-                                    await createSalesReturn.mutateAsync(payload);
+                                        currency: selectedInvoice.currency ?? selectedInvoice.currency_code,
+                                        exchangeRate: selectedInvoice.exchange_rate,
+                                        ...(data.notes ? { notes: data.notes } : {}),
+                                    });
                                 } else if (returnType === 'purchase') {
                                     // إصلاح: مرتجع المشتريات لم يكن يُنشأ إطلاقاً
-                                    const payload: any = {
-                                        supplierId: (selectedInvoice as any)?.party?.id || (selectedInvoice as any)?.party_id,
+                                    await createPurchaseReturn.mutateAsync({
+                                        supplierId: selectedInvoice.party?.id ?? selectedInvoice.party_id,
                                         items: selectedItems.map(item => ({
                                             productId: item.productId,
                                             name: item.name,
                                             quantity: item.quantity,
                                             unitPrice: item.unitPrice,
-                                            costPrice: item.costPrice || 0,
+                                            costPrice: item.costPrice ?? 0,
                                             discount: 0
                                         })),
-                                        invoiceNumber: (selectedInvoice as any)?.invoice_number || '',
+                                        invoiceNumber: selectedInvoice.invoice_number ?? '',
                                         issueDate: data.date,
                                         notes: data.notes || '',
                                         status: data.status === 'accepted' ? 'posted' : 'draft',
                                         paymentMethod: 'cash',
-                                        currency: (selectedInvoice as any)?.currency_code || 'SAR',
-                                        exchangeRate: (selectedInvoice as any)?.exchange_rate || 1,
+                                        currency: selectedInvoice.currency_code ?? 'SAR',
+                                        exchangeRate: selectedInvoice.exchange_rate ?? 1,
                                         referenceInvoiceId: data.invoiceId,
                                         returnReason: data.returnReason
-                                    };
-
-                                    await createPurchaseReturn.mutateAsync(payload);
+                                    });
                                 }
 
                                 onSuccess();
@@ -319,7 +325,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                     <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
                                     اختيار الفاتورة والأصناف
                                 </h2>
-                                <ReturnItemsStep invoices={invoices as any} isLoadingInvoices={isLoadingInvoices} />
+                                <ReturnItemsStep invoices={invoices} isLoadingInvoices={isLoadingInvoices} />
                             </div>
 
                             <div className="border-t-2 border-slate-100 dark:border-slate-800/50 block"></div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { Plus, Eye, RotateCcw, FileText, Trash2, ShoppingCart } from 'lucide-react';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { useSalesReturns, useSalesReturnsStats, type SalesReturn } from '../../hooks/useSalesReturns';
@@ -14,14 +14,14 @@ import { logger } from '../../../../core/utils/logger';
 
 // Status labels
 const STATUS_LABELS: Record<string, string> = {
-  'draft': 'مسودة',
-  'posted': 'معتمد',
-  'paid': 'مدفوع',
+  'draft': 'ظ…ط³ظˆط¯ط©',
+  'posted': 'ظ…ط¹طھظ…ط¯',
+  'paid': 'ظ…ط¯ظپظˆط¹',
 };
 
 /**
- * توحيد سجل مرتجع مبيعات مع ReturnsListRow حتى يتوافق مع
- * useReturnsListView (كانت SalesReturn[] لا تطابق ReturnsListRow[]).
+ * طھظˆط­ظٹط¯ ط³ط¬ظ„ ظ…ط±طھط¬ط¹ ظ…ط¨ظٹط¹ط§طھ ظ…ط¹ ReturnsListRow ط­طھظ‰ ظٹطھظˆط§ظپظ‚ ظ…ط¹
+ * useReturnsListView (ظƒط§ظ†طھ SalesReturn[] ظ„ط§ طھط·ط§ط¨ظ‚ ReturnsListRow[]).
  */
 const normalizeSalesReturn = (row: SalesReturn): ReturnsListRow => ({
     id: row.id,
@@ -41,6 +41,23 @@ const normalizeSalesReturn = (row: SalesReturn): ReturnsListRow => ({
 interface SalesReturnsViewProps {
   searchTerm: string;
   onViewDetails: (id: string) => void;
+}
+
+/** طµظپ ظ…ط±طھط¬ط¹ ظ…ط¨ظٹط¹ط§طھ ظƒظ…ط§ ظٹط¹ظٹط¯ظ‡ `useSalesReturns`/`useReturnsListView` (ط§ظ„ظ…ط·ط¨ظژظ‘ط¹ ظ„ظ„ط¹ط±ط¶). */
+interface SalesReturnRow {
+  id: string;
+  invoice_number?: string | null;
+  reference_invoice_id?: string | null;
+  issue_date?: string | null;
+  created_at?: string | null;
+  total_amount?: number | null;
+  currency_code?: string | null;
+  exchange_rate?: number | null;
+  status?: string | null;
+  notes?: string | null;
+  invoice_items?: { length: number } | null;
+  party?: { name?: string | null } | null;
+  return_reason?: string | null;
 }
 
 const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSearchTerm, onViewDetails }) => {
@@ -66,7 +83,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
     endDate: queryFilters.endDate || undefined,
   });
 
-  // توحيد النوع مع ReturnsListRow قبل تمريره لعرض القائمة
+  // طھظˆط­ظٹط¯ ط§ظ„ظ†ظˆط¹ ظ…ط¹ ReturnsListRow ظ‚ط¨ظ„ طھظ…ط±ظٹط±ظ‡ ظ„ط¹ط±ط¶ ط§ظ„ظ‚ط§ط¦ظ…ط©
   const normalizedReturns = (returns || []).map(normalizeSalesReturn);
 
   const {
@@ -82,9 +99,9 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       hasActiveFilters
   } = useReturnsListView(normalizedReturns, 'sales', (filteredReturns) => {
       // Guard the display total: a corrupted historical exchange rate must not
-      // crash the returns view — it is logged by sumInBaseCurrency/toBaseCurrency.
+      // crash the returns view â€” it is logged by sumInBaseCurrency/toBaseCurrency.
       try {
-          return sumInBaseCurrency(filteredReturns as any[]);
+          return sumInBaseCurrency(filteredReturns as SalesReturnRow[]);
       } catch {
           return 0;
       }
@@ -110,7 +127,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
   const handlePrint = async () => {
     if (!printRef.current) return;
     try {
-      await exportToPDF(printRef.current, `مرتجعات_المبيعات_${new Date().toISOString().split('T')[0]}`);
+      await exportToPDF(printRef.current, `ظ…ط±طھط¬ط¹ط§طھ_ط§ظ„ظ…ط¨ظٹط¹ط§طھ_${new Date().toISOString().split('T')[0]}`);
     } catch (error) {
       logger.error("SalesReturnsView", 'Print error:', error);
     }
@@ -157,7 +174,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
           size="sm"
           leftIcon={<Plus size={14} />}
         >
-          مرتجع مبيعات جديد
+          ظ…ط±طھط¬ط¹ ظ…ط¨ظٹط¹ط§طھ ط¬ط¯ظٹط¯
         </Button>
       </div>
 
@@ -172,23 +189,23 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
         ) : processedReturns.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <RotateCcw size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="font-medium">لا توجد مرتجعات مبيعات</p>
-            <p className="text-sm text-gray-400 mt-1">قم بإنشاء مرتجع جديد للبدء</p>
+            <p className="font-medium">ظ„ط§ طھظˆط¬ط¯ ظ…ط±طھط¬ط¹ط§طھ ظ…ط¨ظٹط¹ط§طھ</p>
+            <p className="text-sm text-gray-400 mt-1">ظ‚ظ… ط¨ط¥ظ†ط´ط§ط، ظ…ط±طھط¬ط¹ ط¬ط¯ظٹط¯ ظ„ظ„ط¨ط¯ط،</p>
           </div>
         ) : (
           <ExcelTable
             columns={[
               {
-                header: 'رقم المرتجع',
-                accessor: (row: any) => <span className="font-bold text-red-600">#{row.invoice_number}</span>,
+                header: 'ط±ظ‚ظ… ط§ظ„ظ…ط±طھط¬ط¹',
+                accessor: (row: SalesReturnRow) => <span className="font-bold text-red-600">#{row.invoice_number}</span>,
                 accessorKey: 'invoice_number',
                 sortKey: 'invoice_number',
                 width: '120px',
                 align: 'center'
               },
               {
-                header: 'الفاتورة الأصلية',
-                accessor: (row: any) => (
+                header: 'ط§ظ„ظپط§طھظˆط±ط© ط§ظ„ط£طµظ„ظٹط©',
+                accessor: (row: SalesReturnRow) => (
                   <div className="flex items-center gap-2 max-md:gap-2">
                     <FileText size={12} className="text-blue-500" />
                     <span className="font-medium text-blue-600">#{row.reference_invoice_id || '---'}</span>
@@ -200,18 +217,18 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                 align: 'center'
               },
               {
-                header: 'العميل',
-                accessor: (row: any) => <span className="font-bold">{row.party?.name || 'عميل نقدي'}</span>,
+                header: 'ط§ظ„ط¹ظ…ظٹظ„',
+                accessor: (row: SalesReturnRow) => <span className="font-bold">{row.party?.name || 'ط¹ظ…ظٹظ„ ظ†ظ‚ط¯ظٹ'}</span>,
                 accessorKey: 'party.name',
                 sortKey: 'party_name',
                 align: 'center'
               },
               {
-                header: 'الأصناف',
-                accessor: (row: any) => (
+                header: 'ط§ظ„ط£طµظ†ط§ظپ',
+                accessor: (row: SalesReturnRow) => (
                   <div className="flex items-center gap-1 max-md:gap-1.5 text-gray-500">
                     <ShoppingCart size={12} />
-                    <span className="text-xs font-bold">{row.invoice_items?.length || 0} أصناف</span>
+                    <span className="text-xs font-bold">{row.invoice_items?.length || 0} ط£طµظ†ط§ظپ</span>
                   </div>
                 ),
                 accessorKey: 'invoice_items.length',
@@ -220,15 +237,15 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                 align: 'center'
               },
               {
-                header: 'العملة',
-                accessor: (row: any) => <span className="text-xs font-bold text-gray-500">{row.currency_code || '---'}</span>,
+                header: 'ط§ظ„ط¹ظ…ظ„ط©',
+                accessor: (row: SalesReturnRow) => <span className="text-xs font-bold text-gray-500">{row.currency_code || '---'}</span>,
                 accessorKey: 'currency_code',
                 width: '80px',
                 align: 'center'
               },
               {
-                header: 'المبلغ الإجمالي',
-                accessor: (row: any) => (
+                header: 'ط§ظ„ظ…ط¨ظ„ط؛ ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ',
+                accessor: (row: SalesReturnRow) => (
                   <div className="font-bold">
                     <span className="text-red-500">-{formatCurrency(Number(row.total_amount), row.currency_code || 'SAR')}</span>
                   </div>
@@ -238,16 +255,16 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                 align: 'center'
               },
               {
-                header: 'تاريخ الإرجاع',
-                accessor: (row: any) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at).toLocaleDateString('ar-SA-u-nu-latn')}</span>,
+                header: 'طھط§ط±ظٹط® ط§ظ„ط¥ط±ط¬ط§ط¹',
+                accessor: (row: SalesReturnRow) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at).toLocaleDateString('ar-SA-u-nu-latn')}</span>,
                 accessorKey: 'issue_date',
                 sortKey: 'issue_date',
                 width: '120px',
                 align: 'center'
               },
               {
-                header: 'الحالة',
-                accessor: (row: any) => (
+                header: 'ط§ظ„ط­ط§ظ„ط©',
+                accessor: (row: SalesReturnRow) => (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.status === 'posted' || row.status === 'paid'
                     ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                     : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
@@ -260,8 +277,8 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                 align: 'center'
               },
               {
-                header: 'الإجراءات',
-                accessor: (row: any) => (
+                header: 'ط§ظ„ط¥ط¬ط±ط§ط،ط§طھ',
+                accessor: (row: SalesReturnRow) => (
                   <div className="flex items-center gap-1 max-md:gap-1 justify-center">
                     <button
                       onClick={(e) => { e.stopPropagation(); onViewDetails(row.id); }}
@@ -272,7 +289,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm('هل أنت متأكد من حذف هذا المرتجع؟ سيتم إلغاء أثره المالي والمخزني.')) {
+                        if (window.confirm('ظ‡ظ„ ط£ظ†طھ ظ…طھط£ظƒط¯ ظ…ظ† ط­ط°ظپ ظ‡ط°ط§ ط§ظ„ظ…ط±طھط¬ط¹طں ط³ظٹطھظ… ط¥ظ„ط؛ط§ط، ط£ط«ط±ظ‡ ط§ظ„ظ…ط§ظ„ظٹ ظˆط§ظ„ظ…ط®ط²ظ†ظٹ.')) {
                           deleteInvoice(row.id);
                         }
                       }}
@@ -301,16 +318,16 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       {processedReturns.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 max-md:p-4 border border-red-200 dark:border-red-800">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-red-800 dark:text-red-300">إجمالي المرتجعات المعروضة:</span>
+            <span className="font-bold text-red-800 dark:text-red-300">ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ…ط±طھط¬ط¹ط§طھ ط§ظ„ظ…ط¹ط±ظˆط¶ط©:</span>
             <div className="text-left flex flex-col items-end">
               <span className="font-bold text-xl text-red-600 dark:text-red-400">
                 {formatCurrency(totalAmount, 'SAR')}
               </span>
-              <span className="text-[10px] text-gray-400 font-medium">إجمالي القيمة بالريال السعودي</span>
+              <span className="text-[10px] text-gray-400 font-medium">ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ‚ظٹظ…ط© ط¨ط§ظ„ط±ظٹط§ظ„ ط§ظ„ط³ط¹ظˆط¯ظٹ</span>
             </div>
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            عدد النتائج: {processedReturns.length} من {normalizedReturns.length}
+            ط¹ط¯ط¯ ط§ظ„ظ†طھط§ط¦ط¬: {processedReturns.length} ظ…ظ† {normalizedReturns.length}
           </div>
         </div>
       )}
@@ -320,7 +337,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         returnType="sale"
-        partyName="عميل"
+        partyName="ط¹ظ…ظٹظ„"
         onSuccess={() => {
           setIsModalOpen(false);
           refetch();
