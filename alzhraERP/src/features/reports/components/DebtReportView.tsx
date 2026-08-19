@@ -8,6 +8,13 @@ import ExcelTable from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
 import { MobileCard, ResponsiveGrid } from './MobileComponents';
 
+/** صف ذمة (عميل/مورد) في تقرير الديون. */
+interface DebtRow {
+  name: string;
+  type: 'customer' | 'supplier';
+  remaining_amount: number;
+}
+
 const DebtReportView: React.FC = () => {
   const { data, isLoading } = useDebtReport();
 
@@ -23,15 +30,15 @@ const DebtReportView: React.FC = () => {
   const netPosition = (data?.summary?.receivables || 0) - (data?.summary?.payables || 0);
 
   const columns = [
-    { header: 'الجهة المالية', accessor: (row: any) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
+    { header: 'الجهة المالية', accessor: (row: DebtRow) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
     {
-      header: 'الفئة', accessor: (row: any) => (
+      header: 'الفئة', accessor: (row: DebtRow) => (
         <span className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight", row.type === 'customer' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-600 border border-blue-500/20')}>
           {row.type === 'customer' ? 'عميل' : 'مورد'}
         </span>
       ), width: '100px', align: 'center' as const
     },
-    { header: 'الرصيد المتبقي', accessor: (row: any) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-4 py-1.5 rounded-2xl max-md:rounded-xl", row.remaining_amount > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 ring-1 ring-emerald-500/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 ring-1 ring-rose-500/20')}>{formatCurrency(Math.abs(row.remaining_amount))}</span>, className: 'text-left' },
+    { header: 'الرصيد المتبقي', accessor: (row: DebtRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-4 py-1.5 rounded-2xl max-md:rounded-xl", row.remaining_amount > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 ring-1 ring-emerald-500/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 ring-1 ring-rose-500/20')}>{formatCurrency(Math.abs(row.remaining_amount))}</span>, className: 'text-left' },
   ];
 
   return (

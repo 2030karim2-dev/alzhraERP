@@ -38,8 +38,8 @@ const ProfitLossView: React.FC = () => {
    }
 
    const isProfit = data?.netProfit! >= 0;
-   const totalRevenues = data?.revenues.reduce((s: number, r: any) => s + Math.abs(r.netBalance), 0) || 0;
-   const totalExpenses = data?.expenses.reduce((s: number, r: any) => s + Math.abs(r.netBalance), 0) || 0;
+   const totalRevenues = data?.revenues.reduce((s: number, r: { netBalance: number }) => s + Math.abs(r.netBalance), 0) || 0;
+   const totalExpenses = data?.expenses.reduce((s: number, r: { netBalance: number }) => s + Math.abs(r.netBalance), 0) || 0;
 
    const displayedRevenues = showAllRevenues ? data?.revenues : data?.revenues.slice(0, 5);
    const displayedExpenses = showAllExpenses ? data?.expenses : data?.expenses.slice(0, 5);

@@ -4,8 +4,15 @@ import { formatCurrency } from '../../../../core/utils';
 import { ReturnsType } from '../../hooks/useReturnsReport';
 
 interface Props {
-    topParties: any[];
+    topParties: TopPartyRow[];
     type: ReturnsType;
+}
+
+/** صف جهة (عميل/مورد) ضمن الأطراف الأكثر تفاعلاً في المرتجعات. */
+interface TopPartyRow {
+    name: string;
+    count: number;
+    total: number;
 }
 
 const ReturnsTopParties: React.FC<Props> = ({ topParties, type }) => {

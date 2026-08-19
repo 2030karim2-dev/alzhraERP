@@ -42,7 +42,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
     // Initialize refs array based on filtered items
     // ملاحظة: يجب استدعاء كل الـ Hooks قبل أي return شرطي (قاعدة Hooks)
     useEffect(() => {
-        itemRefs.current = itemRefs.current.slice(0, filteredItems.length).map((row: any) => row ? row.slice(0, 2) : [null, null]);
+        itemRefs.current = itemRefs.current.slice(0, filteredItems.length).map((row: (HTMLInputElement | null)[]) => row ? row.slice(0, 2) : [null, null]);
         while (itemRefs.current.length < filteredItems.length) {
             itemRefs.current.push([null, null]);
         }
@@ -57,7 +57,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
         );
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number, item: any, _maxQty: number) => {
+    const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number, item: InvoiceItem, _maxQty: number) => {
         let newRow = rowIndex;
         let newCol = colIndex;
 

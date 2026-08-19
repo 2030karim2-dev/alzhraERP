@@ -4,9 +4,20 @@ import { ReportView, ReturnsType } from '../../hooks/useReturnsReport';
 
 interface Props {
     reportView: ReportView;
-    filteredSalesReturns: any[];
-    filteredPurchaseReturns: any[];
+    filteredSalesReturns: ReturnTransactionRow[];
+    filteredPurchaseReturns: ReturnTransactionRow[];
     type: ReturnsType;
+}
+
+/** صف معاملة مرتجع (سجل مفصّل). */
+interface ReturnTransactionRow {
+    invoice_number: string;
+    issue_date?: string;
+    party?: { name?: string } | null;
+    reference_invoice?: { invoice_number?: string } | null;
+    return_reason?: string | null;
+    total_amount?: number | null;
+    status?: string | null;
 }
 
 const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesReturns, filteredPurchaseReturns, type }) => {
@@ -73,7 +84,7 @@ const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesRe
                         {(reportView === 'overview'
                             ? [...filteredSalesReturns, ...filteredPurchaseReturns]
                             : reportView === 'sales' ? filteredSalesReturns : filteredPurchaseReturns
-                        ).slice(0, 20).map((item: any, index: number) => (
+                        ).slice(0, 20).map((item: ReturnTransactionRow, index: number) => (
                             <tr key={index} className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all duration-300">
                                 <td className="px-8 max-md:px-3 py-5">
                                     <span className="text-sm font-black text-slate-800 dark:text-white tracking-tighter group-hover:text-blue-500 transition-colors">

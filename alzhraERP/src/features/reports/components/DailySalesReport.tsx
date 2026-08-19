@@ -116,7 +116,7 @@ const DailySalesReport: React.FC = () => {
         },
         {
             header: 'العميل',
-            accessor: (row: DailyInvoiceRow) => <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{(row.parties as any)?.name || '---'}</span>,
+            accessor: (row: DailyInvoiceRow) => <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{row.parties?.name || '---'}</span>,
         },
         {
             header: 'النوع',

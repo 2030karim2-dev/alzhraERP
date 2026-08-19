@@ -7,7 +7,18 @@ interface ABCAnalysisChartProps {
     data: { name: string; value: number; color: string }[];
 }
 
-const renderActiveShape = (props: any) => {
+/** معاملات الشكل النشط في رسم recharts Pie. */
+interface ActiveShapeProps {
+    cx?: number;
+    cy?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    startAngle?: number;
+    endAngle?: number;
+    fill?: string;
+}
+
+const renderActiveShape = (props: ActiveShapeProps) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
     return (
         <g>
@@ -102,7 +113,7 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                 ))}
                             </Pie>
                             <RechartsTooltip
-                                content={({ active, payload }: any) => {
+                                content={({ active, payload }: { active?: boolean; payload?: Array<{ payload?: { name?: string } }> }) => {
                                     if (active && payload && payload.length) {
                                         const entry = payload[0].payload;
                                         const info = getCategoryInfo(entry.name);

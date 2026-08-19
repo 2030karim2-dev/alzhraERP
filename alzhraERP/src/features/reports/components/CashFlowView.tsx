@@ -8,6 +8,14 @@ import ExcelTable from '../../../ui/common/ExcelTable';
 import ShareButton from '../../../ui/common/ShareButton';
 import { MobileCard } from './MobileComponents';
 
+/** صف التدفق النقدي الشهري كما يعيده `useCashFlow`. */
+interface CashFlowRow {
+  month: string;
+  in: number;
+  out: number;
+  net: number;
+}
+
 const CashFlowView: React.FC = () => {
     const { data, isLoading } = useCashFlow();
     const [isMounted, setIsMounted] = useState(false);
@@ -31,10 +39,10 @@ const CashFlowView: React.FC = () => {
     const monthlyOut = latestMonth?.out || 0;
 
     const columns = [
-        { header: 'الشهر', accessor: (row: any) => <span className="font-bold text-slate-700 dark:text-slate-200">{row.month}</span> },
-        { header: 'الوارد', accessor: (row: any) => <span dir="ltr" className="font-bold font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full">{formatCurrency(row.in)}</span>, className: 'text-left' },
-        { header: 'الصادر', accessor: (row: any) => <span dir="ltr" className="font-bold font-mono text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-3 py-1 rounded-full">{formatCurrency(row.out)}</span>, className: 'text-left' },
-        { header: 'الصافي', accessor: (row: any) => <span dir="ltr" className={`font-bold font-mono px-3 py-1 rounded-full ${row.net >= 0 ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-rose-600 bg-rose-50 dark:bg-rose-900/20'}`}>{formatCurrency(row.net)}</span>, className: 'text-left' },
+        { header: 'الشهر', accessor: (row: CashFlowRow) => <span className="font-bold text-slate-700 dark:text-slate-200">{row.month}</span> },
+        { header: 'الوارد', accessor: (row: CashFlowRow) => <span dir="ltr" className="font-bold font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full">{formatCurrency(row.in)}</span>, className: 'text-left' },
+        { header: 'الصادر', accessor: (row: CashFlowRow) => <span dir="ltr" className="font-bold font-mono text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-3 py-1 rounded-full">{formatCurrency(row.out)}</span>, className: 'text-left' },
+        { header: 'الصافي', accessor: (row: CashFlowRow) => <span dir="ltr" className={`font-bold font-mono px-3 py-1 rounded-full ${row.net >= 0 ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-rose-600 bg-rose-50 dark:bg-rose-900/20'}`}>{formatCurrency(row.net)}</span>, className: 'text-left' },
     ];
 
     return (
@@ -152,7 +160,7 @@ const CashFlowView: React.FC = () => {
                                     />
                                     <Tooltip
                                         cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '6 6' }}
-                                        content={({ active, payload, label }: any) => {
+                                        content={({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number | string }>; label?: string }) => {
                                             if (active && payload && payload.length) {
                                                 return (
                                                     <div className="bg-white/95 dark:bg-slate-900/95   max-md:p-4 sm:p-6 shadow-2xl min-w-[180px] sm:min-w-[220px]">

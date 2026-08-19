@@ -8,8 +8,21 @@ import { Activity, BrainCircuit } from 'lucide-react';
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
 
 interface Props {
-    monthlyTrends: any[];
-    reasonDistribution: any[];
+    monthlyTrends: MonthlyTrendPoint[];
+    reasonDistribution: ReasonDatum[];
+}
+
+/** نقطة شهرية في اتجاه المرتجعات. */
+interface MonthlyTrendPoint {
+    month: string;
+    sales: number;
+    purchase: number;
+}
+
+/** بند توزيع مسببات الارتجاع. */
+interface ReasonDatum {
+    name: string;
+    value: number;
 }
 
 const ReturnsCharts: React.FC<Props> = ({ monthlyTrends, reasonDistribution }) => {

@@ -185,7 +185,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                                             ملخص الأصناف المحددة للإرجاع
                                         </h4>
                                         <div className="flex flex-wrap gap-2 max-md:gap-2">
-                                            {items.filter((i: any) => i.returnQuantity > 0).map((item: any, idx: number) => (
+                                            {items.filter((i: ReturnItemDraft) => i.returnQuantity > 0).map((item: ReturnItemDraft, idx: number) => (
                                                 <span key={`${item.id}-${idx}`} className="inline-flex items-center gap-1 max-md:gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-100 dark:border-indigo-800 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm">
                                                     <span className="truncate max-w-[120px]" title={item.name}>{item.name}</span>
                                                     <span className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded font-mono text-[10px]">{item.returnQuantity}x</span>
@@ -199,7 +199,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">إجمالي المرتجع</p>
                                             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedInvoice?.currency_code || 'SAR' }).format(
-                                                    items.reduce((sum: number, item: any) => sum + (item.returnQuantity * item.unitPrice), 0)
+                                                    items.reduce((sum: number, item: ReturnItemDraft) => sum + (item.returnQuantity * item.unitPrice), 0)
                                                 )}
                                             </p>
                                         </div>

@@ -3,7 +3,15 @@ import { PackageX } from 'lucide-react';
 import ExcelTable from '../../../ui/common/ExcelTable';
 
 interface StagnantProductsTableProps {
-    data: any[];
+    data: StagnantProductRow[];
+}
+
+/** صف منتج راكد (نفاد حركة). */
+interface StagnantProductRow {
+  name: string;
+  stock_quantity?: number;
+  stock?: number;
+  lastSold?: string | null;
 }
 
 export const StagnantProductsTable: React.FC<StagnantProductsTableProps> = ({ data }) => {
@@ -23,10 +31,10 @@ export const StagnantProductsTable: React.FC<StagnantProductsTableProps> = ({ da
                 <ExcelTable
                     data={data}
                     columns={[
-                        { header: 'المنتج', accessor: (row: any) => row.name, className: 'font-bold text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap' },
-                        { header: 'المخزون المتكدس', accessor: (row: any) => <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-lg">{row.stock_quantity || row.stock}</span>, className: 'text-center w-32' },
+                        { header: 'المنتج', accessor: (row: StagnantProductRow) => row.name, className: 'font-bold text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap' },
+                        { header: 'المخزون المتكدس', accessor: (row: StagnantProductRow) => <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-lg">{row.stock_quantity || row.stock}</span>, className: 'text-center w-32' },
                         {
-                            header: 'آخر حركة', accessor: (row: any) => {
+                            header: 'آخر حركة', accessor: (row: StagnantProductRow) => {
                                 if (!row.lastSold || row.lastSold === 'Never') return <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-md font-bold">لا يوجد مبيعات مطلقاً</span>;
                                 return <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">{new Date(row.lastSold).toLocaleDateString('en-GB')}</span>
                             }, className: 'text-center w-32'

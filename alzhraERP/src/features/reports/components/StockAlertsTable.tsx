@@ -2,8 +2,16 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import ExcelTable from '../../../ui/common/ExcelTable';
 
+/** صف تنبيه نفاذ المخزون الحرج. */
+interface StockAlertRow {
+  name: string;
+  stock_quantity: number;
+  dailyVelocity?: number;
+  daysRemaining: number;
+}
+
 interface StockAlertsTableProps {
-    data: any[];
+    data: StockAlertRow[];
 }
 
 export const StockAlertsTable: React.FC<StockAlertsTableProps> = ({ data }) => {
@@ -28,12 +36,12 @@ export const StockAlertsTable: React.FC<StockAlertsTableProps> = ({ data }) => {
                 <ExcelTable
                     data={data}
                     columns={[
-                        { header: 'المنتج', accessor: (row: any) => row.name, className: 'font-bold text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap' },
-                        { header: 'المخزون', accessor: (row: any) => <span className="font-mono font-bold text-rose-600 dark:text-rose-400">{row.stock_quantity}</span>, className: 'text-center w-20' },
-                        { header: 'الاستهلاك', accessor: (row: any) => <span className="font-mono text-xs text-slate-500">{(row.dailyVelocity || 0).toFixed(1)} /يوم</span>, className: 'text-center w-24' },
+                        { header: 'المنتج', accessor: (row: StockAlertRow) => row.name, className: 'font-bold text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap' },
+                        { header: 'المخزون', accessor: (row: StockAlertRow) => <span className="font-mono font-bold text-rose-600 dark:text-rose-400">{row.stock_quantity}</span>, className: 'text-center w-20' },
+                        { header: 'الاستهلاك', accessor: (row: StockAlertRow) => <span className="font-mono text-xs text-slate-500">{(row.dailyVelocity || 0).toFixed(1)} /يوم</span>, className: 'text-center w-24' },
                         {
                             header: 'ينفذ خلال',
-                            accessor: (row: any) => {
+                            accessor: (row: StockAlertRow) => {
                                 const days = row.daysRemaining || 0;
                                 const isUrgent = days < 3;
                                 return (

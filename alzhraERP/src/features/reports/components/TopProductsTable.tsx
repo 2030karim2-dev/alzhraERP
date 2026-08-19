@@ -4,7 +4,15 @@ import ExcelTable from '../../../ui/common/ExcelTable';
 import { formatCurrency } from '../../../core/utils';
 
 interface TopProductsTableProps {
-    data: any[];
+    data: TopProductRow[];
+}
+
+/** صف منتج ضمن الأكثر حركة ومبيعاً. */
+interface TopProductRow {
+  name: string;
+  abcCategory?: string;
+  qtySold: number;
+  revenue: number;
 }
 
 export const TopProductsTable: React.FC<TopProductsTableProps> = ({ data }) => {
@@ -23,10 +31,10 @@ export const TopProductsTable: React.FC<TopProductsTableProps> = ({ data }) => {
                 <ExcelTable
                     data={data}
                     columns={[
-                        { header: 'المنتج', accessor: (row: any) => row.name, width: '250px', className: 'font-bold text-slate-800 dark:text-slate-200' },
-                        { header: 'التصنيف', accessor: (row: any) => <span className={`text-[10px] px-2 py-1 rounded-md font-bold shadow-sm ${row.abcCategory === 'A' ? 'bg-emerald-100 text-emerald-800' : row.abcCategory === 'B' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'}`}>{row.abcCategory || '-'}</span>, width: '80px', className: 'text-center' },
-                        { header: 'الكمية المباعة', accessor: (row: any) => <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">{row.qtySold}</span>, className: 'text-center' },
-                        { header: 'الإيرادات', accessor: (row: any) => <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{formatCurrency(row.revenue)}</span>, className: 'text-left' }
+                        { header: 'المنتج', accessor: (row: TopProductRow) => row.name, width: '250px', className: 'font-bold text-slate-800 dark:text-slate-200' },
+                        { header: 'التصنيف', accessor: (row: TopProductRow) => <span className={`text-[10px] px-2 py-1 rounded-md font-bold shadow-sm ${row.abcCategory === 'A' ? 'bg-emerald-100 text-emerald-800' : row.abcCategory === 'B' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'}`}>{row.abcCategory || '-'}</span>, width: '80px', className: 'text-center' },
+                        { header: 'الكمية المباعة', accessor: (row: TopProductRow) => <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">{row.qtySold}</span>, className: 'text-center' },
+                        { header: 'الإيرادات', accessor: (row: TopProductRow) => <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{formatCurrency(row.revenue)}</span>, className: 'text-left' }
                     ]}
                     showSearch={false}
                     colorTheme="blue"

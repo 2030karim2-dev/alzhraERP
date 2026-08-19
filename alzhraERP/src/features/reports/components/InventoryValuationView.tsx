@@ -114,7 +114,7 @@ const InventoryValuationView: React.FC = () => {
                 <YAxis hide />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  content={({ active, payload }: any) => {
+                  content={({ active, payload }: { active?: boolean; payload?: Array<{ value?: number | string; payload?: { name?: string } }> }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="glass-panel p-6  max-md:p-3 border-none shadow-2xl bg-white/95 dark:bg-slate-900/95 min-w-[200px]">

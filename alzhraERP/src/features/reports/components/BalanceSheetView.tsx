@@ -2,16 +2,25 @@ import React from 'react';
 import { useBalanceSheet } from '../hooks';
 import { formatCurrency } from '../../../core/utils';
 import { Landmark, Scale, ShieldCheck, Wallet, Layers, Clock } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 // import ExcelTable from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
 import ShareButton from '../../../ui/common/ShareButton';
 import { MobileCard } from './MobileComponents';
 
+/** بند في الميزانية العمومية (أصول/خصوم/حقوق ملكية) كما يعيده `useBalanceSheet`. */
+interface BalanceItem {
+  id?: string;
+  code?: string;
+  name: string;
+  netBalance: number;
+}
+
 interface ReportSectionProps {
     title: string;
-    items: any[];
+    items: BalanceItem[];
     total: number;
-    icon: any;
+    icon: LucideIcon;
     color: 'blue' | 'rose' | 'emerald';
 }
 
@@ -95,7 +104,7 @@ const BalanceSheetView: React.FC = () => {
                         eventType="balance_sheet"
                         title="مشاركة الميزانية العمومية"
                         className="bg-slate-900 text-white hover:bg-slate-800 rounded-2xl max-md:rounded-xl   max-md:p-3 sm:p-4 shadow-xl transition-all"
-                        message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(Math.abs(liabilities.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n🏛️ حقوق الملكية: ${formatCurrency(Math.abs(equity.reduce((s: number, a: any) => s + a.netBalance, 0)))}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
+                        message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(Math.abs(liabilities.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0)))}\n🏛️ حقوق الملكية: ${formatCurrency(Math.abs(equity.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0)))}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
                     />
                 </div>
             </MobileCard>
@@ -106,12 +115,12 @@ const BalanceSheetView: React.FC = () => {
 
                 {/* Right Column: Liabilities & Equity - Financial Rose & Emerald */}
                 <div className="space-y-4 sm:space-y-6">
-                    <ReportSection title="الالتزامات والخصوم" icon={Scale} items={liabilities} total={Math.abs(liabilities.reduce((s: number, a: any) => s + a.netBalance, 0))} color="rose" />
+                    <ReportSection title="الالتزامات والخصوم" icon={Scale} items={liabilities} total={Math.abs(liabilities.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0))} color="rose" />
                     <ReportSection
                         title="حقوق الملكية والأرباح"
                         icon={Layers}
                         items={equity}
-                        total={Math.abs(equity.reduce((s: number, a: any) => s + a.netBalance, 0))}
+                        total={Math.abs(equity.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0))}
                         color="emerald"
                     />
                 </div>

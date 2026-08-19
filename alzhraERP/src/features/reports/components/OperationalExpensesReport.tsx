@@ -13,6 +13,23 @@ import { MobileCard, MobileSectionTitle, ResponsiveGrid } from './MobileComponen
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
 
 const useOperationalExpenses = (days: number = 30) => {
+/** سطر قيد خام من استعلام المصاريف التشغيلية. */
+interface OperationalExpenseLine {
+  account?: { id: string; name_ar?: string | null; code?: string | null } | null;
+  debit_amount?: number | null;
+  credit_amount?: number | null;
+}
+
+/** صف مصروف مجمّع حسب الحساب (عرض الجدول). */
+interface ExpenseAccountRow {
+  id: string;
+  name: string;
+  code: string;
+  total: number;
+  count: number;
+}
+
+
     const { user } = useAuthStore();
     return useQuery({
         queryKey: ['operational_expenses', user?.company_id, days],
@@ -29,7 +46,7 @@ const useOperationalExpenses = (days: number = 30) => {
 
             // Group by account
             const accountMap: Record<string, { name: string; code: string; total: number; count: number }> = {};
-            (lines || []).forEach((line: any) => {
+            (lines || []).forEach((line: OperationalExpenseLine) => {
                 const accountId = line.account?.id;
                 const accountName = line.account?.name_ar || 'غير محدد';
                 const accountCode = line.account?.code || '';
@@ -80,22 +97,22 @@ const OperationalExpensesReport: React.FC = () => {
     const columns = useMemo(() => [
         {
             header: 'كود الحساب',
-            accessor: (row: any) => <span className="font-mono text-[9px] text-gray-400">{row.code}</span>,
+            accessor: (row: ExpenseAccountRow) => <span className="font-mono text-[9px] text-gray-400">{row.code}</span>,
             width: '80px',
         },
         {
             header: 'اسم المصروف',
-            accessor: (row: any) => <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.name}</span>,
+            accessor: (row: ExpenseAccountRow) => <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.name}</span>,
         },
         {
             header: 'عدد الحركات',
-            accessor: (row: any) => <span className="text-[10px] text-gray-500">{row.count}</span>,
+            accessor: (row: ExpenseAccountRow) => <span className="text-[10px] text-gray-500">{row.count}</span>,
             width: '80px',
             align: 'center' as const,
         },
         {
             header: 'الإجمالي',
-            accessor: (row: any) => (
+            accessor: (row: ExpenseAccountRow) => (
                 <span dir="ltr" className="font-bold font-mono text-[10px] text-rose-700 dark:text-rose-400">
                     {formatCurrency(Math.abs(row.total))}
                 </span>
@@ -105,7 +122,7 @@ const OperationalExpensesReport: React.FC = () => {
         },
         {
             header: 'النسبة',
-            accessor: (row: any) => {
+            accessor: (row: ExpenseAccountRow) => {
                 const pct = data?.totalExpenses ? ((Math.abs(row.total) / data.totalExpenses) * 100) : 0;
                 return (
                     <div className="flex items-center   max-md:gap-2">
@@ -174,7 +191,7 @@ const OperationalExpensesReport: React.FC = () => {
                                             <Cell key={i} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value: any) => formatCurrency(value || 0)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                                    <Tooltip formatter={(value: number | string) => formatCurrency(value || 0)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                                     <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
                                 </PieChart>
                             </ResponsiveContainer>

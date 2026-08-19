@@ -7,6 +7,15 @@ import { cn } from '../../../core/utils';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { MobileCard } from './MobileComponents';
 
+/** صف فروق العملات كما يعيده `useCurrencyDiffs`. */
+interface CurrencyDiffRow {
+  name: string;
+  account_type?: string;
+  currency_code?: string;
+  balance: number;
+  unrealizedGain: number;
+}
+
 const CurrencyDiffView: React.FC = () => {
   const { data, isLoading } = useCurrencyDiffs();
 
@@ -19,12 +28,12 @@ const CurrencyDiffView: React.FC = () => {
      );
    }
 
-   const totalDiff = data?.reduce((s: number, a: any) => s + a.unrealizedGain, 0) || 0;
+   const totalDiff = data?.reduce((s: number, a: CurrencyDiffRow) => s + a.unrealizedGain, 0) || 0;
 
    const columns = [
      {
        header: 'الحساب المالي',
-       accessor: (row: any) => (
+       accessor: (row: CurrencyDiffRow) => (
          <div className="flex flex-col   max-md:gap-1">
            <span className="font-black text-slate-800 dark:text-white tracking-tight text-xs sm:text-sm">{row.name}</span>
            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{row.account_type || 'Asset'}</span>
@@ -33,7 +42,7 @@ const CurrencyDiffView: React.FC = () => {
      },
      {
        header: 'كود العملة',
-       accessor: (row: any) => (
+       accessor: (row: CurrencyDiffRow) => (
          <div className="flex items-center   max-md:gap-2">
            <div className="w-2 h-2 rounded-full bg-indigo-500" />
            <span className="font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2 sm:px-3 py-1 rounded-lg text-[10px] sm:text-xs font-mono">{row.currency_code}</span>
@@ -43,7 +52,7 @@ const CurrencyDiffView: React.FC = () => {
      },
      {
        header: 'الرصيد الجاري',
-       accessor: (row: any) => (
+       accessor: (row: CurrencyDiffRow) => (
          <span dir="ltr" className="font-black font-mono text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
            {row.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
          </span>
@@ -52,7 +61,7 @@ const CurrencyDiffView: React.FC = () => {
      },
      {
        header: 'أرباح/خسائر فروق الصرف',
-       accessor: (row: any) => (
+       accessor: (row: CurrencyDiffRow) => (
          <div dir="ltr" className={`flex flex-col items-end   max-md:gap-1 ${row.unrealizedGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
            <span className="font-black font-mono text-sm sm:text-base tracking-tighter">
              {row.unrealizedGain >= 0 ? '+' : ''}{formatCurrency(row.unrealizedGain)}
