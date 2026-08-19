@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { formatCurrency } from '../../../../core/utils';
+import type { Invoice, InvoiceItem } from '../../../../returns/types';
 
 interface Props {
-  invoice: any;
-  onReturn: (invoice: any, items: any[]) => void;
+  invoice: Invoice;
+  onReturn: (invoice: Invoice, items: InvoiceItem[]) => void;
   onCancel: () => void;
   onAlert: (alert: { type: 'success' | 'warning' | 'error'; message: string }) => void;
 }
@@ -13,7 +14,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
   const [returnItems, setReturnItems] = useState<{ [key: string]: number }>({});
 
   const updateReturnQuantity = (itemId: string, qty: number) => {
-    const item = invoice?.invoice_items?.find((i: any) => i.id === itemId);
+    const item = invoice?.invoice_items?.find((i: InvoiceItem) => i.id === itemId);
     const maxQty = item?.quantity || 0;
     setReturnItems(prev => ({
       ...prev,
@@ -24,7 +25,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
   const totalReturnAmount = useMemo(() => {
     if (!invoice) return 0;
     return Object.entries(returnItems).reduce((sum, [itemId, qty]) => {
-      const item = invoice.invoice_items?.find((i: any) => i.id === itemId);
+      const item = invoice.invoice_items?.find((i: InvoiceItem) => i.id === itemId);
       return sum + (item?.unit_price || 0) * qty;
     }, 0);
   }, [returnItems, invoice]);
@@ -35,7 +36,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
     const itemsToReturn = Object.entries(returnItems)
       .filter(([_, qty]) => qty > 0)
       .map(([itemId, qty]) => {
-        const item = invoice.invoice_items?.find((i: any) => i.id === itemId);
+        const item = invoice.invoice_items?.find((i: InvoiceItem) => i.id === itemId);
         return {
           ...item,
           quantity: qty,
@@ -50,8 +51,8 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
       return;
     }
 
-    const invalidItems = itemsToReturn.filter((item: any) => {
-      const originalItem = invoice.invoice_items?.find((i: any) => i.id === item.id);
+    const invalidItems = itemsToReturn.filter((item: InvoiceItem) => {
+      const originalItem = invoice.invoice_items?.find((i: InvoiceItem) => i.id === item.id);
       return (item.returnQuantity || 0) > (originalItem?.quantity || 0);
     });
 
@@ -82,7 +83,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
           اختيار الأصناف للإرجاع
         </h3>
         <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-          {invoice.invoice_items?.map((item: any) => (
+          {invoice.invoice_items?.map((item: InvoiceItem) => (
             <div key={item.id} className="flex items-center gap-3 p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
               <div className="flex-1">
                 <p className="font-bold text-gray-800 dark:text-slate-200 text-sm">{item.description}</p>
@@ -103,7 +104,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
               </div>
               <div className="w-24 text-left">
                 <span className="font-mono font-bold text-rose-600 text-sm">
-                  {formatCurrency((returnItems[item.id] || 0) * item.unit_price, invoice.currency_code || 'SAR')}
+                  {formatCurrency((returnItems[item.id] || 0) * item.unit_price, invoice.currency_code ?? 'SAR')}
                 </span>
               </div>
             </div>
@@ -112,7 +113,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
         <div className="mt-3 pt-3 border-t border-rose-200 dark:border-rose-700 flex justify-between items-center">
           <span className="font-bold text-rose-700 dark:text-rose-400">إجمالي الإرجاع:</span>
           <span className="font-mono font-bold text-xl text-rose-600">
-            {formatCurrency(totalReturnAmount, invoice.currency_code || 'SAR')}
+            {formatCurrency(totalReturnAmount, invoice.currency_code ?? 'SAR')}
           </span>
         </div>
         <div className="mt-4 flex gap-2 w-full">

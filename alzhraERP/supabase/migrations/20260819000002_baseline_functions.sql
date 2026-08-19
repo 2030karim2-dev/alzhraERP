@@ -2870,7 +2870,7 @@ BEGIN
     notes, created_by, currency_code, exchange_rate, tax_amount, subtotal, total_amount
   ) VALUES (
     p_company_id, p_branch_id, p_supplier_id, v_invoice_number,
-    'purchase_return', 'posted',
+    'return_purchase', 'posted',
     p_notes, p_user_id, p_currency, p_exchange_rate, 0, 0, 0
   ) RETURNING id INTO v_invoice_id;
 
@@ -2904,7 +2904,7 @@ BEGIN
         unit_cost, total_cost
       ) VALUES (
         p_company_id, v_product.id, v_primary_wh_id, v_qty,
-        'purchase_return', 'invoice', v_invoice_id, p_user_id,
+        'return_purchase', 'invoice', v_invoice_id, p_user_id,
         v_unit_cost, round(v_qty * v_unit_cost, 4)
       );
 
@@ -2922,7 +2922,7 @@ BEGIN
     company_id, branch_id, entry_date, description, reference_type, reference_id, status, created_by
   ) VALUES (
     p_company_id, p_branch_id, CURRENT_DATE, 'مرتجع مشتريات ' || v_invoice_number,
-    'purchase_return', v_invoice_id, 'posted', p_user_id
+    'return_purchase', v_invoice_id, 'posted', p_user_id
   ) RETURNING id INTO v_journal_id;
 
   INSERT INTO journal_entry_lines(

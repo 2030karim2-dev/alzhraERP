@@ -1,11 +1,11 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useItemMovement, useMinimalProducts } from '../../inventory/hooks/index';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { Search, Package, History, ArrowUpRight, ArrowDownRight, ArrowLeftRight, CheckCircle2, Zap, BarChart3 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { cn } from '@/core/utils';
 
-/** طµظپ ط­ط±ظƒط© ظ…ط®ط²ظˆظ† ظƒظ…ط§ ظٹط¹ظٹط¯ظ‡ `useItemMovement`. */
+/** صف حركة مخزون كما يعيده `useItemMovement`. */
 interface MovementRow {
   id?: string;
   entry_date?: string;
@@ -20,7 +20,7 @@ interface MovementRow {
   unit_cost?: number;
 }
 
-/** ظ…ظ†طھط¬ ظ…طµط؛ظ‘ط± ظƒظ…ط§ ظٹط¹ظٹط¯ظ‡ `useMinimalProducts`. */
+/** منتج مصغّر كما يعيده `useMinimalProducts`. */
 interface MinimalProduct {
   id: string;
   name: string;
@@ -71,15 +71,15 @@ const InventoryMovementView: React.FC = () => {
     const chartData = useMemo(() => {
         const movementArr = movement as MovementRow[] || [];
         return movementArr.map((m: MovementRow) => ({
-            date: new Date(m.entry_date).toLocaleDateString('en-GB'),
+            date: new Date(m.entry_date || '').toLocaleDateString('en-GB'),
             balance: m.balance_after
         })).reverse();
     }, [movement]);
 
     const columns = [
-        { header: 'ط§ظ„طھط§ط±ظٹط® ط§ظ„ظ…ط§ظ„ظٹ', accessor: (row: MovementRow) => <span dir="ltr" className="font-mono text-[10px] text-slate-500 font-bold">{new Date(row.entry_date).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span> },
+        { header: 'التاريخ المالي', accessor: (row: MovementRow) => <span dir="ltr" className="font-mono text-[10px] text-slate-500 font-bold">{new Date(row.entry_date || '').toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span> },
         {
-            header: 'ظ†ظˆط¹ ط§ظ„ط­ط±ظƒط©', accessor: (row: MovementRow) => {
+            header: 'نوع الحركة', accessor: (row: MovementRow) => {
                 let icon = <CheckCircle2 size={12} />;
                 let color = 'text-slate-500';
                 let bg = 'bg-slate-100 dark:bg-slate-800';
@@ -89,22 +89,22 @@ const InventoryMovementView: React.FC = () => {
                     icon = <ArrowDownRight size={12} />;
                     color = 'text-emerald-600';
                     bg = 'bg-emerald-500/10 border border-emerald-500/20';
-                    label = 'ظˆط§ط±ط¯';
+                    label = 'وارد';
                 } else {
                     icon = <ArrowUpRight size={12} />;
                     color = 'text-rose-600';
                     bg = 'bg-rose-500/10 border border-rose-500/20';
-                    label = 'طµط§ط¯ط±';
+                    label = 'صادر';
                 }
 
                 if (row.reference_type === 'transfer') {
                     icon = <ArrowLeftRight size={12} />;
-                    label = row.quantity > 0 ? 'ط§ط³طھظ„ط§ظ… ظ…ظ†ط§ظ‚ظ„ط©' : 'ط¥ط±ط³ط§ظ„ ظ…ظ†ط§ظ‚ظ„ط©';
+                    label = row.quantity > 0 ? 'استلام مناقلة' : 'إرسال مناقلة';
                     color = 'text-blue-600';
                     bg = 'bg-blue-500/10 border border-blue-500/20';
                 } else if (row.reference_type === 'audit') {
                     icon = <CheckCircle2 size={12} />;
-                    label = 'ط¬ط±ط¯';
+                    label = 'جرد';
                     color = 'text-amber-600';
                     bg = 'bg-amber-500/10 border border-amber-500/20';
                 }
@@ -118,16 +118,16 @@ const InventoryMovementView: React.FC = () => {
             }, className: 'text-center'
         },
         {
-            header: 'طھظپط§طµظٹظ„ ط§ظ„ظ…ط±ط¬ط¹', accessor: (row: MovementRow) => (
+            header: 'تفاصيل المرجع', accessor: (row: MovementRow) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-[10px] text-slate-700 dark:text-slate-200">{row.document_number}</span>
                     <span className="text-[9px] text-slate-400 font-medium">{row.source_name}</span>
                 </div>
             )
         },
-        { header: 'ط§ظ„ظƒظ…ظٹط©', accessor: (row: MovementRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-3 py-1 rounded-xl", row.quantity > 0 ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20' : 'text-rose-600 bg-rose-50 dark:bg-rose-900/20')}>{row.quantity > 0 ? '+' : ''}{row.quantity}</span>, className: 'text-center' },
-        { header: 'ط§ظ„ط±طµظٹط¯ ط§ظ„طھط±ط§ظƒظ…ظٹ', accessor: (row: MovementRow) => <span dir="ltr" className="font-mono font-bold text-blue-600 ring-1 ring-blue-500/20 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-xl text-sm">{row.balance_after}</span>, className: 'text-center' },
-        { header: 'ط¨ظˆط§ط³ط·ط©', accessor: (row: MovementRow) => <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{row.source_user || 'ظ†ط¸ط§ظ…'}</span>, className: 'text-right' },
+        { header: 'الكمية', accessor: (row: MovementRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-3 py-1 rounded-xl", row.quantity > 0 ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20' : 'text-rose-600 bg-rose-50 dark:bg-rose-900/20')}>{row.quantity > 0 ? '+' : ''}{row.quantity}</span>, className: 'text-center' },
+        { header: 'الرصيد التراكمي', accessor: (row: MovementRow) => <span dir="ltr" className="font-mono font-bold text-blue-600 ring-1 ring-blue-500/20 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-xl text-sm">{row.balance_after}</span>, className: 'text-center' },
+        { header: 'بواسطة', accessor: (row: MovementRow) => <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{row.source_user || 'نظام'}</span>, className: 'text-right' },
     ];
 
     const handleSelectProduct = (product: MinimalProduct) => {
@@ -143,7 +143,7 @@ const InventoryMovementView: React.FC = () => {
                 <div className="relative w-full lg:w-[450px]">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">ظ…ط±ظƒط² ط§ظ„طھط­ظƒظ… ظپظٹ ط§ظ„ظ…ط®ط²ظˆظ†</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">مركز التحكم في المخزون</label>
                     </div>
                     <div className="relative group">
                         <input
@@ -151,7 +151,7 @@ const InventoryMovementView: React.FC = () => {
                             value={searchQuery}
                             onChange={(e) => { setSearchQuery(e.target.value); setIsDropdownOpen(true); }}
                             onFocus={() => setIsDropdownOpen(true)}
-                            placeholder="ط­ط¯ط¯ ط§ظ„طµظ†ظپ ظ„ظ…ط¨ط§ط´ط±ط© ط§ظ„طھط­ظ„ظٹظ„..."
+                            placeholder="حدد الصنف لمباشرة التحليل..."
                             className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-[1.5rem] py-4 pl-4 pr-14 text-sm font-bold outline-none transition-all dark:text-slate-100 shadow-inner"
                         />
                         <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 group-focus-within:scale-110 transition-all" size={22} />
@@ -179,7 +179,7 @@ const InventoryMovementView: React.FC = () => {
                 {/* Advanced Chronological Filters */}
                 <div className="flex gap-6 w-full lg:w-auto">
                     <div className="flex-1">
-                        <label className="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-widest">ط§ظ„ط¨ط¯ط§ظٹط©</label>
+                        <label className="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-widest">البداية</label>
                         <input
                             type="date"
                             value={fromDate}
@@ -188,7 +188,7 @@ const InventoryMovementView: React.FC = () => {
                         />
                     </div>
                     <div className="flex-1">
-                        <label className="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-widest">ط§ظ„ظ†ظ‡ط§ظٹط©</label>
+                        <label className="text-[10px] font-black text-slate-400 mb-2 block uppercase tracking-widest">النهاية</label>
                         <input
                             type="date"
                             value={toDate}
@@ -208,9 +208,9 @@ const InventoryMovementView: React.FC = () => {
                         <History size={80} className="hidden md:block text-blue-500 relative z-10 group-hover:rotate-[-10deg] transition-transform duration-700" />
                         <div className="absolute inset-0 bg-blue-500/20 blur-[60px] sm:blur-[80px] rounded-full animate-pulse" />
                     </div>
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-4 tracking-tighter">طھط­ظ„ظٹظ„ ط§ظ„طھط¯ظپظ‚ ط§ظ„ظ…ط®ط²ظ†ظٹ</h3>
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-4 tracking-tighter">تحليل التدفق المخزني</h3>
                     <p className="text-xs sm:text-sm font-bold text-slate-400 max-w-md leading-relaxed">
-                        ظ‚ظ… ط¨طھط­ط¯ظٹط¯ طµظ†ظپ ظ…ظ† ظ…ط±ظƒط² ط§ظ„طھط­ظƒظ… ط£ط¹ظ„ط§ظ‡ ظ„ط¹ط±ط¶ ط§ظ„ط³ط¬ظ„ ط§ظ„ظ…ط§ظ„ظٹ ظˆط§ظ„ظ„ظˆط¬ط³طھظٹ ط§ظ„ظƒط§ظ…ظ„طŒ ط¨ظ…ط§ ظپظٹ ط°ظ„ظƒ ط¨ظٹط§ظ†ط§طھ ط§ظ„طھظˆط±ظٹط¯ ظˆط§ظ„طµط±ظپ ظˆط§ظ„ظ…ظ†ط§ظ‚ظ„ط§طھ ط§ظ„ط³ط­ط§ط¨ظٹط©.
+                        قم بتحديد صنف من مركز التحكم أعلاه لعرض السجل المالي واللوجستي الكامل، بما في ذلك بيانات التوريد والصرف والمناقلات السحابية.
                     </p>
                 </div>
             ) : isLoading ? (
@@ -219,7 +219,7 @@ const InventoryMovementView: React.FC = () => {
                         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-4 sm:border-8 border-slate-100 border-t-blue-500 rounded-full animate-spin shadow-xl shadow-blue-500/20" />
                     </div>
                     <div className="text-center space-y-2">
-                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400 animate-pulse">ط¬ط§ط±ظٹ طھط­ظ„ظٹظ„ ط³ظ„ط³ظ„ط© ط§ظ„طھظˆط±ظٹط¯</span>
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400 animate-pulse">جاري تحليل سلسلة التوريد</span>
                     </div>
                 </div>
             ) : (
@@ -233,12 +233,12 @@ const InventoryMovementView: React.FC = () => {
                                 <Package size={120} className="hidden md:block" />
                             </div>
                             <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-4 sm:mb-6 md:mb-10 flex items-center gap-2 sm:gap-3">
-                                <BarChart3 size={14} /> ظ…ظڈط¤ط´ط±ط§طھ ط§ظ„ظƒظپط§ط،ط©
+                                <BarChart3 size={14} /> مُؤشرات الكفاءة
                             </h3>
 
                             <div className="space-y-4 sm:space-y-6 md:space-y-8">
                                 <div className="group">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-400 group-hover:text-blue-500 transition-colors">ط§ظ„ط±طµظٹط¯ ط§ظ„ظپط¹ظ„ظٹ ط§ظ„ط­ط§ظ„ظٹ</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-400 group-hover:text-blue-500 transition-colors">الرصيد الفعلي الحالي</p>
                                     <div className="flex items-baseline gap-2">
                                         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-tighter text-slate-900 dark:text-white">{analysis?.currentStock || 0}</h2>
                                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Qty</span>
@@ -247,7 +247,7 @@ const InventoryMovementView: React.FC = () => {
 
                                 <div className="p-4 sm:p-6 bg-slate-900 rounded-2xl max-md:rounded-xl sm:rounded-3xl text-white shadow-xl relative overflow-hidden border border-slate-800">
                                     <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full blur-2xl sm:blur-3xl -mr-10 -mt-10 sm:-mr-16 sm:-mt-16" />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-500">ظ…ط¹ط§ظ…ظ„ ط§ظ„ط¯ظˆط±ط§ظ†</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-500">معامل الدوران</p>
                                     <div className="flex items-center gap-3 sm:gap-4">
                                         <span className="text-2xl sm:text-3xl md:text-4xl font-black font-mono text-blue-400 italic">{analysis?.turnover || 0}</span>
                                         <span className="px-2 sm:px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 hidden sm:inline-block">Active Flux</span>
@@ -257,12 +257,12 @@ const InventoryMovementView: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                     <div className="p-3 sm:p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-emerald-500/20 transition-all">
                                         <ArrowDownRight size={16} className="text-emerald-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">طھط¯ظپظ‚ ظˆط§ط±ط¯</p>
+                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق وارد</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-emerald-600 tracking-tighter">+{analysis?.totalIn}</p>
                                     </div>
                                     <div className="p-3 sm:p-4 md:p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-rose-500/20 transition-all">
                                         <ArrowUpRight size={16} className="text-rose-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">طھط¯ظپظ‚ طµط§ط¯ط±</p>
+                                        <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق صادر</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-rose-600 tracking-tighter">-{analysis?.totalOut}</p>
                                     </div>
                                 </div>
@@ -279,7 +279,7 @@ const InventoryMovementView: React.FC = () => {
                             <div className="absolute top-0 right-0 p-3 sm:p-4 md:p-6">
                                 <div className="px-2 sm:px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-[9px] font-black text-blue-400 uppercase tracking-widest hidden sm:inline-block">Live Dynamic Chart</div>
                             </div>
-                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-4 md:mb-12 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6">ط§طھظ€ط¬ظ€ط§ظ‡ ط§ظ„ط±طµظ€ظٹظ€ط¯</h4>
+                            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-4 md:mb-12 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6">اتـجـاه الرصـيـد</h4>
                             <div className="h-full w-full px-2 sm:px-4">
                                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                     <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -313,9 +313,9 @@ const InventoryMovementView: React.FC = () => {
                                 columns={columns}
                                 data={movement || []}
                                 colorTheme="blue"
-                                title={`ط³ط¬ظ„ ط§ظ„ط¹ظ…ظ„ظٹط§طھ ط§ظ„ظ„ظˆط¬ط³طھظٹط©`}
-                                subtitle={`طھط­ظ„ظٹظ„ ظ†ط´ط§ط·: ${selectedProduct?.name}`}
-                                emptyMessage="ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„طµظ†ظپ ظپظٹ ط§ظ„ط³ط¬ظ„ ط§ظ„ط­ط§ظ„ظٹ"
+                                title={`سجل العمليات اللوجستية`}
+                                subtitle={`تحليل نشاط: ${selectedProduct?.name}`}
+                                emptyMessage="لا توجد بيانات متاحة لهذا الصنف في السجل الحالي"
                             />
                         </div>
                     </div>
