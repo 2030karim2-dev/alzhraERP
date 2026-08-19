@@ -104,6 +104,22 @@ interface RawDebtFollowupRow {
     invoice_count?: number | null;
 }
 
+interface RawTopSellingProduct {
+    category_id: string;
+    gross_profit?: number;
+    id: string;
+    name_ar?: string;
+    sku?: string;
+    total_cost?: number;
+    total_revenue?: number;
+    total_sold?: number;
+}
+
+interface RawProductCategory {
+    id: string;
+    name: string;
+}
+
 const CATEGORY_COLORS = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'] as const;
 
 interface RawTopPayload {
@@ -132,7 +148,7 @@ export const dashboardApi = {
                 : new AbortController().signal;
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
-        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes, plRes] = await Promise.allSettled([
+        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes, plRes, topSellingRes, productCategoriesRes] = await Promise.allSettled([
             // NOTE: dashboard RPCs are non-critical (safeData falls back to
             // zeros/empty arrays). They opt out of network retries via the
             // `x-skip-network-retry` header so a flaky connection cannot amplify
@@ -238,6 +254,25 @@ export const dashboardApi = {
             })
                 .setHeader('x-skip-network-retry', '1')
                 .abortSignal(activeSignal),
+
+            // 11. Top-selling products (feed for the top product-categories chart).
+            //     Aggregated by category_id client-side against product_categories.
+            supabase.rpc('get_top_selling_products', {
+                p_company_id: companyId,
+                p_days: 30,
+                p_limit: 20,
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
+
+            // 12. Product categories (names for the top-category aggregation)
+            supabase
+                .from('product_categories')
+                .select('id, name')
+                .eq('company_id', companyId)
+                .is('deleted_at', null)
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array
@@ -262,6 +297,8 @@ export const dashboardApi = {
         const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
         const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
         const profitLossRows = safeData(plRes, [], 'report_profit_loss');
+        const topSellingProducts = safeData<RawTopSellingProduct[]>(topSellingRes, [], 'get_top_selling_products');
+        const productCategories = safeData<RawProductCategory[]>(productCategoriesRes, [], 'product_categories');
 
         const recentInvoices = safeData<RawRecentInvoice[]>(recentInvoicesRes, [], 'recent_invoices');
         const recentExpenses = safeData<RawRecentExpense[]>(recentExpensesRes, [], 'recent_expenses');
@@ -308,6 +345,8 @@ export const dashboardApi = {
             })),
             trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : [],
             profitLossRows: Array.isArray(profitLossRows) ? profitLossRows : [],
+            topSellingProducts: Array.isArray(topSellingProducts) ? topSellingProducts : [],
+            productCategories: Array.isArray(productCategories) ? productCategories : [],
             recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
             recentExpenses: Array.isArray(recentExpenses) ? recentExpenses : [],
             overdueInvoices,

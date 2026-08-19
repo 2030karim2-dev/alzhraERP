@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { dashboardApi } from '../api/index';
 import { calculateDashboardInsights, resolveNetProfit } from '../services/dashboardInsights';
+import { buildTopCategoryData } from '../services/topCategoryData';
 import { useMemo, useEffect } from 'react';
 import { useFeedbackStore } from '../../feedback/store';
 import type {
@@ -52,6 +53,15 @@ interface RawDashboardData {
   trialBalanceRows: unknown[];
   // Server-authored P&L rows: [{ category, amount, type }] — مصدر صافي الربح المعتمد
   profitLossRows?: Array<{ type?: string; amount?: number | string }>;
+  // Top-selling products + product categories (feed for the top-category chart)
+  topSellingProducts?: Array<{
+    category_id: string;
+    id: string;
+    name_ar?: string;
+    total_revenue?: number;
+    total_sold?: number;
+  }>;
+  productCategories?: Array<{ id: string; name: string }>;
   // Real data feeds (added via dashboardApi): recent activity + overdue alerts
   recentInvoices: Array<{
     id: string;
@@ -126,6 +136,12 @@ const toNumber = (value: number | string | undefined | null): number => {
 // The API layer now returns pre-computed results directly.
 // Note: sumTrialBalance/getAccountCode were removed — their logic now lives in the
 // pure, unit-tested `resolveNetProfit`/`sumTrialBalanceByPrefix` in dashboardInsights.ts.
+
+/**
+ * تجميع أعلى المنتجات مبيعاً حسب فئتها — نقلت إلى services/topCategoryData
+ * (دالة نقية قابلة للاختبار) ويُستورد منها أعلاه.
+ */
+
 
 
 // ------------------------------------------
@@ -207,6 +223,9 @@ export const useDashboardData = (): UseDashboardDataResult => {
     },
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+    // Refresh when the user returns to the tab so stale fallback zeros never
+    // linger after an RPC hiccup. Realtime still drives mid-session updates.
+    refetchOnWindowFocus: true,
   });
 
   // 2. Compute Base Metrics using useMemo
@@ -220,9 +239,10 @@ export const useDashboardData = (): UseDashboardDataResult => {
       salesChart,
       topData,
       lowStockProducts,
-      categoryData,
       trialBalanceRows,
       profitLossRows = [],
+      topSellingProducts = [],
+      productCategories = [],
       // ⚠️ Defensive defaults: the 24h IndexedDB persister can restore a payload
       // written by an OLDER build whose API did not return these fields yet.
       // Without defaults, `calculateDashboardInsights` used to crash with
@@ -248,9 +268,11 @@ export const useDashboardData = (): UseDashboardDataResult => {
 
     const netCashPosition = toNumber(summary.receipt_bonds) - toNumber(summary.payment_bonds);
 
-    // lowStockProducts and categoryData are now provided directly by the RPC
-    const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
+    // lowStockProducts comes directly from the RPC. The top-categories chart is
+    // aggregated from get_top_selling_products + product_categories (instead of
+    // the expense-categories summary, which was a logical mismatch).
     const safeLowStockProducts = Array.isArray(lowStockProducts) ? lowStockProducts : [];
+    const productCategoryData = buildTopCategoryData(topSellingProducts, productCategories);
 
     const safeSalesChart: ChartDataPoint[] = Array.isArray(salesChart)
       ? (salesChart as ChartDataPoint[])
@@ -294,8 +316,8 @@ export const useDashboardData = (): UseDashboardDataResult => {
       salesData: safeSalesChart.length
         ? safeSalesChart
         : [{ name: 'اليوم', value: 0 }],
-      categoryData: safeCategoryData.length
-        ? safeCategoryData
+      categoryData: productCategoryData.length
+        ? productCategoryData
         : [{ name: 'لا توجد بيانات', value: 0, color: '#94a3b8' }],
       recentActivities: buildRecentActivities(recentInvoices, recentExpenses),
       customers: safeTopData.top_customers ?? [],

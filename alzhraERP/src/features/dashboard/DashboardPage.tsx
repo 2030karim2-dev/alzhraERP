@@ -122,7 +122,7 @@ const DashboardPage: React.FC = () => {
                     <Suspense fallback={<div className="h-40 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <FinancialHealthScore
-                                stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }}
+                                stats={stats}
                                 cashFlow={cashFlow}
                                 targets={targets}
                             />
@@ -132,7 +132,7 @@ const DashboardPage: React.FC = () => {
 
                     <Suspense fallback={<div className="h-32 mt-3 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="mt-3">
-                            <StatsGrid stats={stats || { sales: '0', purchases: '0', expenses: '0', debts: '0' }} sparklineData={salesData.map(d => Number(d.value) || 0)} />
+                            <StatsGrid stats={stats} sparklineData={salesData.map(d => Number(d.value) || 0)} />
                         </div>
                     </Suspense>
 
@@ -212,8 +212,8 @@ const DashboardPage: React.FC = () => {
 
                         <Suspense fallback={<div className="h-60 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <TopPerformers
-                                products={topProducts as any}
-                                customers={topCustomers as any}
+                                products={topProducts}
+                                customers={topCustomers}
                             />
                         </Suspense>
 
@@ -226,7 +226,14 @@ const DashboardPage: React.FC = () => {
                         </Suspense>
 
                         <Suspense fallback={null}>
-                            <AlertsPanel alerts={alerts as any} />
+                            <AlertsPanel
+                                alerts={alerts.map((a) => ({
+                                    id: a.id,
+                                    type: (a.type === 'critical' ? 'urgent' : a.type) as 'urgent' | 'warning' | 'info',
+                                    message: a.message,
+                                    time: a.time,
+                                }))}
+                            />
                         </Suspense>
 
                         <Suspense fallback={null}>
