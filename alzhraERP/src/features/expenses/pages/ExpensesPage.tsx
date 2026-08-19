@@ -10,6 +10,7 @@ import Button from '../../../ui/base/Button';
 import ExpensesAnalyticsView from './ExpensesAnalyticsView';
 import ExpensesListView from './ExpensesListView';
 import { useAIPrefillStore } from '../../ai/store';
+import { useTranslation } from '../../../lib/hooks/useTranslation';
 
 type PeriodType = 'today' | 'week' | 'month' | 'quarter' | 'year';
 type ViewType = 'list' | 'analytics';
@@ -22,6 +23,7 @@ const ExpensesPage: React.FC = () => {
 
   const { expenses, isLoading, stats } = useExpensesData(searchTerm);
   const { createExpense, isCreating, deleteExpense } = useExpenseActions();
+  const { t } = useTranslation();
 
   // AI Prefill: consume pending expense intent
   const consumePrefill = useAIPrefillStore((s: any) => s.consumePrefill);
@@ -33,11 +35,11 @@ const ExpensesPage: React.FC = () => {
   }, [consumePrefill]);
 
   const periodLabels: Record<PeriodType, string> = {
-    today: 'اليوم',
-    week: 'الأسبوع',
-    month: 'الشهر',
-    quarter: 'الربع',
-    year: 'السنة'
+    today: t('today'),
+    week: t('week'),
+    month: t('month'),
+    quarter: t('quarter'),
+    year: t('year')
   };
 
   const headerActions = (
@@ -47,7 +49,7 @@ const ExpensesPage: React.FC = () => {
         variant="outline"
         size="sm"
       >
-        {viewType === 'list' ? 'تحليلات' : 'القائمة'}
+        {viewType === 'list' ? t('analytics_view') : t('list_view')}
       </Button>
       <Button
         onClick={() => setIsModalOpen(true)}
@@ -55,7 +57,7 @@ const ExpensesPage: React.FC = () => {
         size="sm"
         leftIcon={<Plus size={14} />}
       >
-        إضافة مصروف
+        {t('add_expense')}
       </Button>
     </div>
   );
@@ -65,7 +67,7 @@ const ExpensesPage: React.FC = () => {
     return (
       <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 font-cairo">
         <MicroHeader
-          title="تحليلات المصروفات"
+          title={t('expenses_analytics_title')}
           icon={BarChart3}
           iconColor="text-rose-600"
           actions={
@@ -89,7 +91,7 @@ const ExpensesPage: React.FC = () => {
                 variant="outline"
                 size="sm"
               >
-                للقائمة
+                {t('to_list')}
               </Button>
             </div>
           }
@@ -106,11 +108,11 @@ const ExpensesPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 font-cairo">
       <MicroHeader
-        title="مركز إدارة المصاريف"
+        title={t('expenses_management_title')}
         icon={Receipt}
         iconColor="text-rose-600"
         actions={headerActions}
-        searchPlaceholder="البحث في المصاريف..."
+        searchPlaceholder={t('search_expenses_placeholder')}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
       />
