@@ -10333,6 +10333,7 @@ export type Database = {
           p_items: Json
           p_notes?: string
           p_party_id: string
+          p_payment_account_id?: string
           p_payment_type?: string
         }
         Returns: string

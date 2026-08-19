@@ -86,6 +86,7 @@ export const salesApi = {
         ...(i.warehouseId ? { warehouse_id: i.warehouseId } : {}),
       })),
       p_payment_type: payload.paymentMethod || 'cash',
+      ...(payload.treasuryAccountId ? { p_payment_account_id: payload.treasuryAccountId } : {}),
       ...(payload.notes ? { p_notes: payload.notes } : {}),
       p_currency_code: payload.currency || 'SAR',
       p_exchange_rate: payload.exchangeRate || 1,
