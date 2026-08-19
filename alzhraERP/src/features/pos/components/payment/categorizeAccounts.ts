@@ -7,5 +7,5 @@ export const formatBalance = (balance: number | undefined): string => {
     return balance.toLocaleString();
 };
 
-/** Quick-amount chips for cash payment */
-export const QUICK_AMOUNTS = [500, 1000, 2000, 5000, 10000, 20000];
+/** Quick-amount chips for cash payment (frozen so consumers cannot mutate shared state). */
+export const QUICK_AMOUNTS: readonly number[] = Object.freeze([500, 1000, 2000, 5000, 10000, 20000]);

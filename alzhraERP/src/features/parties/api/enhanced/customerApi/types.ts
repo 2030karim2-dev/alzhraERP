@@ -55,6 +55,8 @@ export interface TagAssignmentRow {
 export interface TopCustomerRow {
     id: string;
     name: string;
-    total_revenue: number;
-    invoice_count: number;
+    // PostgREST serializes SUM/COUNT aggregates as strings to avoid JS precision
+    // loss — normalize with Number(...) in the mapper before exposing numbers.
+    total_revenue: number | string;
+    invoice_count: number | string;
 }

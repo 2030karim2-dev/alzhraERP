@@ -141,6 +141,10 @@ export function usePOSSearch(options: UsePOSSearchOptions = {}) {
     const hasResults = sortedResults.length > 0;
     const showDropdown = isDropdownOpen && (isLoading || hasResults || popularResults.length > 0);
     const isShowingPopular = query.length < minChars && popularResults.length > 0;
+    // Surface query errors so callers can show user feedback instead of a
+    // silent empty result after a network / RPC failure.
+    const isError = searchQuery.isError || popularQuery.isError;
+    const error = searchQuery.error ?? popularQuery.error;
 
     // ── Handlers ───────────────────────────────────────────────────
     const handleQueryChange = useCallback((value: string) => {
@@ -166,6 +170,9 @@ export function usePOSSearch(options: UsePOSSearchOptions = {}) {
     const handleClear = useCallback(() => {
         setQuery('');
         setDebouncedQuery('');
+        // Reset the flag here too: otherwise, after `selectResult` set it, the
+        // next genuine search would silently swallow the first dropdown.
+        suppressDropdownRef.current = false;
         setIsDropdownOpen(false);
         setSelectedIndex(-1);
         inputRef.current?.focus();
@@ -223,6 +230,8 @@ export function usePOSSearch(options: UsePOSSearchOptions = {}) {
         isLoading,
         hasResults,
         isShowingPopular,
+        isError,
+        error,
         isDropdownOpen,
         showDropdown,
         sortMode,

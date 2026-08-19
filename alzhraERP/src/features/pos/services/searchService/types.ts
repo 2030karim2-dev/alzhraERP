@@ -90,4 +90,6 @@ export interface POSSearchResponse {
     popular_suggestions: string[];
     corrected_query?: string;
     search_time_ms: number;
+    /** Set to a machine-readable code when the search pipeline failed. */
+    error?: 'search_failed';
 }

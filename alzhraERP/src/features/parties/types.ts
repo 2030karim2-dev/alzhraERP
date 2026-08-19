@@ -27,9 +27,13 @@ export interface PartyFormData {
 }
 
 export interface PartyStats {
+  /** Total number of parties (active + blocked). */
   totalCount: number;
+  /** Sum of `balance` across all parties, in the default currency. */
   totalBalance: number;
+  /** Count of parties whose `status` is `active`. */
   activeCount: number;
+  /** Count of parties whose `status` is `blocked`. */
   blockedCount: number;
 }
 

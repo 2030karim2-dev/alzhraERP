@@ -35,6 +35,46 @@ interface SoundState {
   playNotificationSound: () => Promise<void>;
 }
 
+// ─── Shared AudioContext (typed — no `any` casts) ────────────────────────
+type AudioContextCtor = typeof AudioContext;
+interface UserActivationShim {
+  userActivation?: { hasBeenActive: boolean };
+}
+interface WindowWithWebkitAudio {
+  AudioContext?: AudioContextCtor;
+  webkitAudioContext?: AudioContextCtor;
+}
+
+/** Single shared context reused across notifications to avoid leaking audio device handles. */
+let sharedAudioContext: AudioContext | null = null;
+
+const getAudioContextCtor = (): AudioContextCtor | null => {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as WindowWithWebkitAudio;
+  return w.AudioContext ?? w.webkitAudioContext ?? null;
+};
+
+/** Create (or reuse) the shared context and resume it if suspended. */
+const ensureAudioContext = async (): Promise<AudioContext | null> => {
+  const Ctor = getAudioContextCtor();
+  if (!Ctor) return null;
+
+  if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+    sharedAudioContext = new Ctor();
+  }
+
+  if (sharedAudioContext.state === 'suspended') {
+    try {
+      await sharedAudioContext.resume();
+    } catch {
+      // Resume failure is almost certainly a user-gesture requirement.
+      return null;
+    }
+  }
+
+  return sharedAudioContext.state === 'running' ? sharedAudioContext : null;
+};
+
 
 export const useNotificationStore = create<NotificationState>()(
   persist(
@@ -145,28 +185,16 @@ export const useSoundStore = create<SoundState>()(
 
         // Modern browsers explicit gesture check to prevent harsh console warnings
         if (typeof navigator !== 'undefined' && 'userActivation' in navigator) {
-          if (!(navigator as any).userActivation.hasBeenActive) return;
+          const nav = navigator as unknown as UserActivationShim;
+          if (!nav.userActivation?.hasBeenActive) return;
         }
 
         try {
-          // Try to use the Web Audio API for a subtle notification sound
-          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-          if (!AudioContext) return;
-
-          const audioContext = new AudioContext();
-
-          // Resume context if suspended (browser autoplay policy)
-          if (audioContext.state === 'suspended') {
-            try {
-              await audioContext.resume();
-            } catch (e) {
-              // If resume fails, it's almost certainly a user gesture requirement
-              return;
-            }
-          }
-
-          // Ensure it's active
-          if (audioContext.state !== 'running') return;
+          // Reuse a single lazily-initialized context — creating a new
+          // AudioContext per notification accumulates undisposed audio
+          // contexts and consumes memory/audio-device handles.
+          const audioContext = await ensureAudioContext();
+          if (!audioContext) return;
 
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
@@ -189,20 +217,42 @@ export const useSoundStore = create<SoundState>()(
           oscillator.start(now);
           oscillator.stop(now + 0.15);
 
+          // Release the graph resources when the tone finishes.
+          oscillator.onended = () => {
+            try {
+              oscillator.disconnect();
+              gainNode.disconnect();
+            } catch {
+              /* already disconnected */
+            }
+          };
+
           // Second tone (lower, slightly delayed for harmony)
           setTimeout(() => {
-            const osc2 = audioContext.createOscillator();
-            const gain2 = audioContext.createGain();
-            osc2.connect(gain2);
-            gain2.connect(audioContext.destination);
+            try {
+              const osc2 = audioContext.createOscillator();
+              const gain2 = audioContext.createGain();
+              osc2.connect(gain2);
+              gain2.connect(audioContext.destination);
 
-            osc2.frequency.setValueAtTime(783.99, audioContext.currentTime); // G5
-            gain2.gain.setValueAtTime(0, audioContext.currentTime);
-            gain2.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.02);
-            gain2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+              osc2.frequency.setValueAtTime(783.99, audioContext.currentTime); // G5
+              gain2.gain.setValueAtTime(0, audioContext.currentTime);
+              gain2.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.02);
+              gain2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
 
-            osc2.start(audioContext.currentTime);
-            osc2.stop(audioContext.currentTime + 0.12);
+              osc2.start(audioContext.currentTime);
+              osc2.stop(audioContext.currentTime + 0.12);
+              osc2.onended = () => {
+                try {
+                  osc2.disconnect();
+                  gain2.disconnect();
+                } catch {
+                  /* already disconnected */
+                }
+              };
+            } catch {
+              // Ignore — the primary tone already played.
+            }
           }, 60);
 
         } catch (error) {

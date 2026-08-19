@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Car, Globe, Mail, Users, Heart, CheckCircle } from 'lucide-react';
+import { LANDING_CONTACT_EMAIL } from '../../landing/landing.constants';
 
 interface LandingFooterProps {
   scrollToFeatures: () => void;
@@ -65,13 +66,13 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
                 {
                   icon: Mail,
                   label: 'إرسال بريد إلكتروني',
-                  href: 'mailto:2030.krim2@gmail.com',
+                  href: `mailto:${LANDING_CONTACT_EMAIL}`,
                   external: false,
                 },
                 {
                   icon: Users,
                   label: 'التواصل مع فريق الدعم',
-                  href: 'mailto:2030.krim2@gmail.com?subject=دعم%20نظام%20الزهراء',
+                  href: `mailto:${LANDING_CONTACT_EMAIL}?subject=دعم%20نظام%20الزهراء`,
                   external: false,
                 },
               ].map(({ icon: Icon, label, href, external }) => (
@@ -148,7 +149,7 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
               </li>
               <li>
                 <a
-                  href="mailto:2030.krim2@gmail.com?subject=سياسة الخصوصية%20-%20نظام%20الزهراء"
+                  href={`mailto:${LANDING_CONTACT_EMAIL}?subject=سياسة الخصوصية%20-%20نظام%20الزهراء`}
                   className="transition-colors hover:text-blue-400"
                 >
                   سياسة الخصوصية
@@ -156,7 +157,7 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
               </li>
               <li>
                 <a
-                  href="mailto:2030.krim2@gmail.com?subject=شروط الاستخدام%20-%20نظام%20الزهراء"
+                  href={`mailto:${LANDING_CONTACT_EMAIL}?subject=شروط الاستخدام%20-%20نظام%20الزهراء`}
                   className="transition-colors hover:text-blue-400"
                 >
                   شروط الاستخدام
@@ -164,7 +165,7 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
               </li>
               <li>
                 <a
-                  href="mailto:2030.krim2@gmail.com"
+                  href={`mailto:${LANDING_CONTACT_EMAIL}`}
                   className="transition-colors hover:text-blue-400"
                 >
                   اتصل بنا

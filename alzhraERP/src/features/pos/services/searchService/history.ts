@@ -65,19 +65,32 @@ export async function getRecentSales(
 
 /**
  * Get sales counts for a list of product IDs.
+ *
+ * @param productIds Products to aggregate paid sales for.
+ * @param companyId  Company scope. When provided, only paid invoices of that
+ *                   company are counted — defense-in-depth on top of RLS so we
+ *                   never aggregate across tenants.
  */
 export async function getSalesCounts(
-    productIds: string[]
+    productIds: string[],
+    companyId?: string
 ): Promise<Map<string, { count: number; last_date?: string }>> {
     if (productIds.length === 0) return new Map();
 
     try {
-        const { data, error } = await supabase
+        let query = supabase
             .from('invoice_items')
             .select('product_id, invoices(created_at)')
             .in('product_id', productIds)
-            .eq('invoices.status', 'paid')
-            .limit(1000);
+            .eq('invoices.status', 'paid');
+
+        if (companyId !== undefined) {
+            query = query.eq('invoices.company_id', companyId);
+        }
+
+        // Note: no `.limit()` here — truncating the rows would silently
+        // under-count the aggregation for products with many invoice items.
+        const { data, error } = await query;
 
         if (error || !data) return new Map();
 
@@ -90,7 +103,9 @@ export async function getSalesCounts(
 
             if (existing) {
                 existing.count++;
-                if (createdAt && (!existing.last_date || createdAt > existing.last_date)) {
+                // Numeric comparison — lexicographic string ordering breaks on
+                // mixed ISO formats/timezones.
+                if (createdAt && (!existing.last_date || new Date(createdAt).getTime() > new Date(existing.last_date).getTime())) {
                     existing.last_date = createdAt;
                 }
             } else {

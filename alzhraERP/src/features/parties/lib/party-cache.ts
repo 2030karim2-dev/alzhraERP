@@ -19,11 +19,24 @@ export const partyCache = {
             const stored = localStorage.getItem(key);
             if (!stored) return [];
 
-            const { data, timestamp } = JSON.parse(stored);
+            const parsed = JSON.parse(stored) as { data?: unknown; timestamp?: unknown };
+            const data = parsed.data;
+            const timestamp = parsed.timestamp;
 
-            // Expire cache after 1 hour to ensure fresh data eventual consistency
-            const isExpired = Date.now() - timestamp > 3600000;
-            if (isExpired) return [];
+            // Expire cache after 1 hour to ensure fresh data eventual consistency.
+            // Also drop the stale entry so it stops occupying storage.
+            if (typeof timestamp !== 'number' || Date.now() - timestamp > 3600000) {
+                localStorage.removeItem(key);
+                return [];
+            }
+
+            // Guard the shape we trust downstream: corrupt/legacy payloads must
+            // never surface as malformed parties.
+            if (!Array.isArray(data)) {
+                logger.warn("party-cache", 'Party cache entry malformed, discarding for', key);
+                localStorage.removeItem(key);
+                return [];
+            }
 
             return data as Party[];
         } catch (e) {
@@ -51,7 +64,13 @@ export const partyCache = {
      * Clear cache for a specific company/type
      */
     clear: (companyId: string, type: PartyType) => {
-        const key = `${CACHE_KEY_PREFIX}${companyId}_${type}`;
-        localStorage.removeItem(key);
+        // localStorage.removeItem can throw in restricted/incognito contexts —
+        // keep the parity with `get`/`set` so callers are never broken.
+        try {
+            const key = `${CACHE_KEY_PREFIX}${companyId}_${type}`;
+            localStorage.removeItem(key);
+        } catch (e) {
+            logger.error("party-cache", 'Failed to clear party cache:', e);
+        }
     }
 };

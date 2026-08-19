@@ -7,6 +7,37 @@ import { scoreSearchResult } from '../../../../core/utils/search';
 import type { BarcodeSearchRow, POSSearchFilters, POSSearchResult } from './types';
 
 /**
+ * Apply client-side POS filters (category / stock / brand) on RPC results.
+ * The paginated RPC does not accept filter parameters, so this keeps the UI
+ * requirements honoured while still benefiting from server-side search.
+ */
+function applyClientFilters(
+    results: POSSearchResult[],
+    filters?: POSSearchFilters
+): POSSearchResult[] {
+    if (!filters) return results;
+
+    let filtered = results;
+    if (filters.category_id !== undefined && filters.category_id !== '') {
+        const wanted = filters.category_id;
+        filtered = filtered.filter((r) => r.category_id === wanted);
+    }
+    if (filters.min_stock != null && filters.min_stock > 0) {
+        const min = filters.min_stock;
+        // `stock_quantity` is a required number on POSSearchResult, so no ?? guard.
+        filtered = filtered.filter((r) => r.stock_quantity >= min);
+    }
+    if (filters.in_stock_only === true) {
+        filtered = filtered.filter((r) => r.stock_quantity > 0);
+    }
+    if (filters.brand !== undefined && filters.brand !== '') {
+        const wantedBrand = filters.brand.toLowerCase();
+        filtered = filtered.filter((r) => (r.brand ?? '').toLowerCase().includes(wantedBrand));
+    }
+    return filtered;
+}
+
+/**
  * Search the database using the smart search RPC function.
  */
 export async function searchDatabase(
@@ -35,7 +66,7 @@ export async function searchDatabase(
         // This avoids executing a heavy nested join query on invoice_items.
         const salesCounts = new Map();
 
-        return (data || []).map((row: any) => {
+        const results = (data || []).map((row: any) => {
             const stockList = Array.isArray(row.stock) ? row.stock : [];
             const totalStock = stockList.reduce(
                 (sum: number, s: any) => sum + (Number(s.quantity) || 0),
@@ -73,6 +104,8 @@ export async function searchDatabase(
                 match_type: 'exact' as const,
             };
         });
+
+        return applyClientFilters(results, filters);
     } catch (err: any) {
         logger.warn("database", 'POS Search failed, using fallback:', err.message);
         return searchDatabaseFallback(companyId, query, filters, limit);

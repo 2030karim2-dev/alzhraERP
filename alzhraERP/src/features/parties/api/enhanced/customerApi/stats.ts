@@ -15,6 +15,13 @@ export async function getCustomerStats(companyId: string): Promise<CustomerStats
         .rpc('get_customer_stats', { p_company_id: companyId });
 
     if (error) throw error;
+
+    // Minimal runtime guard: fail fast instead of silently returning undefined
+    // fields if the RPC signature changes.
+    if (!data || typeof data !== 'object') {
+        throw new Error('Unexpected response from get_customer_stats');
+    }
+
     return data as unknown as CustomerStats;
 }
 
@@ -31,8 +38,10 @@ export async function getTopCustomers(companyId: string, limit: number = 10): Pr
         return {
             id: row.id,
             name: row.name,
-            totalRevenue: row.total_revenue,
-            invoiceCount: row.invoice_count
+            // PostgREST serializes numeric/bigint aggregates (SUM/COUNT) as
+            // strings to avoid JS precision loss — normalize to numbers here.
+            totalRevenue: Number(row.total_revenue) || 0,
+            invoiceCount: Number(row.invoice_count) || 0
         };
     });
 }
@@ -77,14 +86,16 @@ export async function getOverdueActivities(companyId: string): Promise<CustomerA
 
     if (error) throw error;
 
-    // Mark them as overdue
+    // Mark them as overdue — update exactly the fetched row IDs so the
+    // returned set always matches the database state (no over- or under-matching
+    // under concurrency), and surface update failures instead of ignoring them.
     if (data && data.length > 0) {
-        await supabase
+        const { error: updateError } = await supabase
             .from('customer_activities')
             .update({ status: 'overdue' })
-            .eq('company_id', companyId)
-            .eq('status', 'pending')
-            .lt('scheduled_at', now);
+            .in('id', data.map((item) => item.id));
+
+        if (updateError) throw updateError;
     }
 
     return (data || []).map((item) => {

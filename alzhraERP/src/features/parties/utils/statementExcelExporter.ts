@@ -8,8 +8,29 @@
 // declarations, so the resolved value is typed as `any` (same as original code).
 let xlsxPromise: Promise<any> | null = null;
 const loadXLSX = (): Promise<any> => {
-  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
+  xlsxPromise ??= import('xlsx-js-style')
+    .then((m: any) => m.default ?? m)
+    .catch((err: unknown) => {
+      // Do not cache the rejection forever: allow the next export to retry.
+      xlsxPromise = null;
+      throw err;
+    });
   return xlsxPromise;
+};
+
+/** Strip characters that are invalid in Windows file names before building the export path. */
+const sanitizeFileName = (value: string): string => {
+  // Filter out control characters (U+0000–U+001F) without a control-char regex.
+  const sanitized = Array.from(value)
+    .filter((ch) => ch.charCodeAt(0) >= 32)
+    .join('');
+  return (
+    sanitized
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .trim()
+      .replace(/\s+/g, '_')
+      .slice(0, 80) || 'party'
+  );
 };
 
 interface CompanyInfo {
@@ -156,14 +177,25 @@ export const generateStatementExcelWorkbook = async (
 };
 
 export const exportStatementToExcel = async (company: CompanyInfo, partyName: string, data: StatementEntry[]) => {
-    const XLSX = await loadXLSX();
-    const wb = await generateStatementExcelWorkbook(company, partyName, data);
-    XLSX.writeFile(wb, `كشف_حساب_${partyName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    try {
+        const XLSX = await loadXLSX();
+        const wb = await generateStatementExcelWorkbook(company, partyName, data);
+        const safeName = sanitizeFileName(partyName);
+        XLSX.writeFile(wb, `كشف_حساب_${safeName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch {
+        // Unhandled rejections would break the caller's user-flow (import /
+        // permission / disk issues) — surface a consistent friendly message.
+        throw new Error('فشل تصدير كشف الحساب إلى Excel');
+    }
 };
 
 export const generateStatementExcelBlob = async (company: CompanyInfo, partyName: string, data: StatementEntry[]): Promise<Blob> => {
-    const XLSX = await loadXLSX();
-    const wb = await generateStatementExcelWorkbook(company, partyName, data);
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    try {
+        const XLSX = await loadXLSX();
+        const wb = await generateStatementExcelWorkbook(company, partyName, data);
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    } catch {
+        throw new Error('فشل إنشاء ملف كشف الحساب');
+    }
 };

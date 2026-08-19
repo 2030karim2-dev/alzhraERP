@@ -87,6 +87,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
             </button>
 
             <motion.button
+              type="button"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToRegister}
@@ -135,6 +136,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
                 </button>
               ))}
               <button
+                type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   scrollToRegister();

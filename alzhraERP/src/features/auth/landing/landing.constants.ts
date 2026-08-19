@@ -1,5 +1,9 @@
 import { Package, FileText, Users, BarChart3, Shield, Zap, type LucideIcon } from 'lucide-react';
 
+// ── Contact ──
+/** Business contact email used across the landing sections — single source of truth. */
+export const LANDING_CONTACT_EMAIL = '2030.krim2@gmail.com';
+
 // ── Features ──
 export interface LandingFeature {
   icon: LucideIcon;

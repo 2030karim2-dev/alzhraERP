@@ -137,6 +137,7 @@ export interface SupplierStats {
     activeSuppliers: number;
     avgRating: number;
     topRatedSuppliers: number;
+    /** Total value of purchases from suppliers (maps to `total_purchases_amount`). */
     totalPurchases: number;
 }
 
@@ -145,6 +146,7 @@ export interface SupplierPerformance {
     supplierName: string;
     avgRating: number;
     totalOrders: number;
+    /** Total value of purchases from this supplier (maps to `total_purchases_amount`). */
     totalPurchaseAmount: number;
     avgDeliveryDays: number;
     lastPurchaseDate?: string;
@@ -161,6 +163,11 @@ export interface EnhancedParty extends Party {
     birthDate?: string;
     preferredContactMethod?: ContactMethod;
     creditLimit?: number;
+    /**
+     * Customer payment terms in days.
+     * @deprecated Both `paymentTerms` and `paymentTermsDays` map to the single
+     * DB column `payment_terms_days` — prefer `paymentTermsDays`.
+     */
     paymentTerms?: number;
     totalInvoicesCount?: number;
     totalPaidAmount?: number;
@@ -174,12 +181,14 @@ export interface EnhancedParty extends Party {
     supplierType?: SupplierType;
     taxNumber?: string;
     commercialRegistration?: string;
+    /** Supplier payment terms in days — canonical field for `payment_terms_days`. */
     paymentTermsDays?: number;
     minOrderAmount?: number;
     deliveryLeadDays?: number;
     isActiveSupplier?: boolean;
     avgRating?: number;
     totalOrdersCount?: number;
+    /** Total value of purchases (maps to `total_purchases_amount`). */
     totalPurchasesAmount?: number;
     lastPurchaseDate?: string;
 
@@ -270,7 +279,12 @@ export interface TimelineItem {
     description?: string;
     icon?: string;
     color?: string;
-    data?: CustomerActivity | CustomerNote | unknown;
+    /**
+     * Payload for the timeline entry. Intentionally NOT `unknown`: including
+     * `unknown` in the union would collapse the whole union to `unknown` and
+     * defeat narrowing. Callers can narrow on `type` to the concrete shape.
+     */
+    data?: CustomerActivity | CustomerNote | Record<string, unknown>;
 }
 
 // ============================================================

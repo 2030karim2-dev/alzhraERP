@@ -19,7 +19,12 @@ export function useProductFilter({ products, selectedCategory, inStockOnly, sele
             result = result.filter((p) => {
                 const dist = Array.isArray(p.warehouse_distribution) ? p.warehouse_distribution : [];
                 const whStock = dist.find(w => w.warehouse_id === selectedWarehouseId);
-                return whStock != null && whStock.quantity > 0;
+                // The warehouse filter scopes the grid to products present at the
+                // selected warehouse. Only enforce `quantity > 0` when the
+                // operator explicitly enabled "In Stock Only" — otherwise a
+                // zero-stock product at this warehouse must still be visible.
+                if (inStockOnly) return whStock != null && whStock.quantity > 0;
+                return whStock != null;
             });
         }
         return result;

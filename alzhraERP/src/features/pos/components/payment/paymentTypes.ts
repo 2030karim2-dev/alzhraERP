@@ -1,13 +1,14 @@
-// Local Account type that matches what usePaymentAccounts returns
-export interface PaymentAccount {
-    id: string;
-    company_id: string;
-    code: string;
-    name_ar: string;
-    type: string;
-    balance: number;
-    currency_code: string;
-    is_system: boolean;
+// Local Account type that matches what usePaymentAccounts returns.
+// Extends the canonical `PaymentAccount` (accounting) so consumers keep
+// backward-compatible extra fields, while the *required* core shape stays
+// aligned with the data source — removing the need for unsafe `as unknown as`
+// casts at call sites.
+import type { PaymentAccount as CanonicalPaymentAccount } from '../../../accounting/hooks/usePaymentAccounts';
+
+export interface PaymentAccount extends CanonicalPaymentAccount {
+    company_id?: string;
+    type?: string;
+    is_system?: boolean;
     parent_id?: string | null;
     name?: string;
     is_active?: boolean;

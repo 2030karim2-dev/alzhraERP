@@ -73,7 +73,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ scrollToRegister, scrollToFea
         };
 
   return (
-    <section className="relative isolate overflow-hidden px-3 pb-12 pt-36 sm:px-6 sm:pb-20 sm:pt-36 lg:px-10 lg:pb-28 lg:pt-40">
+    <section className="relative isolate overflow-hidden px-3 pb-12 pt-36 sm:px-6 sm:pb-20 lg:px-10 lg:pb-28 lg:pt-40">
       <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_18%,rgba(37,99,235,0.16),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef5ff_56%,#f8fbff_100%)] dark:bg-[radial-gradient(circle_at_18%_18%,rgba(37,99,235,0.22),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#08111f_0%,#0b1526_56%,#08111f_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-[linear-gradient(to_right,rgba(37,99,235,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(37,99,235,0.08)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:linear-gradient(to_bottom,black,transparent)] dark:bg-[linear-gradient(to_right,rgba(147,197,253,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(147,197,253,0.08)_1px,transparent_1px)]" />
       <div className="pointer-events-none absolute -left-28 top-56 -z-10 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-500/10" />

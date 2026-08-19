@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_PRICING_PLANS } from '../../landing/landing.constants';
+import { LANDING_PRICING_PLANS, LANDING_CONTACT_EMAIL } from '../../landing/landing.constants';
 import type { LandingPricingPlan } from '../../landing/landing.constants';
 
 const accentBorderMap: Record<string, string> = {
@@ -67,7 +67,7 @@ const PricingCard: React.FC<{ plan: LandingPricingPlan; index: number; onStart: 
         onClick={() => {
           if (plan.id === 'enterprise') {
             window.location.href =
-              'mailto:2030.krim2@gmail.com?subject=استفسار باقة المؤسسات - نظام الزهراء';
+              `mailto:${LANDING_CONTACT_EMAIL}?subject=استفسار باقة المؤسسات - نظام الزهراء`;
           } else {
             onStart();
           }

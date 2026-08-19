@@ -15,7 +15,7 @@ import type { CustomerActivityRow } from './types';
 /** Maps a raw joined customer_activities row into the domain type. */
 export function mapCustomerActivity(item: CustomerActivityRow): CustomerActivity {
     const activity: CustomerActivity = {
-        id: item.id,
+        id: item.id || '',
         companyId: item.company_id || '',
         customerId: item.customer_id || '',
         activityType: item.activity_type as unknown as ActivityType,
@@ -95,7 +95,11 @@ export async function getCompanyActivities(companyId: string, filters?: Customer
 
 export async function createActivity(activity: CustomerActivityFormData & { customerId: string; companyId: string }): Promise<CustomerActivity> {
     const { data: authData } = await supabase.auth.getUser();
-    const userId = authData?.user?.id ?? null;
+    const userId = authData.user?.id;
+
+    // Guard: created_by must never be null — the DB column is NOT NULL and it
+    // preserves user identity for the audit trail.
+    if (!userId) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
         .from('customer_activities')
@@ -115,7 +119,10 @@ export async function createActivity(activity: CustomerActivityFormData & { cust
         .single();
 
     if (error) throw error;
-    return data as unknown as CustomerActivity;
+
+    // Map through the domain mapper so callers receive camelCase fields —
+    // returning the raw row leaks snake_case columns and `undefined` optionals.
+    return mapCustomerActivity(data);
 }
 
 export async function completeActivity(activityId: string, outcome?: string): Promise<void> {

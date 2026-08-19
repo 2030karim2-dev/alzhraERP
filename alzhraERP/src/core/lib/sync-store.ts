@@ -17,9 +17,25 @@ const STORAGE_KEY = 'alzhra-pending-sync';
 
 export const syncStore = {
     /**
-     * Enqueue a new mutation for background sync
+     * Enqueue a new mutation for background sync.
+     *
+     * Identical pending mutations (same `mutationKey` and same `variables`)
+     * are de-duplicated: retrying the same offline action must not enqueue a
+     * second entry that would later execute the operation twice.
      */
     async enqueue(mutation: Omit<PendingMutation, 'id' | 'timestamp' | 'retryCount'>) {
+        const key = JSON.stringify(mutation.mutationKey);
+        const variables = JSON.stringify(mutation.variables);
+
+        const existing = await this.getPending();
+        const duplicate = existing.find(
+            (m) => JSON.stringify(m.mutationKey) === key && JSON.stringify(m.variables) === variables
+        );
+        if (duplicate) {
+            logger.info('SyncStore', `Duplicate pending mutation skipped: ${duplicate.id}`);
+            return duplicate.id;
+        }
+
         const id = crypto.randomUUID();
         const newEntry: PendingMutation = {
             ...mutation,

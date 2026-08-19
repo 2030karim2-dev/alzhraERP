@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import { SectionHeader } from '../SectionHeader';
-import { LANDING_FAQS } from '../../landing/landing.constants';
+import { LANDING_FAQS, LANDING_CONTACT_EMAIL } from '../../landing/landing.constants';
 
 const FAQItem: React.FC<{
   question: string;
   answer: string;
   isOpen: boolean;
   onToggle: () => void;
+  panelId: string;
   // eslint-disable-next-line max-lines-per-function -- عنصر FAQ واحد بكل محتواه
-}> = React.memo(({ question, answer, isOpen, onToggle }) => (
+}> = React.memo(({ question, answer, isOpen, onToggle, panelId }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -21,7 +22,7 @@ const FAQItem: React.FC<{
       type="button"
       onClick={onToggle}
       aria-expanded={isOpen}
-      aria-controls={`faq-panel-${question}`}
+      aria-controls={panelId}
       className="flex w-full items-center justify-between gap-2 p-3 text-right sm:gap-4 sm:p-6"
     >
       <div className="flex min-w-0 items-center gap-2 sm:gap-4">
@@ -49,7 +50,7 @@ const FAQItem: React.FC<{
     <AnimatePresence initial={false}>
       {isOpen && (
         <motion.div
-          id={`faq-panel-${question}`}
+          id={panelId}
           role="region"
           aria-label={question}
           initial={{ height: 0, opacity: 0 }}
@@ -98,6 +99,7 @@ const FAQSection: React.FC<{ sectionRef?: React.RefObject<HTMLDivElement | null>
           {LANDING_FAQS.map((faq, i) => (
             <FAQItem
               key={i}
+              panelId={`faq-panel-${String(i)}`}
               question={faq.question}
               answer={faq.answer}
               isOpen={openIndex === i}
@@ -117,7 +119,7 @@ const FAQSection: React.FC<{ sectionRef?: React.RefObject<HTMLDivElement | null>
           <p className="text-sm font-medium text-[var(--app-text-secondary)]">
             لم تجد إجابة لسؤالك؟{' '}
             <a
-              href="mailto:2030.krim2@gmail.com"
+              href={`mailto:${LANDING_CONTACT_EMAIL}`}
               className="font-black text-blue-500 hover:underline"
             >
               تواصل معنا مباشرة

@@ -167,7 +167,6 @@ export const StepIllustration: React.FC<{ step: number; className?: string }> = 
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           transition={{ duration: 1.5, delay: 0.5 }}
-          points="28,65 42,55 56,40 70,50 84,35"
           d="M28 65l14-10 14-15 14 10 14-15"
           className="stroke-orange-600 shadow-lg"
           strokeWidth="3"

@@ -23,9 +23,8 @@ export const partiesService = {
     return (data || []).map((p: Record<string, unknown>) => {
       // party_balances is a joined array — take the first record's balance
       const balanceRecords = p.party_balances as Array<{ balance: number; type: string }> | null;
-      const balance = balanceRecords && balanceRecords.length > 0
-        ? Number(balanceRecords[0].balance) || 0
-        : 0;
+      const firstRecord = balanceRecords?.[0];
+      const balance = firstRecord ? Number(firstRecord.balance) || 0 : 0;
       return {
         ...p,
         category_id: p.category_id,
@@ -90,12 +89,16 @@ export const partiesService = {
     return result;
   },
 
-  calculateStats: (parties: Party[]): PartyStats => ({
-    totalCount: parties.length,
-    totalBalance: parties.reduce((sum, p) => sum + (Number(p.balance) || 0), 0),
-    activeCount: parties.length,
-    blockedCount: 0,
-  }),
+  calculateStats: (parties: Party[]): PartyStats => {
+    const activeCount = parties.filter(p => (p.status ?? 'active') === 'active').length;
+    const blockedCount = parties.filter(p => p.status === 'blocked').length;
+    return {
+      totalCount: parties.length,
+      totalBalance: parties.reduce((sum, p) => sum + (Number(p.balance) || 0), 0),
+      activeCount,
+      blockedCount,
+    };
+  },
 
   saveParty: async (companyId: string, data: PartyFormData, id?: string) => {
     if (!data.name) throw new Error("الاسم مطلوب");
@@ -172,7 +175,7 @@ export const partiesService = {
       name,
       type,
       status: 'active'
-    } as any, companyId);
+    }, companyId);
 
     if (createError) throw createError;
     return (created as unknown) as Party;

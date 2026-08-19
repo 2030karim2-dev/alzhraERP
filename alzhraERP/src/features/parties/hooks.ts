@@ -73,15 +73,20 @@ export const usePartyMutations = (type: PartyType) => {
       return partiesService.saveParty(user.company_id, data, id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parties', user?.company_id, type] });
+      // Read the *current* user instead of the render-closure value: if the user
+      // logged out/in between render and callback, invalidate the right key.
+      const currentUser = useAuthStore.getState().user;
+      queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id, type] });
       showToast('تم حفظ البيانات بنجاح', 'success');
     },
-    onError: (err: any, variables) => {
-      // If it's a network error, enqueue for offline processing
+    onError: (err: Error & { status?: number }, variables: { data: PartyFormData; id?: string }) => {
+      // If it's a network error, enqueue for offline processing. Use the current
+      // auth state so we never sync under a stale company_id after logout.
+      const currentUser = useAuthStore.getState().user;
       if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
         syncStore.enqueue({
           mutationKey: ['parties', 'save'],
-          variables: { ...variables.data, id: variables.id, company_id: user?.company_id, type }
+          variables: { ...variables.data, id: variables.id, company_id: currentUser?.company_id, type }
         });
         showToast("تم الحفظ محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً عند عودة الإنترنت.", 'info');
         return;
@@ -96,7 +101,8 @@ export const usePartyMutations = (type: PartyType) => {
       return partiesService.deleteParty(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parties', user?.company_id, type] });
+      const currentUser = useAuthStore.getState().user;
+      queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id, type] });
       showToast('تم حذف السجل نهائياً', 'success');
     },
     onError: (err: Error) => showToast(err.message, 'error', err)
@@ -116,14 +122,16 @@ export const useCategoryMutations = (type: PartyType) => {
       return partiesService.saveCategory(user.company_id, { name, type }, id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['party_categories', user?.company_id, type] });
+      const currentUser = useAuthStore.getState().user;
+      queryClient.invalidateQueries({ queryKey: ['party_categories', currentUser?.company_id, type] });
       showToast("تم حفظ الفئة بنجاح", 'success');
     },
-    onError: (err: any, variables) => {
+    onError: (err: Error & { status?: number }, variables: { name: string; id?: string }) => {
+      const currentUser = useAuthStore.getState().user;
       if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
         syncStore.enqueue({
           mutationKey: ['parties', 'save_category'],
-          variables: { name: variables.name, id: variables.id, company_id: user?.company_id, type }
+          variables: { name: variables.name, id: variables.id, company_id: currentUser?.company_id, type }
         });
         showToast("تم حفظ الفئة محلياً (وضع عدم الاتصال).", 'info');
         return;
@@ -133,12 +141,17 @@ export const useCategoryMutations = (type: PartyType) => {
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => partiesService.deleteCategory(id),
+    mutationFn: async (id: string) => {
+      // Parity with deleteParty: category deletion must be permission-protected.
+      await assertPermission('customers:delete', 'حذف جهات (عملاء/موردين)');
+      return partiesService.deleteCategory(id);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['party_categories', user?.company_id, type] });
+      const currentUser = useAuthStore.getState().user;
+      queryClient.invalidateQueries({ queryKey: ['party_categories', currentUser?.company_id, type] });
       showToast("تم حذف الفئة", 'info');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast(err.message || "لا يمكن حذف هذه الفئة حالياً", 'error');
     }
   });
