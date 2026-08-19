@@ -42,6 +42,9 @@ sizes.txt
 *.sln
 *.sw?
 
+# graphify knowledge-graph output (generated; rebuild with `graphify update .`)
+graphify-out/
+
 # project logs/temp
 tsc-errors*.txt
 ts_errors.txt
