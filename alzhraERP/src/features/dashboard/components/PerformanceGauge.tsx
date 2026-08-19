@@ -8,6 +8,11 @@ interface PerformanceGaugeProps {
     value: number;
     target: number;
     title?: string;
+    /**
+     * مُنسِّق مبالغ اختياري لعرض المحقق/الهدف بالعملة (مثل formatCurrency)
+     * بدلاً من أرقام مجردة مضللة في سياق مالي.
+     */
+    formatValue?: (value: number) => string;
     className?: string;
 }
 
@@ -15,12 +20,17 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
     value,
     target,
     title = 'أداء المبيعات',
+    formatValue,
     className
 }) => {
     const { theme } = useThemeStore();
     const isDark = theme === 'dark';
     const [isMounted, setIsMounted] = React.useState(false);
     const containerRef = React.useRef<HTMLDivElement>(null);
+
+    const displayValue = formatValue ? formatValue(value) : value.toLocaleString('en-US');
+    const displayTarget = formatValue ? formatValue(target) : target.toLocaleString('en-US');
+    const displayRemaining = formatValue ? formatValue(target - value) : (target - value).toLocaleString('en-US');
 
     React.useEffect(() => {
         const checkDimensions = () => {
@@ -170,13 +180,13 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
                 <div className="text-center p-2 bg-white/5 border border-white/5 rounded-xl">
                     <p className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase">المحقق</p>
                     <p className="text-sm font-bold text-[var(--app-text)] font-mono">
-                        {value.toLocaleString('en-US')}
+                        {displayValue}
                     </p>
                 </div>
                 <div className="text-center p-2 bg-white/5 border border-white/5 rounded-xl">
                     <p className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase">الهدف</p>
                     <p className="text-sm font-bold text-[var(--app-text)] font-mono">
-                        {target.toLocaleString('en-US')}
+                        {displayTarget}
                     </p>
                 </div>
             </div>
@@ -190,7 +200,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
                     />
                 </div>
                 <p className="text-[9px] text-[var(--app-text-secondary)] text-center mt-1 font-medium">
-                    متبقي {(target - value).toLocaleString('en-US')} للوصول للهدف
+                    متبقي {displayRemaining} للوصول للهدف
                 </p>
             </div>
         </div>

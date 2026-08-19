@@ -5,6 +5,7 @@ import { useAccounts } from '../../hooks/index';
 import { Wallet, Landmark, Users, Building, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../../../core/utils';
 import { useCurrencies } from '../../../settings/hooks';
+import type { Account } from '../../types/models';
 
 const KeyAccountBalances: React.FC = () => {
   const { data: accounts, isLoading } = useAccounts();
@@ -34,26 +35,63 @@ const KeyAccountBalances: React.FC = () => {
     );
   }
 
+  /**
+   * إيجاد الحساب الأب لمجموعة "أرصدة رئيسية" بشكل مرن:
+   * 1) مطابقة دقيقة بالكود (مخطط حسابات افتراضي)،
+   * 2) ثم مطابقة بادئة الكود (مثال: كل حسابات 10xx تعتبر أصولاً متفرعة عن الصناديق/البنوك)،
+   * 3) ثم مطابقة النوع المحاسبي + كلمة مفتاحية من الاسم لخطط الحسابات المختلفة.
+   * يعيد null عندما لا يوجد حساب مطابق — ويُعرض "—" بدل صفر مضلل.
+   */
+  const findRootAccount = (ka: { code: string; label: string }): Account | null => {
+    if (!accounts || accounts.length === 0) return null;
+
+    const exact = accounts.find(a => a.code === ka.code);
+    if (exact) return exact;
+
+    const prefix = ka.code.slice(0, 2);
+    const byPrefix = accounts.find(a => a.code.startsWith(prefix) && (a.parent_id === null || a.parent_id === undefined));
+    if (byPrefix) return byPrefix;
+
+    const keywords = {
+      'الصناديق': ['صندوق', 'نقد', 'cash'],
+      'البنوك': ['بنك', 'bank'],
+      'ذمم العملاء': ['عميل', 'ذمم', 'customer', 'receivable'],
+      'ذمم الموردين': ['مورد', 'ذمم', 'supplier', 'payable'],
+    }[ka.label] || [];
+
+    const byType = accounts.find(a => {
+      if (!a.name && !a.name_ar) return false;
+      const haystack = `${a.name || ''} ${a.name_ar || ''}`.toLowerCase();
+      return keywords.some(k => haystack.includes(k.toLowerCase()));
+    });
+    return byType || null;
+  };
+
+  /** حساب الرصيد المجمّع (الحساب الأب + فروعه المباشرة) مع تحويل العملة. */
+  const computeBalance = (root: Account): number => {
+    const children = accounts?.filter(a => a.parent_id === root.id) || [];
+    return children.reduce(
+      (sum, child) => sum + toBaseCurrency(child.balance || 0, child.currency_code),
+      toBaseCurrency(root.balance || 0, root.currency_code)
+    );
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 p-3 shadow-sm">
       <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">أرصدة رئيسية</h3>
       <div className="space-y-1">
         {keyAccounts.map(ka => {
-          const account = accounts?.find(a => a.code === ka.code);
-          // تجميع أرصدة الحسابات الفرعية مع الحساب الأب
-          const children = accounts?.filter(a => a.parent_id === account?.id) || [];
-          let totalBalance = toBaseCurrency(account?.balance || 0, account?.currency_code);
-          children.forEach(child => {
-            totalBalance += toBaseCurrency(child.balance || 0, child.currency_code);
-          });
+          const root = findRootAccount(ka);
+          const hasAccount = root !== null;
+          const totalBalance = hasAccount ? computeBalance(root) : null;
           return (
             <div key={ka.code} className="flex justify-between items-center p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/30">
               <div className="flex items-center gap-2">
                 <ka.icon size={14} className={ka.color} />
                 <span className="text-[10px] font-bold text-gray-700 dark:text-slate-200">{ka.label}</span>
               </div>
-              <span dir="ltr" className={`text-[11px] font-bold font-mono ${totalBalance < 0 ? 'text-rose-600' : 'text-gray-800 dark:text-slate-100'}`}>
-                {formatCurrency(totalBalance)}
+              <span dir="ltr" className={`text-[11px] font-bold font-mono ${(totalBalance ?? 0) < 0 ? 'text-rose-600' : 'text-gray-800 dark:text-slate-100'}`}>
+                {hasAccount ? formatCurrency(totalBalance ?? 0) : '—'}
               </span>
             </div>
           );

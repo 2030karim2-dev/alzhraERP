@@ -1,13 +1,14 @@
 import React from 'react';
 import { FileText, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { salesQuotationsApi } from '../../sales/api/quotationsApi';
 import { purchaseQuotationsApi } from '../../purchases/api/quotationsApi';
 import { useAuthStore } from '../../auth/store';
-// Removed unused cn
 
 const QuotationSummaryWidget: React.FC = () => {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
     const companyId = user?.company_id;
 
     const { data: salesQuots, isLoading: salesLoading } = useQuery({
@@ -39,6 +40,24 @@ const QuotationSummaryWidget: React.FC = () => {
         };
     }, [purchaseQuots]);
 
+    // آخر تحديث يُشتق من بيانات العروض الفعلية (updated_at/created_at) بدلاً من
+    // وقت المتصفح الذي كان يظهر وقتاً مضللاً في كل تحميل.
+    const lastUpdated = React.useMemo(() => {
+        const timestamps = [
+            ...((salesQuots?.data as Array<Record<string, unknown>>) || []),
+            ...((purchaseQuots?.data as Array<Record<string, unknown>>) || []),
+        ]
+            .map((q) => {
+                if (typeof q.updated_at === 'string' && q.updated_at) return q.updated_at;
+                if (typeof q.created_at === 'string' && q.created_at) return q.created_at;
+                return '';
+            })
+            .filter(Boolean)
+            .sort()
+            .reverse();
+        return timestamps.length > 0 ? new Date(timestamps[0]) : null;
+    }, [salesQuots, purchaseQuots]);
+
     const isLoading = salesLoading || purchaseLoading;
 
     if (isLoading) {
@@ -63,7 +82,7 @@ const QuotationSummaryWidget: React.FC = () => {
                     <h3 className="font-bold text-gray-900 dark:text-white text-sm">عروض الأسعار</h3>
                 </div>
                 <button 
-                  onClick={() => window.location.href = '/sales'} // Fallback for simple navigation
+                  onClick={() => { navigate('/sales'); }}
                   className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 uppercase tracking-wider"
                 >
                     عرض الكل
@@ -110,12 +129,14 @@ const QuotationSummaryWidget: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mt-4 max-md:mt-3 pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                    <Clock size={10} />
-                    <span>آخر تحديث: {new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
+            {lastUpdated && (
+                <div className="mt-4 max-md:mt-3 pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                    <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                        <Clock size={10} />
+                        <span>آخر تحديث: {lastUpdated.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

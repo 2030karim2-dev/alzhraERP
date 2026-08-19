@@ -10,7 +10,6 @@ export { useNextInvoiceNumber } from './useNextInvoiceNumber';
 export { useDeleteInvoice } from './useDeleteInvoice';
 export { useProductSearch } from './useProductSearch';
 export { useSalesAnalytics } from './useSalesAnalytics';
-export { useSalesSeed } from './useSalesSeed';
 export { useQuotationForm } from './useQuotationForm';
 export { useInvoicePaymentStatus } from './useInvoicePaymentStatus';
 export { useProductSelectionTable } from './useProductSelectionTable';

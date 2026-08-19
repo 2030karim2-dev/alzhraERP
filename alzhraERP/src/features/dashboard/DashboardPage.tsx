@@ -9,6 +9,7 @@ import MicroHeader from '../../ui/base/MicroHeader';
 import ChartSkeleton from '../../ui/base/ChartSkeleton';
 import { RefreshCw, Activity, TrendingUp } from 'lucide-react';
 import { GlobalErrorBoundary } from '../../ui/common/GlobalErrorBoundary';
+import { formatCurrency } from '../../core/utils';
 
 // Lazy Loaded Widgets
 const StatsGrid = lazy(() => import('../../ui/dashboard/StatsGrid'));
@@ -180,6 +181,7 @@ const DashboardPage: React.FC = () => {
                                 value={salesValue}
                                 target={salesTarget}
                                 title="هدف المبيعات الشهري"
+                                formatValue={(v) => formatCurrency(v)}
                             />
                         </Suspense>
 

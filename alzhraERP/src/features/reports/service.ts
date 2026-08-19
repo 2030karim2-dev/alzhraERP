@@ -43,8 +43,10 @@ const getYearDateRange = () => {
 
 
 export const reportsService = {
-  getTrialBalance: async (companyId: string): Promise<TrialBalanceItem[]> => {
-    const { from, to } = getYearDateRange();
+  getTrialBalance: async (companyId: string, fromDate?: string, toDate?: string): Promise<TrialBalanceItem[]> => {
+    const { from, to } = (fromDate && toDate)
+      ? { from: fromDate, to: toDate }
+      : getYearDateRange();
     const { data, error } = await reportsApi.getTrialBalanceRPC(companyId, from, to);
     if (error) throw error;
 
@@ -63,14 +65,16 @@ export const reportsService = {
    * ⚡ Server-side P&L via RPC
    * RPC returns TABLE rows: {category, amount, type}
    */
-  getProfitAndLoss: async (companyId: string): Promise<{
+  getProfitAndLoss: async (companyId: string, fromDate?: string, toDate?: string): Promise<{
     revenues: TrialBalanceItem[];
     expenses: TrialBalanceItem[];
     totalRevenues: number;
     totalExpenses: number;
     netProfit: number;
   }> => {
-    const { from, to } = getYearDateRange();
+    const { from, to } = (fromDate && toDate)
+      ? { from: fromDate, to: toDate }
+      : getYearDateRange();
 
     const { data, error } = await supabase.rpc('report_profit_loss', {
       p_company_id: companyId,

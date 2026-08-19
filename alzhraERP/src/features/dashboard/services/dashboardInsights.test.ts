@@ -164,6 +164,49 @@ describe('Targets', () => {
   });
 });
 
+// ── Collection Rate (regression: previously used supplier debts) ─────────────
+//
+// قبل الإصلاح كان `collectionRate` يطرح `totalSupplierDebts` من المبيعات، ما يجعل
+// نسبة التحصيل تتأثر بديون الموردين (بند متعاكس). بعد الإصلاح يُستخدم
+// `totalCustomerDebts` (ذمم العملاء) فقط كمصدر للمعدل.
+
+describe('Collection rate uses customer receivables (not supplier debts)', () => {
+  it('uses totalCustomerDebts to compute the collection rate', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 1000,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalCustomerDebts: 400,      // ذمم العملاء (غير محصلة)
+      totalSupplierDebts: 900,      // ذمم الموردين — يجب ألا تؤثر إطلاقاً
+      salesChartData: [], lowStockProducts: [], overdueInvoices: [],
+    });
+    // collectionRate = (1000 - 400) / 1000 = 60% (وليس 10% لو استُخدمت ديون الموردين)
+    expect(result.targets.collectionRate).toBe(60);
+  });
+
+  it('emits a separate supplier-debts alert without mixing it into receivables', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 1000,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalCustomerDebts: 0,
+      totalSupplierDebts: 500,
+      salesChartData: [], lowStockProducts: [], overdueInvoices: [],
+    });
+    expect(result.alerts.some(a => a.id === 'supplier-debts')).toBe(true);
+    // المعدل يبقى 100% رغم وجود ديون الموردين
+    expect(result.targets.collectionRate).toBe(100);
+  });
+
+  it('falls back to 100% collection when no customer debts exist', () => {
+    const result = calculateDashboardInsights({
+      receiptBonds: 0, paymentBonds: 0, totalSales: 500,
+      totalPurchases: 0, totalExpenses: 0, netProfit: 0,
+      totalCustomerDebts: 0, totalSupplierDebts: 0,
+      salesChartData: [], lowStockProducts: [], overdueInvoices: [],
+    });
+    expect(result.targets.collectionRate).toBe(100);
+  });
+});
+
 // ── Resilience against stale/partial persisted payloads ──────────────────────
 //
 // Regression: the dashboard API started returning `overdueInvoices` later than

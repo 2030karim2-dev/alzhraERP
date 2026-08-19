@@ -1,40 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { reportsService } from './service';
 import { useAuthStore } from '../auth/store';
-import { supabase } from '../../lib/supabaseClient';
-import { logger } from '../../core/utils/logger';
-
-// Typed result shape from report_trial_balance RPC
-interface TrialBalanceRow {
-    account_id: string;
-    account_code: string;
-    account_name: string;
-    total_debit: number;
-    total_credit: number;
-    balance: number;
-}
 
 export const useTrialBalance = (fromDate?: string, toDate?: string, options: { enabled?: boolean } = {}) => {
     const { user } = useAuthStore();
+    const today = new Date().toISOString().split('T')[0];
     return useQuery({
         queryKey: ['trial_balance', user?.company_id, fromDate, toDate],
-        queryFn: async () => {
-            if (!user?.company_id) return [];
-            const { data, error } = await supabase.rpc('report_trial_balance', {
-                p_company_id: user.company_id,
-                p_from: fromDate || '2000-01-01',
-                p_to: toDate || new Date().toISOString().split('T')[0]
-            });
-            if (error) throw error;
-            return ((data as TrialBalanceRow[] | null) || []).map((row) => ({
-                id: row.account_id,
-                code: row.account_code,
-                name: row.account_name,
-                totalDebit: Number(row.total_debit),
-                totalCredit: Number(row.total_credit),
-                netBalance: Number(row.balance)
-            }));
-        },
+        queryFn: () => user?.company_id
+            // يمر عبر طبقة الخدمة (reportsService) بدلاً من استدعاء supabase مباشرة
+            ? reportsService.getTrialBalance(user.company_id, fromDate || '2000-01-01', toDate || today)
+            : Promise.resolve([]),
         enabled: (options.enabled !== false) && !!user?.company_id,
         staleTime: 5 * 60 * 1000, // 5 min
     });
@@ -42,31 +18,13 @@ export const useTrialBalance = (fromDate?: string, toDate?: string, options: { e
 
 export const useProfitAndLoss = (fromDate?: string, toDate?: string, options: { enabled?: boolean } = {}) => {
     const { user } = useAuthStore();
+    const today = new Date().toISOString().split('T')[0];
     return useQuery({
         queryKey: ['profit_loss', user?.company_id, fromDate, toDate],
-        queryFn: async () => {
-            if (!user?.company_id) return null;
-            // ⚡ Server-side P&L via RPC — no frontend account code filtering
-            const { data, error } = await supabase.rpc('report_profit_loss', {
-                p_company_id: user.company_id,
-                p_from: fromDate || '2000-01-01',
-                p_to: toDate || new Date().toISOString().split('T')[0]
-            });
-
-            if (error) {
-                logger.error("hooks", "Profit and Loss RPC Error:", error);
-                throw error;
-            }
-
-            const result = data as any;
-            return {
-                revenues: (result.revenues || []).map((r: any) => ({ id: r.id, name: r.name, netBalance: r.netBalance })),
-                expenses: (result.expenses || []).map((e: any) => ({ id: e.id, name: e.name, netBalance: e.netBalance })),
-                totalRevenues: result.totalRevenues || 0,
-                totalExpenses: result.totalExpenses || 0,
-                netProfit: result.netProfit || 0
-            };
-        },
+        queryFn: () => user?.company_id
+            // ⚡ Server-side P&L عبر طبقة الخدمة — لا فلترة أكواد حسابات في الواجهة
+            ? reportsService.getProfitAndLoss(user.company_id, fromDate || '2000-01-01', toDate || today)
+            : Promise.resolve(null),
         enabled: (options.enabled !== false) && !!user?.company_id,
         staleTime: 5 * 60 * 1000, // 5 min
     });

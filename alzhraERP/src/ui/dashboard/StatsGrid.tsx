@@ -133,8 +133,17 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
       colorClass: "text-amber-600",
       gradientClass: "from-amber-500 to-amber-600",
       path: ROUTES.DASHBOARD.ACCOUNTING,
-      subtitle: 'مستحق التحصيل'
+      subtitle: 'ذمم العملاء — مستحق التحصيل'
     },
+    ...(stats.supplierDebts !== undefined && stats.supplierDebts > 0 ? [{
+      title: 'مستحقات الموردين',
+      value: stats.supplierDebts,
+      icon: ShoppingCart,
+      colorClass: "text-orange-600",
+      gradientClass: "from-orange-500 to-orange-600",
+      path: ROUTES.DASHBOARD.ACCOUNTING,
+      subtitle: 'ذمم الموردين — مستحقة السداد'
+    }] : []),
   ];
 
   // Add profit if available

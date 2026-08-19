@@ -8,6 +8,8 @@ export interface DashboardStats {
     purchases: number;
     expenses: number;
     debts: number;
+    /** ذمم الموردين (ما يترتب علينا للموردين) — تُعرض منفصلة عن ذمم العملاء */
+    supplierDebts?: number;
     invoices: number;
     profit: number;
     netCash: number;

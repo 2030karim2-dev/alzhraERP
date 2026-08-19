@@ -7,7 +7,17 @@ export const calculateDashboardInsights = (data: {
     totalPurchases: number;
     totalExpenses: number;
     netProfit: number;
-    totalSupplierDebts: number;
+    /**
+     * ذمم العملاء (المستحقات الواجب تحصيلها) — المصدر الصحيح لمعدل التحصيل.
+     * قبل هذا الإصلاح كان يُستخدم `totalSupplierDebts` في الطرح من المبيعات،
+     * ما جعل نسبة التحصيل تتأثر بديون الموردين (بند متعاكس تماماً).
+     */
+    totalCustomerDebts?: number;
+    /**
+     * ذمم الموردين (ما يترتب علينا للموردين) — تُعرض كتنبيه مستقل فقط
+     * ولا تدخل في حساب معدل التحصيل أبداً.
+     */
+    totalSupplierDebts?: number;
     salesChartData?: Array<{ sales?: number; purchases?: number; expenses?: number; value?: number }>;
     lowStockProducts: Array<{ id: string; name?: string }>;
     overdueInvoices: Array<{ id: string }>;
@@ -22,11 +32,14 @@ export const calculateDashboardInsights = (data: {
         salesChartData = [],
         lowStockProducts = [],
         overdueInvoices = [],
+        totalCustomerDebts = 0,
         totalSupplierDebts = 0,
         salesTarget,
     } = data;
 
-    const totalDebts = totalSupplierDebts ?? 0;
+    // ذمم العملاء = المستحقات الواجب تحصيلها (مصدر معدل التحصيل الصحيح).
+    // ذمم الموردين تُعرض كتنبيه مستقل ولا تدخل في حساب التحصيل أبداً.
+    const totalReceivables = totalCustomerDebts;
 
     // Use salesChartData to calculate trends
     // Assuming salesChartData contains 30 days of data ordered chronologically
@@ -68,12 +81,21 @@ export const calculateDashboardInsights = (data: {
         });
     }
 
-    if (totalDebts > 0) {
+    if (totalReceivables > 0) {
         alerts.push({
             id: 'debts',
             type: 'info' as const,
-            message: `إجمالي المستحقات: ${formatCurrency(totalDebts)}`,
+            message: `إجمالي المستحقات: ${formatCurrency(totalReceivables)}`,
             time: 'قيد التحصيل'
+        });
+    }
+
+    if (totalSupplierDebts > 0) {
+        alerts.push({
+            id: 'supplier-debts',
+            type: 'info' as const,
+            message: `مستحقات الموردين: ${formatCurrency(totalSupplierDebts)}`,
+            time: 'تتطلب سداداً'
         });
     }
 
@@ -96,13 +118,13 @@ export const calculateDashboardInsights = (data: {
         });
     }
 
-    const collectionRate = totalSales > 0 ? ((totalSales - totalDebts) / totalSales) * 100 : 0;
+    const collectionRate = totalSales > 0 ? ((totalSales - totalReceivables) / totalSales) * 100 : 0;
     if (collectionRate < 80) {
         insights.push({
             id: 'collection',
             type: 'info' as const,
             message: `${overdueInvoices.length} حسابات متأخرة التحصيل`,
-            detail: `المجموع: ${formatCurrency(totalDebts)}`
+            detail: `المجموع: ${formatCurrency(totalReceivables)}`
         });
     }
 

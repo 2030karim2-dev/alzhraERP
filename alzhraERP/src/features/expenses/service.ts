@@ -42,6 +42,22 @@ export const expensesService = {
     return data || [];
   },
 
+  /**
+   * جلب رقم المصروف التالي من التسلسل الخادمي (get_next_sequence).
+   * يمر عبر طبقة الخدمة بدلاً من استدعاء supabase مباشرة في الـ hooks.
+   */
+  getNextExpenseNumber: async (companyId: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('get_next_sequence', {
+      p_company_id: companyId,
+      p_sequence_name: 'expense'
+    });
+    if (error) {
+      logger.warn('ExpenseService', 'Failed to fetch sequence:', error);
+      return '';
+    }
+    return data;
+  },
+
   createCategory: async (companyId: string, name: string) => {
     const { data, error } = await expensesApi.createExpenseCategory({
       company_id: companyId,

@@ -50,6 +50,8 @@ interface RawDashboardData {
   lowStockProducts: LowStockProduct[];
   categoryData: ChartDataPoint[];
   trialBalanceRows: unknown[];
+  // Server-authored P&L rows: [{ category, amount, type }] — مصدر صافي الربح المعتمد
+  profitLossRows?: Array<{ type?: string; amount?: number | string }>;
   // Real data feeds (added via dashboardApi): recent activity + overdue alerts
   recentInvoices: Array<{
     id: string;
@@ -237,6 +239,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       lowStockProducts,
       categoryData,
       trialBalanceRows,
+      profitLossRows = [],
       // ⚠️ Defensive defaults: the 24h IndexedDB persister can restore a payload
       // written by an OLDER build whose API did not return these fields yet.
       // Without defaults, `calculateDashboardInsights` used to crash with
@@ -258,7 +261,13 @@ export const useDashboardData = (): UseDashboardDataResult => {
 
     const totalRevenues = sumTrialBalance(safeTrialBalance, '4');
     const totalExpensesAcc = sumTrialBalance(safeTrialBalance, '5');
-    const netProfit = totalRevenues - totalExpensesAcc;
+
+    // المصدر الأساسي لصافي الربح: RPC الخادمي `report_profit_loss` (إشارات محاسبية موثوقة).
+    // يُحتفظ بالحساب المحلي القديم (أكواد 4/5 + ميزان المراجعة) كاحتياط فقط عند غياب/فشل RPC.
+    const netProfitRow = profitLossRows.find((r) => r.type === 'net_profit');
+    const serverNetProfit = netProfitRow ? Number(netProfitRow.amount) : Number.NaN;
+    const legacyNetProfit = totalRevenues - totalExpensesAcc;
+    const netProfit = Number.isFinite(serverNetProfit) ? serverNetProfit : legacyNetProfit;
 
     const netCashPosition = toNumber(summary.receipt_bonds) - toNumber(summary.payment_bonds);
 
@@ -281,6 +290,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
       totalPurchases: toNumber(summary.total_purchases),
       totalExpenses: toNumber(summary.total_expenses),
       netProfit,
+      totalCustomerDebts: toNumber(summary.total_debts),
       totalSupplierDebts: toNumber(summary.total_supplier_debts),
       salesChartData: safeSalesChart,
       lowStockProducts: safeLowStockProducts,
@@ -293,7 +303,9 @@ export const useDashboardData = (): UseDashboardDataResult => {
         sales: toNumber(summary.total_sales),
         purchases: toNumber(summary.total_purchases),
         expenses: toNumber(summary.total_expenses),
-        debts: toNumber(summary.total_debts) + toNumber(summary.total_supplier_debts),
+        debts: toNumber(summary.total_debts),
+        // ذمم الموردين منفصلة عن ذمم العملاء (بندان متعاكسان مالياً لا يُجمعان)
+        supplierDebts: toNumber(summary.total_supplier_debts),
         invoices: toNumber(summary.invoice_count),
         profit: netProfit,
         netCash: netCashPosition,
@@ -332,6 +344,8 @@ export const useDashboardData = (): UseDashboardDataResult => {
       purchases: 0,
       expenses: 0,
       debts: 0,
+      // ذمم الموردين منفصلة (بند متعاكس ماليًا لا يُجمع مع ذمم العملاء)
+      supplierDebts: 0,
       invoices: 0,
       profit: 0,
       netCash: 0,

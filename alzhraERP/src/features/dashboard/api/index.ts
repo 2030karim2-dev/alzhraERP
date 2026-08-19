@@ -132,7 +132,7 @@ export const dashboardApi = {
                 : new AbortController().signal;
 
         // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
-        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes] = await Promise.allSettled([
+        const [summaryRes, chartRes, topRes, lowStockRes, categoryRes, trialBalanceRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes, plRes] = await Promise.allSettled([
             // NOTE: dashboard RPCs are non-critical (safeData falls back to
             // zeros/empty arrays). They opt out of network retries via the
             // `x-skip-network-retry` header so a flaky connection cannot amplify
@@ -226,6 +226,18 @@ export const dashboardApi = {
             })
                 .setHeader('x-skip-network-retry', '1')
                 .abortSignal(activeSignal),
+
+            // 10. Server-authored P&L → net profit with an authoritative sign
+            //     convention (no fragile client-side account-code filtering).
+            //     Fallback to the legacy trial-balance math happens in the hook
+            //     when this RPC is unavailable/fails.
+            supabase.rpc('report_profit_loss', {
+                p_company_id: companyId,
+                p_from: '2000-01-01',
+                p_to: dateTo,
+            })
+                .setHeader('x-skip-network-retry', '1')
+                .abortSignal(activeSignal),
         ]);
 
         // RPCs that return a single aggregated row arrive as a one-element array
@@ -249,6 +261,7 @@ export const dashboardApi = {
         const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
         const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
         const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
+        const profitLossRows = safeData(plRes, [], 'report_profit_loss');
 
         const recentInvoices = safeData<RawRecentInvoice[]>(recentInvoicesRes, [], 'recent_invoices');
         const recentExpenses = safeData<RawRecentExpense[]>(recentExpensesRes, [], 'recent_expenses');
@@ -294,6 +307,7 @@ export const dashboardApi = {
                 color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
             })),
             trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : [],
+            profitLossRows: Array.isArray(profitLossRows) ? profitLossRows : [],
             recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
             recentExpenses: Array.isArray(recentExpenses) ? recentExpenses : [],
             overdueInvoices,

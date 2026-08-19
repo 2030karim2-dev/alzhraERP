@@ -5,30 +5,16 @@ import { useFeedbackStore } from '../feedback/store';
 import { ExpenseFormData } from './types';
 import { useMemo } from 'react';
 import { assertPermission } from '../../core/hooks/usePermission';
-import { supabase } from '../../lib/supabaseClient';
 import { invalidateByPreset } from '../../lib/invalidation';
 import { useNetworkStatus } from '../../lib/hooks/useNetworkStatus';
 import { syncStore } from '../../core/lib/sync-store';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
-import { logger } from '../../core/utils/logger';
 
 export const useNextExpenseNumber = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['next_expense_number', user?.company_id],
-    queryFn: async () => {
-      if (!user?.company_id) return '---';
-      const { data, error } = await supabase.rpc('get_next_sequence', {
-        p_company_id: user.company_id,
-        p_sequence_name: 'expense'
-      });
-
-      if (error) {
-        logger.warn("hooks", 'Failed to fetch sequence:', error);
-        return '';
-      }
-      return data;
-    },
+    queryFn: () => user?.company_id ? expensesService.getNextExpenseNumber(user.company_id) : Promise.resolve('---'),
     enabled: !!user?.company_id,
     staleTime: 0,
   });
