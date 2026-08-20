@@ -96,12 +96,12 @@ export const expensesService = {
       p_company_id: companyId
     });
     if (error) throw error;
-    const result = data as any;
+    const result = data as { totalExpenses?: number; paidExpenses?: number; pendingExpenses?: number; categoriesCount?: number } | null;
     return {
-      totalExpenses: result.totalExpenses || 0,
-      paidExpenses: result.paidExpenses || 0,
-      pendingExpenses: result.pendingExpenses || 0,
-      categoriesCount: result.categoriesCount || 0
+      totalExpenses: result?.totalExpenses || 0,
+      paidExpenses: result?.paidExpenses || 0,
+      pendingExpenses: result?.pendingExpenses || 0,
+      categoriesCount: result?.categoriesCount || 0
     };
   },
 

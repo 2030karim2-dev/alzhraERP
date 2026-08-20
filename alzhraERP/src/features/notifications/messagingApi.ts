@@ -4,6 +4,8 @@ import { logger } from '../../core/utils/logger';
 // ============================================
 
 import { supabase } from '../../lib/supabaseClient';
+import type { PostgrestError } from '@supabase/supabase-js';
+import type { Database } from '../../core/database.types';
 
 export interface MessagingConfig {
     id?: string;
@@ -93,7 +95,7 @@ export const messagingApi = {
      * Secret fields carrying the MASKED_SECRET sentinel are OMITTED from the
      * upsert so the stored key is never overwritten with the mask.
      */
-    saveConfig: async (config: MessagingConfig): Promise<{ error: any }> => {
+    saveConfig: async (config: MessagingConfig): Promise<{ error: PostgrestError | null }> => {
         const payload = { ...config, updated_at: new Date().toISOString() } as MessagingConfigRow;
 
         for (const field of SECRET_FIELDS) {
@@ -102,9 +104,10 @@ export const messagingApi = {
             }
         }
 
-        const { error } = await (supabase.from('messaging_config') as any)
+        const { error } = await supabase
+            .from('messaging_config')
             .upsert(
-                payload,
+                payload as unknown as Database['public']['Tables']['messaging_config']['Insert'],
                 { onConflict: 'company_id' }
             );
 
@@ -122,7 +125,7 @@ export const messagingApi = {
         eventType: string,
         message: string,
         referenceId?: string
-    ): Promise<{ success: boolean; results?: any[] }> => {
+    ): Promise<{ success: boolean; results?: Array<{ channel?: string; success?: boolean; error?: string }> }> => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
 
@@ -163,7 +166,7 @@ export const messagingApi = {
     getLog: async (companyId: string, limit = 50): Promise<NotificationLogEntry[]> => {
         const { data, error } = await supabase
             .from('notification_log')
-            .select('*')
+            .select('id, company_id, channel, event_type, message, status, error_message, reference_id, created_at')
             .eq('company_id', companyId)
             .order('created_at', { ascending: false })
             .limit(limit);

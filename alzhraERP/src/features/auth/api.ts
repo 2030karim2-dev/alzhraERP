@@ -222,5 +222,11 @@ export const authApi = {
     return await supabase.auth.updateUser({ password });
   },
 
+  updateProfile: async (fullName: string) => {
+    const { data, error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+    if (error) throw error;
+    return data;
+  },
+
   // Note: inviteUser moved to settingsApi.inviteUser (includes created_by field)
 };

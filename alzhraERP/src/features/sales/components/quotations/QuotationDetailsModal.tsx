@@ -148,7 +148,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
         // Fallback
         await exportQuotationToExcel(data);
         const text = encodeURIComponent(`مرفق عرض سعر رقم ${quotation.quotation_number}. يرجى الاطلاع على الملف المرفق.`);
-        window.open(`https://wa.me/?text=${text}`, '_blank');
+        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
       }
     } catch (err) {
       logger.error("QuotationDetailsModal", 'Share via WhatsApp failed', err);

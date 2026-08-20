@@ -16,7 +16,7 @@ export const PaymentHeader: React.FC<PaymentHeaderProps> = ({
     const handleWhatsApp = () => {
         const lines = validItems.map(i => `• ${i.name} ×${i.quantity} = ${formatCurrency(i.price * i.quantity)}`);
         const msg = `🧾 *فاتورة نقطة المبيعات*\n━━━━━━━━━━━━━━\n${lines.join('\n')}\n━━━━━━━━━━━━━━\n💰 *الإجمالي:* ${formatCurrency(total)} ${currency}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
     };
 
     const handlePrint = () => {

@@ -114,13 +114,14 @@ export function initAPM(options: InitAPMOptions = {}): void {
 
     // 2. Wire adapter
     //    Swap `inHouseAdapter` with `sentryAdapter` or `datadogAdapter` when ready
-    if (!(globalThis as any).__APM_INITIALIZED__) {
+    const apmGlobal = globalThis as typeof globalThis & { __APM_INITIALIZED__?: boolean };
+    if (!apmGlobal.__APM_INITIALIZED__) {
         logger.setApmAdapter(inHouseAdapter);
 
         logger.info('APM', 'APM initialized', {
             adapter: 'inHouse',
             env: import.meta.env.MODE,
         });
-        (globalThis as any).__APM_INITIALIZED__ = true;
+        apmGlobal.__APM_INITIALIZED__ = true;
     }
 }

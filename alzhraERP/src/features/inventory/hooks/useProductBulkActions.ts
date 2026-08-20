@@ -35,7 +35,7 @@ export const useProductBulkActions = (products: Product[]) => {
     const handleSend = () => {
         if (selectedRowIds.size === 0) return;
         const text = encodeURIComponent(generateShareText());
-        window.open(`https://wa.me/?text=${text}`, '_blank');
+        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
     };
 
     const clearSelection = () => setSelectedRowIds(new Set());

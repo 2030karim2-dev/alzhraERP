@@ -26,7 +26,21 @@ export const expensesApi = {
     let query = supabase
       .from('expenses')
       .select(`
-        *,
+        id,
+        category_id,
+        voucher_number,
+        description,
+        amount,
+        currency_code,
+        exchange_rate,
+        expense_date,
+        status,
+        payment_method,
+        is_recurring,
+        frequency,
+        recurring_end_date,
+        created_at,
+        branch_id,
         expense_categories:category_id(name)
       `)
       .eq('company_id', companyId)

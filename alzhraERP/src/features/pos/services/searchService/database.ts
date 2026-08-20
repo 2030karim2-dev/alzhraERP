@@ -6,6 +6,53 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { scoreSearchResult } from '../../../../core/utils/search';
 import type { BarcodeSearchRow, POSSearchFilters, POSSearchResult } from './types';
 
+/** Stock entry nested inside a search row. */
+type SearchStockRow = {
+    quantity: number | string;
+    warehouse_id: string;
+    warehouses?: { name_ar?: string } | null;
+};
+
+/** Row shape returned by the `search_inventory_paginated` RPC. */
+interface RpcSearchRow {
+    id: string;
+    name_ar: string | null;
+    sku: string | null;
+    part_number: string | null;
+    brand: string | null;
+    category_id: string | null;
+    size: string | null;
+    sale_price: number | string | null;
+    purchase_price: number | string | null;
+    unit: string | null;
+    image_url: string | null;
+    alternative_numbers: string | null;
+    barcode: string | null;
+    stock?: SearchStockRow[] | null;
+    category?: { name?: string } | null;
+    [key: string]: unknown;
+}
+
+/** Row shape returned by the ILIKE fallback query on `products`. */
+interface FallbackSearchRow {
+    id: string;
+    name_ar: string | null;
+    sku: string | null;
+    part_number: string | null;
+    brand: string | null;
+    category_id: string | null;
+    size: string | null;
+    sale_price: number | string | null;
+    purchase_price: number | string | null;
+    unit: string | null;
+    image_url: string | null;
+    alternative_numbers: string | null;
+    barcode: string | null;
+    product_stock?: SearchStockRow[] | null;
+    product_categories?: { name?: string } | null;
+    [key: string]: unknown;
+}
+
 /**
  * Apply client-side POS filters (category / stock / brand) on RPC results.
  * The paginated RPC does not accept filter parameters, so this keeps the UI
@@ -64,12 +111,12 @@ export async function searchDatabase(
 
         // Optimize: Skip fetching sales counts on every keystroke to resolve search slowness.
         // This avoids executing a heavy nested join query on invoice_items.
-        const salesCounts = new Map();
+        const salesCounts = new Map<string, { count: number; last_date: string }>();
 
-        const results = (data || []).map((row: any) => {
+        const results = ((data || []) as unknown as RpcSearchRow[]).map((row) => {
             const stockList = Array.isArray(row.stock) ? row.stock : [];
             const totalStock = stockList.reduce(
-                (sum: number, s: any) => sum + (Number(s.quantity) || 0),
+                (sum: number, s: SearchStockRow) => sum + (Number(s.quantity) || 0),
                 0
             );
 
@@ -93,12 +140,23 @@ export async function searchDatabase(
                 image_url: row.image_url || null,
                 alternative_numbers: row.alternative_numbers || null,
                 barcode: row.barcode || null,
-                warehouse_distribution: stockList.map((s: any) => ({
+                warehouse_distribution: stockList.map((s: SearchStockRow) => ({
                     warehouse_id: s.warehouse_id,
                     warehouse_name: s.warehouses?.name_ar || '',
                     quantity: Number(s.quantity) || 0,
                 })),
-                score: scoreSearchResult(query, row, salesInfo?.count, salesInfo?.last_date),
+                score: scoreSearchResult(
+                    query,
+                    {
+                        name_ar: row.name_ar ?? undefined,
+                        sku: row.sku ?? undefined,
+                        part_number: row.part_number ?? undefined,
+                        brand: row.brand ?? undefined,
+                        alternative_numbers: row.alternative_numbers ?? undefined,
+                    },
+                    salesInfo?.count,
+                    salesInfo?.last_date,
+                ),
                 sales_count: salesInfo?.count,
                 last_sale_date: salesInfo?.last_date,
                 match_type: 'exact' as const,
@@ -106,8 +164,9 @@ export async function searchDatabase(
         });
 
         return applyClientFilters(results, filters);
-    } catch (err: any) {
-        logger.warn("database", 'POS Search failed, using fallback:', err.message);
+    } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        logger.warn("database", 'POS Search failed, using fallback:', errMsg);
         return searchDatabaseFallback(companyId, query, filters, limit);
     }
 }
@@ -140,10 +199,10 @@ export async function searchDatabaseFallback(
 
     if (error) return [];
 
-    return (data || []).map((row: any) => {
+    return ((data || []) as unknown as FallbackSearchRow[]).map((row) => {
         const stockList = Array.isArray(row.product_stock) ? row.product_stock : [];
         const totalStock = stockList.reduce(
-            (sum: number, s: any) => sum + (Number(s.quantity) || 0), 0
+            (sum: number, s: SearchStockRow) => sum + (Number(s.quantity) || 0), 0
         );
 
         return {
@@ -164,12 +223,18 @@ export async function searchDatabaseFallback(
             image_url: row.image_url || null,
             alternative_numbers: row.alternative_numbers || null,
             barcode: row.barcode || null,
-            warehouse_distribution: stockList.map((s: any) => ({
+            warehouse_distribution: stockList.map((s: SearchStockRow) => ({
                 warehouse_id: s.warehouse_id,
                 warehouse_name: s.warehouses?.name_ar || '',
                 quantity: Number(s.quantity) || 0,
             })),
-            score: scoreSearchResult(query, row),
+            score: scoreSearchResult(query, {
+                name_ar: row.name_ar ?? undefined,
+                sku: row.sku ?? undefined,
+                part_number: row.part_number ?? undefined,
+                brand: row.brand ?? undefined,
+                alternative_numbers: row.alternative_numbers ?? undefined,
+            }),
             match_type: 'exact' as const,
         };
     });

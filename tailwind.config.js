@@ -59,16 +59,6 @@ export default {
         '88': '22rem',
         '128': '32rem',
       },
-      stat: {
-        red: '#fee2e2',
-        redText: '#ef4444',
-        orange: '#ffedd5',
-        orangeText: '#f97316',
-        green: '#dcfce7',
-        greenText: '#10b981',
-        blue: '#e0f2fe',
-        blueText: '#0ea5e9',
-      },
       borderRadius: {
         none: '0',
         sm: 'calc(var(--radius, 0.5rem) - 0.2rem)',

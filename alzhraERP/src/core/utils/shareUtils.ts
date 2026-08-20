@@ -34,6 +34,6 @@ export const shareExcelFile = async (
         URL.revokeObjectURL(url);
 
         const encodedText = encodeURIComponent(text);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+        window.open(`https://wa.me/?text=${encodedText}`, '_blank', 'noopener,noreferrer');
     }
 };

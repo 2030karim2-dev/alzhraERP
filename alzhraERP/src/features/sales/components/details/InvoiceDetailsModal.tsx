@@ -135,7 +135,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         // Fallback
         await exportInvoiceToExcel(data);
         const text = encodeURIComponent(`مرفق فاتورة رقم ${data.invoiceNumber}. يرجى الاطلاع على الملف المرفق.`);
-        window.open(`https://wa.me/?text=${text}`, '_blank');
+        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
       }
     } catch (err) {
       logger.error("InvoiceDetailsModal", 'Share via WhatsApp failed', err);

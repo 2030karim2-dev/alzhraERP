@@ -58,7 +58,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
             } else {
                 await exportSingleBondToExcel(company, bond);
                 const text = encodeURIComponent(`مرفق ${bondTitle.replace('_', ' ')} رقم ${bond.payment_number}.`);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
+                window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
             }
         } catch (err) {
             logger.error("BondsList", 'WhatsApp share failed', err);

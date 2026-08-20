@@ -209,7 +209,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                                 isRTL={true}
                                 showSearch={false}
                                 isLoading={isLoading}
-                                onRowDoubleClick={(row: any) => handleEdit(row as Party)}
+                                onRowDoubleClick={(row) => handleEdit(row as Party)}
                             />
                         </div>
                     </div>
@@ -259,11 +259,11 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSubmit={(data) => {
-                    const payload = { data: data as PartyFormData };
+                    const payload: { data: PartyFormData; id?: string } = { data: data as PartyFormData };
                     if (editingParty?.id) {
-                        (payload as any).id = editingParty.id;
+                        payload.id = editingParty.id;
                     }
-                    saveParty(payload as any, { onSuccess: () => {
+                    saveParty(payload, { onSuccess: () => {
                         handleCloseModal();
                         setPrefillData(null);
                     }});
