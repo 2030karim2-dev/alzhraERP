@@ -160,7 +160,7 @@ const CashFlowView: React.FC = () => {
                                     />
                                     <Tooltip
                                         cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '6 6' }}
-                                        content={({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number | string }>; label?: string }) => {
+                                        content={(({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number | string }>; label?: string }) => {
                                             if (active && payload && payload.length) {
                                                 return (
                                                     <div className="bg-white/95 dark:bg-slate-900/95   max-md:p-4 sm:p-6 shadow-2xl min-w-[180px] sm:min-w-[220px]">
@@ -175,7 +175,7 @@ const CashFlowView: React.FC = () => {
                                                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">تدفقات واردة</span>
                                                                 </div>
                                                                 <span className="text-sm font-bold text-emerald-600 font-mono italic">
-                                                                    {formatCurrency(payload[0].value)}
+                                                                    {formatCurrency(Number(payload[0].value) || 0)}
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-800/50">
@@ -184,7 +184,7 @@ const CashFlowView: React.FC = () => {
                                                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">تدفقات صادرة</span>
                                                                 </div>
                                                                 <span className="text-sm font-bold text-rose-600 font-mono italic">
-                                                                    {formatCurrency(payload[1].value)}
+                                                                    {formatCurrency(Number(payload[1].value) || 0)}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -192,7 +192,7 @@ const CashFlowView: React.FC = () => {
                                                 );
                                             }
                                             return null;
-                                        }}
+                                        }) as unknown as never}
                                     />
                                     <Area
                                         type="monotone"

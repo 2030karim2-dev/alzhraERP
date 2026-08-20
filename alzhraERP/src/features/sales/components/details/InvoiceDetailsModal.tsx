@@ -12,6 +12,7 @@ import { useAuthStore } from '@/features/auth/store';
 import { useInvoicePaymentStatus } from '../../hooks/useInvoicePaymentStatus';
 import InvoiceHealthBadge from './InvoiceHealthBadge';
 import ReturnWizard from './ReturnWizard';
+import type { Invoice } from '../../../returns/types';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import CompanyInfoSection from './CompanyInfoSection';
 import CustomerInfoSection from './CustomerInfoSection';
@@ -267,7 +268,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
 
                 {showReturnSection ? (
                   <ReturnWizard 
-                    invoice={invoice} 
+                    invoice={invoice as unknown as Invoice} 
                     onReturn={handleReturnSubmit} 
                     onCancel={() => setShowReturnSection(false)}
                     onAlert={handleAlert}

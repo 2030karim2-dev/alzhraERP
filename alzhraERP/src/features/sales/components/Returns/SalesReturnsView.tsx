@@ -254,7 +254,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
               },
               {
                 header: 'تاريخ الإرجاع',
-                accessor: (row: SalesReturnRow) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at).toLocaleDateString('ar-SA-u-nu-latn')}</span>,
+                accessor: (row: SalesReturnRow) => <span className="text-xs text-gray-500">{new Date(row.issue_date || row.created_at || '').toLocaleDateString('ar-SA-u-nu-latn')}</span>,
                 accessorKey: 'issue_date',
                 sortKey: 'issue_date',
                 width: '120px',
@@ -267,7 +267,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                     ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                     : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
                     }`}>
-                    {STATUS_LABELS[row.status] || row.status}
+                    {STATUS_LABELS[(row.status ?? '') as string] || row.status}
                   </span>
                 ),
                 accessorKey: 'status',
@@ -302,7 +302,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                 align: 'center'
               }
             ]}
-            data={processedReturns}
+            data={processedReturns as unknown as SalesReturnRow[]}
             colorTheme="indigo"
             isRTL={true}
             onRowDoubleClick={(row) => onViewDetails(row.id)}

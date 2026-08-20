@@ -114,17 +114,17 @@ const InventoryValuationView: React.FC = () => {
                 <YAxis hide />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  content={({ active, payload }: { active?: boolean; payload?: Array<{ value?: number | string; payload?: { name?: string } }> }) => {
+                  content={(({ active, payload }: { active?: boolean; payload?: Array<{ value?: number | string; payload?: { name?: string } }> }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="glass-panel p-6  max-md:p-3 border-none shadow-2xl bg-white/95 dark:bg-slate-900/95 min-w-[200px]">
-                          <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 pb-2 border-b border-slate-100 dark:border-slate-800">{payload[0].payload.name}</p>
-                          <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">{formatCurrency(payload[0].value)}</p>
+                          <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 pb-2 border-b border-slate-100 dark:border-slate-800">{payload[0].payload?.name}</p>
+                          <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">{formatCurrency(Number(payload[0].value) || 0)}</p>
                         </div>
                       );
                     }
                     return null;
-                  }}
+                  }) as unknown as never}
                 />
                 <Bar dataKey="value" radius={[16, 16, 16, 16]} barSize={80} minPointSize={1}>
                   {chartData.map((_entry, index) => (

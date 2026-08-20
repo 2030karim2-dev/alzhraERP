@@ -1,23 +1,13 @@
 import React from 'react';
 import { formatCurrency } from '../../../../core/utils';
 import { ReportView, ReturnsType } from '../../hooks/useReturnsReport';
+import type { ReturnReportRow } from '../../hooks/returnsNormalizers';
 
 interface Props {
     reportView: ReportView;
-    filteredSalesReturns: ReturnTransactionRow[];
-    filteredPurchaseReturns: ReturnTransactionRow[];
+    filteredSalesReturns: ReturnReportRow[];
+    filteredPurchaseReturns: ReturnReportRow[];
     type: ReturnsType;
-}
-
-/** صف معاملة مرتجع (سجل مفصّل). */
-interface ReturnTransactionRow {
-    invoice_number: string;
-    issue_date?: string;
-    party?: { name?: string } | null;
-    reference_invoice?: { invoice_number?: string } | null;
-    return_reason?: string | null;
-    total_amount?: number | null;
-    status?: string | null;
 }
 
 const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesReturns, filteredPurchaseReturns, type }) => {
@@ -84,7 +74,7 @@ const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesRe
                         {(reportView === 'overview'
                             ? [...filteredSalesReturns, ...filteredPurchaseReturns]
                             : reportView === 'sales' ? filteredSalesReturns : filteredPurchaseReturns
-                        ).slice(0, 20).map((item: ReturnTransactionRow, index: number) => (
+                        ).slice(0, 20).map((item, index) => (
                             <tr key={index} className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all duration-300">
                                 <td className="px-8 max-md:px-3 py-5">
                                     <span className="text-sm font-black text-slate-800 dark:text-white tracking-tighter group-hover:text-blue-500 transition-colors">
@@ -103,7 +93,7 @@ const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesRe
                                     </span>
                                 </td>
                                 <td className="px-8 max-md:px-3 py-5 text-sm font-bold text-slate-600 dark:text-slate-400">
-                                    {getReasonText(item.return_reason)}
+                                    {getReasonText(item.return_reason ?? '')}
                                 </td>
                                 <td className="px-8 max-md:px-3 py-5 text-left">
                                     <span className="text-base font-black text-slate-800 dark:text-white font-mono tracking-tighter">
@@ -111,7 +101,7 @@ const ReturnsTransactionsTable: React.FC<Props> = ({ reportView, filteredSalesRe
                                     </span>
                                 </td>
                                 <td className="px-8 max-md:px-3 py-5 text-center">
-                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(item.status)}`}>
+                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(item.status ?? '')}`}>
                                         {item.status === 'draft' ? 'Draft' :
                                             item.status === 'posted' ? 'Verified' :
                                                 item.status === 'paid' ? 'Settled' :

@@ -3,14 +3,14 @@ import { Wrench, Box } from 'lucide-react';
 import { cn } from '../../../core/utils';
 import { formatCurrency } from '../../../core/utils';
 
-interface TopProduct {
+export interface TopProduct {
     id: string;
     name: string;
     revenue: number;
     quantity: number;
 }
 
-interface TopCustomer {
+export interface TopCustomer {
     id: string;
     name: string;
     total: number;

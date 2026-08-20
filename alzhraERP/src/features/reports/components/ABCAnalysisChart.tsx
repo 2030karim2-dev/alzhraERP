@@ -19,7 +19,7 @@ interface ActiveShapeProps {
 }
 
 const renderActiveShape = (props: ActiveShapeProps) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    const { cx = 0, cy = 0, innerRadius = 0, outerRadius = 0, startAngle = 0, endAngle = 0, fill = '#8884d8' } = props;
     return (
         <g>
             <filter id="abcGlow" x="-20%" y="-20%" width="140%" height="140%">
@@ -104,7 +104,7 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                 dataKey="value"
                                 stroke="none"
                                 cornerRadius={8}
-                                activeShape={renderActiveShape}
+                                activeShape={renderActiveShape as unknown as never}
                                 animationDuration={1500}
                                 animationBegin={200}
                             >
@@ -113,32 +113,31 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                 ))}
                             </Pie>
                             <RechartsTooltip
-                                content={({ active, payload }: { active?: boolean; payload?: Array<{ payload?: { name?: string } }> }) => {
-                                    if (active && payload && payload.length) {
-                                        const entry = payload[0].payload;
-                                        const info = getCategoryInfo(entry.name);
-                                        return (
-                                            <div className="  max-md:p-4 rounded-3xl max-md:rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
-                                                <div className="flex items-center   max-md:gap-3 mb-2">
-                                                    <div className={cn("  max-md:p-2 rounded-xl", info.bg)}>
-                                                        <info.icon size={16} className={info.textColor} />
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-bold text-slate-800 dark:text-white block">{info.label}</span>
-                                                        <span className="text-[10px] font-bold text-slate-400 block">{info.desc}</span>
-                                                    </div>
+                                content={(({ active, payload }: { active?: boolean; payload?: Array<{ payload?: { name?: string; value?: number } }> }) => {
+                                    if (!active || !payload || payload.length === 0) return null;
+                                    const entry = payload[0].payload;
+                                    if (!entry || !entry.name || entry.value === undefined) return null;
+                                    const info = getCategoryInfo(entry.name);
+                                    return (
+                                        <div className="  max-md:p-4 rounded-3xl max-md:rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
+                                            <div className="flex items-center   max-md:gap-3 mb-2">
+                                                <div className={cn("  max-md:p-2 rounded-xl", info.bg)}>
+                                                    <info.icon size={16} className={info.textColor} />
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-8  max-md:gap-3">
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase">القيمة المقدرة</span>
-                                                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                                        {Math.round((entry.value / total) * 100)}%
-                                                    </span>
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-800 dark:text-white block">{info.label}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 block">{info.desc}</span>
                                                 </div>
                                             </div>
-                                        );
-                                    }
-                                    return null;
-                                }}
+                                            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-8  max-md:gap-3">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase">القيمة المقدرة</span>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 font-mono">
+                                                    {Math.round((entry.value / total) * 100)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                }) as unknown as never}
                             />
                         </PieChart>
                     </ResponsiveContainer>

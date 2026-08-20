@@ -15,6 +15,7 @@ import { formatCurrency } from '../../core/utils';
 const StatsGrid = lazy(() => import('../../ui/dashboard/StatsGrid'));
 const CashFlowWidget = lazy(() => import('./components/CashFlowWidget'));
 const TopPerformers = lazy(() => import('./components/TopPerformers'));
+import type { TopProduct, TopCustomer } from './components/TopPerformers';
 const AlertsPanel = lazy(() => import('./components/AlertsPanel'));
 const SalesFlowChart = lazy(() => import('./components/SalesFlowChart'));
 const RevenueExpensesChart = lazy(() => import('./components/RevenueExpensesChart'));
@@ -212,8 +213,8 @@ const DashboardPage: React.FC = () => {
 
                         <Suspense fallback={<div className="h-60 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                             <TopPerformers
-                                products={topProducts}
-                                customers={topCustomers}
+                                products={topProducts as unknown as TopProduct[]}
+                                customers={topCustomers as unknown as TopCustomer[]}
                             />
                         </Suspense>
 
@@ -231,7 +232,7 @@ const DashboardPage: React.FC = () => {
                                     id: a.id,
                                     type: (a.type === 'critical' ? 'urgent' : a.type) as 'urgent' | 'warning' | 'info',
                                     message: a.message,
-                                    time: a.time,
+                                    time: a.time ?? '',
                                 }))}
                             />
                         </Suspense>

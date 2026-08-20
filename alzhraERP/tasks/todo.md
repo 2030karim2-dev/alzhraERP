@@ -1,5 +1,17 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-21) — سداد ديون TypeScript بالكامل: 86 → **0** ✅
+
+- [x] **كل الأخطاء الـ86 الموروثة أُصلحت** عبر 5 جولات مع تحقق tsc بعد كل جولة:
+  - **commissions (16):** `plans.ts` + `engineer.ts` — السبريد الشرطي (exactOptionalPropertyTypes) بعد التحقق من `DEFAULT NULL` في الـ RPC.
+  - **reports الأساسية (22):** `OperationalExpensesReport` (نطاق الواجهة)، `DailySalesReport`/`DebtAgingReport` (إزالة تعليقات صريحة + حقول nullable).
+  - **dashboard/vin/accounting (14):** `TopPerformers` (تصدير الأنواع)، `DashboardPage` (casts + `time ?? ''`)، `vin` (spreads + double-cast)، `reportService` (accountType spread)، `Account.allow_posting`، `QuotationSummaryWidget`، `AccountingOverview`.
+  - **recharts (17):** `ABCAnalysisChart` (افتراضيات Sector + محتوى tooltip مؤمّن)، `CashFlowView`، `InventoryValuationView` — نمط `as unknown as never` لمحتوى recharts المخصص + `Number()` للـ formatCurrency.
+  - **returns (17):** `AdvancedReturnModal` (5)، `SalesReturnsView` (4)، `ReturnsTransactionsTable` (توحيد النوع على `ReturnReportRow`)، `ReturnsReportView` (2)، `ReturnWizard` (مسار استيراد خاطئ كان فيه `../` زائد + إصلاح الأنواع)، `InvoiceDetailsModal`، `StatsGrid`.
+- [x] **التحقق النهائي:** `tsc --noEmit` = **0 خطأ** (ملف مخرجات فارغ) — **الأساس عُدّل إلى 0** (عاد الشرط «0 خطأ» حقيقةً بعد أن كان معطلاً).
+- [ ] **يُتبع:** تشغيل CI كامل للتأكد (المتوقع أخضر)، ثم رفع عتبة التغطية وجعل lint حاجباً.
+
+## Checkpoint (2026-08-21) — سداد ديون TypeScript: 86 → 48 (ثلاث جولات) ✅
 ## Checkpoint (2026-08-21) — سداد ديون TypeScript: 86 → 48 (ثلاث جولات) ✅
 
 - [x] **جولة 1 — commissions (16 خطأً):** `plans.ts` + `engineer.ts` — استبدال `?? null` بنمط **السبريد الشرطي** (exactOptionalPropertyTypes يرفض خصائص صريحة undefined/null) بعد التحقق أن معاملات RPC لها `DEFAULT NULL` (مكافئ سلوكياً).

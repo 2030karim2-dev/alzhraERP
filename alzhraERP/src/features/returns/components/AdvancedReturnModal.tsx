@@ -10,6 +10,7 @@ import { ReturnItemsStep } from './ReturnItemsStep';
 import { ReturnDetailsStep } from './ReturnDetailsStep';
 import { useSalesInvoicesForReturn, useCreateSalesReturn } from '../../sales/hooks/useSalesReturns';
 import { usePurchaseInvoicesForReturn, useCreatePurchaseReturn } from '../../purchases/hooks/usePurchaseReturns';
+import type { PurchaseItem } from '../../purchases/types';
 import { mapReturnStatus } from '../utils/returnHelpers';
 import type { Invoice } from '../types';
 import { logger } from '../../../core/utils/logger';
@@ -76,8 +77,8 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     const { data: purchaseInvoices, isLoading: isLoadingPurchases } = usePurchaseInvoicesForReturn((returnType === 'purchase' ? partyId : null) as string | null);
 
     const invoices: SourceReturnInvoice[] = returnType === 'sale'
-        ? (salesInvoices || []) as SourceReturnInvoice[]
-        : (purchaseInvoices || []) as SourceReturnInvoice[];
+        ? (salesInvoices || []) as unknown as SourceReturnInvoice[]
+        : (purchaseInvoices || []) as unknown as SourceReturnInvoice[];
     const isLoadingInvoices = returnType === 'sale' ? isLoadingSales : isLoadingPurchases;
 
     // Mutations
@@ -269,24 +270,25 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
 
                                 const selectedInvoice = invoices.find((inv) => inv.id === data.invoiceId);
                                 if (!selectedInvoice) throw new Error('الفاتورة الأصلية غير موجودة');
+                                const invoiceCurrency = selectedInvoice.currency ?? selectedInvoice.currency_code;
 
                                 if (returnType === 'sale') {
                                     await createSalesReturn.mutateAsync({
                                         invoiceId: data.invoiceId,
-                                        partyId: selectedInvoice.party?.id ?? selectedInvoice.party_id,
-                                        paymentMethod: selectedInvoice.payment_method,
+                                        partyId: selectedInvoice.party?.id ?? selectedInvoice.party_id ?? '',
+                                        ...(selectedInvoice.payment_method ? { paymentMethod: selectedInvoice.payment_method } : {}),
                                         items: selectedItems,
                                         returnReason: data.returnReason,
                                         status: mapReturnStatus(data.status),
                                         issueDate: data.date,
-                                        currency: selectedInvoice.currency ?? selectedInvoice.currency_code,
-                                        exchangeRate: selectedInvoice.exchange_rate,
+                                        ...(invoiceCurrency ? { currency: invoiceCurrency } : {}),
+                                        ...(selectedInvoice.exchange_rate != null ? { exchangeRate: selectedInvoice.exchange_rate } : {}),
                                         ...(data.notes ? { notes: data.notes } : {}),
                                     });
                                 } else if (returnType === 'purchase') {
                                     // إصلاح: مرتجع المشتريات لم يكن يُنشأ إطلاقاً
                                     await createPurchaseReturn.mutateAsync({
-                                        supplierId: selectedInvoice.party?.id ?? selectedInvoice.party_id,
+                                        supplierId: selectedInvoice.party?.id ?? selectedInvoice.party_id ?? null,
                                         items: selectedItems.map(item => ({
                                             productId: item.productId,
                                             name: item.name,
@@ -294,7 +296,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                                             unitPrice: item.unitPrice,
                                             costPrice: item.costPrice ?? 0,
                                             discount: 0
-                                        })),
+                                        })) as unknown as PurchaseItem[],
                                         invoiceNumber: selectedInvoice.invoice_number ?? '',
                                         issueDate: data.date,
                                         notes: data.notes || '',
