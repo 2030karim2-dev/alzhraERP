@@ -2,12 +2,16 @@
 /**
  * Apply pending Supabase migrations via the Management API.
  *
+ * Generic + idempotent: scans `supabase/migrations/*.sql` (sorted by version),
+ * applies ONLY files whose version is not yet recorded in
+ * `supabase_migrations.schema_migrations`, and records each successful apply.
+ *
  * The Personal Access Token (PAT) is read from process.env.SUPABASE_ACCESS_TOKEN
  * only (never stored on disk).
  *
  * Usage: SUPABASE_ACCESS_TOKEN=<pat> node scripts/apply-migrations.mjs
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const PROJECT_REF = 'zzthamxjxnxzzpswllid';
@@ -21,17 +25,11 @@ if (!ACCESS_TOKEN) {
 
 const MIGRATIONS_DIR = join(process.cwd(), 'supabase', 'migrations');
 
-// The 2026-08-14 migrations are the ones missing on the server.
-const FILES = [
-    '20260814000001_create_ai_request_log.sql',
-    '20260814000001_fix_vin_rpc_security.sql',
-    '20260814000002_create_vehicles_catalog.sql',
-    '20260814000003_harden_vehicle_products_policy.sql',
-    '20260814000004_add_vin_parts_rpc.sql',
-    '20260814000005_vin_analyses_updated_at.sql',
-    '20260814000006_create_debt_module.sql',
-    '20260815000001_add_commission_permissions.sql',
-];
+// Local migration files, sorted by version prefix. Only real migrations
+// (14-digit version + name + .sql) are considered; README.md is ignored.
+const MIGRATION_FILES = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => /^\d{14}_.+\.sql$/.test(f))
+    .sort();
 
 async function runSql(sql) {
     const res = await fetch(QUERY_ENDPOINT, {
@@ -54,6 +52,16 @@ async function runSql(sql) {
     return { ok: res.ok, status: res.status, body };
 }
 
+// "20260819000001_baseline_schema.sql" -> { version: '20260819000001', name: 'baseline_schema' }
+function parseFileName(file) {
+    const base = file.replace(/\.sql$/, '');
+    const sep = base.indexOf('_');
+    return {
+        version: sep === -1 ? base : base.slice(0, sep),
+        name: sep === -1 ? base : base.slice(sep + 1),
+    };
+}
+
 async function main() {
     // 1) Connectivity / auth probe.
     const probe = await runSql('SELECT 1 AS ok');
@@ -63,53 +71,62 @@ async function main() {
         process.exit(1);
     }
 
-    // 2) Check whether the debt RPC already exists (idempotency helper).
-    const exists = await runSql(
-        `SELECT count(*)::int AS c FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
-         WHERE n.nspname = 'public' AND p.proname = 'get_debt_today_tasks';`
-    );
-    const alreadyApplied = Array.isArray(exists.body) && exists.body[0]?.c > 0;
-    if (alreadyApplied) {
-        console.log('ℹ️  get_debt_today_tasks already exists — migrations look applied already.');
+    // 2) Read the versions already recorded on the server.
+    const recorded = await runSql('SELECT version FROM supabase_migrations.schema_migrations');
+    if (!recorded.ok) {
+        console.error('❌ Cannot read supabase_migrations.schema_migrations:', JSON.stringify(recorded.body).slice(0, 400));
+        process.exit(1);
     }
+    const recordedVersions = new Set((recorded.body || []).map((r) => String(r.version)));
+    console.log(`[state] ${MIGRATION_FILES.length} local files, ${recordedVersions.size} versions recorded on server.`);
 
-    // 3) Apply each missing migration, one file at a time.
+    // 3) Apply each unrecorded migration, one file at a time, then record it.
     let applied = 0;
     let failed = 0;
-    for (const file of FILES) {
+    let skipped = 0;
+    for (const file of MIGRATION_FILES) {
+        const { version, name } = parseFileName(file);
+        if (recordedVersions.has(version)) {
+            skipped += 1;
+            console.log(`— ${file} (already recorded, skipped)`);
+            continue;
+        }
+
         const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
         process.stdout.write(`▶ ${file} ... `);
         const result = await runSql(sql);
-        if (result.ok) {
-            applied += 1;
-            console.log('OK');
-        } else {
+        if (!result.ok) {
             failed += 1;
             const msg = typeof result.body === 'object'
                 ? (result.body.message ?? result.body.error ?? JSON.stringify(result.body)).slice(0, 300)
                 : String(result.body).slice(0, 300);
             console.log('FAIL');
             console.log(`    ${msg}`);
+            continue;
         }
+
+        // Record the version so future runs skip it (idempotency). If the
+        // bookkeeping insert fails the migration still succeeded — warn only.
+        const record = await runSql(
+            `INSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('${version}', '${name}') ON CONFLICT (version) DO NOTHING;`
+        );
+        if (!record.ok) {
+            console.log(`OK (warning: could not record version ${version}: ${JSON.stringify(record.body).slice(0, 200)})`);
+        } else {
+            console.log('OK');
+        }
+        applied += 1;
     }
 
-    // 4) Final verification.
-    const verify = await runSql(
-        `SELECT
-           (SELECT count(*)::int FROM information_schema.columns WHERE table_name='vin_analyses' AND column_name='updated_at') AS has_updated_at,
-           (SELECT count(*)::int FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
-              WHERE n.nspname='public' AND p.proname='get_debt_today_tasks') AS has_rpc;`
-    );
+    // 4) Summary.
     console.log('\n===== Summary =====');
-    console.log(`Migrations: ${applied} applied, ${failed} failed`);
-    if (Array.isArray(verify.body)) {
-        console.log('vin_analyses.updated_at present:', verify.body[0]?.has_updated_at === 1);
-        console.log('get_debt_today_tasks present:', verify.body[0]?.has_rpc === 1);
-    }
+    console.log(`Migrations: ${applied} applied, ${failed} failed, ${skipped} skipped (already recorded).`);
+    if (failed > 0) process.exit(1);
 }
 
 main().catch((err) => {
     console.error('❌ Unexpected error:', err?.message ?? err);
     process.exit(1);
 });
+
 

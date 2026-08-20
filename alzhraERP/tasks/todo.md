@@ -1,5 +1,71 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-21) — اختبارات المصروفات + تنضيد بحث POS ✅
+
+- [x] **6 اختبارات جديدة** لخدمة المصروفات (`expenses/service.test.ts`): `calculateStats` (فارغ، خلط الحالات paid/posted/draft، تمييز التصنيفات، سعر صرف فاسد → 0) و`getCategoryBreakdown` (تجميع بالاسم، بديل «أخرى»). النتيجة: 6/6.
+- [x] **تنضيد بحث POS** (`pos/services/searchService/database.ts`): إزالة 7 حالات `any` — `RpcSearchRow`/`FallbackSearchRow`/`SearchStockRow` واجهات صريحة، `salesCounts` مكتوبة `Map<string, {count; last_date}>`، تمرير طبيعي لحقول `scoreSearchResult`، و`catch (err: unknown)` بدل `any`. لا تغيير سلوك تشغيلي.
+- [x] **التحقق**: `vitest` = 25/25 (جديد 6 + validationUtils 11 + POSCheckout 2 + POS cache 6)؛ ts-morph parse 2/2؛ سلوك `database.ts` صار مؤكداً عبر `cache.test.ts` (يستورد searchService).
+
+## Checkpoint (2026-08-21) — حسم قرارَي Task 13 وTask 14 + درس التحقق قبل الحذف ✅
+## Checkpoint (2026-08-21) — حسم قرارَي Task 13 وTask 14 + درس التحقق قبل الحذف ✅
+
+- [x] **Task 13 — smart-import: قرار «الإبقاء» (عكس مسار الحذف)** — أثناء تنفيذ الإزالة، قبض التحقق بـ grep على استيرادات حقيقية كانت مخفية في نتائج بحث سابقة مبتورة: `InventoryPage.tsx:9` يستورد `SmartImportView` (mode=inventory) و`PurchasesPage.tsx:13` يستورده (mode=invoice/تبويب smart_import). الوحدة ميزة AI فعّالة (تعتمد `documentAiService`). **أُعيدت الملفات من git فوراً** و`git status` نظيف. الدرس: لا حذف لأي وحدة قبل grep شامل لكل الاستيرادات وقراءة النتائج كاملة (لا الاعتماد على أول مخرجات).
+- [x] **Task 14 — سكربت migrations عُمّم**: `apply-migrations.mjs` كان معطلاً (مصفوفة FILES تشير لملفات 20260814 محذوفة) → أصبح يمسح `supabase/migrations/*.sql` مرتباً ويطبّق **غير المسجّل فقط** في `supabase_migrations.schema_migrations` مع تسجيل كل نجاح (idempotent). التحقق: `node --check` سليم. تبقى خطوة السيرفر الحي (تتطلب `SUPABASE_ACCESS_TOKEN`).
+- [x] **التوثيق**: ADR-010 يوثق القرارين والدرس.
+
+## Checkpoint (2026-08-20) — المرحلة 4: أمان noopener + طبقات المصادقة + تنظيف الإعدادات ✅
+## Checkpoint (2026-08-20) — المرحلة 4: أمان noopener + طبقات المصادقة + تنظيف الإعدادات ✅
+
+- [x] **أمان `noopener,noreferrer`** على 6 روابط `wa.me` (shareUtils, BondsList, useProductBulkActions, PaymentHeader, InvoiceDetailsModal, QuotationDetailsModal) — منع reverse-tabnabbing.
+- [x] **إصلاح الطبقات**: `useProfileUpdate` لم يعد يستدعي `supabase` مباشرة — أُضيف `authApi.updateProfile(fullName)` والهوك يمر عبره (Component → Hook → API). التحقق: `auth/api.test.ts` = 3/3 ناجحة.
+- [x] **إزالة مفتاح `stat` غير الصالح** من `tailwind.config.js` (نسختي الجذر وalzhraERP) — لم يكن يولّد أي فئة Tailwind. التحقق: كلا الملفين يُحمَّلان ESM سليماً (`stat` غير موجود).
+- [x] **تنظيف `any`**: `PartiesPage` (`onRowDoubleClick` + حمولة الحفظ بنوع `{ data: PartyFormData; id?: string }`) و`initAPM` (`globalThis` مكتوب بدل `(globalThis as any)`).
+- [x] **خطة موثقة**: `plans/party-routes-tabs-cleanup.md` — توحيد مسارات الأطراف الخمسة إلى `/clients` + `/suppliers` مع تبويب «عميل/مورد» داخلي، وتنبيهات المسارات المستخدمة فعلياً؛ التنفيذ يتطلب بيئة تحقق كاملة (tsc/build/تشغيل يدوي).
+
+## Checkpoint (2026-08-20) — المرحلة 3: اختبارات المسارات الحرجة + تدقيق select('*') ✅
+## Checkpoint (2026-08-20) — المرحلة 3: اختبارات المسارات الحرجة + تدقيق select('*') ✅
+
+- [x] **اختبارات جديدة (13 اختباراً، 13/13 ناجحة فعلياً بتشغيل vitest):**
+  - `core/utils/validationUtils.test.ts` (11): تحقق المبيعات/المشتريات — صنف فارغ، منتج ناقص، كمية ≤ 0، سعر سالب، طريقة دفع، تاريخ الفاتورة، assertValid.
+  - `core/usecases/sales/ProcessPOSCheckoutUsecase.test.ts` (2): تفويض حمولة الخروج الكاملة لـ `salesService.processNewSale` (mock) + انتشار أخطاء الخدمة.
+  - **انحدار مجاور**: `errorUtils` / `auth/api` / `sales/store` / `purchases/store` / `queryClient` = 34/34 ناجحة بعد تعديلات المرحلتين 1 و2.
+- [x] **تدقيق `select('*')` (38 موقعاً حرفياً + قوالب نجمة مثل getExpensesRaw) — الوثيقة:** `docs/select-star-audit.md`.
+  - تقليص فعلي لموقعين محقَّقَين ضد `database.types`: `getExpensesRaw` (21→15 عموداً، المستهلك الوحيد يتعاقد على `Expense`) و`getLog` (`*`→9 أعمدة مطابقة لـ `NotificationLogEntry`).
+  - إصلاح `data as any` في `expensesService.getStatsFromServer` بنوع صريح.
+  - الباقي مصنَّف (مقبول / مرشح مستقبلي بتتبع المستهلكين).
+- [x] **عتبة التغطية**: أُبقيَت 30% — لا تقرير تغطية في المستودع ولا يمكن قياسها محلياً (مهلة أدوات 30 ثانية)؛ CI يشغّل `npm test` بلا coverage أصلاً. التدرج نحو 50% بعد تشغيل `npm run test:ci` مرة في CI (أو إضافة خطوة coverage إلى CI).
+- [ ] **قرارات مطلوبة من المستخدم (Task 13 / Task 14):**
+  - **Task 13 — smart-import:** الخياران: (أ) ربط الوحدة بشاشات المشتريات/المخزون (انتهاء مهم)، (ب) إزالتها نهائياً (التعليق: واجهة تعمل لكنها غير متصلة بأي تدفق حالياً).
+  - **Task 14 — مصالحة migrations:** 647 نسخة عن بُعد مقابل ~35 محلية. يتطلب: `db pull` كامل ثم اعتماد النسخ الحية كأساس جديد، مع استعادة migration لكل إصلاح حي غير موثق.
+
+
+## Checkpoint (2026-08-20) — المرحلة 2: تنظيف `any` + نطاق Realtime + إصلاحات HTML/CI ✅
+
+
+- [x] **تصفية `any` من الملفات الحرجة** (11 ملفاً):
+  - `auth/store.ts`: `onAuthStateChange` أصبح `(event: AuthChangeEvent, session: Session | null)` بدل `session: any` + إزالة `(roleRow as any)` الثلاثة عبر تحويل نوعي واحد.
+  - `sales/service.ts`: `calcTotal(data: SalesStatsRow[])` بدل `any[]` (النوع مطابق لما يقبله `toBaseCurrency`).
+  - `reports/api.ts`: إزالة 4 تنويعات `: any` في `getAccountingData` و`getPartiesWithBalances` (الاستدلال من أنواع Database).
+  - `sync-store.ts` / `sync-registry.ts`: `mutationKey: unknown[]` / `variables: unknown` بدل `any`، مع مساعد `cast<T>` (مطابق سلوك التشغيل لـ `as any` لكن صريح) في الـ registry.
+  - `pos/store.ts`: `SuspendedOrder.items: SalesCartItem[]` و`customer: SuspendedCustomer | null` بدل `any[]`/`any` (متوافق مع `useSalesStore.setState` عند الاستعادة).
+  - `useInvoices.ts`: `onError: (error, variables)` مع تحويل محلي لـ `{ message?; status? }` بدل `Error | any`.
+  - `messagingApi.ts`: `{ error: PostgrestError | null }` بدل `{ error: any }`، إزالة `(supabase.from(...) as any)` عبر `as unknown as Insert`، و`results` بنوع صريح.
+- [x] **نطاق Realtime**: الاشتراك أصبح **حسب الجدول** (`Object.keys(TABLE_PRESET_MAP) + dashboard_data`) بدل wildcard على كل الـ schema — العميل لا يستقبل أحداثاً إلا للجداول المطابقة فعلاً (RLS تبقى طبقة الأمان).
+- [x] **`index.html`**: إزالة سطرَي `preconnect`/`dns-prefetch` للـ placeholder `[your-project].supabase.co` + فك `user-scalable=no`/`maximum-scale=1` (وصولية).
+- [x] **CI**: التحقق بالبايت أن تعليق خطوة الـ Lint سليم الترميز (الـ `â€”` الظاهر سابقاً كان أثر عرض PowerShell لا عيباً في الملف) + توضيح العنوان بأن الحجب (إزالة `continue-on-error`) مؤجل حتى سداد ديون الـ lint.
+- [x] **درس من التحقق**: أُزيلت `ROUTES.DASHBOARD.SUPPLIERS/CLIENTS` مؤقتاً ثم **استُعيدت** — تبين أنهما مستخدمان فعلياً في `core/constants.ts` (القائمة الجانبية) و`QuickActions`؛ التحقق بالـ grep قبل الدمج منع كسراً للتنقل. التكرار الحقيقي للأطراف (5 مسارات) يتطلب إعادة هيكلة `PartiesPage` بتبويبات داخلية (مؤجل، موثّق في `plans/ux-cleanup-implementation-plan.md`).
+- [x] **مؤجل (موثق):** إزالة ~172 مفتاح ترجمة "ميتاً" — الفاحص النصي `check-i18n-keys.mjs` لا يرى الاستخدام الديناميكي (`t(item.labelKey)` في القائمة الجانبية)، فالحذف خطر على الواجهة.
+
+## Checkpoint (2026-08-20) — المرحلة 1: تطهير الأوفلاين الميت + تصحيح رسائل الأخطاء ✅
+
+- [x] **إزالة سلسلة المزامنة الميتة (3 أنظمة أوفلاين متوازية → نظام واحد نشط)**: حُذفت `src/lib/offlineService.ts` (لم يكن له أي مستدعٍ) و`src/core/services/offlineQueueStore.ts` + `OfflineManager.tsx` (لا شيء يُضيف إليهما بعد الآن — الطابور الفعلي الوحيد هو `sync-store` الذي يعيد تشغيله `useSyncQueue` في `ReactQueryProvider` عبر `processSyncMutation`). أُزيل `<OfflineManager />` من `src/index.tsx`.
+- [x] **حذف الـ Service Worker اليدوي الميت**: `alzhraERP/sw.js` و`sw.js` (الجذر) — لم يُسجَّل أحدهما في أي مكان (vite-plugin-pwa يولّد `dist/sw.js` الصحيح)، وكل من Netlify/Vercel ينشر من `dist/` فقط.
+- [x] **حذف حلقة `REPLAY_ACTIONS` الميتة** من `useSystemInitialization.ts` (لا شيء يرسل هذه الرسالة) + إزالة الاستيرادات غير المستخدمة (`offlineService`, `salesService`, `useQueryClient`, `useFeedbackStore`, `logger`).
+- [x] **تصحيح رسالة `PGRST116` المضللة** في `core/utils/errorUtils.ts`: كانت «الجداول المطلوبة غير موجودة في قاعدة البيانات» → أصبحت «لم يتم العثور على السجل المطلوب (أو توجد عدة نتائج حيث كان متوقعاً سجل واحد)» مع درجة `medium` (ليست `critical`).
+- [x] **إزالة `@supabase/server ^1.4.1`** من `package.json` الجذر (حزمة غير قياسية وغير مستخدمة — الجذر بلا `src`) + حذف سكربتات الجذر المعطلة (`clean`, `scan:types`, `quality:report` التي كانت تشير لملفات غير موجودة).
+- [x] **إصلاح أدوات فحص الجودة المعطلة**: أُضيف `ts-morph ^28.0.0` إلى `alzhraERP` devDependencies (مُثبت ومُحدَّث في package-lock.json) + إصلاح خلل ESM في `type-safety-scanner.ts` (كان `require.main === module` يرمي `ReferenceError` تحت `"type": "module"` → حارس `isMainModule` يدعم النظامين). التحقق: `ts-morph` يُحمَّل، والفحص يبدأ (اكتماله يتجاوز مهلة أدوات الفحص المحلية).
+- [x] **التحقق**: `npm run check:encoding` نظيف، لا مراجع متبقية للملفات المحذوفة في `src/`، JSON سليم لكلا ملفي package.json.
+
 ## Checkpoint (2026-08-20) — تدقيق المحاسبة: تصنيف التقارير بالنوع + منع القيود الصفرية ✅
 
 - [x] **R1 — تصنيف التقارير المالية بحسب `a.type` بدل بادئة الرمز**: `report_balance_sheet` و`report_profit_loss` كانتا تصنفان الحسابات بـ `a.code LIKE '1%'/'2%'/'3%'/'4%'/'5%'` بينما `get_account_ledger`/`report_trial_balance`/`report_account_balances`/`get_monthly_performance` تصنف بـ `a.type` → أصل برمز `7001` يُستبعد من الميزانية، ومصروف برمز `1999` يُحسب في الأصول والمصروفات معاً (ازدواج). Migration `20260820000004` أعاد بناء الدالتين بالتصنيف عبر `a.type` مع إبقاء `fn_assert_company_access` و`p_branch_id` و`p_as_of_date` (التواقيع دون تغيير).

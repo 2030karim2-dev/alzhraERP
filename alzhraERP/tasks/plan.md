@@ -51,10 +51,10 @@
 - [ ] tsc --noEmit نظيف تمامًا → CI يعود حاجبًا كاملًا
 
 ### Phase C3: قرار الذكاء الاصطناعي
-- [ ] Task 13: smart-import — ربط بالمسارات + إصلاح ثغرتين (config.ts:22, provider.ts:109) أو إزالة — قرار المستخدم
+- [x] Task 13: smart-import — **قرار 2026-08-21: الإبقاء** — الميزة مربوطة فعلياً عبر `InventoryPage` (mode=inventory) و`PurchasesPage` (mode=invoice/تبويب smart_import)؛ لا إزالة. بقي فقط متابعة الثغرتين في AI core (config.ts:22, provider.ts:109) كبند مستقل عند الحاجة.
 
 ### Phase D: Backend (Supabase) — تسلسل إلزامي
-- [ ] Task 14: مصالحة migrations + db pull (30 DB vs 23 repo) — M — تأسيسي
+- [~] Task 14: مصالحة migrations — **سكربت `apply-migrations.mjs` عُمّم** (مسح `supabase/migrations/*.sql` مرتباً + idempotent عبر `schema_migrations`) — تبقى خطوة السيرفر الحي (تتطلب `SUPABASE_ACCESS_TOKEN` + قرار `db pull`).
 - [ ] Task 15: search_path لـ 55 دالة SECURITY DEFINER — M — أمني
 - [ ] Task 16: إضافة product_stock + warehouses لمنشور Realtime — S
 - [ ] Task 17: إزالة overload المكرر في commit_sales_invoice — S
