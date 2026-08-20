@@ -14,6 +14,7 @@ import type {
 } from '../models';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
+import { supabase } from '../../../lib/supabaseClient';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -174,23 +175,28 @@ export const useDashboardData = (): UseDashboardDataResult => {
     }
     const registry: Map<string, any> = globalAny.__ALZ_DASHBOARD_CHANNELS__;
 
+    // ⚡ Synchronous channel creation (no dynamic import): the previous
+    // `void import(...).then(...)` raced with React StrictMode's double
+    // effect — both runs passed the `registry.has` guard before the
+    // microtask executed, and supabase-js reuses the underlying Phoenix
+    // channel for the same topic, so the second `.on('postgres_changes')`
+    // hit an already-joined channel and threw
+    // "cannot add `postgres_changes` callbacks ... after `subscribe()`".
     if (!registry.has(channelKey)) {
-      void import('../../../lib/supabaseClient').then(({ supabase }) => {
-        const ch = supabase
-          .channel(channelKey)
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
-            (payload: any) => {
-              if (payload.new.type === 'sale') {
-                showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
-                queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
-              }
+      const ch = supabase
+        .channel(channelKey)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
+          (payload: any) => {
+            if (payload.new.type === 'sale') {
+              showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
+              queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
             }
-          )
-          .subscribe();
-        registry.set(channelKey, ch);
-      });
+          }
+        )
+        .subscribe();
+      registry.set(channelKey, ch);
     }
     return () => { /* no-op */ };
   }, [companyId, queryClient, showToast]);
