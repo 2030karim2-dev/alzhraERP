@@ -12273,7 +12273,11 @@ export type Database = {
         }
         Returns: {
           date: string
+          expenses: number
           name: string
+          profit: number
+          purchases: number
+          sales: number
           value: number
         }[]
       }

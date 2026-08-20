@@ -166,7 +166,22 @@ const DashboardPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="relative z-10">
-                                    <SalesFlowChart data={salesData.map(d => ({ name: d.name, value: d.value ?? 0, sales: d.value ?? d.sales ?? 0 }))} showPeriodSelector={true} />
+                                    <SalesFlowChart
+                                        data={salesData.map((d) => {
+                                            const sales = d.value ?? d.sales ?? 0;
+                                            const purchases = d.purchases ?? 0;
+                                            const expenses = d.expenses ?? 0;
+                                            return {
+                                                name: d.name,
+                                                value: sales,
+                                                sales,
+                                                purchases,
+                                                expenses,
+                                                profit: d.profit ?? sales - purchases - expenses,
+                                            };
+                                        })}
+                                        showPeriodSelector={true}
+                                    />
                                 </div>
                             </div>
                         </Suspense>

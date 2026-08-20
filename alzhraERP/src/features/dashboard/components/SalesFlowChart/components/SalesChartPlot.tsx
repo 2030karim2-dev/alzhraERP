@@ -3,10 +3,11 @@ import {
     Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     ComposedChart, Legend, Brush, Area, Line, BarChart
 } from 'recharts';
+import { BarChart3 } from 'lucide-react';
 import { cn } from '../../../../../core/utils';
 import { useThemeStore } from '../../../../../lib/themeStore';
 import { formatNumber } from './SalesChartSummary';
-import { ChartType, SeriesType } from '../hooks/useSalesFlowChart';
+import type { ChartType, SeriesType, ChartDataPoint } from '../hooks/useSalesFlowChart';
 
 export const CustomTooltip = ({ active, payload, label }: any) => {
     const { theme } = useThemeStore();
@@ -50,7 +51,7 @@ export const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 interface SalesChartPlotProps {
-    filteredData: any[];
+    filteredData: ChartDataPoint[];
     chartType: ChartType;
     visibleSeries: Record<SeriesType, boolean>;
     seriesConfig: Record<SeriesType, { label: string; color: string }>;
@@ -164,6 +165,16 @@ export const SalesChartPlot: React.FC<SalesChartPlotProps> = ({
 
     const ChartComponent = chartType === 'bar' ? BarChart : ComposedChart;
 
+    // Strict zero-state: if the filtered points carry no sales/purchases/
+    // expenses/profit, render an explicit "no data" message instead of a
+    // misleading flat zero line.
+    const hasAnyData = filteredData.length > 0 && filteredData.some((d) =>
+        (d.sales ?? 0) > 0 ||
+        (d.purchases ?? 0) > 0 ||
+        (d.expenses ?? 0) > 0 ||
+        (d.profit ?? 0) !== 0
+    );
+
     return (
         <div 
           ref={containerRef}
@@ -172,7 +183,14 @@ export const SalesChartPlot: React.FC<SalesChartPlotProps> = ({
             {/* Subtle glowing background behind chart container */}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-blue-500/5 dark:from-blue-500/10 to-transparent pointer-events-none rounded-b-3xl" />
 
-            {isMounted && (
+            {isMounted && !hasAnyData && (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[var(--app-text-secondary)]">
+                    <BarChart3 size={28} className="opacity-30" />
+                    <p className="text-xs font-bold">لا توجد بيانات مبيعات في هذه الفترة</p>
+                </div>
+            )}
+
+            {isMounted && hasAnyData && (
                 <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={300} debounce={100}>
                     <ChartComponent {...commonProps}>
                         {gradients}

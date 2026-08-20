@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDashboardInsights, resolveNetProfit, sumTrialBalanceByPrefix } from './dashboardInsights';
+import { calculateDashboardInsights, resolveNetProfit, sumTrialBalanceByPrefix, computeSalesGrowthRate } from './dashboardInsights';
 
 // ── Trend Calculations ─────────────────────────────────
 
@@ -337,6 +337,42 @@ describe('Resilience to partial data', () => {
 
     expect(result.targets.salesProgress).toBe(0);
     expect(Number.isNaN(result.salesTrend)).toBe(false);
+  });
+});
+
+// ── Daily sales growth (dashboard "تحليل تدفق المبيعات" badge) ───────────────
+
+describe('computeSalesGrowthRate', () => {
+  it('returns 0 for empty, single-point, or null input', () => {
+    expect(computeSalesGrowthRate([])).toBe(0);
+    expect(computeSalesGrowthRate([100])).toBe(0);
+    expect(computeSalesGrowthRate(null)).toBe(0);
+    expect(computeSalesGrowthRate(undefined)).toBe(0);
+  });
+
+  it('computes +50% when the last 3 days average 50% above the previous 3', () => {
+    const result = computeSalesGrowthRate([100, 100, 100, 150, 150, 150]);
+    expect(result).toBeCloseTo(50, 6);
+  });
+
+  it('computes -50% when the last 3 days average half of the previous 3', () => {
+    const result = computeSalesGrowthRate([200, 200, 200, 100, 100, 100]);
+    expect(result).toBeCloseTo(-50, 6);
+  });
+
+  it('falls back to last-point vs overall average when fewer than 6 points', () => {
+    // [100, 200] → avg 150, current 200 → +33.33%
+    expect(computeSalesGrowthRate([100, 200])).toBeCloseTo(33.3333, 2);
+  });
+
+  it('returns 0 when the previous baseline is zero (no growth basis)', () => {
+    expect(computeSalesGrowthRate([0, 0, 0, 100, 100, 100])).toBe(0);
+  });
+
+  it('ignores non-finite values instead of corrupting the rate', () => {
+    // [100, NaN, 100, 100, 150, 150, 150] → after filtering: 6 values → +50%
+    const result = computeSalesGrowthRate([100, Number.NaN, 100, 100, 150, 150, 150]);
+    expect(result).toBeCloseTo(50, 6);
   });
 });
 

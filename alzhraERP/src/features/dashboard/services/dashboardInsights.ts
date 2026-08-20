@@ -54,6 +54,30 @@ export const resolveNetProfit = (
     return Number.isFinite(serverNetProfit) ? serverNetProfit : legacyNetProfit;
 };
 
+/**
+ * حساب معدل نمو المبيعات اليومية الظاهر في بطاقة "تحليل تدفق المبيعات".
+ * - مع 6 نقاط أو أكثر: متوسط آخر 3 أيام مقابل متوسط الأيام الثلاثة السابقة
+ *   (نفس منطق الاتجاه داخل شارت تدفق المبيعات) — يُظهر رقماً ذا معنى.
+ * - مع نقطتين إلى 5: آخر نقطة مقابل المتوسط العام.
+ * - يُرجع 0 عندما لا توجد بيانات أو لا توجد مبيعات سابقة للمقارنة
+ *   (تجنّباً لشارة "0.0%" الدائمة على بطاقة اللوحة).
+ */
+export const computeSalesGrowthRate = (salesValues: number[] | null | undefined): number => {
+    const values = (salesValues ?? []).filter((v) => Number.isFinite(v));
+    if (values.length === 0) return 0;
+
+    if (values.length >= 6) {
+        const last3 = values.slice(-3).reduce((sum, v) => sum + v, 0) / 3;
+        const prev3 = values.slice(-6, -3).reduce((sum, v) => sum + v, 0) / 3;
+        return prev3 > 0 ? ((last3 - prev3) / prev3) * 100 : 0;
+    }
+
+    if (values.length < 2) return 0;
+    const current = values[values.length - 1];
+    const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+    return avg > 0 ? ((current - avg) / avg) * 100 : 0;
+};
+
 export const calculateDashboardInsights = (data: {
     receiptBonds: number;
     paymentBonds: number;

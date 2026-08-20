@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDashboardData } from './index';
+import { computeSalesGrowthRate } from '../services/dashboardInsights';
 import { reportService } from '../../accounting/services/reportService';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { useAuthStore } from '../../auth/store';
@@ -53,9 +54,16 @@ export const useDashboardMetrics = () => {
     }, [monthlyPerformance, stats]);
 
     const metrics = useMemo(() => {
-        const currentSales = salesData && salesData.length > 0 ? (salesData as any[])[salesData.length - 1].value : 0;
-        const avgSales = ((salesData as any[])?.reduce((a: number, b: any) => a + b.value, 0) || 0) / ((salesData as any[])?.length || 1);
-        const growthRate = avgSales > 0 ? ((currentSales - avgSales) / avgSales) * 100 : 0;
+        const salesValues = salesData.map((d) => d.value ?? d.sales ?? 0);
+        const currentSales = salesValues.length > 0 ? salesValues[salesValues.length - 1] : 0;
+        const avgSales = salesValues.length > 0
+            ? salesValues.reduce((sum, v) => sum + v, 0) / salesValues.length
+            : 0;
+
+        // معدل النمو ذو المعنى: متوسط آخر 3 أيام مقابل متوسط الأيام الثلاثة
+        // السابقة (نفس منطق اتجاه الشارت) بدل مقارنة آخر يوم بالمتوسط العام
+        // التي كانت تُبقي الشارة "0.0%" دائماً على البطاقة.
+        const growthRate = computeSalesGrowthRate(salesValues);
         const salesValue = extractNumericValue(stats?.sales || '0');
 
         return {

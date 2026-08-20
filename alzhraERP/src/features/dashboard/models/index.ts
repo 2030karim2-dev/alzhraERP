@@ -25,6 +25,7 @@ export interface ChartDataPoint {
     sales?: number;
     purchases?: number;
     expenses?: number;
+    profit?: number;
     color?: string;
 }
 
