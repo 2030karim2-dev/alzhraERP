@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom/client';
 import { logger } from './core/utils/logger';
 import App from './App';
 import { ReactQueryProvider } from './core/lib/react-query';
-import { OfflineManager } from './core/services/OfflineManager';
 import { isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from './lib/supabaseClient';
 
 // --- Production: Security & Error Masking ---
@@ -144,7 +143,6 @@ if (!isSupabaseConfigured && import.meta.env.MODE !== 'test') {
     <React.StrictMode>
       <ErrorBoundary>
         <ReactQueryProvider>
-          <OfflineManager />
           <App />
         </ReactQueryProvider>
       </ErrorBoundary>

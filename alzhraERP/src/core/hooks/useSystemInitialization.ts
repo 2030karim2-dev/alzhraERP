@@ -3,14 +3,9 @@ import { useAuth } from '../../features/auth/hooks';
 import { useAuthStore } from '../../features/auth/store';
 import { useCommandPalette } from '../../features/command/hooks';
 import { useI18nStore } from '../../lib/i18nStore';
-import { useQueryClient } from '@tanstack/react-query';
-import { offlineService } from '../../lib/offlineService';
-import { salesService } from '../../features/sales/service';
-import { useFeedbackStore } from '../../features/feedback/store';
 import { notificationService } from '../../features/notifications/service';
 import { useLocalizationSettings } from '../../features/settings/settingsStore';
 import { useSoundStore } from '../../features/notifications/store';
-import { logger } from '../utils/logger';
 import { initAPM } from '../utils/initAPM';
 import { useRealtimeSync } from '../../lib/hooks/useRealtimeSync';
 
@@ -20,8 +15,6 @@ export const useSystemInitialization = () => {
   const { user } = useAuthStore();
   const { openPalette } = useCommandPalette();
   const { lang, initializeLang, setLang } = useI18nStore();
-  const queryClient = useQueryClient();
-  const { showToast } = useFeedbackStore();
   const localizationSettings = useLocalizationSettings();
   const { setUserInteracted } = useSoundStore();
 
@@ -104,44 +97,9 @@ export const useSystemInitialization = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [openPalette]);
 
-  // 4. Background Synchronization (Service Worker)
-  useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'REPLAY_ACTIONS') {
-        showToast('إعادة الاتصال بالشبكة، جاري مزامنة البيانات...', 'info');
-        const actions = event.data.payload || [];
-        let success = true;
-        for (const action of actions) {
-          try {
-            switch (action.type) {
-              case 'CREATE_INVOICE':
-                // Fix: Corrected method name from createInvoice to processNewSale and fixed argument ordering
-                await salesService.processNewSale(action.payload.companyId, action.payload.userId, action.payload.data);
-                break;
-              // Future: Add cases for CREATE_PURCHASE, etc.
-            }
-          } catch (error) {
-            success = false;
-            logger.error('Sync', 'Failed to replay action', { action, error: error as Error });
-            showToast(`فشل مزامنة العملية: ${action.type}`, 'error');
-            break; // Stop replaying sequence on failure
-          }
-        }
-
-        if (success) {
-          await offlineService.clearQueue();
-          showToast('تمت مزامنة جميع البيانات بنجاح!', 'success');
-          // Targeted invalidation: only refresh sales-related queries after sync
-          await queryClient.invalidateQueries({ queryKey: ['invoices'] });
-          await queryClient.invalidateQueries({ queryKey: ['sales'] });
-          await queryClient.invalidateQueries({ queryKey: ['sales_stats'] });
-          await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-        }
-      }
-    };
-
-    navigator.serviceWorker.addEventListener('message', handleMessage);
-    return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
-  }, [queryClient, showToast]);
+  // ملاحظة: كانت هناك حلقة "REPLAY_ACTIONS" عبر Service Worker اليدوي (sw.js)
+  // لكن هذا الـ SW غير مسجَّل إطلاقاً (vite-plugin-pwa يولّد SW خاصاً به)،
+  // فلا يُرسَل أي حدث REPLAY_ACTIONS — كانت الحلقة كوداً ميتاً. مزامنة الأوفلاين
+  // الفعلية تتم عبر `sync-store` + `useSyncQueue` في ReactQueryProvider
+  // (processSyncMutation) عند عودة الاتصال.
 };

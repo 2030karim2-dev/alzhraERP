@@ -93,7 +93,6 @@ export const useProductMutations = () => {
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const { showToast } = useFeedbackStore();
-    // const { enqueue } = useOfflineQueueStore(); // LEGACY - REMOVING
 
     const saveProduct = useMutation({
         mutationFn: async ({ data, id }: { data: ProductFormData, id?: string }) => {
