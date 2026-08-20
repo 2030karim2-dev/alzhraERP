@@ -82,17 +82,24 @@ if (import.meta.env.DEV) {
 }
 
 // ----------------------------------------
-// This ensures that any previous buggy service workers are removed immediately
-// to prevent "Failed to fetch" errors caused by SW interception.
-if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+// Service workers caused a production-only bug class:
+//   "Failed to load module script ... MIME type text/html"
+// An old VitePWA service worker precached a previous deploy's index.html,
+// which referenced chunk hashes that no longer exist on the host. The SPA
+// fallback then answered those requests with index.html (text/html) and
+// the browser refused to execute it as a module.
+// Fix: the PWA plugin is REMOVED (no new SW is generated) and any existing
+// registration/cache is torn down here — in DEV and PRODUCTION alike — so
+// the browser always fetches the CURRENT index.html + current chunks.
+if ('serviceWorker' in navigator) {
   try {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       for (const registration of registrations) {
-        registration.unregister().catch((err: Error) => {
+        registration.unregister().catch((err: unknown) => {
           logger.warn('SW', 'unregister failed', err);
         });
       }
-    }).catch((err: Error) => {
+    }).catch((err: unknown) => {
       // This catch block handles "The document is in an invalid state" error
       // which can happen during rapid reloads or specific browser states
       logger.warn('SW', 'access failed', err);
@@ -100,6 +107,20 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   } catch (e) {
     logger.warn('SW', 'not supported or access denied', e);
   }
+}
+
+// Clear Workbox/VitePWA caches left behind by the removed service worker.
+if ('caches' in window) {
+  caches.keys().then(keys => {
+    const stale = keys.filter(k => k.startsWith('workbox-') || k.startsWith('vite-plugin-pwa') || k === 'app-shell');
+    for (const name of stale) {
+      caches.delete(name).catch((err: unknown) => {
+        logger.warn('SW', `cache delete failed: ${name}`, err);
+      });
+    }
+  }).catch((err: unknown) => {
+    logger.warn('SW', 'cache access failed', err);
+  });
 }
 
 import { ErrorBoundary } from './core/components/ErrorBoundary';

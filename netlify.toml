@@ -4,6 +4,14 @@
   publish = "dist"
 
 [[redirects]]
+  # Missing hashed assets (old deploy / stale service worker) must return a
+  # clean 404 instead of index.html — otherwise the browser tries to execute
+  # index.html as a JS module ("MIME type text/html" error).
+  from = "/assets/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

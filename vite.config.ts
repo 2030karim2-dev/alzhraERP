@@ -3,7 +3,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
@@ -21,35 +20,6 @@ export default defineConfig({
         process: true,
       },
     }),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon-512.png'],
-      manifest: {
-        name: 'نظام الزهراء الذكي',
-        short_name: 'الزهراء ERP',
-        description: 'نظام إدارة المبيعات والمخزون والمحاسبة الذكي',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait',
-        icons: [
-          {
-            src: 'pwa-icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        // ⚡ Don't cache API calls
-        runtimeCaching: [],
-      },
-      devOptions: {
-        enabled: false
-      }
-    })
   ],
   resolve: {
     alias: {
