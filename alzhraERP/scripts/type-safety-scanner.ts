@@ -359,8 +359,22 @@ class TypeSafetyScanner {
     }
 }
 
-// Main execution
-if (require.main === module) {
+// Main execution — runs only when invoked directly (tsx scripts/type-safety-scanner.ts).
+// The repo is "type": "module", so the old CJS guard `require.main === module` throws
+// ReferenceError. This guard supports both module systems.
+const isMainModule = (): boolean => {
+    if (typeof require !== 'undefined') {
+        return require.main === module;
+    }
+    try {
+        const entry = process.argv[1];
+        return entry !== undefined && import.meta.url === new URL(`file://${path.resolve(entry)}`).href;
+    } catch {
+        return false;
+    }
+};
+
+if (isMainModule()) {
     const scanner = new TypeSafetyScanner();
     const report = scanner.scan();
 

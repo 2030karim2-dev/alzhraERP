@@ -48,11 +48,13 @@ export const parseError = (error: unknown): AppError => {
         actionLabel: 'تغيير القيمة'
       };
     case 'PGRST116':
+      // PostgREST: "JSON object requested, multiple (or no) rows returned" —
+      // عادةً ما يحدث عند طلب سجل واحد (.single()/.maybeSingle()) دون نتيجة
+      // (سجل محذوف، أو مفلتر بـ RLS، أو عدة سجلات). ليست مشكلة هيكلية إطلاقاً.
       return {
         code,
-        message: 'الجداول المطلوبة غير موجودة في قاعدة البيانات.',
-        severity: 'critical',
-        actionLabel: 'تحديث الهيكل'
+        message: 'لم يتم العثور على السجل المطلوب (أو توجد عدة نتائج حيث كان متوقعاً سجل واحد).',
+        severity: 'medium'
       };
     case '42501':
       return {
