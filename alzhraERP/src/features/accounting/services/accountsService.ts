@@ -36,17 +36,18 @@ export const accountsService = {
     const { data, error } = await accountsApi.getAccounts(companyId);
     if (error) throw error;
 
-    // Balances are fetched from the trial-balance RPC (the accounts table has no
-    // balance column). This aggregation scans the whole current year, so it is
-    // only run when balances are actually needed (e.g. the accounts list view).
-    // Callers that only route by account metadata (id/code/type) skip it entirely.
+    // Balances are fetched from the cumulative-balance RPC (the accounts table
+    // has no balance column). `report_account_balances` sums ALL posted
+    // movements up to today (not just the current calendar year), so opening
+    // balances from previous years are included. It is only run when balances
+    // are actually needed (e.g. the accounts list view); callers that only
+    // route by account metadata (id/code/type) skip it entirely.
     let balanceMap = new Map<string, number>();
     if (options?.includeBalances) {
       const now = new Date();
-      const { data: balances, error: balancesError } = await supabase.rpc('report_trial_balance', {
+      const { data: balances, error: balancesError } = await supabase.rpc('report_account_balances', {
         p_company_id: companyId,
-        p_from: `${now.getFullYear()}-01-01`,
-        p_to: now.toISOString().split('T')[0]
+        p_as_of_date: now.toISOString().split('T')[0]
       });
       // Fail loudly rather than silently zeroing every account balance.
       if (balancesError) throw balancesError;

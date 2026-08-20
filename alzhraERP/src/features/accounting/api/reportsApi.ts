@@ -55,7 +55,8 @@ export const reportsApi = {
       .eq('company_id', companyId)
       .neq('status', 'void')
       .is('deleted_at', null)
-      .order('entry_date', { ascending: false });
+      .order('entry_date', { ascending: false })
+      .limit(500); // فحص تشخيصي — آخر 500 قيد لتجنب جلب كل التاريخ دفعة واحدة
 
     if (branchId) {
       query = query.eq('branch_id', branchId);

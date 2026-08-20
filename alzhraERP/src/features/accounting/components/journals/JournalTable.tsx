@@ -85,6 +85,11 @@ const JournalTable: React.FC = () => {
                     <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold font-mono">
                         {filteredJournals.length} قيود
                     </div>
+                    {searchTerm && (
+                        <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold whitespace-nowrap">
+                            (بحث في القيود المحمّلة)
+                        </span>
+                    )}
                 </div>
             </div>
 

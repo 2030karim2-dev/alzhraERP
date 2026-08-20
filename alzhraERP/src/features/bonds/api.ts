@@ -73,7 +73,11 @@ export const bondsApi = {
   },
 
   deleteBond: async (id: string) => {
-    // Use void_bond RPC to create a reversal journal entry before voiding
+    // void_bond RPC (hardened 2026-08-19):
+    //  - verifies company access + open fiscal year,
+    //  - posts a balanced REVERSAL journal via fn_reverse_journal_entries
+    //    (the posted journal is immutable) and then voids the payment.
+    // Failure must abort the whole delete to prevent double-entry imbalance.
     const { error: rpcError } = await supabase.rpc('void_bond', {
       p_payment_id: id
     });

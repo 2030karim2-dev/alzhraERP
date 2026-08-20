@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
+import { useQuery } from '@tanstack/react-query';
 import { useThemeStore } from '../../../../lib/themeStore';
 import { reportService } from '../../services/reportService';
 import { useAuthStore } from '../../../auth/store';
-import { Loader2, TrendingUp } from 'lucide-react';
+import { Loader2, TrendingUp, AlertTriangle } from 'lucide-react';
 import { cn, formatCurrency } from '@/core/utils';
 import { useBranchFilter } from '../../../branches/hooks/useBranchFilter';
 import { logger } from '../../../../core/utils/logger';
@@ -14,33 +15,44 @@ const FinancialPerformanceChart: React.FC = () => {
   const { branchId } = useBranchFilter();
   const isDark = theme === 'dark';
 
-  const [data, setData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+
+  const currentYear = new Date().getFullYear();
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['monthly_performance', user?.company_id, branchId, currentYear],
+    queryFn: () => user?.company_id
+      ? reportService.getMonthlyPerformance(user.company_id, currentYear, branchId)
+      : Promise.resolve([]),
+    enabled: !!user?.company_id,
+    staleTime: 5 * 60 * 1000, // 5 min
+  });
 
   useEffect(() => {
     setIsMounted(true);
-    const fetchData = async () => {
-      if (!user?.company_id) return;
-      try {
-        const currentYear = new Date().getFullYear();
-        const result = await reportService.getMonthlyPerformance(user.company_id, currentYear, branchId);
-        setData(result);
-      } catch (error) {
-        logger.error("FinancialPerformanceChart", 'Error fetching chart data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user?.company_id, branchId]);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="h-64 flex flex-col items-center justify-center  max-md:gap-4 text-slate-400">
         <Loader2 className="animate-spin text-blue-500" size={32} />
         <p className="text-[10px] font-bold uppercase tracking-widest animate-pulse">جاري تحليل البيانات...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    logger.error("FinancialPerformanceChart", 'Error fetching chart data');
+    return (
+      <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-500">
+        <AlertTriangle size={28} className="text-amber-500" />
+        <p className="text-[10px] font-bold uppercase tracking-widest">تعذر تحميل بيانات الأداء المالي</p>
+        <button
+          onClick={() => refetch()}
+          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg transition-colors"
+        >
+          إعادة المحاولة
+        </button>
       </div>
     );
   }

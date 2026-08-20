@@ -37,6 +37,12 @@ describe('accountsService.getAccounts', () => {
 
     const result = await accountsService.getAccounts('c1', { includeBalances: true });
 
+    // cumulative-balance RPC is used (not the calendar-year trial balance)
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('report_account_balances', {
+      p_company_id: 'c1',
+      p_as_of_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+    });
+
     // asset keeps its debit (positive) balance
     expect(result.find((a) => a.id === 'a-asset')?.balance).toBe(500);
     // liability is credit-normal -> -(-300) = +300

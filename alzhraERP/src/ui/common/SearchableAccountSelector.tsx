@@ -11,6 +11,8 @@ interface SearchableAccountSelectorProps {
   onSelect: (id: string) => void;
   placeholder?: string;
   className?: string;
+  /** فلترة الحسابات إلى القابلة للترحيل فقط (allow_posting !== false) — يُستخدم عند ترحيل القيود */
+  postableOnly?: boolean;
 }
 
 const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
@@ -18,7 +20,8 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
   selectedId,
   onSelect,
   placeholder = "ابحث برقم أو اسم الحساب...",
-  className
+  className,
+  postableOnly = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -28,6 +31,12 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
   const selectedAccount = useMemo(() => 
     accounts.find(a => a.id === selectedId),
     [accounts, selectedId]
+  );
+
+  // حسابات قابلة للترحيل فقط عند الطلب (حسابات الأبوين / allow_posting=false تُستبعد)
+  const selectableAccounts = useMemo(
+    () => (postableOnly ? (accounts ?? []).filter(a => a.allow_posting !== false) : accounts),
+    [accounts, postableOnly]
   );
 
   useEffect(() => {
@@ -40,15 +49,15 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
 
   const filteredAccounts = useMemo(() => {
     const s = search.toLowerCase();
-    // If search is exactly the selected item's text, show all
+    // If search is exactly the selected item's text, show all (postable) accounts
     const isSearchSelected = selectedAccount && s === `${selectedAccount.code} - ${selectedAccount.name}`.toLowerCase();
-    if (!search.trim() || isSearchSelected) return accounts;
+    if (!search.trim() || isSearchSelected) return selectableAccounts;
     
-    return accounts.filter(a => 
+    return selectableAccounts.filter(a => 
       a.name.toLowerCase().includes(s) || 
       a.code.toLowerCase().includes(s)
     );
-  }, [accounts, search, selectedAccount]);
+  }, [selectableAccounts, search, selectedAccount]);
 
   const rowVirtualizer = useVirtualizer({
     count: filteredAccounts.length,
@@ -186,7 +195,7 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
             </div>
             
             <div className="p-2 bg-gray-50/50 dark:bg-slate-800/20 border-t border-gray-100 dark:border-slate-800 text-center">
-               <span className="text-[10px] font-bold text-gray-400">إجمالي الحسابات: {filteredAccounts.length} من {accounts.length}</span>
+               <span className="text-[10px] font-bold text-gray-400">إجمالي الحسابات: {filteredAccounts.length} من {selectableAccounts.length}{postableOnly ? ' (قابلة للترحيل فقط)' : ''}</span>
             </div>
           </motion.div>
         )}

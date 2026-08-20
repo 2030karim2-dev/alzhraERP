@@ -53,7 +53,8 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
             }
 
             const diff = Math.abs(totalDebit - totalCredit);
-            const isBalanced = diff < 0.01;
+            // Same tolerance as the DB `check_journal_balance` deferred trigger (0.001)
+            const isBalanced = diff < 0.001;
 
             if (!isBalanced) {
                 unbalancedCount++;

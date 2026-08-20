@@ -119,7 +119,7 @@ const AccountingPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeView) {
-      case 'overview': return <AccountingOverview />;
+      case 'overview': return <AccountingOverview onNewJournal={openJournalModal} />;
       case 'journal': return <JournalTable />;
       case 'accounts': return <AccountsTable />;
       case 'treasury': return <TreasuryView dateRange={dateRange} />;

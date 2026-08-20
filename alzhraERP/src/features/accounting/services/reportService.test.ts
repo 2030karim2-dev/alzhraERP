@@ -35,6 +35,9 @@ describe('reportService.getLedger', () => {
     expect(result).toHaveLength(2);
     expect(result[0].branch_id).toBe('b1');
     expect(result[1].branch_id).toBe('b2');
+    // accountType (account nature) is propagated so the UI can interpret the sign
+    expect(result[0].accountType).toBe('liability');
+    expect(result[1].accountType).toBe('liability');
   });
 
   it('omits p_branch_id when no branch is selected', async () => {
@@ -66,6 +69,9 @@ describe('reportService.getLedger', () => {
     expect(result).toHaveLength(2);
     expect(result[0].description).toBe('رصيد افتتاحي');
     expect(result[0].balance).toBe(250);
+    // opening-balance row carries the same account nature
+    expect(result[0].accountType).toBe('asset');
+    expect(result[1].accountType).toBe('asset');
   });
 });
 

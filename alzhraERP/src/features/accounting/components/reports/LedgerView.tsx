@@ -7,6 +7,7 @@ import { Loader2, FileText } from 'lucide-react';
 import EmptyState from '../../../../ui/base/EmptyState';
 import ShareButton from '../../../../ui/common/ShareButton';
 import SearchableAccountSelector from '../../../../ui/common/SearchableAccountSelector';
+import { getLedgerBalanceLabel } from '../../utils/ledgerBalance';
 
 interface Props {
   dateRange: { from: string; to: string };
@@ -72,14 +73,19 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     },
     {
       header: 'الرصيد',
-      accessor: (row: LedgerEntry) => (
-        <div className="text-left">
-          <span className={`flex items-center  max-md:gap-1 text-xs font-bold ${row.balance < 0 ? 'text-red-600' : 'text-blue-600'}`}>
-            <span>{row.balance < 0 ? 'دائن' : 'مدين'}</span>
-            <span dir="ltr" className="font-mono">{formatCurrency(Math.abs(row.balance))}</span>
-          </span>
-        </div>
-      ),
+      accessor: (row: LedgerEntry) => {
+        // get_account_ledger returns a sign-normalised running balance; the
+        // label depends on the account nature (asset/expense vs credit-normal)
+        const { label: balanceLabel, isCredit } = getLedgerBalanceLabel(row.balance, row.accountType);
+        return (
+          <div className="text-left">
+            <span className={`flex items-center  max-md:gap-1 text-xs font-bold ${isCredit ? 'text-red-600' : 'text-blue-600'}`}>
+              <span>{balanceLabel}</span>
+              <span dir="ltr" className="font-mono">{formatCurrency(Math.abs(row.balance))}</span>
+            </span>
+          </div>
+        );
+      },
       className: 'w-28 bg-gray-50/50 dark:bg-slate-800/50'
     },
   ];

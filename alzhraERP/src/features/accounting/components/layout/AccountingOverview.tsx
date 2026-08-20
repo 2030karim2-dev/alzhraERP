@@ -7,7 +7,11 @@ import FinancialPerformanceChart from '../overview/FinancialPerformanceChart';
 import { BarChart3, Activity } from 'lucide-react';
 import Card from '../../../../ui/base/Card';
 
-const AccountingOverview: React.FC = () => {
+interface AccountingOverviewProps {
+  onNewJournal?: () => void;
+}
+
+const AccountingOverview: React.FC<AccountingOverviewProps> = ({ onNewJournal }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
       {/* Top Stats Bar */}
@@ -34,7 +38,7 @@ const AccountingOverview: React.FC = () => {
         
         {/* Sidebar Column */}
         <div className="lg:col-span-1 space-y-4">
-            <QuickActions />
+            <QuickActions onNewJournal={onNewJournal} />
             <KeyAccountBalances />
         </div>
       </div>

@@ -98,6 +98,11 @@ export const reportService = {
         const openingBalance = Number(
             (data as unknown as { openingBalance?: number | null } | null)?.openingBalance ?? 0
         );
+        // The RPC also returns `accountType` — the account's nature, used to
+        // interpret the running-balance sign correctly in the UI
+        // (asset/expense → debit-normal; liability/equity/revenue → credit-normal).
+        const accountType =
+            (data as unknown as { accountType?: string | null } | null)?.accountType ?? undefined;
 
         const entries = (result.entries ?? []).map((line: LedgerRpcLine) => ({
             date: line.entry_date ?? '',
@@ -108,6 +113,7 @@ export const reportService = {
             debit_amount: line.debit_amount ?? 0,
             credit_amount: line.credit_amount ?? 0,
             balance: line.balance ?? 0,
+            accountType,
             currency_code: line.currency_code ?? 'SAR',
             exchange_rate: line.exchange_rate ?? 1,
             foreign_amount: line.foreign_amount ?? 0,
@@ -127,6 +133,7 @@ export const reportService = {
                 debit_amount: 0,
                 credit_amount: 0,
                 balance: openingBalance,
+                accountType,
                 currency_code: 'SAR',
                 exchange_rate: 1,
                 foreign_amount: 0,
@@ -167,18 +174,18 @@ export const reportService = {
     //    where type ∈ ('revenue', 'expense', 'net_profit')
     // DB report_balance_sheet(p_company_id, p_as_of_date) → TABLE rows: { category, amount, type }
     //    where type ∈ ('asset', 'liability', 'equity')
-    getFinancials: async (companyId: string, _branchId?: string | null, fromDate?: string, toDate?: string) => {
+    getFinancials: async (companyId: string, branchId?: string | null, fromDate?: string, toDate?: string) => {
         const now = new Date();
         const from = fromDate || `${now.getFullYear()}-01-01`;
         const to = toDate || now.toISOString().split('T')[0];
 
         // ── P&L ──────────────────────────────────────────────────────────────
-        // report_profit_loss signature: (p_company_id uuid, p_from date, p_to date)
-        // NO p_branch_id parameter in DB – omit it to avoid error
+        // report_profit_loss signature: (p_company_id uuid, p_from date, p_to date, p_branch_id uuid DEFAULT NULL)
         const { data: plRows, error: plError } = await supabase.rpc('report_profit_loss', {
             p_company_id: companyId,
             p_from: from,
-            p_to: to
+            p_to: to,
+            ...(branchId ? { p_branch_id: branchId } : {})
         });
         if (plError) throw plError;
 
@@ -204,10 +211,11 @@ export const reportService = {
         }] : [];
 
         // ── Balance Sheet ─────────────────────────────────────────────────────
-        // report_balance_sheet signature: (p_company_id uuid, p_as_of_date date DEFAULT NULL)
+        // report_balance_sheet signature: (p_company_id uuid, p_as_of_date date DEFAULT NULL, p_branch_id uuid DEFAULT NULL)
         const { data: bsRows, error: bsError } = await supabase.rpc('report_balance_sheet', {
             p_company_id: companyId,
-            p_as_of_date: to
+            p_as_of_date: to,
+            ...(branchId ? { p_branch_id: branchId } : {})
         });
         if (bsError) throw bsError;
 

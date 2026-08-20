@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useLedger } from '../../hooks';
 import { formatCurrency } from '../../../../core/utils';
+import { getLedgerBalanceLabel } from '../../utils/ledgerBalance';
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import StatCard from '../../../../ui/common/StatCard';
 
@@ -19,7 +20,7 @@ const TreasurySummaryStats: React.FC<Props> = ({ accountId, dateRange }) => {
         const totalCredit = ledger.reduce((sum, item) => sum + item.credit_amount, 0); // Outflow
 
         // Balance depends on account type, but for assets (Treasury), Dr is positive
-        // However, the ledger usually returns a running balance. 
+        // However, the ledger usually returns a running balance.
         // Let's calculate net movement for the period + opening balance if we had it.
         // For now, let's use the final balance from the last entry if available, or calc net.
         const lastEntry = ledger[ledger.length - 1];
@@ -36,12 +37,16 @@ const TreasurySummaryStats: React.FC<Props> = ({ accountId, dateRange }) => {
         );
     }
 
+    // Determine sign by account nature (ledger RPC returns sign-normalised balances)
+    const lastLedgerRow = ledger && ledger.length > 0 ? ledger[ledger.length - 1] : undefined;
+    const { isCredit: isCreditBalance } = getLedgerBalanceLabel(stats.balance, lastLedgerRow?.accountType);
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-md:gap-3 mb-6 max-md:mb-3">
             <StatCard
                 title="الرصيد الحالي"
                 value={formatCurrency(Math.abs(stats.balance))}
-                subtext={stats.balance >= 0 ? "رصيد مدين (متوفر)" : "رصيد دائن (مكشوف)"}
+                subtext={isCreditBalance ? "رصيد دائن (مكشوف)" : "رصيد مدين (متوفر)"}
                 icon={Wallet}
                 colorClass="text-blue-600"
                 iconBgClass="bg-blue-100 dark:bg-blue-900/30"

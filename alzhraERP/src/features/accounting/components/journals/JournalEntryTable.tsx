@@ -53,6 +53,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                     selectedId={fields[index].account_id}
                                     onSelect={(id: string) => setValue(`lines.${index}.account_id`, id, { shouldValidate: true })}
                                     className="w-full"
+                                    postableOnly
                                 />
                             )}
                             {errors.lines?.[index]?.account_id && <p className="text-[9px] text-red-500 font-bold px-1 mt-0.5">{errors.lines[index]?.account_id?.message}</p>}

@@ -75,7 +75,10 @@ export const useDeleteBond = () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['financials'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      showToast("تم حذف وإلغاء السند بنجاح", 'success');
+      // إلغاء السند ينشئ الآن قيداً عكسياً (reversal) — حدّث القيود والأستاذ أيضاً
+      queryClient.invalidateQueries({ queryKey: ['journals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      showToast("تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح", 'success');
     },
     onError: (error: Error) => {
       showToast(error.message || "فشل حذف السند", 'error', error);

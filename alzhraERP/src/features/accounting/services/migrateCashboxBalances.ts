@@ -33,11 +33,10 @@ export const migrateCashboxBalances = async (companyId: string, userId: string) 
 
     if (err2 || !sarCashbox) throw new Error("لم يتم العثور على صندوق الكاش السعودي. قم بتقسيم الصندوق أولاً.");
 
-    // 3. الرصيد الحالي للصندوق الرئيسي (من ميزان المراجعة)
-    const { data: balanceRows, error: balanceError } = await supabase.rpc('report_trial_balance', {
+    // 3. الرصيد الحالي للصندوق الرئيسي (تراكمي — يشمل الأرصدة من السنوات السابقة)
+    const { data: balanceRows, error: balanceError } = await supabase.rpc('report_account_balances', {
         p_company_id: companyId,
-        p_from: `${new Date().getFullYear()}-01-01`,
-        p_to: new Date().toISOString().split('T')[0]
+        p_as_of_date: new Date().toISOString().split('T')[0]
     });
     if (balanceError) throw balanceError;
 
