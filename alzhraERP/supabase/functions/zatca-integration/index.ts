@@ -8,6 +8,7 @@ const ALLOWED_ORIGINS = [
     'https://zzthamxjxnxzzpswllid.supabase.co',
     'https://alzhra-erp.vercel.app',
     'https://alzhra-erp.netlify.app',
+    'https://alzhra-2030karim2-devs-projects.vercel.app',
     'http://localhost:5173',
     'http://localhost:3000',
 ];

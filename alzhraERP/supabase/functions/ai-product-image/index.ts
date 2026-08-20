@@ -86,8 +86,28 @@ Deno.serve(async (req: Request) => {
     const candidates = allImages.slice(0, 3);
     const bestImage = candidates[0] || null;
     if (bestImage && product_id) {
-      const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-      await supabase.from('products').update({ image_url: bestImage.url }).eq('id', product_id);
+      // [SECURITY] Ownership check FIRST through the caller's RLS-scoped
+      // session (product must belong to the caller's company). Only after
+      // that is confirmed do we write with the service-role client — this
+      // prevents cross-tenant writes (a user could previously pass any
+      // product_id and update another company's product image).
+      const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: owned, error: ownedErr } = await userClient
+        .from('products')
+        .select('id')
+        .eq('id', product_id)
+        .maybeSingle();
+      if (ownedErr || !owned) {
+        return new Response(JSON.stringify({ error: 'Product not found or you do not have access to it', code: 'FORBIDDEN' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { error: updErr } = await admin.from('products').update({ image_url: bestImage.url }).eq('id', owned.id);
+      if (updErr) console.error('Failed to persist image_url:', updErr.message);
     }
     return new Response(JSON.stringify({ image_url: bestImage?.url || null, source: bestImage?.source || null, candidates: candidates.map(c => ({ url: c.url, source: c.source, score: c.score })), total_found: allImages.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (err) {

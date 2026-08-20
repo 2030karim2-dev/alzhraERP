@@ -129,7 +129,13 @@ serve(async (req) => {
     }
 
     const { messages } = await req.json()
-    const apiKey = Deno.env.get("CAR_AI_API_KEY") || Deno.env.get("OPENROUTER_API_KEY") || "sk-or-v1-placeholder";
+    const apiKey = Deno.env.get("CAR_AI_API_KEY") || Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'CAR_AI_API_KEY not configured on the server', code: 'CONFIG_ERROR' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const openRouterRequest = async (msgs: any[], includeTools = false) => {
       const body: any = {

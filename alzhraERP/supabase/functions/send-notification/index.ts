@@ -203,13 +203,25 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        // Authorization check: Verify user belongs to company_id
+        // Size guard: a 2.8MB base64 string (~2MB binary) caps memory use
+        // and prevents oversized payload DoS.
+        if (image_base64 && image_base64.length > 2_800_000) {
+            return new Response(JSON.stringify({ error: 'Image payload too large (max ~2MB)' }), {
+                status: 413,
+                headers: { ...cors, 'Content-Type': 'application/json' },
+            });
+        }
+
+        // Authorization check: Verify user belongs to company_id.
+        // .maybeSingle() instead of .single(): users holding MORE than one
+        // role/branch in the same company would otherwise hit PGRST116 and
+        // be wrongly forbidden.
         const { data: roleCheck, error: roleError } = await userSupabase
             .from('user_company_roles')
             .select('id')
             .eq('company_id', company_id)
             .limit(1)
-            .single();
+            .maybeSingle();
 
         if (roleError || !roleCheck) {
             return new Response(JSON.stringify({ error: 'Forbidden: User does not belong to this company' }), {

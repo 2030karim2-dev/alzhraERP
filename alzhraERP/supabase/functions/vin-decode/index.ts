@@ -14,6 +14,7 @@ const ALLOWED_ORIGINS = [
   'https://zzthamxjxnxzzpswllid.supabase.co',
   'https://alzhra-erp.vercel.app',
   'https://alzhra-erp.netlify.app',
+  'https://alzhra-2030karim2-devs-projects.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
@@ -201,6 +202,25 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return json({ error: 'Invalid or expired token', code: 'UNAUTHORIZED' }, 401, headers);
+    }
+
+    // 2b. Rate limiting — prevent one user from draining the OpenRouter /
+    // DeepSeek budget by flooding VIN decodes (30 requests / user / minute).
+    const rateLimit = { windowMs: 60_000, maxRequests: 30 };
+    try {
+      const since = new Date(Date.now() - rateLimit.windowMs).toISOString();
+      await supabase.from('ai_request_log').insert({ user_id: user.id });
+      const { count } = await supabase
+        .from('ai_request_log')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', since);
+      if ((count ?? 0) > rateLimit.maxRequests) {
+        return json({ error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' }, 429, headers);
+      }
+    } catch {
+      // Infra failure must never break decoding — fail open and log.
+      console.error('[vin-decode] Rate-limit check failed (fail-open)');
     }
 
     // 3. Body
