@@ -52,9 +52,11 @@ const PhoneWarning: React.FC = () => (
   </div>
 );
 
-const SentNotice: React.FC = () => (
+const SentNotice: React.FC<{ hasLink: boolean }> = ({ hasLink }) => (
   <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
-    ✅ تم فتح واتساب وتسجيل التذكير. سيظهر العميل ضمن «تم تذكيرهم».
+    {hasLink
+      ? '✅ تم فتح واتساب وتسجيل التذكير. سيظهر العميل ضمن «تم تذكيرهم».'
+      : '✅ تم تسجيل التذكير (لا يوجد رقم واتساب صالح للفتح). سيظهر العميل ضمن «تم تذكيرهم».'}
   </div>
 );
 
@@ -159,8 +161,8 @@ const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, row }) =
   });
 
   const handleSend = (): void => {
+    if (!message.trim()) return;
     const link = prepared.whatsappLink;
-    if (!link || !message.trim()) return;
     recordReminder(
       {
         partyId: row.party_id,
@@ -170,7 +172,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, row }) =
       },
       {
         onSuccess: () => {
-          window.open(link, '_blank', 'noopener,noreferrer');
+          if (link) window.open(link, '_blank', 'noopener,noreferrer');
           setIsSent(true);
         },
       }
@@ -224,7 +226,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, row }) =
       </div>
 
       {prepared.phoneMissing ? <PhoneWarning /> : null}
-      {isSent ? <SentNotice /> : null}
+      {isSent ? <SentNotice hasLink={!!prepared.whatsappLink} /> : null}
     </ModalShell>
   );
 };

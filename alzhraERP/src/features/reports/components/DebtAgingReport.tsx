@@ -44,8 +44,10 @@ const useDebtAging = () => {
             const partyAging: Record<string, AgingPartyRow> = {};
 
             (invoices || []).forEach((inv) => {
-                const issueDate = new Date(inv.issue_date);
-                const daysDiff = Math.floor((today.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
+                // Aging is computed from the DUE date (accounting semantics),
+                // not the issue date.
+                const dueDate = new Date(inv.due_date || inv.issue_date);
+                const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
                 const remaining = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
 
                 if (remaining <= 0) return;
@@ -55,7 +57,7 @@ const useDebtAging = () => {
                 const partyType = inv.parties?.type || 'customer';
 
                 if (!partyAging[partyId]) {
-                    partyAging[partyId] = { id: partyId, name: partyName, type: partyType, current: 0, days30: 0, days60: 0, days90: 0, total: 0, oldestDate: inv.issue_date };
+                    partyAging[partyId] = { id: partyId, name: partyName, type: partyType, current: 0, days30: 0, days60: 0, days90: 0, total: 0, oldestDate: inv.due_date || inv.issue_date };
                 }
 
                 if (daysDiff <= 30) {
@@ -73,8 +75,9 @@ const useDebtAging = () => {
                 }
 
                 partyAging[partyId].total += remaining;
-                if (inv.issue_date < partyAging[partyId].oldestDate) {
-                    partyAging[partyId].oldestDate = inv.issue_date;
+                const invoiceOldest = inv.due_date || inv.issue_date;
+                if (invoiceOldest < partyAging[partyId].oldestDate) {
+                    partyAging[partyId].oldestDate = invoiceOldest;
                 }
             });
 
@@ -110,7 +113,7 @@ const DebtAgingReport: React.FC = () => {
             accessor: (row: AgingPartyRow) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.name}</span>
-                    <span className="text-[8px] text-gray-400">أقدم فاتورة: {row.oldestDate?.split('T')[0]}</span>
+                    <span className="text-[8px] text-gray-400">أقدم استحقاق: {row.oldestDate?.split('T')[0]}</span>
                 </div>
             ),
         },

@@ -9,9 +9,17 @@ import type { FollowUpDashboardRow } from '../types';
 
 interface FollowUpTableProps {
   rows: FollowUpDashboardRow[];
+  /** Whether the user may create payment promises (debts:manage). */
+  canManage?: boolean;
+  /** Whether the user may send WhatsApp reminders (debts:remind). */
+  canRemind?: boolean;
 }
 
-const FollowUpTable: React.FC<FollowUpTableProps> = ({ rows }) => {
+const FollowUpTable: React.FC<FollowUpTableProps> = ({
+  rows,
+  canManage = true,
+  canRemind = true,
+}) => {
   const [reminderRow, setReminderRow] = useState<FollowUpDashboardRow | null>(null);
   const [promiseRow, setPromiseRow] = useState<FollowUpDashboardRow | null>(null);
 
@@ -90,20 +98,24 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({ rows }) => {
                   </td>
                   <td className="px-4 max-md:px-2 py-3 max-md:py-2">
                     <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => { setReminderRow(row); }}
-                        title="تذكير عبر واتساب"
-                        className="p-2 max-md:p-1.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all"
-                      >
-                        <MessageSquare size={14} />
-                      </button>
-                      <button
-                        onClick={() => { setPromiseRow(row); }}
-                        title="وعد سداد"
-                        className="p-2 max-md:p-1.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white transition-all"
-                      >
-                        <Handshake size={14} />
-                      </button>
+                      {canRemind && (
+                        <button
+                          onClick={() => { setReminderRow(row); }}
+                          title="تذكير عبر واتساب"
+                          className="p-2 max-md:p-1.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all"
+                        >
+                          <MessageSquare size={14} />
+                        </button>
+                      )}
+                      {canManage && (
+                        <button
+                          onClick={() => { setPromiseRow(row); }}
+                          title="وعد سداد"
+                          className="p-2 max-md:p-1.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white transition-all"
+                        >
+                          <Handshake size={14} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

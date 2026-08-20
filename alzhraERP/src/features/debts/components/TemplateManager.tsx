@@ -240,7 +240,7 @@ const TemplateManager: React.FC = () => {
             setForm({ name: t.name, body: t.body, channel: t.channel, is_active: t.is_active });
           }}
           onDelete={(id) => {
-            deleteTemplate(id);
+            if (window.confirm('هل تريد حذف هذا القالب نهائياً؟')) deleteTemplate(id);
           }}
         />
       )}

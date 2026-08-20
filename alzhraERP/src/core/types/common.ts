@@ -145,6 +145,7 @@ export type Permission =
     | 'expenses:create' | 'expenses:read' | 'expenses:update' | 'expenses:delete'
     | 'reports:read' | 'reports:export'
     | 'ai:use' | 'admin:access' | 'settings:manage'
+    | 'debts:read' | 'debts:manage' | 'debts:remind'
     // Commission / incentive module (Phase 3) — prefix incentive:* to match RPCs
     | 'incentive:manage_plans' | 'incentive:calculate_period'
     | 'incentive:period_calculating' | 'incentive:period_calculated'

@@ -28,6 +28,8 @@ const DebtReportView: React.FC = () => {
   const receivables = data?.debts.filter(d => d.type === 'customer' && d.remaining_amount > 0) || [];
   const payables = data?.debts.filter(d => d.type === 'supplier' && d.remaining_amount < 0) || [];
   const netPosition = (data?.summary?.receivables || 0) - (data?.summary?.payables || 0);
+  // report_debts returns base-currency amounts → format with the base currency.
+  const baseCurrency = data?.summary.currency || 'SAR';
 
   const columns = [
     { header: 'الجهة المالية', accessor: (row: DebtRow) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
@@ -38,7 +40,7 @@ const DebtReportView: React.FC = () => {
         </span>
       ), width: '100px', align: 'center' as const
     },
-    { header: 'الرصيد المتبقي', accessor: (row: DebtRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-4 py-1.5 rounded-2xl max-md:rounded-xl", row.remaining_amount > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 ring-1 ring-emerald-500/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 ring-1 ring-rose-500/20')}>{formatCurrency(Math.abs(row.remaining_amount))}</span>, className: 'text-left' },
+    { header: 'الرصيد المتبقي', accessor: (row: DebtRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-4 py-1.5 rounded-2xl max-md:rounded-xl", row.remaining_amount > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 ring-1 ring-emerald-500/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 ring-1 ring-rose-500/20')}>{formatCurrency(Math.abs(row.remaining_amount), baseCurrency)}</span>, className: 'text-left' },
   ];
 
   return (
@@ -52,7 +54,7 @@ const DebtReportView: React.FC = () => {
           </div>
           <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-wider mb-2 sm:mb-3">إجمالي مديونيات العملاء</p>
           <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
-            {formatCurrency(data?.summary.receivables || 0)}
+            {formatCurrency(data?.summary.receivables || 0, baseCurrency)}
           </h3>
           <div className="flex items-center   max-md:gap-2 text-[10px] text-slate-400 font-bold mt-2">
             <Users size={12} />
@@ -66,7 +68,7 @@ const DebtReportView: React.FC = () => {
           </div>
           <p className="text-[10px] font-bold text-rose-600/80 uppercase tracking-wider mb-2 sm:mb-3">ديون مستحقة للموردين</p>
           <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
-            {formatCurrency(data?.summary.payables || 0)}
+            {formatCurrency(data?.summary.payables || 0, baseCurrency)}
           </h3>
           <div className="flex items-center   max-md:gap-2 text-[10px] text-slate-400 font-bold mt-2">
             <Users size={12} />
@@ -78,7 +80,7 @@ const DebtReportView: React.FC = () => {
           <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-all duration-1000" />
           <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-2 sm:mb-3">صافي المركز المالي</p>
           <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tighter italic">
-            {formatCurrency(Math.abs(netPosition))}
+            {formatCurrency(Math.abs(netPosition), baseCurrency)}
           </h3>
           <div className="flex items-center   max-md:gap-2 mt-2 sm:mt-3">
             <span className={cn("px-2 sm:px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white/20 backdrop-blur-md border border-white/10")}>
@@ -89,7 +91,7 @@ const DebtReportView: React.FC = () => {
               eventType="debt_report"
               title="مشاركة المركز"
               className="bg-white/20 hover:bg-white/30 text-white rounded-xl   max-md:p-2 sm:p-2.5 transition-all"
-              message={`📊 تقرير المركز المالي - الزهراء سمارت\n━━━━━━━━━━━━━━\n✅ مستحقات (عملاء): ${formatCurrency(data?.summary.receivables || 0)}\n🔴 التزامات (موردين): ${formatCurrency(data?.summary.payables || 0)}\n📊 صافي المركز: ${formatCurrency(Math.abs(netPosition))} ${netPosition >= 0 ? '(لصالحك)' : '(عليك)'}`}
+              message={`📊 تقرير المركز المالي - الزهراء سمارت\n━━━━━━━━━━━━━━\n✅ مستحقات (عملاء): ${formatCurrency(data?.summary.receivables || 0, baseCurrency)}\n🔴 التزامات (موردين): ${formatCurrency(data?.summary.payables || 0, baseCurrency)}\n📊 صافي المركز: ${formatCurrency(Math.abs(netPosition), baseCurrency)} ${netPosition >= 0 ? '(لصالحك)' : '(عليك)'}`}
             />
           </div>
         </MobileCard>

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useDebtDashboard } from '../hooks/useDebtQueries';
 import { debtsService } from '../services/debtService';
+import { usePermission } from '../../../core/hooks/usePermission';
 import FollowUpTabs from '../components/FollowUpTabs';
 import FollowUpTable from '../components/FollowUpTable';
 import type { FollowUpTab } from '../types';
@@ -8,6 +9,12 @@ import type { FollowUpTab } from '../types';
 const FollowUpPage: React.FC = () => {
   const { data: rows, isLoading } = useDebtDashboard();
   const [tab, setTab] = useState<FollowUpTab>('all');
+
+  // Reminders require debts:remind, payment promises require debts:manage.
+  const { hasPermission: canManage, isLoading: manageLoading } = usePermission('debts:manage');
+  const { hasPermission: canRemind, isLoading: remindLoading } = usePermission('debts:remind');
+  const showManage = manageLoading || canManage;
+  const showRemind = remindLoading || canRemind;
 
   const filtered = useMemo(
     () => debtsService.filterByTab(rows ?? [], tab),
@@ -45,7 +52,7 @@ const FollowUpPage: React.FC = () => {
         </span>
       </div>
 
-      <FollowUpTable rows={filtered} />
+      <FollowUpTable rows={filtered} canManage={showManage} canRemind={showRemind} />
     </div>
   );
 };

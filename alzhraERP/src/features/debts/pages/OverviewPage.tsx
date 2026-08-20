@@ -13,6 +13,7 @@ import type { LucideIcon } from 'lucide-react';
 import StatCard from '../../../ui/common/StatCard';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { useDebtAnalytics, useDebtTodayTasks } from '../hooks/useDebtQueries';
+import { useCompany } from '../../settings/hooks';
 import { TASK_TYPE_META } from '../lib/constants';
 import type { DebtAnalytics, TodayTask } from '../types';
 
@@ -35,10 +36,10 @@ interface StatRow {
   iconBgClass: string;
 }
 
-const buildStatRows = (a: DebtAnalytics): StatRow[] => [
+const buildStatRows = (a: DebtAnalytics, baseCurrency: string): StatRow[] => [
   {
     title: 'إجمالي المديونية',
-    value: formatCurrency(asNumber(a.total_receivables)),
+    value: formatCurrency(asNumber(a.total_receivables), baseCurrency),
     subtext: `${asNumber(a.total_debtors)} عميل مدين`,
     icon: Wallet,
     colorClass: 'text-blue-600',
@@ -46,7 +47,7 @@ const buildStatRows = (a: DebtAnalytics): StatRow[] => [
   },
   {
     title: 'متأخر',
-    value: formatCurrency(asNumber(a.overdue_receivables)),
+    value: formatCurrency(asNumber(a.overdue_receivables), baseCurrency),
     subtext: 'فواتير تجاوزت الاستحقاق',
     icon: AlertTriangle,
     colorClass: 'text-orange-600',
@@ -54,7 +55,7 @@ const buildStatRows = (a: DebtAnalytics): StatRow[] => [
   },
   {
     title: 'مستحق اليوم',
-    value: formatCurrency(asNumber(a.due_today)),
+    value: formatCurrency(asNumber(a.due_today), baseCurrency),
     subtext: 'يحتاج متابعة اليوم',
     icon: CalendarClock,
     colorClass: 'text-amber-600',
@@ -63,7 +64,7 @@ const buildStatRows = (a: DebtAnalytics): StatRow[] => [
   {
     title: 'وعود قائمة',
     value: `${asNumber(a.pending_promises)}`,
-    subtext: formatCurrency(asNumber(a.pending_promises_amount)),
+    subtext: formatCurrency(asNumber(a.pending_promises_amount), baseCurrency),
     icon: Handshake,
     colorClass: 'text-emerald-600',
     iconBgClass: 'bg-emerald-500',
@@ -71,7 +72,7 @@ const buildStatRows = (a: DebtAnalytics): StatRow[] => [
   {
     title: 'وعود مخلَفة',
     value: `${asNumber(a.broken_promises)}`,
-    subtext: formatCurrency(asNumber(a.broken_promises_amount)),
+    subtext: formatCurrency(asNumber(a.broken_promises_amount), baseCurrency),
     icon: ShieldAlert,
     colorClass: 'text-rose-600',
     iconBgClass: 'bg-rose-500',
@@ -102,9 +103,10 @@ const buildStatRows = (a: DebtAnalytics): StatRow[] => [
   },
 ];
 
-const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean }> = ({
+const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean; baseCurrency: string }> = ({
   analytics,
   isLoading,
+  baseCurrency,
 }) => {
   if (isLoading) {
     return (
@@ -115,7 +117,7 @@ const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean 
       </div>
     );
   }
-  const rows = buildStatRows(analytics ?? ({} as DebtAnalytics));
+  const rows = buildStatRows(analytics ?? ({} as DebtAnalytics), baseCurrency);
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-md:gap-1.5 md:gap-4">
       {rows.map((s) => (
@@ -212,12 +214,14 @@ const CurrencyBreakdown: React.FC<{ byCurrency: DebtAnalytics['by_currency'] }> 
 const OverviewPage: React.FC = () => {
   const { data: analytics, isLoading } = useDebtAnalytics();
   const { data: tasks } = useDebtTodayTasks();
+  const { data: company } = useCompany();
+  const baseCurrency = company?.base_currency || 'SAR';
 
   const a = (analytics ?? {}) as DebtAnalytics;
 
   return (
     <div className="space-y-5 max-md:space-y-3">
-      <StatsGrid analytics={analytics ?? null} isLoading={isLoading} />
+      <StatsGrid analytics={analytics ?? null} isLoading={isLoading} baseCurrency={baseCurrency} />
       <TodayTasksCard tasks={tasks ?? []} />
       <CurrencyBreakdown byCurrency={a.by_currency} />
     </div>

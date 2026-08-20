@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, RefreshCcw, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
+import { usePermission } from '../../../core/hooks/usePermission';
 import { useDebtPromises } from '../hooks/useDebtQueries';
 import { useDebtMutations } from '../hooks/useDebtMutations';
 import { PROMISE_STATUS_META } from '../lib/constants';
@@ -24,10 +25,12 @@ const PromisesPage: React.FC = () => {
     statusFilter ? { status: statusFilter } : undefined
   );
   const { completePromise, deletePromise, breakOverduePromises } = useDebtMutations();
+  // Write actions (create/edit/complete/delete/break) require debts:manage.
+  const { hasPermission: canManage, isLoading: permissionLoading } = usePermission('debts:manage');
+  const showManage = permissionLoading || canManage;
 
-  const filtered = (promises ?? []).filter((p) =>
-    statusFilter ? p.status === statusFilter : true
-  );
+  // The query already filters by status server-side; keep a null-safe alias.
+  const filtered = promises ?? [];
 
   return (
     <div className="space-y-4 max-md:space-y-2.5">
@@ -49,21 +52,25 @@ const PromisesPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => { breakOverduePromises(); }}
-            className="inline-flex items-center gap-1.5 px-3 max-md:px-2 py-2 max-md:py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-500/10 hover:bg-rose-500 hover:text-white transition-all"
-          >
-            <RefreshCcw size={13} /> كشف الوعود المتجاوزة
-          </button>
-          <button
-            onClick={() => {
-              setEditingPromise(null);
-              setIsModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 max-md:px-2 py-2 max-md:py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all"
-          >
-            <Plus size={14} /> وعد جديد
-          </button>
+          {showManage && (
+            <>
+              <button
+                onClick={() => { breakOverduePromises(); }}
+                className="inline-flex items-center gap-1.5 px-3 max-md:px-2 py-2 max-md:py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-500/10 hover:bg-rose-500 hover:text-white transition-all"
+              >
+                <RefreshCcw size={13} /> كشف الوعود المتجاوزة
+              </button>
+              <button
+                onClick={() => {
+                  setEditingPromise(null);
+                  setIsModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 max-md:px-2 py-2 max-md:py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all"
+              >
+                <Plus size={14} /> وعد جديد
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -115,36 +122,45 @@ const PromisesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 max-md:px-2 py-3 max-md:py-2">
-                      <div className="flex items-center gap-1.5">
-                        {p.status === 'pending' && (
-                          <button
-                            onClick={() => { completePromise({ promiseId: p.id }); }}
-                            title="إتمام الوعد (تم السداد)"
-                            className="p-2 max-md:p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all"
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                        )}
-                        {p.status === 'pending' && (
+                      {showManage && (
+                        <div className="flex items-center gap-1.5">
+                          {p.status === 'pending' && (
+                            <button
+                              onClick={() => {
+                                const confirmed = window.confirm(
+                                  'سيتم إتمام الوعد بدون ربط سند قبض. هل المبلغ مسدَّد فعلياً؟'
+                                );
+                                if (confirmed) completePromise({ promiseId: p.id });
+                              }}
+                              title="إتمام الوعد (تم السداد)"
+                              className="p-2 max-md:p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all"
+                            >
+                              <CheckCircle2 size={14} />
+                            </button>
+                          )}
+                          {p.status === 'pending' && (
+                            <button
+                              onClick={() => {
+                                setEditingPromise(p);
+                                setIsModalOpen(true);
+                              }}
+                              title="تعديل"
+                              className="p-2 max-md:p-1.5 rounded-xl bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white transition-all"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() => {
-                              setEditingPromise(p);
-                              setIsModalOpen(true);
+                              if (window.confirm('هل تريد حذف هذا الوعد نهائياً؟')) deletePromise(p.id);
                             }}
-                            title="تعديل"
-                            className="p-2 max-md:p-1.5 rounded-xl bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white transition-all"
+                            title="حذف"
+                            className="p-2 max-md:p-1.5 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white transition-all"
                           >
-                            <Pencil size={14} />
+                            <Trash2 size={14} />
                           </button>
-                        )}
-                        <button
-                          onClick={() => { deletePromise(p.id); }}
-                          title="حذف"
-                          className="p-2 max-md:p-1.5 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );

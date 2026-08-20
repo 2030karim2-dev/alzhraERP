@@ -203,7 +203,12 @@ export const useDebtMutations = () => {
       saveFollowupConfig.isPending ||
       createPromise.isPending ||
       updatePromise.isPending ||
+      deletePromise.isPending ||
+      completePromise.isPending ||
+      breakOverduePromises.isPending ||
       saveTemplate.isPending ||
+      updateTemplate.isPending ||
+      deleteTemplate.isPending ||
       recordReminder.isPending ||
       saveOpeningBalance.isPending,
   };

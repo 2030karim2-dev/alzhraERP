@@ -22,6 +22,7 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         'expenses:create', 'expenses:read', 'expenses:update', 'expenses:delete',
         'reports:read', 'reports:export',
         'ai:use', 'admin:access', 'settings:manage',
+        'debts:read', 'debts:manage', 'debts:remind',
         'incentive:manage_plans', 'incentive:calculate_period',
         'incentive:period_calculating', 'incentive:period_calculated',
         'incentive:period_under_review', 'incentive:period_approved',
@@ -36,6 +37,7 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         'expenses:create', 'expenses:read', 'expenses:update',
         'reports:read', 'reports:export',
         'ai:use',
+        'debts:read', 'debts:manage', 'debts:remind',
         'incentive:manage_plans', 'incentive:calculate_period',
         'incentive:period_calculating', 'incentive:period_calculated',
         'incentive:period_under_review', 'incentive:period_approved',
@@ -46,12 +48,14 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         'purchases:read',
         'accounting:create', 'accounting:read', 'accounting:update',
         'expenses:create', 'expenses:read', 'expenses:update',
-        'reports:read', 'reports:export'
+        'reports:read', 'reports:export',
+        'debts:read', 'debts:manage'
     ],
     sales: [
         'sales:create', 'sales:read',
         'customers:create', 'customers:read',
-        'inventory:read'
+        'inventory:read',
+        'debts:read', 'debts:remind'
     ],
     viewer: [
         'sales:read',
@@ -59,7 +63,8 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         'accounting:read',
         'inventory:read',
         'customers:read',
-        'reports:read'
+        'reports:read',
+        'debts:read'
     ]
 };
 

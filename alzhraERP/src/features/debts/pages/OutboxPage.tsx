@@ -15,9 +15,8 @@ const OutboxPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const { data: messages, isLoading } = useDebtMessageLog(statusFilter || undefined);
 
-  const filtered = (messages ?? []).filter((m) =>
-    statusFilter ? m.status === statusFilter : true
-  );
+  // The query already filters by status server-side; keep a null-safe alias.
+  const filtered = messages ?? [];
 
   return (
     <div className="space-y-4 max-md:space-y-2.5">

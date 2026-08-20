@@ -161,12 +161,12 @@ export const reportsApi = {
   getDebtAgingInvoices: async (companyId: string) => {
     return await supabase
       .from('invoices')
-      .select('id, invoice_number, issue_date, total_amount, paid_amount, status, type, party_id, parties(name, type)')
+      .select('id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties(name, type)')
       .eq('company_id', companyId)
       .eq('type', 'sale')
       .is('deleted_at', null)
-      .in('status', ['posted', 'paid'])
-      .order('issue_date', { ascending: true });
+      .in('status', ['posted', 'partially_paid'])
+      .order('due_date', { ascending: true });
   },
 
   getDailySalesInvoices: async (companyId: string, fromDateISO: string) => {

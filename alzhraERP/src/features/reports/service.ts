@@ -157,34 +157,52 @@ export const reportsService = {
 
   /**
    * ⚡ Server-side Debt Report via RPC
-   * RPC returns TABLE rows: {customer_name, total, days_0_30, ...}
+   * `report_debts` returns:
+   *   { summary: { receivables, payables }, debts: [{id,name,type,remaining_amount}] }
+   * type='both' rows are split by sign → customer (receivable) / supplier (payable).
    */
   getDebtReport: async (companyId: string): Promise<ReportsStats> => {
-    const { data, error } = await supabase.rpc('report_debt_aging', {
-      p_company_id: companyId
-    });
+    const [{ data: company }, { data, error }] = await Promise.all([
+      supabase
+        .from('companies')
+        .select('base_currency')
+        .eq('id', companyId)
+        .maybeSingle(),
+      supabase.rpc('report_debts', {
+        p_company_id: companyId
+      }),
+    ]);
     if (error) throw error;
+    const baseCurrency = (company?.base_currency as string | undefined) || 'SAR';
 
-    const rows = (data || []) as { customer_name: string; total: number; days_0_30: number; days_31_60: number; days_61_90: number; days_90_plus: number }[];
-    const totalDebt = rows.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
+    const raw = (data ?? {}) as {
+      summary?: { receivables?: number; payables?: number };
+      debts?: Array<{ id: string; name: string; type: string; remaining_amount: number }>;
+    };
 
-    // RPC report_debt_aging يعيد مديونيات العملاء فقط (total = إجمالي الاستحقاق).
-    // الحقول غير المتوفرة من RPC تُملأ بقيم افتراضية آمنة.
-    const debts: PartyDebt[] = rows.map(r => ({
-      id: r.customer_name,
-      name: r.customer_name,
-      type: 'customer',
-      currency: 'SAR',
-      total_sales: Number(r.total) || 0,
-      paid_amount: 0,
-      remaining_amount: Number(r.total) || 0,
-    }));
+    const debts: PartyDebt[] = (raw.debts ?? []).map((r) => {
+      const remaining = Number(r.remaining_amount) || 0;
+      // 'both' parties (customer + supplier) are split by the sign of the balance.
+      const type: PartyDebt['type'] =
+        r.type === 'supplier' ? 'supplier'
+        : r.type === 'both' ? (remaining >= 0 ? 'customer' : 'supplier')
+        : 'customer';
+      return {
+        id: r.id,
+        name: r.name,
+        type,
+        currency: baseCurrency,
+        total_sales: 0,
+        paid_amount: 0,
+        remaining_amount: remaining,
+      };
+    });
 
     return {
       summary: {
-        receivables: totalDebt,
-        payables: 0,
-        currency: 'SAR',
+        receivables: Number(raw.summary?.receivables) || 0,
+        payables: Number(raw.summary?.payables) || 0,
+        currency: baseCurrency,
       },
       debts
     };
