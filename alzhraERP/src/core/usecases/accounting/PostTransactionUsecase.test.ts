@@ -159,4 +159,21 @@ describe('PostTransactionUsecase', () => {
         await expect(PostTransactionUsecase.execute(invalidInput, mockCompanyId, mockUserId))
             .rejects.toThrow();
     });
+
+    it('should reject a non-positive exchange rate via Zod (audit R3)', async () => {
+        const invalidInput = {
+            date: '2023-10-01',
+            description: 'Rate must be positive',
+            exchange_rate: 0,
+            lines: [
+                { account_id: validUUID1, debit_amount: 100, credit_amount: 0 },
+                { account_id: validUUID2, debit_amount: 0, credit_amount: 100 }
+            ]
+        };
+
+        await expect(PostTransactionUsecase.execute(invalidInput, mockCompanyId, mockUserId))
+            .rejects.toThrow('سعر صرف غير صالح');
+
+        expect(journalsApi.postJournalEntryRPC).not.toHaveBeenCalled();
+    });
 });
