@@ -48,6 +48,10 @@ const SIGNATURES: Array<[RegExp, string]> = [
         'cp1256-misread Arabic (lead byte + Latin-1/punctuation second byte)',
     ],
     [
+        new RegExp('[\\u0621-\\u064A][\\u0080-\\u00AA\\u00AC-\\u00BA\\u00BC-\\u00BF]'),
+        'Arabic letter followed by Latin-1/punctuation (double-encoded UTF-8)',
+    ],
+    [
         new RegExp('\\u064B\\u06BA'),
         'cp1256-misread emoji (F0 9F lead bytes appear as U+064B U+06BA)',
     ],
@@ -62,6 +66,10 @@ const SIGNATURES: Array<[RegExp, string]> = [
     [
         new RegExp('\\uFFFD'),
         'U+FFFD replacement character (failed decode committed to disk)',
+    ],
+    [
+        new RegExp('\\?{5,}'),
+        'run of 5+ question marks (lossy Arabic corruption)',
     ],
 ];
 
@@ -107,18 +115,19 @@ for (const dir of SCAN_DIRS) {
             }
         });
 
-        // Signature #1 (cp1256-misread Arabic) can legitimately appear ONCE in a
-        // file when an Arabic word ending in Taa/Tah is followed by a
+        // Signatures #1/#2 (cp1256-misread Arabic) can legitimately appear ONCE
+        // in a file when an Arabic word ending in Taa/Tah is followed by a
         // punctuation mark such as the ellipsis (e.g. "saving..."). A file
         // genuinely corrupted by a wrong codepage produces the pattern across
         // MANY Arabic words, so a single occurrence is treated as a false
         // positive and ignored.
-        const cp1256Count = fileFindings.filter(f => f.signature === SIGNATURES[0][1]).length;
-        if (cp1256Count < 2) {
-            findings.push(...fileFindings.filter(f => f.signature !== SIGNATURES[0][1]));
-        } else {
-            findings.push(...fileFindings);
+        const tolerated = new Set<string>([SIGNATURES[0][1], SIGNATURES[1][1]]);
+        const toleratedStrict = new Set<string>();
+        for (const sig of tolerated) {
+            const count = fileFindings.filter(f => f.signature === sig).length;
+            if (count < 2) toleratedStrict.add(sig);
         }
+        findings.push(...fileFindings.filter(f => !toleratedStrict.has(f.signature)));
     }
 }
 

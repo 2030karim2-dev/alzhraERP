@@ -3980,6 +3980,7 @@ declare
   v_acc_vat uuid;
   v_acc_inventory uuid;
   v_acc_cogs uuid;
+  v_acc_funding uuid;
   v_total_cost numeric(18,4);
   v_net_amount numeric(18,4);
   v_net_receivable numeric(18,4);
@@ -4007,132 +4008,109 @@ begin
 
   -- Net value after tax & discount
   v_net_amount := (new.total_amount - coalesce(new.tax_amount,0)) - coalesce(new.discount_amount,0);
-  -- Amount actually receivable/payable - NET of discount (keeps the journal balanced)
+  -- Amount actually receivable/payable - GROSS (total_amount already includes tax)
   v_net_receivable := new.total_amount - coalesce(new.discount_amount,0);
 
+  -- ⚡ Resolve the funding account for a non-credit invoice:
+  --   the payment account chosen at save time, else a postable cash
+  --   account matched by currency. If the stored account is a parent
+  --   (allow_posting=false), fall back to a postable one.
+  if new.payment_method is null or coalesce(new.payment_method,'credit') = 'credit' then
+    v_acc_funding := null;
+  else
+    v_acc_funding := coalesce(new.payment_account_id, public.fn_get_default_cash_account(new.company_id, new.currency_code));
+    if v_acc_funding is not null and not exists (
+      select 1 from public.accounts
+      where id = v_acc_funding and allow_posting = true and is_active = true and deleted_at is null
+    ) then
+      v_acc_funding := public.fn_get_default_cash_account(new.company_id, new.currency_code);
+    end if;
+  end if;
+
   if new.type = 'sale' then
-    if v_acc_ar is null or v_acc_revenue is null then
-      raise exception 'auto_post_failed: ?????? AR(1100)/Revenue(4100) ??? ?????? ????? % - ??? ??????? ??? ????? ???????? %', new.company_id, coalesce(new.invoice_number,'');
+    if v_acc_revenue is null then
+      raise exception 'auto_post_failed: حساب الإيرادات (4100) غير موجود لشركة % - يجب إنشاؤه قبل ترحيل الفاتورة %', new.company_id, coalesce(new.invoice_number,'');
+    end if;
+    if v_acc_funding is null and v_acc_ar is null then
+      raise exception 'auto_post_failed: حسابات AR(1100)/الصندوق غير موجودة لشركة % - يجب إنشاؤها قبل ترحيل الفاتورة %', new.company_id, coalesce(new.invoice_number,'');
     end if;
 
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.issue_date, 'sales_invoice', new.id,
-            '????? ?????? - ?????? ?????? ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
+            'ترحيل تلقائي - فاتورة مبيعات ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
     returning id into v_je_id;
 
+    -- ⚡ FIX: credit (أجل) → Dr AR (1100); cash/bank/transfer/check → Dr cash fund.
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_ar, new.company_id, new.branch_id, v_net_receivable, 0, new.currency_code, coalesce(new.exchange_rate,1), '?????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, coalesce(v_acc_funding, v_acc_ar), new.company_id, new.branch_id, v_net_receivable, 0, new.currency_code, coalesce(new.exchange_rate,1),
+            case when v_acc_funding is null then 'مدينون - ' else 'مقبوضات نقدية - ' end || coalesce(new.invoice_number,''),
+            case when v_acc_funding is null then new.party_id else null end);
 
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_revenue, new.company_id, new.branch_id, 0, v_net_amount, new.currency_code, coalesce(new.exchange_rate,1), '??????? ?????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, v_acc_revenue, new.company_id, new.branch_id, 0, v_net_amount, new.currency_code, coalesce(new.exchange_rate,1), 'إيراد مبيعات - ' || coalesce(new.invoice_number,''), new.party_id);
 
     if coalesce(new.tax_amount,0) <> 0 then
       if v_acc_vat is null then
-        raise exception 'auto_post_failed: ???? ??????? (2200) ??? ????? ????? % - ???????? % ????? ????? %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
+        raise exception 'auto_post_failed: حساب الضريبة (2200) غير موجود لشركة % - الفاتورة % تحتوي ضريبة %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
       end if;
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, 0, new.tax_amount, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? - ' || coalesce(new.invoice_number,''), new.party_id);
+      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, 0, new.tax_amount, new.currency_code, coalesce(new.exchange_rate,1), 'ضريبة مبيعات - ' || coalesce(new.invoice_number,''), new.party_id);
     end if;
 
-    select coalesce(sum(ii.quantity * ii.cost_price), 0) into v_total_cost
-    from invoice_items ii where ii.invoice_id = new.id;
-
-    if v_total_cost > 0 then
-      if v_acc_inventory is null or v_acc_cogs is null then
-        raise exception 'auto_post_failed: ?????? ???????(1200)/????? ???????(5100) ??? ?????? ????? % - ???????? % ??? ????? %', new.company_id, coalesce(new.invoice_number,''), v_total_cost;
-      end if;
-      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
-      values (v_je_id, v_acc_cogs, new.company_id, new.branch_id, v_total_cost, 0, 'SAR', 1, '????? ????? ????? - ' || coalesce(new.invoice_number,''));
-
-      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
-      values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, 0, v_total_cost, 'SAR', 1, '????? ????? - ' || coalesce(new.invoice_number,''));
-    end if;
-
-  elsif new.type in ('sale_return', 'return_sale') then
-
-    if v_acc_ar is null or v_acc_revenue is null then
-      raise exception 'auto_post_failed: ?????? AR(1100)/Revenue(4100) ??? ?????? ????? % - ??? ??????? ??? ????? ??????? %', new.company_id, coalesce(new.invoice_number,'');
-    end if;
-
-    insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
-    values (new.company_id, new.branch_id, new.issue_date, 'sales_return', new.id,
-            '????? ?????? - ????? ?????? ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
-    returning id into v_je_id;
-
-    insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_revenue, new.company_id, new.branch_id, v_net_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '??? ????? - ' || coalesce(new.invoice_number,''), new.party_id);
-
-    if coalesce(new.tax_amount,0) <> 0 then
-      if v_acc_vat is null then
-        raise exception 'auto_post_failed: ???? ??????? (2200) ??? ????? ????? % - ??????? % ????? ????? %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
-      end if;
-      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, new.tax_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '??? ????? - ' || coalesce(new.invoice_number,''), new.party_id);
-    end if;
-
-    insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_ar, new.company_id, new.branch_id, 0, v_net_receivable, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? - ' || coalesce(new.invoice_number,''), new.party_id);
-
-    select coalesce(sum(ii.quantity * ii.cost_price), 0) into v_total_cost
-    from invoice_items ii where ii.invoice_id = new.id;
-
-    if v_total_cost > 0 then
-      if v_acc_inventory is null or v_acc_cogs is null then
-        raise exception 'auto_post_failed: ?????? ???????(1200)/????? ???????(5100) ??? ?????? ????? % - ??????? % ?? ????? %', new.company_id, coalesce(new.invoice_number,''), v_total_cost;
-      end if;
-      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
-      values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, v_total_cost, 0, 'SAR', 1, '????? ??????? - ' || coalesce(new.invoice_number,''));
-
-      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
-      values (v_je_id, v_acc_cogs, new.company_id, new.branch_id, 0, v_total_cost, 'SAR', 1, '??? ????? - ' || coalesce(new.invoice_number,''));
-    end if;
 
   elsif new.type = 'purchase' then
     if v_acc_ap is null or v_acc_inventory is null then
-      raise exception 'auto_post_failed: ?????? AP(2100)/Inventory(1200) ??? ?????? ????? % - ??? ??????? ??? ????? ?????? ?????? %', new.company_id, coalesce(new.invoice_number,'');
+      raise exception 'auto_post_failed: حسابات AP(2100)/Inventory(1200) غير موجودة لشركة % - يجب إنشاؤها قبل ترحيل فاتورة الشراء %', new.company_id, coalesce(new.invoice_number,'');
+    end if;
+
+    -- ⚡ FIX: credit (أجل) → Cr AP (2100); cash/bank/transfer/check → Cr cash fund.
+    if v_acc_funding is null then
+      v_acc_funding := v_acc_ap;
     end if;
 
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.issue_date, 'purchase_invoice', new.id,
-            '????? ?????? - ?????? ???? ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
+            'ترحيل تلقائي - فاتورة شراء ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
     returning id into v_je_id;
 
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, v_net_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '????? ????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, v_net_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'إضافة مخزون - ' || coalesce(new.invoice_number,''), new.party_id);
 
     if coalesce(new.tax_amount,0) <> 0 then
       if v_acc_vat is null then
-        raise exception 'auto_post_failed: ???? ??????? (2200) ??? ????? ????? % - ?????? ?????? % ????? ????? %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
+        raise exception 'auto_post_failed: حساب الضريبة (2200) غير موجود لشركة % - فاتورة الشراء % تحتوي ضريبة %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
       end if;
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, new.tax_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '????? ??????? - ' || coalesce(new.invoice_number,''), new.party_id);
+      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, new.tax_amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'ضريبة مشتريات - ' || coalesce(new.invoice_number,''), new.party_id);
     end if;
 
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_ap, new.company_id, new.branch_id, 0, v_net_receivable, new.currency_code, coalesce(new.exchange_rate,1), '?????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, v_acc_funding, new.company_id, new.branch_id, 0, v_net_receivable, new.currency_code, coalesce(new.exchange_rate,1),
+            case when v_acc_funding = v_acc_ap then 'دائنون - ' else 'صرف نقدي - ' end || coalesce(new.invoice_number,''),
+            case when v_acc_funding = v_acc_ap then new.party_id else null end);
 
   elsif new.type in ('purchase_return', 'return_purchase') then
     if v_acc_ap is null or v_acc_inventory is null then
-      raise exception 'auto_post_failed: ?????? AP(2100)/Inventory(1200) ??? ?????? ????? % - ??? ??????? ??? ????? ????? ?????? %', new.company_id, coalesce(new.invoice_number,'');
+      raise exception 'auto_post_failed: حسابات AP(2100)/Inventory(1200) غير موجودة لشركة % - يجب إنشاؤها قبل ترحيل مرتجع الشراء %', new.company_id, coalesce(new.invoice_number,'');
     end if;
 
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.issue_date, 'purchase_return', new.id,
-            '????? ?????? - ????? ???? ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
+            'ترحيل تلقائي - مرتجع شراء ' || coalesce(new.invoice_number,''), 'draft', new.created_by)
     returning id into v_je_id;
 
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_ap, new.company_id, new.branch_id, v_net_receivable, 0, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, v_acc_ap, new.company_id, new.branch_id, v_net_receivable, 0, new.currency_code, coalesce(new.exchange_rate,1), 'تخفيض دائنون - ' || coalesce(new.invoice_number,''), new.party_id);
 
     insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-    values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, 0, v_net_amount, new.currency_code, coalesce(new.exchange_rate,1), '????? ????? - ' || coalesce(new.invoice_number,''), new.party_id);
+    values (v_je_id, v_acc_inventory, new.company_id, new.branch_id, 0, v_net_amount, new.currency_code, coalesce(new.exchange_rate,1), 'تخفيض مخزون - ' || coalesce(new.invoice_number,''), new.party_id);
 
     if coalesce(new.tax_amount,0) <> 0 then
       if v_acc_vat is null then
-        raise exception 'auto_post_failed: ???? ??????? (2200) ??? ????? ????? % - ????? ?????? % ????? ????? %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
+        raise exception 'auto_post_failed: حساب الضريبة (2200) غير موجود لشركة % - مرتجع الشراء % يحتوي ضريبة %', new.company_id, coalesce(new.invoice_number,''), new.tax_amount;
       end if;
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, 0, new.tax_amount, new.currency_code, coalesce(new.exchange_rate,1), '??? ????? - ' || coalesce(new.invoice_number,''), new.party_id);
+      values (v_je_id, v_acc_vat, new.company_id, new.branch_id, 0, new.tax_amount, new.currency_code, coalesce(new.exchange_rate,1), 'عكس ضريبة - ' || coalesce(new.invoice_number,''), new.party_id);
     end if;
   end if;
 
@@ -4140,6 +4118,7 @@ begin
   return new;
 end;
 $function$
+
 
 -- ===== fn_auto_post_payment_journal =====
 
@@ -4151,6 +4130,7 @@ CREATE OR REPLACE FUNCTION public.fn_auto_post_payment_journal()
 AS $function$
 declare
   v_je_id uuid; v_acc_ar uuid; v_acc_ap uuid; v_already_posted boolean; v_party_type text;
+  v_reference_type text;
 begin
   if new.status <> 'posted' then return new; end if;
 
@@ -4158,17 +4138,60 @@ begin
     into v_already_posted;
   if v_already_posted then return new; end if;
 
+  if new.account_id is null then
+    raise exception 'auto_post_failed: السند % بدون حساب (خزينة/بنك) - يجب اختيار حساب قبل إصدار السند', new.payment_number;
+  end if;
+
+  -- ── Transfer / general-account counterparty bonds ────────────────────────
   if new.party_id is null then
+    if new.counterparty_account_id is null then
+      return new; -- legacy transfer without a destination: nothing to post
+    end if;
+
+    -- tenant guard: the counterparty account must belong to the same company
+    if not exists (
+      select 1 from public.accounts where id = new.counterparty_account_id and company_id = new.company_id
+    ) then
+      raise exception 'tenant_violation: الحساب المقابل للسند % لا ينتمي لشركة السند', new.payment_number;
+    end if;
+
+    v_reference_type := case when new.type = 'transfer' then 'transfer_bond' else 'payment_bond' end;
+
+    insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
+    values (new.company_id, new.branch_id, new.payment_date, v_reference_type, new.id,
+            'ترحيل تلقائي - ' || (case when new.type='transfer' then 'تحويل داخلي ' else 'سند حساب عام ' end) || coalesce(new.payment_number,''),
+            'draft', new.created_by)
+    returning id into v_je_id;
+
+    if new.type = 'transfer' then
+      -- Dr الهدف / Cr المصدر
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.counterparty_account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'تحويل إلى - ' || coalesce(new.payment_number,''));
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'تحويل من - ' || coalesce(new.payment_number,''));
+    elsif new.type = 'receipt' then
+      -- Dr المصدر (نقدي) / Cr الحساب المقابل
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'قبض - ' || coalesce(new.payment_number,''));
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.counterparty_account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'إيراد/مقابل - ' || coalesce(new.payment_number,''));
+    else -- disbursement
+      -- Dr الحساب المقابل / Cr المصدر (نقدي)
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.counterparty_account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'مصروف/مقابل - ' || coalesce(new.payment_number,''));
+      insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description)
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'صرف - ' || coalesce(new.payment_number,''));
+    end if;
+
+    update journal_entries set status = 'posted' where id = v_je_id;
     return new;
   end if;
 
-  if new.account_id is null then
-    raise exception 'auto_post_failed: ?????? % ???? account_id (?????/???) - ?? ???? ??????? ???? ????? ???? ?????/?????', new.payment_number;
-  end if;
 
+  -- ── Party bonds (customer / supplier) ────────────────────────────────────
   select type into v_party_type from public.parties where id = new.party_id;
   if v_party_type is null then
-    raise exception 'auto_post_failed: ?? ???? ????? ??? ????? (????/????) ?????? % - party_id % ??? ????? ?? ???? type', new.payment_number, new.party_id;
+    raise exception 'auto_post_failed: لا يوجد طرف (عميل/مورد) للسند % - party_id % غير موجود', new.payment_number, new.party_id;
   end if;
 
   v_acc_ar := fn_get_account_id(new.company_id, '1100');
@@ -4176,57 +4199,58 @@ begin
 
   if v_party_type = 'customer' then
     if v_acc_ar is null then
-      raise exception 'auto_post_failed: ???? AR(1100) ??? ????? ????? % - ?? ???? ????? ?????? %', new.company_id, new.payment_number;
+      raise exception 'auto_post_failed: حساب AR(1100) غير موجود للشركة % - يجب إنشاؤه قبل إصدار سند %', new.company_id, new.payment_number;
     end if;
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.payment_date,
       case when new.type = 'receipt' then 'receipt_bond' else 'payment_bond' end, new.id,
-      '????? ?????? - ' || (case when new.type='receipt' then '??? ??? ?? ???? ' else '??? ???/????? ???? ????? ' end) || new.payment_number,
+      'ترحيل تلقائي - ' || (case when new.type='receipt' then 'سند قبض من عميل ' else 'سند صرف/تحصيل من عميل ' end) || coalesce(new.payment_number,''),
       'draft', new.created_by)
     returning id into v_je_id;
 
     if new.type = 'receipt' then
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, new.account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '??? - ' || new.payment_number, new.party_id);
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'قبض - ' || coalesce(new.payment_number,''), new.party_id);
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_ar, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? - ' || new.payment_number, new.party_id);
+      values (v_je_id, v_acc_ar, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'تخفيض مدينون - ' || coalesce(new.payment_number,''), new.party_id);
     else
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_ar, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? (????? ????) - ' || new.payment_number, new.party_id);
+      values (v_je_id, v_acc_ar, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'زيادة مدينون (سند صرف) - ' || coalesce(new.payment_number,''), new.party_id);
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), '??? ???? ????? - ' || new.payment_number, new.party_id);
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'صرف من خزينة - ' || coalesce(new.payment_number,''), new.party_id);
     end if;
 
   elsif v_party_type = 'supplier' then
     if v_acc_ap is null then
-      raise exception 'auto_post_failed: ???? AP(2100) ??? ????? ????? % - ?? ???? ????? ?????? %', new.company_id, new.payment_number;
+      raise exception 'auto_post_failed: حساب AP(2100) غير موجود للشركة % - يجب إنشاؤه قبل إصدار سند %', new.company_id, new.payment_number;
     end if;
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.payment_date,
       case when new.type = 'disbursement' then 'payment_bond' else 'receipt_bond' end, new.id,
-      '????? ?????? - ' || (case when new.type='disbursement' then '??? ??? ????? ' else '??? ???/????? ???? ?? ???? ' end) || new.payment_number,
+      'ترحيل تلقائي - ' || (case when new.type='disbursement' then 'سند صرف لمورد ' else 'سند قبض/تحصيل من مورد ' end) || coalesce(new.payment_number,''),
       'draft', new.created_by)
     returning id into v_je_id;
 
     if new.type = 'disbursement' then
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_ap, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? - ' || new.payment_number, new.party_id);
+      values (v_je_id, v_acc_ap, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'تخفيض دائنون - ' || coalesce(new.payment_number,''), new.party_id);
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), '??? - ' || new.payment_number, new.party_id);
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'صرف - ' || coalesce(new.payment_number,''), new.party_id);
     else
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, new.account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), '??? ???? ?? ???? - ' || new.payment_number, new.party_id);
+      values (v_je_id, new.account_id, new.company_id, new.branch_id, new.amount, 0, new.currency_code, coalesce(new.exchange_rate,1), 'قبض من مورد - ' || coalesce(new.payment_number,''), new.party_id);
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, currency_code, exchange_rate, description, party_id)
-      values (v_je_id, v_acc_ap, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), '????? ?????? (????? ????) - ' || new.payment_number, new.party_id);
+      values (v_je_id, v_acc_ap, new.company_id, new.branch_id, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'زيادة دائنون (سند قبض) - ' || coalesce(new.payment_number,''), new.party_id);
     end if;
   else
-    raise exception 'auto_post_failed: ??? ??? ??? ????? (%) ?????? % - ??? ?? ???? customer ?? supplier', v_party_type, new.payment_number;
+    raise exception 'auto_post_failed: نوع الطرف غير معروف (%) للسند % - يجب أن يكون customer أو supplier', v_party_type, new.payment_number;
   end if;
 
   update journal_entries set status = 'posted' where id = v_je_id;
   return new;
 end;
 $function$
+
 
 -- ===== fn_check_fiscal_year_overlap =====
 
@@ -8318,13 +8342,19 @@ DECLARE
   v_foreign_amt  numeric;
   v_total_debit  numeric := 0;
   v_total_credit numeric := 0;
+  v_created_by   uuid;
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM user_company_roles ucr
     WHERE ucr.user_id = auth.uid() AND ucr.company_id = p_company_id
       AND ucr.role IN ('owner','admin','accountant')
   ) THEN
-    RAISE EXCEPTION 'access_denied: ????? ?????? ????? ??? ?????';
+    RAISE EXCEPTION 'access_denied: لا تملك صلاحية ترحيل القيود المحاسبية لهذه الشركة';
+  END IF;
+
+  -- R3: a non-positive exchange rate would silently zero out the whole entry.
+  IF p_exchange_rate IS NULL OR p_exchange_rate <= 0 THEN
+    RAISE EXCEPTION 'سعر صرف غير صالح: يجب أن يكون أكبر من صفر';
   END IF;
 
   IF NOT EXISTS (
@@ -8333,7 +8363,12 @@ BEGIN
       AND p_date BETWEEN start_date AND end_date
       AND is_closed = false
   ) THEN
-    RAISE EXCEPTION '?? ???? ????? ???? ?? ??? ????? ?????';
+    RAISE EXCEPTION 'لا توجد سنة مالية مفتوحة تغطي تاريخ القيد المحدد';
+  END IF;
+
+  -- R2a: reject an empty payload before jsonb_to_recordset returns nothing.
+  IF p_lines IS NULL OR jsonb_typeof(p_lines) <> 'array' OR jsonb_array_length(p_lines) = 0 THEN
+    RAISE EXCEPTION 'لا يمكن ترحيل قيد بدون أسطر';
   END IF;
 
   FOR v_line IN SELECT * FROM jsonb_to_recordset(p_lines)
@@ -8343,15 +8378,24 @@ BEGIN
     v_total_credit := v_total_credit + ROUND(COALESCE(v_line.credit, 0) * p_exchange_rate, 4);
   END LOOP;
 
-  IF ABS(v_total_debit - v_total_credit) > 0.001 THEN
-    RAISE EXCEPTION '????? ??? ??????: ???? (%) != ???? (%)', v_total_debit, v_total_credit;
+  -- R2b: reject all-zero journals (the debit side must carry real value).
+  IF v_total_debit <= 0 THEN
+    RAISE EXCEPTION 'لا يمكن ترحيل قيد بقيمة صفرية: إجمالي المدين = %', v_total_debit;
   END IF;
+
+  IF ABS(v_total_debit - v_total_credit) > 0.001 THEN
+    RAISE EXCEPTION 'القيد غير متوازن: المدين (%) لا يساوي الدائن (%)', v_total_debit, v_total_credit;
+  END IF;
+
+  -- R3: attribution comes from the authenticated session when available
+  -- (service-role / server contexts fall back to the provided user id).
+  v_created_by := COALESCE(auth.uid(), p_user_id);
 
   INSERT INTO journal_entries(
     company_id, branch_id, entry_date, description, reference_type, status, created_by
   ) VALUES (
     p_company_id, p_branch_id, p_date, p_description,
-    COALESCE(p_reference_type, 'manual'), 'draft', p_user_id
+    COALESCE(p_reference_type, 'manual'), 'draft', v_created_by
   ) RETURNING id INTO v_journal_id;
 
   FOR v_line IN SELECT * FROM jsonb_to_recordset(p_lines)
@@ -8379,6 +8423,7 @@ BEGIN
   RETURN v_journal_id;
 END;
 $function$
+
 
 -- ===== prc_publish_evaluation_status_changed_event =====
 
