@@ -115,6 +115,9 @@ describe('authApi.getProfile', () => {
             select: vi.fn(() => ({
                 eq: vi.fn(() => ({
                     single: vi.fn().mockResolvedValue({ data: row, error: null }),
+                    limit: vi.fn(() => ({
+                        maybeSingle: vi.fn().mockResolvedValue({ data: row, error: null }),
+                    })),
                 })),
             })),
         });

@@ -2,6 +2,7 @@
 import { journalsApi } from '../api/journalsApi';
 import { UIJournalEntry, JournalEntryFormData } from '../types/models';
 import { PostTransactionUsecase } from '../../../core/usecases/accounting/PostTransactionUsecase';
+import { parseError } from '../../../core/utils/errorUtils';
 
 // Typed raw shapes from Supabase join query
 interface RawJournalLine {
@@ -50,7 +51,7 @@ export const journalService = {
    */
   formatJournalsForUI: async (companyId: string, branchId?: string | null, pageParam: number = 0): Promise<UIJournalEntry[]> => {
     const { data: rawData, error } = await journalsApi.fetchJournals(companyId, branchId, pageParam);
-    if (error) throw error;
+    if (error) throw parseError(error);
 
     const journals = (rawData || []) as RawJournal[];
 

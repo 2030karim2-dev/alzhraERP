@@ -161,7 +161,10 @@ export const authApi = {
 
         const [profileRes, roleRes] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).single(),
-          supabase.from('user_company_roles').select('role, company_id, branch_id, companies(name_ar), branches(name)').eq('user_id', userId).single()
+          // .limit(1).maybeSingle() — NOT .single(): a user with multiple
+          // company memberships would otherwise fail with PGRST116 and the
+          // whole fallback would break (login stuck).
+          supabase.from('user_company_roles').select('role, company_id, branch_id, companies(name_ar), branches(name)').eq('user_id', userId).limit(1).maybeSingle()
         ]);
 
         if (profileRes.error) {

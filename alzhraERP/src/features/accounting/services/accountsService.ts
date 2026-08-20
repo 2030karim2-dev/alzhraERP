@@ -3,6 +3,7 @@ import { Account, AccountFormData } from '../types/index';
 import { accountsApi } from '../api/accountsApi';
 // Fix: Added missing supabase import
 import { supabase } from '../../../lib/supabaseClient';
+import { parseError } from '../../../core/utils/errorUtils';
 
 // دليل الحسابات الافتراضي (بالريال السعودي) — يستخدمه seedDefaultAccounts
 const DEFAULT_CHART_OF_ACCOUNTS: Array<{
@@ -34,7 +35,7 @@ export const accountsService = {
   getAccounts: async (companyId: string, options?: { includeBalances?: boolean }): Promise<Account[]> => {
     // Fetch account metadata
     const { data, error } = await accountsApi.getAccounts(companyId);
-    if (error) throw error;
+    if (error) throw parseError(error);
 
     // Balances are fetched from the cumulative-balance RPC (the accounts table
     // has no balance column). `report_account_balances` sums ALL posted
@@ -50,7 +51,7 @@ export const accountsService = {
         p_as_of_date: now.toISOString().split('T')[0]
       });
       // Fail loudly rather than silently zeroing every account balance.
-      if (balancesError) throw balancesError;
+      if (balancesError) throw parseError(balancesError);
 
       for (const row of balances ?? []) {
         balanceMap.set(row.account_id, Number(row.balance) || 0);

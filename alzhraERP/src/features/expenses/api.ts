@@ -1,6 +1,7 @@
 
 import { supabase } from '../../lib/supabaseClient';
 import type { Json } from '../../core/database.types';
+import { parseError } from '../../core/utils/errorUtils';
 import { ExpenseFormData } from './types';
 
 // Typed interfaces for category create payload
@@ -12,11 +13,12 @@ interface CategoryInsert {
 
 export const expensesApi = {
   getExpenseCategories: async (companyId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('expense_categories')
       .select('*')
       .eq('company_id', companyId)
       .is('deleted_at', null);
+    if (error) throw parseError(error);
     return { data: data || [], error: null };
   },
 
@@ -37,7 +39,9 @@ export const expensesApi = {
       query = query.eq('branch_id', branchId);
     }
 
-    return await query;
+    const { data, error } = await query;
+    if (error) throw parseError(error);
+    return { data: data || [], error: null };
   },
 
   // استخدام RPC الموحد v2 الذي يدعم الربط المباشر بالحسابات وتحسين الأداء
@@ -78,7 +82,7 @@ export const expensesApi = {
     });
 
     if (rpcError) {
-      throw new Error('تعذر إلغاء المصروف: فشل في إنشاء القيد العكسي (' + rpcError.message + ')');
+      throw parseError(rpcError);
     }
   }
 };
