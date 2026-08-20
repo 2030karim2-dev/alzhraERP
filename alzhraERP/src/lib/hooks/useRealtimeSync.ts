@@ -120,7 +120,7 @@ const TABLE_PRESET_MAP: Record<string, InvalidationPreset> = {
     'accounts': 'account',
     'products': 'inventory',
     'product_stock': 'inventory',
-    'stock_movements': 'inventory',
+    'inv_stock_movements': 'inventory', // was `stock_movements` (table does not exist)
     'inventory_transactions': 'inventory',
     'stock_transfers': 'inventory',
     'stock_transfer_items': 'inventory',

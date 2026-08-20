@@ -59,7 +59,10 @@ export const useLogin = () => {
                 const { data: profile, isAborted } = await authApi.getProfile(data.user.id);
 
                 if (isAborted) {
-                    // Silent return - process was likely cancelled or timed out
+                    // Profile fetch was cancelled/timed out (rare, concurrent
+                    // auth checks). Surface a clear message instead of silently
+                    // returning to a frozen login screen with no feedback.
+                    setError('تعذر تحميل ملف التعريف. حاول مرة أخرى.');
                     return;
                 }
 

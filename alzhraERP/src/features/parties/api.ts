@@ -94,7 +94,7 @@ export const partiesApi = {
       .eq('company_id', companyId)
       .eq('type', type)
       .is('deleted_at', null)
-      .textSearch('search_vector', query, {
+      .textSearch('search_vector', sanitized, {
         config: 'simple',
         type: 'plain'
       })

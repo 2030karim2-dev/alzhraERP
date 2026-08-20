@@ -1,5 +1,16 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-22) — مراجعة تكامل Frontend↔Supabase + إصلاحات حرجة ✅
+
+- [x] **مراجعة دقيقة شاملة** للواجهة الأمامية والتحقق الحي من الخلفية (Management API + REST + SQL مباشر):
+  - `tsc`=0، `vitest`=415/415، `vite build` ناجح، المشروع `ACTIVE_HEALTHY`، كل RPCs/جداول الواجهة موجودة بتواقيع مطابقة، RLS مفعّل على كل الجداول، صلاحيات `authenticated` سليمة.
+- [x] **إصلاح 1 (حرج): اشتراك Realtime بجدول غير موجود** — `useRealtimeSync.ts` كان يشترك بـ `stock_movements` (غير موجود) → صُحّح إلى `inv_stock_movements`.
+- [x] **إصلاح 2 (حرج): نشر Realtime ناقص** — الواجهة تشترك في 12 جدولاً لم تكن في منشور `supabase_realtime` → migration `20260822000002` أضافها (35 جدولاً الآن). مطبّق على الخادم الحي ومسجّل.
+- [x] **إصلاح 3 (حرج): فحص الصلاحيات غير مقيّد بالشركة** — `usePermission.ts` كان يستدعي `has_permission(p_permission)` بالصيغة القديمة (LIMIT 1 عبر كل الشركات) → صار يمرر `p_company_id`، مع overload مقيّد جديد `get_user_permissions(p_company_id uuid)` (migration `20260822000001`) وتحديث أنواع `database.types.ts`.
+- [x] **تحصين إضافي**: `has_permission(text, uuid)` كان منفّذاً من anon → migration `20260822000003` (authenticated فقط).
+- [x] **إصلاحات سريعة**: بحث الأطراف يستخدم القيمة المعقّمة، روابط `/login` الثابتة → ثوابت ROUTES، `saveProductUoMs` لم تعد تبتلع الأخطاء، و`useLogin` يعرض رسالة عند إحباط البروفايل بدل الصمت.
+- [x] **ملاحظة**: الـ eslint حاجب للأسف أحمر في المستودع سلفاً (أخطاء سابقة في ملفات لم تُلمس) — التعديلات الجديدة أضافت **صفر** خطأ eslint جديد.
+
 ## Checkpoint (2026-08-21) — سداد ديون TypeScript بالكامل: 86 → **0** ✅
 
 - [x] **كل الأخطاء الـ86 الموروثة أُصلحت** عبر 5 جولات مع تحقق tsc بعد كل جولة:
@@ -12,6 +23,7 @@
 - [ ] **يُتبع:** تشغيل CI كامل للتأكد (المتوقع أخضر)، ثم رفع عتبة التغطية وجعل lint حاجباً.
 
 ## Checkpoint (2026-08-21) — سداد ديون TypeScript: 86 → 48 (ثلاث جولات) ✅
+
 ## Checkpoint (2026-08-21) — سداد ديون TypeScript: 86 → 48 (ثلاث جولات) ✅
 
 - [x] **جولة 1 — commissions (16 خطأً):** `plans.ts` + `engineer.ts` — استبدال `?? null` بنمط **السبريد الشرطي** (exactOptionalPropertyTypes يرفض خصائص صريحة undefined/null) بعد التحقق أن معاملات RPC لها `DEFAULT NULL` (مكافئ سلوكياً).
@@ -20,6 +32,7 @@
 - [ ] **متبقٍ (48):** `ABCAnalysisChart` (11)، `AdvancedReturnModal` (5)، `SalesReturnsView` (4)، `vin-intelligence` (4)، `CashFlowView` (3)، `StatsGrid` (3)، `InventoryValuationView` (3)، `DashboardPage` (3)، وغيرها.
 
 ## Checkpoint (2026-08-21) — CI أحمر: تشخيص + إصلاح أخطائي + إعادة تأسيس baseline ✅
+
 ## Checkpoint (2026-08-21) — CI أحمر: تشخيص + إصلاح أخطائي + إعادة تأسيس baseline ✅
 
 - [x] **تشخيص فشل CI (خطوة TypeScript ratchet)**: الدفع فشل لأن عدّاد الأخطاء تجاوز الأساس (0). التشريح:
@@ -29,6 +42,7 @@
 - [x] **التحقق المحلي**: `tsc --noEmit` (تشغيل خلفي متحرر من مهلة الأدوات) = **86** خطأً بالضبط، **صفر منها في ملفات تعديلاتي**.
 
 ## Checkpoint (2026-08-21) — اختبارات المصروفات + تنضيد بحث POS ✅
+
 ## Checkpoint (2026-08-21) — اختبارات المصروفات + تنضيد بحث POS ✅
 
 - [x] **6 اختبارات جديدة** لخدمة المصروفات (`expenses/service.test.ts`): `calculateStats` (فارغ، خلط الحالات paid/posted/draft، تمييز التصنيفات، سعر صرف فاسد → 0) و`getCategoryBreakdown` (تجميع بالاسم، بديل «أخرى»). النتيجة: 6/6.
@@ -36,6 +50,7 @@
 - [x] **التحقق**: `vitest` = 25/25 (جديد 6 + validationUtils 11 + POSCheckout 2 + POS cache 6)؛ ts-morph parse 2/2؛ سلوك `database.ts` صار مؤكداً عبر `cache.test.ts` (يستورد searchService).
 
 ## Checkpoint (2026-08-21) — حسم قرارَي Task 13 وTask 14 + درس التحقق قبل الحذف ✅
+
 ## Checkpoint (2026-08-21) — حسم قرارَي Task 13 وTask 14 + درس التحقق قبل الحذف ✅
 
 - [x] **Task 13 — smart-import: قرار «الإبقاء» (عكس مسار الحذف)** — أثناء تنفيذ الإزالة، قبض التحقق بـ grep على استيرادات حقيقية كانت مخفية في نتائج بحث سابقة مبتورة: `InventoryPage.tsx:9` يستورد `SmartImportView` (mode=inventory) و`PurchasesPage.tsx:13` يستورده (mode=invoice/تبويب smart_import). الوحدة ميزة AI فعّالة (تعتمد `documentAiService`). **أُعيدت الملفات من git فوراً** و`git status` نظيف. الدرس: لا حذف لأي وحدة قبل grep شامل لكل الاستيرادات وقراءة النتائج كاملة (لا الاعتماد على أول مخرجات).
@@ -43,6 +58,7 @@
 - [x] **التوثيق**: ADR-010 يوثق القرارين والدرس.
 
 ## Checkpoint (2026-08-20) — المرحلة 4: أمان noopener + طبقات المصادقة + تنظيف الإعدادات ✅
+
 ## Checkpoint (2026-08-20) — المرحلة 4: أمان noopener + طبقات المصادقة + تنظيف الإعدادات ✅
 
 - [x] **أمان `noopener,noreferrer`** على 6 روابط `wa.me` (shareUtils, BondsList, useProductBulkActions, PaymentHeader, InvoiceDetailsModal, QuotationDetailsModal) — منع reverse-tabnabbing.
@@ -52,6 +68,7 @@
 - [x] **خطة موثقة**: `plans/party-routes-tabs-cleanup.md` — توحيد مسارات الأطراف الخمسة إلى `/clients` + `/suppliers` مع تبويب «عميل/مورد» داخلي، وتنبيهات المسارات المستخدمة فعلياً؛ التنفيذ يتطلب بيئة تحقق كاملة (tsc/build/تشغيل يدوي).
 
 ## Checkpoint (2026-08-20) — المرحلة 3: اختبارات المسارات الحرجة + تدقيق select('*') ✅
+
 ## Checkpoint (2026-08-20) — المرحلة 3: اختبارات المسارات الحرجة + تدقيق select('*') ✅
 
 - [x] **اختبارات جديدة (13 اختباراً، 13/13 ناجحة فعلياً بتشغيل vitest):**
@@ -67,9 +84,7 @@
   - **Task 13 — smart-import:** الخياران: (أ) ربط الوحدة بشاشات المشتريات/المخزون (انتهاء مهم)، (ب) إزالتها نهائياً (التعليق: واجهة تعمل لكنها غير متصلة بأي تدفق حالياً).
   - **Task 14 — مصالحة migrations:** 647 نسخة عن بُعد مقابل ~35 محلية. يتطلب: `db pull` كامل ثم اعتماد النسخ الحية كأساس جديد، مع استعادة migration لكل إصلاح حي غير موثق.
 
-
 ## Checkpoint (2026-08-20) — المرحلة 2: تنظيف `any` + نطاق Realtime + إصلاحات HTML/CI ✅
-
 
 - [x] **تصفية `any` من الملفات الحرجة** (11 ملفاً):
   - `auth/store.ts`: `onAuthStateChange` أصبح `(event: AuthChangeEvent, session: Session | null)` بدل `session: any` + إزالة `(roleRow as any)` الثلاثة عبر تحويل نوعي واحد.
@@ -105,7 +120,6 @@
 - [x] **اختبارات SQL**: `supabase/tests/test_accounting_accuracy.sql` (psql، معاملة واحدة تُرجع `ROLLBACK`): تجهيزات برموز غير تقليدية (`7001` أصل / `1999` مصروف / `9100` إيراد) تثبت التصنيف بالنوع (أصول 1100، مصروفات 400، إيرادات 500، صافي 100) + تأكيدات رفض القيد الصفري/التحميل الفارغ/سعر الصرف في الـ RPC والـ trigger (`SET CONSTRAINTS ... IMMEDIATE`) + مسار إيجابي بتطبيق سعر صرف 2 (200×2=400).
 - [x] **التحقق**: `npm run check:encoding` = نظيف (لا mojibake في الملفات الجديدة). التوثيق: `docs/decisions/ADR-009-accounting-report-type-classification-and-journal-guards.md`.
 - [x] **التطبيق على الإنتاج (2026-08-20)**: Migration `20260820000004` مطبّقة على `zzthamxjxnxzzpswllid` عبر Management API (`/database/query`) ومسجّلة في `supabase_migrations.schema_migrations`. التحقق الحي بايتياً (HEX): `report_balance_sheet`/`report_profit_loss` → `type-based` (كانت code-prefix)، و`post_manual_journal`/`check_journal_balance` تتضمن حراس الصفر وسعر الصرف بالنص العربي السليم UTF-8 (كانت رسائل `?????` المشوّهة). اختبارات SQL الانحدارية نجحت على القاعدة الحية مرتين (HTTP 201، صفر بقايا بعد ROLLBACK) مع ملاحظة عملية: PowerShell 5.1 يقرأ ملفات UTF-8 بلا BOM كـ ANSI — يجب `Get-Content -Encoding UTF8` عند الإرسال عبر Management API.
-
 
 ## Checkpoint (2026-08-20) — إصلاح لوحة المعلومات (get_dashboard_summary 403) ✅
 

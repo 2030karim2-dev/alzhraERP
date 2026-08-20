@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Car, Mail, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { usePasswordReset } from './hooks';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../core/routes/paths';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 
 const ForgotPasswordPage: React.FC = () => {
@@ -27,7 +28,7 @@ const ForgotPasswordPage: React.FC = () => {
                 <p className="text-gray-500 text-sm mb-6">
                     {t('reset_link_sent_desc').replace('{email}', email)}
                 </p>
-                <Link to="/login" className="text-brand-green font-bold hover:underline flex items-center gap-1">
+                <Link to={ROUTES.AUTH.LOGIN} className="text-brand-green font-bold hover:underline flex items-center gap-1">
                     {dir === 'rtl' ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
                     {t('back_to_login')}
                 </Link>
@@ -74,7 +75,7 @@ const ForgotPasswordPage: React.FC = () => {
                 </form>
 
                 <div className="mt-6 text-center">
-                    <Link to="/login" className="text-gray-500 text-sm hover:text-gray-700 font-medium inline-flex items-center gap-1">
+                    <Link to={ROUTES.AUTH.LOGIN} className="text-gray-500 text-sm hover:text-gray-700 font-medium inline-flex items-center gap-1">
                         {t('back_to_login')}
                     </Link>
                 </div>

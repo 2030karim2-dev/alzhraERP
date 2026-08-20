@@ -48,7 +48,14 @@ export async function assertPermission(permission: string, arabicLabel?: string)
   if (user.role === 'owner') return;
 
   try {
-    const { data, error } = await supabase.rpc('has_permission', { p_permission: permission });
+    // ⚡ Company-scoped overload (migration 20260821000005): without
+    // p_company_id the 1-arg has_permission checks membership in ANY of the
+    // user's companies (LIMIT 1), so an admin in Company A could pass the
+    // gate while operating on Company B.
+    const { data, error } = await supabase.rpc('has_permission', {
+      p_permission: permission,
+      ...(user.company_id != null ? { p_company_id: user.company_id } : {}),
+    });
     if (error) throw error;
     if (!data) throw new Error(deniedMessage(label));
     return;
@@ -90,11 +97,15 @@ export function usePermission(permission: string) {
     const { user } = useAuthStore();
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ['permission', permission, user?.id],
+        queryKey: ['permission', permission, user?.id, user?.company_id],
         queryFn: async () => {
             if (!user?.id) return false;
+            // Company-scoped check — see assertPermission for why.
             const { data, error: rpcError } = await supabase
-                .rpc('has_permission', { p_permission: permission });
+                .rpc('has_permission', {
+                    p_permission: permission,
+                    ...(user.company_id != null ? { p_company_id: user.company_id } : {}),
+                });
             if (rpcError) {
                 logger.warn('usePermission', `RPC error for "${permission}"`, rpcError.message);
                 return false;
@@ -121,11 +132,15 @@ export function useAllPermissions() {
     const { user } = useAuthStore();
 
     const { data, isLoading } = useQuery({
-        queryKey: ['permissions', 'all', user?.id],
+        queryKey: ['permissions', 'all', user?.id, user?.company_id],
         queryFn: async () => {
             if (!user?.id) return [];
-            const { data: perms, error } = await supabase
-                .rpc('get_user_permissions');
+            // ⚡ Company-scoped overload (migration 20260822000001): the
+            // no-arg get_user_permissions() returns permissions from the
+            // single `user_profiles` role snapshot across ALL companies.
+            const { data: perms, error } = user.company_id != null
+                ? await supabase.rpc('get_user_permissions', { p_company_id: user.company_id })
+                : await supabase.rpc('get_user_permissions');
             if (error) {
                 logger.warn('useAllPermissions', 'RPC error', error.message);
                 return [];

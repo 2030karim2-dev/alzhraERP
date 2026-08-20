@@ -71,7 +71,31 @@ export const productsApi = {
     },
 
     saveProductUoMs: async (productId: string, uoms: ProductUOM[]) => {
-        // product_uoms table may not exist yet — silently skip if so
+        // The atomic RPC (`save_product_uoms`) is the single source of truth.
+        // Only when it is genuinely missing (PGRST202 / not deployed) do we
+        // degrade to a direct table write. Real failures (network, constraints,
+        // unexpected exceptions) are PROPAGATED — never reported as success —
+        // so a failed UOM save can't silently look like it worked.
+        // Direct-write fallback result shape (data omitted on failure).
+        interface DirectUomWriteResult {
+            data?: unknown;
+            error: unknown;
+        }
+        const writeUoMsDirectly = async (): Promise<DirectUomWriteResult> => {
+            const { error: deleteError } = await supabase.from('product_uoms').delete().eq('product_id', productId);
+            if (deleteError) return { error: deleteError };
+            if (uoms.length > 0) {
+                return await supabase.from('product_uoms').insert(
+                    uoms.map(u => ({
+                        uom_name: u.uom_name,
+                        conversion_factor: u.conversion_factor,
+                        product_id: productId,
+                    }))
+                );
+            }
+            return { error: null };
+        };
+
         try {
             const { data, error } = await supabase.rpc('save_product_uoms', {
                 p_product_id: productId,
@@ -79,38 +103,20 @@ export const productsApi = {
             });
             if (!error) return { data, error: null };
 
-            // If function is missing, fallback to client-side non-atomic sequence
+            // If the function is missing, fallback to client-side non-atomic sequence
             const pgError = error as { code?: string; message?: string };
             const errCode = pgError.code || '';
             const errMessage = pgError.message?.toLowerCase() || '';
             if (errCode === 'PGRST202' || errMessage.includes('could not find the function') || errMessage.includes('404')) {
-                await supabase.from('product_uoms').delete().eq('product_id', productId);
-                if (uoms && uoms.length > 0) {
-                    const uomsToInsert = uoms.map(u => ({
-                        uom_name: u.uom_name ?? '',
-                        conversion_factor: u.conversion_factor ?? 1,
-                        product_id: productId,
-                    }));
-                    return await supabase.from('product_uoms').insert(uomsToInsert);
-                }
-                return { error: null };
+                return await writeUoMsDirectly();
             }
             return { error };
-        } catch (_) {
-            // Safe fallback for connection/unexpected exceptions
-            try {
-                await supabase.from('product_uoms').delete().eq('product_id', productId);
-                if (uoms && uoms.length > 0) {
-                    const uomsToInsert = uoms.map(u => ({
-                        uom_name: u.uom_name ?? '',
-                        conversion_factor: u.conversion_factor ?? 1,
-                        product_id: productId,
-                    }));
-                    return await supabase.from('product_uoms').insert(uomsToInsert);
-                }
-            } catch (__) { /* table not yet migrated */ }
+        } catch {
+            // Unexpected exception from the RPC path (network / serialization…).
+            // Degrade to the direct write so the feature keeps working, but
+            // surface any real failure instead of faking success.
+            return await writeUoMsDirectly();
         }
-        return { error: null };
     },
 
     deleteProduct: async (id: string) => {
