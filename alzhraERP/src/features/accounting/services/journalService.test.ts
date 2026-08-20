@@ -130,11 +130,14 @@ describe('journalService', () => {
             expect(formatted.total_amount).toBe(1500); // Fallback to max amount across all lines
         });
 
-        it('should throw error if API fails', async () => {
+        it('should throw a parsed network error when the API fails (raw internals masked)', async () => {
             const apiError = new Error('Fetch failed');
             vi.mocked(journalsApi.fetchJournals).mockResolvedValue({ data: null, error: apiError } as unknown as Awaited<ReturnType<typeof journalsApi.fetchJournals>>);
 
-            await expect(journalService.formatJournalsForUI(mockCompanyId, undefined, 0)).rejects.toThrow('Fetch failed');
+            // The service passes errors through parseError — raw internals are masked
+            // and a network failure surfaces as the user-friendly Arabic message.
+            await expect(journalService.formatJournalsForUI(mockCompanyId, undefined, 0))
+                .rejects.toThrow('تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
         });
     });
 });

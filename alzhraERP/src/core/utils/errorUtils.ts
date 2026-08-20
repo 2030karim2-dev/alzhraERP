@@ -25,6 +25,7 @@ export const parseError = (error: unknown): AppError => {
   // Network Errors - Catch generic fetch failures
   if (
     lowerMsg.includes('failed to fetch') || 
+    lowerMsg.includes('fetch failed') || 
     lowerMsg.includes('networkerror') || 
     lowerMsg.includes('load failed') ||
     lowerMsg.includes('network request failed') ||
