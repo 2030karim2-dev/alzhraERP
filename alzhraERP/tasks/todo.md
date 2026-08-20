@@ -1,5 +1,12 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-20) — إصلاح لوحة المعلومات (get_dashboard_summary 403) ✅
+
+- [x] **Root-cause — `verify_company_access` تختار شركة اعتباطية للمستخدمين متعددي الشركات**: كل مستخدم جديد يحصل على شركة تلقائية (trigger `on_auth_user_created_setup_company` → `setup_new_company`)، وعند دعوته لشركة ثانية يصبح في `user_company_roles` بصفّين. `user_profiles` view (LEFT JOIN) تُرجع صفاً لكل عضوية، فكان `SELECT company_id INTO ... WHERE id=...` يلتقط أول صف اعتباطياً → `42501 Access denied: لا تملك صلاحية الوصول لبيانات هذه الشركة` من `get_dashboard_summary` (و9 دوال أخرى تستخدم `verify_company_access`).
+- [x] **الإصلاح** (Migration `20260820000003_fix_verify_company_access.sql`): التحقق من العضوية مباشرةً في `user_company_roles` للشركة المطلوبة (نفس نموذج `fn_assert_company_access`)، مع ارتداد لأول عضوية عند غياب الشركة المطلوبة. مطبّق على الإنتاج ومُثبت بمستخدم اختبار ذي شركتين (كان 403 → أصبح HTTP 200 ببيانات حقيقية).
+- [x] **تشخيص الواجهة**: كل دوال اللوحة والقراءات المباشرة تعمل لمستخدم صالح (8/9 قبل الإصلاح، 9/9 بعده). تحذيرات "unavailable, using fallback" لجميع العناصر دفعةً واحدة (17ms) تشير إلى انتهاء صلاحية الجلسة لحظياً وليس خطأً برمجياً — إعادة تسجيل الدخول تُزيلها.
+- [x] **تنظيف القاعدة**: شركتان يتيمتان وحسابان ومستخدما اختبار أُنشئا أثناء التشخيص حُذفا بالكامل (0 بقايا، 8 فواتير كما كانت).
+
 ## Checkpoint (2026-08-20) — إصلاح حفظ مرتجع المشتريات/المبيعات (HTTP 400) ✅
 
 - [x] **Root-cause — `commit_purchase_return` يفشل دائماً بـ HTTP 400**: كانت الدالة تُدرج رأس `journal_entries` بحالة `'posted'` **قبل** إدراج بنود `journal_entry_lines`، فيحظرها trigger الحيّ `trg_journal_entry_lines_immutability` (`prevent_posted_journal_line_modification`) بكود `23514 Cannot add lines to a posted journal entry` → PostgREST يرد 400 وترتد المعاملة كلها. نفس خلل "posted-first" الذي عالجه ADR-005/006/007 في `post_manual_journal`/`fn_auto_post_invoice_journal`/`commit_payment`/`fn_reverse_journal_entries` — لكنه بقي في مسار المرتجعات.
