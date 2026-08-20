@@ -176,28 +176,37 @@ export const useRealtimeSync = () => {
             let lastInvalidated = 0;
             const THROTTLE_MS = 5000;
 
-            const channel = supabase.channel(channelId)
-                .on(
+            // Subscribe PER-TABLE (instead of a schema-wide wildcard) so the client
+            // only receives events for tables we actually map. Tables outside the
+            // publication never fire, and other tenants' rows are still filtered by
+            // RLS on the realtime layer.
+            const handleChange = (payload: RealtimeChangePayload) => {
+                useConnectionStore.getState().reportRealtimeEvent();
+
+                const now = Date.now();
+                if (now - lastInvalidated < THROTTLE_MS) return;
+
+                const table = payload.table;
+                const preset = TABLE_PRESET_MAP[table];
+                if (preset) {
+                    logger.info('Realtime', `🔄 Sync: [${table}] updated, refreshing...`);
+                    invalidateByPreset(queryClient, preset);
+                    lastInvalidated = now;
+                } else if (table === 'dashboard_data') {
+                    invalidateKeys(queryClient, ['dashboard_data', 'dashboard']);
+                    lastInvalidated = now;
+                }
+            };
+
+            const subscribedTables = [...Object.keys(TABLE_PRESET_MAP), 'dashboard_data'];
+            let channel = supabase.channel(channelId);
+            for (const table of subscribedTables) {
+                channel = channel.on(
                     'postgres_changes',
-                    { event: '*', schema: 'public' },
-                    (payload: RealtimeChangePayload) => {
-                        useConnectionStore.getState().reportRealtimeEvent();
-
-                        const now = Date.now();
-                        if (now - lastInvalidated < THROTTLE_MS) return;
-
-                        const table = payload.table;
-                        const preset = TABLE_PRESET_MAP[table];
-                        if (preset) {
-                            logger.info('Realtime', `🔄 Sync: [${table}] updated, refreshing...`);
-                            invalidateByPreset(queryClient, preset);
-                            lastInvalidated = now;
-                        } else if (table === 'dashboard_data') {
-                            invalidateKeys(queryClient, ['dashboard_data', 'dashboard']);
-                            lastInvalidated = now;
-                        }
-                    }
+                    { event: '*', schema: 'public', table },
+                    handleChange
                 );
+            }
 
             channel.subscribe((status) => {
                 const { setRealtimeStatus } = useConnectionStore.getState();

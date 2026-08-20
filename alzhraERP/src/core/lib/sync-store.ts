@@ -3,8 +3,8 @@ import { logger } from '../utils/logger';
 
 export interface PendingMutation {
     id: string;
-    mutationKey: any[];
-    variables: any;
+    mutationKey: unknown[];
+    variables: unknown;
     timestamp: number;
     retryCount: number;
     metadata?: {

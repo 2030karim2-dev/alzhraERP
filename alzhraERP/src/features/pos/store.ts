@@ -1,17 +1,24 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { SalesCartItem } from '../sales/store';
+
+export interface SuspendedCustomer {
+  id: string;
+  name: string;
+  phone?: string;
+}
 
 export interface SuspendedOrder {
   id: string;
-  items: any[];
-  customer: any;
+  items: SalesCartItem[];
+  customer: SuspendedCustomer | null;
   time: string;
 }
 
 export interface POSState {
   suspendedOrders: SuspendedOrder[];
-  suspendCurrentOrder: (items: any[], customer: any) => void;
+  suspendCurrentOrder: (items: SalesCartItem[], customer: SuspendedCustomer | null) => void;
   resumeOrder: (id: string) => SuspendedOrder | undefined;
   removeSuspended: (id: string) => void;
 }

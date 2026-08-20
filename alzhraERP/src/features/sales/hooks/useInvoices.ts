@@ -48,9 +48,10 @@ export const useCreateInvoice = () => {
       showToast(`تم اعتماد الفاتورة بنجاح`, 'success');
       invalidateByPreset(queryClient, 'sale');
     },
-    onError: (error: Error | any, variables) => {
-      const isFetchError = typeof error?.message === 'string' && error.message.includes('Failed to fetch');
-      const isNetworkError = error?.status === 0;
+    onError: (error, variables) => {
+      const err = error as { message?: string; status?: number };
+      const isFetchError = typeof err?.message === 'string' && err.message.includes('Failed to fetch');
+      const isNetworkError = err?.status === 0;
 
       if (!navigator.onLine || isFetchError || isNetworkError) {
         // Unified offline queue (sync-store): replayed by ReactQueryProvider's
@@ -62,8 +63,8 @@ export const useCreateInvoice = () => {
         showToast("تم حفظ الفاتورة محلياً. سيتم مزامنتها عند عودة الاتصال.", 'info');
         return;
       }
-      
-      showToast(error?.message || 'فشل في إصدار الفاتورة', 'error');
+
+      showToast(err?.message || 'فشل في إصدار الفاتورة', 'error');
     }
   });
 };

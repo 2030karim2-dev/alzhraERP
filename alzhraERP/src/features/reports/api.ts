@@ -74,9 +74,9 @@ export const reportsApi = {
 
     if (!accounts) return { data: null, error: { message: 'Failed to fetch accounts' } };
 
-    const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
+    const balanceMap = new Map((balances || []).map((b) => [b.account_id, Number(b.balance)]));
 
-    const merged = accounts.map((a: any) => ({
+    const merged = accounts.map((a) => ({
       ...a,
       balance: balanceMap.get(a.id) || 0
     }));
@@ -141,9 +141,9 @@ export const reportsApi = {
     
     if (!parties) return { data: null, error: { message: 'Failed to fetch parties' } };
     
-    const balanceMap = new Map((balances || []).map((b: any) => [b.party_id, Number(b.balance)]));
+    const balanceMap = new Map((balances || []).map((b) => [b.party_id, Number(b.balance)]));
     
-    const merged = parties.map((p: any) => ({
+    const merged = parties.map((p) => ({
       ...p,
       balance: balanceMap.get(p.id) || 0
     }));

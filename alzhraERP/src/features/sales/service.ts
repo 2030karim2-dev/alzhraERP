@@ -51,6 +51,13 @@ interface RawInvoice {
   reference_invoice_id: string | null;
 }
 
+/** Row shape returned by getStats() window queries (invoices). */
+interface SalesStatsRow {
+  total_amount: number | null;
+  currency_code: string | null;
+  exchange_rate: number | null;
+}
+
 export const salesService = {
   fetchSalesLog: async (companyId: string, page: number = 0, branchId?: string | null) => {
     try {
@@ -178,7 +185,7 @@ export const salesService = {
       if (prevWindowError) throw prevWindowError;
 
       // Calculate totals, converting to base currency if necessary
-      const calcTotal = (data: any[]) => data.reduce((sum, inv) => {
+      const calcTotal = (data: SalesStatsRow[]) => data.reduce((sum, inv) => {
         return sum + toBaseCurrency(inv);
       }, 0);
 

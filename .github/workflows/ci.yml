@@ -31,7 +31,7 @@ jobs:
       - name: TypeScript ratchet (no NEW errors beyond baseline)
         run: npx tsx scripts/check-ts-baseline.ts
 
-      - name: Lint (non-blocking — lint debt tracked separately)
+      - name: Lint (non-blocking — make blocking once lint debt is paid)
         run: npm run lint
         continue-on-error: true
 

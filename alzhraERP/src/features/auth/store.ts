@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { AuthUser } from './types';
 import { supabase } from '../../lib/supabaseClient';
 import { authApi } from './api';
@@ -160,9 +161,14 @@ export const useAuthStore = create<AuthState>()(
                   .limit(1)
                   .single();
                 if (roleRow) {
-                  recoveredCompanyId = (roleRow as any).company_id;
-                  recoveredRole = (roleRow as any).role || 'viewer';
-                  recoveredBranchId = (roleRow as any).branch_id ?? null;
+                  const roleData = roleRow as {
+                    role?: string | null;
+                    company_id?: string | null;
+                    branch_id?: string | null;
+                  } | null;
+                  recoveredCompanyId = roleData?.company_id ?? undefined;
+                  recoveredRole = roleData?.role || 'viewer';
+                  recoveredBranchId = roleData?.branch_id ?? null;
                 }
               } catch (_) { /* ignore — best effort */ }
 
@@ -194,7 +200,7 @@ export const useAuthStore = create<AuthState>()(
           if (_authSubscription) _authSubscription.unsubscribe();
 
           // 4. Listen for auth state changes
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
             try {
               logger.debug('Auth', 'State change event', { event });
 
