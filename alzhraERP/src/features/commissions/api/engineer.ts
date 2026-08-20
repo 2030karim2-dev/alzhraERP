@@ -29,7 +29,7 @@ export async function createEngineerLink(input: {
     p_user_id: input.userId,
     p_allocation_pct: input.allocationPct,
     p_assignment_type: input.assignmentType ?? 'direct',
-    p_reason: input.reason ?? null,
+    ...(input.reason != null ? { p_reason: input.reason } : {}),
     p_source: input.source ?? 'manual',
   });
   if (error)
@@ -47,7 +47,7 @@ export async function resolvePendingInvoice(input: {
     p_pending_id: input.pendingId,
     p_company_id: input.companyId,
     p_status: input.status,
-    p_reason: input.reason ?? null,
+    ...(input.reason != null ? { p_reason: input.reason } : {}),
   });
   if (error) throw safeError(error, 'تعذر تحديث حالة الفاتورة المعلقة');
 }
@@ -58,7 +58,7 @@ export async function detectPendingInvoices(
 ): Promise<number> {
   const { data, error } = await db.rpc('incentive_detect_pending_invoices', {
     p_company_id: companyId,
-    p_branch_id: branchId ?? null,
+    ...(branchId != null ? { p_branch_id: branchId } : {}),
   });
   if (error) throw safeError(error, 'تعذر تحديث قائمة الفواتير المعلقة');
   return data;

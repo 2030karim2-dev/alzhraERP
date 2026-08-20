@@ -68,12 +68,12 @@ export async function createCommissionRule(input: {
     p_name: input.name.trim(),
     p_rule_type: input.rule_type,
     p_calculation_method: input.calculation_method,
-    p_threshold_min: input.threshold_min ?? null,
-    p_threshold_max: input.threshold_max ?? null,
-    p_rate: input.rate ?? null,
-    p_fixed_amount: input.fixed_amount ?? null,
+    ...(input.threshold_min != null ? { p_threshold_min: input.threshold_min } : {}),
+    ...(input.threshold_max != null ? { p_threshold_max: input.threshold_max } : {}),
+    ...(input.rate != null ? { p_rate: input.rate } : {}),
+    ...(input.fixed_amount != null ? { p_fixed_amount: input.fixed_amount } : {}),
     p_priority: input.priority ?? 0,
-    p_conditions: input.conditions ?? null,
+    ...(input.conditions != null ? { p_conditions: input.conditions } : {}),
   });
   if (error) throw safeError(error, 'تعذر إنشاء قاعدة العمولة عبر العملية الآمنة');
   const { data, error: readError } = await db
@@ -99,14 +99,11 @@ export async function createCommissionPlan(input: {
   const { data: planId, error } = await db.rpc('incentive_create_plan', {
     p_company_id: input.company_id,
     p_name: input.name,
-    p_description: input.description ?? null,
+    ...(input.description != null ? { p_description: input.description } : {}),
     p_calculation_basis: input.calculation_basis,
     p_currency_code: input.currency_code,
     p_collection_mode: input.collection_mode ?? 'on_collected_only',
     p_tier_method: input.tier_method ?? 'flat',
-    p_tier_currency_code: null,
-    p_effective_from: null,
-    p_effective_to: null,
   });
   if (error) throw safeError(error, 'تعذر إنشاء خطة العمولات عبر العملية الآمنة');
   const { data, error: readError } = await db
@@ -136,11 +133,10 @@ export async function updateCommissionPlan(
   const { error } = await db.rpc('incentive_update_plan', {
     p_plan_id: id,
     p_company_id: companyId,
-    p_name: patch.name ?? null,
-    p_description: patch.description ?? null,
-    p_calculation_basis: null,
-    p_status: patch.status ?? null,
-    p_effective_to: patch.effective_to ?? null,
+    ...(patch.name != null ? { p_name: patch.name } : {}),
+    ...(patch.description != null ? { p_description: patch.description } : {}),
+    ...(patch.status != null ? { p_status: patch.status } : {}),
+    ...(patch.effective_to != null ? { p_effective_to: patch.effective_to } : {}),
   });
   if (error) throw safeError(error, 'تعذر تحديث خطة العمولات عبر العملية الآمنة');
   const { data, error: readError } = await db

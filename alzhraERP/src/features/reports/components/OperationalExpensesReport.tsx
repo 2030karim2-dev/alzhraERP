@@ -12,14 +12,6 @@ import { MobileCard, MobileSectionTitle, ResponsiveGrid } from './MobileComponen
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
 
-const useOperationalExpenses = (days: number = 30) => {
-/** سطر قيد خام من استعلام المصاريف التشغيلية. */
-interface OperationalExpenseLine {
-  account?: { id: string; name_ar?: string | null; code?: string | null } | null;
-  debit_amount?: number | null;
-  credit_amount?: number | null;
-}
-
 /** صف مصروف مجمّع حسب الحساب (عرض الجدول). */
 interface ExpenseAccountRow {
   id: string;
@@ -27,6 +19,14 @@ interface ExpenseAccountRow {
   code: string;
   total: number;
   count: number;
+}
+
+const useOperationalExpenses = (days: number = 30) => {
+/** سطر قيد خام من استعلام المصاريف التشغيلية. */
+interface OperationalExpenseLine {
+  account?: { id: string; name_ar?: string | null; code?: string | null } | null;
+  debit_amount?: number | null;
+  credit_amount?: number | null;
 }
 
 
@@ -47,7 +47,7 @@ interface ExpenseAccountRow {
             // Group by account
             const accountMap: Record<string, { name: string; code: string; total: number; count: number }> = {};
             (lines || []).forEach((line: OperationalExpenseLine) => {
-                const accountId = line.account?.id;
+                const accountId = line.account?.id ?? '';
                 const accountName = line.account?.name_ar || 'غير محدد';
                 const accountCode = line.account?.code || '';
 
@@ -191,7 +191,7 @@ const OperationalExpensesReport: React.FC = () => {
                                             <Cell key={i} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value: number | string) => formatCurrency(value || 0)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                                    <Tooltip formatter={(value) => formatCurrency(Number(value) || 0)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                                     <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
                                 </PieChart>
                             </ResponsiveContainer>

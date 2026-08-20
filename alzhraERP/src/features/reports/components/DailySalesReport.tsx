@@ -13,7 +13,7 @@ import { MobileCard, MobileSectionTitle, ResponsiveGrid, MobileEmptyState } from
 /** فاتورة يومية كما تُستقبل من `getDailySalesInvoices`. */
 interface DailyInvoice {
   issue_date?: string;
-  invoice_number?: string;
+  invoice_number?: string | null;
   type?: string;
   status?: string;
   total_amount?: number | null;
@@ -42,7 +42,7 @@ const useDailySalesReport = (days: number = 30) => {
 
             // Group by date and handle currency conversion + returns
             const dailyMap: Record<string, { date: string; total: number; count: number }> = {};
-            (invoices || []).forEach((inv: DailyInvoice) => {
+            (invoices || []).forEach((inv) => {
                 const date = inv.issue_date?.split('T')[0] || inv.issue_date;
                 if (!dailyMap[date]) dailyMap[date] = { date, total: 0, count: 0 };
 
@@ -74,7 +74,7 @@ const useDailySalesReport = (days: number = 30) => {
             const todaySales = dailyMap[today] || { date: today, total: 0, count: 0 };
 
             return {
-                invoices: (invoices || []).map((inv: DailyInvoice) => ({
+                invoices: (invoices || []).map((inv) => ({
                     ...inv,
                     // Store converted amount for individual invoice display if needed
                     converted_amount: Number(inv.total_amount || 0) * Number(inv.exchange_rate || 1) * (inv.type === 'sale_return' ? -1 : 1)
@@ -216,7 +216,7 @@ const DailySalesReport: React.FC = () => {
                                     <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={(v) => v.slice(5)} />
                                     <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                                     <Tooltip
-                                        formatter={(value: number | string) => [formatCurrency(Number(value) || 0), 'المبيعات']}
+                                        formatter={(value) => [formatCurrency(Number(value) || 0), 'المبيعات']}
                                         labelFormatter={(label) => `التاريخ: ${label}`}
                                         contentStyle={{ fontSize: 11, borderRadius: 8 }}
                                     />

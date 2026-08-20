@@ -1,5 +1,13 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-21) — سداد ديون TypeScript: 86 → 48 (ثلاث جولات) ✅
+
+- [x] **جولة 1 — commissions (16 خطأً):** `plans.ts` + `engineer.ts` — استبدال `?? null` بنمط **السبريد الشرطي** (exactOptionalPropertyTypes يرفض خصائص صريحة undefined/null) بعد التحقق أن معاملات RPC لها `DEFAULT NULL` (مكافئ سلوكياً).
+- [x] **جولة 2 — reports (22 خطأً):** `OperationalExpensesReport` (نقل واجهة لنطاق الملف + `?? ''` + formatter)، `DailySalesReport` (إزالة التعليقات الصريحة + `invoice_number?: string | null`)، `DebtAgingReport` (حذف واجهات مكررة + `party_id ?? ''`).
+- [x] **التحقق بالتشغيل الفعلي:** `tsc --noEmit` (خلفي) = 86 → 70 → 58 → **48** — والأساس حُدّث إلى 48.
+- [ ] **متبقٍ (48):** `ABCAnalysisChart` (11)، `AdvancedReturnModal` (5)، `SalesReturnsView` (4)، `vin-intelligence` (4)، `CashFlowView` (3)، `StatsGrid` (3)، `InventoryValuationView` (3)، `DashboardPage` (3)، وغيرها.
+
+## Checkpoint (2026-08-21) — CI أحمر: تشخيص + إصلاح أخطائي + إعادة تأسيس baseline ✅
 ## Checkpoint (2026-08-21) — CI أحمر: تشخيص + إصلاح أخطائي + إعادة تأسيس baseline ✅
 
 - [x] **تشخيص فشل CI (خطوة TypeScript ratchet)**: الدفع فشل لأن عدّاد الأخطاء تجاوز الأساس (0). التشريح:

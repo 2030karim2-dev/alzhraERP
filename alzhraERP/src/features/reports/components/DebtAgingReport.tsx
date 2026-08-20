@@ -26,37 +26,7 @@ interface AgingPartyRow {
   oldestDate: string;
 }
 
-/** فاتورة غير مسددة كما تُستقبل من `getDebtAgingInvoices`. */
-interface AgingInvoice {
-  issue_date: string;
-  total_amount?: number | null;
-  paid_amount?: number | null;
-  party_id: string;
-  parties?: { name?: string | null; type?: string | null } | null;
-}
-
-/** فاتورة غير مسددة كما تُستقبل من `reportsApi.getDebtAgingInvoices`. */
-interface AgingInvoice {
-    issue_date: string;
-    total_amount?: number | null;
-    paid_amount?: number | null;
-    party_id: string;
-    parties?: { name?: string | null; type?: string | null } | null;
-}
-
-/** صف تجميع أعمار الديون لكل جهة (عرض الجدول). */
-interface AgingPartyRow {
-    id: string;
-    name: string;
-    type: string;
-    current: number;
-    days30: number;
-    days60: number;
-    days90: number;
-    total: number;
-    oldestDate: string;
-}
-
+/** فاتورة غير مسددة — تُستهلك من `reportsApi.getDebtAgingInvoices`. */
 const useDebtAging = () => {
     const { user } = useAuthStore();
     return useQuery({
@@ -73,14 +43,14 @@ const useDebtAging = () => {
             const agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0 };
             const partyAging: Record<string, AgingPartyRow> = {};
 
-            (invoices || []).forEach((inv: AgingInvoice) => {
+            (invoices || []).forEach((inv) => {
                 const issueDate = new Date(inv.issue_date);
                 const daysDiff = Math.floor((today.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
                 const remaining = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
 
                 if (remaining <= 0) return;
 
-                const partyId = inv.party_id;
+                const partyId = inv.party_id ?? '';
                 const partyName = inv.parties?.name || 'غير محدد';
                 const partyType = inv.parties?.type || 'customer';
 
@@ -226,7 +196,7 @@ const DebtAgingReport: React.FC = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                                 <YAxis type="category" dataKey="name" tick={{ fontSize: 9 }} width={100} />
-                                <Tooltip formatter={(value: number | string) => [formatCurrency(Number(value)), 'المبلغ']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                                <Tooltip formatter={(value) => [formatCurrency(Number(value) || 0), 'المبلغ']} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                                 <Bar dataKey="value" radius={[0, 4, 4, 0]} minPointSize={1}>
                                     {data?.chartData.map((_, i) => (
                                         <Cell key={i} fill={AGING_COLORS[i]} />
