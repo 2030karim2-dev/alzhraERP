@@ -86,7 +86,7 @@ const SalesPage: React.FC = () => {
         taxRate: 0,
         maxStock: item.quantity,
       })),
-      type: 'return_sale',
+      type: 'sale_return',
       paymentMethod: (invoice.payment_method === 'credit' ? 'credit' : 'cash'),
       currency: invoice.currency_code || 'SAR',
       referenceInvoiceId: invoice.id,

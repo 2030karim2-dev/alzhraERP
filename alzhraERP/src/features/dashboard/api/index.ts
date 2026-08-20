@@ -216,7 +216,7 @@ export const dashboardApi = {
                 .select('id, type, issue_date, total_amount, party_id, parties(name)')
                 .eq('company_id', companyId)
                 .is('deleted_at', null)
-                .in('type', ['sale', 'purchase', 'return_sale', 'return_purchase'])
+                .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return'])
                 .order('issue_date', { ascending: false })
                 .limit(5)
                 .setHeader('x-skip-network-retry', '1')
@@ -251,6 +251,7 @@ export const dashboardApi = {
                 p_company_id: companyId,
                 p_from: '2000-01-01',
                 p_to: dateTo,
+                ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             })
                 .setHeader('x-skip-network-retry', '1')
                 .abortSignal(activeSignal),

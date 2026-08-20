@@ -86,7 +86,7 @@ export const salesService = {
       paymentMethod: payload.paymentMethod
     }));
 
-    if (payload.type === 'return_sale') {
+    if (payload.type === 'sale_return') {
       return await salesApi.commitReturnRPC(companyId, userId, payload);
     }
 

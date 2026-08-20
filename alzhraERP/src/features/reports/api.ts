@@ -24,10 +24,15 @@ interface PartyInvoice {
 }
 
 interface PartyJournal {
-  entry_number: number;
-  entry_date: string;
+  debit_amount: number | null;
+  credit_amount: number | null;
   description: string | null;
-  journal_entry_lines: { debit_amount: number; credit_amount: number }[];
+  journal_entries: {
+    entry_number: number;
+    entry_date: string;
+    description: string | null;
+    status: string;
+  };
 }
 
 interface JournalLineRaw {
@@ -99,14 +104,14 @@ export const reportsApi = {
       .neq('status', 'void')
       .order('issue_date', { ascending: true }) as unknown as { data: PartyInvoice[] | null };
 
-    const { data: journals } = await supabase.from('journal_entries')
+    const { data: journals } = await supabase.from('journal_entry_lines')
       .select(`
-        entry_number, entry_date, description,
-        journal_entry_lines (debit_amount, credit_amount)
+        debit_amount, credit_amount, description,
+        journal_entries!inner ( entry_number, entry_date, description, status )
       `)
-      .eq('reference_id', partyId)
-      .eq('status', 'posted')
-      .order('entry_date', { ascending: true }) as unknown as { data: PartyJournal[] | null };
+      .eq('party_id', partyId)
+      .eq('journal_entries.status', 'posted')
+      .order('journal_entries(entry_date)', { ascending: true }) as unknown as { data: PartyJournal[] | null };
 
     return { invoices, journals };
   },
@@ -169,7 +174,7 @@ export const reportsApi = {
       .from('invoices')
       .select('id, invoice_number, issue_date, total_amount, status, type, party_id, parties(name), exchange_rate, currency_code')
       .eq('company_id', companyId)
-      .in('type', ['sale', 'return_sale'])
+      .in('type', ['sale', 'sale_return'])
       .is('deleted_at', null)
       .gte('issue_date', fromDateISO)
       .order('issue_date', { ascending: false });

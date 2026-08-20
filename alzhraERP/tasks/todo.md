@@ -1,5 +1,53 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-20) — إصلاح حفظ مرتجع المشتريات/المبيعات (HTTP 400) ✅
+
+- [x] **Root-cause — `commit_purchase_return` يفشل دائماً بـ HTTP 400**: كانت الدالة تُدرج رأس `journal_entries` بحالة `'posted'` **قبل** إدراج بنود `journal_entry_lines`، فيحظرها trigger الحيّ `trg_journal_entry_lines_immutability` (`prevent_posted_journal_line_modification`) بكود `23514 Cannot add lines to a posted journal entry` → PostgREST يرد 400 وترتد المعاملة كلها. نفس خلل "posted-first" الذي عالجه ADR-005/006/007 في `post_manual_journal`/`fn_auto_post_invoice_journal`/`commit_payment`/`fn_reverse_journal_entries` — لكنه بقي في مسار المرتجعات.
+- [x] **الإصلاح** (Migration `20260820000001_fix_return_journal_ordering.sql`): `draft → بنود → posted` للقيد في `commit_purchase_return` و`process_sales_return`، وإدراج الفاتورة كمسودة ثم ترحيلها **بعد** اكتمال القيد حتى لا ينشئ `fn_auto_post_invoice_journal` قيداً صفرياً ثانوياً (يتخطاه عبر `v_already_posted`). التوقيعات والصلاحيات لم تتغيّر (GRANT دفاعي).
+- [x] **إصلاح مرتبط في `process_sales_return`**: كانت تقرأ أصناف `p_items` بمفاتيح camelCase (`productId`/`unitPrice`) بينما الواجهة ترسل snake_case (`toReturnPayloadItems`) → إجماليات NULL وفشل `total_amount` (NOT NULL). صارت تقرأ snake_case دفاعياً، وأُضيف `name` إلى `toReturnPayloadItems` + اختبارات (`returnHelpers.test.ts`).
+- [x] **إصلاح ثانٍ مكتشف بالتحقق الحي — `chk_return_needs_reason`**: القيد الحي يتطلب `return_reason` لفواتير `purchase_return`، وكانت `commit_purchase_return` لا تُدخله إطلاقاً (23514 ثانٍ). Migration `20260820000002_add_return_reason_to_commit_purchase_return.sql`: معامل جديد `p_return_reason` + حفظه في `invoices.return_reason` (افتراضي 'مرتجع مشتريات') + إسقاط الـ overload القديم 8-معاملات + تحصين صلاحيات الـ overload الجديد (anon=false/authenticated=true). الواجهة ترسل `p_return_reason` و`database.types.ts` يُحدَّث.
+- [x] **توحيد أنواع فواتير المرتجعات مع القاعدة الحية**: القاعدة تخزّن `purchase_return`/`sale_return` فقط (قيد `invoices_type_check`) بينما كانت الواجهة تستعلم/تصنّف بقيم `return_purchase`/`return_sale` غير الصالحة → قوائم المرتجعات فارغة حتى بعد نجاح الحفظ. وُحّدت كل الاستعلامات والمقارنات والخرائط والأنواع: `purchases/api.ts`، `purchases/service.ts`، `useSalesReturns.ts`، `analyticsService.ts`، `analyticsApi.ts`، `DailySalesReport.tsx`، `InvoiceListView.tsx`، `InvoiceActionButtons.tsx`، `dashboard/hooks/index.ts`، `JournalEntryRow.tsx`، `returns/types/index.ts`، `sales/types.ts`، `sales/types/domain.ts`.
+- [x] **التطبيق على الإنتاج (2026-08-20)**: الهجرتان (`00001` ترتيب القيد + `00002` سبب الإرجاع) مطبّقتان على `zzthamxjxnxzzpswllid` عبر Management API. التحقق الحي داخل معاملة ROLLBACK: النمط القديم يفشل فعلاً بـ `23514 Cannot add lines to a posted journal entry`، والنمط الجديد (draft→بنود→posted + return_reason) ينجح ضد كل الـ triggers. التواقيع: `commit_purchase_return(uuid,uuid,uuid,jsonb,text,text,numeric,uuid,text)` واحد فقط، `authenticated=true`/`anon=false`.
+- [x] **إظهار أخطاء RPC الحقيقية للمستخدم**: `index.tsx` كان يستبدل رسالة أي خطأ Supabase برسالة عامة في الإنتاج → صار يحتفظ برسائل استثناءات دوالنا العربية (`RAISE EXCEPTION '...'`) ويغطي التقنية الإنجليزية فقط؛ و`parseError` يمرّر الرسائل العربية كما هي + اختبارات (`errorUtils.test.ts`). إصلاح `asError` في `purchases/api.ts` (كان يعرض `[object Object]` في التوست).
+
+## Checkpoint (2026-08-19) — المرحلة 4: جودة واختبارات قسم المحاسبة ✅
+
+- [x] **دالة نقية + اختبارات** `utils/ledgerBalance.ts` (10 اختبارات): عزل منطق تسمية مدين/دائن حسب طبيعة الحساب (H2) مع ارتداد آمن للطبيعة المدينة عند نوع غير معروف — واستخدامها في `LedgerView` و`TreasurySummaryStats`.
+- [x] **اختبار مكوّن** `JournalEntryTotals.test.tsx` (3 اختبارات): توازن، عدم توازن + الفرق، ورسالة صفر مبالغ.
+- [x] **اختبارات hooks** `hooks/useReports.test.tsx` (6 اختبارات): `useLedger`/`useTrialBalance`/`useFinancials`/`useAuditJournals` (نمط settings/hooks.test.tsx مع QueryClientProvider + mocks).
+- [x] **ربط أزرار `QuickActions`**: قيد محاسبي → فتح نافذة القيد (عبر `openJournalModal` من AccountingPage)، مصروف → `/expenses`، سند قبض/سند صرف → `/bonds`.
+- [x] **`SearchableAccountSelector`** يفلتر `postableOnly` (كانت تُترك لقاعدة البيانات لترفض القيد).
+- [ ] **e2e أقوى** (`accounting-flow.spec.ts`): يتطلب بيئة تشغيل + مصادقة — مؤجّل.
+- [ ] **تنظيف `any`** في `JournalEntryCard`/`AccountingPage.handleCreate`/`errors` — مؤجّل (جودة نوعية).
+
+## Checkpoint (2026-08-19) — المرحلة 3: إصلاحات متوسطة (تدقيق قسم المحاسبة) ✅
+
+- [x] **M1 — إصلاح `getPartyLedger`** (`reports/api.ts`): كان يستعلم بـ `.eq('reference_id', partyId)` (خاطئ — reference_id هو رقم الفاتورة) → الربط عبر `journal_entry_lines.party_id` + `journal_entries.status='posted'`. (الدالة كود ميت بلا مستدعٍ حالي لكنها كانت كميناً مستقبلياً.)
+- [x] **M2 — `AuditModal`**: حد أقصى 500 قيد في `getAuditJournals` (كان يجلب كل التاريخ) + توحيد تسامح التوازن إلى 0.001 (مطابق لمشغل DB `check_journal_balance` بدل 0.01).
+- [x] **M3 — `FinancialPerformanceChart`**: تحويل من `useState/useEffect` إلى `useQuery` (مفتاح `monthly_performance` + staleTime 5min) مع عرض خطأ + زر إعادة محاولة.
+- [x] **M4 — `JournalTable`**: وسم "(بحث في القيود المحمّلة)" عند تفعيل البحث لتوضيح أن البحث/الفرز محلي على الصفحة المحمّلة.
+- [x] **M6 — `SearchableAccountSelector`**: خيار `postableOnly` يفلتر `allow_posting !== false` + تفعيله في `JournalEntryTable` (سطور القيود) بدل ترك قاعدة البيانات ترفض القيد لاحقاً.
+
+## Checkpoint (2026-08-19) — المرحلة 2: دقة مالية (تدقيق قسم المحاسبة) ✅
+
+- [x] **H2 — إصلاح إشارات مدين/دائن في كشف الحساب**: تمرير `accountType` من `get_account_ledger` إلى `LedgerView`/`TreasurySummaryStats` (الحسابات ذات الطبيعة الدائنة تعرض رصيدها الدائن الموجب كـ "دائن" بدل "مدين").
+- [x] **H3 — أرصدة تراكمية**: دالة RPC جديدة `report_account_balances` (كل الحركات المرحّلة حتى التاريخ + فحص وصول C1 من البداية) بدل ميزان المراجعة السنوي → `accountsService.getAccounts` و`migrateCashboxBalances`. Migration `20260819000011`.
+- [x] **H1 — ترحيل سندات التحويل والحساب العام**: عمود `payments.counterparty_account_id` + `commit_payment` يخزّنه + `fn_auto_post_payment_journal` ينشئ قيداً متوازناً (تحويل: Dr هدف/Cr مصدر، قبض: Dr نقد/Cr مقابل، صرف: عكس ذلك) مع حارس tenant + رسائل عربية نظيفة. `void_bond` يغطي `transfer_bond` الآن. Migration `20260819000012`.
+- [x] **H5 — أقفال الترقيم**: `pg_advisory_xact_lock` في `generate_journal_entry_number` (Migration `20260819000013`) و`commit_payment` (ضمن 12) ضد تصادم الأرقام تحت التزامن.
+- [x] **H4 — مرشح الفرع في التقارير**: `p_branch_id` مضافة إلى `report_profit_loss`/`report_balance_sheet`/`report_cash_flow` (DROP التوقيع القديم + CREATE، لا views معتمدة) → `getFinancials` ولوحة المعلومات تمرران الفرع النشط. Migration `20260819000014`.
+- [x] **الواجهة**: تصنيفات `receipt_bond`/`payment_bond`/`transfer_bond` في جدول القيود + تحديث `database.types.ts` (دالة جديدة، تواقيع، عمود payments).
+- [x] **التطبيق على الإنتاج**: migrations 11–14 مطبّقة + مسجّلة في `schema_migrations` + تحقق: التواقيع، عمود `counterparty_account_id`، الأقفال، الصلاحيات (anon=False/auth=True)، واختبار ترحيل سند تحويل حيّ داخل معاملة ROLLBACK (سطران متوازنان 100/100). التوثيق: `docs/decisions/ADR-008-accounting-accuracy-phase2.md`.
+- [ ] **ملاحظة**: دوال `report_*` تغيّرت تواقيعها — أي migration/GRANT مستقبلي يجب أن يستخدم قوائم المعاملات الجديدة.
+
+## Checkpoint (2026-08-19) — المرحلة 1: تحصين أمان المحاسبة (تدقيق قسم المحاسبة) ✅
+
+- [x] **C1 — سد ثغرة عزل الشركات (Cross-Tenant) في 6 دوال تقارير مالية** (`report_trial_balance`, `report_profit_loss`, `report_balance_sheet`, `report_cash_flow`, `report_debt_aging`, `get_monthly_performance`): كانت `SECURITY DEFINER` + `GRANT authenticated` **بلا فحص عضوية للشركة** → أي مستخدم مصادق يستطيع قراءة بيانات أي شركة. أُضيف `PERFORM public.fn_assert_company_access(p_company_id)` لكل دالة (نفس نمط get_account_ledger/report_debts). Migration: `20260819000010_accounting_security_hardening.sql`.
+- [x] **C2 — إصلاح `void_bond`** (كان مكسوراً وغير آمن): (أ) فحص صلاحية الوصول لشركة السند، (ب) فحص سنة مالية مفتوحة، (ج) استبدال التحديث المحظور `status='void'` على القيد المرحّل (يمنعه `trg_journal_entries_immutability` بخطأ 23514) بـ **قيد عكسي متوازن** عبر `fn_reverse_journal_entries`، (د) تصحيح نوع المرجع (`receipt_bond`/`payment_bond` بدل `payment`). الواجهة: `useDeleteBond` يبطل استعلامات `journals`/`ledger` الآن.
+- [x] **Root-cause — إصلاح `fn_reverse_journal_entries`** (كان يعرقل void_expense/void_invoice أيضاً): نفس خلل posted-first الذي عالجه ADR-005 → `draft → lines → posted` + فحص وصول + فلتر `company_id` على القيود المصدر.
+- [x] إعادة التأكيد الدفاعية لـ `GRANT/REVOKE` للدوال الثماني في نهاية الـ migration (idempotent).
+- [x] توثيق القرار: `docs/decisions/ADR-007-accounting-security-hardening.md`.
+- [x] **التطبيق على الإنتاج (2026-08-19)**: migration مطبّق على `zzthamxjxnxzzpswllid` عبر Management API + مسجّل في `supabase_migrations.schema_migrations`. التحقق: التواقيع مطابقة (لا overload)، `anon_exec=False`/`authenticated=True`/`service_role=True` للدوال الثماني، `report_trial_balance` بـ service_role → `P0001 access_denied` (كان يعيد البيانات سابقاً)، `void_bond` بمعرّف غير موجود → "Payment not found" (الدالة تعمل)، النص العربي سليم بايتياً.
+
 ## Checkpoint (2026-08-18) — جولة التدقيق الرابعة: سد الفجوات المتبقية ✅
 
 - [x] **H1 — إضافة 7 جداول ناقصة إلى `database.types.ts`**: ai_request_log + incentive_adjustments/assignments/calculation_lines/engineer_links/payments/targets (كانت تستخدم عبر RPC فقط بدون عقد مطبّع). التحقق: `tsc --noEmit` = 0 أخطاء.

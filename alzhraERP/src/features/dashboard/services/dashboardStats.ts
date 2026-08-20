@@ -144,8 +144,8 @@ export const calculateDashboardStats = (data: {
     const invoiceTypeMap: Record<string, { title: string; color: string }> = {
         sale: { title: 'فاتورة مبيعات', color: 'blue' },
         purchase: { title: 'فاتورة مشتريات', color: 'violet' },
-        return_sale: { title: 'مرتجع مبيعات', color: 'orange' },
-        return_purchase: { title: 'مرتجع مشتريات', color: 'amber' },
+        sale_return: { title: 'مرتجع مبيعات', color: 'orange' },
+        purchase_return: { title: 'مرتجع مشتريات', color: 'amber' },
     };
 
     const recentActivities = [

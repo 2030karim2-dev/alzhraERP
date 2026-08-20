@@ -193,7 +193,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           </div>
         )}
 
-        {invoice && invoice.type !== 'return_sale' && onReturn && (
+        {invoice && invoice.type !== 'sale_return' && onReturn && (
           <div className="flex justify-end px-4 mt-2">
             <button
               onClick={() => setShowReturnSection(true)}

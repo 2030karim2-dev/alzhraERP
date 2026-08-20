@@ -79,6 +79,7 @@ export const hasReturnableItems = (items: ReturnItemDraft[]): boolean =>
 export const toReturnPayloadItems = (items: Array<{
     productId?: string;
     product_id?: string;
+    name?: string;
     quantity?: number;
     returnQuantity?: number;
     unitPrice?: number;
@@ -89,8 +90,10 @@ export const toReturnPayloadItems = (items: Array<{
     return (items ?? []).map((item) => {
         const quantity = Number(item.quantity ?? item.returnQuantity ?? 0);
         const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
+        const productId = item.productId ?? item.product_id ?? '';
         return {
-            product_id: item.productId ?? item.product_id ?? '',
+            product_id: productId,
+            name: item.name ?? productId,
             quantity,
             unit_price: unitPrice,
             cost_price: Number(item.costPrice ?? item.cost_price ?? 0),

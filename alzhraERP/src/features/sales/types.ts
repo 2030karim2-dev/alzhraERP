@@ -2,7 +2,7 @@
 
 
 export type InvoiceStatus = 'draft' | 'posted' | 'paid' | 'void';
-export type InvoiceType = 'sale' | 'return_sale';
+export type InvoiceType = 'sale' | 'sale_return';
 
 export interface CartItem {
   productId: string;

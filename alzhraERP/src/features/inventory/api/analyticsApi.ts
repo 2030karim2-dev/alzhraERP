@@ -14,7 +14,7 @@ export const analyticsApi = {
       `)
             .eq('invoices.company_id', companyId)
             .neq('invoices.status', 'void')
-            .in('invoices.type', ['sale', 'return_sale']);
+            .in('invoices.type', ['sale', 'sale_return']);
 
         if (from) {
             query = query.gte('invoices.issue_date', from);
@@ -56,7 +56,7 @@ export const analyticsApi = {
         let lastSaleDate: string | null = null;
 
         rows.forEach((row) => {
-            const multiplier = row.invoices?.type === 'return_sale' ? -1 : 1;
+            const multiplier = row.invoices?.type === 'sale_return' ? -1 : 1;
             totalQuantitySold += (Number(row.quantity) || 0) * multiplier;
             totalRevenue += (Number(row.total) || 0) * multiplier;
 

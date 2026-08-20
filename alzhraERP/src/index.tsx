@@ -32,8 +32,13 @@ if (import.meta.env.PROD) {
           // Log silently
           logger.error('DB_ERROR_SILENT', 'Underlying database error intercepted', data);
 
-          // Modify the response body to return a generic message
-          data.message = "حدث خطأ غير متوقع أثناء معالجة البيانات، المرجو المحاولة لاحقاً.";
+          // احتفظ برسائل استثناءات دوالنا الداخلية العربية (RAISE EXCEPTION '...')
+          // فهي مقصودة ومفهومة للمستخدم (مثل 'لا يوجد مستودع للفرع')،
+          // وقم فقط بتغطية الأخطاء التقنية الداخلية (Postgres/PostgREST بالإنجليزية).
+          if (!/[\u0600-\u06FF]/.test(String(data.message ?? ''))) {
+            // Modify the response body to return a generic message
+            data.message = "حدث خطأ غير متوقع أثناء معالجة البيانات، المرجو المحاولة لاحقاً.";
+          }
           return new Response(JSON.stringify(data), {
             status: response.status,
             statusText: response.statusText,

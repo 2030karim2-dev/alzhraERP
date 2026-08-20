@@ -46,7 +46,7 @@ describe('normalizers المرتجعات', () => {
             issue_date: '2026-08-02',
             total_amount: 800,
             status: 'posted',
-            type: 'return_purchase',
+            type: 'purchase_return',
             payment_method: 'cash',
             currency_code: 'SAR',
             exchange_rate: 1,

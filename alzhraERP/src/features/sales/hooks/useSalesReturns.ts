@@ -91,7 +91,7 @@ export const useSalesReturns = (filters?: {
           created_at
         `)
                 .eq('company_id', user.company_id)
-                .eq('type', 'return_sale')
+                .eq('type', 'sale_return')
                 .is('deleted_at', null);
 
             if (filters?.status) {
@@ -145,7 +145,7 @@ export const useSalesReturnsStats = () => {
                 .from('invoices')
                 .select('id, total_amount, status')
                 .eq('company_id', user.company_id)
-                .eq('type', 'return_sale')
+                .eq('type', 'sale_return')
                 .is('deleted_at', null);
 
             if (error) throw error;

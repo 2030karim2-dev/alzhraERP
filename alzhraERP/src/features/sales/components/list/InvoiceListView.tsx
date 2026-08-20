@@ -91,10 +91,10 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
             accessorKey: 'invoiceNumber' as keyof InvoiceListItem,
             accessor: (row: InvoiceListItem) => (
                 <div className="flex items-center gap-1.5">
-                    {row.type === 'return_sale' && (
+                    {row.type === 'sale_return' && (
                         <ArrowLeftRight size={13} className="text-rose-500 shrink-0" />
                     )}
-                    <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-blue-600'}`}>
+                    <span dir="ltr" className={`font-mono font-bold ${row.type === 'sale_return' ? 'text-rose-600' : 'text-blue-600'}`}>
                         #{row.invoiceNumber}
                     </span>
                 </div>
@@ -135,7 +135,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
                 const showBaseLine = hasForeignCurrency && rateIsNotOne && Math.abs(row.baseTotal - row.total) > 0.01;
                 return (
                     <div className="flex flex-col items-end leading-tight">
-                        <span dir="ltr" className={`font-mono font-bold ${row.type === 'return_sale' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        <span dir="ltr" className={`font-mono font-bold ${row.type === 'sale_return' ? 'text-rose-600' : 'text-emerald-600'}`}>
                             {formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}
                         </span>
                         {showBaseLine && (

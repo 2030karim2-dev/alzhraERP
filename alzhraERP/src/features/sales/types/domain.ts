@@ -66,7 +66,7 @@ export interface SalesInvoice {
     readonly createdAt: Date;
 }
 
-export type InvoiceType = 'sale' | 'sale_return' | 'purchase' | 'return_purchase';
+export type InvoiceType = 'sale' | 'sale_return' | 'purchase' | 'purchase_return';
 export type InvoiceStatus = 'draft' | 'posted' | 'paid' | 'void';
 export type PaymentMethod = 'cash' | 'credit' | 'bank';
 

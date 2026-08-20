@@ -75,6 +75,16 @@ export const parseError = (error: unknown): AppError => {
         severity: 'medium'
       };
     default: {
+      // رسائل استثناءات دوالنا الداخلية (RAISE EXCEPTION '...') عربية وصريحة
+      // ومقصودة للمستخدم — مرّرها كما هي بدلاً من رسالة عامة مبهمة
+      // (مثال: 'لا يوجد مستودع للفرع' أو 'حساب الدائنين (2100) مفقود').
+      if (/[\u0600-\u06FF]/.test(rawMessage)) {
+        return {
+          code,
+          message: rawMessage,
+          severity: 'medium'
+        };
+      }
       // Log the actual error for debugging but don't expose internals to users
       if (import.meta.env.DEV) {
         console.error('[ErrorUtils] Unhandled error:', code, rawMessage);

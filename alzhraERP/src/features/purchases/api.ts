@@ -39,6 +39,7 @@ interface PurchaseReturnRpcParams {
   p_currency: string;
   p_exchange_rate: number;
   p_notes: string;
+  p_return_reason?: string;
   p_branch_id?: string;
 }
 
@@ -47,7 +48,13 @@ const requireText = (value: string | null | undefined, field: string): string =>
   if (!hasText(value)) throw new Error(`${field} is required`);
   return value;
 };
-const asError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error));
+const asError = (error: unknown): Error => {
+  if (error instanceof Error) return error;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return new Error(String((error as { message?: unknown }).message));
+  }
+  return new Error(String(error));
+};
 const warehousePayload = (warehouseId: string | null | undefined): Pick<PurchaseItemPayload, 'warehouse_id'> => hasText(warehouseId) ? { warehouse_id: warehouseId } : {};
 
 const itemPayload = (item: PurchaseItem): PurchaseItemPayload => {
@@ -90,6 +97,7 @@ const buildReturnParams = (companyId: string, userId: string, data: CreatePurcha
   p_currency: data.currency ?? 'SAR',
   p_exchange_rate: data.exchangeRate ?? 1,
   p_notes: data.notes ?? '',
+  ...(hasText(data.returnReason) ? { p_return_reason: data.returnReason } : {}),
   ...(hasText(data.branchId) ? { p_branch_id: data.branchId } : {}),
 });
 
@@ -98,7 +106,7 @@ export const purchasesApi = {
     let query = supabase.from('invoices').select(`
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(name), invoice_items(id, cost_price)
-    `).eq('company_id', companyId).in('type', ['purchase', 'return_purchase']).is('deleted_at', null);
+    `).eq('company_id', companyId).in('type', ['purchase', 'purchase_return']).is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     return query.order('issue_date', { ascending: false });
   },

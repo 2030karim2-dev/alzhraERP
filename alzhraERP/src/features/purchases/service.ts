@@ -67,7 +67,7 @@ const asPurchaseStats = (value: unknown): PurchaseStatsPayload => {
 };
 
 const isPurchaseReturn = (purchase: PurchaseListRow): boolean =>
-  purchase.type === 'return_purchase';
+  purchase.type === 'purchase_return';
 
 /** Converts a purchase amount to base currency without throwing on bad rates. */
 const safeToBase = (purchase: PurchaseListRow): number => {

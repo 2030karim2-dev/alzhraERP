@@ -3565,6 +3565,7 @@ export type Database = {
           amount: number
           branch_id: string | null
           company_id: string
+          counterparty_account_id: string | null
           created_at: string
           created_by: string | null
           currency_code: string
@@ -3588,6 +3589,7 @@ export type Database = {
           amount: number
           branch_id?: string | null
           company_id: string
+          counterparty_account_id?: string | null
           created_at?: string
           created_by?: string | null
           currency_code?: string
@@ -3611,6 +3613,7 @@ export type Database = {
           amount?: number
           branch_id?: string | null
           company_id?: string
+          counterparty_account_id?: string | null
           created_at?: string
           created_by?: string | null
           currency_code?: string
@@ -10281,6 +10284,7 @@ export type Database = {
           p_exchange_rate: number
           p_items: Json
           p_notes: string
+          p_return_reason?: string
           p_supplier_id: string
           p_user_id: string
         }
@@ -11173,7 +11177,7 @@ export type Database = {
         }[]
       }
       report_balance_sheet: {
-        Args: { p_as_of_date?: string; p_company_id: string }
+        Args: { p_as_of_date?: string; p_branch_id?: string; p_company_id: string }
         Returns: {
           amount: number
           category: string
@@ -11181,7 +11185,7 @@ export type Database = {
         }[]
       }
       report_cash_flow: {
-        Args: { p_company_id: string; p_from: string; p_to: string }
+        Args: { p_branch_id?: string; p_company_id: string; p_from: string; p_to: string }
         Returns: {
           category: string
           inflow: number
@@ -11201,11 +11205,24 @@ export type Database = {
       }
       report_debts: { Args: { p_company_id: string }; Returns: Json }
       report_profit_loss: {
-        Args: { p_company_id: string; p_from: string; p_to: string }
+        Args: { p_branch_id?: string; p_company_id: string; p_from: string; p_to: string }
         Returns: {
           amount: number
           category: string
           type: string
+        }[]
+      }
+      report_account_balances: {
+        Args: {
+          p_as_of_date?: string
+          p_branch_id?: string
+          p_company_id: string
+        }
+        Returns: {
+          account_id: string
+          balance: number
+          total_credit: number
+          total_debit: number
         }[]
       }
       report_trial_balance: {

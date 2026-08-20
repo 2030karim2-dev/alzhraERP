@@ -72,7 +72,7 @@ export const invoiceItemSchema = z.object({
 // Invoice schema
 export const invoiceSchema = z.object({
     party_id: uuidSchema.optional(),
-    type: z.enum(['sale', 'purchase', 'return_sale', 'return_purchase']),
+    type: z.enum(['sale', 'purchase', 'sale_return', 'purchase_return']),
     payment_method: z.enum(['cash', 'card', 'transfer', 'credit']),
     currency: z.string().length(3).default('SAR'),
     items: z.array(invoiceItemSchema).min(1, 'صنف واحد على الأقل'),

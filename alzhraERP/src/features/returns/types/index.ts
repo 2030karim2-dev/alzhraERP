@@ -12,7 +12,7 @@ export interface ReturnItem {
 export interface ReturnInvoice {
     id: string;
     invoiceNumber: string;
-    type: 'return_sale' | 'return_purchase';
+    type: 'sale_return' | 'purchase_return';
     referenceInvoiceId?: string;
     issueDate: string;
     partyId?: string;
@@ -37,7 +37,7 @@ export interface InvoiceItem {
 export interface Invoice {
     id: string;
     invoice_number: string;
-    type: 'sale' | 'purchase' | 'return_sale' | 'return_purchase';
+    type: 'sale' | 'purchase' | 'sale_return' | 'purchase_return';
     issue_date: string;
     party?: {
         id: string;

@@ -118,10 +118,10 @@ describe('returnHelpers', () => {
     describe('toReturnPayloadItems', () => {
         it('يحوّل أصناف camelCase إلى snake_case مع حساب line_total', () => {
             const payload = toReturnPayloadItems([
-                { productId: 'product-1', quantity: 3, unitPrice: 100, costPrice: 60 },
+                { productId: 'product-1', name: 'منتج واحد', quantity: 3, unitPrice: 100, costPrice: 60 },
             ]);
             expect(payload).toEqual([
-                { product_id: 'product-1', quantity: 3, unit_price: 100, cost_price: 60, line_total: 300 },
+                { product_id: 'product-1', name: 'منتج واحد', quantity: 3, unit_price: 100, cost_price: 60, line_total: 300 },
             ]);
         });
 
@@ -131,6 +131,7 @@ describe('returnHelpers', () => {
             ]);
             expect(payload[0]).toEqual({
                 product_id: 'product-2',
+                name: 'product-2',
                 quantity: 2,
                 unit_price: 50,
                 cost_price: 0,
@@ -144,6 +145,7 @@ describe('returnHelpers', () => {
             ]);
             expect(payload[0]).toEqual({
                 product_id: 'product-3',
+                name: 'product-3',
                 quantity: 7,
                 unit_price: 10,
                 cost_price: 0,

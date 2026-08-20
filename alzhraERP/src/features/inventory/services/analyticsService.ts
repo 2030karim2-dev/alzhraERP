@@ -175,7 +175,7 @@ export const analyticsService = {
 
             // Handle Returns (negative qty/rev)
             const invoices = item.invoices as { type?: string; issue_date?: string } | undefined;
-            const multiplier = invoices?.type === 'return_sale' ? -1 : 1;
+            const multiplier = invoices?.type === 'sale_return' ? -1 : 1;
             const adjustedQty = qty * multiplier;
             const adjustedRev = rev * multiplier;
             const adjustedCost = cost * multiplier;

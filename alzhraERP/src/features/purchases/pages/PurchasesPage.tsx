@@ -92,7 +92,7 @@ const PurchasesPage: React.FC = () => {
     setActiveTab('create');
   }, [bulkLoadItems, setActiveTab, setMetadata, setSupplier]);
   const filteredData = useMemo(() => allPurchases.filter(item => {
-    if (activeTab === 'returns' && item.type !== 'return_purchase') return false;
+    if (activeTab === 'returns' && item.type !== 'purchase_return') return false;
     if (activeTab === 'list' && item.type !== 'purchase') return false;
     if (searchTerm === '') return true;
     const term = searchTerm.toLowerCase();

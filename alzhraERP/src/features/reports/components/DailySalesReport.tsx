@@ -51,7 +51,7 @@ const useDailySalesReport = (days: number = 30) => {
                 const rate = Number(inv.exchange_rate || 1);
                 const convertedAmount = amount * rate;
 
-                if (inv.type === 'return_sale') {
+                if (inv.type === 'sale_return') {
                     dailyMap[date].total -= convertedAmount;
                     // Usually returns don't count as positive invoice count, or we could handle them differently
                 } else {
@@ -77,7 +77,7 @@ const useDailySalesReport = (days: number = 30) => {
                 invoices: (invoices || []).map((inv: DailyInvoice) => ({
                     ...inv,
                     // Store converted amount for individual invoice display if needed
-                    converted_amount: Number(inv.total_amount || 0) * Number(inv.exchange_rate || 1) * (inv.type === 'return_sale' ? -1 : 1)
+                    converted_amount: Number(inv.total_amount || 0) * Number(inv.exchange_rate || 1) * (inv.type === 'sale_return' ? -1 : 1)
                 })),
                 dailyData,
                 totalSales,

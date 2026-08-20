@@ -56,10 +56,10 @@ const InvoiceActionButtons: React.FC<InvoiceActionButtonsProps> = ({
       <button
         onClick={onToggleReturn}
         className="flex-1 py-3 text-sm font-bold bg-rose-600 hover:bg-rose-500 text-white rounded-lg uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-colors"
-        disabled={invoice.type === 'return_sale'}
+        disabled={invoice.type === 'sale_return'}
       >
         <RotateCcw size={18} />
-        {invoice.type === 'return_sale' ? 'مرتجع' : 'إرجاع'}
+        {invoice.type === 'sale_return' ? 'مرتجع' : 'إرجاع'}
       </button>
     </div>
   );

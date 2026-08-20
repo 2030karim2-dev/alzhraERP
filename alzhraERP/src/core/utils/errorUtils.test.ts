@@ -40,4 +40,15 @@ describe('parseError', () => {
         const result = parseError('something broke');
         expect(result.message).toBe('حدث خطأ غير متوقع، يرجى المحاولة لاحقاً.');
     });
+
+    it('should pass through Arabic messages raised by our own RPCs', () => {
+        const result = parseError({ code: '23514', message: 'Cannot add lines to a posted journal entry' });
+        // English technical internals stay masked
+        expect(result.message).toBe('حدث خطأ غير متوقع، يرجى المحاولة لاحقاً.');
+
+        const arabic = parseError({ code: 'P0001', message: 'لا يوجد مستودع للفرع' });
+        // Our own Arabic RAISE EXCEPTION messages reach the user as-is
+        expect(arabic.message).toBe('لا يوجد مستودع للفرع');
+        expect(arabic.code).toBe('P0001');
+    });
 });
