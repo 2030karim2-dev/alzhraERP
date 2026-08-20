@@ -152,12 +152,20 @@ export type Database = {
       }
       ai_request_log: {
         Row: {
+          created_at: string
           id: string
           user_id: string
-          created_at: string
         }
-        Insert: Record<string, never>
-        Update: Record<string, never>
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
         Relationships: []
       }
       ai_usage_logs: {
@@ -1749,7 +1757,6 @@ export type Database = {
           },
         ]
       }
-
       fin_account_balances: {
         Row: {
           account_id: string
@@ -1993,6 +2000,1434 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_adjustments: {
+        Row: {
+          adjustment_type: string
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          calculation_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          original_calculation_id: string | null
+          reason: string
+          status: string
+        }
+        Insert: {
+          adjustment_type: string
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          original_calculation_id?: string | null
+          reason: string
+          status?: string
+        }
+        Update: {
+          adjustment_type?: string
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          original_calculation_id?: string | null
+          reason?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adjustments_calc_company_fk"
+            columns: ["company_id", "calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["company_id", "id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_adjustments_original_calculation_id_fkey"
+            columns: ["original_calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_assignments: {
+        Row: {
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          plan_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_assignments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_calculation_lines: {
+        Row: {
+          base_amount: number
+          calculated_amount: number
+          calculation_id: string
+          company_id: string
+          created_at: string
+          currency_code: string
+          description: string | null
+          id: string
+          invoice_id: string | null
+          invoice_line_id: string | null
+          rate: number | null
+          rule_id: string | null
+          source_id: string | null
+          source_type: string
+          tier_id: string | null
+        }
+        Insert: {
+          base_amount: number
+          calculated_amount: number
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          currency_code: string
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_line_id?: string | null
+          rate?: number | null
+          rule_id?: string | null
+          source_id?: string | null
+          source_type: string
+          tier_id?: string | null
+        }
+        Update: {
+          base_amount?: number
+          calculated_amount?: number
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          currency_code?: string
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_line_id?: string | null
+          rate?: number | null
+          rule_id?: string | null
+          source_id?: string | null
+          source_type?: string
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calc_lines_calc_company_fk"
+            columns: ["company_id", "calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["company_id", "id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "active_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_invoice_line_id_fkey"
+            columns: ["invoice_line_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculation_lines_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_calculations: {
+        Row: {
+          adjustment_amount: number
+          approved_at: string | null
+          approved_by: string | null
+          base_commission: number
+          bonus_amount: number
+          calculated_at: string | null
+          calculated_by: string | null
+          collected_amount: number
+          collection_note: string | null
+          company_id: string
+          currency_code: string
+          customer_count: number
+          deduction_amount: number
+          gross_profit: number
+          gross_sales: number
+          id: string
+          invoice_count: number
+          net_sales: number
+          paid_at: string | null
+          period_id: string
+          plan_id: string
+          status: string
+          target_achievement_pct: number | null
+          target_value: number | null
+          total_commission: number
+          user_id: string
+        }
+        Insert: {
+          adjustment_amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          base_commission?: number
+          bonus_amount?: number
+          calculated_at?: string | null
+          calculated_by?: string | null
+          collected_amount?: number
+          collection_note?: string | null
+          company_id: string
+          currency_code: string
+          customer_count?: number
+          deduction_amount?: number
+          gross_profit?: number
+          gross_sales?: number
+          id?: string
+          invoice_count?: number
+          net_sales?: number
+          paid_at?: string | null
+          period_id: string
+          plan_id: string
+          status?: string
+          target_achievement_pct?: number | null
+          target_value?: number | null
+          total_commission?: number
+          user_id: string
+        }
+        Update: {
+          adjustment_amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          base_commission?: number
+          bonus_amount?: number
+          calculated_at?: string | null
+          calculated_by?: string | null
+          collected_amount?: number
+          collection_note?: string | null
+          company_id?: string
+          currency_code?: string
+          customer_count?: number
+          deduction_amount?: number
+          gross_profit?: number
+          gross_sales?: number
+          id?: string
+          invoice_count?: number
+          net_sales?: number
+          paid_at?: string | null
+          period_id?: string
+          plan_id?: string
+          status?: string
+          target_achievement_pct?: number | null
+          target_value?: number | null
+          total_commission?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calcs_period_company_fk"
+            columns: ["company_id", "period_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_periods"
+            referencedColumns: ["company_id", "id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_calculated_by_fkey"
+            columns: ["calculated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_calculated_by_fkey"
+            columns: ["calculated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_calculations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_engineer_links: {
+        Row: {
+          allocation_pct: number
+          allocation_status: string
+          assigned_at: string
+          assigned_by: string
+          assignment_type: string
+          company_id: string
+          created_at: string
+          id: string
+          invoice_id: string
+          reason: string | null
+          source: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allocation_pct: number
+          allocation_status?: string
+          assigned_at?: string
+          assigned_by: string
+          assignment_type?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          reason?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allocation_pct?: number
+          allocation_status?: string
+          assigned_at?: string
+          assigned_by?: string
+          assignment_type?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          reason?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_engineer_links_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "active_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_engineer_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "links_invoice_company_fk"
+            columns: ["company_id", "invoice_id"]
+            isOneToOne: false
+            referencedRelation: "active_invoices"
+            referencedColumns: ["company_id", "id"]
+          },
+          {
+            foreignKeyName: "links_invoice_company_fk"
+            columns: ["company_id", "invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["company_id", "id"]
+          },
+        ]
+      }
+      incentive_payments: {
+        Row: {
+          account_id: string | null
+          accounting_transaction_id: string | null
+          amount: number
+          calculation_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          currency_code: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          reference: string | null
+          reference_type: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          accounting_transaction_id?: string | null
+          amount: number
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          currency_code: string
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method: string
+          reference?: string | null
+          reference_type?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          accounting_transaction_id?: string | null
+          amount?: number
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          reference?: string | null
+          reference_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "active_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_calc_company_fk"
+            columns: ["company_id", "calculation_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_calculations"
+            referencedColumns: ["company_id", "id"]
+          },
+        ]
+      }
+      incentive_pending_invoices: {
+        Row: {
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          detected_at: string
+          id: string
+          invoice_id: string
+          reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          detected_at?: string
+          id?: string
+          invoice_id: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          detected_at?: string
+          id?: string
+          invoice_id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_pending_invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "active_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_pending_invoices_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_invoice_company_fk"
+            columns: ["company_id", "invoice_id"]
+            isOneToOne: true
+            referencedRelation: "active_invoices"
+            referencedColumns: ["company_id", "id"]
+          },
+          {
+            foreignKeyName: "pending_invoice_company_fk"
+            columns: ["company_id", "invoice_id"]
+            isOneToOne: true
+            referencedRelation: "invoices"
+            referencedColumns: ["company_id", "id"]
+          },
+        ]
+      }
+      incentive_periods: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          calculated_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          fiscal_year_id: string | null
+          id: string
+          is_test_period: boolean
+          locked_at: string | null
+          locked_by: string | null
+          paid_at: string | null
+          paid_by: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          calculated_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency_code: string
+          fiscal_year_id?: string | null
+          id?: string
+          is_test_period?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          calculated_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          fiscal_year_id?: string | null
+          id?: string
+          is_test_period?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_periods_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_periods_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_periods_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_plans: {
+        Row: {
+          calculation_basis: string
+          collection_mode: string
+          company_id: string
+          created_at: string
+          created_by: string
+          currency_code: string
+          deleted_at: string | null
+          description: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          name: string
+          status: string
+          tier_currency_code: string | null
+          tier_method: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          calculation_basis: string
+          collection_mode?: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          currency_code: string
+          deleted_at?: string | null
+          description?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          name: string
+          status?: string
+          tier_currency_code?: string | null
+          tier_method?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          calculation_basis?: string
+          collection_mode?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          deleted_at?: string | null
+          description?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          name?: string
+          status?: string
+          tier_currency_code?: string | null
+          tier_method?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_plans_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_plans_tier_currency_code_fkey"
+            columns: ["tier_currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_plans_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_plans_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_rules: {
+        Row: {
+          calculation_method: string
+          company_id: string
+          conditions: Json | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          fixed_amount: number | null
+          id: string
+          is_active: boolean
+          name: string
+          plan_id: string
+          priority: number
+          rate: number | null
+          rule_type: string
+          threshold_max: number | null
+          threshold_min: number | null
+          tier_currency_code: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          calculation_method: string
+          company_id: string
+          conditions?: Json | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          fixed_amount?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          plan_id: string
+          priority?: number
+          rate?: number | null
+          rule_type: string
+          threshold_max?: number | null
+          threshold_min?: number | null
+          tier_currency_code?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          calculation_method?: string
+          company_id?: string
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          fixed_amount?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          plan_id?: string
+          priority?: number
+          rate?: number | null
+          rule_type?: string
+          threshold_max?: number | null
+          threshold_min?: number | null
+          tier_currency_code?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_rules_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_rules_tier_currency_code_fkey"
+            columns: ["tier_currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_rules_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_rules_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_targets: {
+        Row: {
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          id: string
+          period_end: string
+          period_start: string
+          period_type: string
+          status: string
+          target_owner_id: string
+          target_owner_type: string
+          target_scope: string
+          target_type: string
+          target_value: number
+          updated_at: string
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency_code: string
+          id?: string
+          period_end: string
+          period_start: string
+          period_type?: string
+          status?: string
+          target_owner_id: string
+          target_owner_type: string
+          target_scope: string
+          target_type: string
+          target_value: number
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          status?: string
+          target_owner_id?: string
+          target_owner_type?: string
+          target_scope?: string
+          target_type?: string
+          target_value?: number
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_targets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "incentive_targets_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_tiers: {
+        Row: {
+          company_id: string
+          created_at: string
+          fixed_bonus: number | null
+          from_amount: number
+          id: string
+          plan_id: string
+          rate: number | null
+          rule_id: string | null
+          tier_currency_code: string
+          tier_order: number
+          to_amount: number | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          fixed_bonus?: number | null
+          from_amount: number
+          id?: string
+          plan_id: string
+          rate?: number | null
+          rule_id?: string | null
+          tier_currency_code: string
+          tier_order: number
+          to_amount?: number | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          fixed_bonus?: number | null
+          from_amount?: number
+          id?: string
+          plan_id?: string
+          rate?: number | null
+          rule_id?: string | null
+          tier_currency_code?: string
+          tier_order?: number
+          to_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_tiers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_tiers_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_tiers_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_tiers_tier_currency_code_fkey"
+            columns: ["tier_currency_code"]
+            isOneToOne: false
+            referencedRelation: "supported_currencies"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -2622,11 +4057,13 @@ export type Database = {
           exchange_rate: number
           fiscal_year_id: string | null
           id: string
+          idempotency_key: string | null
           invoice_number: string | null
           issue_date: string
           notes: string | null
           paid_amount: number
           party_id: string | null
+          payment_account_id: string | null
           payment_method: string | null
           reference_invoice_id: string | null
           return_reason: string | null
@@ -2650,11 +4087,13 @@ export type Database = {
           exchange_rate?: number
           fiscal_year_id?: string | null
           id?: string
+          idempotency_key?: string | null
           invoice_number?: string | null
           issue_date?: string
           notes?: string | null
           paid_amount?: number
           party_id?: string | null
+          payment_account_id?: string | null
           payment_method?: string | null
           reference_invoice_id?: string | null
           return_reason?: string | null
@@ -2678,11 +4117,13 @@ export type Database = {
           exchange_rate?: number
           fiscal_year_id?: string | null
           id?: string
+          idempotency_key?: string | null
           invoice_number?: string | null
           issue_date?: string
           notes?: string | null
           paid_amount?: number
           party_id?: string | null
+          payment_account_id?: string | null
           payment_method?: string | null
           reference_invoice_id?: string | null
           return_reason?: string | null
@@ -2743,6 +4184,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "party_balances"
             referencedColumns: ["party_id"]
+          },
+          {
+            foreignKeyName: "invoices_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "active_accounts"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "invoices_reference_invoice_id_fkey"
@@ -3659,6 +5114,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_counterparty_account_id_fkey"
+            columns: ["counterparty_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_counterparty_account_id_fkey"
+            columns: ["counterparty_account_id"]
+            isOneToOne: false
+            referencedRelation: "active_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -8485,34 +9954,34 @@ export type Database = {
       vin_analyses: {
         Row: {
           company_id: string
-          created_at: string
+          created_at: string | null
           created_by: string | null
           decoded: Json | null
           id: string
           source: string
-          updated_at: string
+          updated_at: string | null
           vehicle_id: string | null
           vin: string
         }
         Insert: {
           company_id: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           decoded?: Json | null
           id?: string
           source?: string
-          updated_at?: string
+          updated_at?: string | null
           vehicle_id?: string | null
           vin: string
         }
         Update: {
           company_id?: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           decoded?: Json | null
           id?: string
           source?: string
-          updated_at?: string
+          updated_at?: string | null
           vehicle_id?: string | null
           vin?: string
         }
@@ -8589,140 +10058,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      },
-      incentive_adjustments: {
-        Row: {
-          id: string; calculation_id: string; company_id: string; adjustment_type: string
-          amount: number; reason: string; original_calculation_id: string | null
-          status: string; created_by: string; approved_by: string | null
-          created_at: string; approved_at: string | null
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_assignments: {
-        Row: {
-          id: string; company_id: string; user_id: string; plan_id: string
-          branch_id: string | null; status: string; effective_from: string; effective_to: string | null
-          created_by: string | null; updated_by: string | null
-          created_at: string; updated_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_calculation_lines: {
-        Row: {
-          id: string; calculation_id: string; company_id: string; source_type: string
-          source_id: string | null; invoice_id: string | null; invoice_line_id: string | null
-          rule_id: string | null; tier_id: string | null; description: string | null
-          base_amount: number; rate: number | null; calculated_amount: number; currency_code: string
-          created_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_engineer_links: {
-        Row: {
-          id: string; invoice_id: string; company_id: string; user_id: string
-          allocation_pct: number; assignment_type: string; source: string | null; reason: string | null
-          assigned_by: string; assigned_at: string; status: string; allocation_status: string
-          created_at: string; updated_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_payments: {
-        Row: {
-          id: string; calculation_id: string; company_id: string; user_id: string
-          amount: number; payment_date: string; payment_method: string; reference: string | null
-          account_id: string | null; accounting_transaction_id: string | null
-          reference_type: string | null; notes: string | null; currency_code: string
-          created_by: string; created_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_targets: {
-        Row: {
-          id: string; company_id: string; target_scope: string; target_owner_type: string
-          target_owner_id: string; user_id: string | null; branch_id: string | null
-          target_type: string; period_type: string; period_start: string; period_end: string
-          target_value: number; currency_code: string; status: string
-          created_by: string | null; updated_by: string | null
-          created_at: string; updated_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_periods: {
-        Row: {
-          id: string; company_id: string; branch_id: string | null; period_label: string
-          period_start: string; period_end: string; state: string; is_test_period: boolean
-          currency_code: string; calculated_at: string | null
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_calculations: {
-        Row: {
-          id: string; company_id: string; period_id: string; user_id: string
-          gross_sales: number; net_sales: number; collected_amount: number; invoice_count: number
-          customer_count: number; base_commission: number; bonus_amount: number
-          adjustment_amount: number; deduction_amount: number; total_commission: number
-          currency_code: string; status: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_pending_invoices: {
-        Row: {
-          id: string; company_id: string; invoice_id: string; branch_id: string | null
-          status: string; detected_at: string; reason: string | null
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_plans: {
-        Row: {
-          id: string; company_id: string; name: string; description: string | null
-          calculation_basis: string; currency_code: string; status: string
-          effective_from: string | null; effective_to: string | null
-          collection_mode: string; tier_method: string; tier_currency_code: string | null
-          deleted_at: string | null; created_at: string; updated_at: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_rules: {
-        Row: {
-          id: string; company_id: string; plan_id: string; name: string; rule_type: string
-          calculation_method: string; threshold_min: number | null; threshold_max: number | null
-          rate: number | null; fixed_amount: number | null; priority: number
-          conditions: Json | null; is_active: boolean; deleted_at: string | null
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      incentive_tiers: {
-        Row: {
-          id: string; company_id: string; plan_id: string; rule_id: string | null
-          from_amount: number; to_amount: number | null; rate: number | null
-          fixed_bonus: number | null; tier_order: number; tier_currency_code: string
-        }
-        Insert: Record<string, never>
-        Update: Record<string, never>
-        Relationships: []
       }
     }
     Views: {
@@ -9753,7 +11088,7 @@ export type Database = {
     }
     Functions: {
       add_vin_parts_to_inventory: {
-        Args: { p_company_id: string; p_vehicle: Json; p_parts: Json }
+        Args: { p_company_id: string; p_parts: Json; p_vehicle: Json }
         Returns: number
       }
       admin_recalculate_all_stock: {
@@ -10263,10 +11598,10 @@ export type Database = {
           p_branch_id?: string
           p_company_id: string
           p_currency?: string
+          p_due_date?: string
           p_exchange_rate?: number
           p_invoice_number?: string
           p_issue_date?: string
-          p_due_date?: string
           p_items: Json
           p_notes?: string
           p_payment_account_id?: string
@@ -10305,27 +11640,6 @@ export type Database = {
         }
         Returns: Json
       }
-      commit_sales_invoice:
-        | {
-            Args: { p_company_id: string; p_data: Json; p_user_id: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_branch_id?: string
-              p_company_id: string
-              p_currency?: string
-              p_discount_amount?: number
-              p_exchange_rate?: number
-              p_items: Json
-              p_notes?: string
-              p_party_id: string
-              p_payment_method?: string
-              p_treasury_account_id?: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
       commit_sales_invoice_v2: {
         Args: {
           p_branch_id?: string
@@ -10434,20 +11748,10 @@ export type Database = {
         }
         Returns: string
       }
-      finalize_audit_session:
-        | {
-            Args: { p_items: Json; p_session_id: string; p_user_id: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_company_id: string
-              p_items: Json
-              p_session_id: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      finalize_audit_session: {
+        Args: { p_items: Json; p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
       fn_accounting_health_check: {
         Args: never
         Returns: {
@@ -10463,6 +11767,10 @@ export type Database = {
       }
       fn_get_account_id: {
         Args: { p_code: string; p_company_id: string }
+        Returns: string
+      }
+      fn_get_default_cash_account: {
+        Args: { p_company_id: string; p_currency?: string }
         Returns: string
       }
       fn_post_inventory_movement: {
@@ -10513,6 +11821,7 @@ export type Database = {
       get_account_ledger: {
         Args: {
           p_account_id: string
+          p_branch_id?: string
           p_company_id: string
           p_from?: string
           p_to?: string
@@ -10623,16 +11932,7 @@ export type Database = {
               p_date_from?: string
               p_date_to?: string
             }
-            Returns: {
-              invoice_count: number
-              payment_bonds: number
-              receipt_bonds: number
-              total_debts: number
-              total_expenses: number
-              total_purchases: number
-              total_sales: number
-              total_supplier_debts: number
-            }[]
+            Returns: Json
           }
       get_dashboard_totals: {
         Args: { p_branch_id?: string; p_company_id: string }
@@ -10737,22 +12037,7 @@ export type Database = {
           total_amount: number
         }[]
       }
-      get_expense_stats:
-        | { Args: { p_company_id: string }; Returns: Json }
-        | {
-            Args: {
-              p_branch_id?: string
-              p_company_id: string
-              p_end_date?: string
-              p_start_date?: string
-            }
-            Returns: {
-              avg_amount: number
-              by_category: Json
-              expense_count: number
-              total_amount: number
-            }[]
-          }
+      get_expense_stats: { Args: { p_company_id: string }; Returns: Json }
       get_inventory_valuation: { Args: { p_company_id: string }; Returns: Json }
       get_invoice_with_items: { Args: { p_invoice_id: string }; Returns: Json }
       get_item_movements_with_balance: {
@@ -10785,42 +12070,20 @@ export type Database = {
         Args: {
           p_company_id: string
           p_vehicle_make: string
-          p_vehicle_model?: string | null
-          p_year?: number | null
+          p_vehicle_model?: string
+          p_year?: number
         }
+        Returns: Json
+      }
+      get_monthly_performance: {
+        Args: { p_branch_id?: string; p_company_id: string; p_year: number }
         Returns: {
-          brand: string | null
-          compatibility_status: string
-          match_source: string
-          name_ar: string
-          part_number: string | null
-          product_id: string
-          sale_price: number
-          sku: string
-          status: string
+          expenses: number
+          month_index: number
+          month_name: string
+          revenues: number
         }[]
       }
-      get_monthly_performance:
-        | {
-            Args: { p_company_id: string; p_month?: number; p_year?: number }
-            Returns: {
-              invoice_count: number
-              month: number
-              net_profit: number
-              total_expenses: number
-              total_sales: number
-              year: number
-            }[]
-          }
-        | {
-            Args: { p_branch_id?: string; p_company_id: string; p_year: number }
-            Returns: {
-              expenses: number
-              month_index: number
-              month_name: string
-              revenues: number
-            }[]
-          }
       get_next_invoice_number: {
         Args: { p_company_id: string; p_type?: string }
         Returns: string
@@ -11014,20 +12277,7 @@ export type Database = {
           value: number
         }[]
       }
-      get_sales_stats:
-        | { Args: { p_company_id: string }; Returns: Json }
-        | {
-            Args: {
-              p_company_id: string
-              p_end_date?: string
-              p_start_date?: string
-            }
-            Returns: {
-              avg_sale: number
-              invoice_count: number
-              total_sales: number
-            }[]
-          }
+      get_sales_stats: { Args: { p_company_id: string }; Returns: Json }
       get_similar_products: {
         Args: { p_company_id: string; p_name: string }
         Returns: {
@@ -11074,7 +12324,9 @@ export type Database = {
         }[]
       }
       get_user_profile: { Args: { p_user_id?: string }; Returns: Json }
-      get_user_role: { Args: never; Returns: string }
+      get_user_role:
+        | { Args: never; Returns: string }
+        | { Args: { p_company_id: string }; Returns: string }
       get_vehicle_products: {
         Args: { p_company_id: string; v_id: string }
         Returns: {
@@ -11099,7 +12351,201 @@ export type Database = {
           totalStock: number
         }[]
       }
-      has_permission: { Args: { p_permission: string }; Returns: boolean }
+      has_permission:
+        | { Args: { p_permission: string }; Returns: boolean }
+        | {
+            Args: { p_company_id: string; p_permission: string }
+            Returns: boolean
+          }
+      incentive_actor: { Args: { p_company_id: string }; Returns: string }
+      incentive_apply_adjustment: {
+        Args: {
+          p_adjustment_type: string
+          p_amount: number
+          p_calculation_id: string
+          p_company_id: string
+          p_reason: string
+        }
+        Returns: string
+      }
+      incentive_approve_invoice_allocation: {
+        Args: { p_company_id: string; p_invoice_id: string }
+        Returns: undefined
+      }
+      incentive_assert_period_allows: {
+        Args: { p_action: string; p_period_id: string }
+        Returns: undefined
+      }
+      incentive_calculate_period: {
+        Args: { p_company_id: string; p_period_id: string }
+        Returns: number
+      }
+      incentive_check_allocation_complete: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
+      incentive_create_assignment: {
+        Args: {
+          p_branch_id?: string
+          p_company_id: string
+          p_effective_from: string
+          p_effective_to?: string
+          p_plan_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      incentive_create_engineer_link: {
+        Args: {
+          p_allocation_pct: number
+          p_assignment_type?: string
+          p_company_id: string
+          p_invoice_id: string
+          p_reason?: string
+          p_source?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      incentive_create_plan: {
+        Args: {
+          p_calculation_basis: string
+          p_collection_mode?: string
+          p_company_id: string
+          p_currency_code: string
+          p_description?: string
+          p_effective_from?: string
+          p_effective_to?: string
+          p_name: string
+          p_tier_currency_code?: string
+          p_tier_method?: string
+        }
+        Returns: string
+      }
+      incentive_create_rule: {
+        Args: {
+          p_calculation_method: string
+          p_company_id: string
+          p_conditions?: Json
+          p_fixed_amount?: number
+          p_name: string
+          p_plan_id: string
+          p_priority?: number
+          p_rate?: number
+          p_rule_type: string
+          p_threshold_max?: number
+          p_threshold_min?: number
+        }
+        Returns: string
+      }
+      incentive_create_target: {
+        Args: {
+          p_branch_id?: string
+          p_company_id: string
+          p_currency_code: string
+          p_period_end: string
+          p_period_start: string
+          p_period_type?: string
+          p_target_owner_id: string
+          p_target_owner_type: string
+          p_target_scope: string
+          p_target_type: string
+          p_target_value: number
+          p_user_id?: string
+        }
+        Returns: string
+      }
+      incentive_deactivate_assignment: {
+        Args: { p_assignment_id: string; p_company_id: string }
+        Returns: undefined
+      }
+      incentive_deactivate_target: {
+        Args: { p_company_id: string; p_target_id: string }
+        Returns: undefined
+      }
+      incentive_detect_pending_invoices: {
+        Args: { p_branch_id?: string; p_company_id: string }
+        Returns: number
+      }
+      incentive_detect_pending_invoices_system: { Args: never; Returns: number }
+      incentive_log_audit: {
+        Args: {
+          p_action: string
+          p_company_id: string
+          p_details?: Json
+          p_entity: string
+          p_entity_id?: string
+        }
+        Returns: undefined
+      }
+      incentive_mark_pending_resolved: {
+        Args: {
+          p_company_id: string
+          p_pending_id: string
+          p_reason?: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      incentive_open_period: {
+        Args: {
+          p_branch_id?: string
+          p_company_id: string
+          p_currency_code: string
+          p_is_test_period?: boolean
+          p_period_end: string
+          p_period_label: string
+          p_period_start: string
+        }
+        Returns: string
+      }
+      incentive_period_transition: {
+        Args: {
+          p_by_permission: string
+          p_company_id: string
+          p_new_state: string
+          p_period_id: string
+        }
+        Returns: undefined
+      }
+      incentive_record_payment: {
+        Args: {
+          p_amount: number
+          p_calculation_id: string
+          p_company_id: string
+          p_currency_code: string
+          p_notes?: string
+          p_payment_date: string
+          p_payment_method: string
+          p_reference?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      incentive_revoke_engineer_link: {
+        Args: { p_company_id: string; p_link_id: string }
+        Returns: undefined
+      }
+      incentive_update_plan: {
+        Args: {
+          p_calculation_basis?: string
+          p_company_id: string
+          p_description?: string
+          p_effective_to?: string
+          p_name?: string
+          p_plan_id: string
+          p_status?: string
+        }
+        Returns: undefined
+      }
+      incentive_void_calculation: {
+        Args: {
+          p_calculation_id: string
+          p_company_id: string
+          p_reason: string
+        }
+        Returns: undefined
+      }
       is_super_admin: { Args: never; Returns: boolean }
       is_valid_branch: {
         Args: { p_branch_id: string; p_company_id: string }
@@ -11176,8 +12622,25 @@ export type Database = {
           message_log_id: string
         }[]
       }
+      report_account_balances: {
+        Args: {
+          p_as_of_date?: string
+          p_branch_id?: string
+          p_company_id: string
+        }
+        Returns: {
+          account_id: string
+          balance: number
+          total_credit: number
+          total_debit: number
+        }[]
+      }
       report_balance_sheet: {
-        Args: { p_as_of_date?: string; p_branch_id?: string; p_company_id: string }
+        Args: {
+          p_as_of_date?: string
+          p_branch_id?: string
+          p_company_id: string
+        }
         Returns: {
           amount: number
           category: string
@@ -11185,7 +12648,12 @@ export type Database = {
         }[]
       }
       report_cash_flow: {
-        Args: { p_branch_id?: string; p_company_id: string; p_from: string; p_to: string }
+        Args: {
+          p_branch_id?: string
+          p_company_id: string
+          p_from: string
+          p_to: string
+        }
         Returns: {
           category: string
           inflow: number
@@ -11205,24 +12673,16 @@ export type Database = {
       }
       report_debts: { Args: { p_company_id: string }; Returns: Json }
       report_profit_loss: {
-        Args: { p_branch_id?: string; p_company_id: string; p_from: string; p_to: string }
+        Args: {
+          p_branch_id?: string
+          p_company_id: string
+          p_from: string
+          p_to: string
+        }
         Returns: {
           amount: number
           category: string
           type: string
-        }[]
-      }
-      report_account_balances: {
-        Args: {
-          p_as_of_date?: string
-          p_branch_id?: string
-          p_company_id: string
-        }
-        Returns: {
-          account_id: string
-          balance: number
-          total_credit: number
-          total_debit: number
         }[]
       }
       report_trial_balance: {
@@ -11366,12 +12826,16 @@ export type Database = {
         Returns: undefined
       }
       test_active_accounts: { Args: { p_company_id: string }; Returns: Json }
-      user_can_manage_debts: { Args: never; Returns: boolean }
+      user_can_manage_debts:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_company_id: string }; Returns: boolean }
       user_has_company_access: {
         Args: { p_company_id: string }
         Returns: boolean
       }
-      user_is_admin_or_manager: { Args: never; Returns: boolean }
+      user_is_admin_or_manager:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_company_id: string }; Returns: boolean }
       validate_data_integrity: {
         Args: { p_company_id: string }
         Returns: {
@@ -11388,16 +12852,6 @@ export type Database = {
       void_bond: { Args: { p_payment_id: string }; Returns: undefined }
       void_expense: { Args: { p_expense_id: string }; Returns: Json }
       void_invoice: { Args: { p_invoice_id: string }; Returns: Json }
-      incentive_calculate_period: { Args: { p_company_id: string; p_period_id: string }; Returns: number }
-      incentive_apply_adjustment: { Args: { p_company_id: string; p_calculation_id: string; p_adjustment_type: string; p_amount: number; p_reason: string }; Returns: string }
-      incentive_create_engineer_link: { Args: { p_invoice_id: string; p_company_id: string; p_user_id: string; p_allocation_pct: number; p_assignment_type?: string; p_reason?: string | null; p_source?: string | null }; Returns: string }
-      incentive_create_plan: { Args: { p_company_id: string; p_name: string; p_description?: string | null; p_calculation_basis: string; p_currency_code: string; p_collection_mode?: string; p_tier_method?: string; p_tier_currency_code?: string | null; p_effective_from?: string | null; p_effective_to?: string | null }; Returns: string }
-      incentive_create_rule: { Args: { p_company_id: string; p_plan_id: string; p_name: string; p_rule_type: string; p_calculation_method: string; p_threshold_min?: number | null; p_threshold_max?: number | null; p_rate?: number | null; p_fixed_amount?: number | null; p_priority?: number; p_conditions?: Json | null }; Returns: string }
-      incentive_create_target: { Args: { p_company_id: string; p_name: string; p_target_type: string; p_user_id: string; p_period_start: string; p_period_end: string; p_target_value: number; p_currency_code: string; p_branch_id?: string | null; p_plan_id?: string | null; p_notes?: string | null }; Returns: string }
-      incentive_detect_pending_invoices: { Args: { p_company_id: string; p_branch_id?: string | null }; Returns: number }
-      incentive_mark_pending_resolved: { Args: { p_pending_id: string; p_company_id: string; p_status: string; p_reason?: string | null }; Returns: undefined }
-      incentive_period_transition: { Args: { p_period_id: string; p_company_id: string; p_new_state: string; p_by_permission: string }; Returns: undefined }
-      incentive_update_plan: { Args: { p_plan_id: string; p_company_id: string; p_name?: string | null; p_description?: string | null; p_calculation_basis?: string | null; p_status?: string | null; p_effective_to?: string | null }; Returns: undefined }
     }
     Enums: {
       fin_account_type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"
