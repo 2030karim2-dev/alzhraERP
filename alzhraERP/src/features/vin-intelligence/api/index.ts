@@ -49,11 +49,11 @@ export const vinApi = {
     const { data, error } = await supabase.rpc('get_matching_inventory_products', {
       p_company_id: companyId,
       p_vehicle_make: make,
-      p_vehicle_model: model ?? null,
-      p_year: year ?? null,
+      ...(model != null ? { p_vehicle_model: model } : {}),
+      ...(year != null ? { p_year: year } : {}),
     });
     if (error) throw error;
-    return (data ?? []) as MatchingInventoryProduct[];
+    return (data ?? []) as unknown as MatchingInventoryProduct[];
   },
 
   /** Real parts lookup via megazip.net catalog (no AI) */

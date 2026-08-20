@@ -72,6 +72,7 @@ interface StatsGridProps {
     purchases?: number | string;
     expenses: number | string;
     debts: number | string;
+    supplierDebts?: number | string;
     invoices?: number | string;
     profit?: number | string;
     // Trend data
@@ -135,7 +136,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
       path: ROUTES.DASHBOARD.ACCOUNTING,
       subtitle: 'ذمم العملاء — مستحق التحصيل'
     },
-    ...(stats.supplierDebts !== undefined && stats.supplierDebts > 0 ? [{
+    ...(stats.supplierDebts !== undefined && Number(stats.supplierDebts) > 0 ? [{
       title: 'مستحقات الموردين',
       value: stats.supplierDebts,
       icon: ShoppingCart,

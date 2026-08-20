@@ -68,7 +68,7 @@ const FinancialPerformanceChart: React.FC = () => {
 
       {isMounted && (
         <ResponsiveContainer width="100%" height={288} minWidth={1} debounce={1} minHeight={1}>
-          <BarChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+          <BarChart data={data ?? []} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#10b981" stopOpacity={1} />

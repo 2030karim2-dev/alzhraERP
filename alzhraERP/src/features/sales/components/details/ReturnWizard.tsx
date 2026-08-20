@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { formatCurrency } from '../../../../core/utils';
-import type { Invoice, InvoiceItem } from '../../../../returns/types';
+import type { Invoice, InvoiceItem } from '../../../returns/types';
 
 interface Props {
   invoice: Invoice;
@@ -51,7 +51,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
       return;
     }
 
-    const invalidItems = itemsToReturn.filter((item: InvoiceItem) => {
+    const invalidItems = itemsToReturn.filter((item) => {
       const originalItem = invoice.invoice_items?.find((i: InvoiceItem) => i.id === item.id);
       return (item.returnQuantity || 0) > (originalItem?.quantity || 0);
     });
@@ -62,7 +62,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
       onAlert({ type: 'success', message: 'جاري إنشاء مرتجع...' });
     }
 
-    onReturn(invoice, itemsToReturn);
+    onReturn(invoice, itemsToReturn as unknown as InvoiceItem[]);
   };
 
   return (

@@ -282,7 +282,11 @@ export const dashboardApi = {
         // These aggregation RPCs always return exactly one row; the safeData
         // fallback (a plain object) takes the non-array branch.
         // Handle results and throw if critical errors exist
-        const rawSummary = safeData<SummaryRow | SummaryRow[]>(summaryRes, {}, 'get_dashboard_summary');
+        const rawSummary = safeData<SummaryRow | SummaryRow[]>(
+            summaryRes as unknown as PromiseSettledResult<{ data: SummaryRow | SummaryRow[] | null; error: { message?: string } | null }>,
+            {},
+            'get_dashboard_summary',
+        );
         const summary: SummaryRow = Array.isArray(rawSummary) ? rawSummary[0] : rawSummary;
 
         const salesChart = safeData(chartRes, [], 'get_sales_chart_data');

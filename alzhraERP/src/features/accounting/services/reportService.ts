@@ -113,7 +113,7 @@ export const reportService = {
             debit_amount: line.debit_amount ?? 0,
             credit_amount: line.credit_amount ?? 0,
             balance: line.balance ?? 0,
-            accountType,
+            ...(accountType ? { accountType } : {}),
             currency_code: line.currency_code ?? 'SAR',
             exchange_rate: line.exchange_rate ?? 1,
             foreign_amount: line.foreign_amount ?? 0,
@@ -133,7 +133,7 @@ export const reportService = {
                 debit_amount: 0,
                 credit_amount: 0,
                 balance: openingBalance,
-                accountType,
+                ...(accountType ? { accountType } : {}),
                 currency_code: 'SAR',
                 exchange_rate: 1,
                 foreign_amount: 0,
@@ -279,7 +279,7 @@ export const reportService = {
         const { data, error } = await supabase.rpc('get_monthly_performance', {
             p_company_id: companyId,
             p_year: year,
-            p_branch_id: branchId || null
+            ...(branchId ? { p_branch_id: branchId } : {}),
         });
         
         if (error) throw error;

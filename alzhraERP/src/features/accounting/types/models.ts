@@ -16,6 +16,7 @@ export interface Account {
   currency_code: string;
   is_system: boolean;
   parent_id?: string | null | undefined;
+  allow_posting?: boolean;
 }
 
 export interface JournalLine {

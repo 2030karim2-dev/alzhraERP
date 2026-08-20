@@ -115,7 +115,7 @@ export const vinService = {
   },
 
   async listAnalyses(companyId: string): Promise<VinAnalysisRecord[]> {
-    return vinApi.listVinAnalyses(companyId);
+    return vinApi.listVinAnalyses(companyId) as unknown as VinAnalysisRecord[];
   },
 
   async listLinkedProducts(vehicleId: string): Promise<VehicleProductLink[]> {

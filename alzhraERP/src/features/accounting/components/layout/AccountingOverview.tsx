@@ -38,7 +38,7 @@ const AccountingOverview: React.FC<AccountingOverviewProps> = ({ onNewJournal })
         
         {/* Sidebar Column */}
         <div className="lg:col-span-1 space-y-4">
-            <QuickActions onNewJournal={onNewJournal} />
+            <QuickActions {...(onNewJournal ? { onNewJournal } : {})} />
             <KeyAccountBalances />
         </div>
       </div>

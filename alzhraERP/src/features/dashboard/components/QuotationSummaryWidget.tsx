@@ -44,8 +44,8 @@ const QuotationSummaryWidget: React.FC = () => {
     // وقت المتصفح الذي كان يظهر وقتاً مضللاً في كل تحميل.
     const lastUpdated = React.useMemo(() => {
         const timestamps = [
-            ...((salesQuots?.data as Array<Record<string, unknown>>) || []),
-            ...((purchaseQuots?.data as Array<Record<string, unknown>>) || []),
+            ...((salesQuots?.data as unknown as Array<Record<string, unknown>>) || []),
+            ...((purchaseQuots?.data as unknown as Array<Record<string, unknown>>) || []),
         ]
             .map((q) => {
                 if (typeof q.updated_at === 'string' && q.updated_at) return q.updated_at;
