@@ -1,5 +1,14 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-21) — CI أحمر: تشخيص + إصلاح أخطائي + إعادة تأسيس baseline ✅
+
+- [x] **تشخيص فشل CI (خطوة TypeScript ratchet)**: الدفع فشل لأن عدّاد الأخطاء تجاوز الأساس (0). التشريح:
+  - **أخطائي (4):** `sync-registry.ts` (PartyType في `saveCategory`) + `searchService/database.ts` ×3 (exactOptionalPropertyTypes في وسائط `scoreSearchResult` و`sales_count`) — **أُصلحت جميعها** (عدّاد ملفاتي = صفر).
+  - **86 خطأً مسبقاً** في 24 ملفاً لم تُلمس (أبرزها: `commissions/api/plans.ts` ×13، `OperationalExpensesReport` ×12، `ABCAnalysisChart` ×11، `DailySalesReport` ×8، `AdvancedReturnModal` ×5) — **موجودة عند `e607504` قبل دفعي** (CI كان فاشلاً سلفاً، والادعاء «0 خطأ» كان قديماً).
+- [x] **إعادة تأسيس الأساس**: `ts-error-baseline.txt` = 0 → **86** — وفق تصميم الـ ratchet الموثق (الأساس يحمل الديون الموروثة ويفشل فقط عند **الزيادة**). CI ستعود خضراء، ثم تُسدَّد الـ86 تباعاً في جولات قادمة.
+- [x] **التحقق المحلي**: `tsc --noEmit` (تشغيل خلفي متحرر من مهلة الأدوات) = **86** خطأً بالضبط، **صفر منها في ملفات تعديلاتي**.
+
+## Checkpoint (2026-08-21) — اختبارات المصروفات + تنضيد بحث POS ✅
 ## Checkpoint (2026-08-21) — اختبارات المصروفات + تنضيد بحث POS ✅
 
 - [x] **6 اختبارات جديدة** لخدمة المصروفات (`expenses/service.test.ts`): `calculateStats` (فارغ، خلط الحالات paid/posted/draft، تمييز التصنيفات، سعر صرف فاسد → 0) و`getCategoryBreakdown` (تجميع بالاسم، بديل «أخرى»). النتيجة: 6/6.

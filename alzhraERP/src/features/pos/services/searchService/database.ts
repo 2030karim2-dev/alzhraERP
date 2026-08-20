@@ -148,17 +148,16 @@ export async function searchDatabase(
                 score: scoreSearchResult(
                     query,
                     {
-                        name_ar: row.name_ar ?? undefined,
-                        sku: row.sku ?? undefined,
-                        part_number: row.part_number ?? undefined,
-                        brand: row.brand ?? undefined,
-                        alternative_numbers: row.alternative_numbers ?? undefined,
+                        name_ar: row.name_ar || '',
+                        sku: row.sku || '',
+                        part_number: row.part_number || '',
+                        brand: row.brand || '',
+                        alternative_numbers: row.alternative_numbers || '',
                     },
                     salesInfo?.count,
                     salesInfo?.last_date,
                 ),
-                sales_count: salesInfo?.count,
-                last_sale_date: salesInfo?.last_date,
+                ...(salesInfo ? { sales_count: salesInfo.count, last_sale_date: salesInfo.last_date } : {}),
                 match_type: 'exact' as const,
             };
         });
@@ -229,11 +228,11 @@ export async function searchDatabaseFallback(
                 quantity: Number(s.quantity) || 0,
             })),
             score: scoreSearchResult(query, {
-                name_ar: row.name_ar ?? undefined,
-                sku: row.sku ?? undefined,
-                part_number: row.part_number ?? undefined,
-                brand: row.brand ?? undefined,
-                alternative_numbers: row.alternative_numbers ?? undefined,
+                name_ar: row.name_ar || '',
+                sku: row.sku || '',
+                part_number: row.part_number || '',
+                brand: row.brand || '',
+                alternative_numbers: row.alternative_numbers || '',
             }),
             match_type: 'exact' as const,
         };

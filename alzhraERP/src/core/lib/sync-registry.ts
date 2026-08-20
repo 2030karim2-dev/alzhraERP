@@ -5,6 +5,7 @@ import { purchasesService, purchasesApi } from '../../features/purchases/service
 import { accountsService } from '../../features/accounting/services/accountsService';
 import { inventoryApi } from '../../features/inventory/api';
 import { partiesService } from '../../features/parties/service';
+import type { PartyType } from '../../features/parties/types';
 
 /**
  * Resolver for background sync mutations.
@@ -65,7 +66,7 @@ export const processSyncMutation = async (
 
     if (feature === 'parties' && action === 'save_category') {
         const { company_id, name, type, id } = vars;
-        return partiesService.saveCategory(company_id as string, { name: name as string, type: type as string }, cast<Parameters<typeof partiesService.saveCategory>[2]>(id));
+        return partiesService.saveCategory(company_id as string, { name: name as string, type: type as PartyType }, cast<Parameters<typeof partiesService.saveCategory>[2]>(id));
     }
 
     // Sales Sync
