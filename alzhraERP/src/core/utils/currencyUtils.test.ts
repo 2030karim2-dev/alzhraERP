@@ -103,6 +103,24 @@ describe('currencyUtils', () => {
             expect(result).toBe(100);
         });
 
+        it('should throw CurrencyError for NaN amount even when rate is 1', () => {
+            const params: CurrencyConversionParams = {
+                amount: NaN,
+                currencyCode: 'SAR',
+                exchangeRate: 1,
+            };
+            expect(() => convertToBaseCurrency(params)).toThrow(CurrencyError);
+        });
+
+        it('should throw CurrencyError for Infinity amount even when rate is 1', () => {
+            const params: CurrencyConversionParams = {
+                amount: Infinity,
+                currencyCode: 'SAR',
+                exchangeRate: 1,
+            };
+            expect(() => convertToBaseCurrency(params)).toThrow(CurrencyError);
+        });
+
         it('should throw error for invalid exchange rate', () => {
             const params: CurrencyConversionParams = {
                 amount: 100,
@@ -161,6 +179,24 @@ describe('currencyUtils', () => {
             };
             const result = convertFromBaseCurrency(params);
             expect(result).toBe(100);
+        });
+
+        it('should throw CurrencyError for NaN amount even when rate is 1', () => {
+            const params: CurrencyConversionParams = {
+                amount: NaN,
+                currencyCode: 'SAR',
+                exchangeRate: 1,
+            };
+            expect(() => convertFromBaseCurrency(params)).toThrow(CurrencyError);
+        });
+
+        it('should throw CurrencyError for Infinity amount even when rate is 1', () => {
+            const params: CurrencyConversionParams = {
+                amount: Infinity,
+                currencyCode: 'SAR',
+                exchangeRate: 1,
+            };
+            expect(() => convertFromBaseCurrency(params)).toThrow(CurrencyError);
         });
 
         it('should throw error for invalid amount', () => {

@@ -17,7 +17,8 @@ export const POSSettings: React.FC = () => {
     };
 
     const handleSave = () => {
-        showToast(t.settings_saved || 'تم حفظ الإعدادات بنجاح', 'success');
+        // التحديثات تُخزَّن محلياً تلقائياً عبر zustand persist (على هذا الجهاز).
+        showToast(t.settings_saved_local || 'تم حفظ الإعدادات على هذا الجهاز', 'success');
     };
 
     const handleReset = () => {
@@ -76,7 +77,7 @@ export const POSSettings: React.FC = () => {
                         </label>
                         <select
                             value={pos.default_payment_method}
-                            onChange={(e) => handleUpdate({ default_payment_method: e.target.value as 'cash' | 'card' | 'mobile' })}
+                            onChange={(e) => { handleUpdate({ default_payment_method: e.target.value as 'cash' | 'card' | 'mobile' }); }}
                             className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                         >
                             <option value="cash">{t.cash || 'نقدي'}</option>
@@ -93,8 +94,8 @@ export const POSSettings: React.FC = () => {
                                 <input
                                     type="radio"
                                     name="auto_print"
-                                    checked={pos.auto_print_receipt === true}
-                                    onChange={() => handleUpdate({ auto_print_receipt: true })}
+                                    checked={pos.auto_print_receipt}
+                                    onChange={() => { handleUpdate({ auto_print_receipt: true }); }}
                                     className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <span className="text-sm text-slate-600 dark:text-slate-300">{t.yes || 'نعم'}</span>
@@ -103,8 +104,8 @@ export const POSSettings: React.FC = () => {
                                 <input
                                     type="radio"
                                     name="auto_print"
-                                    checked={pos.auto_print_receipt === false}
-                                    onChange={() => handleUpdate({ auto_print_receipt: false })}
+                                    checked={!pos.auto_print_receipt}
+                                    onChange={() => { handleUpdate({ auto_print_receipt: false }); }}
                                     className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <span className="text-sm text-slate-600 dark:text-slate-300">{t.no || 'لا'}</span>
@@ -129,7 +130,7 @@ export const POSSettings: React.FC = () => {
                         </label>
                         <select
                             value={pos.default_printer}
-                            onChange={(e) => handleUpdate({ default_printer: e.target.value })}
+                            onChange={(e) => { handleUpdate({ default_printer: e.target.value }); }}
                             className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                         >
                             <option value="thermal">{t.thermal_printer || 'طابعة حرارية'}</option>
@@ -146,7 +147,7 @@ export const POSSettings: React.FC = () => {
                             min={1}
                             max={3}
                             value={pos.receipt_copies}
-                            onChange={(e) => handleUpdate({ receipt_copies: parseInt(e.target.value) || 1 })}
+                            onChange={(e) => { handleUpdate({ receipt_copies: parseInt(e.target.value) || 1 }); }}
                             className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                         />
                     </div>
@@ -178,7 +179,7 @@ export const POSSettings: React.FC = () => {
                             <input
                                 type="checkbox"
                                 checked={pos.show_customer_screen}
-                                onChange={(e) => handleUpdate({ show_customer_screen: e.target.checked })}
+                                onChange={(e) => { handleUpdate({ show_customer_screen: e.target.checked }); }}
                                 className="sr-only peer"
                             />
                             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600"></div>
@@ -200,7 +201,7 @@ export const POSSettings: React.FC = () => {
                             <input
                                 type="checkbox"
                                 checked={pos.gift_receipt_option}
-                                onChange={(e) => handleUpdate({ gift_receipt_option: e.target.checked })}
+                                onChange={(e) => { handleUpdate({ gift_receipt_option: e.target.checked }); }}
                                 className="sr-only peer"
                             />
                             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600"></div>
@@ -223,7 +224,7 @@ export const POSSettings: React.FC = () => {
                             type="checkbox"
                             id="employee_discount_enabled"
                             checked={pos.employee_discount_enabled}
-                            onChange={(e) => handleUpdate({ employee_discount_enabled: e.target.checked })}
+                            onChange={(e) => { handleUpdate({ employee_discount_enabled: e.target.checked }); }}
                             className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                         />
                         <label htmlFor="employee_discount_enabled" className="text-sm text-slate-600 dark:text-slate-300">
@@ -240,7 +241,7 @@ export const POSSettings: React.FC = () => {
                                 min={0}
                                 max={100}
                                 value={pos.max_employee_discount_percent}
-                                onChange={(e) => handleUpdate({ max_employee_discount_percent: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => { handleUpdate({ max_employee_discount_percent: parseInt(e.target.value) || 0 }); }}
                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             />
                         </div>
@@ -266,7 +267,7 @@ export const POSSettings: React.FC = () => {
                             type="checkbox"
                             id="offline_mode_enabled"
                             checked={pos.offline_mode_enabled}
-                            onChange={(e) => handleUpdate({ offline_mode_enabled: e.target.checked })}
+                            onChange={(e) => { handleUpdate({ offline_mode_enabled: e.target.checked }); }}
                             className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                         />
                         <label htmlFor="offline_mode_enabled" className="text-sm text-slate-600 dark:text-slate-300">

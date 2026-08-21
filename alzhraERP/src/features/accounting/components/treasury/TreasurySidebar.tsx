@@ -7,6 +7,8 @@ import { cn } from '../../../../core/utils';
 import Button from '../../../../ui/base/Button';
 import AddAccountModal from '../accounts/AddAccountModal';
 import { AddTreasuryEntityModal } from './AddTreasuryEntityModal';
+import type { Account } from '../../types/models';
+import type { AccountFormData } from '../../types';
 
 
 interface Props {
@@ -14,9 +16,14 @@ interface Props {
     selectedAccountId: string | null;
 }
 
+/** عقدة شجرة الحسابات (بنية حساب + أبناء). */
+interface AccountNode extends Account {
+    children: AccountNode[];
+}
+
 // Recursive Sidebar Item Component
 const SidebarItem: React.FC<{
-    node: any;
+    node: AccountNode;
     depth?: number;
     onSelect: (id: string) => void;
     selectedId: string | null;
@@ -79,7 +86,7 @@ const SidebarItem: React.FC<{
 
             {hasChildren && isExpanded && (
                 <div className="border-r-2 border-gray-100 dark:border-slate-800 mr-4">
-                    {node.children.map((child: any) => (
+                    {node.children.map((child: AccountNode) => (
                         <SidebarItem
                             key={child.id}
                             node={child}
@@ -110,25 +117,25 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
             .sort((a, b) => a.code.localeCompare(b.code));
 
         // Build Map
-        const map = new Map<string, any>();
+        const map = new Map<string, AccountNode>();
         treasuryAccounts.forEach(acc => map.set(acc.id, { ...acc, children: [] }));
 
         // Build Tree
-        const roots: any[] = [];
+        const roots: AccountNode[] = [];
         treasuryAccounts.forEach(acc => {
             if (acc.parent_id && map.has(acc.parent_id)) {
-                map.get(acc.parent_id).children.push(map.get(acc.id));
+                map.get(acc.parent_id)!.children.push(map.get(acc.id)!);
             } else {
                 // If no parent_id OR parent_id exists but parent is not in our filtered map (e.g. 1000)
                 // Treat as Root
-                roots.push(map.get(acc.id));
+                roots.push(map.get(acc.id)!);
             }
         });
 
         // Calculate Totals Recursively
-        const calculateTotal = (node: any): number => {
+        const calculateTotal = (node: AccountNode): number => {
             if (node.children.length > 0) {
-                const childrenSum = node.children.reduce((sum: number, child: any) => sum + calculateTotal(child), 0);
+                const childrenSum = node.children.reduce((sum: number, child: AccountNode) => sum + calculateTotal(child), 0);
                 node.balance = childrenSum + (Number(node.balance) || 0);
                 return node.balance;
             }
@@ -136,7 +143,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
         };
 
         // Sort
-        const sortNodes = (nodes: any[]) => {
+        const sortNodes = (nodes: AccountNode[]) => {
             nodes.sort((a, b) => parseInt(a.code) - parseInt(b.code));
             nodes.forEach(n => {
                 if (n.children.length > 0) sortNodes(n.children);
@@ -178,12 +185,12 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
         });
     };
 
-    const handleCreate = (data: any) => {
+    const handleCreate = (data: AccountFormData) => {
         const highestCode = Math.max(0, ...(accounts || []).filter(a => a.code.startsWith('10')).map(a => parseInt(a.code)));
         const newCode = (highestCode + 1).toString();
 
         createAccount({ ...data, type: 'asset', code: newCode }, {
-            onSuccess: () => setIsModalOpen(false)
+            onSuccess: () => { setIsModalOpen(false); }
         });
     };
 
@@ -212,7 +219,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
             <div className=" max-md:p-2 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950/50 space-y-1 shrink-0">
                 <div className="grid grid-cols-2  max-md:gap-1">
                     <Button
-                        onClick={() => setTreasuryModalType('cashbox')}
+                        onClick={() => { setTreasuryModalType('cashbox'); }}
                         variant="secondary"
                         size="sm"
                         className="w-full"
@@ -221,7 +228,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
                         صندوق جديد
                     </Button>
                     <Button
-                        onClick={() => setTreasuryModalType('exchange')}
+                        onClick={() => { setTreasuryModalType('exchange'); }}
                         variant="secondary"
                         size="sm"
                         className="w-full"
@@ -231,7 +238,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
                     </Button>
                 </div>
                 {needsMigration && (
-                    <Button onClick={() => migrateCashboxBalances()} isLoading={isMigratingCashbox} variant="outline" size="sm" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-900/40" leftIcon={<Landmark size={12} />}>
+                    <Button onClick={() => { migrateCashboxBalances(); }} isLoading={isMigratingCashbox} variant="outline" size="sm" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-900/40" leftIcon={<Landmark size={12} />}>
                         تسوية رصيد الكاش القديم للسعودي
                     </Button>
                 )}
@@ -239,7 +246,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
 
             <AddAccountModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); }}
                 onSubmit={handleCreate}
                 isSubmitting={isCreating}
                 accounts={accounts}
@@ -248,7 +255,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
             {treasuryModalType && (
                 <AddTreasuryEntityModal
                     type={treasuryModalType}
-                    onClose={() => setTreasuryModalType(null)}
+                    onClose={() => { setTreasuryModalType(null); }}
                 />
             )}
         </div>

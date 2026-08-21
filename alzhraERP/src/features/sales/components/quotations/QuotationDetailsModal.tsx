@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Send, CheckCircle, XCircle, ArrowRightLeft, Loader2, Clock, User, DollarSign, Calendar, Building2, Share2, Printer } from 'lucide-react';
 import Modal from '../../../../ui/base/Modal';
 import { salesQuotationsApi } from '../../api/quotationsApi';
+import type { QuotationDetailRow, QuotationDetailItem } from '../../api/quotationsApi';
 import { formatCurrency } from '../../../../core/utils';
 import type { QuotationStatus } from '../../types/quotation';
 import { useSalesStore } from '../../store';
@@ -17,7 +18,7 @@ interface Props {
   onConvertToInvoice?: () => void;
 }
 
-const STATUS_ACTIONS: Record<string, { label: string; icon: React.ReactNode; color: string; nextStatus: string }[]> = {
+const STATUS_ACTIONS: Record<string, Array<{ label: string; icon: React.ReactNode; color: string; nextStatus: string }>> = {
   draft: [
     { label: 'إرسال للعميل', icon: <Send size={14} />, color: 'bg-blue-600 hover:bg-blue-700', nextStatus: 'sent' },
   ],
@@ -40,7 +41,7 @@ const STATUS_LABELS: Record<QuotationStatus, { label: string; color: string }> =
 };
 
 const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefresh, onConvertToInvoice }) => {
-  const [quotation, setQuotation] = useState<any>(null);
+  const [quotation, setQuotation] = useState<QuotationDetailRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   // [FIX] جلب بيانات الشركة من قاعدة البيانات بدلاً من ترميز الاسم
@@ -61,17 +62,23 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
     setActionLoading(true);
     try {
       if (nextStatus === 'converted') {
+        if (!quotation) return;
         const { resetCart, setCustomer, setMetadata, calculateTotals } = useSalesStore.getState();
         resetCart();
         
         if (quotation.party) {
-          setCustomer({ id: quotation.party.id, name: quotation.party.name, phone: quotation.party.phone });
+          const party = quotation.party;
+          setCustomer({
+            id: party.id,
+            name: party.name,
+            ...(party.phone ? { phone: party.phone } : {}),
+          });
         }
         
         setMetadata('invoiceType', 'credit'); // Quotations usually lead to credit or formal invoices
         
         if (quotation.quotation_items && quotation.quotation_items.length > 0) {
-          const newItems = quotation.quotation_items.map((item: any) => ({
+          const newItems = quotation.quotation_items.map((item: QuotationDetailItem) => ({
             id: crypto.randomUUID(),
             productId: item.product_id || '',
             sku: item.product?.sku || '',
@@ -120,10 +127,10 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
         companyName: resolvedCompanyName,
         quotationNumber: quotation.quotation_number,
         issueDate: quotation.issue_date,
-        validUntil: quotation.valid_until,
+        validUntil: quotation.valid_until ?? '',
         customerName: quotation.party?.name || 'عميل نقدي',
         issuedBy: resolvedIssuedBy,
-        items: quotation.quotation_items.map((it: any) => ({
+        items: quotation.quotation_items.map((it: QuotationDetailItem) => ({
           name: it.product?.name_ar || it.description,
           quantity: it.quantity,
           unitPrice: it.unit_price,
@@ -160,7 +167,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
   };
 
   const statusConf = STATUS_LABELS[(quotation?.status as QuotationStatus) || 'draft'];
-  const actions = STATUS_ACTIONS[quotation?.status] || [];
+  const actions = STATUS_ACTIONS[quotation?.status ?? ''] || [];
   const daysLeft = getDaysRemaining();
 
   return (
@@ -185,10 +192,10 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
                   companyName: (comp2?.name_ar || comp2?.name || 'الشركة') as string,
                   quotationNumber: quotation.quotation_number,
                   issueDate: quotation.issue_date,
-                  validUntil: quotation.valid_until,
+                  validUntil: quotation.valid_until ?? '',
                   customerName: quotation.party?.name || 'عميل نقدي',
                   issuedBy: user?.full_name || user?.email || 'النظام',
-                  items: quotation.quotation_items.map((it: any) => ({
+                  items: quotation.quotation_items.map((it: QuotationDetailItem) => ({
                     name: it.product?.name_ar || it.description,
                     quantity: it.quantity,
                     unitPrice: it.unit_price,
@@ -218,7 +225,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
             <Share2 size={16} />
             <span className="hidden sm:inline">مشاركة واتساب</span>
           </button>
-          {actions.map((action, idx) => (
+          {actions.map((action: { label: string; icon: React.ReactNode; color: string; nextStatus: string }, idx: number) => (
             <button
               key={idx}
               onClick={() => handleAction(action.nextStatus)}
@@ -266,16 +273,16 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
               <div className="flex justify-between items-center mb-4">
                   <div className="text-right flex-1">
                       {/* [FIX] استخدام اسم الشركة الحقيقي */}
-                      <h1 className="text-xl font-bold text-[#1F4E78]">{(company as any)?.name_ar || (company as any)?.name || 'الشركة'}</h1>
+                      <h1 className="text-xl font-bold text-[#1F4E78]">{String(((company ?? {}) as Record<string, unknown>).name_ar || ((company ?? {}) as Record<string, unknown>).name || 'الشركة')}</h1>
                       <div className="flex flex-col gap-1 max-md:gap-1 mt-1 text-xs font-bold text-gray-700">
-                          <span>{(company as any)?.phone ? `هاتف: ${(company as any).phone}` : ''}</span>
+                          <span>{String(((company ?? {}) as Record<string, unknown>).phone ? `هاتف: ${((company ?? {}) as Record<string, unknown>).phone}` : '')}</span>
                       </div>
                   </div>
                   <div className="flex-1 text-center">
                       <h2 className="text-xl font-bold text-gray-800 mt-2 bg-gray-100 inline-block px-4 py-1 rounded">عرض سعر</h2>
                   </div>
                   <div className="text-left flex-1" dir="ltr">
-                      <h1 className="text-xl font-bold text-[#1F4E78]">{(company as any)?.name_en || (company as any)?.name || 'Company'}</h1>
+                      <h1 className="text-xl font-bold text-[#1F4E78]">{String(((company ?? {}) as Record<string, unknown>).name_en || ((company ?? {}) as Record<string, unknown>).name || 'Company')}</h1>
                       <h2 className="text-md font-bold mt-2 text-gray-800">Quotation</h2>
                   </div>
               </div>
@@ -341,7 +348,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
-                {quotation.quotation_items?.map((item: any, idx: number) => (
+                {quotation.quotation_items?.map((item: QuotationDetailItem, idx: number) => (
                   <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="py-2.5 px-4 text-xs text-gray-400">{idx + 1}</td>
                     <td className="py-2.5 px-4 font-medium text-gray-900 dark:text-white">

@@ -1,14 +1,43 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+// Origin allow-list (mirrors ai-proxy). We never echo arbitrary origins — a
+// non-listed origin receives SITE_URL instead of being reflected.
+const ALLOWED_ORIGINS = [
+  'https://zzthamxjxnxzzpswllid.supabase.co',
+  'https://alzhra-erp.vercel.app',
+  'https://alzhra-erp.netlify.app',
+  'https://alzhra-2030karim2-devs-projects.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get('Origin');
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : (Deno.env.get('SITE_URL') || ALLOWED_ORIGINS[0]);
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  };
+};
+
+const jsonResponse = (body: unknown, status: number, req: Request) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+  });
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders(req) });
+  }
+
   try {
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Missing authorization header' }, 401, req);
     }
 
     // Create Supabase client with user's auth
@@ -46,41 +75,17 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error('Database error:', error);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Database error', 
-          details: error.message,
-          hint: error.hint,
-          code: error.code 
-        }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({
+        error: 'Database error',
+        details: error.message,
+        hint: error.hint,
+        code: error.code,
+      }, 500, req);
     }
 
-    return new Response(
-      JSON.stringify({ 
-        data, 
-        count,
-        limit,
-        offset 
-      }),
-      { 
-        status: 200, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
-        } 
-      }
-    );
+    return jsonResponse({ data, count, limit, offset }, 200, req);
   } catch (err) {
     console.error('Unexpected error:', err);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error', 
-        message: err.message 
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: 'Internal server error', message: err.message }, 500, req);
   }
 });

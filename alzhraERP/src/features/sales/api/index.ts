@@ -1,7 +1,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { parseError } from '@/core/utils/errorUtils';
-import { CreateInvoicePayload, InvoiceResponse } from '../types';
+import type { CreateInvoicePayload, InvoiceResponse } from '../types';
 import { logger } from '@/core/utils/logger';
 import type { Invoice, Party } from '@/core/types/supabase-helpers';
 import { salesQuotationsApi } from './quotationsApi';
@@ -12,25 +12,29 @@ export { salesQuotationsApi };
 // Define types for invoice with relations
 type InvoiceWithParty = Invoice & {
   party: Pick<Party, 'name'>;
-  invoice_items: { id: string }[];
+  invoice_items: Array<{ id: string }>;
 };
 
-type InvoiceWithDetails = Invoice & {
+export interface InvoiceDetailItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  returned_at: string | null;
+  name?: string;
+  price?: number;
+  product: { name_ar: string; sku: string; cost_price?: number; part_number?: string; brand?: string };
+}
+
+export type InvoiceWithDetails = Invoice & {
   parties: Party;
   payment_allocations: Array<{ payments: { amount: number; created_at: string; payment_method: string } }>;
-  invoice_items: Array<{
-    id: string;
-    description: string;
-    quantity: number;
-    unit_price: number;
-    total: number;
-    returned_at: string | null;
-    product: { name_ar: string; sku: string; cost_price?: number; part_number?: string; brand?: string };
-  }>;
+  invoice_items: InvoiceDetailItem[];
 };
 
 export const salesApi = {
-  getInvoices: async (companyId: string, page: number = 0, limit: number = 50, branchId?: string | null) => {
+  getInvoices: async (companyId: string, page = 0, limit = 50, branchId?: string | null) => {
     const from = page * limit;
     const to = from + limit - 1;
 
@@ -197,7 +201,7 @@ export const salesApi = {
       // Direct update fallback (for envs lacking void_invoice)
       return await supabase
         .from('invoices')
-        .update({ deleted_at: ((new Date()).toISOString() as unknown as string), status: 'void' })
+        .update({ deleted_at: ((new Date()).toISOString()), status: 'void' })
         .eq('id', id);
     }
     return { error: null };

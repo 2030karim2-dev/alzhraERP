@@ -16,6 +16,8 @@ export default tseslint.config(
             '*.config.ts',
             'src/core/database.types.ts',
             'e2e/**',
+            // Deno Edge Functions — ملفات مستقلة عن مشروع Vite/React (لا TSConfig يغطيها).
+            'supabase/**',
         ],
     },
     {

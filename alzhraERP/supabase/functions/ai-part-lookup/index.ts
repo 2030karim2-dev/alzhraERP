@@ -1,10 +1,25 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-api-version',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// Origin allow-list (mirrors ai-proxy). We never echo arbitrary origins — a
+// non-listed origin receives SITE_URL instead of being reflected.
+const ALLOWED_ORIGINS = [
+  'https://zzthamxjxnxzzpswllid.supabase.co',
+  'https://alzhra-erp.vercel.app',
+  'https://alzhra-erp.netlify.app',
+  'https://alzhra-2030karim2-devs-projects.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get('Origin');
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : (Deno.env.get('SITE_URL') || ALLOWED_ORIGINS[0]);
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-api-version',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 };
 
 // ===== FAST SITES ONLY - 5s timeout, race mode =====
@@ -149,14 +164,14 @@ async function uploadImage(imageUrl: string, partNumber: string, supabase: any):
 
 // ===== MAIN =====
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
 
   try {
     // Verify JWT authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       });
     }
     const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -165,14 +180,14 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authErr } = await authClient.auth.getUser();
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       });
     }
 
     const { part_number, brand } = await req.json();
     if (!part_number || part_number.trim().length < 3) {
       return new Response(JSON.stringify({ error: 'Invalid part_number' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       });
     }
 
@@ -191,7 +206,7 @@ Deno.serve(async (req: Request) => {
         alternatives: cached.alternatives || [], image_url: cached.image_url,
         source_sites: cached.source_sites || [], failed_sites: [],
         cached: true, part_number: cleanPN,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
     }
 
     // RACE ALL SITES (5s timeout each, all parallel)
@@ -264,11 +279,11 @@ Deno.serve(async (req: Request) => {
       alternatives, image_url: imageUrl,
       source_sites: searched, failed_sites: failed,
       cached: false, part_number: cleanPN, debug,
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }), { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
 
   } catch (err) {
     return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     });
   }
 });

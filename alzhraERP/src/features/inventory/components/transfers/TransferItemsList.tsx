@@ -1,14 +1,15 @@
 import React, { useMemo } from 'react';
 import { Trash2, Plus, Box, PackageSearch } from 'lucide-react';
 import ProductExcelGrid from '../ProductExcelGrid';
+import type { Product } from '../../types';
 
 interface Props {
-    items: { product: any, qty: number }[];
+    items: Array<{ product: Product, qty: number }>;
     onRemove: (id: string) => void;
     onUpdateQty: (id: string, qty: number) => void;
-    searchResults?: any[];
+    searchResults?: Product[];
     searchQuery?: string;
-    onAddItem?: (p: any) => void;
+    onAddItem?: (p: Product) => void;
 }
 
 const TransferItemsList: React.FC<Props> = ({ 
@@ -33,7 +34,7 @@ const TransferItemsList: React.FC<Props> = ({
         { 
             header: 'الكمية المحولة', 
             accessorKey: 'transfer_qty',
-            accessor: (row: any) => (
+            accessor: (row: Product & { transfer_qty?: number }) => (
                 <div className="font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded text-center">
                     {row.transfer_qty}
                 </div>
@@ -44,7 +45,7 @@ const TransferItemsList: React.FC<Props> = ({
         {
             header: '',
             accessorKey: 'remove_action',
-            accessor: (row: any) => (
+            accessor: (row: Product & { transfer_qty?: number }) => (
                 <button 
                     onClick={(e) => {
                         e.stopPropagation();
@@ -60,7 +61,7 @@ const TransferItemsList: React.FC<Props> = ({
         }
     ], [onRemove]);
 
-    const handleCellUpdate = (rowIndex: number, columnKey: string, value: any) => {
+    const handleCellUpdate = (rowIndex: number, columnKey: string, value: unknown) => {
         if (columnKey === 'transfer_qty') {
             const rowId = mappedProducts[rowIndex].id;
             const newQty = parseInt(value) || 1;
@@ -112,7 +113,7 @@ const TransferItemsList: React.FC<Props> = ({
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                            {searchResults.map((p: any) => (
+                                            {searchResults.map((p: Product) => (
                                                 <tr 
                                                     key={p.id} 
                                                     onClick={() => onAddItem?.(p)}
@@ -169,7 +170,7 @@ const TransferItemsList: React.FC<Props> = ({
                     hideActions={true}
                     hideBulkActions={true}
                     extraColumns={extraColumns}
-                    onCellUpdate={handleCellUpdate as any}
+                    onCellUpdate={handleCellUpdate}
                     title="أصناف المناقلة"
                     subtitle="الأصناف المضافة لعملية التحويل الحالية"
                     colorTheme="blue"

@@ -6,22 +6,49 @@ import Button from '../../../../ui/base/Button';
 import MicroListItem from '../../../../ui/common/MicroListItem';
 import ToggleSwitch from './ToggleSwitch';
 
+const PREFS_STORAGE_KEY = 'alzhra:notification_prefs';
+
+interface NotificationPrefs {
+  stock: boolean;
+  debt: boolean;
+  marketing: boolean;
+  system: boolean;
+}
+
+const DEFAULT_PREFS: NotificationPrefs = {
+  stock: true,
+  debt: true,
+  marketing: false,
+  system: true,
+};
+
+const loadPrefs = (): NotificationPrefs => {
+  try {
+    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    const parsed = JSON.parse(raw) as Partial<NotificationPrefs>;
+    return { ...DEFAULT_PREFS, ...parsed };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+};
+
 const NotificationSettings: React.FC = () => {
   const { showToast } = useFeedbackStore();
   const [isSaving, setIsSaving] = useState(false);
-  const [prefs, setPrefs] = useState({
-    stock: true,
-    debt: true,
-    marketing: false,
-    system: true
-  });
+  const [prefs, setPrefs] = useState<NotificationPrefs>(loadPrefs);
 
   const handleSave = () => {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      showToast("تم حفظ تفضيلات الإشعارات", 'success');
-    }, 1000);
+      try {
+        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+      } catch {
+        // ignore quota errors — التفضيلات تبقى في الذاكرة لهذه الجلسة
+      }
+      showToast("تم حفظ تفضيلات الإشعارات على هذا الجهاز", 'success');
+    }, 300);
   };
 
   const settings = [
@@ -52,7 +79,7 @@ const NotificationSettings: React.FC = () => {
              actions={
                 <ToggleSwitch 
                     checked={prefs[item.id as keyof typeof prefs]}
-                    onChange={(checked) => setPrefs({...prefs, [item.id as keyof typeof prefs]: checked})}
+                    onChange={(checked) => { setPrefs({...prefs, [item.id as keyof typeof prefs]: checked}); }}
                 />
              }
            />

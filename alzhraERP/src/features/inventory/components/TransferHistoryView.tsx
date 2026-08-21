@@ -7,6 +7,27 @@ import { ArrowLeftRight, CheckCircle, AlertTriangle, Package, Clock } from 'luci
 import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
 import { cn } from '../../../core/utils';
 
+/** صف مناقلة كما يعيده transferService.getTransfers (علاقات warehouse + items). */
+interface TransferItemRow {
+    id: string;
+    product_id: string;
+    quantity: number;
+    product?: { name_ar: string | null; sku: string | null } | null;
+}
+
+interface TransferHistoryRow {
+    id: string;
+    transfer_number?: string | null;
+    status: string;
+    created_at: string;
+    item_count?: number | null;
+    from_warehouse?: { name_ar: string | null } | null;
+    from_warehouse_name?: string | null;
+    to_warehouse?: { name_ar: string | null } | null;
+    to_warehouse_name?: string | null;
+    items?: TransferItemRow[] | null;
+}
+
 const TransferHistoryView: React.FC = () => {
     const { data: transfers, isLoading } = useTransfers();
     const isDesktop = useBreakpoint('md');
@@ -14,12 +35,12 @@ const TransferHistoryView: React.FC = () => {
     const columns = useMemo(() => [
         {
             header: '#',
-            accessor: (row: any) => <span className="font-mono font-bold text-gray-400">{row.transfer_number || '-'}</span>,
+            accessor: (row: TransferHistoryRow) => <span className="font-mono font-bold text-gray-400">{row.transfer_number || '-'}</span>,
             width: 'w-24'
         },
         {
             header: 'من مستودع',
-            accessor: (row: any) => (
+            accessor: (row: TransferHistoryRow) => (
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></div>
                     <span className="font-black text-[11px] text-rose-600 dark:text-rose-400 uppercase tracking-tight">{row.from_warehouse?.name_ar || row.from_warehouse_name || '-'}</span>
@@ -29,7 +50,7 @@ const TransferHistoryView: React.FC = () => {
         },
         {
             header: 'إلى مستودع',
-            accessor: (row: any) => (
+            accessor: (row: TransferHistoryRow) => (
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
                     <span className="font-black text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">{row.to_warehouse?.name_ar || row.to_warehouse_name || '-'}</span>
@@ -39,7 +60,7 @@ const TransferHistoryView: React.FC = () => {
         },
         {
             header: 'التاريخ',
-            accessor: (row: any) => (
+            accessor: (row: TransferHistoryRow) => (
                 <span className="text-gray-600 dark:text-gray-400 font-mono text-[10px]">
                     {new Date(row.created_at).toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -49,8 +70,8 @@ const TransferHistoryView: React.FC = () => {
         },
         {
             header: 'الأصناف',
-            accessor: (row: any) => {
-                const productNames = (row.items || []).map((i: any) => i.product?.name_ar || i.product?.sku || 'صنف غير معروف');
+            accessor: (row: TransferHistoryRow) => {
+                const productNames = (row.items || []).map((i: TransferItemRow) => i.product?.name_ar || i.product?.sku || 'صنف غير معروف');
                 const displayNames = productNames.slice(0, 2).join('، ');
                 const remaining = productNames.length - 2;
                 return (
@@ -71,7 +92,7 @@ const TransferHistoryView: React.FC = () => {
         },
         {
             header: 'الحالة',
-            accessor: (row: any) => (
+            accessor: (row: TransferHistoryRow) => (
                 <span className={cn(
                     "px-2.5 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 w-fit mx-auto",
                     row.status === 'completed'
@@ -102,7 +123,7 @@ const TransferHistoryView: React.FC = () => {
     if (!isDesktop) {
         return (
             <div className="space-y-3 pb-4">
-                {transfers.map((t: any) => (
+                {transfers.map((t: TransferHistoryRow) => (
                     <div key={t.id} className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                         {/* Header: Status + Number */}
                         <div className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b dark:border-slate-700 flex items-center justify-between gap-2">
@@ -148,7 +169,7 @@ const TransferHistoryView: React.FC = () => {
                             {(t.items || []).length > 0 && (
                                 <div className="pt-2 border-t dark:border-slate-800">
                                     <div className="flex flex-wrap gap-1.5">
-                                        {(t.items || []).slice(0, 2).map((i: any, idx: number) => (
+                                        {(t.items || []).slice(0, 2).map((i: TransferItemRow, idx: number) => (
                                             <span key={idx} className="text-[9px] font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded-full truncate max-w-[45%]">
                                                 {i.product?.name_ar || i.product?.sku || 'صنف'}
                                             </span>

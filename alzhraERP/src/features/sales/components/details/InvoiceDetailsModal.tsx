@@ -7,12 +7,13 @@ import { exportToPDF } from '@/core/utils/pdfExporter';
 import { exportInvoiceToExcel } from '@/core/utils/invoiceExcelExporter';
 import PrintableInvoice from '../PrintableInvoice';
 import { useInvoiceDetails } from '../../hooks/index';
+import type { InvoiceDetailItem } from '../../api';
 import { useCompany } from '@/features/settings/hooks';
 import { useAuthStore } from '@/features/auth/store';
 import { useInvoicePaymentStatus } from '../../hooks/useInvoicePaymentStatus';
 import InvoiceHealthBadge from './InvoiceHealthBadge';
 import ReturnWizard from './ReturnWizard';
-import type { Invoice } from '../../../returns/types';
+import type { Invoice, InvoiceItem } from '../../../returns/types';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import CompanyInfoSection from './CompanyInfoSection';
 import CustomerInfoSection from './CustomerInfoSection';
@@ -23,7 +24,7 @@ import { ErrorBoundary } from '@/core/components/ErrorBoundary';
 interface Props {
   invoiceId: string | null;
   onClose: () => void;
-  onReturn?: (invoice: any, items: any[]) => void;
+  onReturn?: (invoice: Invoice, items: InvoiceItem[]) => void;
 }
 
 const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) => {
@@ -50,7 +51,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       setShowAlert({ type: 'error', message: 'فشل في تصدير الفاتورة' });
     } finally {
       setIsExporting(false);
-      setTimeout(() => setShowAlert(null), 3000);
+      setTimeout(() => { setShowAlert(null); }, 3000);
     }
   };
 
@@ -58,16 +59,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     if (!invoice || !company) return;
     const comp = company as Record<string, unknown>;
     // [FIX] استخدام بيانات الشركة الحقيقية من الإعدادات
-    const companyName = (comp?.name_ar || comp?.name || (company as any)?.company_name || 'الشركة') as string;
+    const companyName = (comp?.name_ar || comp?.name || (comp as { company_name?: string }).company_name || 'الشركة') as string;
     await exportInvoiceToExcel({
       companyName,
       companyAddress: (comp?.address || '') as string,
       taxNumber: (comp?.tax_number || '') as string,
       invoiceNumber: invoice.invoice_number || '',
       issueDate: invoice.issue_date,
-      customerName: (invoice.parties as any)?.name || 'عميل نقدي',
+      customerName: invoice.parties?.name || 'عميل نقدي',
       issuedBy: issuedByName,
-      items: (invoice.invoice_items || []).map((i: any) => ({
+      items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
         name: i.description || i.name || '---',
         quantity: i.quantity,
         unitPrice: i.unit_price,
@@ -77,13 +78,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       totalAmount: invoice.total_amount,
     });
     setShowAlert({ type: 'success', message: 'تم تصدير ملف Excel بنجاح' });
-    setTimeout(() => setShowAlert(null), 3000);
+    setTimeout(() => { setShowAlert(null); }, 3000);
   };
 
-  const handleReturnSubmit = (invoiceData: any, items: any[]) => {
+  const handleReturnSubmit = (invoiceData: Invoice, items: InvoiceItem[]) => {
     if (onReturn) {
       onReturn(invoiceData, items);
-      setTimeout(() => setShowAlert(null), 3000);
+      setTimeout(() => { setShowAlert(null); }, 3000);
       setShowReturnSection(false);
     }
   };
@@ -91,7 +92,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const handleAlert = (alertOptions: { type: 'success' | 'warning' | 'error'; message: string }) => {
     setShowAlert(alertOptions);
     if (alertOptions.type !== 'success') {
-       setTimeout(() => setShowAlert(null), 3000);
+       setTimeout(() => { setShowAlert(null); }, 3000);
     }
   };
 
@@ -102,16 +103,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import('../../../../core/utils/invoiceExcelExporter');
       // [FIX] استخدام بيانات الشركة الحقيقية
       const comp = (company || {}) as Record<string, unknown>;
-      const companyName = (comp?.name_ar || comp?.name || (company as any)?.company_name || 'الشركة') as string;
+      const companyName = (comp?.name_ar || comp?.name || (comp as { company_name?: string }).company_name || 'الشركة') as string;
       const data = {
         companyName,
         companyAddress: (comp?.address || '') as string,
         taxNumber: (comp?.tax_number || '') as string,
         invoiceNumber: invoice.invoice_number || '',
         issueDate: invoice.issue_date,
-        customerName: (invoice.parties as any)?.name || 'عميل نقدي',
+        customerName: invoice.parties?.name || 'عميل نقدي',
         issuedBy: issuedByName,
-        items: (invoice.invoice_items || []).map((i: any) => ({
+        items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
           name: i.description || i.name || '---',
           quantity: i.quantity,
           unitPrice: i.unit_price,
@@ -152,7 +153,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     company,
     party_name: invoice.parties?.name,
     issuedBy: issuedByName,
-    items: invoice.invoice_items.map((i: any) => ({
+    items: invoice.invoice_items.map((i: InvoiceDetailItem) => ({
       ...i,
       name: i.description,
       price: i.unit_price
@@ -174,10 +175,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onShare={handleShareWhatsApp}
-          onToggleReturn={() => setShowReturnSection(!showReturnSection)}
+          onToggleReturn={() => { setShowReturnSection(!showReturnSection); }}
           isExporting={isExporting}
           issuedByName={issuedByName}
-          printRef={printRef as any}
+          printRef={printRef as React.RefObject<HTMLDivElement>}
         />
       }
     >
@@ -197,7 +198,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         {invoice && invoice.type !== 'sale_return' && onReturn && (
           <div className="flex justify-end px-4 mt-2">
             <button
-              onClick={() => setShowReturnSection(true)}
+              onClick={() => { setShowReturnSection(true); }}
               className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 max-md:gap-1.5 transition-all active:scale-95 shadow-sm"
               title="بدء عملية المرتجع لهذه الفاتورة"
             >
@@ -213,13 +214,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           <div className="p-4 max-md:p-4 space-y-4">
             <div className="flex bg-gray-100 dark:bg-slate-800 p-1 max-md:p-1 rounded-xl mb-4">
                 <button 
-                  onClick={() => setActiveTab('details')}
+                  onClick={() => { setActiveTab('details'); }}
                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'details' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   تفاصيل الفاتورة
                 </button>
                 <button 
-                  onClick={() => setActiveTab('preview')}
+                  onClick={() => { setActiveTab('preview'); }}
                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'preview' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   معاينة الطباعة
@@ -261,7 +262,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                   number: invoice.invoice_number || '',
                   total: invoice.total_amount || 0,
                   itemCount: invoice.invoice_items?.length || 0,
-                  customerName: (invoice.parties as any)?.name || 'غير محدد',
+                  customerName: invoice.parties?.name || 'غير محدد',
                   customerDebt: 0,
                   avgInvoiceTotal: 0
                 }} />
@@ -270,7 +271,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                   <ReturnWizard 
                     invoice={invoice as unknown as Invoice} 
                     onReturn={handleReturnSubmit} 
-                    onCancel={() => setShowReturnSection(false)}
+                    onCancel={() => { setShowReturnSection(false); }}
                     onAlert={handleAlert}
                   />
                 ) : (

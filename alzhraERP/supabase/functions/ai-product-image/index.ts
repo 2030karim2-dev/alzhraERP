@@ -1,10 +1,25 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-api-version',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// Origin allow-list (mirrors ai-proxy). We never echo arbitrary origins — a
+// non-listed origin receives SITE_URL instead of being reflected.
+const ALLOWED_ORIGINS = [
+  'https://zzthamxjxnxzzpswllid.supabase.co',
+  'https://alzhra-erp.vercel.app',
+  'https://alzhra-erp.netlify.app',
+  'https://alzhra-2030karim2-devs-projects.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get('Origin');
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : (Deno.env.get('SITE_URL') || ALLOWED_ORIGINS[0]);
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-api-version',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 };
 
 const SEARCH_SITES = [
@@ -59,21 +74,21 @@ async function fetchSite(url: string, timeoutMs = 8000): Promise<{ html: string;
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
   try {
     // Verify JWT authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
     }
     const su = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
     const { data: { user }, error: authErr } = await su.auth.getUser();
     if (authErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
     }
 
     const { part_number, brand, product_id } = await req.json();
-    if (!part_number) return new Response(JSON.stringify({ error: 'part_number required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!part_number) return new Response(JSON.stringify({ error: 'part_number required' }), { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
     const searchTerm = brand ? `${brand} ${part_number.trim()}` : part_number.trim();
     const allImages: { url: string; score: number; source: string }[] = [];
     const results = await Promise.allSettled(SEARCH_SITES.map(async (site) => {
@@ -102,15 +117,15 @@ Deno.serve(async (req: Request) => {
       if (ownedErr || !owned) {
         return new Response(JSON.stringify({ error: 'Product not found or you do not have access to it', code: 'FORBIDDEN' }), {
           status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
         });
       }
       const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
       const { error: updErr } = await admin.from('products').update({ image_url: bestImage.url }).eq('id', owned.id);
       if (updErr) console.error('Failed to persist image_url:', updErr.message);
     }
-    return new Response(JSON.stringify({ image_url: bestImage?.url || null, source: bestImage?.source || null, candidates: candidates.map(c => ({ url: c.url, source: c.source, score: c.score })), total_found: allImages.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ image_url: bestImage?.url || null, source: bestImage?.source || null, candidates: candidates.map(c => ({ url: c.url, source: c.source, score: c.score })), total_found: allImages.length }), { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message || 'Internal error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: (err as Error).message || 'Internal error' }), { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
   }
 });

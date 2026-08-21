@@ -48,16 +48,13 @@ export const convertToBaseCurrency = (params: CurrencyConversionParams): number 
         throw new CurrencyError(`Invalid exchange rate: ${exchangeRate}. Must be a positive number.`);
     }
 
-    if (exchangeRate === 1) {
-        return amount;
-    }
-
+    // التحقق من المبلغ قبل أي مسار إرجاع مبكر — حتى مع rate === 1 لا يمرّ NaN/Infinity.
     if (!Number.isFinite(amount)) {
         throw new CurrencyError(`Invalid amount: ${amount}. Must be a finite number.`);
     }
 
-    if (exchangeOperator === 'divide' && exchangeRate === 0) {
-        throw new CurrencyError('Cannot divide by zero exchange rate');
+    if (exchangeRate === 1) {
+        return amount;
     }
 
     const converted = exchangeOperator === 'divide'
@@ -74,16 +71,13 @@ export const convertFromBaseCurrency = (params: CurrencyConversionParams): numbe
         throw new CurrencyError(`Invalid exchange rate: ${exchangeRate}. Must be a positive number.`);
     }
 
-    if (exchangeRate === 1) {
-        return amount;
-    }
-
+    // التحقق من المبلغ قبل أي مسار إرجاع مبكر — حتى مع rate === 1 لا يمرّ NaN/Infinity.
     if (!Number.isFinite(amount)) {
         throw new CurrencyError(`Invalid amount: ${amount}. Must be a finite number.`);
     }
 
-    if (exchangeOperator === 'divide' && exchangeRate === 0) {
-        throw new CurrencyError('Cannot divide by zero exchange rate');
+    if (exchangeRate === 1) {
+        return amount;
     }
 
     const converted = exchangeOperator === 'divide'

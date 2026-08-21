@@ -2,9 +2,15 @@ import { useEffect, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { JournalEntryFormData } from '../types/index';
+import type { JournalEntryFormData } from '../types/index';
 import { useAccounts } from './index';
 import { useCurrencies } from '../../settings/hooks';
+import { SOX_BALANCE_TOLERANCE } from '../../../core/utils/decimalUtils/constants';
+
+// توحيد تسامح التوازن مع طبقة الخدمة (journalsApi) ومعيار SOX.
+// الواجهة والخدمة وطبقة القاعدة تستخدم الآن نفس الحد — لا مزيد من قبول
+// قيود غير متوازنة بصرياً ثم رفضها عند الحفظ (كان 0.01 سابقاً).
+const BALANCE_TOLERANCE = Number(SOX_BALANCE_TOLERANCE.toString());
 
 const journalLineSchema = z.object({
     account_id: z.string().min(1, 'يجب اختيار الحساب'),
@@ -25,7 +31,7 @@ const journalEntrySchema = z.object({
 }).refine(data => {
     const totalDebit = data.lines.reduce((sum, line) => sum + line.debit_amount, 0);
     const totalCredit = data.lines.reduce((sum, line) => sum + line.credit_amount, 0);
-    return Math.abs(totalDebit - totalCredit) < 0.01;
+    return Math.abs(totalDebit - totalCredit) < BALANCE_TOLERANCE;
 }, {
     message: 'القيد غير متوازن (إجمالي المدين لا يساوي إجمالي الدائن)',
     path: ['lines']
@@ -79,7 +85,8 @@ export const useJournalEntryForm = (onSubmit: (data: JournalEntryFormData) => vo
     }), { debit_amount: 0, credit_amount: 0 }), [lines]);
 
     const difference = totals.debit_amount - totals.credit_amount;
-    const isBalanced = Math.abs(difference) < 0.01 && totals.debit_amount > 0;
+    // توحيد مع SOX_BALANCE_TOLERANCE (مطابق لطبقة الخدمة) بدل 0.01 السابق
+    const isBalanced = Math.abs(difference) < BALANCE_TOLERANCE && totals.debit_amount > 0;
 
     useEffect(() => {
         if (isOpen) {

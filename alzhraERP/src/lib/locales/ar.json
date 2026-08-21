@@ -307,6 +307,7 @@
   "waiting_for_acceptance": "بانتظار القبول",
   "accepted": "مقبولة",
   "settings_saved": "تم حفظ الإعدادات بنجاح",
+  "settings_saved_local": "تم حفظ الإعدادات على هذا الجهاز",
   "reset_to_defaults": "إعادة الضبط للافتراضي",
   "confirm_reset": "هل أنت متأكد من إعادة ضبط هذا القسم للافتراضي؟",
   "feature_coming_soon": "هذه الميزة ستتوفر قريباً",

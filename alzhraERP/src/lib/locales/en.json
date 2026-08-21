@@ -279,6 +279,7 @@
   "waiting_for_acceptance": "Waiting for Acceptance",
   "accepted": "Accepted",
   "settings_saved": "Settings saved successfully",
+  "settings_saved_local": "Settings saved on this device",
   "reset_to_defaults": "Reset to Defaults",
   "confirm_reset": "Are you sure you want to reset this section to defaults?",
   "feature_coming_soon": "This feature is coming soon",

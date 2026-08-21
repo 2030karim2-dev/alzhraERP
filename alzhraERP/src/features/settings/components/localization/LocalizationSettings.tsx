@@ -3,11 +3,13 @@ import React from 'react';
 import { Globe, Languages, DollarSign, Clock, Calendar, Hash, Save } from 'lucide-react';
 import { useSettingsStore } from '../../settingsStore';
 import { useI18nStore } from '@/lib/i18nStore';
+import { useFeedbackStore } from '../../../feedback/store';
 import Card from '@/ui/base/Card';
 
 export const LocalizationSettings: React.FC = () => {
     const { dictionary: t, setLang } = useI18nStore();
     const { localization, setLocalizationSettings } = useSettingsStore();
+    const { showToast } = useFeedbackStore();
 
     const handleUpdate = (updates: Partial<typeof localization>) => {
         setLocalizationSettings(updates);
@@ -16,6 +18,11 @@ export const LocalizationSettings: React.FC = () => {
     const handleLanguageChange = (lang: 'ar' | 'en') => {
         setLang(lang);
         handleUpdate({ default_language: lang });
+    };
+
+    // التحديثات تُخزَّن محلياً تلقائياً عبر zustand persist (على هذا الجهاز).
+    const handleSave = () => {
+        showToast(t.settings_saved_local || 'تم حفظ الإعدادات على هذا الجهاز', 'success');
     };
 
     return (
@@ -35,7 +42,7 @@ export const LocalizationSettings: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 max-md:gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                <button onClick={handleSave} className="flex items-center gap-2 max-md:gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                     <Save className="w-4 h-4" />
                     <span className="text-sm font-medium">{t.save || 'حفظ'}</span>
                 </button>
@@ -56,7 +63,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <div className="grid grid-cols-2 gap-2 max-md:gap-2">
                             <button
-                                onClick={() => handleLanguageChange('ar')}
+                                onClick={() => { handleLanguageChange('ar'); }}
                                 className={`flex items-center justify-center gap-2 max-md:gap-2 p-3 max-md:p-3 border-2 rounded-xl transition-all ${localization.default_language === 'ar'
                                     ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'
@@ -66,7 +73,7 @@ export const LocalizationSettings: React.FC = () => {
                                 <span className="font-medium">العربية</span>
                             </button>
                             <button
-                                onClick={() => handleLanguageChange('en')}
+                                onClick={() => { handleLanguageChange('en'); }}
                                 className={`flex items-center justify-center gap-2 max-md:gap-2 p-3 max-md:p-3 border-2 rounded-xl transition-all ${localization.default_language === 'en'
                                     ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'
@@ -83,7 +90,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.fallback_language}
-                            onChange={(e) => handleUpdate({ fallback_language: e.target.value as 'ar' | 'en' })}
+                            onChange={(e) => { handleUpdate({ fallback_language: e.target.value as 'ar' | 'en' }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value="ar">العربية</option>
@@ -108,7 +115,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.default_currency}
-                            onChange={(e) => handleUpdate({ default_currency: e.target.value })}
+                            onChange={(e) => { handleUpdate({ default_currency: e.target.value }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value="SAR">ريال سعودي (SAR)</option>
@@ -129,7 +136,7 @@ export const LocalizationSettings: React.FC = () => {
                         <input
                             type="text"
                             value={localization.currency_symbol}
-                            onChange={(e) => handleUpdate({ currency_symbol: e.target.value })}
+                            onChange={(e) => { handleUpdate({ currency_symbol: e.target.value }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         />
                     </div>
@@ -139,7 +146,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.decimal_places}
-                            onChange={(e) => handleUpdate({ decimal_places: parseInt(e.target.value) })}
+                            onChange={(e) => { handleUpdate({ decimal_places: parseInt(e.target.value) }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value={0}>0</option>
@@ -165,7 +172,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.timezone}
-                            onChange={(e) => handleUpdate({ timezone: e.target.value })}
+                            onChange={(e) => { handleUpdate({ timezone: e.target.value }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value="Asia/Riyadh">الرياض (GMT+3)</option>
@@ -213,7 +220,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.date_format}
-                            onChange={(e) => handleUpdate({ date_format: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD' })}
+                            onChange={(e) => { handleUpdate({ date_format: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD' }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -228,7 +235,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.time_format}
-                            onChange={(e) => handleUpdate({ time_format: e.target.value as '12h' | '24h' })}
+                            onChange={(e) => { handleUpdate({ time_format: e.target.value as '12h' | '24h' }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value="12h">{t.hour_12 || '12 ساعة'}</option>
@@ -253,7 +260,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.thousand_separator}
-                            onChange={(e) => handleUpdate({ thousand_separator: e.target.value as ',' | '.' | ' ' })}
+                            onChange={(e) => { handleUpdate({ thousand_separator: e.target.value as ',' | '.' | ' ' }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value=",">, (فاصلة)</option>
@@ -268,7 +275,7 @@ export const LocalizationSettings: React.FC = () => {
                         </label>
                         <select
                             value={localization.decimal_separator}
-                            onChange={(e) => handleUpdate({ decimal_separator: e.target.value as '.' | ',' })}
+                            onChange={(e) => { handleUpdate({ decimal_separator: e.target.value as '.' | ',' }); }}
                             className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
                             <option value=".">. (نقطة)</option>

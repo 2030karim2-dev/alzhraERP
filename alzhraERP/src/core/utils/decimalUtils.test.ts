@@ -4,6 +4,7 @@ import {
   safeDecimal,
   tryDecimal,
   generateCalculationHash,
+  generateCalculationHashAsync,
   isValidDecimal,
   isPositiveDecimal,
   isNonNegativeDecimal,
@@ -142,36 +143,63 @@ describe('generateCalculationHash', () => {
   });
 });
 
+// ── generateCalculationHashAsync (true SHA-256) ───────
+
+describe('generateCalculationHashAsync', () => {
+  it('returns a 64-character hex string (SHA-256)', async () => {
+    const hash = await generateCalculationHashAsync({ amount: 100, rate: 3.75 });
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('returns same hash for identical inputs', async () => {
+    const h1 = await generateCalculationHashAsync({ a: '100', b: 50 });
+    const h2 = await generateCalculationHashAsync({ a: '100', b: 50 });
+    expect(h1).toBe(h2);
+  });
+
+  it('returns different hashes for different inputs', async () => {
+    const h1 = await generateCalculationHashAsync({ amount: 100 });
+    const h2 = await generateCalculationHashAsync({ amount: 200 });
+    expect(h1).not.toBe(h2);
+  });
+
+  it('is deterministic and independent of key order', async () => {
+    const h1 = await generateCalculationHashAsync({ a: 1, b: 2 });
+    const h2 = await generateCalculationHashAsync({ b: 2, a: 1 });
+    expect(h1).toBe(h2);
+  });
+});
+
 // ── Validation Utilities ──────────────────────────────
 
 describe('isValidDecimal', () => {
-  it('true for valid number', () => expect(isValidDecimal(42)).toBe(true));
-  it('true for valid string', () => expect(isValidDecimal('3.14')).toBe(true));
-  it('false for undefined', () => expect(isValidDecimal(undefined)).toBe(false));
-  it('false for null', () => expect(isValidDecimal(null)).toBe(false));
-  it('false for NaN', () => expect(isValidDecimal(NaN)).toBe(false));
+  it('true for valid number', () => { expect(isValidDecimal(42)).toBe(true); });
+  it('true for valid string', () => { expect(isValidDecimal('3.14')).toBe(true); });
+  it('false for undefined', () => { expect(isValidDecimal(undefined)).toBe(false); });
+  it('false for null', () => { expect(isValidDecimal(null)).toBe(false); });
+  it('false for NaN', () => { expect(isValidDecimal(NaN)).toBe(false); });
 });
 
 describe('isPositiveDecimal', () => {
-  it('true for positive', () => expect(isPositiveDecimal(5)).toBe(true));
-  it('false for negative', () => expect(isPositiveDecimal(-1)).toBe(false));
-  it('false for zero (zero is not strictly positive)', () => expect(isPositiveDecimal(0)).toBe(false));
+  it('true for positive', () => { expect(isPositiveDecimal(5)).toBe(true); });
+  it('false for negative', () => { expect(isPositiveDecimal(-1)).toBe(false); });
+  it('false for zero (zero is not strictly positive)', () => { expect(isPositiveDecimal(0)).toBe(false); });
   // Note: isPositiveDecimal uses decimal.js isPositive() which may treat 0 as positive
   // This test verifies expected GAAP behavior — zero is not positive
-  it('false for undefined', () => expect(isPositiveDecimal(undefined)).toBe(false));
+  it('false for undefined', () => { expect(isPositiveDecimal(undefined)).toBe(false); });
 });
 
 describe('isNonNegativeDecimal', () => {
-  it('true for positive', () => expect(isNonNegativeDecimal(10)).toBe(true));
-  it('true for zero', () => expect(isNonNegativeDecimal(0)).toBe(true));
-  it('false for negative', () => expect(isNonNegativeDecimal(-0.01)).toBe(false));
+  it('true for positive', () => { expect(isNonNegativeDecimal(10)).toBe(true); });
+  it('true for zero', () => { expect(isNonNegativeDecimal(0)).toBe(true); });
+  it('false for negative', () => { expect(isNonNegativeDecimal(-0.01)).toBe(false); });
 });
 
 describe('isZeroDecimal', () => {
-  it('true for zero', () => expect(isZeroDecimal(0)).toBe(true));
-  it('true for string "0"', () => expect(isZeroDecimal('0')).toBe(true));
-  it('false for non-zero', () => expect(isZeroDecimal(1)).toBe(false));
-  it('false for undefined', () => expect(isZeroDecimal(undefined)).toBe(false));
+  it('true for zero', () => { expect(isZeroDecimal(0)).toBe(true); });
+  it('true for string "0"', () => { expect(isZeroDecimal('0')).toBe(true); });
+  it('false for non-zero', () => { expect(isZeroDecimal(1)).toBe(false); });
+  it('false for undefined', () => { expect(isZeroDecimal(undefined)).toBe(false); });
 });
 
 // ── formatDecimal ─────────────────────────────────────

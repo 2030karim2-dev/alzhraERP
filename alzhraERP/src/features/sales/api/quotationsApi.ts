@@ -3,7 +3,7 @@
  * Handles CRUD operations for sales quotations
  */
 import { supabase } from '../../../lib/supabaseClient';
-import { CreateQuotationDTO } from '../types/quotation';
+import type { CreateQuotationDTO } from '../types/quotation';
 
 // DB row types
 interface QuotationRow {
@@ -32,20 +32,22 @@ interface QuotationRow {
   quotation_items: Array<{ id: string }>;
 }
 
-interface QuotationDetailRow extends Omit<QuotationRow, 'party' | 'quotation_items'> {
+export interface QuotationDetailItem {
+  id: string;
+  product_id: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  discount_percent: number;
+  total: number;
+  notes: string | null;
+  sort_order: number;
+  product: { name_ar: string; sku: string; part_number: string | null; brand?: string | null; cost_price?: number | null } | null;
+}
+
+export interface QuotationDetailRow extends Omit<QuotationRow, 'party' | 'quotation_items'> {
   party: { id: string; name: string; phone: string | null; email: string | null } | null;
-  quotation_items: Array<{
-    id: string;
-    product_id: string | null;
-    description: string;
-    quantity: number;
-    unit_price: number;
-    discount_percent: number;
-    total: number;
-    notes: string | null;
-    sort_order: number;
-    product: { name_ar: string; sku: string; part_number: string | null } | null;
-  }>;
+  quotation_items: QuotationDetailItem[];
 }
 
 export const salesQuotationsApi = {

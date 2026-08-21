@@ -12,9 +12,11 @@ export const useInvoiceSettings = () => {
     };
 
     const handleSave = () => {
+        // التحديثات تُخزَّن محلياً تلقائياً عبر zustand persist (على هذا الجهاز)
+        // — لا يوجد ربط خادم لإعدادات الفواتير حالياً.
         setSaved(true);
-        showToast('تم حفظ إعدادات الفواتير بنجاح ✓', 'success');
-        setTimeout(() => setSaved(false), 3000);
+        showToast('تم حفظ إعدادات الفواتير على هذا الجهاز ✓', 'success');
+        setTimeout(() => { setSaved(false); }, 3000);
     };
 
     const handleReset = () => {

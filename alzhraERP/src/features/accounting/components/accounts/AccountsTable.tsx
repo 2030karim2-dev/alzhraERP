@@ -10,16 +10,21 @@ import EmptyState from '../../../../ui/base/EmptyState';
 import Button from '../../../../ui/base/Button';
 import { cn } from '../../../../core/utils';
 // Fix: Corrected import path to point to the barrel file.
-import { Account } from '../../types/index';
+import type { Account, AccountFormData } from '../../types/index';
 import { useFeedbackStore } from '../../../../features/feedback/store';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
 
 // ==========================================
 // 1. Data Transformation: Flat List to Tree
 // ==========================================
-const buildAccountTree = (accounts: Account[]): any[] => {
-    const map = new Map();
-    const roots: any[] = [];
+/** عقدة شجرة الحسابات (حساب + أبناء). */
+interface AccountNode extends Account {
+    children: AccountNode[];
+}
+
+const buildAccountTree = (accounts: Account[]): AccountNode[] => {
+    const map = new Map<string, AccountNode>();
+    const roots: AccountNode[] = [];
 
     accounts.forEach(acc => {
         map.set(acc.id, { ...acc, children: [] });
@@ -27,16 +32,16 @@ const buildAccountTree = (accounts: Account[]): any[] => {
 
     accounts.forEach(acc => {
         if (acc.parent_id && map.has(acc.parent_id)) {
-            map.get(acc.parent_id).children.push(map.get(acc.id));
+            map.get(acc.parent_id)!.children.push(map.get(acc.id)!);
         } else {
-            roots.push(map.get(acc.id));
+            roots.push(map.get(acc.id)!);
         }
     });
 
     // Function to recursively calculate total balance for parent accounts
-    const calculateBalances = (node: any) => {
+    const calculateBalances = (node: AccountNode): number => {
         if (node.children.length === 0) return node.balance;
-        node.balance = node.children.reduce((sum: number, child: any) => sum + calculateBalances(child), 0);
+        node.balance = node.children.reduce((sum: number, child: AccountNode) => sum + calculateBalances(child), 0);
         return node.balance;
     };
     roots.forEach(calculateBalances);
@@ -48,7 +53,7 @@ const buildAccountTree = (accounts: Account[]): any[] => {
 // ==========================================
 // 2. Recursive Row Rendering Component
 // ==========================================
-const AccountTreeRow: React.FC<{ node: any; level: number; onToggle: (id: string) => void; isExpanded: boolean; onDelete: (id: string, isSystem: boolean) => void; }> = ({ node, level, onToggle, isExpanded, onDelete }) => {
+const AccountTreeRow: React.FC<{ node: AccountNode; level: number; onToggle: (id: string) => void; isExpanded: boolean; onDelete: (id: string, isSystem: boolean) => void; }> = ({ node, level, onToggle, isExpanded, onDelete }) => {
     return (
         <Fragment>
             <tr className="group hover:bg-blue-50/20 dark:hover:bg-blue-950/20 transition-colors">
@@ -56,7 +61,7 @@ const AccountTreeRow: React.FC<{ node: any; level: number; onToggle: (id: string
                 <td className="p-2 border-b border-gray-100 dark:border-slate-800">
                     <div className="flex items-center gap-1" style={{ paddingRight: `${level * 1.5}rem` }}>
                         {node.children.length > 0 && (
-                            <button onClick={() => onToggle(node.id)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800">
+                            <button onClick={() => { onToggle(node.id); }} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800">
                                 <ChevronRight size={14} className={cn("transition-transform", isExpanded && "rotate-90")} />
                             </button>
                         )}
@@ -81,14 +86,14 @@ const AccountTreeRow: React.FC<{ node: any; level: number; onToggle: (id: string
                             <FileText size={12} />
                         </button>
                         {!node.is_system && (
-                            <button onClick={() => onDelete(node.id, node.is_system)} className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-none">
+                            <button onClick={() => { onDelete(node.id, node.is_system); }} className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-none">
                                 <Trash2 size={12} />
                             </button>
                         )}
                     </div>
                 </td>
             </tr>
-            {isExpanded && node.children.map((child: any) => (
+            {isExpanded && node.children.map((child: AccountNode) => (
                 <AccountTreeRow key={child.id} node={child} level={level + 1} onToggle={onToggle} isExpanded={isExpanded} onDelete={onDelete} />
             ))}
         </Fragment>
@@ -127,9 +132,9 @@ const AccountsTable: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleCreate = (data: any) => {
+    const handleCreate = (data: AccountFormData) => {
         createAccount(data, {
-            onSuccess: () => setIsModalOpen(false)
+            onSuccess: () => { setIsModalOpen(false); }
         });
     };
 
@@ -144,7 +149,7 @@ const AccountsTable: React.FC = () => {
     const confirmDelete = () => {
         if (deleteConfirm) {
             deleteAccount({ id: deleteConfirm.id, isSystem: deleteConfirm.isSystem }, {
-                onSuccess: () => setDeleteConfirm(null)
+                onSuccess: () => { setDeleteConfirm(null); }
             });
         }
     };
@@ -165,7 +170,7 @@ const AccountsTable: React.FC = () => {
                 description="لم يتم إعداد شجرة الحسابات بعد. يمكنك البدء بإضافة حسابات يدوياً أو إنشاء الدليل المحاسبي القياسي الموصى به."
                 action={
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <Button onClick={() => seedAccounts()} disabled={isSeeding} variant="success" isLoading={isSeeding} leftIcon={<ShieldCheck size={16} />}>
+                        <Button onClick={() => { seedAccounts(); }} disabled={isSeeding} variant="success" isLoading={isSeeding} leftIcon={<ShieldCheck size={16} />}>
                             إنشاء الدليل القياسي
                         </Button>
                         <Button onClick={handleAddNew} variant="secondary" leftIcon={<Plus size={16} />}>
@@ -180,7 +185,7 @@ const AccountsTable: React.FC = () => {
     return (
         <div className="transition-colors duration-300">
             <div className="flex justify-end gap-2 mb-2">
-                <Button onClick={() => setIsOpeningBalanceModalOpen(true)} variant="secondary" size="sm" leftIcon={<Scale size={12} />}>أرصدة افتتاحية</Button>
+                <Button onClick={() => { setIsOpeningBalanceModalOpen(true); }} variant="secondary" size="sm" leftIcon={<Scale size={12} />}>أرصدة افتتاحية</Button>
                 <Button onClick={handleAddNew} variant="primary" size="sm" leftIcon={<Plus size={12} />}>حساب جديد</Button>
             </div>
 
@@ -212,19 +217,19 @@ const AccountsTable: React.FC = () => {
 
             <AddAccountModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); }}
                 onSubmit={handleCreate}
                 isSubmitting={isCreating}
             />
 
             <OpeningBalancesModal
                 isOpen={isOpeningBalanceModalOpen}
-                onClose={() => setIsOpeningBalanceModalOpen(false)}
+                onClose={() => { setIsOpeningBalanceModalOpen(false); }}
             />
 
             <ConfirmModal
                 isOpen={!!deleteConfirm}
-                onClose={() => setDeleteConfirm(null)}
+                onClose={() => { setDeleteConfirm(null); }}
                 onConfirm={confirmDelete}
                 title="حذف حساب محاسبي"
                 message="تنبيه حرج: حذف الحساب سيؤدي لمسح كافة القيود المرتبطة به بشكل نهائي. هل تريد الاستمرار؟"

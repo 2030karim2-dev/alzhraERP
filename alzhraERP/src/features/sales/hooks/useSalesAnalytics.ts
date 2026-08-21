@@ -22,27 +22,27 @@ interface SalesAnalytics {
     prevTotalSales: number;
     prevTotalReturns: number;
     prevNetSales: number;
-    topProducts: {
+    topProducts: Array<{
         productId: string;
         productName: string;
         quantity: number;
         revenue: number;
-    }[];
-    topCustomers: {
+    }>;
+    topCustomers: Array<{
         customerId: string;
         customerName: string;
         totalAmount: number;
         invoiceCount: number;
-    }[];
-    salesByDay: {
+    }>;
+    salesByDay: Array<{
         date: string;
         sales: number;
         returns: number;
-    }[];
-    salesByPaymentMethod: {
+    }>;
+    salesByPaymentMethod: Array<{
         method: string;
         amount: number;
-    }[];
+    }>;
 }
 
 /**
@@ -60,7 +60,9 @@ const toNum = (value: unknown): number => {
  * snake_case fields (name/total_revenue/invoice_count). We accept both
  * camelCase and snake_case so a mismatch never surfaces as `NaN`.
  */
-const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
+type RawRecord = Record<string, unknown>;
+
+const normalizeAnalytics = (raw: RawRecord | null | undefined): SalesAnalytics | null => {
     if (!raw) return null;
 
     const numberField = (name: string, snakeName?: string): number => {
@@ -68,9 +70,9 @@ const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
         return toNum(raw[name] ?? fallback);
     };
 
-    const listField = (key: string, snakeKey: string): any[] =>
-        Array.isArray(raw[key]) ? raw[key]
-        : Array.isArray(raw[snakeKey]) ? raw[snakeKey]
+    const listField = (key: string, snakeKey: string): RawRecord[] =>
+        Array.isArray(raw[key]) ? raw[key] as RawRecord[]
+        : Array.isArray(raw[snakeKey]) ? raw[snakeKey] as RawRecord[]
         : [];
 
     return {
@@ -83,27 +85,27 @@ const normalizeAnalytics = (raw: any): SalesAnalytics | null => {
         prevTotalReturns: numberField('prevTotalReturns', 'prev_total_returns'),
         prevNetSales: numberField('prevNetSales', 'prev_net_sales'),
 
-        topProducts: listField('topProducts', 'top_products').map((p: any, i: number) => ({
-            productId: p.productId ?? p.product_id ?? p.id ?? `prod-${i}`,
-            productName: p.productName ?? p.product_name ?? p.name ?? p.name_ar ?? 'غير معروف',
+        topProducts: listField('topProducts', 'top_products').map((p: RawRecord, i: number) => ({
+            productId: String(p.productId ?? p.product_id ?? p.id ?? `prod-${i}`),
+            productName: String(p.productName ?? p.product_name ?? p.name ?? p.name_ar ?? 'غير معروف'),
             quantity: toNum(p.quantity ?? p.total_quantity),
             revenue: toNum(p.revenue ?? p.total_revenue),
         })),
 
-        topCustomers: listField('topCustomers', 'top_customers').map((c: any, i: number) => ({
-            customerId: c.customerId ?? c.customer_id ?? c.id ?? `cust-${i}`,
-            customerName: c.customerName ?? c.customer_name ?? c.name ?? 'غير معروف',
+        topCustomers: listField('topCustomers', 'top_customers').map((c: RawRecord, i: number) => ({
+            customerId: String(c.customerId ?? c.customer_id ?? c.id ?? `cust-${i}`),
+            customerName: String(c.customerName ?? c.customer_name ?? c.name ?? 'غير معروف'),
             totalAmount: toNum(c.totalAmount ?? c.total_revenue ?? c.total_amount ?? c.total),
             invoiceCount: toNum(c.invoiceCount ?? c.invoice_count ?? c.invoices),
         })),
 
-        salesByDay: listField('salesByDay', 'sales_by_day').map((d: any) => ({
+        salesByDay: listField('salesByDay', 'sales_by_day').map((d: RawRecord) => ({
             date: String(d.date ?? d.label ?? ''),
             sales: toNum(d.sales ?? d.total_sales ?? d.amount),
             returns: toNum(d.returns ?? d.return_amount),
         })),
 
-        salesByPaymentMethod: listField('salesByPaymentMethod', 'sales_by_payment_method').map((m: any) => ({
+        salesByPaymentMethod: listField('salesByPaymentMethod', 'sales_by_payment_method').map((m: RawRecord) => ({
             method: String(m.method ?? m.payment_method ?? 'unknown'),
             amount: toNum(m.amount ?? m.total_amount ?? m.value),
         })),
@@ -135,7 +137,7 @@ export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
                 return null;
             }
 
-            const payload: any = {
+            const payload: { company_id: string; start_date?: string; end_date?: string } = {
                 company_id: companyId,
             };
             if (startDate) payload.start_date = startDate;
@@ -147,7 +149,11 @@ export const useSalesAnalytics = (params: SalesAnalyticsParams) => {
                 throw new Error(error.message || 'Failed to fetch sales analytics');
             }
 
-            return normalizeAnalytics(analytics);
+            // RPC يعيد Json — نضيّق النوع إلى كائن قبل التطبيع
+            const rawRecord = (analytics !== null && typeof analytics === 'object' && !Array.isArray(analytics))
+                ? analytics as unknown as RawRecord
+                : null;
+            return normalizeAnalytics(rawRecord);
         },
         enabled: !!companyId,
     });
