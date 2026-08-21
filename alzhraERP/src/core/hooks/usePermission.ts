@@ -97,20 +97,28 @@ export function usePermission(permission: string) {
     const { user } = useAuthStore();
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ['permission', permission, user?.id, user?.company_id],
+        queryKey: ['permission', permission, user?.id, user?.company_id, user?.role],
         queryFn: async () => {
             if (!user?.id) return false;
-            // Company-scoped check — see assertPermission for why.
-            const { data, error: rpcError } = await supabase
-                .rpc('has_permission', {
-                    p_permission: permission,
-                    ...(user.company_id != null ? { p_company_id: user.company_id } : {}),
-                });
-            if (rpcError) {
-                logger.warn('usePermission', `RPC error for "${permission}"`, rpcError.message);
-                return false;
+            // Owner bypass — mirrors assertPermission and legacy permission logic
+            if (user.role === 'owner') return true;
+
+            try {
+                // Company-scoped check — see assertPermission for why.
+                const { data, error: rpcError } = await supabase
+                    .rpc('has_permission', {
+                        p_permission: permission,
+                        ...(user.company_id != null ? { p_company_id: user.company_id } : {}),
+                    });
+                if (rpcError) {
+                    logger.warn('usePermission', `RPC error for "${permission}" — using client-side fallback`, rpcError.message);
+                    return offlineHasPermission(user.role, permission);
+                }
+                return (data as boolean) ?? false;
+            } catch (err) {
+                logger.warn('usePermission', `Error checking permission "${permission}" — using client-side fallback`, err);
+                return offlineHasPermission(user.role, permission);
             }
-            return (data as boolean) ?? false;
         },
         enabled: !!user?.id,
         staleTime: PERMISSION_STALE_TIME,
@@ -132,20 +140,30 @@ export function useAllPermissions() {
     const { user } = useAuthStore();
 
     const { data, isLoading } = useQuery({
-        queryKey: ['permissions', 'all', user?.id, user?.company_id],
+        queryKey: ['permissions', 'all', user?.id, user?.company_id, user?.role],
         queryFn: async () => {
             if (!user?.id) return [];
-            // ⚡ Company-scoped overload (migration 20260822000001): the
-            // no-arg get_user_permissions() returns permissions from the
-            // single `user_profiles` role snapshot across ALL companies.
-            const { data: perms, error } = user.company_id != null
-                ? await supabase.rpc('get_user_permissions', { p_company_id: user.company_id })
-                : await supabase.rpc('get_user_permissions');
-            if (error) {
-                logger.warn('useAllPermissions', 'RPC error', error.message);
-                return [];
+            if (user.role === 'owner') {
+                return OFFLINE_ROLE_PERMISSIONS.admin;
             }
-            return (perms as { permission: string }[])?.map(p => p.permission) ?? [];
+            try {
+                // ⚡ Company-scoped overload (migration 20260822000001): the
+                // no-arg get_user_permissions() returns permissions from the
+                // single `user_profiles` role snapshot across ALL companies.
+                const { data: perms, error } = user.company_id != null
+                    ? await supabase.rpc('get_user_permissions', { p_company_id: user.company_id })
+                    : await supabase.rpc('get_user_permissions');
+                if (error) {
+                    logger.warn('useAllPermissions', 'RPC error — using fallback', error.message);
+                    const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as any;
+                    return OFFLINE_ROLE_PERMISSIONS[normalized] || [];
+                }
+                return (perms as { permission: string }[])?.map(p => p.permission) ?? [];
+            } catch (err) {
+                logger.warn('useAllPermissions', 'Error — using fallback', err);
+                const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as any;
+                return OFFLINE_ROLE_PERMISSIONS[normalized] || [];
+            }
         },
         enabled: !!user?.id,
         staleTime: PERMISSION_STALE_TIME,
@@ -157,3 +175,4 @@ export function useAllPermissions() {
         isLoading,
     };
 }
+

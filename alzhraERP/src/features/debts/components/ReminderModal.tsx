@@ -141,6 +141,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, row }) =
 
   useEffect(() => {
     if (!isOpen) return;
+    setIsSent(false);
     const body = selectedTemplate?.body ?? templates?.[0]?.body ?? '';
     const prepared = debtsService.prepareReminder(row, body, {
       companyName: user?.company_name,

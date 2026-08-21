@@ -1,26 +1,21 @@
 // ============================================
-// Statement Excel Exporter
-// Professional styled Excel export for party statements
+// Statement Excel Exporter - Professional Modern Edition
+// Clean corporate design, styled cells, Arabic typography & English numerals
 // ============================================
 
-// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
-// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
-// declarations, so the resolved value is typed as `any` (same as original code).
 let xlsxPromise: Promise<any> | null = null;
 const loadXLSX = (): Promise<any> => {
   xlsxPromise ??= import('xlsx-js-style')
     .then((m: any) => m.default ?? m)
     .catch((err: unknown) => {
-      // Do not cache the rejection forever: allow the next export to retry.
       xlsxPromise = null;
       throw err;
     });
   return xlsxPromise;
 };
 
-/** Strip characters that are invalid in Windows file names before building the export path. */
+/** Strip characters that are invalid in Windows file names */
 const sanitizeFileName = (value: string): string => {
-  // Filter out control characters (U+0000–U+001F) without a control-char regex.
   const sanitized = Array.from(value)
     .filter((ch) => ch.charCodeAt(0) >= 32)
     .join('');
@@ -33,169 +28,307 @@ const sanitizeFileName = (value: string): string => {
   );
 };
 
-interface CompanyInfo {
-    name_ar: string;
-    address?: string;
-    phone?: string;
-    tax_number?: string;
-    logo_url?: string;
+export interface CompanyInfo {
+  name_ar: string;
+  address?: string;
+  phone?: string;
+  tax_number?: string;
+  commercial_reg?: string;
+  logo_url?: string;
+  bank_name?: string;
+  bank_account_iban?: string;
 }
 
-interface StatementEntry {
-    date: string;
-    operation_type?: string;
-    desc: string;
-    debit: number;
-    credit: number;
-    balance: number;
+export interface StatementEntry {
+  date: string;
+  operation_type?: string;
+  reference_no?: string;
+  desc: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface StatementExportOptions {
+  currencyCode?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  partyPhone?: string;
+  partyCategory?: string;
 }
 
 export const generateStatementExcelWorkbook = async (
-    company: CompanyInfo,
-    partyName: string,
-    entries: StatementEntry[]
+  company: CompanyInfo,
+  partyName: string,
+  entries: StatementEntry[],
+  options: StatementExportOptions = {}
 ) => {
-    const XLSX = await loadXLSX();
-    const wb = XLSX.utils.book_new();
-    const rows: any[][] = [];
+  const XLSX = await loadXLSX();
+  const wb = XLSX.utils.book_new();
+  const rows: any[][] = [];
 
-    // --- Header Section ---
-    rows.push([company.name_ar]);
-    rows.push([`${company.address || ''} | هاتف: ${company.phone || ''}`]);
-    rows.push([`الرقم الضريبي: ${company.tax_number || '---'}`]);
-    rows.push([]);
-    rows.push([`كشف حساب: ${partyName}`]);
-    rows.push([`تاريخ الاستخراج: ${new Date().toLocaleDateString('en-GB')}`]);
-    rows.push([]);
+  const currency = options.currencyCode || 'SAR';
+  const todayFormatted = new Date().toLocaleDateString('en-GB');
+  const dateRangeText = options.dateFrom && options.dateTo
+    ? `الفترة من: ${options.dateFrom} إلى: ${options.dateTo}`
+    : `حتى تاريخ: ${todayFormatted}`;
 
-    // --- Table Header ---
-    const tableHeader = ['التاريخ', 'نوع العملية', 'البيان', 'مدين (عليه)', 'دائن (له)', 'الرصيد'];
-    rows.push(tableHeader);
+  // 1. Corporate Brand Header
+  rows.push([company.name_ar || 'منظومة الزهراء المحاسبية']); // Row 0
+  rows.push(['كشف حساب مالي تفصيلي | STATEMENT OF ACCOUNT']); // Row 1
+  rows.push([
+    `${company.address ? `📍 ${company.address}  |  ` : ''}${company.phone ? `📞 هاتف: ${company.phone}  |  ` : ''}${company.tax_number ? `الرقم الضريبي: ${company.tax_number}` : ''}`
+  ]); // Row 2
+  rows.push([]); // Row 3 (Spacer)
 
-    // --- Data Rows ---
-    entries.forEach(entry => {
-        rows.push([
-            entry.date,
-            entry.operation_type || 'قيد محاسبي',
-            entry.desc,
-            Number(entry.debit) || 0,
-            Number(entry.credit) || 0,
-            Number(entry.balance) || 0
-        ]);
-    });
+  // 2. Client & Statement Metadata Card
+  rows.push([`العميل / الجهة: ${partyName}`, '', '', `العملة: ${currency}`, '', `تاريخ التقرير: ${todayFormatted}`]); // Row 4
+  rows.push([
+    options.partyPhone ? `رقم الهاتف: ${options.partyPhone}` : `التصنيف: ${options.partyCategory || 'عميل'}`,
+    '',
+    '',
+    dateRangeText,
+    '',
+    `عدد الحركات: ${entries.length}`
+  ]); // Row 5
+  rows.push([]); // Row 6 (Spacer)
 
-    // --- Footer Summary ---
-    rows.push([]);
-    const totalDebit = entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0);
-    const totalCredit = entries.reduce((sum, e) => sum + (Number(e.credit) || 0), 0);
-    const finalBalance = entries.length > 0 ? (Number(entries[entries.length - 1].balance) || 0) : 0;
+  // 3. Table Header
+  const tableHeaderIndex = rows.length; // Row 7
+  const tableHeader = [
+    'م',
+    'التاريخ',
+    'نوع الحركة / السند',
+    'رقم المرجع',
+    'البيان والتفاصيل',
+    'مدين (+)',
+    'دائن (-)',
+    `الرصيد (${currency})`
+  ];
+  rows.push(tableHeader);
 
-    rows.push(['', '', 'الإجمالي', totalDebit, totalCredit, finalBalance]);
+  // 4. Data Rows
+  let totalDebit = 0;
+  let totalCredit = 0;
 
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+  entries.forEach((entry, idx) => {
+    const debit = Number(entry.debit) || 0;
+    const credit = Number(entry.credit) || 0;
+    const balance = Number(entry.balance) || 0;
+    totalDebit += debit;
+    totalCredit += credit;
 
-    // --- Styling ---
-    ws['!cols'] = [
-        { wch: 15 }, // Date
-        { wch: 20 }, // Operation Type
-        { wch: 45 }, // Description
-        { wch: 18 }, // Debit
-        { wch: 18 }, // Credit
-        { wch: 18 }, // Balance
-    ];
+    rows.push([
+      idx + 1,
+      entry.date || '',
+      entry.operation_type || 'قيد محاسبي',
+      entry.reference_no || '—',
+      entry.desc || '—',
+      debit,
+      credit,
+      balance
+    ]);
+  });
 
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Company Name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }, // Info
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // Tax
-        { s: { r: 4, c: 0 }, e: { r: 4, c: 5 } }, // Title
-        { s: { r: 5, c: 0 }, e: { r: 5, c: 5 } }, // Export Date
-    ];
+  // 5. Total & Summary Footer
+  const finalBalance = entries.length > 0 ? (Number(entries[entries.length - 1].balance) || 0) : 0;
+  const summaryRowIndex = rows.length; // Summary Row
+  rows.push([
+    'الإجمالي العام',
+    '',
+    '',
+    '',
+    `صافي الرصيد المستحق: ${finalBalance >= 0 ? 'متبقي على العميل (مدين)' : 'متبقي للعميل (دائن)'}`,
+    totalDebit,
+    totalCredit,
+    finalBalance
+  ]);
 
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:F1');
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellRef]) continue;
+  rows.push([]); // Spacer
+  // 6. Bank & Payment Notes Footer
+  if (company.bank_name || company.bank_account_iban) {
+    rows.push([
+      `📌 تعليمات السداد البنكي: البنك: ${company.bank_name || '—'} | الآيبان (IBAN): ${company.bank_account_iban || '—'}`
+    ]);
+  }
+  rows.push(['تم استخراج هذا الكشف آلياً من منظومة الزهراء لإدارة المبيعات والمحاسبة.']);
 
-            // Default border and alignment
-            ws[cellRef].s = {
-                border: {
-                    top: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    bottom: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    left: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    right: { style: 'thin', color: { rgb: 'D3D3D3' } }
-                },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                font: { name: 'Arial', sz: 11, color: { rgb: '000000' } }
-            };
+  const ws = XLSX.utils.aoa_to_sheet(rows);
 
-            // Enforce english numerals for numbers
-            if (typeof ws[cellRef].v === 'number') {
-                ws[cellRef].z = '#,##0.00';
-            }
+  // Column Widths
+  ws['!cols'] = [
+    { wch: 6 },  // #
+    { wch: 14 }, // Date
+    { wch: 18 }, // Operation Type
+    { wch: 16 }, // Reference
+    { wch: 38 }, // Description
+    { wch: 18 }, // Debit
+    { wch: 18 }, // Credit
+    { wch: 20 }, // Balance
+  ];
 
-            // Header (Company Name)
-            if (R === 0) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 16, bold: true, color: { rgb: '1F4E78' } };
-            }
-            // Sub-headers
-            if (R >= 1 && R <= 5) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-            }
-            // Table Header styling
-            if (R === 7) {
-                ws[cellRef].s.fill = { fgColor: { rgb: '1F4E78' } };
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
-            }
-            // Footer summary
-            if (R === rows.length - 1) {
-                if (C === 2) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-                }
-                if (C >= 3) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: '1F4E78' } };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'EBF1DE' } };
-                }
-            }
-            
-            // Alternating row colors for data
-            if (R > 7 && R < rows.length - 2) {
-                if (R % 2 === 0) {
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
-                }
-            }
+  // Header Merges
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Company Name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // Statement Title
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Company Info
+    { s: { r: 4, c: 0 }, e: { r: 4, c: 2 } }, // Client Name
+    { s: { r: 4, c: 3 }, e: { r: 4, c: 4 } }, // Currency
+    { s: { r: 4, c: 5 }, e: { r: 4, c: 7 } }, // Print Date
+    { s: { r: 5, c: 0 }, e: { r: 5, c: 2 } }, // Client Phone
+    { s: { r: 5, c: 3 }, e: { r: 5, c: 4 } }, // Date Range
+    { s: { r: 5, c: 5 }, e: { r: 5, c: 7 } }, // Transaction Count
+    { s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 3 } }, // Summary Label
+  ];
+
+  const totalRowCount = rows.length;
+  if (company.bank_name || company.bank_account_iban) {
+    ws['!merges'].push({ s: { r: summaryRowIndex + 2, c: 0 }, e: { r: summaryRowIndex + 2, c: 7 } });
+    ws['!merges'].push({ s: { r: summaryRowIndex + 3, c: 0 }, e: { r: summaryRowIndex + 3, c: 7 } });
+  } else {
+    ws['!merges'].push({ s: { r: summaryRowIndex + 2, c: 0 }, e: { r: summaryRowIndex + 2, c: 7 } });
+  }
+
+  // Cell Styles
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:H1');
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[cellRef]) continue;
+
+      // Base style
+      ws[cellRef].s = {
+        border: {
+          top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+          bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+          left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+          right: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+        font: { name: 'Calibri', sz: 10, color: { rgb: '1E293B' } },
+      };
+
+      // Number formatting in English numerals
+      if (typeof ws[cellRef].v === 'number') {
+        if (C === 0) {
+          ws[cellRef].z = '0';
+        } else {
+          ws[cellRef].z = '#,##0.00';
+          ws[cellRef].s.alignment = { horizontal: 'right', vertical: 'center' };
+          ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: false, color: { rgb: '0F172A' } };
         }
+      }
+
+      // 1. Company Main Header
+      if (R === 0) {
+        ws[cellRef].s.font = { name: 'Calibri', sz: 16, bold: true, color: { rgb: 'FFFFFF' } };
+        ws[cellRef].s.fill = { fgColor: { rgb: '1E3A8A' } }; // Corporate Dark Blue
+        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+      }
+
+      // 2. Subtitle Header
+      if (R === 1) {
+        ws[cellRef].s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
+        ws[cellRef].s.fill = { fgColor: { rgb: '2563EB' } }; // Blue
+        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+      }
+
+      // 3. Company Contact Info
+      if (R === 2) {
+        ws[cellRef].s.font = { name: 'Calibri', sz: 9.5, color: { rgb: '334155' } };
+        ws[cellRef].s.fill = { fgColor: { rgb: 'F1F5F9' } };
+        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+      }
+
+      // 4. Client Metadata Card
+      if (R === 4 || R === 5) {
+        ws[cellRef].s.font = { name: 'Calibri', sz: 10, bold: true, color: { rgb: '1E293B' } };
+        ws[cellRef].s.fill = { fgColor: { rgb: 'F8FAFC' } };
+        ws[cellRef].s.alignment = { horizontal: C === 0 ? 'right' : 'center', vertical: 'center' };
+      }
+
+      // 5. Table Header Styling
+      if (R === tableHeaderIndex) {
+        ws[cellRef].s.fill = { fgColor: { rgb: '0F172A' } }; // Slate 900
+        ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } };
+        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+      }
+
+      // 6. Data Rows
+      if (R > tableHeaderIndex && R < summaryRowIndex) {
+        if (C === 4) {
+          // Description align right
+          ws[cellRef].s.alignment = { horizontal: 'right', vertical: 'center' };
+        }
+        // Balance column highlight
+        if (C === 7) {
+          ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: '1E3A8A' } };
+          ws[cellRef].s.fill = { fgColor: { rgb: 'EFF6FF' } }; // Light blue
+        }
+        // Zebra striping
+        if (R % 2 === 0 && C !== 7) {
+          ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
+        }
+      }
+
+      // 7. Summary Footer Row
+      if (R === summaryRowIndex) {
+        ws[cellRef].s.fill = { fgColor: { rgb: 'E2E8F0' } };
+        ws[cellRef].s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: '0F172A' } };
+        if (C === 7) {
+          ws[cellRef].s.fill = { fgColor: { rgb: 'DCFCE7' } }; // Light Green for final balance
+          ws[cellRef].s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: '166534' } };
+        }
+      }
+
+      // 8. Bank Notes & Bottom Footer
+      if (R > summaryRowIndex) {
+        ws[cellRef].s.font = { name: 'Calibri', sz: 9, italic: true, color: { rgb: '64748B' } };
+        ws[cellRef].s.fill = { fgColor: { rgb: 'F8FAFC' } };
+        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+      }
     }
+  }
 
-    if (!ws['!props']) ws['!props'] = {};
-    ws['!view'] = [{ RTL: true }];
+  // Enable Right-to-Left (RTL) for Arabic
+  if (!ws['!props']) ws['!props'] = {};
+  ws['!views'] = [{ rightToLeft: true }];
 
-    XLSX.utils.book_append_sheet(wb, ws, 'كشف الحساب');
-    return wb;
+  XLSX.utils.book_append_sheet(wb, ws, 'كشف الحساب المالي');
+  return wb;
 };
 
-export const exportStatementToExcel = async (company: CompanyInfo, partyName: string, data: StatementEntry[]) => {
-    try {
-        const XLSX = await loadXLSX();
-        const wb = await generateStatementExcelWorkbook(company, partyName, data);
-        const safeName = sanitizeFileName(partyName);
-        XLSX.writeFile(wb, `كشف_حساب_${safeName}_${new Date().toISOString().split('T')[0]}.xlsx`);
-    } catch {
-        // Unhandled rejections would break the caller's user-flow (import /
-        // permission / disk issues) — surface a consistent friendly message.
-        throw new Error('فشل تصدير كشف الحساب إلى Excel');
-    }
+export const exportStatementToExcel = async (
+  company: CompanyInfo,
+  partyName: string,
+  data: StatementEntry[],
+  options: StatementExportOptions = {}
+) => {
+  try {
+    const XLSX = await loadXLSX();
+    const wb = await generateStatementExcelWorkbook(company, partyName, data, options);
+    const safeName = sanitizeFileName(partyName);
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `كشف_حساب_${safeName}_${dateStr}.xlsx`);
+  } catch (err) {
+    throw new Error('فشل تصدير كشف الحساب إلى Excel');
+  }
 };
 
-export const generateStatementExcelBlob = async (company: CompanyInfo, partyName: string, data: StatementEntry[]): Promise<Blob> => {
-    try {
-        const XLSX = await loadXLSX();
-        const wb = await generateStatementExcelWorkbook(company, partyName, data);
-        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    } catch {
-        throw new Error('فشل إنشاء ملف كشف الحساب');
-    }
+export const generateStatementExcelBlob = async (
+  company: CompanyInfo,
+  partyName: string,
+  data: StatementEntry[],
+  options: StatementExportOptions = {}
+): Promise<Blob> => {
+  try {
+    const XLSX = await loadXLSX();
+    const wb = await generateStatementExcelWorkbook(company, partyName, data, options);
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    return new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+  } catch {
+    throw new Error('فشل إنشاء ملف كشف الحساب');
+  }
 };
