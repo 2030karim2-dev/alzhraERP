@@ -69,7 +69,7 @@ const ExchangeRateHistory: React.FC = () => {
     const formatTime = (dateStr: string) => {
         try {
             const date = new Date(dateStr);
-            return date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString('ar-SA-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
         } catch {
             return '';
         }

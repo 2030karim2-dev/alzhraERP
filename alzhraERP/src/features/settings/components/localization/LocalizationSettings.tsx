@@ -280,7 +280,7 @@ export const LocalizationSettings: React.FC = () => {
                             {t.number_preview || 'معاينة'}
                         </label>
                         <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300">
-                            {new Intl.NumberFormat(localization.default_language === 'ar' ? 'ar-SA' : 'en-US', {
+                            {new Intl.NumberFormat(localization.default_language === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
                                 minimumFractionDigits: localization.decimal_places,
                                 maximumFractionDigits: localization.decimal_places
                             }).format(1234567.89)}

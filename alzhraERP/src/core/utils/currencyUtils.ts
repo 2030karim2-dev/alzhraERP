@@ -94,6 +94,18 @@ export const convertFromBaseCurrency = (params: CurrencyConversionParams): numbe
 };
 
 /**
+ * تحويل أي أرقام عربية/فارسية (٠-٩، ۰-۹) إلى أرقام إنجليزية (0-9).
+ * تُستخدم كشبكة أمان نهائية لضمان ظهور جميع الأرقام بالشكل الإنجليزي
+ * حتى لو تسرّبت أرقام عربية من أي مصدر خارجي.
+ */
+export const ensureLatinDigits = (value: string | number): string => {
+    const str = String(value);
+    return str
+        .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+        .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+};
+
+/**
  * Format a number as currency with the appropriate symbol
  * Accepts both CurrencyCode and string for flexibility
  */
@@ -107,10 +119,10 @@ export const formatCurrency = (
 ): string => {
     const { minimumFractionDigits = 2, maximumFractionDigits = 2 } = options || {};
 
-    const formattedNumber = new Intl.NumberFormat('en-US', {
+    const formattedNumber = ensureLatinDigits(new Intl.NumberFormat('en-US', {
         minimumFractionDigits,
         maximumFractionDigits,
-    }).format(amount);
+    }).format(amount));
 
     const symbol = CURRENCY_SYMBOLS[currencyCode] || currencyCode;
 
@@ -122,7 +134,7 @@ export const formatCurrency = (
 };
 
 export const formatNumber = (value: number): string => {
-    return new Intl.NumberFormat('en-US').format(value);
+    return ensureLatinDigits(new Intl.NumberFormat('en-US').format(value));
 };
 
 export const parseCurrency = (currencyString: string): number => {

@@ -37,7 +37,7 @@ export const getProductColumns = ({
         {
             header: 'رقم القطعة',
             accessor: (p) => (
-                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-[11px] bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded">
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-[12px] bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded">
                     {p.part_number || '—'}
                 </span>
             ),
@@ -102,7 +102,7 @@ export const getProductColumns = ({
         },
         {
             header: 'التكلفة',
-            accessor: (p) => <span dir="ltr" className="font-mono font-bold text-gray-700 dark:text-gray-300">{formatCurrency(p.cost_price)}</span>,
+            accessor: (p) => <span dir="ltr" className="font-mono font-bold text-gray-700 dark:text-gray-300 text-[13px] md:text-sm">{formatCurrency(p.cost_price)}</span>,
             className: 'text-left',
             width: 'w-28',
             sortKey: 'cost_price',
@@ -111,7 +111,7 @@ export const getProductColumns = ({
         },
         {
             header: 'سعر البيع',
-            accessor: (p) => <span dir="ltr" className="font-mono font-bold text-blue-700 dark:text-blue-400 text-sm">{formatCurrency(p.sale_price ?? p.selling_price ?? 0)}</span>,
+            accessor: (p) => <span dir="ltr" className="font-mono font-bold text-blue-700 dark:text-blue-400 text-sm md:text-base">{formatCurrency(p.sale_price ?? p.selling_price ?? 0)}</span>,
             className: 'text-left',
             width: 'w-28',
             sortKey: 'selling_price',

@@ -46,7 +46,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
             accessor: (c) => (
                 <div className="flex items-center gap-1.5 justify-center">
                     <Package size={10} className="text-blue-500" />
-                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatNumberDisplay(c.productsCount)}</span>
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-[13px]">{formatNumberDisplay(c.productsCount)}</span>
                 </div>
             ),
             className: 'text-center',
@@ -58,7 +58,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
             accessor: (c) => (
                 <div className="flex items-center gap-1.5 justify-center">
                     <Box size={10} className="text-emerald-500" />
-                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatNumberDisplay(c.totalStock)}</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-[13px]">{formatNumberDisplay(c.totalStock)}</span>
                 </div>
             ),
             className: 'text-center',
@@ -69,8 +69,8 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
             header: 'قيمة المخزون',
             accessor: (c) => (
                 <div className="flex items-center gap-1.5 justify-end">
-                    <span dir="ltr" className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                        {Math.round(c.totalValue).toLocaleString()} ريال
+                    <span dir="ltr" className="font-mono font-bold text-slate-700 dark:text-slate-300 text-[13px]">
+                        {Math.round(c.totalValue).toLocaleString('en-US')} ريال
                     </span>
                     <BarChart3 size={10} className="text-amber-500" />
                 </div>

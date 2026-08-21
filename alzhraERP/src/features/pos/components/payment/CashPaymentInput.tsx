@@ -71,7 +71,7 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
                         <p dir="ltr" className={cn("text-2xl max-md:text-xl font-black font-mono mt-0.5",
                             change >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600"
                         )}>
-                            {change >= 0 && change.toLocaleString()} {change < 0 && '-' + Math.abs(change).toLocaleString()} {currency}
+                            {change >= 0 && change.toLocaleString('en-US')} {change < 0 && '-' + Math.abs(change).toLocaleString('en-US')} {currency}
                         </p>
                     </div>
                     {change < 0 && (

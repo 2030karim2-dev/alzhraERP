@@ -135,11 +135,11 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
                 const showBaseLine = hasForeignCurrency && rateIsNotOne && Math.abs(row.baseTotal - row.total) > 0.01;
                 return (
                     <div className="flex flex-col items-end leading-tight">
-                        <span dir="ltr" className={`font-mono font-bold ${row.type === 'sale_return' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        <span dir="ltr" className={`font-mono font-bold text-sm md:text-base ${row.type === 'sale_return' ? 'text-rose-600' : 'text-emerald-600'}`}>
                             {formatCurrency(row.total, row.currencyCode as CurrencyCode | undefined)}
                         </span>
                         {showBaseLine && (
-                            <span dir="ltr" className="text-[10px] font-bold text-blue-500 mt-0.5">
+                            <span dir="ltr" className="text-xs font-bold text-blue-500 mt-0.5">
                                 ≈ {formatCurrency(row.baseTotal)}
                             </span>
                         )}

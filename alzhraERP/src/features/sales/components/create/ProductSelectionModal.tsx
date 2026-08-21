@@ -97,8 +97,10 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    // --- Column Resizing Logic ---
+    // --- Column Resizing Logic (rAF ناعمة 60fps) ---
     const resizingRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
+    const rafRef = useRef<number | null>(null);
+    const lastDeltaRef = useRef(0);
 
     const onMouseDown = (e: React.MouseEvent, id: string, currentWidth: number) => {
         resizingRef.current = { id, startX: e.pageX, startWidth: currentWidth };
@@ -112,13 +114,24 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
 
     const onMouseMove = useCallback((e: MouseEvent) => {
         if (!resizingRef.current) return;
-        const { id, startX, startWidth } = resizingRef.current;
-        const delta = e.pageX - startX;
-        const newWidth = Math.max(30, startWidth + (document.dir === 'rtl' ? -delta : delta));
-        setColumnWidth(id, newWidth);
+        lastDeltaRef.current = e.pageX - resizingRef.current.startX;
+        // دمج التحديثات بإطار رسم واحد → سلاسة أثناء السحب
+        if (rafRef.current !== null) return;
+        rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
+            const ref = resizingRef.current;
+            if (!ref) return;
+            const delta = lastDeltaRef.current;
+            const newWidth = Math.max(30, Math.round(ref.startWidth + (document.dir === 'rtl' ? -delta : delta)));
+            setColumnWidth(ref.id, newWidth);
+        });
     }, [setColumnWidth]);
 
     const onMouseUp = useCallback(() => {
+        if (rafRef.current !== null) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+        }
         resizingRef.current = null;
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
@@ -128,6 +141,7 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
 
     useEffect(() => {
         return () => {
+            if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         };
@@ -144,8 +158,8 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
     const renderCellContent = (col: ColumnConfig, p: Product, idx: number) => {
         switch (col.id) {
             case 'index': return <span className="opacity-50 font-mono">{idx + 1}</span>;
-            case 'name': return <span className="font-bold truncate block">{p.name}</span>;
-            case 'part_number': return <span className="font-mono font-bold text-gray-700 dark:text-gray-300 truncate block" dir="ltr">{p.part_number || p.alternative_numbers || '---'}</span>;
+            case 'name': return <span className="font-bold truncate block text-sm">{p.name}</span>;
+            case 'part_number': return <span className="font-mono font-bold text-gray-700 dark:text-gray-300 truncate block text-sm" dir="ltr">{p.part_number || p.alternative_numbers || '---'}</span>;
             case 'brand': return <span className="font-bold opacity-60 truncate block">{p.brand || '---'}</span>;
             case 'branch': {
                 const branchStock = p.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId) || p.warehouse_distribution?.[0];
@@ -154,10 +168,10 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
             case 'stock': {
                 const qty = p.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ?? p.stock_quantity;
                 const isLow = qty <= p.min_stock_level;
-                return <span className={`font-black font-mono ${isLow ? 'text-red-500' : ''}`}>{qty}</span>;
+                return <span className={`font-black font-mono text-sm ${isLow ? 'text-red-500' : ''}`}>{qty}</span>;
             }
             case 'price': return (
-                <span className="font-black font-mono text-emerald-600 group-hover:text-white">
+                <span className="font-black font-mono text-emerald-600 group-hover:text-white text-sm">
                     {mode === 'sale' ? (p.selling_price || p.sale_price) : p.cost_price}
                 </span>
             );

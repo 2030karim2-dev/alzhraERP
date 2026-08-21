@@ -67,7 +67,7 @@ const TrialBalanceView: React.FC = () => {
           <div>
             <h4 className="font-bold text-sm sm:text-lg text-slate-800 dark:text-white tracking-tight">{isBalanced ? 'الميزان متزن حاسوبياً' : 'يوجد تباين في مراجعة الميزان'}</h4>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
-              {isBalanced ? 'تطابق تام بين الحركات المدينة والدائنة' : `فارق مالي قدره ${diff.toLocaleString()} ريال`}
+              {isBalanced ? 'تطابق تام بين الحركات المدينة والدائنة' : `فارق مالي قدره ${diff.toLocaleString('en-US')} ريال`}
             </p>
           </div>
         </div>

@@ -109,7 +109,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                             </span>
                         </div>
                         <span className="text-xs font-black font-mono text-blue-700 dark:text-blue-300">
-                            {data.totalSales.toLocaleString()}
+                            {data.totalSales.toLocaleString('en-US')}
                         </span>
                     </div>
 
@@ -122,7 +122,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                             </span>
                         </div>
                         <span className="text-xs font-black font-mono text-indigo-700 dark:text-indigo-300">
-                            {data.totalPurchases.toLocaleString()}
+                            {data.totalPurchases.toLocaleString('en-US')}
                         </span>
                     </div>
 
@@ -140,7 +140,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                             </span>
                         </div>
                         <span className={`text-xs font-black font-mono ${data.profit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
-                            {data.profit >= 0 ? '+' : ''}{data.profit.toLocaleString()}
+                            {data.profit >= 0 ? '+' : ''}{data.profit.toLocaleString('en-US')}
                         </span>
                     </div>
                 </div>

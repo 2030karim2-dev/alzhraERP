@@ -68,7 +68,7 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
                         <div className="text-center min-w-0">
                             <span className="text-[6px] font-bold text-gray-400 uppercase block mb-0.5">القيمة</span>
                             <span dir="ltr" className="text-[9px] font-bold text-gray-600 dark:text-gray-300 font-mono truncate block leading-none">
-                                {Math.round(cat.totalValue || 0).toLocaleString()}
+                                {Math.round(cat.totalValue || 0).toLocaleString('en-US')}
                             </span>
                         </div>
                     </div>

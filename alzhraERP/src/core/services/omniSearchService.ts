@@ -74,7 +74,7 @@ export const searchAll = async (
       return {
         id: `product-${p.id as string}`, type: 'product' as const,
         title: (p.name_ar as string) || '',
-        subtitle: `${p.sku || p.part_number || ''} • ${p.sale_price ? Number(p.sale_price).toLocaleString() : '0'} ريال`,
+        subtitle: `${p.sku || p.part_number || ''} • ${p.sale_price ? Number(p.sale_price).toLocaleString('en-US') : '0'} ريال`,
         path: `/inventory?search=${encodeURIComponent((p.sku as string) || (p.name_ar as string) || '')}`,
         score: 100 - i, icon: 'package' as const,
       };
@@ -99,7 +99,7 @@ export const searchAll = async (
       return {
         id: `invoice-${inv.id as string}`, type: 'invoice' as const,
         title: `فاتورة ${inv.invoice_number as string || ''}`,
-        subtitle: `${party?.name || ''} • ${Number(inv.total_amount || 0).toLocaleString()} ريال`,
+        subtitle: `${party?.name || ''} • ${Number(inv.total_amount || 0).toLocaleString('en-US')} ريال`,
         path: `/sales?id=${inv.id as string}`, score: 80 - i, icon: 'receipt' as const,
       };
     });
@@ -110,7 +110,7 @@ export const searchAll = async (
       return {
         id: `journal-${j.id as string}`, type: 'journal' as const,
         title: j.description as string || '',
-        subtitle: j.entry_date ? new Date(j.entry_date as string).toLocaleDateString('ar') : '',
+        subtitle: j.entry_date ? new Date(j.entry_date as string).toLocaleDateString('ar-SA-u-nu-latn') : '',
         path: `/accounting?id=${j.id as string}`, score: 70 - i, icon: 'file-text' as const,
       };
     });

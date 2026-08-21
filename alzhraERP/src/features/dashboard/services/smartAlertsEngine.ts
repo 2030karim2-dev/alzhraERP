@@ -104,7 +104,7 @@ export const evaluateRule = async (
       if (data.highDebtCustomers && data.highDebtCustomers >= rule.threshold) {
         triggered = true;
         count = data.highDebtCustomers;
-        message = `يوجد ${count} عملاء تجاوزت مديونيتهم ${rule.threshold.toLocaleString()} ريال`;
+        message = `يوجد ${count} عملاء تجاوزت مديونيتهم ${rule.threshold.toLocaleString('en-US')} ريال`;
         link = '/reports?tab=debt_report';
       }
       break;

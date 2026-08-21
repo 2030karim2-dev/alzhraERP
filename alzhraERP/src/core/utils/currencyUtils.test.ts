@@ -5,6 +5,7 @@ import {
     convertCurrency,
     toBaseCurrency,
     formatCurrency,
+    ensureLatinDigits,
     CurrencyError,
     CURRENCY_SYMBOLS,
     type CurrencyConversionParams,
@@ -236,6 +237,33 @@ describe('currencyUtils', () => {
 
         it('should have YER symbol', () => {
             expect(CURRENCY_SYMBOLS.YER).toBe('ر.ي');
+        });
+    });
+
+    describe('ensureLatinDigits (English digits everywhere)', () => {
+        it('leaves Latin digits untouched', () => {
+            expect(ensureLatinDigits(12345)).toBe('12345');
+            expect(ensureLatinDigits('1,234.56')).toBe('1,234.56');
+        });
+
+        it('converts Arabic-Indic digits (٠-٩) to English', () => {
+            expect(ensureLatinDigits('١٢٣٤٥')).toBe('12345');
+            expect(ensureLatinDigits('٠')).toBe('0');
+            expect(ensureLatinDigits('٩٩٩')).toBe('999');
+        });
+
+        it('converts Persian digits (۰-۹) to English', () => {
+            expect(ensureLatinDigits('۱۲۳۴')).toBe('1234');
+        });
+
+        it('converts digits inside mixed Arabic text', () => {
+            expect(ensureLatinDigits('سعر ١٠٠٠ ريال')).toBe('سعر 1000 ريال');
+        });
+
+        it('is applied by formatCurrency and formatNumberDisplay', () => {
+            // حتى لو دخلت أرقام عربية من مصدر خارجي يبقى الناتج إنجليزياً
+            expect(formatCurrency(1234.5, 'SAR')).toMatch(/[0-9]/);
+            expect(formatCurrency(1234.5, 'SAR')).not.toMatch(/[٠-٩]/);
         });
     });
 });

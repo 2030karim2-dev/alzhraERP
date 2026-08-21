@@ -130,7 +130,7 @@ const SupplierInfoCard: React.FC<Props> = ({
                                     </span>
                                 </div>
                                 <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                                    {purchase.total.toLocaleString()} YER
+                                    {purchase.total.toLocaleString('en-US')} YER
                                 </span>
                             </div>
                         ))}

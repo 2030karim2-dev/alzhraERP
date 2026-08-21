@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ensureLatinDigits } from "./utils/currencyUtils";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,6 +12,7 @@ export const GLOBAL_CURRENCY_SYMBOL = 'ر.س';
 export {
   formatCurrency,
   formatNumber,
+  ensureLatinDigits,
   CURRENCY_SYMBOLS,
   toBaseCurrency,
   sumInBaseCurrency,
@@ -20,5 +22,5 @@ export {
 
 export function formatNumberDisplay(value: number): string {
   // Format non-currency numbers to English digits
-  return new Intl.NumberFormat('en-US').format(value);
+  return ensureLatinDigits(new Intl.NumberFormat('en-US').format(value));
 }

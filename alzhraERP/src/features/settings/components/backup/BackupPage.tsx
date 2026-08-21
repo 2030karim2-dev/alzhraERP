@@ -53,7 +53,7 @@ const BackupPage: React.FC = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-md:gap-4 mt-8">
                             <div className="bg-white/5 backdrop-blur-md p-4 max-md:p-4 rounded-3xl border border-white/10 group hover:border-blue-500/30 transition-colors">
                                 <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">إجمالي السجلات</span>
-                                <span dir="ltr" className="text-2xl max-md:text-lg font-bold font-mono text-blue-400 leading-none">{stats.totalRecords.toLocaleString()}</span>
+                                <span dir="ltr" className="text-2xl max-md:text-lg font-bold font-mono text-blue-400 leading-none">{stats.totalRecords.toLocaleString('en-US')}</span>
                             </div>
                             <div className="bg-white/5 backdrop-blur-md p-4 max-md:p-4 rounded-3xl border border-white/10 group hover:border-blue-500/30 transition-colors">
                                 <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">آخر فحص للنظام</span>

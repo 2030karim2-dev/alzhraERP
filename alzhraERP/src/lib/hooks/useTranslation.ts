@@ -21,7 +21,8 @@ export const useTranslation = () => {
   };
 
   const formatDate = (date: string | Date): string => {
-    const locale = lang === 'ar' ? 'ar-SA' : 'en-US';
+    // `-u-nu-latn` يضمن أرقاماً إنجليزية حتى مع التوطين العربي (أسماء شهور عربية + أرقام إنجليزية)
+    const locale = lang === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US';
     return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',

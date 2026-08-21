@@ -4,7 +4,7 @@ export const formatBalance = (balance: number | undefined): string => {
     const abs = Math.abs(balance);
     if (abs >= 1_000_000) return `${(balance / 1_000_000).toFixed(1)}M`;
     if (abs >= 1_000) return `${(balance / 1_000).toFixed(1)}K`;
-    return balance.toLocaleString();
+    return balance.toLocaleString('en-US');
 };
 
 /** Quick-amount chips for cash payment (frozen so consumers cannot mutate shared state). */

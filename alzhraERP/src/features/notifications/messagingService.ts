@@ -65,7 +65,7 @@ export const messagingService = {
 ━━━━━━━━━━━━━━
 🔗 نظام الزهراء سمارت ERP
 📅 ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}
-⏰ ${new Date().toLocaleTimeString('ar-SA')}`;
+⏰ ${new Date().toLocaleTimeString('ar-SA-u-nu-latn')}`;
 
         return await messagingApi.sendNotification(companyId, 'test', testMessage);
     },
