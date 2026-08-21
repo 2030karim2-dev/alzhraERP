@@ -93,18 +93,18 @@ export const RiskMetricsGrid: React.FC<RiskMetricsGridProps> = ({ analysis, row 
       </div>
 
       {/* Outstanding Balance */}
-      <div className="p-4 rounded-2xl border border-gray-200/80 dark:border-slate-800 bg-gray-50/60 dark:bg-slate-950/40 flex flex-col justify-between">
+      <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             الرصيد القائم
           </span>
-          <Layers size={18} className="text-gray-400" />
+          <Layers size={18} className="text-slate-400" />
         </div>
         <div className="mt-2">
-          <span className="text-lg font-black font-mono text-gray-900 dark:text-slate-100">
+          <span className="text-lg font-bold font-mono text-slate-900 dark:text-slate-100">
             {formatCurrency(Number(row.outstanding_balance), row.currency_code)}
           </span>
-          <span className="block text-[10px] text-orange-600 dark:text-orange-400 mt-0.5 font-bold">
+          <span className="block text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 font-bold">
             متأخر منذ {row.days_overdue} يوم
           </span>
         </div>

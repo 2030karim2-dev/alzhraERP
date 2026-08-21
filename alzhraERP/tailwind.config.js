@@ -47,6 +47,7 @@ export default {
         brand: {
           dark: '#111827',
           blue: '#0ea5e9',
+          navy: '#1F4E78',
         },
       },
       maxWidth: {

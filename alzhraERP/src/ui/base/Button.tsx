@@ -37,9 +37,9 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   const sizes = {
-    sm: "px-3 py-1.5 text-xs gap-1.5 min-h-[32px]",
-    md: "px-4 py-2 text-sm gap-2 min-h-[44px]",
-    lg: "px-6 py-3 text-sm gap-3 min-h-[52px]",
+    sm: "px-3 py-1.5 text-xs gap-1.5 min-h-[30px] max-md:min-h-[26px] max-md:px-2.5 max-md:py-1",
+    md: "px-4 py-2 text-sm gap-2 min-h-[42px] max-md:min-h-[34px] max-md:px-3 max-md:py-1.5",
+    lg: "px-6 py-3 text-sm gap-3 min-h-[50px] max-md:min-h-[40px] max-md:px-4 max-md:py-2",
   };
 
   return (

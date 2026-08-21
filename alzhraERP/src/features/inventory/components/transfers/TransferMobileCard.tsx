@@ -56,29 +56,29 @@ export const TransferMobileCard: React.FC<TransferMobileCardProps> = ({ transfer
       <div className="p-3 space-y-2">
         {/* Warehouses */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex-1 text-center bg-rose-50/50 dark:bg-rose-900/10 rounded-lg py-2 px-2">
-            <p className="text-[8px] font-bold text-rose-400 uppercase mb-0.5">من</p>
-            <p className="text-[11px] font-black text-rose-700 dark:text-rose-300 truncate">
+          <div className="flex-1 text-center bg-rose-50/50 dark:bg-rose-950/20 rounded-lg py-2 px-2 border border-rose-100 dark:border-rose-900/30">
+            <p className="text-[9px] font-bold text-rose-500 uppercase mb-0.5">من</p>
+            <p className="text-xs font-bold text-rose-700 dark:text-rose-300 truncate">
               {t.from_warehouse?.name_ar || t.from_warehouse_name || '-'}
             </p>
           </div>
-          <ArrowLeftRight size={14} className="text-gray-300 dark:text-slate-600 shrink-0" />
-          <div className="flex-1 text-center bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg py-2 px-2">
-            <p className="text-[8px] font-bold text-emerald-400 uppercase mb-0.5">إلى</p>
-            <p className="text-[11px] font-black text-emerald-700 dark:text-emerald-300 truncate">
+          <ArrowLeftRight size={14} className="text-slate-400 dark:text-slate-600 shrink-0" />
+          <div className="flex-1 text-center bg-emerald-50/50 dark:bg-emerald-950/20 rounded-lg py-2 px-2 border border-emerald-100 dark:border-emerald-900/30">
+            <p className="text-[9px] font-bold text-emerald-500 uppercase mb-0.5">إلى</p>
+            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 truncate">
               {t.to_warehouse?.name_ar || t.to_warehouse_name || '-'}
             </p>
           </div>
         </div>
 
         {/* Meta */}
-        <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1.5">
-            <Package size={11} className="text-indigo-500" />
+            <Package size={12} className="text-indigo-500" />
             <span className="font-bold">{t.item_count || 0} أصناف</span>
           </span>
           <span className="flex items-center gap-1.5 font-mono">
-            <Clock size={11} className="text-gray-400" />
+            <Clock size={12} className="text-slate-400" />
             {new Date(t.created_at).toLocaleDateString('ar-SA-u-nu-latn', {
               month: 'short',
               day: 'numeric',
@@ -90,18 +90,18 @@ export const TransferMobileCard: React.FC<TransferMobileCardProps> = ({ transfer
 
         {/* First 2 items preview */}
         {(t.items || []).length > 0 && (
-          <div className="pt-2 border-t dark:border-slate-800">
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex flex-wrap gap-1.5">
               {(t.items || []).slice(0, 2).map((i: TransferItemRow, idx: number) => (
                 <span
                   key={idx}
-                  className="text-[9px] font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded-full truncate max-w-[45%]"
+                  className="text-[10px] font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full truncate max-w-[45%]"
                 >
                   {i.product?.name_ar || i.product?.sku || 'صنف'}
                 </span>
               ))}
               {(t.items || []).length > 2 && (
-                <span className="text-[9px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-full">
+                <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">
                   +{(t.items || []).length - 2} أخرى
                 </span>
               )}

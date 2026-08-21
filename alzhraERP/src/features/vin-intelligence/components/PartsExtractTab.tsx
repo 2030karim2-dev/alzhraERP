@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PackagePlus, Search, Plus, Sparkles, Trash2, Copy, RefreshCw, Car, Check, Layers } from 'lucide-react';
-import Card from '../../../ui/base/Card';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { cn } from '../../../core/utils';
@@ -200,32 +199,32 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   if (!hasVehicle || !vehicle) {
     return (
-      <Card isMicro className="text-center py-10">
-        <PackagePlus size={28} className="text-indigo-600 opacity-50 mx-auto mb-2" />
-        <h3 className="text-[12px] font-black text-[var(--app-text)] mb-1">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center py-12 p-5 shadow-sm">
+        <PackagePlus size={32} className="text-indigo-600 dark:text-indigo-400 opacity-60 mx-auto mb-3" />
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">
           لم يتم تحديد السيارة بعد
         </h3>
-        <p className="text-[10px] text-[var(--app-text-secondary)] max-w-md mx-auto">
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
           يرجى فك رقم الشاصي (VIN) أو إدخال بيانات ومواصفات السيارة في تبويب «فك الشاصي» لتتمكن من إضافة القطع والتسمية التلقائية.
         </p>
-      </Card>
+      </div>
     );
   }
 
   const allSelected = rows.length > 0 && rows.every((r) => r.selected);
 
   return (
-    <div className="space-y-2 font-cairo">
+    <div className="space-y-4 font-cairo">
       {/* ── Active Vehicle Context Banner ── */}
-      <Card isMicro className="bg-indigo-50/70 border-indigo-200">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-indigo-600 text-white rounded-lg">
-              <Car size={16} />
+      <div className="bg-gradient-to-r from-indigo-50/90 to-blue-50/90 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-sm">
+              <Car size={20} />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-indigo-700">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
-              <h4 className="text-[12px] font-black text-indigo-950">
+              <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
+              <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-100 mt-0.5">
                 {vehicle.make} {vehicle.model ?? ''}{' '}
                 {vehicle.yearStart && vehicle.yearEnd ? `(${vehicle.yearStart}-${vehicle.yearEnd})` : vehicle.year ? `(${vehicle.year})` : ''}{' '}
                 {vehicle.market ? `[${vehicle.market}]` : ''}{' '}
@@ -235,46 +234,46 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
               onClick={regenerateAllNames}
-              className="bg-white border-indigo-300 text-indigo-800 text-[9px] font-bold hover:bg-indigo-100"
+              className="bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-200 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/40 rounded-lg shadow-sm"
               title="إعادة صياغة أسماء جميع القطع بالجدول بناءً على مواصفات هذه السيارة"
             >
-              <Sparkles size={11} className="ml-1 text-indigo-600" />
+              <Sparkles size={13} className="ml-1 text-indigo-600 dark:text-indigo-400" />
               تحديث الأسماء الذكية
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Success Notification Alert */}
       {lastAddedCount !== null && (
-        <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-2 text-emerald-900 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3 text-emerald-900 dark:text-emerald-200 animate-in fade-in duration-200 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
               ✓
             </div>
-            <p className="text-[11px] font-black">
-              تم بنجاح إضافة وتحديث <span className="underline decoration-2">{lastAddedCount}</span> قطعة في المخزون وشبكة التوافق لهذه المركبة!
+            <p className="text-xs font-bold">
+              تم بنجاح إضافة وتحديث <span className="underline decoration-2 font-bold">{lastAddedCount}</span> قطعة في المخزون وشبكة التوافق لهذه المركبة!
             </p>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {onNavigateToInventory && (
               <Button
                 size="sm"
                 variant="success"
                 onClick={onNavigateToInventory}
-                className="text-[9px] font-black px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800"
+                className="text-xs font-bold px-3 py-1 bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm"
               >
                 عرض في المخزون المتطابق →
               </Button>
             )}
             <button
               onClick={() => { setLastAddedCount(null); }}
-              className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-1.5"
+              className="text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 text-xs font-bold px-2"
             >
               ✕
             </button>
@@ -283,13 +282,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       )}
 
       {/* ── Search & Add Controls ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Quick OEM search from Megazip */}
-        <Card isMicro>
-          <div className="flex items-end gap-1.5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-end gap-2">
             <div className="flex-1">
               <Input
-                variant="micro"
                 label="بحث OEM من الكتالوج (Megazip)"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); }}
@@ -303,39 +301,38 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               onClick={handleSearchMegazip}
               isLoading={isSearching}
               disabled={searchQuery.trim().length < 3}
+              className="rounded-lg"
             >
-              <Search size={13} className="ml-1" /> بحث واستخراج
+              <Search size={14} className="ml-1" /> بحث واستخراج
             </Button>
           </div>
-        </Card>
+        </div>
 
         {/* Quick Row insertion actions */}
-        <Card isMicro>
-          <div className="flex flex-wrap items-center justify-between h-full gap-1">
-            <div className="flex flex-wrap gap-1">
-              <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-[10px]">
-                <Plus size={13} className="ml-1" /> سطر جديد
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-[10px]">
-                <Layers size={13} className="ml-1" /> +5 أسطر
-              </Button>
-            </div>
-            <span className="text-[9px] text-[var(--app-text-secondary)] font-bold">
-              إجمالي الأسطر: {rows.length}
-            </span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-xs rounded-lg shadow-sm">
+              <Plus size={14} className="ml-1" /> سطر جديد
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-xs rounded-lg">
+              <Layers size={14} className="ml-1" /> +5 أسطر
+            </Button>
           </div>
-        </Card>
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+            إجمالي الأسطر: {rows.length}
+          </span>
+        </div>
       </div>
 
       {/* ── Quick Templates Chips ── */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar">
-        <span className="text-[9px] font-black text-[var(--app-text-secondary)] shrink-0">إضافة سريعة:</span>
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 custom-scrollbar">
+        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">إضافة سريعة:</span>
         {QUICK_PARTS_TEMPLATES.map((tmpl) => (
           <button
             key={tmpl.base}
             type="button"
             onClick={() => { addRow(tmpl); }}
-            className="shrink-0 px-2 py-0.5 text-[9px] font-bold rounded-full bg-[var(--app-bg-surface)] border border-[var(--app-border)] hover:border-indigo-500 hover:text-indigo-600 transition-colors"
+            className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-sm"
           >
             + {tmpl.base}
           </button>
@@ -343,12 +340,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       </div>
 
       {/* ── Professional Excel Grid Table ── */}
-      <div className="border border-[var(--app-border)] rounded-lg overflow-hidden bg-[var(--app-surface)] shadow-sm">
+      <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
         <div className="overflow-x-auto max-h-[520px] custom-scrollbar">
-          <table className="w-full text-right border-collapse text-[10px]">
-            <thead className="bg-slate-100 text-slate-700 font-black sticky top-0 z-10 border-b border-[var(--app-border)] select-none">
+          <table className="w-full text-right border-collapse text-xs">
+            <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 select-none">
               <tr>
-                <th className="p-1.5 text-center w-8">
+                <th className="p-2.5 text-center w-9">
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -356,26 +353,26 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                     className="rounded text-indigo-600 focus:ring-indigo-500"
                   />
                 </th>
-                <th className="p-1.5 w-10 text-center text-slate-500">#</th>
-                <th className="p-1.5 min-w-[130px]">رقم القطعة (OEM / Part No)</th>
-                <th className="p-1.5 min-w-[120px]">نوع القطعة (الأولي)</th>
-                <th className="p-1.5 min-w-[240px]">
-                  <div className="flex items-center gap-1">
-                    <Sparkles size={11} className="text-indigo-600" />
+                <th className="p-2.5 w-10 text-center text-slate-400">#</th>
+                <th className="p-2.5 min-w-[130px]">رقم القطعة (OEM / Part No)</th>
+                <th className="p-2.5 min-w-[120px]">نوع القطعة (الأولي)</th>
+                <th className="p-2.5 min-w-[240px]">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-indigo-600 dark:text-indigo-400" />
                     <span>اسم المنتج المكتمل (تلقائي / ذكي)</span>
                   </div>
                 </th>
-                <th className="p-1.5 min-w-[100px]">الشركة الصانعة</th>
-                <th className="p-1.5 min-w-[110px]">المقاس / المواصفات</th>
-                <th className="p-1.5 min-w-[85px] text-center">سعر الشراء</th>
-                <th className="p-1.5 min-w-[85px] text-center">سعر البيع</th>
-                <th className="p-1.5 w-16 text-center">إجراءات</th>
+                <th className="p-2.5 min-w-[100px]">الشركة الصانعة</th>
+                <th className="p-2.5 min-w-[110px]">المقاس / المواصفات</th>
+                <th className="p-2.5 min-w-[85px] text-center">سعر الشراء</th>
+                <th className="p-2.5 min-w-[85px] text-center">سعر البيع</th>
+                <th className="p-2.5 w-16 text-center">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--app-border)]">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-[var(--app-text-secondary)]">
+                  <td colSpan={10} className="p-8 text-center text-slate-400">
                     لا توجد أسطر حالياً. انقر على «سطر جديد» للبدء.
                   </td>
                 </tr>
@@ -384,12 +381,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                   <tr
                     key={row._id}
                     className={cn(
-                      'hover:bg-indigo-50/40 transition-colors group',
-                      row.selected ? 'bg-indigo-50/20' : 'bg-[var(--app-bg)]'
+                      'hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 transition-colors group',
+                      row.selected ? 'bg-indigo-50/30 dark:bg-indigo-950/30' : 'bg-white dark:bg-slate-900'
                     )}
                   >
                     {/* Select Checkbox */}
-                    <td className="p-1 text-center">
+                    <td className="p-2 text-center">
                       <input
                         type="checkbox"
                         checked={!!row.selected}
@@ -399,41 +396,41 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                     </td>
 
                     {/* Row Index */}
-                    <td className="p-1 text-center font-mono text-[9px] text-slate-500 font-bold">
+                    <td className="p-2 text-center font-mono text-xs text-slate-400 font-bold">
                       {idx + 1}
                     </td>
 
                     {/* Part Number Input */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="text"
                         value={row.partNumber}
                         onChange={(e) => { updateRow(row._id, { partNumber: e.target.value }); }}
                         placeholder="90919-01164"
-                        className="w-full px-2 py-1 font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
+                        className="w-full px-2.5 py-1.5 font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
 
                     {/* Base Name / Category Input */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="text"
                         value={row.baseName}
                         onChange={(e) => { updateRow(row._id, { baseName: e.target.value }); }}
                         placeholder="مثال: بلاكات، فحمات"
-                        className="w-full px-2 py-1 font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
+                        className="w-full px-2.5 py-1.5 font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
 
                     {/* Auto-Completed Smart Product Name */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <div className="relative flex items-center">
                         <input
                           type="text"
                           value={row.description}
                           onChange={(e) => { updateRow(row._id, { description: e.target.value }); }}
                           placeholder="الاسم التلقائي المكتمل للمنتج"
-                          className="w-full px-2 py-1 font-bold text-[10px] text-indigo-950 bg-indigo-50/40 border border-indigo-200 rounded focus:outline-none focus:border-indigo-600 focus:bg-white"
+                          className="w-full px-2.5 py-1.5 font-bold text-xs text-indigo-950 dark:text-indigo-200 bg-indigo-50/40 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
                         />
                         <button
                           type="button"
@@ -444,38 +441,38 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                               });
                             }
                           }}
-                          className="absolute left-1.5 p-0.5 text-indigo-500 hover:text-indigo-800 transition-colors"
+                          className="absolute left-2 p-1 text-indigo-500 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                           title="إعادة صياغة الاسم الذكي تلقائياً"
                         >
-                          <RefreshCw size={10} />
+                          <RefreshCw size={12} />
                         </button>
                       </div>
                     </td>
 
                     {/* Manufacturer / Brand */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="text"
                         value={row.manufacturer || ''}
                         onChange={(e) => { updateRow(row._id, { manufacturer: e.target.value }); }}
                         placeholder="DENSO / TOYOTA"
-                        className="w-full px-2 py-1 font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
+                        className="w-full px-2.5 py-1.5 font-medium text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
 
                     {/* Size & Specification */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="text"
                         value={row.sizeSpec || ''}
                         onChange={(e) => { updateRow(row._id, { sizeSpec: e.target.value }); }}
                         placeholder="المقاس / المواصفات"
-                        className="w-full px-2 py-1 text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
 
                     {/* Purchase Price */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="number"
                         min="0"
@@ -483,12 +480,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         value={row.purchasePrice || ''}
                         onChange={(e) => { updateRow(row._id, { purchasePrice: parseFloat(e.target.value) || 0 }); }}
                         placeholder="0.00"
-                        className="w-full px-1.5 py-1 text-center font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500 text-emerald-700"
+                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-emerald-600 dark:text-emerald-400"
                       />
                     </td>
 
                     {/* Sale Price */}
-                    <td className="p-1">
+                    <td className="p-1.5">
                       <input
                         type="number"
                         min="0"
@@ -496,28 +493,28 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         value={row.salePrice || ''}
                         onChange={(e) => { updateRow(row._id, { salePrice: parseFloat(e.target.value) || 0 }); }}
                         placeholder="0.00"
-                        className="w-full px-1.5 py-1 text-center font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500 text-blue-700"
+                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-blue-600 dark:text-blue-400"
                       />
                     </td>
 
                     {/* Actions (Delete, Duplicate) */}
-                    <td className="p-1 text-center">
+                    <td className="p-1.5 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => { duplicateRow(row._id); }}
-                          className="p-1 text-slate-500 hover:text-indigo-600 rounded hover:bg-slate-200/50"
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title="تكرار السطر"
                         >
-                          <Copy size={11} />
+                          <Copy size={13} />
                         </button>
                         <button
                           type="button"
                           onClick={() => { deleteRow(row._id); }}
-                          className="p-1 text-rose-500 hover:text-rose-700 rounded hover:bg-rose-100/50"
+                          className="p-1.5 text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                           title="حذف السطر"
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </td>
@@ -529,30 +526,30 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         </div>
 
         {/* ── Grid Footer & Batch Commit ── */}
-        <div className="p-2.5 bg-slate-50 border-t border-[var(--app-border)] flex flex-wrap items-center justify-between gap-2">
+        <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
-              تم تحديد <strong className="text-indigo-700">{selectedRows.length}</strong> من أصل {rows.length} قطعة
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              تم تحديد <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedRows.length}</strong> من أصل {rows.length} قطعة
             </span>
-            <Button size="sm" variant="outline" onClick={() => { addRow(); }} className="text-[9px] font-bold">
-              <Plus size={10} className="ml-1" /> إضافة سطر
+            <Button size="sm" variant="outline" onClick={() => { addRow(); }} className="text-xs font-bold rounded-lg">
+              <Plus size={12} className="ml-1" /> إضافة سطر
             </Button>
           </div>
 
           {canAdd === false ? (
-            <p className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            <p className="text-xs text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
               تتطلب إضافة القطع للمخزون صلاحية مدير أو مسؤول
             </p>
           ) : (
             <Button
-              size="sm"
+              size="md"
               variant="success"
               onClick={handleSaveToInventory}
               isLoading={isAdding}
               disabled={selectedRows.length === 0}
-              className="font-black px-4 bg-emerald-600 hover:bg-emerald-700"
+              className="font-bold px-5 bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md shadow-emerald-500/10"
             >
-              <Check size={14} className="ml-1" /> حفظ وإضافة القطع المحددة ({selectedRows.length}) للمخزون
+              <Check size={16} className="ml-1.5" /> حفظ وإضافة القطع المحددة ({selectedRows.length}) للمخزون
             </Button>
           )}
         </div>

@@ -21,6 +21,14 @@
     --scale: 1;
   }
 
+  /* ⚡ Mobile Compact: -20% scaling for screens < 768px */
+  @media (max-width: 767px) {
+    :root {
+      --scale: 0.8;
+      --radius: 0.4rem;
+    }
+  }
+
   /* Dark mode overrides */
   .dark {
     --app-bg: #020617;
@@ -34,8 +42,8 @@
 
   html {
     scrollbar-gutter: stable;
-    /* Stepped responsive typography — more predictable than clamp */
-    font-size: 14px;
+    /* Stepped responsive typography: Mobile is 20% more compact (11.5px) */
+    font-size: 11.5px;
   }
 
   @media (min-width: 768px) {

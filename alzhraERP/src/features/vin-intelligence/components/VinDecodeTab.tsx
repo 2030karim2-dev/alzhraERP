@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ScanLine, Sparkles, Database, History, Car, Save, AlertTriangle, Edit3, PackagePlus } from 'lucide-react';
 import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
-import Card from '../../../ui/base/Card';
 import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
 import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
@@ -129,112 +128,111 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* ── Main Mode Switch (VIN Lookup vs Manual / PartSouq) ── */}
-      <div className="flex bg-[var(--app-bg-surface)] p-1 rounded-[var(--radius)] border border-[var(--app-border)] gap-1">
+      <div className="flex bg-slate-100 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 shadow-inner">
         <button
           type="button"
           onClick={() => { setEntryMode('vin'); }}
           className={cn(
-            'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-[var(--radius)] text-[11px] font-bold transition-all',
+            'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all',
             entryMode === 'vin'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-hover)]'
+              ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           )}
         >
-          <ScanLine size={13} />
+          <ScanLine size={15} />
           فك الشاصي التلقائي (VIN)
         </button>
         <button
           type="button"
           onClick={() => { setEntryMode('manual'); }}
           className={cn(
-            'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-[var(--radius)] text-[11px] font-bold transition-all',
+            'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all',
             entryMode === 'manual'
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-hover)]'
+              ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           )}
         >
-          <Edit3 size={13} />
+          <Edit3 size={15} />
           إدخال يدوي (بارت سوق / كتالوج)
         </button>
       </div>
 
       {entryMode === 'vin' ? (
         /* ── Mode 1: VIN Lookup Form ── */
-        <Card isMicro>
-          <div className="space-y-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="space-y-3">
             <Input
-              variant="micro"
               label="رقم الشاصي (VIN)"
               placeholder="مثال: JTDBR32E100001234"
               value={vin}
-              onChange={(e) => { setVin(e.target.value); }}
+              onChange={(e) => { setVin(e.target.value.toUpperCase()); }}
               onKeyDown={(e) => e.key === 'Enter' && handleDecode()}
               icon={<ScanLine />}
             />
             {vin && !validation.isValid && (
-              <p className="text-[10px] text-rose-600 font-semibold px-1">
+              <p className="text-xs text-rose-600 font-semibold px-1">
                 {validation.error === 'INVALID_LENGTH'
                   ? 'رقم الشاصي يجب أن يكون بين 11 و 17 خانة'
                   : 'رموز غير صالحة (لا يُسمح بالأحرف I, O, Q)'}
               </p>
             )}
             {vin && validation.isValid && validation.checkDigitValid === false && (
-              <p className="text-[10px] text-amber-600 font-semibold px-1">
+              <p className="text-xs text-amber-600 font-semibold px-1">
                 تنبيه: خانة الفحص (Check Digit) غير صحيحة — تأكد من الرقم
               </p>
             )}
 
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {MODES.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => { setMode(m.id); }}
                   className={cn(
-                    'inline-flex items-center gap-1 px-2 py-1 rounded-[var(--radius)] text-[10px] font-bold border transition-colors',
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all',
                     mode === m.id
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-[var(--app-bg)] text-[var(--app-text-secondary)] border-[var(--app-border)] hover:bg-[var(--app-surface-hover)]',
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800',
                   )}
                 >
-                  <m.icon size={12} /> {m.label}
+                  <m.icon size={13} /> {m.label}
                 </button>
               ))}
             </div>
 
-            <Button size="sm" onClick={handleDecode} disabled={!canDecode} isLoading={isDecoding} fullWidth>
-              فك الشاصي
+            <Button size="md" onClick={handleDecode} disabled={!canDecode} isLoading={isDecoding} fullWidth className="rounded-lg font-bold shadow-md shadow-blue-500/10">
+              فك وتحليل رقم الشاصي 🔍
             </Button>
 
-            {error && <p className="text-[10px] text-rose-600 font-semibold">{error}</p>}
+            {error && <p className="text-xs text-rose-600 font-semibold">{error}</p>}
           </div>
-        </Card>
+        </div>
       ) : (
         /* ── Mode 2: Manual / PartSouq Vehicle Form ── */
-        <Card isMicro>
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between border-b border-[var(--app-border)] pb-1.5">
-              <span className="text-[11px] font-black text-indigo-600">
-                إدخال بيانات ومواصفات السيارة (كتالوج / PartSouq)
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                إدخال مواصفات السيارة (كتالوج / PartSouq)
               </span>
-              <span className="text-[9px] text-[var(--app-text-secondary)]">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 يربط القطع بالمركبة ويولد الأسماء تلقائياً
               </span>
             </div>
 
             {/* Quick Vehicle Presets */}
-            <div className="bg-slate-50 p-1.5 rounded border border-slate-200">
-              <label className="text-[9px] font-bold text-indigo-700 block mb-1">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
+              <label className="text-xs font-bold text-indigo-700 dark:text-indigo-300 block mb-1.5">
                 ⚡ تعبئة سريعة لأشهر السيارات في السوق:
               </label>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {QUICK_VEHICLE_PRESETS.map((p) => (
                   <button
                     key={p.label}
                     type="button"
                     onClick={() => { applyPreset(p); }}
-                    className="px-2 py-0.5 text-[9px] font-bold rounded bg-white border border-indigo-200 text-indigo-900 hover:bg-indigo-50 hover:border-indigo-400 transition-colors"
+                    className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800/60 text-indigo-900 dark:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors shadow-sm"
                   >
                     {p.label}
                   </button>
@@ -244,20 +242,20 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
             {/* Quick Make Selection */}
             <div>
-              <label className="text-[9px] font-bold text-[var(--app-text-secondary)] block mb-1">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
                 الشركة المصنعة
               </label>
-              <div className="flex flex-wrap gap-1 mb-1.5">
+              <div className="flex flex-wrap gap-1.5 mb-2">
                 {POPULAR_MAKES.map((mk) => (
                   <button
                     key={mk}
                     type="button"
                     onClick={() => { setManualMake(mk); }}
                     className={cn(
-                      'px-2 py-0.5 text-[9px] font-bold rounded border transition-colors',
+                      'px-2.5 py-1 text-xs font-bold rounded-lg border transition-all',
                       manualMake === mk
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-[var(--app-bg)] text-[var(--app-text)] border-[var(--app-border)] hover:bg-[var(--app-surface-hover)]'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                     )}
                   >
                     {mk}
@@ -265,7 +263,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                 ))}
               </div>
               <Input
-                variant="micro"
                 value={manualMake}
                 onChange={(e) => { setManualMake(e.target.value); }}
                 placeholder="أو اكتب الشركة (مثل: تويوتا، نيسان...)"
@@ -273,10 +270,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
             </div>
 
             {/* Model & Year Range */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="md:col-span-1">
                 <Input
-                  variant="micro"
                   label="الموديل / الطراز"
                   value={manualModel}
                   onChange={(e) => { setManualModel(e.target.value); }}
@@ -285,7 +281,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </div>
               <div>
                 <Input
-                  variant="micro"
                   type="number"
                   label="من سنة"
                   value={manualYearStart}
@@ -295,7 +290,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </div>
               <div>
                 <Input
-                  variant="micro"
                   type="number"
                   label="إلى سنة"
                   value={manualYearEnd}
@@ -306,15 +300,15 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
             </div>
 
             {/* Market & Engine & Transmission & Drive */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="text-[9px] font-bold text-[var(--app-text-secondary)] block mb-0.5">
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
                   الوارد / المواصفات
                 </label>
                 <select
                   value={manualMarket}
                   onChange={(e) => { setManualMarket(e.target.value); }}
-                  className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
+                  className="w-full py-2 px-3 text-xs font-bold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   {POPULAR_MARKETS.map((m) => (
                     <option key={m} value={m}>{m}</option>
@@ -325,7 +319,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
               <div>
                 <Input
-                  variant="micro"
                   label="المكينة / السعة"
                   value={manualEngine}
                   onChange={(e) => { setManualEngine(e.target.value); }}
@@ -334,13 +327,13 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </div>
 
               <div>
-                <label className="text-[9px] font-bold text-[var(--app-text-secondary)] block mb-0.5">
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
                   الجير / الناقل
                 </label>
                 <select
                   value={manualTransmission}
                   onChange={(e) => { setManualTransmission(e.target.value); }}
-                  className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
+                  className="w-full py-2 px-3 text-xs font-bold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="تماتيك">تماتيك (أوتوماتيك)</option>
                   <option value="عادي">عادي (مانيوال)</option>
@@ -349,13 +342,13 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </div>
 
               <div>
-                <label className="text-[9px] font-bold text-[var(--app-text-secondary)] block mb-0.5">
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
                   الدفع
                 </label>
                 <select
                   value={manualDrive}
                   onChange={(e) => { setManualDrive(e.target.value); }}
-                  className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
+                  className="w-full py-2 px-3 text-xs font-bold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="سنجل">سنجل (أمامي / خلفي)</option>
                   <option value="دبل">دبل (4x4 / AWD)</option>
@@ -366,7 +359,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
             {/* Optional VIN Number */}
             <Input
-              variant="micro"
               label="رقم الشاصي VIN (اختياري)"
               value={manualVinOptional}
               onChange={(e) => { setManualVinOptional(e.target.value); }}
@@ -374,17 +366,18 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
             />
 
             <Button
-              size="sm"
+              size="md"
               variant="primary"
               onClick={handleApplyManualVehicle}
               isLoading={isDecoding}
               disabled={!manualMake.trim()}
               fullWidth
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-md shadow-indigo-500/10"
             >
               تثبيت بيانات السيارة والبدء بإضافة القطع 🚀
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* ── Active Vehicle Card & Direct Actions ── */}
@@ -395,67 +388,67 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
           {/* Quick shortcut to add parts in Excel table */}
           {onNavigateToExtract && (
             <Button
-              size="sm"
+              size="md"
               variant="secondary"
               onClick={onNavigateToExtract}
-              className="bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 font-bold"
+              className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-bold rounded-lg"
               fullWidth
             >
-              <PackagePlus size={14} className="ml-1 text-indigo-600" />
+              <PackagePlus size={16} className="ml-1.5 text-indigo-600 dark:text-indigo-400" />
               إضافة قطع غيار لهذه السيارة في جدول إكسل ⚡
             </Button>
           )}
 
           {/* ── AI uncertainty warning ─────────────────────────── */}
           {uncertain && (
-            <Card isMicro>
-              <div className="flex items-start gap-2 p-1">
-                <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                <div className="space-y-1.5 flex-1">
-                  <p className="text-[10px] font-bold text-amber-700">
+            <div className="bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-2 flex-1">
+                  <p className="text-xs font-bold text-amber-800 dark:text-amber-300">
                     تحذير: هذه النتيجة تخمينية من الذكاء الاصطناعي وقد تكون غير دقيقة
                   </p>
-                  <p className="text-[9px] text-amber-600 leading-relaxed">
+                  <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
                     VIN هذا لم يُعثر عليه في قاعدة بيانات NHTSA الرسمية. البيانات المعروضة تُقدَّر بواسطة AI
-                    وقد تحتوي على معلومات خاطئة. لا تعتمد عليها لربط القطع أو الفواتير.
+                    وقد تحتوي على معلومات خاطئة.
                   </p>
                   {!aiSaveConfirmed ? (
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => { setAiSaveConfirmed(true); }}
-                        className="text-[9px] font-bold px-2 py-1 rounded border border-amber-400 text-amber-700 hover:bg-amber-50 transition-colors"
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-400 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                       >
                         أفهم المخاطر — أريد الحفظ
                       </button>
                     </div>
                   ) : (
-                    <Button size="sm" variant="success" onClick={onSave} isLoading={isSaving} fullWidth>
+                    <Button size="sm" variant="success" onClick={onSave} isLoading={isSaving} fullWidth className="rounded-lg">
                       <Save size={14} className="ml-1" /> حفظ البيانات (ثقة منخفضة)
                     </Button>
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
           {/* ── Normal save button (vPIC / DB / Manual results) ── */}
           {!uncertain && (
-            <Button size="sm" variant="success" onClick={onSave} isLoading={isSaving} fullWidth>
-              <Save size={14} className="ml-1" /> حفظ بيانات الشاصي والسيارة
+            <Button size="md" variant="success" onClick={onSave} isLoading={isSaving} fullWidth className="rounded-lg font-bold shadow-md shadow-emerald-500/10">
+              <Save size={16} className="ml-1.5" /> حفظ بيانات الشاصي والسيارة
             </Button>
           )}
         </>
       )}
 
       {history.length > 0 && (
-        <Card isMicro>
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <History size={12} className="text-[var(--app-text-secondary)]" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <History size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
               آخر الشواصي التي تم تحليلها
             </h3>
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {history.slice(0, 10).map((h) => (
               <button
                 key={h.id}
@@ -463,14 +456,14 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   setEntryMode('vin');
                   setVin(h.vin);
                 }}
-                className="px-2 py-1 rounded-[var(--radius)] text-[10px] font-mono font-bold bg-[var(--app-bg)] border border-[var(--app-border)] text-blue-600 hover:bg-[var(--app-surface-hover)]"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
                 title="إعادة فك هذا الشاصي"
               >
                 {h.vin}
               </button>
             ))}
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
@@ -478,16 +471,16 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
 // ── Source label helpers ─────────────────────────────────────
 const SOURCE_LABELS: Record<string, { label: string; cls: string }> = {
-  vpic:   { label: 'vPIC رسمي ✓', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  db:     { label: 'قاعدة البيانات ✓', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  manual: { label: 'إدخال يدوي / كتالوج ✓', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  ai:     { label: 'ذكاء اصطناعي ⚠', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  vpic:   { label: 'vPIC رسمي ✓', cls: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60' },
+  db:     { label: 'قاعدة البيانات ✓', cls: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60' },
+  manual: { label: 'إدخال يدوي / كتالوج ✓', cls: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60' },
+  ai:     { label: 'ذكاء اصطناعي ⚠', cls: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60' },
 };
 
 const CONFIDENCE_LABELS: Record<string, { label: string; cls: string }> = {
-  high:   { label: 'عالية', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
-  medium: { label: 'متوسطة', cls: 'bg-amber-50 text-amber-600 border-amber-200' },
-  low:    { label: 'منخفضة', cls: 'bg-rose-50 text-rose-600 border-rose-200' },
+  high:   { label: 'عالية', cls: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60' },
+  medium: { label: 'متوسطة', cls: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 border-amber-200 dark:border-amber-800/60' },
+  low:    { label: 'منخفضة', cls: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-800/60' },
 };
 
 function VehicleCard({
@@ -523,33 +516,38 @@ function VehicleCard({
   const confInfo = confidence ? (CONFIDENCE_LABELS[confidence] ?? null) : null;
 
   return (
-    <Card isMicro className="border-indigo-200">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <Car size={14} className="text-indigo-600" />
-          <h3 className="text-[11px] font-black tracking-wide text-[var(--app-text)]">
-            {vehicle.make} {vehicle.model ?? ''} {years ? `(${years})` : ''}
-          </h3>
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+            <Car size={20} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {vehicle.make} {vehicle.model ?? ''} {years ? `(${years})` : ''}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">مواصفات المركبة المفكوكة</p>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${srcInfo.cls}`}>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${srcInfo.cls}`}>
             {srcInfo.label}
           </span>
           {confInfo && (
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${confInfo.cls}`}>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${confInfo.cls}`}>
               ثقة: {confInfo.label}
             </span>
           )}
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         {rows.map(([k, v]) => (
-          <div key={k} className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg px-2 py-1">
-            <p className="text-[8px] font-black uppercase text-[var(--app-text-secondary)]">{k}</p>
-            <p className="text-[11px] font-bold text-[var(--app-text)] truncate">{v}</p>
+          <div key={k} className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 rounded-xl px-3 py-2">
+            <p className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-0.5">{k}</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{v}</p>
           </div>
         ))}
       </div>
-    </Card>
+    </div>
   );
 }
