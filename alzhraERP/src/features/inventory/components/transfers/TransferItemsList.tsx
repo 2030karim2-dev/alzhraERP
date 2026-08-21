@@ -64,7 +64,7 @@ const TransferItemsList: React.FC<Props> = ({
     const handleCellUpdate = (rowIndex: number, columnKey: string, value: unknown) => {
         if (columnKey === 'transfer_qty') {
             const rowId = mappedProducts[rowIndex].id;
-            const newQty = parseInt(value) || 1;
+            const newQty = parseInt(String(value), 10) || 1;
             onUpdateQty(rowId, newQty);
         }
     };
@@ -141,7 +141,7 @@ const TransferItemsList: React.FC<Props> = ({
                                                     </td>
                                                     <td className="px-3 py-2">
                                                         <div className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 min-w-[40px]">
-                                                            {p.stock_quantity ?? p.quantity ?? 0}
+                                                            {p.stock_quantity ?? 0}
                                                         </div>
                                                     </td>
                                                     <td className="px-3 py-2 text-center">
