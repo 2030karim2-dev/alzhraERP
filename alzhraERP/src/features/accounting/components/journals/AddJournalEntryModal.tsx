@@ -102,7 +102,6 @@ const AddJournalEntryModal: React.FC<AddJournalEntryModalProps> = ({ isOpen, onC
                                 <input
                                     type="text"
                                     {...register('description', { required: true })}
-                                    placeholder="مثال: إثبات فاتورة مبيعات رقم 102"
                                     className={cn("w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl dark:text-slate-100 focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all", errors.description ? "border-red-500" : "border-gray-200 dark:border-slate-700")}
                                 />
                                 {errors.description && <p className="text-[10px] text-red-500 font-bold px-1">{errors.description.message || 'مطلوب'}</p>}

@@ -83,7 +83,6 @@ const PersonalProfile: React.FC = () => {
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                                 icon={<User size={16} />}
-                                placeholder="ادخل اسمك الكامل"
                                 required
                             />
                             <Input

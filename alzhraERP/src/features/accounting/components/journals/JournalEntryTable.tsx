@@ -63,7 +63,6 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                             <input
                                 type="text"
                                 {...register(`lines.${index}.description` as const)}
-                                placeholder="شرح للحركة..."
                                 className="w-full px-2 py-2 bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-slate-700 rounded-xl text-sm dark:text-slate-200 focus:border-accent outline-none transition-all"
                             />
                         </div>

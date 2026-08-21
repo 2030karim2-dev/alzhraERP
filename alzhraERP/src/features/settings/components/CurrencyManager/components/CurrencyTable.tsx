@@ -127,7 +127,6 @@ export const CurrencyTable: React.FC<CurrencyTableProps> = ({
                                                         defaultValue={currentRate}
                                                         onChange={(e) => setNewRateValue(parseFloat(e.target.value))}
                                                         className="w-full bg-white dark:bg-slate-950 border-2 border-blue-500 p-2.5 rounded-2xl text-sm font-bold font-mono outline-none shadow-[0_0_15px_rgba(59,130,246,0.15)] focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-shadow pr-8"
-                                                        placeholder="أدخل السعر الجديد..."
                                                     />
                                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-300 select-none">{curr.code}</span>
                                                 </div>

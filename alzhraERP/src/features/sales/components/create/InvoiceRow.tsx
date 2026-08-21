@@ -56,7 +56,6 @@ const ProductNameCell: React.FC<ProductNameCellProps> = ({ item, index, onKeyDow
                 onClick={() => { onOpenSearch(index, item.name || ''); }}
                 readOnly
                 className="flex-1 py-3 max-md:py-2 bg-transparent outline-none text-right font-bold text-[11px] text-gray-800 dark:text-slate-100 placeholder:text-gray-300 dark:placeholder:text-slate-600 cursor-pointer"
-                placeholder="انقر للبحث عن صنف..."
             />
             <Search size={12} className="text-gray-400 opacity-0 group-hover/cell:opacity-100 max-md:opacity-100 transition-opacity" />
         </div>

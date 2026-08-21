@@ -61,7 +61,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
                             setSearchQuery(val);
                             if (val.trim()) setIsDropdownOpen(true);
                         }}
-                        placeholder="ابحث عن صنف بالاسم أو الكود... (اضغط Enter للبحث)"
+                        placeholder="ابحث عن صنف بالاسم أو الكود..."
                         variant="minimal"
                         size="sm"
                         clearable={false}

@@ -165,7 +165,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
           <div className="space-y-3">
             <Input
               label="رقم الشاصي (VIN)"
-              placeholder="مثال: JTDBR32E100001234"
               value={vin}
               onChange={(e) => { setVin(e.target.value.toUpperCase()); }}
               onKeyDown={(e) => e.key === 'Enter' && handleDecode()}
@@ -265,7 +264,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               <Input
                 value={manualMake}
                 onChange={(e) => { setManualMake(e.target.value); }}
-                placeholder="أو اكتب الشركة (مثل: تويوتا، نيسان...)"
               />
             </div>
 
@@ -276,7 +274,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   label="الموديل / الطراز"
                   value={manualModel}
                   onChange={(e) => { setManualModel(e.target.value); }}
-                  placeholder="مثال: كورولا، كامري، هايلوكس"
                 />
               </div>
               <div>
@@ -285,7 +282,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   label="من سنة"
                   value={manualYearStart}
                   onChange={(e) => { setManualYearStart(e.target.value); }}
-                  placeholder="مثال: 2001"
                 />
               </div>
               <div>
@@ -294,7 +290,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   label="إلى سنة"
                   value={manualYearEnd}
                   onChange={(e) => { setManualYearEnd(e.target.value); }}
-                  placeholder="مثال: 2007"
                 />
               </div>
             </div>
@@ -322,7 +317,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   label="المكينة / السعة"
                   value={manualEngine}
                   onChange={(e) => { setManualEngine(e.target.value); }}
-                  placeholder="مثال: 1.8 أو 2.4"
                 />
               </div>
 
@@ -362,7 +356,6 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               label="رقم الشاصي VIN (اختياري)"
               value={manualVinOptional}
               onChange={(e) => { setManualVinOptional(e.target.value); }}
-              placeholder="إذا كان رقم الشاصي متوفراً لديك من موقع بارت سوق"
             />
 
             <Button

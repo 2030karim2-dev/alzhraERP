@@ -92,7 +92,6 @@ const NewTransferModal: React.FC<NewTransferModalProps> = ({ isOpen, onClose }) 
                     <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="ملاحظات إضافية حول عملية المناقلة..."
                         className="w-full bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-2 text-xs font-bold"
                         rows={2}
                     ></textarea>

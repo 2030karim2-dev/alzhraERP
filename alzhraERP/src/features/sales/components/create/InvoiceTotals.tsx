@@ -24,7 +24,6 @@ const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) =
                         value={notes}
                         onChange={(event) => onNotesChange(event.target.value)}
                         className="w-full h-full mt-2 bg-transparent text-xs font-bold outline-none resize-none"
-                        placeholder="أضف أي ملاحظات أو شروط خاصة بالفاتورة هنا..."
                     />
                 </div>
 

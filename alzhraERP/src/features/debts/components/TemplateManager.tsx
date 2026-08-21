@@ -67,7 +67,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
           onChange={(e) => {
             onChange({ ...form, name: e.target.value });
           }}
-          placeholder="اسم القالب (مثال: تذكير لطيف)"
+          placeholder="اسم القالب"
           className={inputClass}
         />
         <select

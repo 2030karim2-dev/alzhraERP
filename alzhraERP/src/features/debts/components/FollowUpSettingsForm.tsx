@@ -141,7 +141,6 @@ const FollowUpSettingsForm: React.FC = () => {
             onChange={(e) => {
               setForm((p) => ({ ...p, reminder_signature: e.target.value }));
             }}
-            placeholder="فريق المتابعة — الزهراء"
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
         </div>

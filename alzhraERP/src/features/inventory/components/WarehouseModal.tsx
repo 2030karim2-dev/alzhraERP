@@ -43,8 +43,8 @@ const WarehouseModal: React.FC<Props> = ({ isOpen, onClose, onSave, isSaving, in
       footer={footer}
     >
       <form className="space-y-4">
-        <Input label="اسم المستودع / الفرع" placeholder="مثال: المستودع الرئيسي" {...register('name_ar', { required: true })} icon={<Package />} />
-        <Input label="الموقع (اختياري)" placeholder="مثال: مدينة جدة، حي الصناعية" {...register('location')} icon={<MapPin />} />
+        <Input label="اسم المستودع / الفرع" {...register('name_ar', { required: true })} icon={<Package />} />
+        <Input label="الموقع (اختياري)" {...register('location')} icon={<MapPin />} />
       </form>
     </Modal>
   );

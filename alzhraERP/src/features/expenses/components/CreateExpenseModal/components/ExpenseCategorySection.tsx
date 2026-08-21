@@ -46,11 +46,11 @@ export const ExpenseCategorySection: React.FC<ExpenseCategorySectionProps> = ({
                 )}
             </div>
 
-            <Input label="شرح المصروف (البيان)" {...register('description', { required: true })} placeholder="مثال: فاتورة كهرباء شهر أكتوبر..." icon={<Tag className="text-blue-500" />} />
+            <Input label="شرح المصروف (البيان)" {...register('description', { required: true })} icon={<Tag className="text-blue-500" />} />
 
             <div className="grid grid-cols-2 gap-4">
                 <Input label="تاريخ الصرف" type="date" {...register('expense_date', { required: true })} dir="ltr" icon={<Calendar className="text-emerald-500" />} />
-                <Input label="رقم السند المرجعي" {...register('voucher_number')} placeholder="Manual ID..." dir="ltr" icon={<FileText className="text-amber-500" />} />
+                <Input label="رقم السند المرجعي" {...register('voucher_number')} dir="ltr" icon={<FileText className="text-amber-500" />} />
             </div>
         </div>
     );

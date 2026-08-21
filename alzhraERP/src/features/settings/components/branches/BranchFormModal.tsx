@@ -85,7 +85,6 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="مثال: الفرع الرئيسي، فرع الرياض"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
@@ -102,7 +101,6 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="مثال: الرياض، حي العليا، شارع التحلية"
               value={form.address ?? ''}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
@@ -117,7 +115,6 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </label>
             <input
               type="tel"
-              placeholder="مثال: 0501234567"
               value={form.phone ?? ''}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"

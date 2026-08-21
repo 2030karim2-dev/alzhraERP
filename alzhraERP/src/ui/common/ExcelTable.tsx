@@ -10,7 +10,6 @@ import { ExcelTableBody } from './ExcelTableBody';
 import { ExcelTablePagination } from './ExcelTablePagination';
 import FullscreenContainer from '../base/FullscreenContainer';
 import ExcelTableToolbar from './ExcelTableToolbar';
-import ExcelTableStatusBar from './ExcelTableStatusBar';
 import { EXCEL_TABLE_THEMES, ExcelTableColorTheme } from './excelTableThemes';
 
 export interface Column<T> {
@@ -49,7 +48,6 @@ interface ExcelTableProps<T> {
   onSelectionChange?: ((selectedIds: Set<string>) => void) | undefined;
   getRowId?: ((row: T) => string) | undefined;
   isRTL?: boolean;
-  showShortcutsPanel?: boolean;
   enableResize?: boolean;
   enableDrag?: boolean;
   /** مفتاح تخصيص حفظ عروض الأعمدة في localStorage (افتراضياً يُشتق من title) */
@@ -62,7 +60,7 @@ function ExcelTable<T>({
   onExport, showSearch = true, searchValue, onSearchChange, onRowClick, onRowDoubleClick, onOrderChange,
   onCellUpdate, enablePagination = true, pageSize = 20,
   enableSelection = false, selectedRowIds = new Set(), onSelectionChange, getRowId,
-  isRTL = false, showShortcutsPanel = false, enableResize = true, enableDrag = false,
+  isRTL = false, enableResize = true, enableDrag = false,
   resizeStorageKey, isLoading = false
 }: ExcelTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -71,7 +69,6 @@ function ExcelTable<T>({
   const isMainSearch = !!onSearchChange;
   const effectiveSearch = isMainSearch ? (searchValue ?? '') : internalSearch;
   const [isZoomed, setIsZoomed] = useState(false);
-  const [showShortcuts, setShowShortcuts] = useState(showShortcutsPanel);
   const tableRef = useRef<HTMLDivElement>(null);
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   const [isMouseDown, setIsMouseDown] = useState(false);
@@ -434,8 +431,6 @@ function ExcelTable<T>({
           setIsZoomed={setIsZoomed}
           zoomLevel={zoomLevel}
           setZoomLevel={setZoomLevel}
-          showShortcuts={showShortcuts}
-          setShowShortcuts={setShowShortcuts}
         />
 
         {/* Table Wrapper with Resize Handles */}
@@ -580,15 +575,6 @@ function ExcelTable<T>({
               )}
             </table>
           </div>
-
-          <ExcelTableStatusBar
-            focusedCell={focusedCell}
-            selection={selection}
-            totalRows={orderedData.length}
-            totalCols={columns.length}
-            copySelection={copySelection}
-            pasteCells={pasteCells}
-          />
 
           {/* Pagination Footer */}
           <ExcelTablePagination

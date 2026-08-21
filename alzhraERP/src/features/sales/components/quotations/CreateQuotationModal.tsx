@@ -182,7 +182,6 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
               type="text"
               value={paymentTerms}
               onChange={(e) => setPaymentTerms(e.target.value)}
-              placeholder="مثال: دفع 50% مقدم والباقي عند التسليم"
               className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -192,7 +191,6 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="ملاحظات إضافية..."
               className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -203,7 +201,6 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
             rows={2}
-            placeholder="الشروط والأحكام العامة للعرض..."
             className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
           />
         </div>

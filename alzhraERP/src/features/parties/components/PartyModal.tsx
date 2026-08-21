@@ -142,7 +142,6 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
                 label={t('full_name')}
                 {...register('name', { required: t('name_required') })}
                 error={errors.name?.message}
-                placeholder={t('enter_full_name')}
                 autoFocus
                 className="bg-gray-50/50"
               />
@@ -190,7 +189,6 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
               <Input
                 label={t('phone_number')}
                 {...register('phone')}
-                placeholder="+967 --- --- ---"
                 dir="ltr"
                 className="bg-white dark:bg-slate-900 font-mono"
               />
@@ -198,7 +196,6 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
                 label={t('email_address')}
                 {...register('email')}
                 type="email"
-                placeholder="example@mail.com"
                 dir="ltr"
                 className="bg-white dark:bg-slate-900 font-mono"
               />
@@ -207,7 +204,6 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
             <Input
               label={t('address')}
               {...register('address')}
-              placeholder={t('enter_physical_address')}
               className="bg-white dark:bg-slate-900"
             />
           </div>

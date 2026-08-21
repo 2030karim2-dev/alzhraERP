@@ -74,7 +74,6 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            placeholder={type === 'cashbox' ? 'مثال: صندوق الريال السعودي' : 'مثال: شركة الكريمي للصرافة'}
                             required
                             className="w-full text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:border-emerald-400 transition-all text-slate-700 dark:text-slate-300"
                         />

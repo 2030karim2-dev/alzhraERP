@@ -220,7 +220,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex-1 min-w-[160px]">
-                  <Input label="بحث برقم القطعة (megazip)" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="مثال: 04465-0K090" />
+                  <Input label="بحث برقم القطعة (megazip)" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} />
                 </div>
                 <Button size="sm" variant="secondary" onClick={handleSearch} isLoading={isSearching} disabled={searchQuery.trim().length < 3} className="rounded-lg">
                   <Search size={14} className="ml-1" /> بحث
@@ -228,10 +228,10 @@ export const VinsTab: React.FC<VinsTabProps> = ({
               </div>
               <div className="flex flex-wrap items-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex-1 min-w-[120px]">
-                  <Input label="رقم قطعة (يدوي)" value={manualNumber} onChange={(e) => { setManualNumber(e.target.value); }} placeholder="رقم OEM" />
+                  <Input label="رقم قطعة (يدوي)" value={manualNumber} onChange={(e) => { setManualNumber(e.target.value); }} />
                 </div>
                 <div className="flex-1 min-w-[150px]">
-                  <Input label="الوصف" value={manualDesc} onChange={(e) => { setManualDesc(e.target.value); }} placeholder="وصف القطعة" />
+                  <Input label="الوصف" value={manualDesc} onChange={(e) => { setManualDesc(e.target.value); }} />
                 </div>
                 <Button size="sm" variant="outline" onClick={addManual} className="rounded-lg">
                   <Plus size={14} className="ml-1" /> إضافة يدوية

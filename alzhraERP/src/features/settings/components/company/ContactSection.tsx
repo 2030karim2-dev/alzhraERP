@@ -23,7 +23,7 @@ const ContactSection: React.FC<Props> = ({ register }) => (
           <option value="YER">YER - ريال يمني</option>
         </select>
       </div>
-      <Input label="الرقم الضريبي" placeholder="300XXXXXXXXXXXX" {...register('tax_number')} dir="ltr" icon={<Hash size={16} />} />
+      <Input label="الرقم الضريبي" {...register('tax_number')} dir="ltr" icon={<Hash size={16} />} />
     </div>
   </div>
 );

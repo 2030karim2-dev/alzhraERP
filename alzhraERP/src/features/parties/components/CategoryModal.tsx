@@ -44,7 +44,6 @@ const CategoryModal: React.FC<Props> = ({ isOpen, onClose, onSave, isSaving, ini
           label={t('category_name_label')}
           {...register('name', { required: t('category_name_required') })}
           error={errors.name?.message}
-          placeholder={t('category_name_placeholder')}
           autoFocus
         />
       </form>

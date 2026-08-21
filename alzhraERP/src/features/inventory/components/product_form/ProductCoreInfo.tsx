@@ -18,7 +18,6 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
         <label className="block text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1.5 px-1">{t('base_product_name')}</label>
         <div className="relative">
           <input
-            placeholder={t('enter_full_name')}
             {...register('name', { required: t('name_required') })}
             className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-800 dark:text-white placeholder:text-gray-300 focus:border-blue-500 outline-none transition-all pr-10 shadow-sm"
           />
@@ -30,7 +29,6 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
       <div className="grid grid-cols-2 gap-3">
         <Input
           label={t('oem_part_number')}
-          placeholder="مثال: 04465-0K240"
           {...register('part_number')}
           icon={<FileCode className="text-indigo-500" />}
           dir="ltr"
@@ -39,7 +37,6 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
         />
         <Input
           label={t('manufacturer')}
-          placeholder="Toyota, Denso..."
           {...register('brand')}
           icon={<Award className="text-amber-500" />}
           className="font-bold text-xs"
@@ -53,7 +50,6 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
             <Combine size={12} /> {t('alternative_numbers_label')}
           </label>
           <input
-            placeholder="مثال: 04465-0K320, 04465-YZZE1"
             {...register('alternative_numbers')}
             className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-mono text-gray-700 dark:text-gray-300 focus:border-blue-500 outline-none transition-all"
             dir="ltr"

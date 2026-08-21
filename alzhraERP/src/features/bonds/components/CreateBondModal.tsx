@@ -294,7 +294,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input label="تاريخ السند" type="date" {...register('date', { required: true })} dir="ltr" icon={<Calendar className="text-gray-400" />} />
-                <Input label="رقم المرجع (يدوي)" {...register('reference_number')} placeholder="Manual ID..." dir="ltr" icon={<FileText className="text-gray-400" />} />
+                <Input label="رقم المرجع (يدوي)" {...register('reference_number')} dir="ltr" icon={<FileText className="text-gray-400" />} />
               </div>
 
               <div className="space-y-1.5">
@@ -303,7 +303,6 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
                   <textarea
                     {...register('description', { required: true })}
                     className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-blue-500/30 rounded-2xl text-sm font-bold min-h-[100px] outline-none transition-all placeholder:text-gray-300 resize-none"
-                    placeholder="أدخل تفاصيل ومبررات السند هنا..."
                   ></textarea>
                   <Tag className="absolute left-4 bottom-4 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={20} />
                 </div>

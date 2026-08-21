@@ -55,7 +55,6 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           <div className="col-span-1">
             <Input
               label="رمز الحساب"
-              placeholder="Ex: 1010"
               {...register('code', { required: 'مطلوب' })}
               error={errors.code?.message}
               dir="ltr"
@@ -65,7 +64,6 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           <div className="col-span-2">
             <Input
               label="اسم الحساب المالي"
-              placeholder="أدخل اسم الحساب..."
               {...register('name', { required: 'مطلوب' })}
               error={errors.name?.message}
             />

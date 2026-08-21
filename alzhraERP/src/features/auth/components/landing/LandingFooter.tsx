@@ -194,7 +194,6 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
                   onChange={e => {
                     setEmail(e.target.value);
                   }}
-                  placeholder="بريدك@مثال.com"
                   autoComplete="email"
                   aria-label="البريد الإلكتروني للنشرة البريدية"
                   dir="ltr"

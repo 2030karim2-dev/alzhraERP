@@ -90,7 +90,6 @@ export const IntegrationsSettings: React.FC = () => {
                                     value={integration.email_smtp_server}
                                     onChange={(e) => handleUpdate({ email_smtp_server: e.target.value })}
                                     className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    placeholder="smtp.example.com"
                                 />
                             </div>
                             <div>

@@ -98,7 +98,6 @@ const VoiceInvoiceButton: React.FC = () => {
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleParse(textInput)}
-                        placeholder='مثال: "3 فلتر زيت بـ 25 ريال للعميل أحمد"'
                         className="flex-1 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-slate-900 p-2 max-md:p-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500/30"
                     />
                     <button onClick={() => handleParse(textInput)} className="p-2 max-md:p-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-500 transition-all">

@@ -63,7 +63,6 @@ const TelegramCard: React.FC<Props> = ({ config, onUpdate }) => (
                             value={config.telegram_bot_token}
                             onChange={(e) => onUpdate({ telegram_bot_token: e.target.value })}
                             className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                            placeholder="123456:ABC-DEF..."
                             dir="ltr"
                         />
                         <p className="text-[10px] text-slate-400 mt-1">
@@ -77,7 +76,6 @@ const TelegramCard: React.FC<Props> = ({ config, onUpdate }) => (
                             value={config.telegram_chat_id}
                             onChange={(e) => onUpdate({ telegram_chat_id: e.target.value })}
                             className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                            placeholder="-1001234567890"
                             dir="ltr"
                         />
                         <p className="text-[10px] text-slate-400 mt-1">معرف المجموعة/القناة (يبدأ بـ -)</p>

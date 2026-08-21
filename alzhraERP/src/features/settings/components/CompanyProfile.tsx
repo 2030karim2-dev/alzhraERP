@@ -117,13 +117,11 @@ const CompanyProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
               <Input
                 label="اسم الشركة (بالعربية)"
-                placeholder="شركة الزهراء لقطع الغيار"
                 {...register('name')}
                 icon={<Building size={16} />}
               />
               <Input
                 label="اسم الشركة (بالانجليزية)"
-                placeholder="Al Zahra Auto Parts"
                 {...register('english_name')}
                 dir="ltr"
                 icon={<Globe size={16} />}

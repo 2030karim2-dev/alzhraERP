@@ -140,7 +140,6 @@ export const DhikrSettings: React.FC = () => {
                         <input
                             value={cityInput}
                             onChange={(e) => setCityInput(e.target.value)}
-                            placeholder="مثال: الرياض"
                             className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />
                     </div>
@@ -150,7 +149,6 @@ export const DhikrSettings: React.FC = () => {
                             dir="ltr"
                             value={latInput}
                             onChange={(e) => setLatInput(e.target.value)}
-                            placeholder="24.7136"
                             inputMode="decimal"
                             className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />
@@ -161,7 +159,6 @@ export const DhikrSettings: React.FC = () => {
                             dir="ltr"
                             value={lngInput}
                             onChange={(e) => setLngInput(e.target.value)}
-                            placeholder="46.6753"
                             inputMode="decimal"
                             className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />

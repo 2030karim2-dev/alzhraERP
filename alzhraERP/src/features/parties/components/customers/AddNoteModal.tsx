@@ -102,7 +102,6 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="اكتب تفاصيل الملاحظة هنا..."
                         rows={4}
                         className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all"
                     />

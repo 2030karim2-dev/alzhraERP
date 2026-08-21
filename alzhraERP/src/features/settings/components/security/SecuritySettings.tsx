@@ -48,11 +48,10 @@ const SecuritySettings: React.FC = () => {
             </h3>
             <Key size={14} className="text-blue-500" />
           </div>
-          <Input label={t.current_password || "كلمة المرور الحالية"} type="password" placeholder="••••••••" dir="ltr" variant="micro" {...register('currentPassword')} />
+          <Input label={t.current_password || "كلمة المرور الحالية"} type="password" dir="ltr" variant="micro" {...register('currentPassword')} />
           <Input
             label={t.new_password || "كلمة المرور الجديدة"}
             type="password"
-            placeholder="••••••••"
             dir="ltr"
             variant="micro"
             {...register('newPassword', { required: t.password_required || 'كلمة المرور الجديدة مطلوبة', minLength: { value: 6, message: t.password_min_length || 'يجب أن تكون 6 أحرف على الأقل' } })}
@@ -61,7 +60,6 @@ const SecuritySettings: React.FC = () => {
           <Input
             label={t.confirm_new_password || "تأكيد الكلمة الجديدة"}
             type="password"
-            placeholder="••••••••"
             dir="ltr"
             variant="micro"
             {...register('confirmPassword', { required: t.confirm_password_required || 'تأكيد كلمة المرور مطلوب', validate: value => value === watch('newPassword') || (t.passwords_not_match || 'كلمتا المرور غير متطابقتين') })}

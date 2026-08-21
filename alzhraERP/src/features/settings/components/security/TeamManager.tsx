@@ -207,7 +207,6 @@ const TeamManager: React.FC = () => {
               <Input
                 label={t.email_label || 'البريد الإلكتروني'}
                 icon={<Mail />}
-                placeholder="user@example.com"
                 variant="micro"
                 {...register('email', { required: true })}
                 dir="ltr"

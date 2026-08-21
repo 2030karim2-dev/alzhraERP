@@ -60,7 +60,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                             handleOpenProductSearch(idx, item.description);
                           }
                         }}
-                        placeholder="وصف البند... (Enter للبحث)"
+                        placeholder="وصف البند..."
                         className="w-full bg-transparent border-0 outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400 pr-1"
                       />
                       <button 

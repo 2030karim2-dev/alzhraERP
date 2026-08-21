@@ -117,7 +117,6 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({
                             type="text"
                             value={formData.subject}
                             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                            placeholder="مثال: متابعة عرض السعر"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
@@ -131,7 +130,6 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({
                         <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="أضف المزيد من التفاصيل..."
                             rows={3}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         />

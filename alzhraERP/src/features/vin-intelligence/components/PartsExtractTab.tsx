@@ -292,7 +292,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchMegazip()}
-                placeholder="مثال: 90919-01164 أو 04465-0K090"
               />
             </div>
             <Button
@@ -406,7 +405,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.partNumber}
                         onChange={(e) => { updateRow(row._id, { partNumber: e.target.value }); }}
-                        placeholder="90919-01164"
                         className="w-full px-2.5 py-1.5 font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
@@ -417,7 +415,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.baseName}
                         onChange={(e) => { updateRow(row._id, { baseName: e.target.value }); }}
-                        placeholder="مثال: بلاكات، فحمات"
                         className="w-full px-2.5 py-1.5 font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
@@ -429,7 +426,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                           type="text"
                           value={row.description}
                           onChange={(e) => { updateRow(row._id, { description: e.target.value }); }}
-                          placeholder="الاسم التلقائي المكتمل للمنتج"
                           className="w-full px-2.5 py-1.5 font-bold text-xs text-indigo-950 dark:text-indigo-200 bg-indigo-50/40 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
                         />
                         <button
@@ -455,7 +451,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.manufacturer || ''}
                         onChange={(e) => { updateRow(row._id, { manufacturer: e.target.value }); }}
-                        placeholder="DENSO / TOYOTA"
                         className="w-full px-2.5 py-1.5 font-medium text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>
@@ -466,7 +461,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.sizeSpec || ''}
                         onChange={(e) => { updateRow(row._id, { sizeSpec: e.target.value }); }}
-                        placeholder="المقاس / المواصفات"
                         className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       />
                     </td>

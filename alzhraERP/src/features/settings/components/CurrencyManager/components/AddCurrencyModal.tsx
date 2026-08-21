@@ -39,14 +39,12 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                     <Input
                         label="رمز العملة (Code)"
-                        placeholder="Ex: CNY"
                         dir="ltr"
                         value={newCurrency.code}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
                     />
                     <Input
                         label="الرمز الرمزي (Symbol)"
-                        placeholder="Ex: ¥"
                         dir="ltr"
                         value={newCurrency.symbol}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCurrency({ ...newCurrency, symbol: e.target.value })}
@@ -54,7 +52,6 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
                 </div>
                 <Input
                     label="اسم العملة بالعربية"
-                    placeholder="يوان صيني"
                     value={newCurrency.name_ar}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCurrency({ ...newCurrency, name_ar: e.target.value })}
                 />
@@ -65,8 +62,8 @@ export const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
                         onChange={(e) => setNewCurrency({ ...newCurrency, exchange_operator: e.target.value as 'multiply' | 'divide' })}
                         className="w-full p-3 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 focus:border-blue-500/50 rounded-xl text-sm font-bold outline-none cursor-pointer"
                     >
-                        <option value="divide">قسمة (مثال: 1 ريال سعودي = 430 ريال يمني) - الأكثر شيوعاً</option>
-                        <option value="multiply">ضرب (مثال: 1 دولار = 3.75 ريال سعودي)</option>
+                        <option value="divide">قسمة - الأكثر شيوعاً</option>
+                        <option value="multiply">ضرب</option>
                     </select>
                 </div>
             </div>
