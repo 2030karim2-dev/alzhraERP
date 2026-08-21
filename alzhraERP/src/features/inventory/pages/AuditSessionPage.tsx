@@ -151,13 +151,17 @@ const AuditSessionPage: React.FC = () => {
         const formItems = getValues('items') || [];
         const sourceList = (sessionItems && sessionItems.length > 0) ? sessionItems : (data?.items || []);
         const itemsToSave: AuditProgressItem[] = sourceList.map((item, index) => {
+            const rawItem = item as Record<string, unknown>;
             const formVal = formItems[index]?.counted_quantity;
-            const counted = (formVal !== undefined && formVal !== '') ? formVal : item.counted_quantity;
-            return {
-                id: item.id as string | undefined,
-                product_id: (item.product_id || item.id) as string,
-                counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(item.counted_quantity ?? 0),
+            const counted = (formVal !== undefined && formVal !== '') ? formVal : rawItem.counted_quantity;
+            const res: AuditProgressItem = {
+                product_id: String(rawItem.product_id || rawItem.id || ''),
+                counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(rawItem.counted_quantity ?? 0),
             };
+            if (typeof rawItem.id === 'string' && rawItem.id.length > 0) {
+                res.id = rawItem.id;
+            }
+            return res;
         });
         saveAuditProgress(itemsToSave);
     };
@@ -172,13 +176,17 @@ const AuditSessionPage: React.FC = () => {
             const formItems = getValues('items') || [];
             const sourceList = (sessionItems && sessionItems.length > 0) ? sessionItems : (data?.items || []);
             const itemsToFinalize: AuditProgressItem[] = sourceList.map((item, index) => {
+                const rawItem = item as Record<string, unknown>;
                 const formVal = formItems[index]?.counted_quantity;
-                const counted = (formVal !== undefined && formVal !== '') ? formVal : item.counted_quantity;
-                return {
-                    id: item.id as string | undefined,
-                    product_id: (item.product_id || item.id) as string,
-                    counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(item.counted_quantity ?? 0),
+                const counted = (formVal !== undefined && formVal !== '') ? formVal : rawItem.counted_quantity;
+                const res: AuditProgressItem = {
+                    product_id: String(rawItem.product_id || rawItem.id || ''),
+                    counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(rawItem.counted_quantity ?? 0),
                 };
+                if (typeof rawItem.id === 'string' && rawItem.id.length > 0) {
+                    res.id = rawItem.id;
+                }
+                return res;
             });
 
             finalizeAudit({ sessionId, items: itemsToFinalize }, {
