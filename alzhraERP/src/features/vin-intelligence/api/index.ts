@@ -22,6 +22,28 @@ export const vinApi = {
     return data as { found: boolean; vin: string; vehicle: Record<string, unknown> | null };
   },
 
+  /** Find or create a canonical vehicle record in vehicles catalog (RPC) */
+  ensureVehicle: async (vehicle: VehicleInfo): Promise<string | null> => {
+    const { data, error } = await supabase.rpc('ensure_vehicle', {
+      p_make: vehicle.make,
+      ...(vehicle.model != null ? { p_model: vehicle.model } : {}),
+      ...(vehicle.year != null
+        ? { p_year: vehicle.year }
+        : (vehicle.yearStart != null ? { p_year: vehicle.yearStart } : {})),
+      ...(vehicle.engine != null ? { p_engine: vehicle.engine } : {}),
+      ...(vehicle.bodyType != null ? { p_body_type: vehicle.bodyType } : {}),
+      ...(vehicle.driveType != null ? { p_drive_type: vehicle.driveType } : {}),
+      ...(vehicle.fuelType != null ? { p_fuel_type: vehicle.fuelType } : {}),
+      ...(vehicle.transmission != null ? { p_transmission: vehicle.transmission } : {}),
+      ...(vehicle.region != null ? { p_region: vehicle.region } : {}),
+    });
+    if (error) {
+      logger.error('VinAPI', 'ensureVehicle failed', error);
+      return null;
+    }
+    return data as string;
+  },
+
   /** Hybrid VIN decode: vPIC → DB → AI (Edge Function) */
   decodeVin: async (body: { vin: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: string; model?: string }) => {
     const { data, error } = await supabase.functions.invoke('vin-decode', { body });
@@ -175,6 +197,8 @@ export const vinApi = {
         description: p.description ?? null,
         manufacturer: p.manufacturer ?? null,
         source: p.source,
+        sale_price: p.salePrice ?? 0,
+        purchase_price: p.purchasePrice ?? 0,
       })),
     });
     if (error) throw error;

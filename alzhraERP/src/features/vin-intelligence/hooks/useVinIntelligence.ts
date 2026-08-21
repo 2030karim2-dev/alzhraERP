@@ -43,6 +43,42 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     [companyId, userId],
   );
 
+  const setManualVehicle = useCallback(
+    async (manualVehicle: VehicleInfo, vinNumber?: string) => {
+      setIsDecoding(true);
+      setDecodeError(null);
+      try {
+        let vehicleId = manualVehicle.id;
+        if (!vehicleId && manualVehicle.make) {
+          vehicleId = (await vinService.ensureVehicle(manualVehicle)) || undefined;
+        }
+        const updatedVehicle: VehicleInfo = {
+          ...manualVehicle,
+          ...(vehicleId ? { id: vehicleId } : {}),
+        };
+        const vinVal = (vinNumber && vinNumber.trim()) || `MANUAL-${Date.now().toString(36).toUpperCase()}`;
+        const manualResult: VinDecodeResult = {
+          vin: vinVal,
+          found: true,
+          source: 'manual',
+          vehicle: updatedVehicle,
+          confidence: 'high',
+        };
+        setResult(manualResult);
+        showToast('تم تعيين بيانات السيارة بنجاح', 'success');
+        return manualResult;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'فشل تعيين بيانات السيارة';
+        setDecodeError(msg);
+        showToast('فشل تعيين بيانات السيارة', 'error', err);
+        throw err;
+      } finally {
+        setIsDecoding(false);
+      }
+    },
+    [showToast]
+  );
+
   const matchingQuery = useQuery({
     queryKey: ['vin', 'matching', companyId, vehicle?.make, vehicle?.model, vehicle?.year],
     queryFn: () =>
@@ -132,6 +168,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     isDecoding,
     decodeError,
     decodeVin,
+    setManualVehicle,
     reset,
     matchingProducts: matchingQuery.data ?? [],
     isMatching: matchingQuery.isLoading,

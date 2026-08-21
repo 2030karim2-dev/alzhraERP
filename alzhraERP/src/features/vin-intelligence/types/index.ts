@@ -57,6 +57,8 @@ export interface ExtractedPart {
   oemNumbers?: string[];
   source: 'ai' | 'manual' | 'fapi' | 'megazip';
   confidence?: 'high' | 'medium' | 'low';
+  salePrice?: number;
+  purchasePrice?: number;
 }
 
 export interface VinAnalysisRecord {

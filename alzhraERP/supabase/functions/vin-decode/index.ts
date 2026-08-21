@@ -204,24 +204,7 @@ serve(async (req) => {
       return json({ error: 'Invalid or expired token', code: 'UNAUTHORIZED' }, 401, headers);
     }
 
-    // 2b. Rate limiting — prevent one user from draining the OpenRouter /
-    // DeepSeek budget by flooding VIN decodes (30 requests / user / minute).
-    const rateLimit = { windowMs: 60_000, maxRequests: 30 };
-    try {
-      const since = new Date(Date.now() - rateLimit.windowMs).toISOString();
-      await supabase.from('ai_request_log').insert({ user_id: user.id });
-      const { count } = await supabase
-        .from('ai_request_log')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', since);
-      if ((count ?? 0) > rateLimit.maxRequests) {
-        return json({ error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' }, 429, headers);
-      }
-    } catch {
-      // Infra failure must never break decoding — fail open and log.
-      console.error('[vin-decode] Rate-limit check failed (fail-open)');
-    }
+    // Auth complete. Rate limiting is deferred to the AI fallback path below.
 
     // 3. Body
     let body: { vin?: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: 'deepseek' | 'openrouter'; model?: string };
@@ -291,15 +274,52 @@ serve(async (req) => {
       return json({ found: false, source: noResultSource, vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
     }
 
+    // 4b. AI Rate limiting — prevent one user from draining the OpenRouter /
+    // DeepSeek budget by flooding VIN decodes (30 requests / user / minute).
+    const rateLimit = { windowMs: 60_000, maxRequests: 30 };
+    try {
+      const since = new Date(Date.now() - rateLimit.windowMs).toISOString();
+      await supabase.from('ai_request_log').insert({ user_id: user.id });
+      const { count } = await supabase
+        .from('ai_request_log')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', since);
+        
+      // Async cleanup (fire and forget) of old logs
+      supabase.from('ai_request_log').delete().lt('created_at', new Date(Date.now() - 3600_000).toISOString()).catch(() => {});
+
+      if ((count ?? 0) > rateLimit.maxRequests) {
+        return json({ error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' }, 429, headers);
+      }
+    } catch {
+      // Infra failure must never break decoding — fail open and log.
+      console.error('[vin-decode] Rate-limit check failed (fail-open)');
+    }
+
     // 5. AI fallback (LAST resort — never authoritative)
     const ai = await decodeWithAI(vin, body.provider, body.model);
 
     // Give AI results a stable vehicles.id too, so saved analyses can be
     // linked to inventory products like vPIC/DB results.
+    const KNOWN_MAKES = new Set(['TOYOTA', 'LEXUS', 'NISSAN', 'HONDA', 'HYUNDAI', 'KIA', 'FORD', 'CHEVROLET', 'GMC', 'MAZDA', 'MERCEDES-BENZ', 'BMW', 'AUDI', 'VOLKSWAGEN', 'PORSCHE', 'JEEP', 'DODGE', 'CHRYSLER', 'LAND ROVER', 'ISUZU', 'MITSUBISHI', 'SUZUKI', 'SUBARU', 'GENESIS', 'PEUGEOT', 'RENAULT', 'MG', 'CHANGAN', 'GEELY', 'HAVAL', 'BYD', 'CHERY', 'GREAT WALL', 'FAW', 'JAC', 'GAC', 'DONGFENG', 'JETOUR', 'EXEED']);
+    
     let aiVehicle = ai.vehicle as Record<string, unknown> | null;
-    if (aiVehicle && aiVehicle.make && !aiVehicle.id) {
-      const vehicleId = await ensureVehicleId(supabase, aiVehicle);
-      if (vehicleId) aiVehicle = { ...aiVehicle, id: vehicleId };
+    if (aiVehicle && aiVehicle.make) {
+      const makeUpper = String(aiVehicle.make).toUpperCase();
+      if (!KNOWN_MAKES.has(makeUpper)) {
+        // Unknown make - highly likely to be a hallucination
+        aiVehicle.confidence = 'low';
+        aiVehicle.notes = 'Unrecognized manufacturer - AI result may be hallucinated.';
+      } else {
+        // AI is never authoritative - max confidence is 'medium'
+        if (aiVehicle.confidence === 'high') aiVehicle.confidence = 'medium';
+      }
+
+      if (!aiVehicle.id) {
+        const vehicleId = await ensureVehicleId(supabase, aiVehicle);
+        if (vehicleId) aiVehicle = { ...aiVehicle, id: vehicleId };
+      }
     }
 
     return json({

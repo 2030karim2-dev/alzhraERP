@@ -63,7 +63,9 @@ const VINPage: React.FC = () => {
               result={vin.result}
               history={vin.savedVins}
               onDecode={handleDecode}
+              onSetManualVehicle={vin.setManualVehicle}
               onSave={handleSave}
+              onNavigateToExtract={() => setActiveTab('extract')}
               isSaving={vin.isSaving}
             />
           )}

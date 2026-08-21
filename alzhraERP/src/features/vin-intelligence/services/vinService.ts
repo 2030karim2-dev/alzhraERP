@@ -144,6 +144,11 @@ export const vinService = {
     await vinApi.unlinkVehicleProduct(id);
   },
 
+  /** Find or create a canonical vehicle record in vehicles catalog */
+  async ensureVehicle(vehicle: VehicleInfo): Promise<string | null> {
+    return vinApi.ensureVehicle(vehicle);
+  },
+
   /** Extract parts → create products + link + graph edges (atomic RPC) */
   async addPartsToInventory(params: {
     companyId: string;
