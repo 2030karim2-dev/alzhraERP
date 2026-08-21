@@ -12,9 +12,22 @@ $sqlPath = 'C:\Users\seens\12\alzhraERP-1\alzhraERP\supabase\migrations\20260825
 Add-Type -AssemblyName System.Web.Extensions
 $sql = [System.IO.File]::ReadAllText($sqlPath, [System.Text.Encoding]::UTF8)
 
-$ser = [System.Web.Script.Serialization.JavaScriptSerializer]::new()
-$payload = [ordered]@{ query = $sql }
-$body = $ser.Serialize($payload)
+# Build a PURE-ASCII JSON body: every non-ASCII char is escaped as \uXXXX and
+# every JSON-special char is escaped explicitly. This avoids any ambiguity in
+# how the Management API decodes the request charset (a literal-Arabic body was
+# being misread as Latin-1 and stored double-encoded).
+$jsonStr = [System.Text.StringBuilder]::new()
+foreach ($ch in $sql.ToCharArray()) {
+    $code = [int]$ch
+    if ($code -eq 0x22) { [void]$jsonStr.Append('\u0022') }          # "
+    elseif ($code -eq 0x5C) { [void]$jsonStr.Append('\u005C') }      # \
+    elseif ($code -eq 0x0A) { [void]$jsonStr.Append('\u000A') }      # LF
+    elseif ($code -eq 0x0D) { [void]$jsonStr.Append('\u000D') }      # CR
+    elseif ($code -eq 0x09) { [void]$jsonStr.Append('\u0009') }      # tab
+    elseif ($code -le 0x7F) { [void]$jsonStr.Append([char]$code) }   # ASCII
+    else { [void]$jsonStr.Append('\u' + $code.ToString('X4')) }      # non-ASCII
+}
+$body = '{"query":"' + $jsonStr.ToString() + '"}'
 
 $headers = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json; charset=utf-8' }
 $uri = "https://api.supabase.com/v1/projects/$project/database/query"
