@@ -4,6 +4,7 @@ import { cn } from '../../core/utils';
 import { useTableKeyboardNavigation } from './useTableKeyboardNavigation';
 import { useTableDragDrop } from './hooks/useTableDragDrop';
 import { useTableSelection } from './hooks/useTableSelection';
+import { useColumnResize } from './hooks/useColumnResize';
 import { ExcelTableHeader } from './ExcelTableHeader';
 import { ExcelTableBody } from './ExcelTableBody';
 import { ExcelTablePagination } from './ExcelTablePagination';
@@ -51,6 +52,8 @@ interface ExcelTableProps<T> {
   showShortcutsPanel?: boolean;
   enableResize?: boolean;
   enableDrag?: boolean;
+  /** مفتاح تخصيص حفظ عروض الأعمدة في localStorage (افتراضياً يُشتق من title) */
+  resizeStorageKey?: string;
   isLoading?: boolean;
 }
 
@@ -60,7 +63,7 @@ function ExcelTable<T>({
   onCellUpdate, enablePagination = true, pageSize = 20,
   enableSelection = false, selectedRowIds = new Set(), onSelectionChange, getRowId,
   isRTL = false, showShortcutsPanel = false, enableResize = true, enableDrag = false,
-  isLoading = false
+  resizeStorageKey, isLoading = false
 }: ExcelTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [internalSearch, setInternalSearch] = useState('');
@@ -103,11 +106,27 @@ function ExcelTable<T>({
 
   const searchTermForFilter = isMainSearch ? (searchValue ?? '') : debouncedSearch;
 
-  const [columnWidths, setColumnWidths] = useState<Record<number, number>>({});
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const resizingRef = useRef<{ colIndex: number; startX: number; startWidth: number } | null>(null);
-
   const currentTheme = EXCEL_TABLE_THEMES[colorTheme];
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // ── Column Resize (موحّدة + محفوظة + ناعمة) ──────────────────────
+  const tableResizeStorageKey = resizeStorageKey ?? (title ? `excel-table-cols:${title.trim()}` : undefined);
+  const defaultColWidths = useMemo(() => {
+    const out: Record<string, number> = {};
+    columns.forEach((col, idx) => {
+      if (col.width) {
+        const parsed = parseInt(col.width, 10);
+        if (!Number.isNaN(parsed)) out[String(idx)] = parsed;
+      }
+    });
+    return out;
+  }, [columns]);
+  const { colWidths, isResizing: isColumnResizing, onResizeMouseDown, resetWidths } = useColumnResize({
+    ...(tableResizeStorageKey ? { storageKey: tableResizeStorageKey } : {}),
+    defaultWidths: defaultColWidths,
+    minWidth: 40,
+    isRTL,
+  });
 
   const processedData = useMemo(() => {
     let items = [...data];
@@ -249,41 +268,12 @@ function ExcelTable<T>({
     setSortConfig({ key, direction });
   };
 
-  const handleMouseDown = useCallback((e: React.MouseEvent, colIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const th = (e.target as HTMLElement).parentElement as HTMLTableCellElement;
-    resizingRef.current = {
-      colIndex,
-      startX: e.clientX,
-      startWidth: th.offsetWidth,
-    };
-    document.body.style.cursor = 'col-resize';
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!resizingRef.current) return;
-    const { colIndex, startX, startWidth } = resizingRef.current;
-    const newWidth = startWidth + (e.clientX - startX);
-    if (newWidth > 40) {
-      setColumnWidths(prev => ({ ...prev, [colIndex]: newWidth }));
-    }
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    resizingRef.current = null;
-    document.body.style.cursor = '';
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  }, []);
-
   // Reset size to original
   const handleResetSize = () => {
     setCustomSize({});
     setIsZoomed(false);
     setPosition({ x: 0, y: 0 });
+    resetWidths();
   };
 
   // Save original size before resize
@@ -513,17 +503,34 @@ function ExcelTable<T>({
                 isRTL ? "text-right" : "text-left"
               )}
             >
+              <colgroup>
+                {enableSelection && <col style={{ width: 40 }} />}
+                <col style={{ width: 40 }} />
+                {columns.map((col, idx) => {
+                  const savedWidth = colWidths[String(idx)];
+                  const colStyle = savedWidth
+                    ? { width: `${savedWidth}px` }
+                    : (col.width ? { width: col.width } : {});
+                  return (
+                    <col
+                      key={idx}
+                      style={colStyle}
+                      className={isColumnResizing ? 'will-change-[width]' : undefined}
+                    />
+                  );
+                })}
+              </colgroup>
               <ExcelTableHeader
                 columns={columns}
                 enableSelection={enableSelection}
                 orderedDataLength={orderedData.length}
                 selectedRowIdsSize={selectedRowIds.size}
                 toggleAllSelection={toggleAllSelection}
-                columnWidths={columnWidths}
+                columnWidths={colWidths}
                 handleSort={handleSort}
                 sortConfig={sortConfig}
                 isRTL={isRTL}
-                handleMouseDown={handleMouseDown}
+                handleMouseDown={(e, idx) => onResizeMouseDown(e, String(idx))}
                 isLoading={isLoading}
               />
               <ExcelTableBody

@@ -9,7 +9,7 @@ interface ExcelTableHeaderProps<T> {
     orderedDataLength: number;
     selectedRowIdsSize: number;
     toggleAllSelection: () => void;
-    columnWidths: Record<number, number>;
+    columnWidths: Record<string, number>;
     handleSort: (key: string) => void;
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
     isRTL: boolean;
@@ -76,8 +76,8 @@ export function ExcelTableHeader<T>({
                         <div
                             onMouseDown={(e) => handleMouseDown(e, idx)}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute top-0 h-full w-1 cursor-col-resize hover:bg-blue-400/50 transition-colors z-[13]"
-                            style={isRTL ? { left: 0, right: 'auto' } : { right: 0 }}
+                            className="absolute top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400/60 active:bg-blue-500 transition-colors z-[13]"
+                            style={isRTL ? { left: -1 } : { right: -1 }}
                         />
                     </th>
                 ))}

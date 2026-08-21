@@ -171,7 +171,7 @@ export function ExcelTableBody<T>({
                             </td>
                         )}
                         <td className={cn(
-                            "p-2 text-[10px] text-[var(--app-text-secondary)] font-mono text-center border-r border-[var(--app-border)] bg-[var(--app-bg)]/50",
+                            "p-2 text-[11px] text-[var(--app-text-secondary)] font-mono text-center border-r border-[var(--app-border)] bg-[var(--app-bg)]/50",
                             focusedCell?.row === rowIdx ? currentTheme.glow : ""
                         )}>
                             {(currentPage - 1) * itemsPerPage + rowIdx + 1}
@@ -201,7 +201,7 @@ export function ExcelTableBody<T>({
                                     onMouseEnter={() => handleMouseEnterCell()}
                                     onDoubleClick={() => { onRowDoubleClick?.(row); if (col.isEditable) startEditing(rowIdx, colIdx); }}
                                     className={cn(
-                                        "p-0 text-[11px] font-medium border-r border-gray-300 dark:border-slate-700/50 transition-all cursor-cell relative",
+                                        "p-0 text-[12px] font-medium border-r border-gray-300 dark:border-slate-700/50 transition-all cursor-cell relative",
                                         isFocused && !isEditing ? cn("outline-2 outline -outline-offset-2 outline-blue-600 dark:outline-blue-400 z-10", currentTheme.glow, "bg-blue-50/50 dark:bg-blue-900/30") : "",
                                         isCellInSelection && !isFocused ? "bg-blue-50/20 dark:bg-blue-900/10" : "",
                                         isRTL ? "[&>*:first-child]:text-left [&>*:first-child]:rtl:text-right" : "",
