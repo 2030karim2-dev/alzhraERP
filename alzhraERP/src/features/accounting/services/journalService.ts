@@ -94,8 +94,8 @@ export const journalService = {
           lines.reduce((sum, l) => sum + (l.debit_amount || 0), 0),
           lines.reduce((sum, l) => sum + (l.credit_amount || 0), 0)
         ),
-        created_by_profile: j.created_by_profile?.full_name ? { full_name: j.created_by_profile.full_name } : undefined,
-        party_name: partyName || undefined
+        ...(j.created_by_profile?.full_name ? { created_by_profile: { full_name: j.created_by_profile.full_name } } : {}),
+        ...(partyName ? { party_name: partyName } : {}),
       };
     });
   }

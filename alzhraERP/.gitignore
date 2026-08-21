@@ -52,6 +52,8 @@ sizes.txt
 tsc-errors*.txt
 ts_errors.txt
 tsc_output*.txt
+*.txt
+*.log
 vite.config.ts.timestamp*
 DeepSeek-OCR*
 test_stock_structure.mjs
