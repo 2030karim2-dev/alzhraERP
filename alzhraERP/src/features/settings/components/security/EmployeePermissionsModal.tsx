@@ -5,9 +5,7 @@ import {
   RotateCcw,
   CheckCheck,
   X,
-  AlertTriangle,
   Lock,
-  Sparkles,
   GitBranch,
 } from 'lucide-react';
 import Button from '../../../../ui/base/Button';

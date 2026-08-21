@@ -5,6 +5,7 @@ import { useFeedbackStore } from '../feedback/store';
 import { BondType, BondFormData } from './types';
 import { assertPermission } from '../../core/hooks/usePermission';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
+import { invalidateFinancialQueries } from '../../core/utils/querySyncUtils';
 
 export const useBonds = (type?: BondType) => {
   const { user } = useAuthStore();
@@ -42,11 +43,7 @@ export const useBondMutation = () => {
       return bondsService.createBond(user.company_id, user.id, { ...data, ...(branchId ? { branchId } : {}) });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['bonds', user?.company_id] });
-      queryClient.invalidateQueries({ queryKey: ['payments', user?.company_id] });
-      queryClient.invalidateQueries({ queryKey: ['financials'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['parties'] });
+      invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
       const typeName = variables.type === 'receipt' ? 'قبض' : (variables.type === 'transfer' ? 'تحويل' : 'صرف');
       showToast(`تم إصدار سند ال${typeName} وترحيله آلياً`, 'success');
     },
@@ -71,13 +68,7 @@ export const useDeleteBond = () => {
       return bondsService.deleteBond(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bonds'] });
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['financials'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      // إلغاء السند ينشئ الآن قيداً عكسياً (reversal) — حدّث القيود والأستاذ أيضاً
-      queryClient.invalidateQueries({ queryKey: ['journals'] });
-      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
       showToast("تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح", 'success');
     },
     onError: (error: Error) => {

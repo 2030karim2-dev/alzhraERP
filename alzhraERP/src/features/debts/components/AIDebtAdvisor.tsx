@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import {
   Sparkles,
-  ShieldAlert,
-  ArrowRight,
-  TrendingDown,
   BellRing,
-  ExternalLink,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { cn } from '../../../../core/utils';
-import { formatCurrency } from '../../../../core/utils/currencyUtils';
+import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { useDebtDashboard } from '../hooks/useDebtQueries';
 import AIDebtRiskModal from './AIDebtRiskModal';
 import ReminderModal from './ReminderModal';

@@ -4,6 +4,12 @@ import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { logger } from '../../../core/utils/logger';
 
+// The generated `database.types.ts` narrows supabase.rpc to the RPCs known at
+// generation time. The granular-permission RPCs are newer than that snapshot,
+// so widen the signature deliberately (same pattern as dashboard/api).
+type LooseRpc = (name: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
+const looseRpc = supabase.rpc as unknown as LooseRpc;
+
 export interface CompanyMember {
   id: string;
   user_id: string;
@@ -108,7 +114,7 @@ export function useMemberPermissions(targetUserId: string | null) {
     queryFn: async (): Promise<MemberEffectivePermissions | null> => {
       if (!user?.company_id || !targetUserId) return null;
 
-      const { data, error } = await supabase.rpc('get_member_effective_permissions', {
+      const { data, error } = await looseRpc('get_member_effective_permissions', {
         p_target_user_id: targetUserId,
         p_company_id: user.company_id,
       });
@@ -118,7 +124,7 @@ export function useMemberPermissions(targetUserId: string | null) {
         throw error;
       }
 
-      return data as MemberEffectivePermissions;
+      return (data as unknown) as MemberEffectivePermissions;
     },
     enabled: !!user?.company_id && !!targetUserId,
   });
@@ -144,7 +150,7 @@ export function useUpdateMemberPermissions() {
     }) => {
       if (!user?.company_id) throw new Error('لا توجد منشأة نشطة');
 
-      const { data, error } = await supabase.rpc('set_member_permissions', {
+      const { data, error } = await looseRpc('set_member_permissions', {
         p_target_user_id: targetUserId,
         p_company_id: user.company_id,
         p_granted_permissions: grantedPermissions,

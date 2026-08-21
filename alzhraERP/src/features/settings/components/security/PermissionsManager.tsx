@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Check, X, Info, Sparkles, Filter } from 'lucide-react';
+import { ShieldCheck, Check, X, Sparkles } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import { useI18nStore } from '@/lib/i18nStore';
 import { PERMISSION_CATEGORIES } from '../../../../core/permissions/permissionTaxonomy';

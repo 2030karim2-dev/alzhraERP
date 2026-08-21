@@ -1,4 +1,5 @@
-import { Permission } from '../types/common';
+// Permission catalog definitions (labels + categories). The `Permission` type
+// is intentionally not imported here — permission keys are open strings.
 
 export interface PermissionDefinition {
   key: string;

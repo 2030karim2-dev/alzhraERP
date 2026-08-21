@@ -181,7 +181,6 @@ export const generateStatementExcelWorkbook = async (
     { s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 3 } }, // Summary Label
   ];
 
-  const totalRowCount = rows.length;
   if (company.bank_name || company.bank_account_iban) {
     ws['!merges'].push({ s: { r: summaryRowIndex + 2, c: 0 }, e: { r: summaryRowIndex + 2, c: 7 } });
     ws['!merges'].push({ s: { r: summaryRowIndex + 3, c: 0 }, e: { r: summaryRowIndex + 3, c: 7 } });

@@ -15,6 +15,7 @@ import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { useDebtAnalytics, useDebtTodayTasks } from '../hooks/useDebtQueries';
 import { useCompany } from '../../settings/hooks';
 import { TASK_TYPE_META } from '../lib/constants';
+import AIDebtAdvisor from '../components/AIDebtAdvisor';
 import type { DebtAnalytics, TodayTask } from '../types';
 
 /** Safe numeric coercion for values that arrive from a JSON payload. */
@@ -221,6 +222,7 @@ const OverviewPage: React.FC = () => {
 
   return (
     <div className="space-y-5 max-md:space-y-3">
+      <AIDebtAdvisor />
       <StatsGrid analytics={analytics ?? null} isLoading={isLoading} baseCurrency={baseCurrency} />
       <TodayTasksCard tasks={tasks ?? []} />
       <CurrencyBreakdown byCurrency={a.by_currency} />

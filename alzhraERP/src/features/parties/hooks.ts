@@ -54,10 +54,14 @@ export const useCategories = (type: PartyType) => {
   });
 };
 
-export const useStatement = (partyId: string | null, type: PartyType) => {
+export const useStatement = (
+  partyId: string | null,
+  type: PartyType,
+  options?: { startDate?: string; endDate?: string }
+) => {
   return useQuery({
-    queryKey: ['party_statement_v3', partyId],
-    queryFn: () => partyId ? partiesService.getStatement(partyId, type) : Promise.resolve([]),
+    queryKey: ['party_statement_v3', partyId, options?.startDate, options?.endDate],
+    queryFn: () => (partyId ? partiesService.getStatement(partyId, type, options) : Promise.resolve([])),
     enabled: !!partyId,
   });
 };

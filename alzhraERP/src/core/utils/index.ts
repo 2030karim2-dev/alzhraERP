@@ -53,5 +53,9 @@ export { shareExcelFile } from './shareUtils';
 // ZATCA compliance
 export { generateZatcaBase64 } from './zatca';
 
+// Query synchronization utilities
+export { invalidateFinancialQueries } from './querySyncUtils';
+export type { FinancialSyncOptions } from './querySyncUtils';
+
 // Re-export from parent utils.ts (cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL)
 export { cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL } from '../utils';

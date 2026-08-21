@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquareWarning } from 'lucide-react';
+import { MessageSquareWarning, Copy, Send } from 'lucide-react';
 import { useDebtMessageLog } from '../hooks/useDebtQueries';
 import { MESSAGE_STATUS_META } from '../lib/constants';
 import StatusBadge from '../components/StatusBadge';
@@ -57,6 +57,7 @@ const OutboxPage: React.FC = () => {
                 <th className="px-4 max-md:px-2 py-3 max-md:py-2">القناة</th>
                 <th className="px-4 max-md:px-2 py-3 max-md:py-2">الحالة</th>
                 <th className="px-4 max-md:px-2 py-3 max-md:py-2">الوقت</th>
+                <th className="px-4 max-md:px-2 py-3 max-md:py-2 text-center">إجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--app-border)]">
@@ -69,13 +70,13 @@ const OutboxPage: React.FC = () => {
                         {m.parties?.name ?? '—'}
                       </span>
                       {m.recipient && (
-                        <span className="block text-[10px] text-[var(--app-text-secondary)]" dir="ltr">
+                        <span className="block text-[10px] text-[var(--app-text-secondary)] font-mono" dir="ltr">
                           {m.recipient}
                         </span>
                       )}
                     </td>
                     <td className="px-4 max-md:px-2 py-3 max-md:py-2 max-w-md">
-                      <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-2 leading-relaxed whitespace-pre-wrap">
                         {m.message_text}
                       </p>
                       {m.status === 'failed' && m.error_info && (
@@ -96,6 +97,34 @@ const OutboxPage: React.FC = () => {
                       <span className="text-[10px] font-mono text-[var(--app-text-secondary)]">
                         {new Date(m.created_at).toLocaleString('en-US')}
                       </span>
+                    </td>
+                    <td className="px-4 max-md:px-2 py-3 max-md:py-2">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(m.message_text);
+                          }}
+                          title="نسخ نص الرسالة"
+                          className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 transition-colors"
+                        >
+                          <Copy size={13} />
+                        </button>
+                        {m.recipient && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const { buildWhatsAppLink } = await import('../lib/whatsapp');
+                              const link = buildWhatsAppLink(m.recipient ?? '', m.message_text);
+                              window.open(link, '_blank', 'noopener,noreferrer');
+                            }}
+                            title="إعادة إرسال عبر واتساب"
+                            className="p-1.5 rounded-lg bg-green-50 dark:bg-green-950/30 text-green-600 hover:bg-green-600 hover:text-white transition-colors"
+                          >
+                            <Send size={13} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

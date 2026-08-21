@@ -1,6 +1,6 @@
 
 import { journalsApi } from '../api/journalsApi';
-import { UIJournalEntry, JournalEntryFormData } from '../types/models';
+import { UIJournalEntry, JournalEntryFormData, JournalStatus } from '../types/models';
 import { PostTransactionUsecase } from '../../../core/usecases/accounting/PostTransactionUsecase';
 import { parseError } from '../../../core/utils/errorUtils';
 
@@ -55,7 +55,7 @@ export const journalService = {
 
     const journals = (rawData || []) as RawJournal[];
 
-    return journals.map((j) => {
+    return journals.map((j): UIJournalEntry => {
       // Extract party name from polymorphic reference (invoices for now)
       let partyName: string | null = null;
       const inv = j.invoice;
@@ -75,28 +75,28 @@ export const journalService = {
         description: j.description || '',
         reference_type: j.reference_type,
         reference_id: j.reference_id,
-        status: j.status as string,
+        status: (j.status || 'posted') as JournalStatus,
         created_at: j.created_at,
         created_by: j.created_by || '',
         journal_entry_lines: lines.map((l) => ({
           debit_amount: l.debit_amount || 0,
           credit_amount: l.credit_amount || 0,
           description: l.description || '',
-          account: l.account ? {
-            name_ar: l.account.name_ar,
-            name: l.account.name_ar,
-            code: l.account.code
-          } : undefined
+          ...(l.account ? {
+            account: {
+              name_ar: l.account.name_ar ?? '',
+              name: l.account.name_ar ?? '',
+              code: l.account.code ?? '',
+            },
+          } : {}),
         })),
-        total_amount: (() => {
-          return Math.max(
-            lines.reduce((sum, l) => sum + (l.debit_amount || 0), 0),
-            lines.reduce((sum, l) => sum + (l.credit_amount || 0), 0)
-          );
-        })(),
-        created_by_profile: j.created_by_profile || null,
+        total_amount: Math.max(
+          lines.reduce((sum, l) => sum + (l.debit_amount || 0), 0),
+          lines.reduce((sum, l) => sum + (l.credit_amount || 0), 0)
+        ),
+        created_by_profile: j.created_by_profile?.full_name ? { full_name: j.created_by_profile.full_name } : undefined,
         party_name: partyName || undefined
       };
-    }) as unknown as UIJournalEntry[];
+    });
   }
 };

@@ -14,7 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../../features/auth/store';
 import { logger } from '../utils/logger';
-import { offlineHasPermission } from '../permissions/offlineRolePermissions';
+import { offlineHasPermission, OFFLINE_ROLE_PERMISSIONS } from '../permissions/offlineRolePermissions';
+import type { Role } from '../types/common';
 
 const PERMISSION_STALE_TIME = 5 * 60 * 1000; // 5 دقائق
 
@@ -155,13 +156,13 @@ export function useAllPermissions() {
                     : await supabase.rpc('get_user_permissions');
                 if (error) {
                     logger.warn('useAllPermissions', 'RPC error — using fallback', error.message);
-                    const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as any;
+                    const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as Role;
                     return OFFLINE_ROLE_PERMISSIONS[normalized] || [];
                 }
                 return (perms as { permission: string }[])?.map(p => p.permission) ?? [];
             } catch (err) {
                 logger.warn('useAllPermissions', 'Error — using fallback', err);
-                const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as any;
+                const normalized = (user.role?.toLowerCase() === 'owner' ? 'admin' : user.role) as Role;
                 return OFFLINE_ROLE_PERMISSIONS[normalized] || [];
             }
         },

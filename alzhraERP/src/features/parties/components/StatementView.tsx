@@ -8,7 +8,6 @@ import { tafqeet } from '../../../core/utils/tafqeet';
 import { Printer, TrendingUp, TrendingDown, Wallet, Share2, FileDown } from 'lucide-react';
 import { PartyType } from '../types';
 import Button from '../../../ui/base/Button';
-import { exportStatementToExcel } from '../utils/statementExcelExporter';
 import { partiesService, StatementMovement } from '../service';
 import { useAuthStore } from '../../auth/store';
 import { useCompany } from '../../settings/hooks';
@@ -19,7 +18,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const { data: parties } = useParties(partyType);
-  const { data: statement, isLoading } = useStatement(selectedPartyId, partyType);
+  const { data: statement, isLoading } = useStatement(selectedPartyId, partyType, { startDate, endDate });
   const [isExporting, setIsExporting] = useState(false);
   const user = useAuthStore(state => state.user);
   
@@ -27,18 +26,8 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   const invoiceSettings = useInvoiceSettings();
 
   const filteredStatement = useMemo(() => {
-    if (!statement) return [];
-    return statement.filter(row => {
-      if (!startDate && !endDate) return true;
-      const rowDate = new Date(row.date);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-      
-      if (start && rowDate < start) return false;
-      if (end && rowDate > end) return false;
-      return true;
-    });
-  }, [statement, startDate, endDate]);
+    return statement || [];
+  }, [statement]);
 
   const selectedParty = parties?.find(p => p.id === selectedPartyId);
 
@@ -157,6 +146,42 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         </div>
         {selectedPartyId && selectedParty && (
           <div className="flex gap-2 mt-auto">
+
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!selectedPartyId || !statement || !user?.company_id || !selectedParty) return;
+                const totalDebit = filteredStatement.reduce((s, r) => s + (Number(r.debit) || 0), 0);
+                const totalCredit = filteredStatement.reduce((s, r) => s + (Number(r.credit) || 0), 0);
+                const finalBal = filteredStatement.length > 0 ? (Number(filteredStatement[filteredStatement.length - 1].balance) || 0) : 0;
+                
+                const { debtAiService } = await import('../../debts/services/debtAiService');
+                const { buildWhatsAppLink } = await import('../../debts/lib/whatsapp');
+
+                const summaryText = debtAiService.generateWhatsAppStatementSummary({
+                  partyName: selectedParty.name,
+                  totalDebit,
+                  totalCredit,
+                  finalBalance: finalBal,
+                  currency: filteredStatement[0]?.currency || 'SAR',
+                  companyName: company.nameAr,
+                  ...(startDate && endDate ? { dateRangeText: `من ${startDate} إلى ${endDate}` } : {}),
+                  ...((settingsCompany as { bank_name?: string } | null | undefined)?.bank_name ? { bankInfo: `البنك: ${(settingsCompany as { bank_name?: string }).bank_name} | الآيبان: ${(settingsCompany as { bank_account_iban?: string })?.bank_account_iban || '—'}` } : {}),
+                });
+
+                if (selectedParty.phone) {
+                  const link = buildWhatsAppLink(selectedParty.phone, summaryText);
+                  window.open(link, '_blank', 'noopener,noreferrer');
+                } else {
+                  navigator.clipboard.writeText(summaryText);
+                  alert('تم نسخ ملخص كشف الحساب إلى الحافظة (لا يوجد رقم هاتف مسجل للعميل).');
+                }
+              }}
+              className="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200"
+            >
+              <Share2 size={16} />
+              واتساب (ملخص الكشف)
+            </Button>
             <Button
               variant="outline"
               onClick={async () => {
@@ -164,7 +189,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                 setIsExporting(true);
                 try {
                   const companyDetails = await partiesService.getCompanyDetails(user.company_id);
-                  const company = {
+                  const companyObj = {
                     ...companyDetails,
                     address: companyDetails.address || '',
                     phone: companyDetails.phone || '',
@@ -173,7 +198,12 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                   } as any;
                   
                   const blob = await import('../utils/statementExcelExporter').then(m => 
-                    m.generateStatementExcelBlob(company, selectedParty.name, statement as any)
+                    m.generateStatementExcelBlob(companyObj, selectedParty.name, filteredStatement as any, {
+                      currencyCode: filteredStatement[0]?.currency || 'SAR',
+                      ...(selectedParty.phone ? { partyPhone: selectedParty.phone } : {}),
+                      dateFrom: startDate,
+                      dateTo: endDate,
+                    })
                   );
                   
                   const file = new File([blob], `كشف_حساب_${selectedParty.name.replace(/\s+/g, '_')}.xlsx`, {
@@ -187,12 +217,13 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                       text: `مرفق كشف حساب ${selectedParty.name}`
                     });
                   } else {
-                    // Fallback to downloading if native share isn't supported (e.g. desktop Chrome)
                     const { exportStatementToExcel } = await import('../utils/statementExcelExporter');
-                    await exportStatementToExcel(company, selectedParty.name, filteredStatement as any);
-                    
-                    // Show a toast or just let the download happen
-                    alert('تم تنزيل ملف الإكسل. يمكنك الآن إرساله عبر واتساب ويب.');
+                    await exportStatementToExcel(companyObj, selectedParty.name, filteredStatement as any, {
+                      currencyCode: filteredStatement[0]?.currency || 'SAR',
+                      ...(selectedParty.phone ? { partyPhone: selectedParty.phone } : {}),
+                      dateFrom: startDate,
+                      dateTo: endDate,
+                    });
                   }
                 } catch (err) {
                   logger.error("StatementView", 'Share failed', err);
@@ -203,8 +234,8 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
               className="gap-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-emerald-200"
               disabled={isExporting}
             >
-              <Share2 size={16} />
-              مشاركة (ملف إكسل)
+              <FileDown size={16} />
+              مشاركة (Excel)
             </Button>
             <Button
               onClick={async () => {
@@ -212,13 +243,19 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                 setIsExporting(true);
                 try {
                   const companyDetails = await partiesService.getCompanyDetails(user.company_id);
-                  exportStatementToExcel({
+                  const { exportStatementToExcel } = await import('../utils/statementExcelExporter');
+                  await exportStatementToExcel({
                     ...companyDetails,
                     address: companyDetails.address || '',
                     phone: companyDetails.phone || '',
                     tax_number: companyDetails.tax_number || '',
                     logo_url: companyDetails.logo_url || ''
-                  } as any, selectedParty.name, statement as any);
+                  } as any, selectedParty.name, filteredStatement as any, {
+                    currencyCode: filteredStatement[0]?.currency || 'SAR',
+                    ...(selectedParty.phone ? { partyPhone: selectedParty.phone } : {}),
+                    dateFrom: startDate,
+                    dateTo: endDate,
+                  });
                 } catch (err) {
                   logger.error("StatementView", 'Export failed', err);
                 } finally {

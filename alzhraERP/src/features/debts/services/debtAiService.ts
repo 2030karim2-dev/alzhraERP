@@ -122,6 +122,7 @@ ${toneInstructions[tone]}
 
 بيانات العميل:
 - اسم العميل: ${row.party_name}
+- المنشأة: ${companyName || 'منظومة الزهراء'}
 - التصنيف: ${row.category}
 - الرصيد القائم: ${row.outstanding_balance} ${row.currency_code}
 - المبلغ المتأخر: ${row.overdue_amount} ${row.currency_code}
@@ -169,6 +170,11 @@ ${toneInstructions[tone]}
     const riskScore = isCritical ? 85 : isHigh ? 65 : isMedium ? 40 : 15;
     const recoveryProbability = 100 - riskScore + 10;
 
+    const paymentPlanSuggestion =
+      row.outstanding_balance > 5000
+        ? `تقسيط المبلغ (${row.outstanding_balance} ${row.currency_code}) على دفعتين متساويتين.`
+        : undefined;
+
     return {
       riskLevel,
       riskScore,
@@ -187,10 +193,7 @@ ${toneInstructions[tone]}
         'طلب سداد دفعة بنكية اليوم',
         'مراجعة حد الائتمان الممنوح',
       ],
-      paymentPlanSuggestion:
-        row.outstanding_balance > 5000
-          ? `تقسيط المبلغ (${row.outstanding_balance} ${row.currency_code}) على دفعتين متساويتين.`
-          : undefined,
+      ...(paymentPlanSuggestion !== undefined ? { paymentPlanSuggestion } : {}),
     };
   },
 

@@ -36,7 +36,7 @@ export const partiesService = {
   },
 
   // ⚡ Server-side party statement via RPC — no frontend aggregation
-  getStatement: async (partyId: string, _type: PartyType) => {
+  getStatement: async (partyId: string, _type: PartyType, options?: { startDate?: string; endDate?: string }): Promise<StatementMovement[]> => {
     const { data: authData } = await supabase.auth.getUser();
     const userId = authData?.user?.id || '';
     const { data: role } = await supabase.from('user_company_roles')
@@ -52,18 +52,45 @@ export const partiesService = {
     });
     if (error) throw error;
 
-    return ((data as any[]) || []).map((m: any) => ({
+    interface RawStatementRpcRow {
+      line_id: string;
+      entry_date: string;
+      ref: string;
+      operation_type?: string;
+      description: string;
+      type: string;
+      debit: number | string | null;
+      credit: number | string | null;
+      currency: string;
+      balance: number | string | null;
+    }
+
+    const rows = (data as unknown as RawStatementRpcRow[]) || [];
+    let mapped = rows.map((m): StatementMovement => ({
       id: m.line_id,
       date: m.entry_date,
       ref: m.ref,
-      operation_type: m.operation_type,
+      operation_type: m.operation_type ?? '',
       desc: m.description,
       type: m.type,
       debit: Number(m.debit) || 0,
       credit: Number(m.credit) || 0,
       currency: m.currency,
       balance: Number(m.balance) || 0
-    })) as StatementMovement[];
+    }));
+
+    if (options?.startDate || options?.endDate) {
+      mapped = mapped.filter((row) => {
+        const rowDate = new Date(row.date);
+        const start = options.startDate ? new Date(options.startDate) : null;
+        const end = options.endDate ? new Date(options.endDate) : null;
+        if (start && rowDate < start) return false;
+        if (end && rowDate > end) return false;
+        return true;
+      });
+    }
+
+    return mapped;
   },
 
   getCategoriesWithStats: async (companyId: string, type: PartyType): Promise<PartyCategory[]> => {

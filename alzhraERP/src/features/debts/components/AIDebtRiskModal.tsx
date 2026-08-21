@@ -8,13 +8,12 @@ import {
   X,
   Send,
   Lightbulb,
-  FileSpreadsheet,
   Layers,
 } from 'lucide-react';
-import Button from '../../../../ui/base/Button';
-import { cn } from '../../../../core/utils';
-import { formatCurrency } from '../../../../core/utils/currencyUtils';
-import { useAuthStore } from '../../../auth/store';
+import Button from '../../../ui/base/Button';
+import { cn } from '../../../core/utils';
+import { formatCurrency } from '../../../core/utils/currencyUtils';
+import { useAuthStore } from '../../auth/store';
 import { debtAiService, DebtRiskAnalysis } from '../services/debtAiService';
 import type { FollowUpDashboardRow } from '../types';
 
