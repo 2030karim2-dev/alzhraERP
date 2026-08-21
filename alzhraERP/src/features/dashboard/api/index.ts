@@ -6,30 +6,79 @@ import { logger } from '../../../core/utils/logger';
 
 import { supabase } from '@/lib/supabaseClient';
 
+// ── RPC availability cache (per browser session) ─────────────────────
+// When the connected Supabase project is missing a dashboard RPC (e.g.
+// migrations not applied / DB out of sync), record it once so subsequent
+// dashboard loads SKIP the failing call instead of firing N×404 requests
+// (PGRST202) on every render.
+const missingDashboardRpcs = new Set<string>();
+
+/** Normalise an error payload to a readable string for logs. */
+function toDetail(value: string | object | null | undefined): string {
+    return typeof value === 'string' ? value : JSON.stringify(value ?? null);
+}
+
+/** Auth errors (401/403) are excluded from the skip-cache so a refreshed token can recover. */
+function isAuthError(code?: string): boolean {
+    return code === '401' || code === '403';
+}
+
+// The generated `database.types.ts` narrows `supabase.rpc` to a strict
+// per-function union (name must be a literal; args match that function). The
+// dashboard calls are dynamic (name comes from a cache, args include an
+// optional branch param), so widen the signature deliberately — RPC shape
+// safety is enforced by the canonical SQL definitions and safeData fallbacks.
+type LooseRpc = (name: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
+const looseRpc = supabase.rpc as unknown as LooseRpc;
+
+/** Wrapper around supabase.rpc that short-circuits known-missing functions. */
+function dashboardRpc(name: string, args: Record<string, unknown>, signal: AbortSignal) {
+    if (missingDashboardRpcs.has(name)) {
+        return Promise.resolve({ data: null, error: { message: `${name} unavailable (previously failed)` } });
+    }
+    return looseRpc(name, args)
+        .setHeader('x-skip-network-retry', '1')
+        .abortSignal(signal);
+}
+
+// `data` is deliberately `unknown`: the RPC/from builders resolve to generated
+// Json shapes that we re-shape into the widget types below. safeData only
+// branches on `error` presence and re-casts `data` to the expected T.
+type DashResult = PromiseSettledResult<{ data: unknown; error: { code?: string; message?: string } | null }>;
+
 // Helper to extract data or fall back gracefully on RPC failure.
 // IMPORTANT: we deliberately do NOT throw here. The dashboard widgets
 // must keep rendering with zeroed/empty fallbacks when a dashboard RPC
 // is missing or temporarily failing (e.g. PGRST202 404), instead of
 // taking the whole page down and triggering endless refetch loops.
-function safeData<T>(result: PromiseSettledResult<{ data: T | null; error: { message?: string } | null }>, fallback: T, name = 'RPC'): T {
-    if (result.status === 'fulfilled' && result.value.error) {
-        logger.warn("api", `[Dashboard API] ${name} unavailable, using fallback:`, result.value.error.message);
-        return fallback;
-    }
-    if (result.status === 'rejected') {
-        const reason = result.reason as { name?: string } | null | undefined;
-        // Requests aborted because a newer fetch superseded them (e.g. the
-        // fallback poll fired while the previous one was still in flight) are
-        // not real failures — stay quiet and use the fallback.
-        if (reason?.name === 'AbortError') {
+// Failures are logged ONCE per session (logOnce) and cached so the same
+// broken RPC is not retried every dashboard load.
+function safeData<T>(result: DashResult, fallback: T, name = 'RPC'): T {
+    if (result.status === 'fulfilled') {
+        if (result.value.error) {
+            const err = result.value.error;
+            const detail = toDetail(err.message);
+            if (!isAuthError(err.code)) {
+                missingDashboardRpcs.add(name);
+            }
+            logger.logOnce('warn', 'api', `[Dashboard API] ${name} unavailable, using fallback: ${detail}`, { name, error: detail });
             return fallback;
         }
-        logger.warn("api", `[Dashboard API] ${name} rejected, using fallback:`, result.reason);
+        if (result.value.data !== null) {
+            return result.value.data as T;
+        }
         return fallback;
     }
-    if (result.status === 'fulfilled' && result.value.data !== null) {
-        return result.value.data;
+    const reason = result.reason as { name?: string; message?: string } | null | undefined;
+    // Requests aborted because a newer fetch superseded them (e.g. the
+    // fallback poll fired while the previous one was still in flight) are
+    // not real failures — stay quiet and use the fallback.
+    if (reason?.name === 'AbortError') {
+        return fallback;
     }
+    missingDashboardRpcs.add(name);
+    const detail = toDetail(reason?.message);
+    logger.logOnce('warn', 'api', `[Dashboard API] ${name} rejected, using fallback: ${detail}`, { name, error: detail });
     return fallback;
 }
 
@@ -154,61 +203,49 @@ export const dashboardApi = {
             // `x-skip-network-retry` header so a flaky connection cannot amplify
             // 6 parallel calls × retries into a request storm.
             // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
-            supabase.rpc('get_dashboard_summary', {
+            dashboardRpc('get_dashboard_summary', {
                 p_company_id: companyId,
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 2. Sales Chart Data
-            supabase.rpc('get_sales_chart_data', {
+            dashboardRpc('get_sales_chart_data', {
                 p_company_id: companyId,
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 3. Top Products & Customers
-            supabase.rpc('get_top_products_and_customers', {
+            dashboardRpc('get_top_products_and_customers', {
                 p_company_id: companyId,
                 p_limit: 5,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 4. Low Stock Products
-            supabase.rpc('get_low_stock_products', {
+            dashboardRpc('get_low_stock_products', {
                 p_company_id: companyId,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 5. Expense Categories Summary
-            supabase.rpc('get_expense_categories_summary', {
+            dashboardRpc('get_expense_categories_summary', {
                 p_company_id: companyId,
                 p_date_from: dateFrom,
                 p_date_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 6. Trial Balance for Net Profit
-            supabase.rpc('report_trial_balance', {
+            dashboardRpc('report_trial_balance', {
                 p_company_id: companyId,
                 p_from: '2000-01-01',
                 p_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 7. Recent invoices (recent-activity feed) — direct table read, RLS-scoped
             supabase
@@ -234,37 +271,31 @@ export const dashboardApi = {
                 .abortSignal(activeSignal),
 
             // 9. Debt follow-up engine (overdue parties → dashboard alerts)
-            supabase.rpc('get_debt_followup_dashboard', {
+            dashboardRpc('get_debt_followup_dashboard', {
                 p_company_id: companyId,
                 p_due_soon_days: 7,
                 p_critical_days: 30,
                 p_reminder_window_days: 3,
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 10. Server-authored P&L → net profit with an authoritative sign
             //     convention (no fragile client-side account-code filtering).
             //     Fallback to the legacy trial-balance math happens in the hook
             //     when this RPC is unavailable/fails.
-            supabase.rpc('report_profit_loss', {
+            dashboardRpc('report_profit_loss', {
                 p_company_id: companyId,
                 p_from: '2000-01-01',
                 p_to: dateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 11. Top-selling products (feed for the top product-categories chart).
             //     Aggregated by category_id client-side against product_categories.
-            supabase.rpc('get_top_selling_products', {
+            dashboardRpc('get_top_selling_products', {
                 p_company_id: companyId,
                 p_days: 30,
                 p_limit: 20,
-            })
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            }, activeSignal),
 
             // 12. Product categories (names for the top-category aggregation)
             supabase
