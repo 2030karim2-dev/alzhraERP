@@ -137,7 +137,7 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
         setItems(prev => {
             const exists = prev.find(i => (i.product_id || i.id) === (item.product_id || item.id));
             if (exists) return prev;
-            return [...prev, item];
+            return [item, ...prev];
         });
     }, []);
     const removeItem = useCallback((productId: string) => {
@@ -154,7 +154,7 @@ export function useInventorySession({ sessionId, warehouseId, initialItems, auto
             const merged = [...prev];
             serverItems.forEach(serverItem => {
                 const exists = merged.find(i => (i.product_id || i.id) === (serverItem.product_id || serverItem.id));
-                if (!exists) merged.push(serverItem);
+                if (!exists) merged.unshift(serverItem);
             });
             lastItemsRef.current = merged;
             return merged;

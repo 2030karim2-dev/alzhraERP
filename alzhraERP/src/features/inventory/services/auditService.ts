@@ -131,7 +131,8 @@ export const auditService = {
 
         const { data: items, error: iError } = await supabase.from('audit_items')
             .select('*, products(*, product_categories(name))')
-            .eq('session_id', sessionId);
+            .eq('session_id', sessionId)
+            .order('created_at', { ascending: false });
         if (iError) throw iError;
 
         return {

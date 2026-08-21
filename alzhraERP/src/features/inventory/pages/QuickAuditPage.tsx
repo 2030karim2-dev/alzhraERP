@@ -60,7 +60,7 @@ const QuickAuditPage: React.FC = () => {
                 system_quantity: systemQty,
                 quantity: systemQty, // Default to system quantity (no change)
             };
-            return [...prev, newItem];
+            return [newItem, ...prev];
         });
 
         setFilter('');
