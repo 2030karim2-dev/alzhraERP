@@ -81,11 +81,16 @@ export const auditService = {
      * Finalize an audit session
      */
     finalizeAudit: async (sessionId: string, items: AuditItemInput[], userId: string, _companyId?: string) => {
-        const payloadItems = items.map(i => {
+        const payloadItems = (items || []).map(i => {
             let qty: number | string | null = i.counted_quantity;
             if (typeof qty === 'string' && qty === '') qty = null;
-            return { product_id: i.product_id, counted_quantity: qty };
-        }).filter(i => i.counted_quantity !== null && i.counted_quantity !== undefined);
+            if (typeof qty === 'string' && !isNaN(Number(qty))) qty = Number(qty);
+            if (typeof qty === 'number' && isNaN(qty)) qty = null;
+            return {
+                product_id: i.product_id,
+                counted_quantity: qty
+            };
+        }).filter(i => !!i.product_id && i.counted_quantity !== null && i.counted_quantity !== undefined);
 
         const { error } = await supabase.rpc('finalize_audit_session', {
             p_session_id: sessionId,
@@ -154,14 +159,15 @@ export const auditService = {
      * Save audit progress
      */
     saveAuditProgress: async (items: AuditItemInput[]) => {
-        const updates = items.map(i => {
+        const updates = (items || []).map(i => {
             let qty: number | string | null = i.counted_quantity;
             if (typeof qty === 'string' && qty === '') qty = null;
             return {
                 id: i.id,
                 counted_quantity: qty
             };
-        });
+        }).filter(i => !!i.id);
+        if (updates.length === 0) return;
         const { error } = await supabase.from('audit_items').upsert(updates as unknown as TableInsert<'audit_items'>[]);
         if (error) throw error;
     },

@@ -148,8 +148,18 @@ const AuditSessionPage: React.FC = () => {
     }, [sessionItems, watchedItems]);
 
     const handleSave = () => {
-        const currentItems = getValues('items');
-        saveAuditProgress(currentItems as AuditProgressItem[]);
+        const formItems = getValues('items') || [];
+        const sourceList = (sessionItems && sessionItems.length > 0) ? sessionItems : (data?.items || []);
+        const itemsToSave: AuditProgressItem[] = sourceList.map((item, index) => {
+            const formVal = formItems[index]?.counted_quantity;
+            const counted = (formVal !== undefined && formVal !== '') ? formVal : item.counted_quantity;
+            return {
+                id: item.id as string | undefined,
+                product_id: (item.product_id || item.id) as string,
+                counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(item.counted_quantity ?? 0),
+            };
+        });
+        saveAuditProgress(itemsToSave);
     };
 
     const handleFinalize = () => {
@@ -159,8 +169,19 @@ const AuditSessionPage: React.FC = () => {
             }
         }
         if (sessionId) {
-            const currentItems = getValues('items');
-            finalizeAudit({ sessionId, items: currentItems as AuditProgressItem[] }, {
+            const formItems = getValues('items') || [];
+            const sourceList = (sessionItems && sessionItems.length > 0) ? sessionItems : (data?.items || []);
+            const itemsToFinalize: AuditProgressItem[] = sourceList.map((item, index) => {
+                const formVal = formItems[index]?.counted_quantity;
+                const counted = (formVal !== undefined && formVal !== '') ? formVal : item.counted_quantity;
+                return {
+                    id: item.id as string | undefined,
+                    product_id: (item.product_id || item.id) as string,
+                    counted_quantity: (counted !== null && counted !== undefined && counted !== '') ? Number(counted) : Number(item.counted_quantity ?? 0),
+                };
+            });
+
+            finalizeAudit({ sessionId, items: itemsToFinalize }, {
                 onSuccess: () => {
                     clearSession();
                     navigate('/inventory');
