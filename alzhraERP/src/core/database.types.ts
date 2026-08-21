@@ -12852,6 +12852,14 @@ export type Database = {
       verify_company_access: { Args: { p_company_id: string }; Returns: string }
       void_bond: { Args: { p_payment_id: string }; Returns: undefined }
       void_expense: { Args: { p_expense_id: string }; Returns: Json }
+      quick_adjust_stock_batch: {
+        Args: {
+          p_company_id: string
+          p_items: Json
+          p_notes?: string
+        }
+        Returns: Json
+      }
       void_invoice: { Args: { p_invoice_id: string }; Returns: Json }
     }
     Enums: {

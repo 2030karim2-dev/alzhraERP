@@ -160,5 +160,9 @@ export const purchasesApi = {
     return query.order('issue_date', { ascending: false });
   },
 
-  deletePurchase: async (id: string) => supabase.from('invoices').update({ deleted_at: new Date().toISOString() }).eq('id', id),
+  deletePurchase: async (id: string) => {
+    const { data, error } = await supabase.rpc('void_invoice', { p_invoice_id: id });
+    if (error) throw asError(parseError(error));
+    return { data, error: null };
+  },
 };

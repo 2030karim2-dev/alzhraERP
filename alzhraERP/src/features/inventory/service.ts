@@ -15,6 +15,10 @@
  */
 
 import { Product, ProductFormData, CreateTransferDTO } from './types';
+import { supabase } from '@/lib/supabaseClient';
+import { parseError } from '@/core/utils/errorUtils';
+import type { Json } from '@/core/database.types';
+
 // Import specialized services
 import { productService } from './services/productService';
 import { warehouseService } from './services/warehouseService';
@@ -157,23 +161,20 @@ export const inventoryService = {
   },
 
   // ==========================================
-  // Quick Adjustments
+  // Quick Adjustments (Server-Authoritative & Atomic Batch)
   // ==========================================
 
-  quickAdjustStock: async (companyId: string, items: { product_id: string; warehouse_id: string; quantity: number }[], userId: string) => {
-    const { warehouseApi } = await import('./api/warehouseApi');
+  quickAdjustStock: async (companyId: string, items: { product_id: string; warehouse_id: string; quantity: number }[], _userId?: string) => {
+    if (!items || items.length === 0) return true;
 
-    // Process in batches of 20 to prevent rate limiting and connection drops
-    const BATCH_SIZE = 20;
-    for (let i = 0; i < items.length; i += BATCH_SIZE) {
-      const batch = items.slice(i, i + BATCH_SIZE);
-      const promises = batch.map(item =>
-        warehouseApi.updateStock(companyId, item.product_id, item.warehouse_id, item.quantity, userId)
-      );
-      await Promise.all(promises);
-    }
+    const { data, error } = await supabase.rpc('quick_adjust_stock_batch', {
+      p_company_id: companyId,
+      p_items: items as unknown as Json,
+      p_notes: 'تسوية يدوية سريعة للمخزون'
+    });
 
-    return true;
+    if (error) throw parseError(error);
+    return data;
   }
 };
 

@@ -158,23 +158,15 @@ export const salesApi = {
   },
 
   getNextSequence: async (companyId: string, type: string) => {
-    try {
-      const { data, error } = await supabase.rpc('get_next_sequence', {
-        p_company_id: companyId,
-        p_sequence_name: type
-      });
-      if (error) {
-        // Graceful fallback when RPC doesn't exist (migration not yet applied)
-        if ((error as { code?: string }).code === 'PGRST202' || error.message?.includes('Could not find the function')) {
-          return { data: `${type.toUpperCase().slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`, error: null };
-        }
-      }
-      if (error) return { data: null, error };
-      return { data, error: null };
-    } catch {
-      // Catch-all fallback for environments without the migration
-      return { data: `${type.toUpperCase().slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`, error: null };
+    const { data, error } = await supabase.rpc('get_next_sequence', {
+      p_company_id: companyId,
+      p_sequence_name: type
+    });
+    if (error) {
+      logger.error('Sales', 'Error fetching next sequence', error);
+      return { data: null, error: parseError(error) };
     }
+    return { data, error: null };
   },
 
   getSalesAnalytics: async (params: { company_id: string; start_date?: string; end_date?: string }) => {
@@ -194,16 +186,10 @@ export const salesApi = {
   },
 
   deleteInvoice: async (id: string) => {
-    // Avoid providing client-system dates to auditing timestamps, relying instead on 
-    // remote RPCs for secure soft deletion logging where feasible.
-    const { error } = await supabase.rpc('void_invoice', { p_invoice_id: id });
-    if(error) {
-      // Direct update fallback (for envs lacking void_invoice)
-      return await supabase
-        .from('invoices')
-        .update({ deleted_at: ((new Date()).toISOString()), status: 'void' })
-        .eq('id', id);
-    }
-    return { error: null };
+    // Strictly invoke void_invoice RPC to reverse inventory and accounting atomically.
+    // Zero client-side fallback to prevent unauthorized bypass or un-reversed ledgers.
+    const { data, error } = await supabase.rpc('void_invoice', { p_invoice_id: id });
+    if (error) throw parseError(error);
+    return { data, error: null };
   }
 };
