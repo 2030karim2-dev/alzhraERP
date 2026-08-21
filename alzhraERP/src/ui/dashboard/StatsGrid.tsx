@@ -28,14 +28,18 @@ import { cn } from '../../core/utils';
 
 // Mini sparkline SVG component — driven by real data instead of fixed points
 const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({ data, color, className }) => {
-  const points = data && data.length > 0 ? data : [0];
+  const validData = Array.isArray(data) ? data.filter((n) => typeof n === 'number' && Number.isFinite(n)) : [];
+  const points = validData.length === 0 ? [0, 0] : validData.length === 1 ? [validData[0], validData[0]] : validData;
   const w = 80, h = 28;
   const maxVal = Math.max(...points);
   const minVal = Math.min(...points);
   const range = (maxVal - minVal) || 1;
+  const denominator = Math.max(1, points.length - 1);
   const coords = points.map((p, i) => {
-    const x = (i / (points.length - 1)) * w;
-    const y = h - ((p - minVal) / range) * (h - 4) - 2;
+    const rawX = (i / denominator) * w;
+    const rawY = h - ((p - minVal) / range) * (h - 4) - 2;
+    const x = Number.isFinite(rawX) ? rawX : 0;
+    const y = Number.isFinite(rawY) ? rawY : h / 2;
     return `${x},${y}`;
   }).join(' ');
   const fillCoords = `0,${h} ${coords} ${w},${h}`;

@@ -20,6 +20,7 @@ interface PartsExtractTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAdd: (parts: ExtractedPart[]) => Promise<number>;
+  onNavigateToInventory?: () => void;
   isAdding: boolean;
   canAdd?: boolean;
 }
@@ -33,6 +34,8 @@ const QUICK_PARTS_TEMPLATES = [
   { base: 'فلتر هواء', oem: '', mfr: 'TOYOTA', spec: 'فلتر شوية' },
   { base: 'فلتر مكيف', oem: '', mfr: 'TOYOTA', spec: 'فلتر صالون' },
   { base: 'مساعدات أمامية', oem: '', mfr: 'KYB', spec: 'يمين / يسار' },
+  { base: 'دينمو', oem: '', mfr: 'DENSO', spec: '12V' },
+  { base: 'سلف', oem: '', mfr: 'DENSO', spec: 'أصلي' },
   { base: 'سير مكينة', oem: '', mfr: 'BANDO', spec: '6PK' },
   { base: 'طرمبة ماء', oem: '', mfr: 'AISIN', spec: 'مع الوجوه' },
 ];
@@ -43,18 +46,20 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   onSearchPart,
   isSearching,
   onAdd,
+  onNavigateToInventory,
   isAdding,
   canAdd,
 }) => {
   const [rows, setRows] = useState<ExcelGridPart[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
 
   // Add initial empty row when vehicle is set and rows are empty
   useEffect(() => {
     if (vehicle && rows.length === 0) {
       setRows([
-        createEmptyRow(vehicle, 'بلاكات', '90919-01164', 'DENSO'),
-        createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', 'TOYOTA'),
+        createEmptyRow(vehicle, 'بلاكات', '90919-01164', 'DENSO', 'طقم 4 حبات'),
+        createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', 'TOYOTA', 'طقم أمامي'),
       ]);
     }
   }, [vehicle]);
@@ -174,16 +179,23 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   const handleSaveToInventory = async () => {
     if (selectedRows.length === 0) return;
-    const partsToSave: ExtractedPart[] = selectedRows.map((r) => ({
-      partNumber: r.partNumber.trim() || `PART-${Date.now().toString(36).toUpperCase()}`,
-      description: (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار',
-      manufacturer: r.manufacturer?.trim() || vehicle?.make || '',
-      source: r.source || 'manual',
-      salePrice: r.salePrice || 0,
-      purchasePrice: r.purchasePrice || 0,
-    }));
+    const partsToSave: ExtractedPart[] = selectedRows.map((r) => {
+      let finalDescription = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
+      if (r.sizeSpec?.trim() && !finalDescription.includes(r.sizeSpec.trim())) {
+        finalDescription = `${finalDescription} - ${r.sizeSpec.trim()}`;
+      }
+      return {
+        partNumber: r.partNumber.trim() || `PART-${Date.now().toString(36).toUpperCase()}`,
+        description: finalDescription,
+        manufacturer: r.manufacturer?.trim() || vehicle?.make || '',
+        source: r.source || 'manual',
+        salePrice: r.salePrice || 0,
+        purchasePrice: r.purchasePrice || 0,
+      };
+    });
 
-    await onAdd(partsToSave);
+    const count = await onAdd(partsToSave);
+    setLastAddedCount(count);
   };
 
   if (!hasVehicle || !vehicle) {
@@ -238,6 +250,38 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         </div>
       </Card>
 
+      {/* Success Notification Alert */}
+      {lastAddedCount !== null && (
+        <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-2 text-emerald-900 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+              ✓
+            </div>
+            <p className="text-[11px] font-black">
+              تم بنجاح إضافة وتحديث <span className="underline decoration-2">{lastAddedCount}</span> قطعة في المخزون وشبكة التوافق لهذه المركبة!
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {onNavigateToInventory && (
+              <Button
+                size="sm"
+                variant="success"
+                onClick={onNavigateToInventory}
+                className="text-[9px] font-black px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800"
+              >
+                عرض في المخزون المتطابق →
+              </Button>
+            )}
+            <button
+              onClick={() => { setLastAddedCount(null); }}
+              className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-1.5"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Search & Add Controls ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
         {/* Quick OEM search from Megazip */}
@@ -248,7 +292,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                 variant="micro"
                 label="بحث OEM من الكتالوج (Megazip)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchMegazip()}
                 placeholder="مثال: 90919-01164 أو 04465-0K090"
               />
@@ -269,10 +313,10 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         <Card isMicro>
           <div className="flex flex-wrap items-center justify-between h-full gap-1">
             <div className="flex flex-wrap gap-1">
-              <Button size="sm" variant="primary" onClick={() => addRow()} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-[10px]">
+              <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-[10px]">
                 <Plus size={13} className="ml-1" /> سطر جديد
               </Button>
-              <Button size="sm" variant="outline" onClick={() => addMultipleRows(5)} className="font-bold text-[10px]">
+              <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-[10px]">
                 <Layers size={13} className="ml-1" /> +5 أسطر
               </Button>
             </div>
@@ -290,7 +334,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
           <button
             key={tmpl.base}
             type="button"
-            onClick={() => addRow(tmpl)}
+            onClick={() => { addRow(tmpl); }}
             className="shrink-0 px-2 py-0.5 text-[9px] font-bold rounded-full bg-[var(--app-bg-surface)] border border-[var(--app-border)] hover:border-indigo-500 hover:text-indigo-600 transition-colors"
           >
             + {tmpl.base}
@@ -308,7 +352,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                    onChange={(e) => { toggleSelectAll(e.target.checked); }}
                     className="rounded text-indigo-600 focus:ring-indigo-500"
                   />
                 </th>
@@ -349,7 +393,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <input
                         type="checkbox"
                         checked={!!row.selected}
-                        onChange={(e) => updateRow(row._id, { selected: e.target.checked })}
+                        onChange={(e) => { updateRow(row._id, { selected: e.target.checked }); }}
                         className="rounded text-indigo-600 focus:ring-indigo-500"
                       />
                     </td>
@@ -364,7 +408,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <input
                         type="text"
                         value={row.partNumber}
-                        onChange={(e) => updateRow(row._id, { partNumber: e.target.value })}
+                        onChange={(e) => { updateRow(row._id, { partNumber: e.target.value }); }}
                         placeholder="90919-01164"
                         className="w-full px-2 py-1 font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
                       />
@@ -375,7 +419,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <input
                         type="text"
                         value={row.baseName}
-                        onChange={(e) => updateRow(row._id, { baseName: e.target.value })}
+                        onChange={(e) => { updateRow(row._id, { baseName: e.target.value }); }}
                         placeholder="مثال: بلاكات، فحمات"
                         className="w-full px-2 py-1 font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
                       />
@@ -387,7 +431,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         <input
                           type="text"
                           value={row.description}
-                          onChange={(e) => updateRow(row._id, { description: e.target.value })}
+                          onChange={(e) => { updateRow(row._id, { description: e.target.value }); }}
                           placeholder="الاسم التلقائي المكتمل للمنتج"
                           className="w-full px-2 py-1 font-bold text-[10px] text-indigo-950 bg-indigo-50/40 border border-indigo-200 rounded focus:outline-none focus:border-indigo-600 focus:bg-white"
                         />
@@ -413,7 +457,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <input
                         type="text"
                         value={row.manufacturer || ''}
-                        onChange={(e) => updateRow(row._id, { manufacturer: e.target.value })}
+                        onChange={(e) => { updateRow(row._id, { manufacturer: e.target.value }); }}
                         placeholder="DENSO / TOYOTA"
                         className="w-full px-2 py-1 font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
                       />
@@ -424,7 +468,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <input
                         type="text"
                         value={row.sizeSpec || ''}
-                        onChange={(e) => updateRow(row._id, { sizeSpec: e.target.value })}
+                        onChange={(e) => { updateRow(row._id, { sizeSpec: e.target.value }); }}
                         placeholder="المقاس / المواصفات"
                         className="w-full px-2 py-1 text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500"
                       />
@@ -437,7 +481,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         min="0"
                         step="any"
                         value={row.purchasePrice || ''}
-                        onChange={(e) => updateRow(row._id, { purchasePrice: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => { updateRow(row._id, { purchasePrice: parseFloat(e.target.value) || 0 }); }}
                         placeholder="0.00"
                         className="w-full px-1.5 py-1 text-center font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500 text-emerald-700"
                       />
@@ -450,7 +494,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         min="0"
                         step="any"
                         value={row.salePrice || ''}
-                        onChange={(e) => updateRow(row._id, { salePrice: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => { updateRow(row._id, { salePrice: parseFloat(e.target.value) || 0 }); }}
                         placeholder="0.00"
                         className="w-full px-1.5 py-1 text-center font-mono font-bold text-[10px] bg-[var(--app-bg-surface)] border border-[var(--app-border)] rounded focus:outline-none focus:border-indigo-500 text-blue-700"
                       />
@@ -461,7 +505,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => duplicateRow(row._id)}
+                          onClick={() => { duplicateRow(row._id); }}
                           className="p-1 text-slate-500 hover:text-indigo-600 rounded hover:bg-slate-200/50"
                           title="تكرار السطر"
                         >
@@ -469,7 +513,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteRow(row._id)}
+                          onClick={() => { deleteRow(row._id); }}
                           className="p-1 text-rose-500 hover:text-rose-700 rounded hover:bg-rose-100/50"
                           title="حذف السطر"
                         >
@@ -490,7 +534,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
               تم تحديد <strong className="text-indigo-700">{selectedRows.length}</strong> من أصل {rows.length} قطعة
             </span>
-            <Button size="sm" variant="outline" onClick={() => addRow()} className="text-[9px] font-bold">
+            <Button size="sm" variant="outline" onClick={() => { addRow(); }} className="text-[9px] font-bold">
               <Plus size={10} className="ml-1" /> إضافة سطر
             </Button>
           </div>

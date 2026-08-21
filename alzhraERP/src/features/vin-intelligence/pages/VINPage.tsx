@@ -51,7 +51,7 @@ const VINPage: React.FC = () => {
         iconColor="text-blue-600"
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id)}
+        onTabChange={(id) => { setActiveTab(id); }}
       />
 
       <div className="flex-1 overflow-hidden flex flex-col relative z-20">
@@ -65,7 +65,7 @@ const VINPage: React.FC = () => {
               onDecode={handleDecode}
               onSetManualVehicle={vin.setManualVehicle}
               onSave={handleSave}
-              onNavigateToExtract={() => setActiveTab('extract')}
+              onNavigateToExtract={() => { setActiveTab('extract'); }}
               isSaving={vin.isSaving}
             />
           )}
@@ -78,6 +78,14 @@ const VINPage: React.FC = () => {
               onSearchPart={vin.searchPartByNumber}
               isSearching={vin.isSearching}
               onAddParts={(vehicle, parts) => vin.addToInventory({ vehicle, parts })}
+              onOpenInExtract={(v) => {
+                const info = v.decoded as import('../types').VehicleInfo | null;
+                if (info) {
+                  vin.setManualVehicle(info, v.vin).then(() => {
+                    setActiveTab('extract');
+                  });
+                }
+              }}
               isAdding={vin.isAdding}
               canAdd={canAddToInventory}
             />
@@ -103,6 +111,7 @@ const VINPage: React.FC = () => {
               onSearchPart={vin.searchPartByNumber}
               isSearching={vin.isSearching}
               onAdd={(parts) => (vin.vehicle ? vin.addToInventory({ vehicle: vin.vehicle, parts }) : Promise.resolve(0))}
+              onNavigateToInventory={() => { setActiveTab('inventory'); }}
               isAdding={vin.isAdding}
               canAdd={canAddToInventory}
             />

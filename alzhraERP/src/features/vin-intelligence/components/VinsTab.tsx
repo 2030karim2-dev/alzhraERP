@@ -3,7 +3,7 @@ import { Car, PackagePlus, Search, Plus } from 'lucide-react';
 import Card from '../../../ui/base/Card';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
-import ExcelTable, { Column } from '../../../ui/common/ExcelTable';
+import ExcelTable, { type Column } from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
 import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord } from '../types';
 import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
@@ -17,6 +17,7 @@ interface VinsTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
+  onOpenInExtract?: (record: VinAnalysisRecord) => void;
   isAdding: boolean;
   canAdd?: boolean;
 }
@@ -28,6 +29,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   onSearchPart,
   isSearching,
   onAddParts,
+  onOpenInExtract,
   isAdding,
   canAdd,
 }) => {
@@ -111,7 +113,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const columns: Column<UiPart>[] = [
+  const columns: Array<Column<UiPart>> = [
     { header: 'رقم القطعة', accessor: (r) => <span className="font-mono text-[10px]">{r.partNumber || '—'}</span>, width: '140px' },
     { header: 'الوصف', accessor: (r) => <span className="text-[10px]">{r.description ?? '—'}</span> },
     { header: 'المصنع', accessor: (r) => <span className="text-[10px]">{r.manufacturer ?? '—'}</span>, width: '90px' },
@@ -140,7 +142,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
               return (
                 <button
                   key={v.id}
-                  onClick={() => handleSelect(v)}
+                  onClick={() => { handleSelect(v); }}
                   className={cn(
                     'w-full text-right px-2 py-1.5 rounded-lg border transition-colors',
                     isActive
@@ -163,14 +165,26 @@ export const VinsTab: React.FC<VinsTabProps> = ({
         {selected && vehicle ? (
           <>
             <Card isMicro>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                   <Car size={14} className="text-blue-600" />
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--app-text)]">
                     {vehicle.make} {vehicle.model ?? ''} {vehicle.year ? String(vehicle.year) : ''}
                   </h3>
                 </div>
-                <span className="text-[9px] font-mono text-[var(--app-text-secondary)]">{selected.vin}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-mono text-[var(--app-text-secondary)]">{selected.vin}</span>
+                  {onOpenInExtract && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => { onOpenInExtract(selected); }}
+                      className="text-[9px] font-black px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      إدارة في جدول القطع الذكي (Excel) ⚡
+                    </Button>
+                  )}
+                </div>
               </div>
               {(vehicle.displacement || vehicle.cylinders || vehicle.fuelType || vehicle.driveType || vehicle.transmission || vehicle.market) && (
                 <div className="flex flex-wrap gap-1.5 mt-2 text-[9px] text-[var(--app-text-secondary)]">
@@ -196,7 +210,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
             <Card isMicro>
               <div className="flex flex-wrap items-end gap-1.5">
                 <div className="flex-1 min-w-[140px]">
-                  <Input variant="micro" label="بحث حقيقي برقم القطعة (megazip)" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="مثال: 04465-0K090" />
+                  <Input variant="micro" label="بحث حقيقي برقم القطعة (megazip)" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); }} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="مثال: 04465-0K090" />
                 </div>
                 <Button size="sm" variant="secondary" onClick={handleSearch} isLoading={isSearching} disabled={searchQuery.trim().length < 3}>
                   <Search size={14} className="ml-1" /> بحث
@@ -204,10 +218,10 @@ export const VinsTab: React.FC<VinsTabProps> = ({
               </div>
               <div className="flex flex-wrap items-end gap-1.5 mt-1.5">
                 <div className="flex-1 min-w-[120px]">
-                  <Input variant="micro" label="رقم قطعة (يدوي)" value={manualNumber} onChange={(e) => setManualNumber(e.target.value)} placeholder="رقم OEM" />
+                  <Input variant="micro" label="رقم قطعة (يدوي)" value={manualNumber} onChange={(e) => { setManualNumber(e.target.value); }} placeholder="رقم OEM" />
                 </div>
                 <div className="flex-1 min-w-[150px]">
-                  <Input variant="micro" label="الوصف" value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="وصف القطعة" />
+                  <Input variant="micro" label="الوصف" value={manualDesc} onChange={(e) => { setManualDesc(e.target.value); }} placeholder="وصف القطعة" />
                 </div>
                 <Button size="sm" variant="outline" onClick={addManual}>
                   <Plus size={14} className="ml-1" /> إضافة يدوية

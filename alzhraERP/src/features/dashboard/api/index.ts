@@ -248,27 +248,39 @@ export const dashboardApi = {
             }, activeSignal),
 
             // 7. Recent invoices (recent-activity feed) — direct table read, RLS-scoped
-            supabase
-                .from('invoices')
-                .select('id, type, issue_date, total_amount, party_id, parties(name)')
-                .eq('company_id', companyId)
-                .is('deleted_at', null)
-                .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return'])
-                .order('issue_date', { ascending: false })
-                .limit(5)
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            (() => {
+                let q = supabase
+                    .from('invoices')
+                    .select('id, type, issue_date, total_amount, party_id, parties(name)')
+                    .eq('company_id', companyId)
+                    .is('deleted_at', null)
+                    .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
+                if (branchParam !== undefined) {
+                    q = q.eq('branch_id', branchParam);
+                }
+                return q
+                    .order('issue_date', { ascending: false })
+                    .limit(5)
+                    .setHeader('x-skip-network-retry', '1')
+                    .abortSignal(activeSignal);
+            })(),
 
             // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped
-            supabase
-                .from('expenses')
-                .select('id, expense_date, description, amount, expense_categories(name)')
-                .eq('company_id', companyId)
-                .is('deleted_at', null)
-                .order('expense_date', { ascending: false })
-                .limit(3)
-                .setHeader('x-skip-network-retry', '1')
-                .abortSignal(activeSignal),
+            (() => {
+                let q = supabase
+                    .from('expenses')
+                    .select('id, expense_date, description, amount, expense_categories(name)')
+                    .eq('company_id', companyId)
+                    .is('deleted_at', null);
+                if (branchParam !== undefined) {
+                    q = q.eq('branch_id', branchParam);
+                }
+                return q
+                    .order('expense_date', { ascending: false })
+                    .limit(3)
+                    .setHeader('x-skip-network-retry', '1')
+                    .abortSignal(activeSignal);
+            })(),
 
             // 9. Debt follow-up engine (overdue parties → dashboard alerts)
             dashboardRpc('get_debt_followup_dashboard', {
@@ -314,7 +326,7 @@ export const dashboardApi = {
         // fallback (a plain object) takes the non-array branch.
         // Handle results and throw if critical errors exist
         const rawSummary = safeData<SummaryRow | SummaryRow[]>(
-            summaryRes as unknown as PromiseSettledResult<{ data: SummaryRow | SummaryRow[] | null; error: { message?: string } | null }>,
+            summaryRes,
             {},
             'get_dashboard_summary',
         );
@@ -323,7 +335,7 @@ export const dashboardApi = {
         const salesChart = safeData(chartRes, [], 'get_sales_chart_data');
 
         const rawTop = safeData<RawTopPayload | RawTopPayload[]>(
-            topRes as unknown as PromiseSettledResult<{ data: RawTopPayload | RawTopPayload[] | null; error: { message?: string } | null }>,
+            topRes,
             { top_products: [], top_customers: [] },
             'get_top_products_and_customers'
         );

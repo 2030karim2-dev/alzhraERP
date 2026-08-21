@@ -20,7 +20,7 @@ interface VinDecodeTabProps {
   isSaving: boolean;
 }
 
-const MODES: { id: VinDecodeMode; label: string; icon: typeof ScanLine }[] = [
+const MODES: Array<{ id: VinDecodeMode; label: string; icon: typeof ScanLine }> = [
   { id: 'hybrid', label: 'تلقائي (vPIC + داخلي + AI)', icon: Sparkles },
   { id: 'db', label: 'بنيوي (قاعدة البيانات)', icon: Database },
   { id: 'ai', label: 'ذكاء اصطناعي فقط', icon: Sparkles },
@@ -31,6 +31,17 @@ const POPULAR_MAKES = ['تويوتا', 'نيسان', 'هيونداي', 'كيا',
 
 /** Popular markets/specs */
 const POPULAR_MARKETS = ['خليجي', 'وارد أمريكي', 'وارد ياباني', 'سعودي', 'كوري', 'أوروبي'];
+
+/** Quick presets for popular vehicles in Yemen & Gulf market */
+const QUICK_VEHICLE_PRESETS = [
+  { label: 'كورولا (2001-2007)', make: 'تويوتا', model: 'كورولا', yStart: '2001', yEnd: '2007', market: 'خليجي', engine: '1.8', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'هايلوكس (2006-2015)', make: 'تويوتا', model: 'هايلوكس', yStart: '2006', yEnd: '2015', market: 'خليجي', engine: '2.7', trans: 'عادي', drive: 'دبل' },
+  { label: 'شاص (2007-2022)', make: 'تويوتا', model: 'شاص', yStart: '2007', yEnd: '2022', market: 'خليجي', engine: '4.0', trans: 'عادي', drive: 'دبل' },
+  { label: 'كامري (2003-2006)', make: 'تويوتا', model: 'كامري', yStart: '2003', yEnd: '2006', market: 'خليجي', engine: '2.4', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'يارس (2006-2013)', make: 'تويوتا', model: 'يارس', yStart: '2006', yEnd: '2013', market: 'خليجي', engine: '1.3', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'سنتافي (2013-2018)', make: 'هيونداي', model: 'سنتافي', yStart: '2013', yEnd: '2018', market: 'وارد أمريكي', engine: '3.3', trans: 'تماتيك', drive: 'دبل' },
+  { label: 'توسان (2016-2020)', make: 'هيونداي', model: 'توسان', yStart: '2016', yEnd: '2020', market: 'خليجي', engine: '2.0', trans: 'تماتيك', drive: 'سنجل' },
+];
 
 /** Result is considered "uncertain" when it comes from AI with low/medium confidence. */
 function isUncertainResult(result: VinDecodeResult | null): boolean {
@@ -65,11 +76,22 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   const [manualDrive, setManualDrive] = useState('سنجل');
   const [manualVinOptional, setManualVinOptional] = useState('');
 
+  const applyPreset = (preset: typeof QUICK_VEHICLE_PRESETS[0]) => {
+    setManualMake(preset.make);
+    setManualModel(preset.model);
+    setManualYearStart(preset.yStart);
+    setManualYearEnd(preset.yEnd);
+    setManualMarket(preset.market);
+    setManualEngine(preset.engine);
+    setManualTransmission(preset.trans);
+    setManualDrive(preset.drive);
+  };
+
   // Reset confirmation whenever a new result arrives
   const prevVinRef = React.useRef<string | null>(null);
   if (result?.vin && result.vin !== prevVinRef.current) {
     prevVinRef.current = result.vin;
-    Promise.resolve().then(() => setAiSaveConfirmed(false));
+    Promise.resolve().then(() => { setAiSaveConfirmed(false); });
   }
 
   const validation = validateVin(vin);
@@ -100,6 +122,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
     if (onSetManualVehicle) {
       await onSetManualVehicle(vehicleData, manualVinOptional);
+      if (onNavigateToExtract) {
+        onNavigateToExtract();
+      }
     }
   };
 
@@ -109,7 +134,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
       <div className="flex bg-[var(--app-bg-surface)] p-1 rounded-[var(--radius)] border border-[var(--app-border)] gap-1">
         <button
           type="button"
-          onClick={() => setEntryMode('vin')}
+          onClick={() => { setEntryMode('vin'); }}
           className={cn(
             'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-[var(--radius)] text-[11px] font-bold transition-all',
             entryMode === 'vin'
@@ -122,7 +147,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => setEntryMode('manual')}
+          onClick={() => { setEntryMode('manual'); }}
           className={cn(
             'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-[var(--radius)] text-[11px] font-bold transition-all',
             entryMode === 'manual'
@@ -144,7 +169,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               label="رقم الشاصي (VIN)"
               placeholder="مثال: JTDBR32E100001234"
               value={vin}
-              onChange={(e) => setVin(e.target.value)}
+              onChange={(e) => { setVin(e.target.value); }}
               onKeyDown={(e) => e.key === 'Enter' && handleDecode()}
               icon={<ScanLine />}
             />
@@ -165,7 +190,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               {MODES.map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => setMode(m.id)}
+                  onClick={() => { setMode(m.id); }}
                   className={cn(
                     'inline-flex items-center gap-1 px-2 py-1 rounded-[var(--radius)] text-[10px] font-bold border transition-colors',
                     mode === m.id
@@ -198,6 +223,25 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </span>
             </div>
 
+            {/* Quick Vehicle Presets */}
+            <div className="bg-slate-50 p-1.5 rounded border border-slate-200">
+              <label className="text-[9px] font-bold text-indigo-700 block mb-1">
+                ⚡ تعبئة سريعة لأشهر السيارات في السوق:
+              </label>
+              <div className="flex flex-wrap gap-1">
+                {QUICK_VEHICLE_PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => { applyPreset(p); }}
+                    className="px-2 py-0.5 text-[9px] font-bold rounded bg-white border border-indigo-200 text-indigo-900 hover:bg-indigo-50 hover:border-indigo-400 transition-colors"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Quick Make Selection */}
             <div>
               <label className="text-[9px] font-bold text-[var(--app-text-secondary)] block mb-1">
@@ -208,7 +252,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   <button
                     key={mk}
                     type="button"
-                    onClick={() => setManualMake(mk)}
+                    onClick={() => { setManualMake(mk); }}
                     className={cn(
                       'px-2 py-0.5 text-[9px] font-bold rounded border transition-colors',
                       manualMake === mk
@@ -223,7 +267,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               <Input
                 variant="micro"
                 value={manualMake}
-                onChange={(e) => setManualMake(e.target.value)}
+                onChange={(e) => { setManualMake(e.target.value); }}
                 placeholder="أو اكتب الشركة (مثل: تويوتا، نيسان...)"
               />
             </div>
@@ -235,7 +279,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   variant="micro"
                   label="الموديل / الطراز"
                   value={manualModel}
-                  onChange={(e) => setManualModel(e.target.value)}
+                  onChange={(e) => { setManualModel(e.target.value); }}
                   placeholder="مثال: كورولا، كامري، هايلوكس"
                 />
               </div>
@@ -245,7 +289,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   type="number"
                   label="من سنة"
                   value={manualYearStart}
-                  onChange={(e) => setManualYearStart(e.target.value)}
+                  onChange={(e) => { setManualYearStart(e.target.value); }}
                   placeholder="مثال: 2001"
                 />
               </div>
@@ -255,7 +299,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   type="number"
                   label="إلى سنة"
                   value={manualYearEnd}
-                  onChange={(e) => setManualYearEnd(e.target.value)}
+                  onChange={(e) => { setManualYearEnd(e.target.value); }}
                   placeholder="مثال: 2007"
                 />
               </div>
@@ -269,7 +313,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                 </label>
                 <select
                   value={manualMarket}
-                  onChange={(e) => setManualMarket(e.target.value)}
+                  onChange={(e) => { setManualMarket(e.target.value); }}
                   className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
                 >
                   {POPULAR_MARKETS.map((m) => (
@@ -284,7 +328,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   variant="micro"
                   label="المكينة / السعة"
                   value={manualEngine}
-                  onChange={(e) => setManualEngine(e.target.value)}
+                  onChange={(e) => { setManualEngine(e.target.value); }}
                   placeholder="مثال: 1.8 أو 2.4"
                 />
               </div>
@@ -295,7 +339,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                 </label>
                 <select
                   value={manualTransmission}
-                  onChange={(e) => setManualTransmission(e.target.value)}
+                  onChange={(e) => { setManualTransmission(e.target.value); }}
                   className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
                 >
                   <option value="تماتيك">تماتيك (أوتوماتيك)</option>
@@ -310,7 +354,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                 </label>
                 <select
                   value={manualDrive}
-                  onChange={(e) => setManualDrive(e.target.value)}
+                  onChange={(e) => { setManualDrive(e.target.value); }}
                   className="w-full h-[28px] px-2 text-[10px] font-bold bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-[var(--app-text)] focus:outline-none focus:border-indigo-500"
                 >
                   <option value="سنجل">سنجل (أمامي / خلفي)</option>
@@ -325,7 +369,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               variant="micro"
               label="رقم الشاصي VIN (اختياري)"
               value={manualVinOptional}
-              onChange={(e) => setManualVinOptional(e.target.value)}
+              onChange={(e) => { setManualVinOptional(e.target.value); }}
               placeholder="إذا كان رقم الشاصي متوفراً لديك من موقع بارت سوق"
             />
 
@@ -378,7 +422,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   {!aiSaveConfirmed ? (
                     <div className="flex gap-1.5">
                       <button
-                        onClick={() => setAiSaveConfirmed(true)}
+                        onClick={() => { setAiSaveConfirmed(true); }}
                         className="text-[9px] font-bold px-2 py-1 rounded border border-amber-400 text-amber-700 hover:bg-amber-50 transition-colors"
                       >
                         أفهم المخاطر — أريد الحفظ
@@ -464,7 +508,7 @@ function VehicleCard({
       ['الشركة المصنعة', vehicle.make],
       ['الموديل / الطراز', vehicle.model ?? null],
       ['سنة / سنوات الصنع', years],
-      ['حجم المكينة', vehicle.displacement ? `${vehicle.displacement}` : null],
+      ['حجم المكينة', vehicle.displacement ? vehicle.displacement : null],
       ['عدد السلندر', vehicle.cylinders ? `${vehicle.cylinders} سلندر` : null],
       ['المحرك', vehicle.engine ?? null],
       ['الوقود', vehicle.fuelType ? fuelLabel(vehicle.fuelType) : null],
