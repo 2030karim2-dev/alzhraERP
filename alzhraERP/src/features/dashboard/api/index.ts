@@ -331,81 +331,111 @@ export const dashboardApi = {
         // access fields directly. This previously left every stat at 0 / empty.
         // These aggregation RPCs always return exactly one row; the safeData
         // fallback (a plain object) takes the non-array branch.
-        // Handle results and throw if critical errors exist
-        const rawSummary = safeData<SummaryRow | SummaryRow[]>(
-            summaryRes,
-            {},
-            'get_dashboard_summary',
-        );
-        const summary: SummaryRow = Array.isArray(rawSummary) ? rawSummary[0] : rawSummary;
+        try {
+            const rawSummary = safeData<SummaryRow | SummaryRow[]>(
+                summaryRes,
+                {},
+                'get_dashboard_summary',
+            );
+            const summary: SummaryRow = Array.isArray(rawSummary) ? (rawSummary[0] ?? {}) : (rawSummary && typeof rawSummary === 'object' ? rawSummary : {});
 
-        const salesChart = safeData(chartRes, [], 'get_sales_chart_data');
+            const salesChart = safeData(chartRes, [], 'get_sales_chart_data');
 
-        const rawTop = safeData<RawTopPayload | RawTopPayload[]>(
-            topRes,
-            { top_products: [], top_customers: [] },
-            'get_top_products_and_customers'
-        );
-        const topDataObj: RawTopPayload = Array.isArray(rawTop) ? rawTop[0] : rawTop;
+            const rawTop = safeData<RawTopPayload | RawTopPayload[]>(
+                topRes,
+                { top_products: [], top_customers: [] },
+                'get_top_products_and_customers'
+            );
+            const topDataObj: RawTopPayload = Array.isArray(rawTop) ? (rawTop[0] ?? {}) : (rawTop && typeof rawTop === 'object' ? rawTop : {});
 
-        const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
-        const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
-        const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
-        const profitLossRows = safeData(plRes, [], 'report_profit_loss');
-        const topSellingProducts = safeData<RawTopSellingProduct[]>(topSellingRes, [], 'get_top_selling_products');
-        const productCategories = safeData<RawProductCategory[]>(productCategoriesRes, [], 'product_categories');
+            const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
+            const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
+            const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
+            const profitLossRows = safeData(plRes, [], 'report_profit_loss');
+            const topSellingProducts = safeData<RawTopSellingProduct[]>(topSellingRes, [], 'get_top_selling_products');
+            const productCategories = safeData<RawProductCategory[]>(productCategoriesRes, [], 'product_categories');
 
-        const recentInvoices = safeData<RawRecentInvoice[]>(recentInvoicesRes, [], 'recent_invoices');
-        const recentExpenses = safeData<RawRecentExpense[]>(recentExpensesRes, [], 'recent_expenses');
+            const recentInvoices = safeData<RawRecentInvoice[]>(recentInvoicesRes, [], 'recent_invoices');
+            const recentExpenses = safeData<RawRecentExpense[]>(recentExpensesRes, [], 'recent_expenses');
 
-        const rawDebtFollowup = safeData<RawDebtFollowupRow[]>(debtFollowupRes, [], 'get_debt_followup_dashboard');
-        const overdueInvoices = (Array.isArray(rawDebtFollowup) ? rawDebtFollowup : [])
-            .filter((row) => row.classification === 'overdue' || row.classification === 'critical')
-            .map((row) => ({
-                id: row.party_id,
-                partyName: row.party_name ?? 'غير محدد',
-                daysOverdue: Number(row.days_overdue) || 0,
-            }));
+            const rawDebtFollowup = safeData<RawDebtFollowupRow[]>(debtFollowupRes, [], 'get_debt_followup_dashboard');
+            const overdueInvoices = (Array.isArray(rawDebtFollowup) ? rawDebtFollowup : [])
+                .filter((row) => row && (row.classification === 'overdue' || row.classification === 'critical'))
+                .map((row) => ({
+                    id: row.party_id,
+                    partyName: row.party_name ?? 'غير محدد',
+                    daysOverdue: Number(row.days_overdue) || 0,
+                }));
 
-        return {
-            summary,
-            salesChart,
-            // Map RPC field names (total_revenue/total_quantity/invoice_count)
-            // to the shape expected by TopPerformers ({ id, name, revenue, quantity } /
-            // { id, name, total, invoices }).
-            topData: {
-                top_products: (topDataObj.top_products ?? []).map((p: RawTopProduct, i: number) => ({
-                    id: p.id ?? p.sku ?? `prod-${String(i)}`,
-                    name: p.name ?? p.name_ar ?? 'غير معروف',
-                    revenue: p.total_revenue ?? p.revenue ?? 0,
-                    quantity: p.total_quantity ?? p.quantity ?? 0,
-                })),
-                top_customers: (topDataObj.top_customers ?? []).map((cu: RawTopCustomer, i: number) => ({
-                    id: cu.id ?? cu.customer_id ?? `cust-${String(i)}`,
-                    name: cu.name ?? 'غير معروف',
-                    total: cu.total_revenue ?? cu.total ?? 0,
-                    invoices: cu.invoice_count ?? cu.invoices ?? 0,
-                })),
-            },
-            lowStockProducts: (lowStockProducts as RawLowStockProduct[]).map((p) => ({
-                id: p.id,
-                name: p.name_ar,
-                quantity: Number(p.quantity),
-                min_quantity: Number(p.min_quantity)
-            })),
-            categoryData: (categoryData as RawCategoryDatum[]).map((c, i) => ({
-                name: c.category_name,
-                value: Number(c.total_amount),
-                color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
-            })),
-            trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : [],
-            profitLossRows: Array.isArray(profitLossRows) ? profitLossRows : [],
-            topSellingProducts: Array.isArray(topSellingProducts) ? topSellingProducts : [],
-            productCategories: Array.isArray(productCategories) ? productCategories : [],
-            recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
-            recentExpenses: Array.isArray(recentExpenses) ? recentExpenses : [],
-            overdueInvoices,
-        };
+            const safeTopProducts = Array.isArray(topDataObj?.top_products)
+                ? topDataObj.top_products.map((p: RawTopProduct, i: number) => ({
+                    id: p?.id ?? p?.sku ?? `prod-${String(i)}`,
+                    name: p?.name ?? p?.name_ar ?? 'غير معروف',
+                    revenue: p?.total_revenue ?? p?.revenue ?? 0,
+                    quantity: p?.total_quantity ?? p?.quantity ?? 0,
+                }))
+                : [];
+
+            const safeTopCustomers = Array.isArray(topDataObj?.top_customers)
+                ? topDataObj.top_customers.map((cu: RawTopCustomer, i: number) => ({
+                    id: cu?.id ?? cu?.customer_id ?? `cust-${String(i)}`,
+                    name: cu?.name ?? 'غير معروف',
+                    total: cu?.total_revenue ?? cu?.total ?? 0,
+                    invoices: cu?.invoice_count ?? cu?.invoices ?? 0,
+                }))
+                : [];
+
+            const safeLowStock = Array.isArray(lowStockProducts)
+                ? (lowStockProducts as RawLowStockProduct[]).map((p) => ({
+                    id: p?.id ?? '',
+                    name: p?.name_ar ?? '',
+                    quantity: Number(p?.quantity) || 0,
+                    min_quantity: Number(p?.min_quantity) || 0,
+                }))
+                : [];
+
+            const safeCategoryData = Array.isArray(categoryData)
+                ? (categoryData as RawCategoryDatum[]).map((c, i) => ({
+                    name: c?.category_name ?? 'غير مصنف',
+                    value: Number(c?.total_amount) || 0,
+                    color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
+                }))
+                : [];
+
+            return {
+                summary,
+                salesChart: Array.isArray(salesChart) ? salesChart : [],
+                topData: {
+                    top_products: safeTopProducts,
+                    top_customers: safeTopCustomers,
+                },
+                lowStockProducts: safeLowStock,
+                categoryData: safeCategoryData,
+                trialBalanceRows: Array.isArray(trialBalanceRows) ? trialBalanceRows : [],
+                profitLossRows: Array.isArray(profitLossRows) ? profitLossRows : [],
+                topSellingProducts: Array.isArray(topSellingProducts) ? topSellingProducts : [],
+                productCategories: Array.isArray(productCategories) ? productCategories : [],
+                recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
+                recentExpenses: Array.isArray(recentExpenses) ? recentExpenses : [],
+                overdueInvoices,
+            };
+        } catch (error) {
+            logger.error('DashboardAPI', 'Unexpected error in fetchRawDashboardData, using safe fallback', error as Error);
+            return {
+                summary: {},
+                salesChart: [],
+                topData: { top_products: [], top_customers: [] },
+                lowStockProducts: [],
+                categoryData: [],
+                trialBalanceRows: [],
+                profitLossRows: [],
+                topSellingProducts: [],
+                productCategories: [],
+                recentInvoices: [],
+                recentExpenses: [],
+                overdueInvoices: [],
+            };
+        }
     }
 };
 

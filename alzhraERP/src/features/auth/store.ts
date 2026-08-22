@@ -204,6 +204,12 @@ export const useAuthStore = create<AuthState>()(
             try {
               logger.debug('Auth', 'State change event', { event });
 
+              // ⚡ تنظيف الـ Hash من الرابط بعد تسجيل الدخول عبر Google/OAuth
+              // لمنع تحذير `@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago` عند إعادة تحميل الصفحة
+              if (typeof window !== 'undefined' && window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error_description='))) {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              }
+
               if (event === 'SIGNED_OUT' || !session) {
                 queryClient.clear();
                 Promise.resolve(persister.removeClient()).catch(() => { });
