@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { motion, useInView, type UseInViewOptions } from 'framer-motion';
+import { useInView, type UseInViewOptions } from 'framer-motion';
 
 interface LazySectionProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ interface LazySectionProps {
  */
 const LazySection: React.FC<LazySectionProps> = ({
   children,
-  margin = '500px 0px',
+  margin = '800px 0px',
   minHeight = 120,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,17 +24,7 @@ const LazySection: React.FC<LazySectionProps> = ({
 
   return (
     <div ref={ref} style={{ minHeight: isInView ? undefined : minHeight }}>
-      {isInView ? (
-        children
-      ) : (
-        <div className="flex items-center justify-center py-8">
-          <motion.div
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="h-8 w-8 rounded-full border-2 border-blue-500 border-t-transparent"
-          />
-        </div>
-      )}
+      {isInView ? children : null}
     </div>
   );
 };
