@@ -39,10 +39,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             onMouseEnter={() => setShowWarehousePopover(true)}
             onMouseLeave={() => setShowWarehousePopover(false)}
             className={cn(
-                'relative bg-white dark:bg-slate-900 p-2 rounded-2xl border transition-all active:scale-95 text-right flex flex-col h-48 md:h-52 group select-none',
+                'relative bg-white dark:bg-slate-900 p-2 rounded-2xl border transition-all text-right flex flex-col h-48 md:h-52 group select-none',
                 hasStock
-                    ? 'border-gray-100 dark:border-slate-800 hover:border-blue-500 shadow-sm hover:shadow-md cursor-pointer'
-                    : 'bg-gray-50 dark:bg-slate-900/50 opacity-60 cursor-not-allowed'
+                    ? 'border-gray-100 dark:border-slate-800 hover:border-blue-500 shadow-xs hover:shadow-sm cursor-pointer active:scale-95'
+                    : 'border-slate-200 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/60 cursor-not-allowed opacity-80'
             )}
             role="button"
             tabIndex={hasStock ? 0 : -1}
@@ -62,39 +62,49 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                     <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className={cn(
+                            "w-full h-full object-cover transition-transform duration-500",
+                            hasStock ? "group-hover:scale-105" : "grayscale-[40%]"
+                        )}
                     />
                 ) : (
                     <Package size={28} strokeWidth={1.5} className="text-slate-300 dark:text-slate-600 transition-transform group-hover:scale-110 duration-300" />
                 )}
 
                 {/* View Details Icon - Top Left */}
-                {onViewDetails && hasStock && (
+                {onViewDetails && (
                     <button
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
                             onViewDetails(product);
                         }}
-                        className="absolute top-1.5 left-1.5 w-7 h-7 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100 duration-200 hover:bg-blue-500 hover:text-white text-slate-500 dark:text-slate-300 shadow-md border border-slate-200 dark:border-slate-700 hover:border-blue-500 z-10"
+                        className="absolute top-1.5 left-1.5 w-7 h-7 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100 duration-200 hover:bg-blue-500 hover:text-white text-slate-500 dark:text-slate-300 shadow-xs border border-slate-200 dark:border-slate-700 hover:border-blue-500 z-10"
                         title="عرض التفاصيل"
                     >
                         <Eye size={14} />
                     </button>
                 )}
 
-                {/* Stock Badge Overlay */}
-                {isLowStock && hasStock && (
-                    <span className="absolute top-1 right-1 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                {/* Stock Badge Overlay on Image */}
+                {!hasStock ? (
+                    <span className="absolute top-1.5 right-1.5 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs z-10">
+                        نفذت الكمية
+                    </span>
+                ) : isLowStock ? (
+                    <span className="absolute top-1.5 right-1.5 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs z-10">
                         شحيح
                     </span>
-                )}
+                ) : null}
             </div>
 
             <div className="flex-1 flex flex-col justify-between">
                 <div>
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 dark:text-slate-100 line-clamp-2 text-xs md:text-sm leading-snug mb-1.5">
+                    <h3 className={cn(
+                        "font-bold line-clamp-2 text-xs md:text-sm leading-snug mb-1.5",
+                        hasStock ? "text-gray-800 dark:text-slate-100" : "text-gray-600 dark:text-slate-300"
+                    )}>
                         {product.name}
                     </h3>
 
@@ -128,7 +138,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
 
                 {/* Price + Stock Row */}
                 <div className="mt-2.5 flex justify-between items-end w-full">
-                    <span dir="ltr" className="font-black text-blue-600 dark:text-blue-400 text-xs md:text-base tracking-tighter">
+                    <span dir="ltr" className={cn(
+                        "font-black text-xs md:text-base tracking-tighter",
+                        hasStock ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-slate-400"
+                    )}>
                         {formatCurrency(product.sale_price ?? product.selling_price ?? 0)}
                     </span>
                     <span
@@ -143,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                         )}
                     >
                         <Layers size={11} />
-                        {hasStock ? `${formatNumberDisplay(product.stock_quantity)}` : 'نفذ'}
+                        {hasStock ? `${formatNumberDisplay(product.stock_quantity)}` : '0 نفذ'}
                     </span>
                 </div>
             </div>
@@ -182,12 +195,6 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                             </div>
                         ))}
                     </div>
-                </div>
-            )}
-
-            {!hasStock && (
-                <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1.5px] rounded-2xl flex items-center justify-center z-10">
-                    <span className="bg-rose-500 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg">نفذت الكمية</span>
                 </div>
             )}
         </div>
