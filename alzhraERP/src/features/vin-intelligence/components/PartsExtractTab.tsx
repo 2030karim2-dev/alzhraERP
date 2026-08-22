@@ -1,9 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { PackagePlus, Search, Plus, Sparkles, Trash2, Copy, RefreshCw, Car, Check, Layers } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  PackagePlus,
+  Search,
+  Plus,
+  Sparkles,
+  Trash2,
+  Copy,
+  RefreshCw,
+  Car,
+  Check,
+  Layers,
+  Upload,
+  Download,
+  Share2,
+} from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { cn } from '../../../core/utils';
 import { generateSmartPartName } from '../utils/smartPartNamer';
+import {
+  exportPartsToExcel,
+  parsePartsFromFile,
+  formatPartsForWhatsApp,
+} from '../utils/partsExcelHelper';
+import { useFeedbackStore } from '../../feedback/store';
 import type { ExtractedPart, VehicleInfo } from '../types';
 
 export interface ExcelGridPart extends ExtractedPart {
@@ -49,16 +69,21 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   isAdding,
   canAdd,
 }) => {
+  const { showToast } = useFeedbackStore();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [rows, setRows] = useState<ExcelGridPart[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Add initial empty row when vehicle is set and rows are empty
   useEffect(() => {
     if (vehicle && rows.length === 0) {
       setRows([
-        createEmptyRow(vehicle, 'بلاكات', '90919-01164', 'DENSO', 'طقم 4 حبات'),
-        createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', 'TOYOTA', 'طقم أمامي'),
+        createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات'),
+        createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي'),
       ]);
     }
   }, [vehicle]);
@@ -106,7 +131,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       vehicle,
       template?.base || '',
       template?.oem || '',
-      template?.mfr || vehicle?.make || 'TOYOTA',
+      template?.mfr || vehicle?.make || 'GENUINE',
       template?.spec || ''
     );
     setRows((prev) => [...prev, newRow]);
@@ -141,6 +166,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         description: generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle),
       }))
     );
+    showToast('تم تحديث الأسماء الذكية لكافة الأسطر بنجاح', 'success');
   };
 
   const toggleSelectAll = (checked: boolean) => {
@@ -178,13 +204,15 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   const handleSaveToInventory = async () => {
     if (selectedRows.length === 0) return;
-    const partsToSave: ExtractedPart[] = selectedRows.map((r) => {
+    const partsToSave: ExtractedPart[] = selectedRows.map((r, idx) => {
       let finalDescription = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
       if (r.sizeSpec?.trim() && !finalDescription.includes(r.sizeSpec.trim())) {
         finalDescription = `${finalDescription} - ${r.sizeSpec.trim()}`;
       }
       return {
-        partNumber: r.partNumber.trim() || `PART-${Date.now().toString(36).toUpperCase()}`,
+        partNumber:
+          r.partNumber.trim() ||
+          `PART-${Date.now().toString(36).toUpperCase()}-${(idx + 1).toString().padStart(2, '0')}`,
         description: finalDescription,
         manufacturer: r.manufacturer?.trim() || vehicle?.make || '',
         source: r.source || 'manual',
@@ -195,6 +223,59 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
     const count = await onAdd(partsToSave);
     setLastAddedCount(count);
+  };
+
+  const handleExportExcel = async () => {
+    if (!vehicle || rows.length === 0) return;
+    setIsExporting(true);
+    try {
+      await exportPartsToExcel(vehicle, rows);
+      showToast('تم تصدير ملف الإكسل بنجاح', 'success');
+    } catch (err) {
+      showToast('فشل تصدير ملف الإكسل', 'error', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      const importedParts = await parsePartsFromFile(file, vehicle);
+      if (importedParts.length === 0) {
+        showToast('لم يتم العثور على أسطر صالحة في الملف', 'warning');
+      } else {
+        setRows((prev) => [...prev, ...importedParts]);
+        showToast(`تم استيراد ${importedParts.length} قطعة بنجاح وتوليد أسمائها الذكية`, 'success');
+      }
+    } catch (err) {
+      showToast('فشل قراءة الملف', 'error', err);
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCopyWhatsAppMemo = async () => {
+    if (!vehicle || rows.length === 0) return;
+    const targetRows = selectedRows.length > 0 ? selectedRows : rows;
+    const text = formatPartsForWhatsApp(vehicle, targetRows);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('تم نسخ قائمة القطع بنجاح (جاهزة للواتساب)', 'success');
+    } catch {
+      showToast('تعذر النسخ إلى الحافظة', 'error');
+    }
+  };
+
+  const handleClearAllRows = () => {
+    if (rows.length === 0) return;
+    if (window.confirm('هل أنت متأكد من مسح جميع أسطر الجدول؟')) {
+      setRows([]);
+      showToast('تم تفريغ الجدول', 'info');
+    }
   };
 
   if (!hasVehicle || !vehicle) {
@@ -215,6 +296,15 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   return (
     <div className="space-y-4 font-cairo">
+      {/* Hidden file input for Excel / CSV import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx, .xls, .csv"
+        className="hidden"
+        onChange={handleFileImport}
+      />
+
       {/* ── Active Vehicle Context Banner ── */}
       <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -224,6 +314,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               <p className="text-xs font-semibold text-[var(--app-text-secondary)]">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
               <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-100 mt-0.5">
                 {vehicle.make} {vehicle.model ?? ''}{' '}
+                {vehicle.submodel ? `[${vehicle.submodel}]` : ''}{' '}
                 {vehicle.yearStart && vehicle.yearEnd ? `(${vehicle.yearStart}-${vehicle.yearEnd})` : vehicle.year ? `(${vehicle.year})` : ''}{' '}
                 {vehicle.market ? `[${vehicle.market}]` : ''}{' '}
                 {vehicle.transmission ? `[${vehicle.transmission}]` : ''}{' '}
@@ -232,7 +323,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -321,19 +412,72 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         </div>
       </div>
 
-      {/* ── Quick Templates Chips ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 custom-scrollbar">
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">إضافة سريعة:</span>
-        {QUICK_PARTS_TEMPLATES.map((tmpl) => (
-          <button
-            key={tmpl.base}
-            type="button"
-            onClick={() => { addRow(tmpl); }}
-            className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-sm"
+      {/* ── Quick Templates Chips & Action Toolbar ── */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">إضافة سريعة:</span>
+          {QUICK_PARTS_TEMPLATES.map((tmpl) => (
+            <button
+              key={tmpl.base}
+              type="button"
+              onClick={() => { addRow(tmpl); }}
+              className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-sm"
+            >
+              + {tmpl.base}
+            </button>
+          ))}
+        </div>
+
+        {/* Pro Tools: Excel Export, Import, WhatsApp Memo Copy */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            isLoading={isImporting}
+            className="text-xs font-bold rounded-lg border-slate-300 dark:border-slate-700"
+            title="استيراد أسطر قطع من ملف Excel أو CSV"
           >
-            + {tmpl.base}
-          </button>
-        ))}
+            <Upload size={13} className="ml-1 text-slate-600 dark:text-slate-300" />
+            استيراد Excel/CSV
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleExportExcel}
+            isLoading={isExporting}
+            disabled={rows.length === 0}
+            className="text-xs font-bold rounded-lg border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            title="تصدير جدول القطع بالكامل إلى ملف Excel منسق"
+          >
+            <Download size={13} className="ml-1 text-emerald-600 dark:text-emerald-400" />
+            تصدير Excel
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCopyWhatsAppMemo}
+            disabled={rows.length === 0}
+            className="text-xs font-bold rounded-lg border-green-300 dark:border-green-800 text-green-800 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
+            title="نسخ قائمة القطع كنص منسق للواتساب أو عروض الأسعار"
+          >
+            <Share2 size={13} className="ml-1 text-green-600 dark:text-green-400" />
+            نسخ للواتساب
+          </Button>
+
+          {rows.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAllRows}
+              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+              title="تفريغ جميع الأسطر"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Professional Excel Grid Table ── */}
@@ -370,7 +514,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-slate-400">
-                    لا توجد أسطر حالياً. انقر على «سطر جديد» للبدء.
+                    لا توجد أسطر حالياً. انقر على «سطر جديد» أو «استيراد Excel/CSV» للبدء.
                   </td>
                 </tr>
               ) : (

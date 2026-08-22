@@ -13,6 +13,7 @@ export interface VehicleInfo {
   make: string;
   model?: string | null;
   submodel?: string | null;
+  trim?: string | null;
   year?: number | null;
   yearStart?: number | null;
   yearEnd?: number | null;
@@ -26,6 +27,9 @@ export interface VehicleInfo {
   region?: string | null;
   market?: string | null;
   vinPrefix?: string | null;
+  doors?: string | null;
+  brakeSystem?: string | null;
+  vehicleType?: string | null;
 }
 
 export interface VinDecodeResult {

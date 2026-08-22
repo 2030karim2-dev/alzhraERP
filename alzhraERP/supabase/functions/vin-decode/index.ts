@@ -71,6 +71,8 @@ Do NOT invent a model/year you are not confident about — prefer null and lower
 interface VpicVehicle {
   make?: string | null;
   model?: string | null;
+  submodel?: string | null;
+  trim?: string | null;
   year?: number | null;
   engine?: string | null;
   displacement?: string | null;
@@ -81,6 +83,9 @@ interface VpicVehicle {
   transmission?: string | null;
   region?: string | null;
   market?: string | null;
+  doors?: string | null;
+  brake_system?: string | null;
+  vehicle_type?: string | null;
 }
 
 /** Classify the import market from the WMI (first 3 chars of the VIN). */
@@ -130,9 +135,15 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
       displacement = (parseFloat(displacementCC) / 1000).toFixed(1);
     }
 
+    const trim = get('Trim');
+    const series = get('Series');
+    const submodel = trim || series || null;
+
     return {
       make,
       model: get('Model'),
+      submodel,
+      trim: trim ?? series,
       year,
       engine: engineModel,
       displacement,
@@ -143,6 +154,9 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
       transmission: get('Transmission Style'),
       region: get('Plant Country'),
       market: marketFromWmi(vin),
+      doors: get('Doors'),
+      brake_system: get('Brake System Type'),
+      vehicle_type: get('Vehicle Type'),
     };
   } catch {
     return null;

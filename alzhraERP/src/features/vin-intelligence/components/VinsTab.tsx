@@ -130,35 +130,71 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     },
   ];
 
+  const [filterText, setFilterText] = useState('');
+
+  const filteredVins = savedVins.filter((v) => {
+    if (!filterText.trim()) return true;
+    const q = filterText.toLowerCase().trim();
+    const info = v.decoded as VehicleInfo | null;
+    const make = (info?.make || '').toLowerCase();
+    const model = (info?.model || '').toLowerCase();
+    const vinStr = (v.vin || '').toLowerCase();
+    const yearStr = String(info?.year || '');
+    return vinStr.includes(q) || make.includes(q) || model.includes(q) || yearStr.includes(q);
+  });
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-1">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 px-1 mb-2">
-            الشواصي المحفوظة ({savedVins.length})
-          </h3>
-          <div className="space-y-1.5 max-h-[70vh] overflow-y-auto custom-scrollbar">
-            {savedVins.map((v) => {
-              const info = v.decoded as VehicleInfo | null;
-              const isActive = selected?.id === v.id;
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => { handleSelect(v); }}
-                  className={cn(
-                    'w-full text-right p-2.5 rounded-xl border transition-all',
-                    isActive
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                      : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
-                  )}
-                >
-                  <span className="block font-mono text-xs font-bold">{v.vin}</span>
-                  <span className={cn('block text-[11px] font-medium mt-0.5', isActive ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400')}>
-                    {info?.make ?? ''} {info?.model ?? ''} {info?.year ? String(info.year) : ''}
-                  </span>
-                </button>
-              );
-            })}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+              الشواصي المحفوظة ({filteredVins.length})
+            </h3>
+            {filterText && (
+              <button
+                onClick={() => setFilterText('')}
+                className="text-[10px] text-blue-600 font-bold hover:underline"
+              >
+                مسح الفلتر
+              </button>
+            )}
+          </div>
+
+          <input
+            type="text"
+            placeholder="بحث برقم الشاصي أو الموديل..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+
+          <div className="space-y-1.5 max-h-[65vh] overflow-y-auto custom-scrollbar">
+            {filteredVins.length === 0 ? (
+              <p className="text-xs text-center text-slate-400 py-6">لا توجد نتائج مطابقة للبحث</p>
+            ) : (
+              filteredVins.map((v) => {
+                const info = v.decoded as VehicleInfo | null;
+                const isActive = selected?.id === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => { handleSelect(v); }}
+                    className={cn(
+                      'w-full text-right p-2.5 rounded-xl border transition-all',
+                      isActive
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
+                    )}
+                  >
+                    <span className="block font-mono text-xs font-bold">{v.vin}</span>
+                    <span className={cn('block text-[11px] font-medium mt-0.5', isActive ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400')}>
+                      {info?.make ?? ''} {info?.model ?? ''} {info?.year ? String(info.year) : ''}
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

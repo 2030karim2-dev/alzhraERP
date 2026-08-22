@@ -33,13 +33,17 @@ function normalizeVehicle(raw: Record<string, unknown> | null | undefined): Vehi
     engine: (raw.engine as string | null) ?? null,
     displacement: (raw.displacement as string | null) ?? null,
     cylinders: (raw.cylinders as string | null) ?? null,
-    bodyType: (raw.body_type as string | null) ?? null,
-    driveType: (raw.drive_type as string | null) ?? null,
-    fuelType: (raw.fuel_type as string | null) ?? null,
+    bodyType: (raw.body_type as string | null) ?? (raw.bodyType as string | null) ?? null,
+    driveType: (raw.drive_type as string | null) ?? (raw.driveType as string | null) ?? null,
+    fuelType: (raw.fuel_type as string | null) ?? (raw.fuelType as string | null) ?? null,
     transmission: (raw.transmission as string | null) ?? null,
     region: (raw.region as string | null) ?? null,
     market: (raw.market as string | null) ?? null,
-    vinPrefix: (raw.vin_prefix as string | null) ?? null,
+    vinPrefix: (raw.vin_prefix as string | null) ?? (raw.vinPrefix as string | null) ?? null,
+    trim: (raw.trim as string | null) ?? null,
+    doors: (raw.doors as string | null) ?? null,
+    brakeSystem: (raw.brake_system as string | null) ?? (raw.brakeSystem as string | null) ?? null,
+    vehicleType: (raw.vehicle_type as string | null) ?? (raw.vehicleType as string | null) ?? null,
   };
   const id = raw.id as string | undefined;
   if (id) vehicle.id = id;

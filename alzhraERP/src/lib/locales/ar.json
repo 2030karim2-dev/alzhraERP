@@ -439,5 +439,10 @@
   "security_settings_desc": "الأمان والنسخ الاحتياطي",
   "skip_to_content": "تخطي إلى المحتوى",
   "sound_disable": "تعطيل الصوت",
-  "sound_enable": "تفعيل الصوت"
+  "sound_enable": "تفعيل الصوت",
+  "vin_intelligence": "ذكاء الشاصي",
+  "vin_tab_decode": "فك الشاصي",
+  "vin_tab_saved": "الشواصي المحفوظة",
+  "vin_tab_inventory": "المخزون المتطابق",
+  "vin_tab_extract": "استخراج وإضافة القطع"
 }

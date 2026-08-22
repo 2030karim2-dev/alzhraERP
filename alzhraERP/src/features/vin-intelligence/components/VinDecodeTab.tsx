@@ -4,7 +4,8 @@ import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
 import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
-import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
+import { preDecodeVin } from '../utils/wmiDecoder';
+import { driveLabel, fuelLabel, transLabel, bodyTypeLabel, regionLabel } from '../utils/vehicleLabels';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
 
 interface VinDecodeTabProps {
@@ -94,6 +95,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   }
 
   const validation = validateVin(vin);
+  const wmiPreview = preDecodeVin(vin);
   const canDecode = vin.trim().length > 0 && validation.isValid && !isDecoding;
   const uncertain = isUncertainResult(result);
 
@@ -170,6 +172,25 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               onKeyDown={(e) => e.key === 'Enter' && handleDecode()}
               icon={<ScanLine />}
             />
+            {wmiPreview && (
+              <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 text-xs text-blue-950 dark:text-blue-200 animate-in fade-in duration-200">
+                <span className="font-bold text-blue-700 dark:text-blue-300">⚡ كشف فوري:</span>
+                {wmiPreview.makeAr !== 'غير محدد' && (
+                  <span className="font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 shadow-xs">
+                    {wmiPreview.makeAr} ({wmiPreview.make})
+                  </span>
+                )}
+                <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 shadow-xs">
+                  المنشأ: {wmiPreview.countryAr}
+                </span>
+                {wmiPreview.year && (
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 shadow-xs">
+                    سنة الموديل: {wmiPreview.year}
+                  </span>
+                )}
+              </div>
+            )}
+
             {vin && !validation.isValid && (
               <p className="text-xs text-rose-600 font-semibold px-1">
                 {validation.error === 'INVALID_LENGTH'
@@ -493,15 +514,19 @@ function VehicleCard({
     [
       ['الشركة المصنعة', vehicle.make],
       ['الموديل / الطراز', vehicle.model ?? null],
+      ['الفئة / الدرجة', vehicle.submodel ?? vehicle.trim ?? null],
       ['سنة / سنوات الصنع', years],
-      ['حجم المكينة', vehicle.displacement ? vehicle.displacement : null],
+      ['نوع الهيكل', vehicle.bodyType ? bodyTypeLabel(vehicle.bodyType) : null],
+      ['حجم المكينة', vehicle.displacement ? `${vehicle.displacement} لتر` : null],
       ['عدد السلندر', vehicle.cylinders ? `${vehicle.cylinders} سلندر` : null],
       ['المحرك', vehicle.engine ?? null],
       ['الوقود', vehicle.fuelType ? fuelLabel(vehicle.fuelType) : null],
       ['الدفع', vehicle.driveType ? driveLabel(vehicle.driveType) : null],
-      ['الجير', vehicle.transmission ? transLabel(vehicle.transmission) : null],
+      ['الجير / الناقل', vehicle.transmission ? transLabel(vehicle.transmission) : null],
+      ['عدد الأبواب', vehicle.doors ? `${vehicle.doors} أبواب` : null],
+      ['نظام الفرامل', vehicle.brakeSystem ?? null],
       ['الوارد / المواصفات', vehicle.market ?? null],
-      ['بلد الصنع', vehicle.region ?? null],
+      ['بلد الصنع', vehicle.region ? regionLabel(vehicle.region) : null],
     ] as Array<[string, string | null]>
   ).filter(([, v]) => !!v) as Array<[string, string]>;
 
@@ -517,7 +542,7 @@ function VehicleCard({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {vehicle.make} {vehicle.model ?? ''} {years ? `(${years})` : ''}
+              {vehicle.make} {vehicle.model ?? ''} {vehicle.submodel ? `[${vehicle.submodel}]` : ''} {years ? `(${years})` : ''}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">مواصفات المركبة المفكوكة</p>
           </div>

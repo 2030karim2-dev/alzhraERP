@@ -439,5 +439,10 @@
   "security_settings_desc": "Security and backup",
   "skip_to_content": "Skip to content",
   "sound_disable": "Disable sound",
-  "sound_enable": "Enable sound"
+  "sound_enable": "Enable sound",
+  "vin_intelligence": "VIN Intelligence",
+  "vin_tab_decode": "Decode VIN",
+  "vin_tab_saved": "Saved Vehicles",
+  "vin_tab_inventory": "Matching Inventory",
+  "vin_tab_extract": "Extract & Add Parts"
 }

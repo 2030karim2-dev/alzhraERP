@@ -17,7 +17,7 @@ const VINPage: React.FC = () => {
 
   const vin = useVinIntelligence(user?.company_id, user?.id);
 
-  const canAddToInventory = user?.role === 'admin' || user?.role === 'manager';
+  const canAddToInventory = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'owner';
 
   const tabs = [
     { id: 'decode', label: t('vin_tab_decode'), icon: ScanLine },

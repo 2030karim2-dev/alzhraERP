@@ -80,7 +80,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
   );
 
   const matchingQuery = useQuery({
-    queryKey: ['vin', 'matching', companyId, vehicle?.make, vehicle?.model, vehicle?.year],
+    queryKey: ['vin', 'matching', companyId, vehicle?.make, vehicle?.model, vehicle?.year ?? vehicle?.yearStart],
     queryFn: () =>
       companyId && vehicle ? vinService.matchInventory(companyId, vehicle) : Promise.resolve([]),
     enabled: !!companyId && !!vehicle,

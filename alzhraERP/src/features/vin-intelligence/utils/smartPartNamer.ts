@@ -302,6 +302,15 @@ export function generateSmartPartName(
     if (d === 'دبل') drive = 'دبل';
   }
 
+  // Submodel / Trim (e.g. LE, XLE, SR5, Limited, Denali)
+  let submodel = '';
+  if (vehicle.submodel && vehicle.submodel.length <= 15) {
+    const s = vehicle.submodel.trim();
+    if (!modelAr.toLowerCase().includes(s.toLowerCase())) {
+      submodel = s;
+    }
+  }
+
   // Assemble components
   const parts: string[] = [partName];
 
@@ -310,6 +319,9 @@ export function generateSmartPartName(
   }
   if (modelAr) {
     parts.push(modelAr);
+  }
+  if (submodel) {
+    parts.push(submodel);
   }
   if (years) {
     parts.push(years);
