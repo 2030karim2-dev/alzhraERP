@@ -6,6 +6,26 @@ import { DollarSign, Receipt, TrendingDown, ShoppingCart, Wallet, ArrowUpRight, 
 import { ROUTES } from '../../core/routes/paths';
 import { cn, formatCurrency } from '../../core/utils';
 
+// Lightweight inline SVG sparkline for stat cards
+const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({ data, color, className }) => {
+  if (!data || data.length < 2) return null;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const w = 60;
+  const h = 24;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * (h - 4) - 2;
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={className} fill="none">
+      <polyline points={points} stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+    </svg>
+  );
+};
+
 // Helper to format values consistently in SAR
 const formatDisplayValue = (val: string | number | undefined) => {
   if (val === undefined || val === null) return formatCurrency(0);
