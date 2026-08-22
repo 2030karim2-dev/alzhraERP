@@ -1,7 +1,9 @@
 
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNotificationStore } from '../store';
+import { useNotificationStore, AppNotification } from '../store';
 import { useAuthStore } from '../../auth/store';
+import { useI18nStore } from '../../../lib/i18nStore';
+import { cn } from '../../../core/utils';
 import {
     Bell,
     Check,
@@ -22,6 +24,7 @@ interface Props {
 }
 
 const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
+    const { dir } = useI18nStore();
     const { getCompanyNotifications, getCompanyUnreadCount, markAsRead, markAllAsRead, clearAll, deleteNotification } = useNotificationStore();
     const { user } = useAuthStore();
     const companyId = user?.company_id || '';
@@ -55,7 +58,7 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
         }
     }, [isOpen]);
 
-    const handleNotificationClick = (notif: any) => {
+    const handleNotificationClick = (notif: AppNotification) => {
         markAsRead(notif.id);
         if (notif.link) {
             navigate(notif.link);
@@ -94,10 +97,13 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
 
             <div
                 ref={dropdownRef}
-                className="fixed md:absolute top-16 md:top-[60px] left-4 right-4 md:left-auto md:right-[20px] md:w-[420px] max-h-[80vh] md:max-h-[600px] z-[9999] 
-                   bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/50 
-                   border border-gray-100 dark:border-slate-700 overflow-hidden
-                   animate-in slide-in-from-top-2 fade-in zoom-in-95 duration-300 ease-out"
+                className={cn(
+                    "fixed top-16 md:top-[56px] left-4 right-4 md:w-[420px] max-h-[80vh] md:max-h-[600px] z-[9999]",
+                    "bg-[var(--app-surface)] rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/50",
+                    "border border-[var(--app-border)] overflow-hidden",
+                    "animate-in slide-in-from-top-2 fade-in zoom-in-95 duration-200 ease-out",
+                    dir === 'rtl' ? 'md:left-4 md:right-auto md:origin-top-left' : 'md:right-4 md:left-auto md:origin-top-right'
+                )}
                 role="dialog"
                 aria-label="قائمة الإشعارات"
                 aria-modal="true"

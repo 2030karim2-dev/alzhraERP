@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { AppNotification } from '../store';
 import { typeConfig, NotificationType } from './notificationConfig';
+import { useI18nStore } from '../../../lib/i18nStore';
 
 interface NotificationItemProps {
     notif: AppNotification;
@@ -12,6 +13,7 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onDelete }) => {
+    const { lang } = useI18nStore();
     const config = typeConfig[notif.type as NotificationType] || typeConfig.info;
     const Icon = config.icon;
 
@@ -71,7 +73,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onD
                     <div className="flex items-center gap-1 mt-2 text-[10px] text-gray-400 dark:text-slate-500">
                         <Clock size={10} />
                         <span>
-                            {formatDistanceToNow(notif.timestamp, { addSuffix: true, locale: ar })}
+                            {formatDistanceToNow(notif.timestamp, { addSuffix: true, ...(lang === 'ar' ? { locale: ar } : {}) })}
                         </span>
                     </div>
                 </div>
