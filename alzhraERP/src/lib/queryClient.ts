@@ -10,7 +10,7 @@ export { persister };
 // data from looking "fresh" forever after a long inactivity.
 export const QUERY_PERSIST_MAX_AGE_MS = 1000 * 60 * 60 * 24; // 24 hours
 // Bump this string to force-discard all persisted caches on deploy.
-export const QUERY_PERSIST_BUSTER = 'alz-erp-v2';
+export const QUERY_PERSIST_BUSTER = 'alz-erp-v3';
 
 /**
  * Whether a failed query should be retried.

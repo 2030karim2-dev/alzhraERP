@@ -48,11 +48,11 @@ interface StatItem {
 }
 
 interface StatsGridProps {
-  stats: {
-    sales: number | string;
+  stats?: {
+    sales?: number | string;
     purchases?: number | string;
-    expenses: number | string;
-    debts: number | string;
+    expenses?: number | string;
+    debts?: number | string;
     supplierDebts?: number | string;
     invoices?: number | string;
     profit?: number | string;
@@ -69,13 +69,13 @@ interface StatsGridProps {
   periodLabel?: string;
 }
 
-const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], periodLabel = 'هذا الشهر' }) => {
+const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], periodLabel = 'هذا الشهر' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Calculate trend percentage
   const getTrend = (trend?: number) => {
-    if (trend === undefined) return null;
+    if (trend === undefined || trend === null) return null;
     return {
       value: Math.abs(trend),
       isPositive: trend >= 0
@@ -85,7 +85,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], period
   const statItems: StatItem[] = [
     {
       title: t('total_sales'),
-      value: formatDisplayValue(stats.sales),
+      value: formatDisplayValue(stats?.sales ?? 0),
       icon: DollarSign,
       colorClass: "text-emerald-600",
       gradientClass: "from-emerald-500 to-emerald-600",
@@ -94,7 +94,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], period
     },
     {
       title: t('total_purchases') || 'المشتريات',
-      value: formatDisplayValue(stats.purchases),
+      value: formatDisplayValue(stats?.purchases ?? 0),
       icon: ShoppingCart,
       colorClass: "text-violet-600",
       gradientClass: "from-violet-500 to-violet-600",
@@ -103,7 +103,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], period
     },
     {
       title: t('total_expenses'),
-      value: formatDisplayValue(stats.expenses),
+      value: formatDisplayValue(stats?.expenses ?? 0),
       icon: Receipt,
       colorClass: "text-rose-600",
       gradientClass: "from-rose-500 to-rose-600",
@@ -112,14 +112,14 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], period
     },
     {
       title: t('total_debts'),
-      value: formatDisplayValue(stats.debts),
+      value: formatDisplayValue(stats?.debts ?? 0),
       icon: TrendingDown,
       colorClass: "text-amber-600",
       gradientClass: "from-amber-500 to-amber-600",
       path: ROUTES.DASHBOARD.ACCOUNTING,
       subtitle: 'ذمم العملاء — مستحق التحصيل'
     },
-    ...(stats.supplierDebts !== undefined && Number(stats.supplierDebts) > 0 ? [{
+    ...(stats?.supplierDebts !== undefined && Number(stats.supplierDebts) > 0 ? [{
       title: 'مستحقات الموردين',
       value: formatDisplayValue(stats.supplierDebts),
       icon: ShoppingCart,
@@ -131,7 +131,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], period
   ];
 
   // Add profit if available
-  if (stats.profit !== undefined && stats.profit !== null) {
+  if (stats?.profit !== undefined && stats?.profit !== null) {
     statItems.splice(2, 0, {
       title: t('net_profit') || 'صافي الربح',
       value: formatDisplayValue(stats.profit),

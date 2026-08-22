@@ -57,7 +57,8 @@ function safeData<T>(result: DashResult, fallback: T, name = 'RPC'): T {
         if (result.value.error) {
             const err = result.value.error;
             const detail = toDetail(err.message);
-            if (!isAuthError(err.code)) {
+            // Only blacklist permanently if the RPC actually does not exist in Postgres (PGRST202)
+            if (err.code === 'PGRST202') {
                 missingDashboardRpcs.add(name);
             }
             logger.logOnce('warn', 'api', `[Dashboard API] ${name} unavailable, using fallback: ${detail}`, { name, error: detail });
@@ -69,13 +70,10 @@ function safeData<T>(result: DashResult, fallback: T, name = 'RPC'): T {
         return fallback;
     }
     const reason = result.reason as { name?: string; message?: string } | null | undefined;
-    // Requests aborted because a newer fetch superseded them (e.g. the
-    // fallback poll fired while the previous one was still in flight) are
-    // not real failures — stay quiet and use the fallback.
+    // Requests aborted or transiently rejected are not missing schema RPCs — do not blacklist
     if (reason?.name === 'AbortError') {
         return fallback;
     }
-    missingDashboardRpcs.add(name);
     const detail = toDetail(reason?.message);
     logger.logOnce('warn', 'api', `[Dashboard API] ${name} rejected, using fallback: ${detail}`, { name, error: detail });
     return fallback;
