@@ -37,7 +37,6 @@ function dashboardRpc(name: string, args: Record<string, unknown>, signal: Abort
         return Promise.resolve({ data: null, error: { message: `${name} unavailable (previously failed)` } });
     }
     return looseRpc(name, args)
-        .setHeader('x-skip-network-retry', '1')
         .abortSignal(signal);
 }
 
@@ -268,7 +267,6 @@ export const dashboardApi = {
                 return q
                     .order('issue_date', { ascending: false })
                     .limit(5)
-                    .setHeader('x-skip-network-retry', '1')
                     .abortSignal(activeSignal);
             })(),
 
@@ -285,7 +283,6 @@ export const dashboardApi = {
                 return q
                     .order('expense_date', { ascending: false })
                     .limit(3)
-                    .setHeader('x-skip-network-retry', '1')
                     .abortSignal(activeSignal);
             })(),
 
@@ -322,7 +319,6 @@ export const dashboardApi = {
                 .select('id, name')
                 .eq('company_id', companyId)
                 .is('deleted_at', null)
-                .setHeader('x-skip-network-retry', '1')
                 .abortSignal(activeSignal),
         ]);
 
