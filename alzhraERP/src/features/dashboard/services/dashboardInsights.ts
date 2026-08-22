@@ -196,8 +196,10 @@ export const calculateDashboardInsights = (data: {
         });
     }
 
-    const collectionRate = totalSales > 0 ? ((totalSales - totalReceivables) / totalSales) * 100 : 0;
-    if (collectionRate < 80) {
+    // معدل التحصيل المحاسبي: نسبة المقبوضات المحصلة إلى إجمالي المبيعات، محصورة منطقياً بين 0% و 100%
+    const collectedSales = Math.max(0, totalSales - Math.min(totalSales, totalReceivables));
+    const collectionRate = totalSales > 0 ? Math.min(100, Math.max(0, (collectedSales / totalSales) * 100)) : 100;
+    if (collectionRate < 80 && totalSales > 0) {
         insights.push({
             id: 'collection',
             type: 'info' as const,
