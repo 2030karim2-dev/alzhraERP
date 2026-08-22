@@ -5,7 +5,8 @@ import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
 import { validatePurchasePayload, assertValid } from '../../core/utils/validationUtils';
 import { logger } from '../../core/utils/logger';
-import { supabase } from '../../lib/supabaseClient';
+import { resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
+import { accountsService } from '../accounting/services/accountsService';
 
 type PurchaseListResponse = Awaited<ReturnType<typeof purchasesApi.getPurchases>>;
 export type PurchaseListRow = NonNullable<PurchaseListResponse['data']>[number];
@@ -102,7 +103,27 @@ export const purchasesService = {
       issueDate: data.issueDate,
     }));
 
-    const result = await purchasesApi.createPurchaseRPC(companyId, userId, data);
+    // Strict multi-currency and payment method resolution:
+    // - Credit (آجل): undefined -> credits AP (2100)
+    // - Cash (نقداً): resolved strictly to currency cashbox (SAR -> صندوق الريال السعودي, YER -> صندوق الريال اليمني)
+    let finalCashAccountId = data.cashAccountId;
+    if (data.paymentMethod !== 'credit') {
+      const accounts = await accountsService.getAccounts(companyId);
+      finalCashAccountId = resolveStrictPaymentAccount(
+        accounts as unknown as RoutableAccount[],
+        data.paymentMethod || 'cash',
+        data.currency || 'SAR',
+        data.cashAccountId
+      );
+    }
+
+    const enhancedData: CreatePurchaseDTO = {
+      ...data,
+      cashAccountId: data.paymentMethod === 'credit' ? undefined : finalCashAccountId,
+      bankAccountId: data.paymentMethod === 'credit' ? undefined : data.bankAccountId
+    };
+
+    const result = await purchasesApi.createPurchaseRPC(companyId, userId, enhancedData);
 
     {
       const typedResult = result as unknown as PurchaseInvoiceResponse;

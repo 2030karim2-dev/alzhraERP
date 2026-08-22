@@ -4,7 +4,7 @@ import { CreateInvoiceDTO, InvoiceResponse } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
-import { routeToChildByCurrency } from '../../core/utils/accountRouting';
+import { routeToChildByCurrency, resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
 import { logger } from '../../core/utils/logger';
 import { accountsService } from '../accounting/services/accountsService';
 import { supabase } from '../../lib/supabaseClient';
@@ -97,16 +97,18 @@ export const salesService = {
       return await salesApi.commitReturnRPC(companyId, userId, payload);
     }
 
-    let finalTreasuryAccountId = payload.treasuryAccountId;
-
-    // M1: Use shared smart routing utility
-    if (finalTreasuryAccountId && payload.currency) {
+    // Strict multi-currency and payment method resolution:
+    // - Credit (آجل): undefined -> debits AR (1100)
+    // - Cash (نقداً): resolved strictly to currency cashbox (SAR -> صندوق الريال السعودي, YER -> صندوق الريال اليمني)
+    let finalTreasuryAccountId: string | undefined = undefined;
+    if (payload.paymentMethod !== 'credit') {
       const accounts = await accountsService.getAccounts(companyId);
-      // 3. Resolve actual treasury account using the multi-currency router
-      const routed = routeToChildByCurrency(accounts as unknown as import('../../core/utils/accountRouting').RoutableAccount[], finalTreasuryAccountId, payload.currency);
-      if (routed) {
-        finalTreasuryAccountId = routed.id;
-      }
+      finalTreasuryAccountId = resolveStrictPaymentAccount(
+        accounts as unknown as RoutableAccount[],
+        payload.paymentMethod || 'cash',
+        payload.currency || 'SAR',
+        payload.treasuryAccountId
+      );
     }
 
     const { treasuryAccountId, ...restPayload } = payload;

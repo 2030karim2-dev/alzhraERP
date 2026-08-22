@@ -57,3 +57,63 @@ export const routeToChildByCurrency = (
 
     return selectedAccount;
 };
+
+/**
+ * Strict Multi-Currency Payment Account Resolver:
+ * - Credit (آجل): strictly returns undefined (routes to AR 1100 or AP 2100).
+ * - Cash (نقداً): strictly routes to the cash/bank account matching currency (SAR -> صندوق الريال السعودي, YER -> صندوق الريال اليمني).
+ */
+export const resolveStrictPaymentAccount = (
+    accounts: RoutableAccount[],
+    paymentMethod: string | undefined | null,
+    currency: string = 'SAR',
+    preferredAccountId?: string | null
+): string | undefined => {
+    // 1. Credit transactions NEVER have a treasury account (they strictly debit/credit Accounts Receivable 1100 / Payable 2100)
+    if (paymentMethod === 'credit') {
+        return undefined;
+    }
+
+    // 2. If preferredAccountId is specified, attempt child routing by currency
+    if (preferredAccountId) {
+        const routed = routeToChildByCurrency(accounts, preferredAccountId, currency);
+        if (routed && (routed.currency_code === currency || !routed.currency_code)) {
+            return routed.id;
+        }
+    }
+
+    // 3. Find cash & bank accounts (Asset accounts)
+    const cashAccounts = accounts.filter(a =>
+        a.type === 'asset' &&
+        (a.code?.startsWith('101') || a.code?.startsWith('102') || a.code === '1000' || a.name?.includes('صندوق') || a.name?.includes('بنك'))
+    );
+
+    // 3a. Exact match by currency_code
+    const exactMatch = cashAccounts.find(a => a.currency_code === currency);
+    if (exactMatch) {
+        logger.info("accountRouting", `Strict Currency Match: Routed to ${exactMatch.name} (${exactMatch.code}) for currency ${currency}`);
+        return exactMatch.id;
+    }
+
+    // 3b. Match by name keyword if currency_code isn't populated on the account row
+    if (currency === 'YER') {
+        const yerAccount = cashAccounts.find(a =>
+            a.name?.includes('يمن') || a.name?.includes('YER') || a.name?.includes('ريال يمني')
+        );
+        if (yerAccount) {
+            logger.info("accountRouting", `Strict Keyword Match: Routed to ${yerAccount.name} (${yerAccount.code}) for currency YER`);
+            return yerAccount.id;
+        }
+    } else if (currency === 'SAR') {
+        const sarAccount = cashAccounts.find(a =>
+            a.name?.includes('سعود') || a.name?.includes('SAR') || a.name?.includes('رئيسي') || a.currency_code === 'SAR'
+        );
+        if (sarAccount) {
+            logger.info("accountRouting", `Strict Keyword Match: Routed to ${sarAccount.name} (${sarAccount.code}) for currency SAR`);
+            return sarAccount.id;
+        }
+    }
+
+    // 4. Default cash account fallback
+    return preferredAccountId || cashAccounts[0]?.id;
+};
