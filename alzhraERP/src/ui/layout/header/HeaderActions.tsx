@@ -188,10 +188,16 @@ const HeaderActions: React.FC = () => {
 
         {/* Dropdown Menu */}
         {isProfileOpen && (
-          <div className={cn(
-            "absolute mt-2 w-56 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
-            dir === 'rtl' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
-          )}>
+          <>
+            {/* Mobile backdrop */}
+            <div
+              className="fixed inset-0 z-40 sm:hidden"
+              onClick={() => setIsProfileOpen(false)}
+            />
+            <div className={cn(
+              "absolute mt-2 w-56 max-w-[calc(100vw-1.5rem)] bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
+              dir === 'rtl' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
+            )}>
             {/* User Info Header */}
             <div className="p-4 bg-[var(--app-surface-hover)] border-b border-[var(--app-border)]">
               <p className="text-xs font-black text-[var(--app-text)] truncate">{user?.full_name}</p>
@@ -225,7 +231,8 @@ const HeaderActions: React.FC = () => {
               </button>
             </div>
           </div>
-        )}
+        </>
+      )}
       </div>
 
       {/* Logout Confirmation Modal */}
