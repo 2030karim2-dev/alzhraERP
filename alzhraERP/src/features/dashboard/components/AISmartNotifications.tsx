@@ -16,8 +16,8 @@ interface AISmartNotificationsProps {
         expenses: number;
         debts: number;
     } | undefined;
-    lowStockProducts?: any[] | undefined;
-    alerts?: any[] | undefined;
+    lowStockProducts?: unknown[] | undefined;
+    alerts?: unknown[] | undefined;
 }
 
 const AISmartNotifications: React.FC<AISmartNotificationsProps> = ({ stats, lowStockProducts, alerts: _dashAlerts }) => {

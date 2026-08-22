@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRightLeft, Save, Trash2, RefreshCw, ExternalLink } from 'lucide-react';
-import { formatNumberDisplay, cn } from '../../../../../core/utils';
+import { cn } from '../../../../../core/utils';
 
 // Local icon component 
 const XIcon = ({ size, className }: { size: number, className?: string }) => (

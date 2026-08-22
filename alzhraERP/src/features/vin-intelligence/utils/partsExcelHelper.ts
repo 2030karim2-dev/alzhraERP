@@ -66,7 +66,7 @@ export async function parsePartsFromFile(file: File, vehicle: VehicleInfo | null
   const sheetName = wb.SheetNames[0];
   if (!sheetName) return [];
 
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(wb.Sheets[sheetName], { defval: '' });
+  const rawRows = (XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' }) || []) as Array<Record<string, unknown>>;
   const parsedParts: ExcelGridPart[] = [];
 
   for (let i = 0; i < rawRows.length; i++) {
@@ -76,8 +76,8 @@ export async function parsePartsFromFile(file: File, vehicle: VehicleInfo | null
     const base = String(row['نوع القطعة'] || row['نوع القطعة الأساسي'] || row['الاسم'] || row['name'] || row['description'] || row['baseName'] || row['Item'] || '').trim();
     const mfr = String(row['المصنع'] || row['الشركة الصانعة'] || row['manufacturer'] || row['brand'] || row['Brand'] || vehicle?.make || '').trim();
     const spec = String(row['المواصفات'] || row['المقاس والمواصفات'] || row['sizeSpec'] || row['spec'] || '').trim();
-    const purchase = parseFloat(row['سعر الشراء'] || row['سعر_الشراء'] || row['purchasePrice'] || row['cost'] || '0') || 0;
-    const sale = parseFloat(row['سعر البيع'] || row['سعر_البيع'] || row['salePrice'] || row['price'] || '0') || 0;
+    const purchase = parseFloat(String(row['سعر الشراء'] || row['سعر_الشراء'] || row['purchasePrice'] || row['cost'] || '0')) || 0;
+    const sale = parseFloat(String(row['سعر البيع'] || row['سعر_البيع'] || row['salePrice'] || row['price'] || '0')) || 0;
 
     if (!partNo && !base) continue;
 

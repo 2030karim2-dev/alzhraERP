@@ -8,7 +8,7 @@ import { DashboardPeriod } from './types';
 
 import MicroHeader from '../../ui/base/MicroHeader';
 import ChartSkeleton from '../../ui/base/ChartSkeleton';
-import { RefreshCw, Activity, TrendingUp, Calendar } from 'lucide-react';
+import { RefreshCw, Activity, TrendingUp } from 'lucide-react';
 import { GlobalErrorBoundary } from '../../ui/common/GlobalErrorBoundary';
 import { formatCurrency, cn } from '../../core/utils';
 
@@ -23,7 +23,7 @@ const RevenueExpensesChart = lazy(() => import('./components/RevenueExpensesChar
 const SmartTargets = lazy(() => import('./components/SmartTargets'));
 const PerformanceGauge = lazy(() => import('./components/PerformanceGauge'));
 const SmartPurchaseAlert = lazy(() => import('./components/SmartPurchaseAlert'));
-const CustomerSegmentation = lazy(() => import('../customers/components/CustomerSegmentation'));
+const CustomerSegmentation = lazy(() => import('../parties/components/CustomerSegmentation'));
 const AISmartNotifications = lazy(() => import('./components/AISmartNotifications'));
 const FinancialHealthScore = lazy(() => import('./components/FinancialHealthScore'));
 const WarehouseTransferSuggestions = lazy(() => import('./components/WarehouseTransferSuggestions'));

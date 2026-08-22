@@ -13,6 +13,8 @@ export const AI_MODELS = [
     { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'openrouter' as const }
 ] as const;
 
+import { STORAGE_KEYS } from '../../../core/constants';
+
 // Fallback model if the selected one fails
 export const FALLBACK_MODEL = 'deepseek-chat';
 
@@ -21,7 +23,7 @@ export function getActiveProvider(): string {
 }
 
 export function getActiveModel(): string {
-    const stored = localStorage.getItem('ai_model');
+    const stored = localStorage.getItem(STORAGE_KEYS.AI_MODEL);
     const allowedIds = AI_MODELS.map(m => m.id);
     if (stored && (allowedIds as string[]).includes(stored)) {
         return stored;
@@ -30,7 +32,7 @@ export function getActiveModel(): string {
 }
 
 export function setActiveModel(modelId: string) {
-    localStorage.setItem('ai_model', modelId);
+    localStorage.setItem(STORAGE_KEYS.AI_MODEL, modelId);
 }
 
 /** Get the provider ('openrouter' | 'deepseek') for the active model */

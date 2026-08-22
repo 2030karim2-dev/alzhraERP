@@ -3,7 +3,7 @@ import { Package, AlertTriangle, TrendingUp } from 'lucide-react';
 import { cn } from '../../../core/utils';
 
 interface InventoryOverviewProps {
-    lowStockProducts?: any[];
+    lowStockProducts?: unknown[];
     className?: string;
 }
 

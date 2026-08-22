@@ -48,4 +48,9 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'language',
   SIDEBAR_COLLAPSED: 'sidebar_collapsed',
   LAST_INVOICE_NUMBER: 'last_invoice_number',
+  AUTO_BACKUP: 'alz_auto_backup',
+  BACKUP_LOGS: 'alz_backup_logs',
+  INVOICE_COL_WIDTHS: 'invoice_col_widths',
+  AI_MODEL: 'ai_model',
+  COLUMN_RESIZE: 'persist-cols',
 } as const;

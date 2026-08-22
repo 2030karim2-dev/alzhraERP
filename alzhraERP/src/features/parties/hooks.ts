@@ -9,6 +9,9 @@ import { assertPermission } from '../../core/hooks/usePermission';
 import { syncStore } from '../../core/lib/sync-store';
 import { partyCache } from './lib/party-cache';
 
+export const useCustomers = (searchTerm: string = '') => useParties('customer', searchTerm);
+export const useSuppliers = (searchTerm: string = '') => useParties('supplier', searchTerm);
+
 export const useParties = (type: PartyType, searchTerm: string = '') => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;

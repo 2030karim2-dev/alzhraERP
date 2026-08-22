@@ -8,6 +8,10 @@ import { useAuthStore } from '../../../features/auth/store';
 import { useAllPermissions } from '../../../core/hooks/usePermission';
 import { prefetchRoute } from '../../../core/utils/routePrefetcher';
 
+interface SidebarNavProps {
+  isCollapsed: boolean;
+}
+
 const SidebarNav: React.FC<SidebarNavProps> = ({ isCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();

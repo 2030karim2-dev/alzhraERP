@@ -7,7 +7,7 @@ import { ReactQueryProvider } from './core/lib/react-query';
 import { isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from './lib/supabaseClient';
 
 // --- Auto-recover from stale chunks when a new deployment updates bundle hashes ---
-window.addEventListener('vite:preloadError', (event) => {
+window.addEventListener('vite:preloadError', (_event) => {
   const reloadKey = 'last_vite_preload_reload';
   const lastReload = sessionStorage.getItem(reloadKey);
   const now = Date.now();

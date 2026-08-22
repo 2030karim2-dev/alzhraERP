@@ -55,7 +55,7 @@ export const PERIOD_LABELS: Record<DashboardPeriod, string> = {
     all_time: 'جميع الأوقات',
 };
 
-export function getPeriodDates(period: DashboardPeriod): { dateFrom?: string; dateTo?: string } {
+export function getPeriodDates(period: DashboardPeriod): { dateFrom?: string | undefined; dateTo?: string | undefined } {
     const now = new Date();
     const dateTo = now.toISOString().split('T')[0];
 
@@ -78,5 +78,5 @@ export function getPeriodDates(period: DashboardPeriod): { dateFrom?: string; da
         return { dateFrom: `${now.getFullYear()}-01-01`, dateTo };
     }
     // 'all_time'
-    return { dateFrom: undefined, dateTo: undefined };
+    return {};
 }

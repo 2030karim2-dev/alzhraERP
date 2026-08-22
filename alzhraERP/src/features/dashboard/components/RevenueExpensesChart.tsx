@@ -18,12 +18,21 @@ const formatNumber = (value: number) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
 
-// --- Sub-components (Atoms/Molecules) ---
+interface ChartPayloadItem {
+    dataKey?: string | number;
+    value?: number;
+}
 
-const ChartTooltip = React.memo(({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        const revenue = payload.find((p: any) => p.dataKey === 'revenue')?.value || 0;
-        const expenses = payload.find((p: any) => p.dataKey === 'expenses')?.value || 0;
+interface ChartTooltipProps {
+    active?: boolean;
+    payload?: ChartPayloadItem[];
+    label?: string;
+}
+
+const ChartTooltip = React.memo<ChartTooltipProps>(({ active, payload, label }) => {
+    if (active && payload && payload.length > 0) {
+        const revenue = Number(payload.find((p) => p.dataKey === 'revenue')?.value) || 0;
+        const expenses = Number(payload.find((p) => p.dataKey === 'expenses')?.value) || 0;
         const net = revenue - expenses;
 
         return (

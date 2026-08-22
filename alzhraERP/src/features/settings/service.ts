@@ -3,6 +3,8 @@ import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFor
 import { supabase } from '../../lib/supabaseClient';
 import { logger } from '../../core/utils/logger';
 
+import { STORAGE_KEYS } from '../../core/constants';
+
 export const settingsService = {
     fetchCompany: async (companyId: string) => {
         const { data, error } = await settingsApi.getCompany(companyId);
@@ -96,12 +98,12 @@ export const settingsService = {
 
     // LocalStorage helpers for Backup Config (Client preference)
     getAutoBackupConfig: (): AutoBackupConfig => {
-        const stored = localStorage.getItem('alz_auto_backup');
+        const stored = localStorage.getItem(STORAGE_KEYS.AUTO_BACKUP);
         return stored ? JSON.parse(stored) : { enabled: true, frequency: 'daily', retentionDays: 30, includeImages: false, lastBackupStatus: 'idle' };
     },
 
     saveAutoBackupConfig: (config: AutoBackupConfig) => {
-        localStorage.setItem('alz_auto_backup', JSON.stringify(config));
+        localStorage.setItem(STORAGE_KEYS.AUTO_BACKUP, JSON.stringify(config));
     },
 
     getStorageStats: () => {
@@ -115,7 +117,7 @@ export const settingsService = {
     },
 
     getBackupLogs: (): { id: string; action: string; size: string; time: string; status: string; icon: string }[] => {
-        const logs = localStorage.getItem('alz_backup_logs');
+        const logs = localStorage.getItem(STORAGE_KEYS.BACKUP_LOGS);
         return logs ? JSON.parse(logs) : [];
     },
 
@@ -129,7 +131,7 @@ export const settingsService = {
             status,
             icon: action.includes('Google') ? 'CloudSync' : 'HardDrive'
         };
-        localStorage.setItem('alz_backup_logs', JSON.stringify([newLog, ...logs].slice(0, 10)));
+        localStorage.setItem(STORAGE_KEYS.BACKUP_LOGS, JSON.stringify([newLog, ...logs].slice(0, 10)));
     },
 
     exportSystemData: async () => {

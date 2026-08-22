@@ -4,6 +4,7 @@ import { useDiscountStore } from '../../../settings/taxDiscountStore';
 import { Product } from '../../../inventory/types';
 import { Plus, Settings } from 'lucide-react';
 import { cn } from '../../../../core/utils';
+import { STORAGE_KEYS } from '../../../../core/constants';
 import ProductSelectionModal from './ProductSelectionModal';
 import InvoiceRow from './InvoiceRow';
 
@@ -21,7 +22,7 @@ const InteractiveInvoiceTable: React.FC = () => {
   // Column Resizing Logic
   const initialWidths = (() => {
     try {
-      const saved = localStorage.getItem('invoice_col_widths');
+      const saved = localStorage.getItem(STORAGE_KEYS.INVOICE_COL_WIDTHS);
       return saved ? JSON.parse(saved) : {
         index: 40,
         description: 350,
@@ -36,7 +37,7 @@ const InteractiveInvoiceTable: React.FC = () => {
   const [colWidths, setColWidths] = useState<Record<string, number>>(initialWidths);
 
   useEffect(() => {
-    localStorage.setItem('invoice_col_widths', JSON.stringify(colWidths));
+    localStorage.setItem(STORAGE_KEYS.INVOICE_COL_WIDTHS, JSON.stringify(colWidths));
   }, [colWidths]);
 
   const resizingRef = useRef<{ field: string; startX: number; startWidth: number } | null>(null);

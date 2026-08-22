@@ -15,13 +15,13 @@ interface TransferSuggestion {
 const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ className }) => {
     const { data: products } = useProducts();
     const { data: warehousesRaw } = useWarehouses();
-    const warehouses = (warehousesRaw || []) as any[];
+    const warehouses = (warehousesRaw || []) as Warehouse[];
 
     const suggestions = useMemo(() => {
         if (!products || !warehouses || warehouses.length < 2) return [];
 
-        const mainWarehouse = warehouses.find((w: any) =>
-            w.is_main === true || w.name_ar?.includes('رئيسي') || w.name_ar?.includes('متجر') || w.name_ar?.includes('محل')
+        const mainWarehouse = warehouses.find((w) =>
+            (w as unknown as { is_main?: boolean }).is_main === true || w.name_ar?.includes('رئيسي') || w.name_ar?.includes('متجر') || w.name_ar?.includes('محل')
         ) || warehouses[0];
 
         const results: TransferSuggestion[] = [];
@@ -40,7 +40,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
                 // Product is low or missing from main warehouse — find it in branches
                 product.warehouse_distribution.forEach((wd) => {
                     if (wd.warehouse_id !== mainWarehouse?.id && wd.quantity > threshold) {
-                        const fromWh = warehouses.find((w: any) => w.id === wd.warehouse_id);
+                        const fromWh = warehouses.find((w) => w.id === wd.warehouse_id);
                         if (fromWh && mainWarehouse) {
                             results.push({
                                 product,

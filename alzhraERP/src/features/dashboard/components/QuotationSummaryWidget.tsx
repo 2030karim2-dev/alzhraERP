@@ -26,17 +26,17 @@ const QuotationSummaryWidget: React.FC = () => {
     });
 
     const salesStats = React.useMemo(() => {
-        const data = salesQuots?.data || [];
+        const data = (salesQuots?.data || []) as Array<{ status?: string }>;
         return {
-            pending: data.filter((q: any) => ['draft', 'sent'].includes(q.status)).length,
-            accepted: data.filter((q: any) => q.status === 'accepted').length,
+            pending: data.filter((q) => typeof q.status === 'string' && ['draft', 'sent'].includes(q.status)).length,
+            accepted: data.filter((q) => q.status === 'accepted').length,
         };
     }, [salesQuots]);
 
     const purchaseStats = React.useMemo(() => {
-        const data = purchaseQuots?.data || [];
+        const data = (purchaseQuots?.data || []) as Array<{ status?: string }>;
         return {
-            pending: data.filter((q: any) => ['draft', 'sent'].includes(q.status)).length,
+            pending: data.filter((q) => typeof q.status === 'string' && ['draft', 'sent'].includes(q.status)).length,
         };
     }, [purchaseQuots]);
 
