@@ -48,6 +48,10 @@
       }
     }
   </script>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -60,6 +64,20 @@
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    // Auto-recover from stale deployment chunks or stylesheets
+    window.addEventListener('error', function(e) {
+      var target = e.target;
+      if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) {
+        var key = 'alzahra_asset_reload_timestamp';
+        var lastReload = Number(sessionStorage.getItem(key)) || 0;
+        var now = Date.now();
+        if (now - lastReload > 10000) {
+          sessionStorage.setItem(key, String(now));
+          window.location.reload();
+        }
+      }
+    }, true);
   </script>
 <!-- All styles moved to src/index.css for PWA build compatibility -->
 </head>
