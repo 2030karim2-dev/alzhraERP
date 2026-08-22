@@ -7,6 +7,7 @@ import { validatePurchasePayload, assertValid } from '../../core/utils/validatio
 import { logger } from '../../core/utils/logger';
 import { resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
 import { accountsService } from '../accounting/services/accountsService';
+import { supabase } from '../../lib/supabaseClient';
 
 type PurchaseListResponse = Awaited<ReturnType<typeof purchasesApi.getPurchases>>;
 export type PurchaseListRow = NonNullable<PurchaseListResponse['data']>[number];

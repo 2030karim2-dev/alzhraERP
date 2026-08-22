@@ -4,7 +4,7 @@ import { CreateInvoiceDTO, InvoiceResponse } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
-import { routeToChildByCurrency, resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
+import { resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
 import { logger } from '../../core/utils/logger';
 import { accountsService } from '../accounting/services/accountsService';
 import { supabase } from '../../lib/supabaseClient';
