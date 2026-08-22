@@ -18,10 +18,7 @@ function toDetail(value: string | object | null | undefined): string {
     return typeof value === 'string' ? value : JSON.stringify(value ?? null);
 }
 
-/** Auth errors (401/403) are excluded from the skip-cache so a refreshed token can recover. */
-function isAuthError(code?: string): boolean {
-    return code === '401' || code === '403';
-}
+
 
 // The generated `database.types.ts` narrows `supabase.rpc` to a strict
 // per-function union (name must be a literal; args match that function). The
