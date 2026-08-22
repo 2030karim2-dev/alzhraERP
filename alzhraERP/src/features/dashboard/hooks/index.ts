@@ -205,6 +205,9 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
   }, [companyId, queryClient, showToast]);
 
   // 1. Fetch Raw Data using React Query
+  // ⚡ queryFn NEVER throws — any error returns null, which routes through
+  // fallbackData so the dashboard renders with zeros instead of showing
+  // a full-page error screen. React Query's isError stays false.
   const rawDataQuery = useQuery({
     queryKey: ['dashboard_raw_data', companyId, branchId, period],
     queryFn: async ({ signal }): Promise<RawDashboardData | null> => {
@@ -221,19 +224,21 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
         );
         return result as unknown as RawDashboardData;
       } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          logger.info("hooks", 'Dashboard data fetch aborted');
-          return null;
+        // ⚡ Swallow ALL errors — the dashboard should degrade gracefully
+        // to zero-filled widgets rather than display a blocking error screen.
+        // Individual RPC failures are already handled by safeData() fallbacks
+        // inside fetchRawDashboardData; this catch handles anything unexpected
+        // (network timeouts, auth 401, circuit breaker, signal aborts, etc.).
+        const err = error instanceof Error ? error : new Error(String(error));
+        if (err.name !== 'AbortError' && !signal.aborted) {
+          logger.warn('hooks', 'Dashboard data fetch failed, using fallback', { message: err.message });
         }
-        if (signal.aborted) {
-          logger.info("hooks", 'Dashboard data fetch aborted (signal)');
-          return null;
-        }
-        throw error;
+        return null;
       }
     },
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+    retry: 1, // ⚡ Single retry — avoid long waits on persistent failures
     // Refresh when the user returns to the tab so stale fallback zeros never
     // linger after an RPC hiccup. Realtime still drives mid-session updates.
     refetchOnWindowFocus: true,
