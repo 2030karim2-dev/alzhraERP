@@ -22,18 +22,14 @@ function toDetail(value: string | object | null | undefined): string {
 
 // The generated `database.types.ts` narrows `supabase.rpc` to a strict
 // per-function union (name must be a literal; args match that function). The
-// dashboard calls are dynamic (name comes from a cache, args include an
-// optional branch param), so widen the signature deliberately — RPC shape
-// safety is enforced by the canonical SQL definitions and safeData fallbacks.
-type LooseRpc = (name: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
-const looseRpc = supabase.rpc as unknown as LooseRpc;
-
 /** Wrapper around supabase.rpc that short-circuits known-missing functions. */
 function dashboardRpc(name: string, args: Record<string, unknown>, signal: AbortSignal) {
     if (missingDashboardRpcs.has(name)) {
         return Promise.resolve({ data: null, error: { message: `${name} unavailable (previously failed)` } });
     }
-    return looseRpc(name, args)
+    // Call rpc on the supabase instance to preserve 'this' context
+    return (supabase.rpc as unknown as (fn: string, params: Record<string, unknown>) => ReturnType<typeof supabase.rpc>)
+        .call(supabase, name, args)
         .abortSignal(signal);
 }
 
