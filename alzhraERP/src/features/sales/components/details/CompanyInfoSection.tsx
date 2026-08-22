@@ -8,14 +8,10 @@ interface CompanyInfoSectionProps {
 
 const CompanyInfoSection: React.FC<CompanyInfoSectionProps> = ({ company, user }) => {
   return (
-    <div className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl p-4 border border-slate-300 dark:border-slate-600">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="p-2 bg-slate-600 text-white rounded-lg">
-          <Building2 size={18} />
-        </div>
-        <div>
-          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">معلومات الشركة</h3>
-        </div>
+    <div className="bg-[var(--app-surface)] rounded-xl p-4 border border-[var(--app-border)]">
+      <div className="flex items-center gap-2 mb-3">
+        <Building2 size={16} className="text-slate-600 dark:text-slate-400" />
+        <h3 className="font-bold text-[var(--app-text)] text-sm">معلومات الشركة</h3>
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="flex items-center gap-2">

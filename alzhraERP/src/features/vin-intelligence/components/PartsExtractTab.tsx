@@ -216,14 +216,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   return (
     <div className="space-y-4 font-cairo">
       {/* ── Active Vehicle Context Banner ── */}
-      <div className="bg-gradient-to-r from-indigo-50/90 to-blue-50/90 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-2xl p-4 shadow-sm">
+      <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-sm">
-              <Car size={20} />
-            </div>
+            <Car size={20} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
             <div>
-              <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
+              <p className="text-xs font-semibold text-[var(--app-text-secondary)]">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
               <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-100 mt-0.5">
                 {vehicle.make} {vehicle.model ?? ''}{' '}
                 {vehicle.yearStart && vehicle.yearEnd ? `(${vehicle.yearStart}-${vehicle.yearEnd})` : vehicle.year ? `(${vehicle.year})` : ''}{' '}

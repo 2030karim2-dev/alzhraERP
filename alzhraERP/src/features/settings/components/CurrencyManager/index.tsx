@@ -55,28 +55,21 @@ const CurrencyManager: React.FC = () => {
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
             {/* Base Currency Highlight */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 dark:from-black dark:via-slate-900/50 dark:to-black rounded-[2rem] p-6 max-md:p-3 text-white shadow-2xl relative overflow-hidden flex items-center justify-between border border-white/10 group overflow-hidden">
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 max-md:gap-2 mb-2">
-                        <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span>
-                        </span>
-                        <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-emerald-100/70">العملة الأساسية للنظام</span>
+            <div className="bg-slate-900 dark:bg-slate-950 rounded-2xl p-6 max-md:p-4 text-white relative flex items-center justify-between border border-slate-800">
+                <div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">العملة الأساسية للنظام</span>
                     </div>
-                    <div className="flex items-baseline gap-3 max-md:gap-3">
-                        <h2 className="text-3xl max-md:text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">{baseCurrency?.name_ar || 'ريال سعودي'}</h2>
-                        <span className="text-lg font-bold text-emerald-400/80 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-inner backdrop-blur-md">{baseCurrency?.symbol}</span>
+                    <div className="flex items-baseline gap-3">
+                        <h2 className="text-2xl max-md:text-xl font-bold text-white">{baseCurrency?.name_ar || 'ريال سعودي'}</h2>
+                        <span className="text-sm font-semibold text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-800/60">{baseCurrency?.symbol}</span>
                     </div>
-                    <p className="text-xs font-mono font-bold text-slate-400 mt-2 tracking-widest">{baseCurrency?.code} • BASE CURRENCY</p>
+                    <p className="text-xs font-mono text-slate-400 mt-1">{baseCurrency?.code} • BASE CURRENCY</p>
                 </div>
-                <div className="relative z-10 p-5 max-md:p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500 ease-out shadow-2xl">
-                    <Globe size={40} className="text-emerald-400/80 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]" />
+                <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60">
+                    <Globe size={28} className="text-slate-300" />
                 </div>
-
-                {/* Decorative Background Elements */}
-                <div className="absolute -right-10 -top-10 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
-                <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-blue-500/20 rounded-full blur-[60px] group-hover:bg-indigo-500/30 transition-all duration-700 delay-100"></div>
             </div>
 
             {/* Action Bar */}

@@ -18,15 +18,15 @@ interface Props {
 }
 
 const WhatsAppCard: React.FC<Props> = ({ config, onUpdate }) => (
-    <Card className="overflow-hidden border-2 border-transparent hover:border-green-200 dark:hover:border-green-800 transition-colors">
-        <div className="bg-gradient-to-l from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-4 border-b dark:border-slate-800">
+    <Card className="overflow-hidden border border-[var(--app-border)]">
+        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-b border-gray-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#25D366] rounded-xl flex items-center justify-center text-white shadow-md">
+                    <div className="text-[#25D366]">
                         <WhatsAppIcon />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">WhatsApp</h3>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white">WhatsApp</h3>
                         <p className="text-xs text-slate-500">إرسال الإشعارات عبر واتساب بيزنس API</p>
                     </div>
                 </div>

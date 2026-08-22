@@ -7,14 +7,10 @@ interface CustomerInfoSectionProps {
 
 const CustomerInfoSection: React.FC<CustomerInfoSectionProps> = ({ party }) => {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="p-2 bg-blue-600 text-white rounded-lg">
-          <User size={18} />
-        </div>
-        <div>
-          <h3 className="font-bold text-blue-800 dark:text-blue-200 text-sm">معلومات العميل</h3>
-        </div>
+    <div className="bg-[var(--app-surface)] rounded-xl p-4 border border-[var(--app-border)]">
+      <div className="flex items-center gap-2 mb-3">
+        <User size={16} className="text-blue-600 dark:text-blue-400" />
+        <h3 className="font-bold text-[var(--app-text)] text-sm">معلومات العميل</h3>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">

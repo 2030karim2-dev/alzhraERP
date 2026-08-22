@@ -72,14 +72,15 @@ export default {
         full: '9999px',
       },
       boxShadow: {
-        sm: '0 1px 2px 0 rgb(0 0 0 / calc(var(--shadow-strength, 0.05) * 1))',
-        DEFAULT: '0 1px 3px 0 rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1)), 0 1px 2px -1px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1))',
-        md: '0 4px 6px -1px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1)), 0 2px 4px -2px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1))',
-        lg: '0 10px 15px -3px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1)), 0 4px 6px -4px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 0.7))',
-        xl: '0 20px 25px -5px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 1)), 0 8px 10px -6px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 0.7))',
-        '2xl': '0 25px 50px -12px rgb(0 0 0 / calc(var(--shadow-strength, 0.1) * 2.5))',
-        inner: 'inset 0 2px 4px 0 rgb(0 0 0 / calc(var(--shadow-strength, 0.05) * 1))',
-        'sharp': '2px 2px 0 0 var(--tw-shadow-color, #000)',
+        xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        sm: '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        DEFAULT: '0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        md: '0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
+        lg: '0 8px 16px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03)',
+        xl: '0 12px 24px -6px rgba(0, 0, 0, 0.10)',
+        '2xl': '0 16px 32px -8px rgba(0, 0, 0, 0.12)',
+        inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'sharp': '1px 1px 0 0 var(--tw-shadow-color, #000)',
       }
     }
   },

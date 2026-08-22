@@ -91,14 +91,12 @@ const ShareModal: React.FC<ShareModalProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-[var(--app-surface)] rounded-2xl shadow-2xl w-full max-w-md border border-[var(--app-border)] overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-l from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 p-4 border-b dark:border-slate-800">
+                <div className="p-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                <Send className="w-5 h-5" />
-                            </div>
+                            <Send className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
+                                <h3 className="text-base font-bold text-slate-800 dark:text-white">{title}</h3>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <span className="flex items-center gap-1 text-[10px] text-[#25D366] font-bold"><WhatsAppIcon /> واتساب</span>
                                     <span className="text-slate-300">|</span>
@@ -106,7 +104,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                                 </div>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                        <button onClick={onClose} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                             <X className="w-5 h-5 text-slate-400" />
                         </button>
                     </div>
@@ -114,26 +112,26 @@ const ShareModal: React.FC<ShareModalProps> = ({
 
                 {/* Send Mode Toggle */}
                 {elementRef && (
-                    <div className="p-4 border-b dark:border-slate-800">
+                    <div className="p-4 border-b border-[var(--app-border)]">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setSendMode('image')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${sendMode === 'image'
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-colors ${sendMode === 'image'
+                                    ? 'bg-blue-600 text-white shadow-xs'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                                     }`}
                             >
-                                <Image size={16} />
+                                <Image size={15} />
                                 إرسال كصورة
                             </button>
                             <button
                                 onClick={() => setSendMode('text')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${sendMode === 'text'
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-colors ${sendMode === 'text'
+                                    ? 'bg-blue-600 text-white shadow-xs'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                                     }`}
                             >
-                                <MessageSquare size={16} />
+                                <MessageSquare size={15} />
                                 إرسال كنص
                             </button>
                         </div>
@@ -145,7 +143,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     <label className="text-xs font-bold text-slate-500 mb-2 block">
                         {sendMode === 'image' ? 'سيتم إرسال صورة + النص التالي:' : 'معاينة الرسالة:'}
                     </label>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line max-h-48 overflow-y-auto border dark:border-slate-700 font-mono text-xs leading-relaxed" dir="rtl">
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-slate-700 dark:text-slate-300 whitespace-pre-line max-h-48 overflow-y-auto border border-gray-200 dark:border-slate-700 font-mono text-xs leading-relaxed" dir="rtl">
                         {message}
                     </div>
                 </div>
@@ -155,11 +153,11 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     <button
                         onClick={handleSend}
                         disabled={status === 'sending' || status === 'success'}
-                        className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${status === 'success'
-                            ? 'bg-emerald-500 text-white'
+                        className={`w-full py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${status === 'success'
+                            ? 'bg-emerald-600 text-white'
                             : status === 'error'
-                                ? 'bg-red-500 text-white'
-                                : 'bg-gradient-to-l from-green-500 to-blue-600 text-white hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98]'
+                                ? 'bg-red-600 text-white'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
                             }`}
                     >
                         {status === 'sending' && <><Loader2 className="w-4 h-4 animate-spin" /> جاري الإرسال...</>}

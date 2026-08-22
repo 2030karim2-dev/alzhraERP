@@ -11,14 +11,10 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({ paymentInfo, cu
   if (!paymentInfo) return null;
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="p-2 bg-emerald-600 text-white rounded-lg">
-          <DollarSign size={18} />
-        </div>
-        <div>
-          <h3 className="font-bold text-emerald-800 dark:text-emerald-200 text-sm">المبالغ</h3>
-        </div>
+    <div className="bg-[var(--app-surface)] rounded-xl p-4 border border-[var(--app-border)]">
+      <div className="flex items-center gap-2 mb-3">
+        <DollarSign size={16} className="text-emerald-600 dark:text-emerald-400" />
+        <h3 className="font-bold text-[var(--app-text)] text-sm">المبالغ</h3>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between items-center">

@@ -47,11 +47,9 @@ const BranchManager: React.FC = () => {
     <>
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
-              <GitBranch size={22} />
-            </div>
+            <GitBranch size={22} className="text-blue-600 dark:text-blue-400" />
             <div>
               <h3 className="font-bold text-gray-800 dark:text-white text-base">فروع الشركة</h3>
               <p className="text-xs text-gray-500 dark:text-slate-400">إدارة الفروع والمواقع الجغرافية للشركة</p>
@@ -59,7 +57,7 @@ const BranchManager: React.FC = () => {
           </div>
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-indigo-200 dark:shadow-none"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-xs"
           >
             <Plus size={16} />
             إضافة فرع

@@ -151,10 +151,10 @@ const HeaderActions: React.FC = () => {
           aria-expanded={isNotifOpen}
           aria-haspopup="true"
         >
-          <Bell size={14} className="transition-transform duration-200" />
+          <Bell size={14} className="transition-transform duration-150" />
           {unreadCount > 0 && (
             <span className={cn(
-              "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[8px] font-black rounded-full border-2 border-[var(--app-surface)] shadow-sm animate-in fade-in zoom-in duration-200",
+              "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
               dir === 'rtl' ? '-left-1.5' : '-right-1.5'
             )}>
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -173,7 +173,7 @@ const HeaderActions: React.FC = () => {
           aria-label={t('profile') || 'الملف الشخصي'}
           aria-expanded={isProfileOpen}
         >
-          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white flex items-center justify-center font-black text-[10px] border-2 border-[var(--app-surface)] shadow-md shadow-blue-500/25 transform transition-all duration-300 group-hover:rotate-3 group-active:scale-95">
+          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-slate-800 dark:bg-slate-700 text-white flex items-center justify-center font-bold text-xs border border-[var(--app-border)] transition-colors duration-150 hover:bg-slate-900">
             {userInitial}
           </div>
           {/* Connectivity Status Indicator */}

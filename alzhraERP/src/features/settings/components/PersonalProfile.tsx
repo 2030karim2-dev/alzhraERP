@@ -54,11 +54,11 @@ const PersonalProfile: React.FC = () => {
                     <div className="p-6 max-md:p-3 md:p-8 flex flex-col md:flex-row items-center gap-8 max-md:gap-3 border-b border-gray-100 dark:border-slate-800">
                         {/* Avatar Section */}
                         <div className="relative group">
-                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-3xl max-md:text-xl md:text-5xl font-black shadow-2xl shadow-indigo-500/30">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-slate-800 dark:bg-slate-700 text-white flex items-center justify-center text-2xl md:text-3xl font-bold border border-[var(--app-border)]">
                                 {userInitial}
                             </div>
-                            <button className="absolute -bottom-2 -right-2 p-2 max-md:p-2.5 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl text-gray-400 hover:text-indigo-600 hover:scale-110 active:scale-90 transition-all shadow-lg">
-                                <Camera size={18} />
+                            <button className="absolute -bottom-2 -right-2 p-2 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg text-[var(--app-text-secondary)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-hover)] transition-colors duration-150 shadow-xs" title="تغيير الصورة">
+                                <Camera size={16} />
                             </button>
                         </div>
 

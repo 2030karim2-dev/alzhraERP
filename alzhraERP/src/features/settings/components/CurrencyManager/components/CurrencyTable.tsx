@@ -92,90 +92,86 @@ export const CurrencyTable: React.FC<CurrencyTableProps> = ({
                                 <tr
                                     key={curr.code}
                                     className={cn(
-                                        "group transition-all duration-300 ease-out",
+                                        "transition-colors duration-150 border-b border-gray-100 dark:border-slate-800/60",
                                         isEditing
-                                            ? "bg-blue-50/80 dark:bg-blue-900/10 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]"
-                                            : "hover:bg-white dark:hover:bg-slate-800/40 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/20 hover:-translate-y-[1px] relative z-0 hover:z-10 rounded-2xl"
+                                            ? "bg-blue-50/50 dark:bg-blue-950/20"
+                                            : "hover:bg-gray-50/60 dark:hover:bg-slate-800/40"
                                     )}
                                 >
-                                    <td className="p-4 align-middle text-center relative">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"></div>
-                                        <div className="relative w-10 h-10 mx-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 text-sm shadow-inner group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300 border border-gray-200/50 dark:border-slate-700">
+                                    <td className="p-3.5 align-middle text-center">
+                                        <div className="w-9 h-9 mx-auto bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 text-sm border border-gray-200 dark:border-slate-700">
                                             {curr.symbol}
                                         </div>
                                     </td>
-                                    <td className="p-4 align-middle relative">
-                                        <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors drop-shadow-sm">{curr.name_ar}</h4>
+                                    <td className="p-3.5 align-middle">
+                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{curr.name_ar}</h4>
                                     </td>
-                                    <td className="p-4 align-middle relative">
+                                    <td className="p-3.5 align-middle">
                                         <div className="flex flex-col gap-1 items-start">
-                                            <span className="text-xs font-mono font-bold text-gray-500 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-gray-200/50 dark:border-slate-700/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800/50 transition-all">
+                                            <span className="text-xs font-mono font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded border border-gray-200 dark:border-slate-700">
                                                 {curr.code}
                                             </span>
-                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-lg border ${curr.exchange_operator === 'multiply' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${curr.exchange_operator === 'multiply' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50'}`}>
                                                 {curr.exchange_operator === 'multiply' ? 'ضرب (×)' : 'قسمة (÷)'}
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="p-4 align-middle relative">
+                                    <td className="p-3.5 align-middle">
                                         {isEditing ? (
-                                            <div className="flex gap-2 items-center animate-in slide-in-from-right-3 zoom-in-[0.98] duration-200">
+                                            <div className="flex gap-2 items-center">
                                                 <div className="relative w-full">
                                                     <input
                                                         autoFocus
                                                         type="number"
                                                         defaultValue={currentRate}
                                                         onChange={(e) => setNewRateValue(parseFloat(e.target.value))}
-                                                        className="w-full bg-white dark:bg-slate-950 border-2 border-blue-500 p-2.5 rounded-2xl text-sm font-bold font-mono outline-none shadow-[0_0_15px_rgba(59,130,246,0.15)] focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-shadow pr-8"
+                                                        className="w-full bg-white dark:bg-slate-950 border border-blue-500 p-2 rounded-lg text-sm font-bold font-mono outline-none pr-8 focus:ring-1 focus:ring-blue-500"
                                                     />
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-300 select-none">{curr.code}</span>
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 select-none">{curr.code}</span>
                                                 </div>
                                                 <button
                                                     onClick={() => handleUpdateRate(curr.code)}
-                                                    className="shrink-0 p-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 active:scale-95 transition-all outline-none"
+                                                    className="shrink-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-xs"
                                                     title="حفظ التعديل"
                                                 >
-                                                    <Save size={18} />
+                                                    <Save size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => setActiveRateEdit(null)}
-                                                    className="shrink-0 p-3 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 hover:border-gray-300 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-2xl transition-all outline-none active:scale-95"
+                                                    className="shrink-0 p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 text-gray-500 rounded-lg transition-colors"
                                                     title="إلغاء التعديل"
                                                 >
-                                                    <XIcon size={18} />
+                                                    <XIcon size={16} />
                                                 </button>
                                             </div>
                                         ) : (
                                             <div
                                                 onClick={() => { setActiveRateEdit(curr.code); setNewRateValue(currentRate); }}
-                                                className="group/edit flex items-center justify-between p-3 rounded-2xl hover:bg-white dark:hover:bg-slate-950 border-2 border-transparent hover:border-blue-100 dark:hover:border-blue-900/30 cursor-pointer transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:hover:shadow-black/20"
-                                                title="انقر لتعديل السعر المباشر"
+                                                className="flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-gray-200 dark:hover:border-slate-700 cursor-pointer transition-colors"
+                                                title="انقر لتعديل السعر"
                                             >
-                                                <div className="flex items-baseline gap-1.5 flex-col">
+                                                <div className="flex flex-col gap-0.5">
                                                     <div className="flex items-baseline gap-1.5">
-                                                        <h3 className="text-lg font-bold font-mono text-gray-800 dark:text-slate-200 leading-none group-hover/edit:text-blue-600 dark:group-hover/edit:text-blue-400 transition-colors">
-                                                            {formatNumberDisplay(currentRate)}
-                                                        </h3>
-                                                        <span className="text-[9px] font-bold text-gray-400 group-hover/edit:text-blue-300">{baseCurrency?.code}</span>
+                                                        <span className="text-sm font-bold font-mono text-gray-800 dark:text-slate-200">
+                                                            {currentRate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400 font-mono">{baseCurrency?.code}</span>
                                                     </div>
-                                                    <span className="text-[8px] font-bold text-gray-400">
+                                                    <span className="text-[9px] text-gray-400">
                                                         المعادل = المبلغ {curr.exchange_operator === 'multiply' ? '×' : '÷'} {currentRate}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 opacity-0 group-hover/edit:opacity-100 transition-all translate-x-4 max-md:translate-x-0 max-md:opacity-100 group-hover/edit:translate-x-0">
-                                                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">تعديل</span>
-                                                    <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                                        <ArrowRightLeft size={12} />
-                                                    </div>
+                                                <div className="flex items-center gap-1 text-gray-400 hover:text-blue-600">
+                                                    <span className="text-[10px]">تعديل</span>
+                                                    <ArrowRightLeft size={12} />
                                                 </div>
                                             </div>
                                         )}
                                     </td>
-                                    <td className="p-4 align-middle text-center relative">
-                                        <div className="absolute inset-0 bg-gradient-to-bl from-rose-500/5 to-transparent opacity-0 hover:opacity-100 transition-opacity rounded-r-2xl pointer-events-none"></div>
+                                    <td className="p-3.5 align-middle text-center">
                                         <button
                                             onClick={() => { if (confirm('هل أنت متأكد من مسح هذه العملة نهائياً بنظام لا رجعة فيه؟')) deleteCurrency(curr.code); }}
-                                            className="relative p-2.5 mx-auto flex text-gray-300 dark:text-gray-600 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all opacity-0 group-hover:opacity-100 hover:shadow-lg max-md:opacity-100 hover:shadow-rose-500/20 hover:scale-110 active:scale-95"
+                                            className="p-1.5 mx-auto text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-md transition-colors"
                                             title="حذف العملة من النظام"
                                         >
                                             <Trash2 size={16} />

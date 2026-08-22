@@ -29,13 +29,11 @@ interface Props {
 
 const EventTogglesCard: React.FC<Props> = ({ config, onUpdate }) => (
     <Card className="overflow-hidden">
-        <div className="bg-gradient-to-l from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 p-4 border-b dark:border-slate-800">
+        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-b border-gray-100 dark:border-slate-800">
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-md">
-                    <Radio className="w-5 h-5" />
-                </div>
+                <Radio className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">الأحداث المُفعلة</h3>
+                    <h3 className="text-base font-bold text-slate-800 dark:text-white">الأحداث المُفعلة</h3>
                     <p className="text-xs text-slate-500">اختر المعاملات التي تريد إرسال إشعارات لها</p>
                 </div>
             </div>

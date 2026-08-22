@@ -74,9 +74,8 @@ export const Card: React.FC<BaseCardProps> = ({
                 elevation !== 'glow' && elevationConfig.shadow,
 
                 // Interactive states
-                isClickable && 'cursor-pointer',
-                isClickable && 'hover:shadow-lg hover:-translate-y-0.5',
-                isClickable && 'active:scale-[0.99] active:shadow-md',
+                isClickable && 'cursor-pointer hover:border-[var(--app-border-hover,rgba(0,0,0,0.15))] dark:hover:border-slate-600',
+                isClickable && 'active:opacity-95',
 
                 // States
                 loading && 'animate-pulse pointer-events-none',

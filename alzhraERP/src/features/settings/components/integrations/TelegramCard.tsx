@@ -18,15 +18,15 @@ interface Props {
 }
 
 const TelegramCard: React.FC<Props> = ({ config, onUpdate }) => (
-    <Card className="overflow-hidden border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
-        <div className="bg-gradient-to-l from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 p-4 border-b dark:border-slate-800">
+    <Card className="overflow-hidden border border-[var(--app-border)]">
+        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-b border-gray-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#0088cc] rounded-xl flex items-center justify-center text-white shadow-md">
+                    <div className="text-[#0088cc]">
                         <TelegramIcon />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Telegram</h3>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white">Telegram</h3>
                         <p className="text-xs text-slate-500">إرسال الإشعارات إلى مجموعة أو قناة تليجرام</p>
                     </div>
                 </div>
