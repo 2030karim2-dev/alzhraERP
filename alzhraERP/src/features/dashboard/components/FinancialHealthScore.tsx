@@ -49,11 +49,16 @@ const useCountUp = (end: number, duration: number = 1500) => {
 const FinancialHealthScore: React.FC<FinancialHealthProps> = ({
     stats, cashFlow, targets, className
 }) => {
-    // Stats are now numbers directly from the models
-    // (تحويل آمن لأنها قد تأتي كنصوص من قاعدة البيانات)
-    const sales = Number(stats?.sales) || 0;
-    const expenses = Number(stats?.expenses) || 0;
-    const debts = Number(stats?.debts) || 0;
+    const cleanNumber = (v: number | string | undefined) => {
+        if (v === undefined || v === null) return 0;
+        if (typeof v === 'number') return v;
+        const clean = String(v).replace(/[^0-9.-]/g, '');
+        const parsed = parseFloat(clean);
+        return Number.isFinite(parsed) ? parsed : 0;
+    };
+    const sales = cleanNumber(stats?.sales);
+    const expenses = cleanNumber(stats?.expenses);
+    const debts = cleanNumber(stats?.debts);
 
     const profitMargin = sales > 0 ? Math.max(-100, Math.min(100, ((sales - expenses) / sales) * 100)) : 0;
     const profitScore = Math.max(0, Math.min(30, (profitMargin > 0 ? profitMargin * 0.3 : 0)));
