@@ -6,6 +6,17 @@ import App from './App';
 import { ReactQueryProvider } from './core/lib/react-query';
 import { isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from './lib/supabaseClient';
 
+// --- Auto-recover from stale chunks when a new deployment updates bundle hashes ---
+window.addEventListener('vite:preloadError', (event) => {
+  const reloadKey = 'last_vite_preload_reload';
+  const lastReload = sessionStorage.getItem(reloadKey);
+  const now = Date.now();
+  if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+    sessionStorage.setItem(reloadKey, String(now));
+    window.location.reload();
+  }
+});
+
 // --- Production: Security & Error Masking ---
 if (import.meta.env.PROD) {
   // 1. Suppress console.log and disable debug output to prevent data leakage
