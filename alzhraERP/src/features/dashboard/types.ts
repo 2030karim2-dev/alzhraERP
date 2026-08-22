@@ -44,3 +44,39 @@ export interface InvoiceItemWithDetails {
 
 // Re-export common types from database
 export type { Database };
+
+export type DashboardPeriod = 'today' | 'this_week' | 'this_month' | 'this_year' | 'all_time';
+
+export const PERIOD_LABELS: Record<DashboardPeriod, string> = {
+    today: 'اليوم',
+    this_week: 'هذا الأسبوع',
+    this_month: 'هذا الشهر',
+    this_year: 'هذا العام',
+    all_time: 'جميع الأوقات',
+};
+
+export function getPeriodDates(period: DashboardPeriod): { dateFrom?: string; dateTo?: string } {
+    const now = new Date();
+    const dateTo = now.toISOString().split('T')[0];
+
+    if (period === 'today') {
+        return { dateFrom: dateTo, dateTo };
+    }
+    if (period === 'this_week') {
+        const startOfWeek = new Date(now);
+        const day = now.getDay(); // 0 is Sunday, 6 is Saturday
+        const diff = (day + 1) % 7; // distance from Saturday
+        startOfWeek.setDate(now.getDate() - diff);
+        return { dateFrom: startOfWeek.toISOString().split('T')[0], dateTo };
+    }
+    if (period === 'this_month') {
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        return { dateFrom: `${year}-${month}-01`, dateTo };
+    }
+    if (period === 'this_year') {
+        return { dateFrom: `${now.getFullYear()}-01-01`, dateTo };
+    }
+    // 'all_time'
+    return { dateFrom: undefined, dateTo: undefined };
+}

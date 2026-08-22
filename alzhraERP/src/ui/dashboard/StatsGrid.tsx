@@ -4,58 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { DollarSign, Receipt, TrendingDown, ShoppingCart, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { ROUTES } from '../../core/routes/paths';
-import { cn } from '../../core/utils';
+import { cn, formatCurrency } from '../../core/utils';
 
-// Animated counter hook
-// const useCountUp = (end: number, duration: number = 1200) => {
-//   const [count, setCount] = useState(0);
-//   const prevEnd = useRef(0);
-//   useEffect(() => {
-//     if (end === prevEnd.current) return;
-//     prevEnd.current = end;
-//     const startTime = Date.now();
-//     const animate = () => {
-//       const elapsed = Date.now() - startTime;
-//       const progress = Math.min(elapsed / duration, 1);
-//       const eased = 1 - Math.pow(1 - progress, 3);
-//       setCount(Math.round(end * eased));
-//       if (progress < 1) requestAnimationFrame(animate);
-//     };
-//     requestAnimationFrame(animate);
-//   }, [end, duration]);
-//   return count;
-// };
-
-// Mini sparkline SVG component — driven by real data instead of fixed points
-const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({ data, color, className }) => {
-  const validData = Array.isArray(data) ? data.filter((n) => typeof n === 'number' && Number.isFinite(n)) : [];
-  const points = validData.length === 0 ? [0, 0] : validData.length === 1 ? [validData[0], validData[0]] : validData;
-  const w = 80, h = 28;
-  const maxVal = Math.max(...points);
-  const minVal = Math.min(...points);
-  const range = (maxVal - minVal) || 1;
-  const denominator = Math.max(1, points.length - 1);
-  const coords = points.map((p, i) => {
-    const rawX = (i / denominator) * w;
-    const rawY = h - ((p - minVal) / range) * (h - 4) - 2;
-    const x = Number.isFinite(rawX) ? rawX : 0;
-    const y = Number.isFinite(rawY) ? rawY : h / 2;
-    return `${x},${y}`;
-  }).join(' ');
-  const fillCoords = `0,${h} ${coords} ${w},${h}`;
-
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={cn("opacity-40 group-hover:opacity-70 transition-opacity duration-500", className)}>
-      <defs>
-        <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.4" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={fillCoords} fill={`url(#spark-${color})`} />
-      <polyline points={coords} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+// Helper to format values consistently in SAR
+const formatDisplayValue = (val: string | number | undefined) => {
+  if (val === undefined || val === null) return formatCurrency(0);
+  if (typeof val === 'number') return formatCurrency(val);
+  const clean = String(val).replace(/[^0-9.-]/g, '');
+  const num = parseFloat(clean);
+  return Number.isFinite(num) ? formatCurrency(num) : val;
 };
 
 interface StatItem {
@@ -88,9 +45,11 @@ interface StatsGridProps {
   };
   /** Real series used to draw the mini sparklines (e.g. daily sales). */
   sparklineData?: number[];
+  /** The selected human-readable period label (e.g. "هذا الشهر", "اليوم", "جميع الأوقات") */
+  periodLabel?: string;
 }
 
-const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
+const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [], periodLabel = 'هذا الشهر' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -106,34 +65,34 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
   const statItems: StatItem[] = [
     {
       title: t('total_sales'),
-      value: stats.sales,
+      value: formatDisplayValue(stats.sales),
       icon: DollarSign,
       colorClass: "text-emerald-600",
       gradientClass: "from-emerald-500 to-emerald-600",
       path: ROUTES.DASHBOARD.SALES,
-      subtitle: 'هذا الشهر'
+      subtitle: periodLabel
     },
     {
       title: t('total_purchases') || 'المشتريات',
-      value: stats.purchases || '0',
+      value: formatDisplayValue(stats.purchases),
       icon: ShoppingCart,
       colorClass: "text-violet-600",
       gradientClass: "from-violet-500 to-violet-600",
       path: ROUTES.DASHBOARD.PURCHASES || ROUTES.DASHBOARD.ACCOUNTING,
-      subtitle: 'هذا الشهر'
+      subtitle: periodLabel
     },
     {
       title: t('total_expenses'),
-      value: stats.expenses,
+      value: formatDisplayValue(stats.expenses),
       icon: Receipt,
       colorClass: "text-rose-600",
       gradientClass: "from-rose-500 to-rose-600",
       path: ROUTES.DASHBOARD.EXPENSES,
-      subtitle: 'هذا الشهر'
+      subtitle: periodLabel
     },
     {
       title: t('total_debts'),
-      value: stats.debts,
+      value: formatDisplayValue(stats.debts),
       icon: TrendingDown,
       colorClass: "text-amber-600",
       gradientClass: "from-amber-500 to-amber-600",
@@ -142,7 +101,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
     },
     ...(stats.supplierDebts !== undefined && Number(stats.supplierDebts) > 0 ? [{
       title: 'مستحقات الموردين',
-      value: stats.supplierDebts,
+      value: formatDisplayValue(stats.supplierDebts),
       icon: ShoppingCart,
       colorClass: "text-orange-600",
       gradientClass: "from-orange-500 to-orange-600",
@@ -152,15 +111,15 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, sparklineData = [] }) => {
   ];
 
   // Add profit if available
-  if (stats.profit) {
+  if (stats.profit !== undefined && stats.profit !== null) {
     statItems.splice(2, 0, {
       title: t('net_profit') || 'صافي الربح',
-      value: stats.profit,
+      value: formatDisplayValue(stats.profit),
       icon: Wallet,
       colorClass: "text-blue-600",
       gradientClass: "from-blue-500 to-blue-600",
       path: ROUTES.DASHBOARD.REPORTS,
-      subtitle: 'هذا الشهر'
+      subtitle: periodLabel
     });
   }
 

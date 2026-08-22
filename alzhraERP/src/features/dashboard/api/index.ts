@@ -182,12 +182,19 @@ export const dashboardApi = {
      * @param companyId The current active company ID
      * @param signal AbortSignal for cancellation
      * @param branchId Optional branch UUID for branch-level filtering
+     * @param dateFrom Optional start date (ISO YYYY-MM-DD), null for all-time
+     * @param dateTo Optional end date (ISO YYYY-MM-DD)
      */
-    async fetchRawDashboardData(companyId: string, signal?: AbortSignal, branchId?: string | null) {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
-        const dateTo = new Date().toISOString().split('T')[0];
+    async fetchRawDashboardData(
+        companyId: string,
+        signal?: AbortSignal,
+        branchId?: string | null,
+        dateFrom?: string | null,
+        dateTo?: string | null
+    ) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const effectiveDateTo = dateTo || todayStr;
+        const effectiveDateFrom = dateFrom !== undefined ? dateFrom : null;
         const branchParam = branchId ?? undefined;
 
         // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
@@ -205,16 +212,16 @@ export const dashboardApi = {
             // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
             dashboardRpc('get_dashboard_summary', {
                 p_company_id: companyId,
-                p_date_from: dateFrom,
-                p_date_to: dateTo,
+                ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+                ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }, activeSignal),
 
             // 2. Sales Chart Data
             dashboardRpc('get_sales_chart_data', {
                 p_company_id: companyId,
-                p_date_from: dateFrom,
-                p_date_to: dateTo,
+                ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+                ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }, activeSignal),
 
@@ -234,16 +241,16 @@ export const dashboardApi = {
             // 5. Expense Categories Summary
             dashboardRpc('get_expense_categories_summary', {
                 p_company_id: companyId,
-                p_date_from: dateFrom,
-                p_date_to: dateTo,
+                ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+                ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }, activeSignal),
 
             // 6. Trial Balance for Net Profit
             dashboardRpc('report_trial_balance', {
                 p_company_id: companyId,
-                p_from: '2000-01-01',
-                p_to: dateTo,
+                p_from: effectiveDateFrom || '2000-01-01',
+                p_to: effectiveDateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }, activeSignal),
 
@@ -296,8 +303,8 @@ export const dashboardApi = {
             //     when this RPC is unavailable/fails.
             dashboardRpc('report_profit_loss', {
                 p_company_id: companyId,
-                p_from: '2000-01-01',
-                p_to: dateTo,
+                p_from: effectiveDateFrom || '2000-01-01',
+                p_to: effectiveDateTo,
                 ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
             }, activeSignal),
 

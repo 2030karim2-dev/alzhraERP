@@ -6,15 +6,17 @@ import { computeSalesGrowthRate } from '../services/dashboardInsights';
 import { reportService } from '../../accounting/services/reportService';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { useAuthStore } from '../../auth/store';
+import { DashboardPeriod, PERIOD_LABELS } from '../types';
 
 const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-export const useDashboardMetrics = () => {
-    const dashboardData = useDashboardData();
+export const useDashboardMetrics = (period: DashboardPeriod = 'this_month') => {
+    const dashboardData = useDashboardData(period);
     const { stats, salesData } = dashboardData;
     const { user } = useAuthStore();
     const { branchId } = useBranchFilter();
     const companyId = user?.company_id;
+    const periodLabel = PERIOD_LABELS[period] || 'هذا الشهر';
 
     const extractNumericValue = (formatted: string | number) => {
         if (formatted === null || formatted === undefined) return 0;
@@ -85,6 +87,7 @@ export const useDashboardMetrics = () => {
         ...dashboardData,
         revenueExpensesData,
         salesTarget,
+        periodLabel,
         ...metrics
     };
 };

@@ -1,15 +1,16 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import ContentContainer from '../../ui/layout/ContentContainer';
 import { useDashboardMetrics } from './hooks/useDashboardMetrics';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { useAuthStore } from '../auth/store';
+import { DashboardPeriod } from './types';
 
 import MicroHeader from '../../ui/base/MicroHeader';
 import ChartSkeleton from '../../ui/base/ChartSkeleton';
-import { RefreshCw, Activity, TrendingUp } from 'lucide-react';
+import { RefreshCw, Activity, TrendingUp, Calendar } from 'lucide-react';
 import { GlobalErrorBoundary } from '../../ui/common/GlobalErrorBoundary';
-import { formatCurrency } from '../../core/utils';
+import { formatCurrency, cn } from '../../core/utils';
 
 // Lazy Loaded Widgets
 const StatsGrid = lazy(() => import('../../ui/dashboard/StatsGrid'));
@@ -31,6 +32,14 @@ const QuickActions = lazy(() => import('./components/QuickActions'));
 const CategoriesChart = lazy(() => import('../../ui/dashboard/CategoriesChart'));
 const QuotationSummaryWidget = lazy(() => import('./components/QuotationSummaryWidget'));
 const RecentActivity = lazy(() => import('./components/RecentActivity'));
+
+const PERIOD_OPTIONS: Array<{ key: DashboardPeriod; label: string }> = [
+    { key: 'today', label: 'اليوم' },
+    { key: 'this_week', label: 'هذا الأسبوع' },
+    { key: 'this_month', label: 'هذا الشهر' },
+    { key: 'this_year', label: 'هذا العام' },
+    { key: 'all_time', label: 'جميع الأوقات' },
+];
 
 // Sub-components for state management
 const DashboardLoading = () => {
@@ -69,6 +78,8 @@ const DashboardPage: React.FC = () => {
     const { t } = useTranslation();
     const { user } = useAuthStore();
     const companyId = user?.company_id ?? '';
+    const [period, setPeriod] = useState<DashboardPeriod>('this_month');
+
     const {
         stats,
         salesData,
@@ -87,8 +98,9 @@ const DashboardPage: React.FC = () => {
         growthRate,
         salesValue,
         salesTarget,
-        recentActivities
-    } = useDashboardMetrics();
+        recentActivities,
+        periodLabel
+    } = useDashboardMetrics(period);
 
     if (isLoading) return <DashboardLoading />;
     if (isError) return <DashboardError refetch={refetch} isFetching={isFetching} />;
@@ -106,10 +118,31 @@ const DashboardPage: React.FC = () => {
                 icon={Activity}
                 iconColor="text-emerald-500"
                 actions={
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {/* Period Selector Tabs */}
+                        <div className="inline-flex p-0.5 bg-[var(--app-surface-hover)] border border-[var(--app-border)] rounded-lg text-xs">
+                            {PERIOD_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.key}
+                                    type="button"
+                                    onClick={() => setPeriod(opt.key)}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all duration-150",
+                                        period === opt.key
+                                            ? "bg-blue-600 text-white shadow-xs"
+                                            : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface)]/50"
+                                    )}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <button
+                            type="button"
                             onClick={() => { refetch(); }}
-                            className="p-2 text-[var(--app-text-secondary)] hover:text-[var(--accent)] active:scale-90 transition-all rounded-lg hover:bg-[var(--app-surface-hover)]"
+                            title="تحديث البيانات"
+                            className="p-1.5 text-[var(--app-text-secondary)] hover:text-[var(--accent)] active:scale-90 transition-all rounded-lg hover:bg-[var(--app-surface-hover)] border border-[var(--app-border)]"
                         >
                             <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
                         </button>
@@ -133,7 +166,7 @@ const DashboardPage: React.FC = () => {
 
                     <Suspense fallback={<div className="h-32 mt-3 animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
                         <div className="mt-3">
-                            <StatsGrid stats={stats} sparklineData={salesData.map(d => Number(d.value) || 0)} />
+                            <StatsGrid stats={stats} sparklineData={salesData.map(d => Number(d.value) || 0)} periodLabel={periodLabel} />
                         </div>
                     </Suspense>
 

@@ -15,6 +15,7 @@ import type {
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
 import { supabase } from '../../../lib/supabaseClient';
+import { DashboardPeriod, getPeriodDates } from '../types';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -157,10 +158,12 @@ interface UseDashboardDataResult extends DashboardDataPayload {
   data: DashboardDataPayload | null;
 }
 
-export const useDashboardData = (): UseDashboardDataResult => {
+export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDashboardDataResult => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
+
+  const { dateFrom, dateTo } = useMemo(() => getPeriodDates(period), [period]);
 
   // Realtime channel for dashboard stats
   const queryClient = useQueryClient();
@@ -203,7 +206,7 @@ export const useDashboardData = (): UseDashboardDataResult => {
 
   // 1. Fetch Raw Data using React Query
   const rawDataQuery = useQuery({
-    queryKey: ['dashboard_raw_data', companyId, branchId],
+    queryKey: ['dashboard_raw_data', companyId, branchId, period],
     queryFn: async ({ signal }): Promise<RawDashboardData | null> => {
       if (!companyId) {
         return null;
@@ -213,6 +216,8 @@ export const useDashboardData = (): UseDashboardDataResult => {
           companyId,
           signal,
           branchId,
+          dateFrom,
+          dateTo,
         );
         return result as unknown as RawDashboardData;
       } catch (error) {
