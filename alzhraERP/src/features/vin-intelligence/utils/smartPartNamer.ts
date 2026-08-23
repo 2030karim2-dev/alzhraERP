@@ -343,11 +343,11 @@ export function generateSmartPartName(
   partQuery: string,
   vehicle?: VehicleInfo | null,
   options?: {
-    includeMake?: boolean;
-    includeEngine?: boolean;
-    includeTrans?: boolean;
-    includeMarket?: boolean;
-    customVehicleTemplate?: string;
+    includeMake?: boolean | undefined;
+    includeEngine?: boolean | undefined;
+    includeTrans?: boolean | undefined;
+    includeMarket?: boolean | undefined;
+    customVehicleTemplate?: string | undefined;
   }
 ): string {
   const partName = findArabicPartTerm(partQuery) || partQuery.trim() || 'قطعة غيار';

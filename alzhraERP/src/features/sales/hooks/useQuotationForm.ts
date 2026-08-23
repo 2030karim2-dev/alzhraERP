@@ -17,8 +17,8 @@ export const useQuotationForm = (
   userId: string | undefined,
   onSuccess: () => void,
   initialData?: {
-    items?: ItemRow[];
-    notes?: string;
+    items?: ItemRow[] | undefined;
+    notes?: string | undefined;
   }
 ) => {
   const [saving, setSaving] = useState(false);

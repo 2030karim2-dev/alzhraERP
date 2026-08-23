@@ -14,7 +14,6 @@ import {
   Download,
   Share2,
   FileText,
-  Save,
   RotateCcw,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
@@ -117,7 +116,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
-  const [isDraftRestored, setIsDraftRestored] = useState(false);
 
   // Update default custom template when vehicle changes if empty
   useEffect(() => {
@@ -463,7 +461,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                   السيارة النشطة
                 </span>
                 <span className="text-xs text-slate-400 font-medium">
-                  {vehicle.vin ? `(VIN: ${vehicle.vin})` : ''}
+                  {vehicle.vinPrefix ? `(VIN: ${vehicle.vinPrefix})` : ''}
                 </span>
               </div>
               <h4 className="text-sm md:text-base font-bold text-white mt-1">
