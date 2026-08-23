@@ -127,7 +127,7 @@ const AddProductModal: React.FC<Props> = ({
     const errorList = Object.values(formErrors)
       .map(e => e?.message)
       .filter(Boolean);
-    const firstMsg = errorList[0] || t('validation_error') || 'يرجى مراجعة وتصحيح الحقول المطلوبة';
+    const firstMsg = errorList[0] || 'يرجى مراجعة وتصحيح الحقول المطلوبة';
     showToast(String(firstMsg), 'error');
   };
 
