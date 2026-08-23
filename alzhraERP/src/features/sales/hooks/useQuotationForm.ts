@@ -12,7 +12,15 @@ export interface ItemRow {
   discountPercent: number;
 }
 
-export const useQuotationForm = (companyId: string | undefined, userId: string | undefined, onSuccess: () => void) => {
+export const useQuotationForm = (
+  companyId: string | undefined,
+  userId: string | undefined,
+  onSuccess: () => void,
+  initialData?: {
+    items?: ItemRow[];
+    notes?: string;
+  }
+) => {
   const [saving, setSaving] = useState(false);
   const [selectedParty, setSelectedParty] = useState<{ id: string; name: string; phone?: string } | null>(null);
   const [partyQuery, setPartyQuery] = useState('');
@@ -21,12 +29,14 @@ export const useQuotationForm = (companyId: string | undefined, userId: string |
   
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [validDays, setValidDays] = useState(7);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(initialData?.notes || '');
   const [terms, setTerms] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('');
-  const [items, setItems] = useState<ItemRow[]>([
-    { productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
-  ]);
+  const [items, setItems] = useState<ItemRow[]>(
+    initialData?.items && initialData.items.length > 0
+      ? initialData.items
+      : [{ productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 }]
+  );
 
   const [productModal, setProductModal] = useState<{ isOpen: boolean; rowIndex: number; query: string }>({
     isOpen: false,

@@ -13,17 +13,27 @@ import {
   Upload,
   Download,
   Share2,
+  FileText,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { cn } from '../../../core/utils';
-import { generateSmartPartName } from '../utils/smartPartNamer';
+import {
+  generateSmartPartName,
+  buildDefaultVehicleArabicSuffix,
+  getArabicVehicleName,
+  formatVehicleYears,
+} from '../utils/smartPartNamer';
 import {
   exportPartsToExcel,
   parsePartsFromFile,
   formatPartsForWhatsApp,
 } from '../utils/partsExcelHelper';
 import { useFeedbackStore } from '../../feedback/store';
+import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
+import type { ItemRow } from '../../sales/hooks/useQuotationForm';
 import type { ExtractedPart, VehicleInfo } from '../types';
 
 export interface ExcelGridPart extends ExtractedPart {
@@ -43,6 +53,9 @@ interface PartsExtractTabProps {
   isAdding: boolean;
   canAdd?: boolean;
 }
+
+const DRAFT_STORAGE_KEY = 'alz_vin_extract_draft_rows';
+const TEMPLATE_STORAGE_KEY = 'alz_vin_extract_custom_template';
 
 /** Pre-defined common parts for rapid 1-click addition */
 const QUICK_PARTS_TEMPLATES = [
@@ -72,32 +85,112 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   const { showToast } = useFeedbackStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [rows, setRows] = useState<ExcelGridPart[]>([]);
+  // Initialize rows from localStorage draft or empty array
+  const [rows, setRows] = useState<ExcelGridPart[]>(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return [];
+  });
+
+  // Custom vehicle naming template (Generalization override)
+  const [customVehicleTemplate, setCustomVehicleTemplate] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+      if (saved && saved.trim()) return saved;
+    } catch {
+      /* ignore */
+    }
+    return buildDefaultVehicleArabicSuffix(vehicle);
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
 
-  // Add initial empty row when vehicle is set and rows are empty
+  // Update default custom template when vehicle changes if empty
+  useEffect(() => {
+    if (vehicle && !customVehicleTemplate.trim()) {
+      const defaultSuffix = buildDefaultVehicleArabicSuffix(vehicle);
+      setCustomVehicleTemplate(defaultSuffix);
+    }
+  }, [vehicle, customVehicleTemplate]);
+
+  // Add initial empty rows if no draft existed and rows are empty
   useEffect(() => {
     if (vehicle && rows.length === 0) {
-      setRows([
-        createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات'),
-        createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي'),
-      ]);
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) {
+        setRows([
+          createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات', customVehicleTemplate),
+          createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي', customVehicleTemplate),
+        ]);
+      }
     }
   }, [vehicle]);
+
+  // Persist draft rows to localStorage on change
+  useEffect(() => {
+    try {
+      if (rows.length > 0) {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(rows));
+      } else {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [rows]);
+
+  // Persist template
+  useEffect(() => {
+    try {
+      if (customVehicleTemplate.trim()) {
+        localStorage.setItem(TEMPLATE_STORAGE_KEY, customVehicleTemplate);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [customVehicleTemplate]);
+
+  // Warn user before accidental page close if there are unsaved rows
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (rows.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [rows.length]);
 
   function createEmptyRow(
     veh: VehicleInfo | null,
     defaultBase = '',
     defaultPartNo = '',
     defaultMfr = 'GENUINE',
-    defaultSpec = ''
+    defaultSpec = '',
+    templateOverride?: string
   ): ExcelGridPart {
-    const smartName = veh ? generateSmartPartName(defaultBase || 'قطعة غيار', veh) : defaultBase;
+    const smartName = generateSmartPartName(
+      defaultBase || 'قطعة غيار',
+      veh,
+      { customVehicleTemplate: templateOverride || customVehicleTemplate }
+    );
     return {
-      _id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      _id: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       partNumber: defaultPartNo,
       baseName: defaultBase,
       description: smartName,
@@ -117,14 +210,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         if (r._id !== id) return r;
         const updated = { ...r, ...updates };
 
-        // Auto-recalculate smart description if baseName was changed and description wasn't manually overridden
+        // Auto-recalculate smart description if baseName was changed
         if (updates.baseName !== undefined && vehicle) {
-          updated.description = generateSmartPartName(updates.baseName, vehicle);
+          updated.description = generateSmartPartName(updates.baseName, vehicle, {
+            customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+          });
         }
         return updated;
       })
     );
-  }, [vehicle]);
+  }, [vehicle, customVehicleTemplate]);
 
   const addRow = (template?: typeof QUICK_PARTS_TEMPLATES[0]) => {
     const newRow = createEmptyRow(
@@ -132,13 +227,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       template?.base || '',
       template?.oem || '',
       template?.mfr || vehicle?.make || 'GENUINE',
-      template?.spec || ''
+      template?.spec || '',
+      customVehicleTemplate
     );
     setRows((prev) => [...prev, newRow]);
   };
 
   const addMultipleRows = (count = 5) => {
-    const newRows = Array.from({ length: count }, () => createEmptyRow(vehicle));
+    const newRows = Array.from({ length: count }, () =>
+      createEmptyRow(vehicle, '', '', 'GENUINE', '', customVehicleTemplate)
+    );
     setRows((prev) => [...prev, ...newRows]);
   };
 
@@ -151,22 +249,32 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     if (!target) return;
     const clone: ExcelGridPart = {
       ...target,
-      _id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      _id: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       selected: true,
     };
     setRows((prev) => [...prev, clone]);
   };
 
-  // Batch regenerate all smart names based on active vehicle
-  const regenerateAllNames = () => {
-    if (!vehicle) return;
+  // Batch regenerate all smart names based on custom template or active vehicle
+  const applyGeneralizationToAllRows = (templateText?: string) => {
+    const activeTemplate = (templateText !== undefined ? templateText : customVehicleTemplate).trim();
+    if (!vehicle && !activeTemplate) return;
+
     setRows((prev) =>
       prev.map((r) => ({
         ...r,
-        description: generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle),
+        description: generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle, {
+          customVehicleTemplate: activeTemplate || undefined,
+        }),
       }))
     );
-    showToast('تم تحديث الأسماء الذكية لكافة الأسطر بنجاح', 'success');
+    showToast('تم تطبيق التعميم على كافة أسطر الجدول بنجاح ✨', 'success');
+  };
+
+  const resetTemplateToSmartDefault = () => {
+    const defaultSuffix = buildDefaultVehicleArabicSuffix(vehicle);
+    setCustomVehicleTemplate(defaultSuffix);
+    applyGeneralizationToAllRows(defaultSuffix);
   };
 
   const toggleSelectAll = (checked: boolean) => {
@@ -179,12 +287,14 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     const res = await onSearchPart(q);
     if (res.length > 0) {
       const newItems: ExcelGridPart[] = res.map((p) => {
-        const smartName = vehicle
-          ? generateSmartPartName(p.description || p.partNumber, vehicle)
-          : (p.description || p.partNumber);
+        const smartName = generateSmartPartName(
+          p.description || p.partNumber,
+          vehicle,
+          { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
+        );
 
         return {
-          _id: `mz-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+          _id: `mz-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
           partNumber: p.partNumber,
           baseName: p.description || p.partNumber,
           description: smartName,
@@ -223,6 +333,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
     const count = await onAdd(partsToSave);
     setLastAddedCount(count);
+    // Clear draft on successful save
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleExportExcel = async () => {
@@ -272,16 +388,45 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   const handleClearAllRows = () => {
     if (rows.length === 0) return;
-    if (window.confirm('هل أنت متأكد من مسح جميع أسطر الجدول؟')) {
+    if (window.confirm('هل أنت متأكد من مسح جميع أسطر الجدول وبدء مسودة جديدة؟')) {
       setRows([]);
-      showToast('تم تفريغ الجدول', 'info');
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      showToast('تم تفريغ الجدول ومسح المسودة', 'info');
     }
   };
 
+  // Convert selected rows to quotation items
+  const quotationInitialItems: ItemRow[] = selectedRows.map((r) => {
+    let desc = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
+    if (r.partNumber?.trim()) {
+      desc = `${desc} (${r.partNumber.trim()})`;
+    }
+    if (r.sizeSpec?.trim()) {
+      desc = `${desc} - ${r.sizeSpec.trim()}`;
+    }
+    return {
+      productId: '',
+      description: desc,
+      quantity: 1,
+      unitPrice: r.salePrice || 0,
+      discountPercent: 0,
+    };
+  });
+
+  const { makeAr, modelAr } = getArabicVehicleName(vehicle);
+  const years = formatVehicleYears(vehicle);
+  const quotationNotes = vehicle
+    ? `عرض سعر قطع غيار سيارة: ${makeAr} ${modelAr} ${years}`
+    : 'عرض سعر قطع غيار';
+
   if (!hasVehicle || !vehicle) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center py-12 p-5 shadow-sm">
-        <PackagePlus size={32} className="text-indigo-600 dark:text-indigo-400 opacity-60 mx-auto mb-3" />
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center py-12 p-5 shadow-sm font-cairo">
+        <PackagePlus size={32} className="text-blue-600 dark:text-blue-400 opacity-60 mx-auto mb-3" />
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">
           لم يتم تحديد السيارة بعد
         </h3>
@@ -305,17 +450,25 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         onChange={handleFileImport}
       />
 
-      {/* ── Active Vehicle Context Banner ── */}
-      <div className="bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl p-4 shadow-xs">
+      {/* ── Active Vehicle Context Banner & Custom Generalization Template ── */}
+      <div className="bg-gradient-to-l from-slate-900/90 to-slate-950 text-white border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Car size={20} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <div className="p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
+              <Car size={22} className="flex-shrink-0" />
+            </div>
             <div>
-              <p className="text-xs font-semibold text-[var(--app-text-secondary)]">السيارة النشطة لإضافة القطع وتوليد الأسماء:</p>
-              <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-100 mt-0.5">
-                {vehicle.make} {vehicle.model ?? ''}{' '}
-                {vehicle.submodel ? `[${vehicle.submodel}]` : ''}{' '}
-                {vehicle.yearStart && vehicle.yearEnd ? `(${vehicle.yearStart}-${vehicle.yearEnd})` : vehicle.year ? `(${vehicle.year})` : ''}{' '}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-800">
+                  السيارة النشطة
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  {vehicle.vin ? `(VIN: ${vehicle.vin})` : ''}
+                </span>
+              </div>
+              <h4 className="text-sm md:text-base font-bold text-white mt-1">
+                {makeAr} {modelAr}{' '}
+                {years ? `(${years})` : ''}{' '}
                 {vehicle.market ? `[${vehicle.market}]` : ''}{' '}
                 {vehicle.transmission ? `[${vehicle.transmission}]` : ''}{' '}
                 {vehicle.displacement ? `[مكينة ${vehicle.displacement}]` : ''}
@@ -323,17 +476,60 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold" title="حفظ المسودة تلقائياً في المتصفح لمنع فقدان البيانات">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>مسودة محفوظة تلقائياً 💾</span>
+            </div>
+            {rows.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAllRows}
+                className="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 hover:bg-rose-900/60 text-xs font-bold transition-all"
+                title="مسح المسودة والبدء من جديد"
+              >
+                مسح المسودة
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Generalization Override Bar (الميزة الأولى: تعميم الجدول اليدوي المتقن) ── */}
+        <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-300 shrink-0">
+            <Sparkles size={16} className="text-amber-400" />
+            <span>تعميم وصف السيارة للجدول (يدوي / دقيق):</span>
+          </div>
+
+          <div className="flex-1 min-w-[240px] relative">
+            <input
+              type="text"
+              value={customVehicleTemplate}
+              onChange={(e) => setCustomVehicleTemplate(e.target.value)}
+              placeholder="مثال: فيتز 2005 مكينة 1.3"
+              className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg text-xs font-bold text-emerald-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
-              variant="outline"
-              onClick={regenerateAllNames}
-              className="bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-200 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/40 rounded-lg shadow-sm"
-              title="إعادة صياغة أسماء جميع القطع بالجدول بناءً على مواصفات هذه السيارة"
+              variant="primary"
+              onClick={() => applyGeneralizationToAllRows()}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-sm"
+              title="تطبيق هذا الوصف فوراً على جميع أسطر الجدول الحالية والجديدة"
             >
-              <Sparkles size={13} className="ml-1 text-indigo-600 dark:text-indigo-400" />
-              تحديث الأسماء الذكية
+              <Sparkles size={13} className="ml-1" />
+              تطبيق التعميم على الجدول ✨
             </Button>
+            <button
+              type="button"
+              onClick={resetTemplateToSmartDefault}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              title="استعادة الصياغة التلقائية المقترحة"
+            >
+              <RotateCcw size={14} />
+            </button>
           </div>
         </div>
       </div>
@@ -389,7 +585,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               onClick={handleSearchMegazip}
               isLoading={isSearching}
               disabled={searchQuery.trim().length < 3}
-              className="rounded-lg"
+              className="rounded-lg font-bold"
             >
               <Search size={14} className="ml-1" /> بحث واستخراج
             </Button>
@@ -399,7 +595,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         {/* Quick Row insertion actions */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-xs rounded-lg shadow-sm">
+            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-lg shadow-sm">
               <Plus size={14} className="ml-1" /> سطر جديد
             </Button>
             <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-xs rounded-lg">
@@ -421,15 +617,34 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               key={tmpl.base}
               type="button"
               onClick={() => { addRow(tmpl); }}
-              className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-sm"
+              className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-sm"
             >
               + {tmpl.base}
             </button>
           ))}
         </div>
 
-        {/* Pro Tools: Excel Export, Import, WhatsApp Memo Copy */}
-        <div className="flex items-center gap-1.5">
+        {/* Pro Tools: Excel Export, Import, WhatsApp Memo Copy, Quotations */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* Create Quotation Directly (الميزة الثانية: الربط المباشر مع عروض الأسعار) */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (selectedRows.length === 0) {
+                showToast('يرجى تحديد قطعة واحدة على الأقل لإنشاء عرض السعر', 'warning');
+                return;
+              }
+              setIsQuotationModalOpen(true);
+            }}
+            disabled={selectedRows.length === 0}
+            className="text-xs font-bold rounded-lg border-indigo-300 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-100 shadow-sm"
+            title="إنشاء عرض أسعار للعميل مباشرة من هذه القطع دون إدخالها للمخزون"
+          >
+            <FileText size={13} className="ml-1 text-indigo-600 dark:text-indigo-400" />
+            إنشاء عرض سعر ({selectedRows.length})
+          </Button>
+
           <Button
             size="sm"
             variant="outline"
@@ -466,23 +681,12 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
             <Share2 size={13} className="ml-1 text-green-600 dark:text-green-400" />
             نسخ للواتساب
           </Button>
-
-          {rows.length > 0 && (
-            <button
-              type="button"
-              onClick={handleClearAllRows}
-              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-              title="تفريغ جميع الأسطر"
-            >
-              <Trash2 size={15} />
-            </button>
-          )}
         </div>
       </div>
 
       {/* ── Professional Excel Grid Table ── */}
       <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-        <div className="overflow-x-auto max-h-[520px] custom-scrollbar">
+        <div className="overflow-x-auto max-h-[540px] custom-scrollbar">
           <table className="w-full text-right border-collapse text-xs">
             <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 select-none">
               <tr>
@@ -491,16 +695,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                     type="checkbox"
                     checked={allSelected}
                     onChange={(e) => { toggleSelectAll(e.target.checked); }}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-blue-600 focus:ring-blue-500"
                   />
                 </th>
                 <th className="p-2.5 w-10 text-center text-slate-400">#</th>
                 <th className="p-2.5 min-w-[130px]">رقم القطعة (OEM / Part No)</th>
                 <th className="p-2.5 min-w-[120px]">نوع القطعة (الأولي)</th>
-                <th className="p-2.5 min-w-[240px]">
+                <th className="p-2.5 min-w-[280px]">
                   <div className="flex items-center gap-1.5">
-                    <Sparkles size={13} className="text-indigo-600 dark:text-indigo-400" />
-                    <span>اسم المنتج المكتمل (تلقائي / ذكي)</span>
+                    <Sparkles size={13} className="text-amber-500" />
+                    <span>اسم المنتج المكتمل (تلقائي / يدوي)</span>
                   </div>
                 </th>
                 <th className="p-2.5 min-w-[100px]">الشركة الصانعة</th>
@@ -514,7 +718,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-slate-400">
-                    لا توجد أسطر حالياً. انقر على «سطر جديد» أو «استيراد Excel/CSV» للبدء.
+                    لا توجد أسطر حالياً. انقر على «سطر جديد» أو «إضافة سريعة» للبدء.
                   </td>
                 </tr>
               ) : (
@@ -522,8 +726,8 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                   <tr
                     key={row._id}
                     className={cn(
-                      'hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 transition-colors group',
-                      row.selected ? 'bg-indigo-50/30 dark:bg-indigo-950/30' : 'bg-white dark:bg-slate-900'
+                      'hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors group',
+                      row.selected ? 'bg-blue-50/30 dark:bg-blue-950/30' : 'bg-white dark:bg-slate-900'
                     )}
                   >
                     {/* Select Checkbox */}
@@ -532,7 +736,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="checkbox"
                         checked={!!row.selected}
                         onChange={(e) => { updateRow(row._id, { selected: e.target.checked }); }}
-                        className="rounded text-indigo-600 focus:ring-indigo-500"
+                        className="rounded text-blue-600 focus:ring-blue-500"
                       />
                     </td>
 
@@ -547,7 +751,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.partNumber}
                         onChange={(e) => { updateRow(row._id, { partNumber: e.target.value }); }}
-                        className="w-full px-2.5 py-1.5 font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        onFocus={(e) => e.target.select()}
+                        placeholder="رقم القطعة..."
+                        className="w-full px-2.5 py-1.5 font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </td>
 
@@ -557,30 +763,34 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.baseName}
                         onChange={(e) => { updateRow(row._id, { baseName: e.target.value }); }}
-                        className="w-full px-2.5 py-1.5 font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        onFocus={(e) => e.target.select()}
+                        placeholder="مثال: بلاكات..."
+                        className="w-full px-2.5 py-1.5 font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </td>
 
-                    {/* Auto-Completed Smart Product Name */}
+                    {/* Auto-Completed / Editable Smart Product Name */}
                     <td className="p-1.5">
                       <div className="relative flex items-center">
                         <input
                           type="text"
                           value={row.description}
                           onChange={(e) => { updateRow(row._id, { description: e.target.value }); }}
-                          className="w-full px-2.5 py-1.5 font-bold text-xs text-indigo-950 dark:text-indigo-200 bg-indigo-50/40 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                          onFocus={(e) => e.target.select()}
+                          title={row.description}
+                          className="w-full px-2.5 py-1.5 font-bold text-xs text-slate-900 dark:text-blue-200 bg-blue-50/40 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                         />
                         <button
                           type="button"
                           onClick={() => {
-                            if (vehicle) {
-                              updateRow(row._id, {
-                                description: generateSmartPartName(row.baseName || 'قطعة غيار', vehicle),
-                              });
-                            }
+                            updateRow(row._id, {
+                              description: generateSmartPartName(row.baseName || 'قطعة غيار', vehicle, {
+                                customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+                              }),
+                            });
                           }}
-                          className="absolute left-2 p-1 text-indigo-500 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
-                          title="إعادة صياغة الاسم الذكي تلقائياً"
+                          className="absolute left-2 p-1 text-blue-500 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                          title="إعادة صياغة الاسم بناءً على التعميم المعتمد"
                         >
                           <RefreshCw size={12} />
                         </button>
@@ -593,7 +803,8 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.manufacturer || ''}
                         onChange={(e) => { updateRow(row._id, { manufacturer: e.target.value }); }}
-                        className="w-full px-2.5 py-1.5 font-medium text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-2.5 py-1.5 font-medium text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </td>
 
@@ -603,7 +814,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         type="text"
                         value={row.sizeSpec || ''}
                         onChange={(e) => { updateRow(row._id, { sizeSpec: e.target.value }); }}
-                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        onFocus={(e) => e.target.select()}
+                        placeholder="المقاس..."
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </td>
 
@@ -615,8 +828,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         step="any"
                         value={row.purchasePrice || ''}
                         onChange={(e) => { updateRow(row._id, { purchasePrice: parseFloat(e.target.value) || 0 }); }}
+                        onFocus={(e) => e.target.select()}
                         placeholder="0.00"
-                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-emerald-600 dark:text-emerald-400"
+                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-emerald-600 dark:text-emerald-400"
                       />
                     </td>
 
@@ -628,8 +842,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         step="any"
                         value={row.salePrice || ''}
                         onChange={(e) => { updateRow(row._id, { salePrice: parseFloat(e.target.value) || 0 }); }}
+                        onFocus={(e) => e.target.select()}
                         placeholder="0.00"
-                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-blue-600 dark:text-blue-400"
+                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-blue-600 dark:text-blue-400"
                       />
                     </td>
 
@@ -639,7 +854,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                         <button
                           type="button"
                           onClick={() => { duplicateRow(row._id); }}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title="تكرار السطر"
                         >
                           <Copy size={13} />
@@ -665,31 +880,46 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-              تم تحديد <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedRows.length}</strong> من أصل {rows.length} قطعة
+              تم تحديد <strong className="text-blue-600 dark:text-blue-400 font-bold">{selectedRows.length}</strong> من أصل {rows.length} قطعة
             </span>
             <Button size="sm" variant="outline" onClick={() => { addRow(); }} className="text-xs font-bold rounded-lg">
               <Plus size={12} className="ml-1" /> إضافة سطر
             </Button>
           </div>
 
-          {canAdd === false ? (
-            <p className="text-xs text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
-              تتطلب إضافة القطع للمخزون صلاحية مدير أو مسؤول
-            </p>
-          ) : (
-            <Button
-              size="md"
-              variant="success"
-              onClick={handleSaveToInventory}
-              isLoading={isAdding}
-              disabled={selectedRows.length === 0}
-              className="font-bold px-5 bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md shadow-emerald-500/10"
-            >
-              <Check size={16} className="ml-1.5" /> حفظ وإضافة القطع المحددة ({selectedRows.length}) للمخزون
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {canAdd === false ? (
+              <p className="text-xs text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
+                تتطلب إضافة القطع للمخزون صلاحية مدير أو مسؤول
+              </p>
+            ) : (
+              <Button
+                size="md"
+                variant="success"
+                onClick={handleSaveToInventory}
+                isLoading={isAdding}
+                disabled={selectedRows.length === 0}
+                className="font-bold px-5 bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md shadow-emerald-500/10"
+              >
+                <Check size={16} className="ml-1.5" /> حفظ وإضافة القطع المحددة ({selectedRows.length}) للمخزون
+              </Button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* ── Quotation Creation Modal ── */}
+      {isQuotationModalOpen && (
+        <CreateQuotationModal
+          onClose={() => setIsQuotationModalOpen(false)}
+          onSuccess={() => {
+            showToast('تم إنشاء وحفظ عرض السعر بنجاح! 📄', 'success');
+            setIsQuotationModalOpen(false);
+          }}
+          initialItems={quotationInitialItems}
+          initialNotes={quotationNotes}
+        />
+      )}
     </div>
   );
 };

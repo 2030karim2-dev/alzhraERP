@@ -67,4 +67,28 @@ describe('smartPartNamer', () => {
     const name = generateSmartPartName('بلاكات', vehicle, { includeEngine: false });
     expect(name).toBe('بلاكات كرولا 2001-2007 خليجي تماتيك');
   });
+
+  it('translates Vitz with Arabic specs', () => {
+    const vitz: VehicleInfo = {
+      make: 'Toyota',
+      model: 'Vitz',
+      year: 2005,
+      market: 'Japan',
+      displacement: '1.3L',
+    };
+    expect(generateSmartPartName('spark plug', vitz)).toBe('بلاكات فيتز 2005 ياباني مكينة 1.3');
+  });
+
+  it('supports explicit custom template generalization override', () => {
+    const vitz: VehicleInfo = {
+      make: 'Toyota',
+      model: 'Vitz',
+      year: 2005,
+    };
+    const name = generateSmartPartName('spark plug', vitz, {
+      customVehicleTemplate: 'فيتز 2005 مكينة 1.3',
+    });
+    expect(name).toBe('بلاكات فيتز 2005 مكينة 1.3');
+  });
 });
+

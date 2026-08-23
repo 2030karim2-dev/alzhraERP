@@ -100,6 +100,13 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
 
 /** Common Arabic car model mappings */
 const ARABIC_MODELS: Record<string, string> = {
+  vitz: 'فيتز',
+  passo: 'باسو',
+  yaris: 'يارس',
+  belta: 'بيلتا',
+  rush: 'راش',
+  prius: 'بريوس',
+  auris: 'أوريس',
   corolla: 'كورولا',
   camry: 'كامري',
   hilux: 'هايلوكس',
@@ -109,14 +116,15 @@ const ARABIC_MODELS: Record<string, string> = {
   lc70: 'شاص',
   shas: 'شاص',
   prado: 'برادو',
+  'land cruiser prado': 'برادو',
   'fj cruiser': 'اف جي',
-  yaris: 'يارس',
   echo: 'إيكو',
   avalon: 'أفالون',
   rav4: 'راف فور',
   fortuner: 'فورتشنر',
   innova: 'إنوفا',
   hiace: 'هايس',
+  coaster: 'كوستر',
   accent: 'أكسنت',
   elantra: 'إلنترا',
   sonata: 'سوناتا',
@@ -128,10 +136,12 @@ const ARABIC_MODELS: Record<string, string> = {
   cerato: 'سيراتو',
   optima: 'أوبتيما',
   sportage: 'سبورتاج',
+  sorento: 'سورينتو',
   patrol: 'باترول',
   sunny: 'صني',
   altima: 'ألتيما',
   maxima: 'مكسيما',
+  pathfinder: 'باثفايندر',
   civic: 'سيفيك',
   accord: 'أكورد',
   crv: 'سي آر في',
@@ -139,12 +149,16 @@ const ARABIC_MODELS: Record<string, string> = {
   cruze: 'كروز',
   tahoe: 'تاهو',
   yukon: 'يوكن',
+  suburban: 'سوبربان',
   sierra: 'سييرا',
   silverado: 'سلفرادو',
   f150: 'إف 150',
   'f-150': 'إف 150',
   dmax: 'ديماكس',
   'd-max': 'ديماكس',
+  pajero: 'باجيرو',
+  lancer: 'لانسر',
+  canter: 'كانتر',
 };
 
 const ARABIC_MAKES: Record<string, string> = {
@@ -161,6 +175,19 @@ const ARABIC_MAKES: Record<string, string> = {
   mitsubishi: 'ميتسوبيشي',
   suzuki: 'سوزوكي',
   lexus: 'لكزس',
+};
+
+const ARABIC_MARKETS: Record<string, string> = {
+  japan: 'ياباني',
+  'japan domestic': 'وارد ياباني',
+  usa: 'وارد أمريكي',
+  us: 'وارد أمريكي',
+  gcc: 'خليجي',
+  gulf: 'خليجي',
+  korea: 'وارد كوري',
+  europe: 'وارد أوروبي',
+  canada: 'وارد كندي',
+  australia: 'وارد أسترالي',
 };
 
 /**
@@ -238,11 +265,12 @@ export function formatVehicleYears(vehicle?: VehicleInfo | null): string {
 export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
   if (!vehicle) return '';
   if (vehicle.displacement) {
-    const d = parseFloat(vehicle.displacement);
+    const cleanDisplacement = vehicle.displacement.replace(/L$/i, '').trim();
+    const d = parseFloat(cleanDisplacement);
     if (!isNaN(d)) return `مكينة ${d}`;
   }
   if (vehicle.engine) {
-    const e = vehicle.engine.trim();
+    const e = vehicle.engine.replace(/L$/i, '').trim();
     if (/^\d+(\.\d+)?$/.test(e)) {
       return `مكينة ${e}`;
     }
@@ -252,8 +280,64 @@ export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
 }
 
 /**
+ * Normalizes market/region to standard Arabic label.
+ */
+export function formatMarketLabel(rawMarket?: string | null): string {
+  if (!rawMarket) return '';
+  const lower = rawMarket.toLowerCase().trim();
+  return ARABIC_MARKETS[lower] || rawMarket.trim();
+}
+
+/**
+ * Builds the default smart Arabic vehicle suffix (e.g., "فيتز 2005 مكينة 1.3").
+ */
+export function buildDefaultVehicleArabicSuffix(vehicle?: VehicleInfo | null): string {
+  if (!vehicle) return '';
+  const { modelAr } = getArabicVehicleName(vehicle);
+  const years = formatVehicleYears(vehicle);
+  const engine = formatEngineSpec(vehicle);
+
+  // Market label (e.g. خليجي, وارد أمريكي, ياباني)
+  const market = formatMarketLabel(vehicle.market || vehicle.region);
+
+  // Transmission (تماتيك / عادي)
+  let trans = '';
+  if (vehicle.transmission) {
+    trans = transLabel(vehicle.transmission);
+    if (trans === 'أوتوماتيك') trans = 'تماتيك';
+  }
+
+  // Drive (دبل)
+  let drive = '';
+  if (vehicle.driveType) {
+    const d = driveLabel(vehicle.driveType);
+    if (d === 'دبل') drive = 'دبل';
+  }
+
+  // Submodel / Trim
+  let submodel = '';
+  if (vehicle.submodel && vehicle.submodel.length <= 15) {
+    const s = vehicle.submodel.trim();
+    if (!modelAr.toLowerCase().includes(s.toLowerCase())) {
+      submodel = s;
+    }
+  }
+
+  const parts: string[] = [];
+  if (modelAr) parts.push(modelAr);
+  if (submodel) parts.push(submodel);
+  if (years) parts.push(years);
+  if (market && market !== 'ياباني') parts.push(market); // Only add market if not implicit
+  if (trans) parts.push(trans);
+  if (drive) parts.push(drive);
+  if (engine) parts.push(engine);
+
+  return parts.filter(Boolean).join(' ');
+}
+
+/**
  * Generates the full, consistent Arabic product name combining part name and car specs.
- * Example output: "بلاكات كرولا 2001-2007 خليجي تماتيك مكينة 1.8"
+ * Example output: "بلاكات فيتز 2005 مكينة 1.3" or "بلاكات كورولا 2001-2007 خليجي تماتيك مكينة 1.8"
  */
 export function generateSmartPartName(
   partQuery: string,
@@ -263,36 +347,38 @@ export function generateSmartPartName(
     includeEngine?: boolean;
     includeTrans?: boolean;
     includeMarket?: boolean;
+    customVehicleTemplate?: string;
   }
 ): string {
+  const partName = findArabicPartTerm(partQuery) || partQuery.trim() || 'قطعة غيار';
+
+  // If user provided an explicit custom vehicle template (e.g., "فيتز 2005 مكينة 1.3"), use it directly!
+  if (options?.customVehicleTemplate?.trim()) {
+    return `${partName} ${options.customVehicleTemplate.trim()}`;
+  }
+
+  if (!vehicle) return partName;
+
   const opts = {
-    includeMake: false, // Usually model is enough like "كرولا", but if make differs it's optional
+    includeMake: false,
     includeEngine: true,
     includeTrans: true,
     includeMarket: true,
     ...options,
   };
 
-  const partName = findArabicPartTerm(partQuery) || partQuery.trim() || 'قطعة غيار';
-  if (!vehicle) return partName;
-
   const { makeAr, modelAr } = getArabicVehicleName(vehicle);
   const years = formatVehicleYears(vehicle);
   const engine = opts.includeEngine ? formatEngineSpec(vehicle) : '';
   
   // Market label (e.g. خليجي, وارد أمريكي, ياباني)
-  let market = '';
-  if (opts.includeMarket && vehicle.market) {
-    market = vehicle.market;
-  } else if (opts.includeMarket && vehicle.region) {
-    market = vehicle.region;
-  }
+  const market = opts.includeMarket ? formatMarketLabel(vehicle.market || vehicle.region) : '';
 
   // Transmission (تماتيك / عادي)
   let trans = '';
   if (opts.includeTrans && vehicle.transmission) {
     trans = transLabel(vehicle.transmission);
-    if (trans === 'أوتوماتيك') trans = 'تماتيك'; // popular Gulf phrasing
+    if (trans === 'أوتوماتيك') trans = 'تماتيك';
   }
 
   // Drive (دبل / سنجل)
@@ -302,7 +388,7 @@ export function generateSmartPartName(
     if (d === 'دبل') drive = 'دبل';
   }
 
-  // Submodel / Trim (e.g. LE, XLE, SR5, Limited, Denali)
+  // Submodel / Trim
   let submodel = '';
   if (vehicle.submodel && vehicle.submodel.length <= 15) {
     const s = vehicle.submodel.trim();
@@ -311,7 +397,6 @@ export function generateSmartPartName(
     }
   }
 
-  // Assemble components
   const parts: string[] = [partName];
 
   if (opts.includeMake && makeAr && !modelAr.includes(makeAr)) {

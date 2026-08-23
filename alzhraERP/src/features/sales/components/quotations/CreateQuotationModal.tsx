@@ -9,12 +9,16 @@ import { useQuotationForm } from '../../hooks/useQuotationForm';
 import QuotationItemsTable from './QuotationItemsTable';
 import QuotationTotals from './QuotationTotals';
 
+import type { ItemRow } from '../../hooks/useQuotationForm';
+
 interface Props {
   onClose: () => void;
   onSuccess: () => void;
+  initialItems?: ItemRow[];
+  initialNotes?: string;
 }
 
-const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
+const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess, initialItems, initialNotes }) => {
   const { user } = useAuthStore();
   
   const {
@@ -46,7 +50,10 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess }) => {
     handleOpenProductSearch,
     handleProductSelect,
     handleSave
-  } = useQuotationForm(user?.company_id, user?.id, onSuccess);
+  } = useQuotationForm(user?.company_id, user?.id, onSuccess, {
+    items: initialItems,
+    notes: initialNotes,
+  });
 
   const { data: filteredCustomers, isLoading: customersLoading } = useParties('customer', partyQuery);
 
