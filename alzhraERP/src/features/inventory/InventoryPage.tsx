@@ -339,7 +339,7 @@ const InventoryPage: React.FC = () => {
               if (selectedProduct && editingProduct && selectedProduct.id === editingProduct.id) {
                 setSelectedProduct(prev =>
                   prev
-                    ? {
+                    ? ({
                         ...prev,
                         ...data,
                         name_ar: data.name,
@@ -349,7 +349,7 @@ const InventoryPage: React.FC = () => {
                         selling_price: Number(data.selling_price) || 0,
                         purchase_price: Number(data.cost_price) || 0,
                         min_stock_level: Number(data.min_stock_level) || 0,
-                      }
+                      } as Product)
                     : null
                 );
               }

@@ -304,14 +304,14 @@ export const productService = {
 
     try {
       const payload: TableUpdate<'products'> = {
-        name_ar: data.name || data.name_ar,
+        name_ar: data.name || data.name_ar || 'صنف',
         sale_price: Number(data.selling_price) || 0,
         purchase_price: Number(data.cost_price) || 0,
         min_stock_level: Number(data.min_stock_level) || 0,
         unit: data.unit || 'piece',
       };
 
-      if (data.sku !== undefined) payload.sku = data.sku || null;
+      if (data.sku) payload.sku = data.sku;
       if (data.part_number !== undefined) payload.part_number = data.part_number || null;
       if (data.brand !== undefined) payload.brand = data.brand || null;
       if (data.specifications !== undefined) payload.description = data.specifications || null;
