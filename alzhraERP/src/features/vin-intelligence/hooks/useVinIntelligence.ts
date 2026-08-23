@@ -79,6 +79,29 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     [showToast]
   );
 
+  const saveManualVehicle = useCallback(
+    async (manualVehicle: VehicleInfo, vinNumber?: string) => {
+      if (!companyId || !userId) {
+        showToast('الرجاء تسجيل الدخول أولاً', 'error');
+        return null;
+      }
+      try {
+        const manualRes = await setManualVehicle(manualVehicle, vinNumber);
+        if (manualRes) {
+          await vinService.saveAnalysis(companyId, userId, manualRes);
+          queryClient.invalidateQueries({ queryKey: ['vin', 'history'] });
+          showToast('تم حفظ وإضافة المركبة بنجاح ✨', 'success');
+          return manualRes;
+        }
+        return null;
+      } catch (err) {
+        showToast('فشل حفظ المركبة', 'error', err);
+        throw err;
+      }
+    },
+    [companyId, userId, setManualVehicle, queryClient, showToast]
+  );
+
   const matchingQuery = useQuery({
     queryKey: ['vin', 'matching', companyId, vehicle?.make, vehicle?.model, vehicle?.year ?? vehicle?.yearStart],
     queryFn: () =>
@@ -169,6 +192,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     decodeError,
     decodeVin,
     setManualVehicle,
+    saveManualVehicle,
     reset,
     matchingProducts: matchingQuery.data ?? [],
     isMatching: matchingQuery.isLoading,
