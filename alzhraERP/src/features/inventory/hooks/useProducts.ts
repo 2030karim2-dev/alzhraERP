@@ -211,7 +211,7 @@ export const useProductMutations = () => {
   return {
     // Fix: Changed to `mutateAsync` to allow chaining callbacks for component-specific logic like closing a modal.
     saveProduct: saveProduct.mutateAsync,
-    deleteProduct: deleteProduct.mutate,
+    deleteProduct: deleteProduct.mutateAsync,
     bulkDeleteProducts: bulkDeleteProducts.mutateAsync,
     isSaving: saveProduct.isPending,
     isDeleting: deleteProduct.isPending || bulkDeleteProducts.isPending,

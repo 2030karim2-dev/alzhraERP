@@ -85,6 +85,13 @@ const InventoryPage: React.FC = () => {
   const { saveProduct, isSaving, deleteProduct } = useProductMutations();
   const { handleSmartImportConfirm: runSmartImport } = useProductImport(products);
 
+  const handleDeleteProduct = async (id: string) => {
+    await deleteProduct(id);
+    if (selectedProduct && selectedProduct.id === id) {
+      setSelectedProduct(null);
+    }
+  };
+
   const tabs = useMemo(() => getInventoryTabs(t), [t]);
 
   const handleSmartImportConfirm = async (data: { items: unknown[]; currency?: string }) => {
@@ -237,7 +244,7 @@ const InventoryPage: React.FC = () => {
                     <ProductDetailPane
                       product={selectedProduct}
                       onEdit={handleEdit}
-                      onDelete={deleteProduct}
+                      onDelete={handleDeleteProduct}
                     />
                   </div>
                 </div>
@@ -255,7 +262,7 @@ const InventoryPage: React.FC = () => {
                     setActiveView={setActiveView}
                     setSelectedProduct={setSelectedProduct}
                     handleEdit={handleEdit}
-                    deleteProduct={deleteProduct}
+                    deleteProduct={handleDeleteProduct}
                     handleSmartImportConfirm={handleSmartImportConfirm}
                     onMaximizeProduct={() => setIsDetailsMaximized(true)}
                   />
@@ -296,7 +303,7 @@ const InventoryPage: React.FC = () => {
                       setActiveView={setActiveView}
                       setSelectedProduct={setSelectedProduct}
                       handleEdit={handleEdit}
-                      deleteProduct={deleteProduct}
+                      deleteProduct={handleDeleteProduct}
                       handleSmartImportConfirm={handleSmartImportConfirm}
                       onMaximizeProduct={() => setIsDetailsMaximized(true)}
                     />
