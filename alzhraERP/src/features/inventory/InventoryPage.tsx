@@ -4,6 +4,7 @@ import { useProductsPaginated } from './hooks/useProductsPaginated';
 import { useProductMutations } from './hooks/useProducts';
 import { useInventoryView } from './hooks/useInventoryView';
 import { useProductImport } from './hooks/useProductImport';
+import type { Product } from './types';
 import ProductDetailModal from './components/ProductDetailModal';
 import ProductDetailPane from './components/ProductDetailPane';
 import AddProductModal from './components/AddProductModal';
