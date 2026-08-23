@@ -15,49 +15,67 @@ export interface LandingFeature {
 export const LANDING_FEATURES: LandingFeature[] = [
   {
     icon: Package,
-    title: 'إدارة مخزون ذكية',
-    desc: 'تتبع كل برغي في مخزنك، مع تنبيهات تلقائية بالأصناف التي أوشكت على النفاد وتقارير بالنقص.',
+    title: 'إدارة مخزون دقيقة',
+    desc: 'تتبع الأصناف ومواقعها مع تنبيهات تلقائية بالأصناف التي أوشكت على النفاد وتقارير النقص.',
     color: 'blue',
   },
   {
     icon: FileText,
-    title: 'نظام فواتير متطور',
-    desc: 'أصدر فواتير ضريبية، فواتير عرض، وفواتير مرتجعات في ثوانٍ معدودة مع دعم كامل للباركود.',
-    color: 'emerald',
+    title: 'نظام فواتير متكامل',
+    desc: 'أصدر فواتير ضريبية، عروض أسعار، وفواتير مرتجعات بسرعة مع دعم كامل لقارئ الباركود.',
+    color: 'blue',
   },
   {
     icon: Users,
     title: 'إدارة العملاء والموردين',
-    desc: 'قاعدة بيانات شاملة لعملائك مع تتبع الحسابات الآجلة والمدفوعات والديون بدقة متناهية.',
-    color: 'orange',
+    desc: 'قاعدة بيانات شاملة مع تتبع الحسابات الآجلة والمدفوعات ومطابقة الأرصدة بدقة.',
+    color: 'blue',
   },
   {
     icon: BarChart3,
     title: 'تقارير وشاشات تحليلية',
-    desc: 'شاهد نمو مبيعاتك وأرباحك اليومية والشهرية من خلال لوحات بيانات تفاعلية ورسوم بيانية.',
-    color: 'purple',
+    desc: 'متابعة المبيعات والأرباح اليومية والشهرية من خلال لوحات بيانات تفاعلية ومؤشرات أداء.',
+    color: 'blue',
   },
   {
     icon: Shield,
-    title: 'أمان عالي ونسخ احتياطي',
-    desc: 'بياناتك محفوظة في سحابة مشفرة مع نسخ احتياطي يومي يضمن عدم فقدان أي معلومة أبداً.',
-    color: 'indigo',
+    title: 'أمان ونسخ احتياطي',
+    desc: 'بيانات مشفرة ومحمية مع نسخ احتياطي منتظم لضمان استمرارية أعمالك بلا انقطاع.',
+    color: 'blue',
   },
   {
     icon: Zap,
-    title: 'ذكاء اصطناعي مدمج',
-    desc: 'مساعد ذكي يحلل بياناتك ويسرع عمليات الإدخال ويقترح عليك الكميات المناسبة للشراء.',
-    color: 'amber',
+    title: 'مساعد ذكي للعمليات',
+    desc: 'أدوات ذكية لتسريع إدخال البيانات واقتراح كميات الشراء المثالية بناءً على حركة البيع.',
+    color: 'blue',
   },
 ];
 
 export const FEATURE_COLORS = new Map<string, string>([
-  ['blue', 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 shadow-blue-200/50'],
-  ['emerald', 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 shadow-emerald-200/50'],
-  ['orange', 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 shadow-orange-200/50'],
-  ['purple', 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 shadow-purple-200/50'],
-  ['indigo', 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 shadow-indigo-200/50'],
-  ['amber', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 shadow-amber-200/50'],
+  [
+    'blue',
+    'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40',
+  ],
+  [
+    'emerald',
+    'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40',
+  ],
+  [
+    'orange',
+    'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-900/40',
+  ],
+  [
+    'purple',
+    'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/40',
+  ],
+  [
+    'indigo',
+    'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40',
+  ],
+  [
+    'amber',
+    'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40',
+  ],
 ]);
 
 // ── How It Works ──

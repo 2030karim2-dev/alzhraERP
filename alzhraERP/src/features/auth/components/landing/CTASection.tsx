@@ -11,68 +11,59 @@ interface CTASectionProps {
   onTabChange: (tab: 'login' | 'register') => void;
 }
 
-/* eslint-disable max-lines-per-function -- قسم CTA يضم المحتوى التسويقي ونموذجي الدخول والتسجيل */
+/* eslint-disable max-lines-per-function -- قسم CTA ونماذج تسجيل الدخول والتسجيل */
 const CTASection: React.FC<CTASectionProps> = ({ sectionRef, authTab, onTabChange }) => {
   const { dir } = useTranslation();
 
   return (
-    <section ref={sectionRef} className="relative z-10 overflow-hidden bg-slate-950 px-4 py-32">
-      {/* Background blobs for CTA */}
-      <div className="absolute right-0 top-0 h-[600px] w-[600px] bg-blue-600/20 blur-[150px]" />
-      <div className="absolute bottom-0 left-0 h-[600px] w-[600px] bg-emerald-600/10 blur-[150px]" />
-
+    <section
+      ref={sectionRef}
+      className="relative z-10 overflow-hidden bg-slate-950 px-4 py-12 sm:py-16"
+    >
       <div className="mx-auto max-w-[1440px]">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
+        <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
           {/* CTA Content */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="text-center lg:text-right"
           >
             <motion.span
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-4 inline-block rounded-full bg-blue-600 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white sm:mb-8 sm:text-xs"
+              transition={{ delay: 0.1 }}
+              className="mb-3 inline-block rounded-md bg-blue-600/90 px-2.5 py-1 text-xs font-bold text-white sm:mb-4"
             >
-              انضم إلى المستقبل
+              ابدأ الآن بسهولة
             </motion.span>
-            <h2 className="mb-4 text-3xl font-black uppercase leading-tight tracking-tighter text-white sm:mb-8 sm:text-7xl sm:leading-[1.1]">
-              هل أنت مستعد <br />
-              لتطوير <span className="text-blue-400">تجارتك؟</span>
+            <h2 className="mb-3 text-2xl font-black leading-tight text-white sm:mb-4 sm:text-3xl lg:text-4xl">
+              جاهز لتنظيم وإدارة <br />
+              <span className="text-blue-400">مبيعاتك ومخزونك؟</span>
             </h2>
-            <p className="mb-6 text-xs font-black uppercase leading-tight tracking-tighter text-slate-400 opacity-80 sm:mb-12 sm:text-xl sm:leading-relaxed">
-              انضم إلى مئات أصحاب مراكز قطع الغيار الذين يثقون في "نظام الزهراء" لإدارة أعمالهم
-              اليومية بكفاءة واحترافية لا مثيل لها.
+            <p className="mb-5 text-xs font-normal leading-relaxed text-slate-300 sm:mb-6 sm:text-sm">
+              انضم إلى مئات أصحاب مراكز ومحلات قطع الغيار الذين يعتمدون على نظام الزهراء لتشغيل
+              أعمالهم اليومية بدقة وسرعة.
             </p>
 
-            <div className="flex flex-row items-center justify-center gap-2 sm:gap-6 lg:justify-start">
-              <div className="flex items-center gap-2 rounded-none border border-slate-700/50 bg-slate-800/50 p-2 backdrop-blur sm:p-4">
-                <div className="flex h-6 w-6 items-center justify-center rounded-none bg-blue-500/20 text-blue-400 sm:h-10 sm:w-10">
-                  <Shield size={14} className="sm:h-5 sm:w-5" />
+            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 lg:justify-start">
+              <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/80 p-2.5 sm:p-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600/20 text-blue-400">
+                  <Shield size={16} />
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-black uppercase leading-none tracking-tighter text-white sm:text-sm">
-                    آمن تماماً
-                  </div>
-                  <div className="mt-0.5 text-[10px] font-black uppercase tracking-tighter text-slate-500 sm:text-xs">
-                    تشفير عسكري
-                  </div>
+                  <div className="text-xs font-bold text-white sm:text-sm">آمن وموثوق</div>
+                  <div className="text-[10px] text-slate-400">تشفير وحماية للبيانات</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 rounded-none border border-slate-700/50 bg-slate-800/50 p-2 backdrop-blur sm:p-4">
-                <div className="flex h-6 w-6 items-center justify-center rounded-none bg-emerald-500/20 text-emerald-400 sm:h-10 sm:w-10">
-                  <Zap size={14} className="sm:h-5 sm:w-5" />
+              <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/80 p-2.5 sm:p-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600/20 text-emerald-400">
+                  <Zap size={16} />
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-black uppercase leading-none tracking-tighter text-white sm:text-sm">
-                    سريع جداً
-                  </div>
-                  <div className="mt-0.5 text-[10px] font-black uppercase tracking-tighter text-slate-500 sm:text-xs">
-                    أداء فائق
-                  </div>
+                  <div className="text-xs font-bold text-white sm:text-sm">سريع وسهل</div>
+                  <div className="text-[10px] text-slate-400">استجابة فورية</div>
                 </div>
               </div>
             </div>
@@ -80,14 +71,14 @@ const CTASection: React.FC<CTASectionProps> = ({ sectionRef, authTab, onTabChang
 
           {/* Auth Form Container */}
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mx-auto w-full max-w-md"
           >
-            <div className="relative z-10 overflow-hidden rounded-2xl border border-white bg-white shadow-2xl shadow-blue-900/20 dark:border-slate-700 dark:bg-slate-900">
+            <div className="relative z-10 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
               {/* Tab Header */}
-              <div className="relative flex border-b border-gray-100 dark:border-slate-800">
+              <div className="relative flex border-b border-slate-100 dark:border-slate-800">
                 {(['login', 'register'] as const).map(tab => (
                   <button
                     key={tab}
@@ -95,10 +86,10 @@ const CTASection: React.FC<CTASectionProps> = ({ sectionRef, authTab, onTabChang
                       onTabChange(tab);
                     }}
                     aria-pressed={authTab === tab}
-                    className={`relative z-10 flex-1 rounded-none py-3 text-xs font-black uppercase tracking-widest transition-colors sm:py-5 sm:text-sm ${
+                    className={`relative z-10 flex-1 py-2.5 text-xs font-bold transition-colors sm:py-3 sm:text-sm ${
                       authTab === tab
                         ? 'bg-blue-50/70 text-blue-600 dark:bg-slate-800/70 dark:text-blue-400'
-                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-300'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
                     {tab === 'login' ? 'دخول' : 'تسجيل'}
@@ -106,7 +97,7 @@ const CTASection: React.FC<CTASectionProps> = ({ sectionRef, authTab, onTabChang
                 ))}
                 <motion.div
                   layoutId="auth-pill"
-                  className="absolute bottom-0 h-0.5 rounded-full bg-blue-500"
+                  className="absolute bottom-0 h-0.5 bg-blue-600"
                   style={{ width: '50%' }}
                   animate={{
                     [dir === 'rtl' ? 'right' : 'left']: authTab === 'login' ? '0%' : '50%',
@@ -114,25 +105,25 @@ const CTASection: React.FC<CTASectionProps> = ({ sectionRef, authTab, onTabChang
                 />
               </div>
 
-              <div className="min-h-[450px] p-8 sm:p-10">
+              <div className="p-5 sm:p-6">
                 <AnimatePresence mode="wait">
                   {authTab === 'login' ? (
                     <motion.div
                       key="login"
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.3 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <LoginForm />
                     </motion.div>
                   ) : (
                     <motion.div
                       key="register"
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <RegisterForm
                         onSuccess={() => {

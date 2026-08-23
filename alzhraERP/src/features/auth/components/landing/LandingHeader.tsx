@@ -11,7 +11,7 @@ interface LandingHeaderProps {
   scrollToPricing: () => void;
 }
 
-/* eslint-disable max-lines-per-function -- الهيدر يضم التنقل والقائمة المتنقلة وأزرار الثيم */
+/* eslint-disable max-lines-per-function -- هيدر وقائمة تنقل صفحة الهبوط */
 const LandingHeader: React.FC<LandingHeaderProps> = ({
   scrollToAuth,
   scrollToRegister,
@@ -31,38 +31,34 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
 
   return (
     <motion.nav
-      initial={{ y: -100, opacity: 0 }}
+      initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: 'circOut' }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
       className="fixed left-0 right-0 top-0 z-50 transition-all duration-300"
     >
-      <div className="mx-auto max-w-[1440px] px-4 py-6">
+      <div className="mx-auto max-w-[1440px] px-3 py-2 sm:px-4 sm:py-3">
         <div
-          className="landing-glass flex h-20 items-center justify-between rounded-[2rem] bg-white/70 px-6 shadow-2xl shadow-blue-500/5 backdrop-blur-2xl dark:bg-slate-900/70"
+          className="landing-glass flex h-14 items-center justify-between rounded-xl bg-white/80 px-4 shadow-sm backdrop-blur-md dark:bg-slate-900/80 sm:h-16 sm:px-6"
           style={{ borderColor: 'var(--app-border)' }}
         >
-          <div className="group flex cursor-pointer items-center gap-4">
-            <motion.div
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.5 }}
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-400 shadow-lg shadow-blue-500/30"
-            >
-              <Car className="text-white" size={26} />
-            </motion.div>
-            <div className="hidden sm:block">
+          <div className="group flex cursor-pointer items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white sm:h-10 sm:w-10">
+              <Car size={20} />
+            </div>
+            <div>
               <span
-                className="block text-lg font-black leading-none tracking-tight"
+                className="block text-sm font-black leading-none tracking-tight sm:text-base"
                 style={{ color: 'var(--app-text)' }}
               >
                 نظام الزهراء
               </span>
-              <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 dark:text-blue-400">
+              <span className="mt-0.5 block text-[9px] font-bold text-blue-600 dark:text-blue-400 sm:text-[10px]">
                 Auto Parts ERP
               </span>
             </div>
           </div>
 
-          <div className="hidden items-center gap-10 text-sm font-black text-gray-500 dark:text-slate-400 md:flex">
+          <div className="hidden items-center gap-8 text-xs font-bold text-slate-600 dark:text-slate-300 sm:text-sm md:flex">
             {navItems.map(item => (
               <button
                 type="button"
@@ -76,26 +72,24 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={toggleTheme}
               aria-label={theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-transparent bg-gray-100/50 text-gray-500 shadow-sm transition-all hover:border-gray-200 hover:bg-white dark:bg-slate-800/50 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-700 sm:h-11 sm:w-11"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-100/60 text-slate-600 transition-colors hover:bg-slate-200/60 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700 sm:h-10 sm:w-10"
             >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            <motion.button
+            <button
               type="button"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={scrollToRegister}
               aria-label="سجل الآن"
-              className="hidden h-10 items-center rounded-2xl border border-blue-400/20 bg-blue-600 px-6 text-sm font-black text-white shadow-xl shadow-blue-500/30 transition-all hover:bg-blue-700 sm:flex sm:h-11 sm:px-8"
+              className="hidden h-9 items-center rounded-lg bg-blue-600 px-4 text-xs font-bold text-white transition-colors hover:bg-blue-700 sm:flex sm:h-10 sm:px-5 sm:text-sm"
             >
               سجل الآن
-            </motion.button>
+            </button>
 
             {/* Mobile Menu Toggle */}
             <button
@@ -104,9 +98,9 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
                 setMobileMenuOpen(!mobileMenuOpen);
               }}
               aria-label={mobileMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100/50 text-gray-500 shadow-sm transition-all hover:bg-white dark:bg-slate-800/50 dark:text-slate-400 dark:hover:bg-slate-700 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-100/60 text-slate-600 transition-colors hover:bg-slate-200/60 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 md:hidden"
             >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
@@ -119,9 +113,9 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mx-4 mt-2 overflow-hidden rounded-3xl border-b border-gray-100 bg-white/90 shadow-2xl backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/90 md:hidden"
+            className="mx-3 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/95 md:hidden"
           >
-            <div className="flex flex-col gap-6 p-6 font-black text-gray-600 dark:text-slate-400">
+            <div className="flex flex-col gap-3 text-xs font-bold text-slate-700 dark:text-slate-300 sm:text-sm">
               {navItems.map(item => (
                 <button
                   type="button"
@@ -130,7 +124,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
                     setMobileMenuOpen(false);
                     item.action();
                   }}
-                  className="text-right transition-colors hover:text-blue-600"
+                  className="rounded-lg p-2 text-right transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800"
                 >
                   {item.label}
                 </button>
@@ -141,7 +135,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
                   setMobileMenuOpen(false);
                   scrollToRegister();
                 }}
-                className="w-full rounded-2xl bg-blue-600 py-4 text-white shadow-lg shadow-blue-500/20"
+                className="mt-2 w-full rounded-lg bg-blue-600 py-2.5 text-xs font-bold text-white transition-colors hover:bg-blue-700"
               >
                 ابدأ الآن مجاناً
               </button>

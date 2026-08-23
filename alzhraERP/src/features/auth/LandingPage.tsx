@@ -92,7 +92,7 @@ const LandingPage: React.FC = () => {
       <HeroSection scrollToRegister={scrollToRegister} scrollToFeatures={scrollToFeatures} />
 
       {/* Scroll Indicator */}
-      <div className="relative z-20 -mt-12 mb-6 flex justify-center">
+      <div className="relative z-20 -mt-4 mb-4 flex justify-center">
         <ScrollIndicator onClick={scrollToFeatures} />
       </div>
 

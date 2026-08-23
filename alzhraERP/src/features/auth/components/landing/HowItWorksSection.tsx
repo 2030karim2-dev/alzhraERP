@@ -8,12 +8,12 @@ interface HowItWorksSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
 }
 
-// eslint-disable-next-line max-lines-per-function -- قسم خطوات البداية
+/* eslint-disable max-lines-per-function -- قسم خطوات البدء بصفحة الهبوط */
 const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ sectionRef }) => {
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 overflow-hidden px-4 py-32"
+      className="relative z-10 overflow-hidden px-4 py-12 sm:py-16"
       style={{ backgroundColor: 'var(--app-surface)' }}
     >
       <div className="mx-auto max-w-[1440px]">
@@ -21,41 +21,38 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ sectionRef }) => 
           badge="خطوات بسيطة"
           title="ابدأ العمل خلال دقائق معدودة"
           highlightedWord="دقائق"
-          description="لقد صممنا النظام ليكون سهلاً للغاية، لا يحتاج لتدريب طويل، فقط اتبع هذه الخطوات."
+          description="واجهة سهلة الاستخدام لا تحتاج لتدريب طويل، فقط اتبع هذه الخطوات الثلاث."
           accent="emerald"
         />
 
         <div className="relative">
-          {/* Connection Line */}
-          <div className="absolute left-1/2 top-[120px] hidden h-0.5 w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200 to-transparent dark:via-blue-800 lg:block" />
-
-          <div className="relative z-10 grid gap-12 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             {LANDING_STEPS.map((item, i) => (
               <motion.div
                 key={item.step}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.2 }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="group relative"
               >
                 <div
-                  className="landing-feature-card rounded-[2.5rem] border bg-[var(--app-bg)] p-10 text-center shadow-xl shadow-gray-200/20 transition-all hover:shadow-2xl hover:shadow-blue-500/10 dark:shadow-black/20"
+                  className="rounded-xl border bg-[var(--app-bg)] p-5 text-center shadow-sm transition-all hover:shadow-md sm:p-6"
                   style={{ borderColor: 'var(--app-border)' }}
                 >
-                  <div className="mx-auto mb-10 h-24 w-24 rounded-3xl bg-blue-50 p-4 shadow-inner transition-transform duration-500 group-hover:rotate-3 group-hover:scale-110 dark:bg-blue-900/20">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-blue-50 p-2 dark:bg-blue-950/40 sm:h-20 sm:w-20">
                     <StepIllustration step={item.step} />
                   </div>
-                  <div className="mb-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-500/40">
+                  <div className="mb-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm sm:h-8 sm:w-8">
                     {item.step}
                   </div>
                   <h3
-                    className="mb-4 text-2xl font-black tracking-tighter"
+                    className="mb-2 text-sm font-bold sm:text-base"
                     style={{ color: 'var(--app-text)' }}
                   >
                     {item.title}
                   </h3>
-                  <p className="font-medium leading-relaxed text-[var(--app-text-secondary)]">
+                  <p className="text-xs font-normal leading-relaxed text-[var(--app-text-secondary)] sm:text-sm">
                     {item.desc}
                   </p>
                 </div>
