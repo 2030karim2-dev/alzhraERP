@@ -15,46 +15,56 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl shadow-xl shadow-indigo-950/20 border border-indigo-800/40">
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-400">
-          <Building2 className="w-7 h-7" />
+    <header className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      {/* Title & Badge */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center flex-shrink-0">
+          <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-black tracking-tight">
-            بوابة الموردين والتوريد الذكي (Supplier Portal)
-          </h1>
-          <p className="text-xs text-indigo-200 mt-1">
-            إدارة المنتجات، طلبات التسعير، عروض الأسعار التفاعلية، ومصفوفة المقارنة
+          <div className="flex items-center gap-2">
+            <h1 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+              بوابة الموردين وعروض الأسعار
+            </h1>
+            <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">
+              Supplier Hub
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            إدارة كتالوج الأصناف، طلبات التسعير (RFQs)، وعروض الأسعار التفاعلية
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={onOpenComparisonModal}
-          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-violet-600/30 transition-all active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 transition-colors"
         >
-          <Scale className="w-4 h-4" />
-          <span>مصفوفة المقارنة الذكية</span>
+          <Scale className="w-3.5 h-3.5 text-slate-500" />
+          <span>مصفوفة المقارنة</span>
         </button>
 
         <button
+          type="button"
           onClick={onOpenNewQuotationDrawer}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
         >
-          <Plus className="w-4 h-4" />
-          <span>إنشاء عرض سعر جديد</span>
+          <Plus className="w-3.5 h-3.5" />
+          <span>عرض سعر جديد</span>
         </button>
 
         <button
+          type="button"
           onClick={onRefresh}
-          className="p-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-colors"
+          className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
           title="تحديث البيانات"
         >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
         </button>
       </div>
-    </div>
+    </header>
   );
 };

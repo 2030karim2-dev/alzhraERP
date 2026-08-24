@@ -74,7 +74,7 @@ export const SupplierPortalPage: React.FC = () => {
       oem_number: p.oem_number,
       vendor_sku: p.vendor_sku,
       quantity: 1,
-      unit_of_measure: p.unit,
+      unit_of_measure: p.unit || 'حبة',
       unit_price: p.cost_price,
       discount_percentage: 0,
       discount_amount: 0,
@@ -83,7 +83,7 @@ export const SupplierPortalPage: React.FC = () => {
       net_unit_price: p.cost_price,
       total_price: p.cost_price,
       availability: 'in_stock',
-      lead_time_days: p.lead_time_days,
+      lead_time_days: p.lead_time_days || 3,
       warranty_days: 30,
       vendor_notes: '',
     }));
@@ -100,7 +100,7 @@ export const SupplierPortalPage: React.FC = () => {
       product_name: item.product_name,
       oem_number: item.oem_number,
       quantity: item.quantity,
-      unit_of_measure: item.unit_of_measure,
+      unit_of_measure: item.unit_of_measure || 'حبة',
       unit_price: item.target_unit_price || 0,
       discount_percentage: 0,
       discount_amount: 0,
@@ -179,8 +179,8 @@ export const SupplierPortalPage: React.FC = () => {
   const totalQuotationsValue = quotations.reduce((sum, q) => sum + q.total_amount, 0);
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-6 space-y-6 overflow-y-auto">
-      {/* Top Banner Header */}
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-4 space-y-3.5 overflow-y-auto">
+      {/* Top Header */}
       <PortalHeader
         isLoading={isLoading}
         onOpenComparisonModal={() => setIsComparisonModalOpen(true)}
@@ -192,7 +192,7 @@ export const SupplierPortalPage: React.FC = () => {
         onRefresh={() => void fetchData()}
       />
 
-      {/* KPI Stats Summary */}
+      {/* High-Density KPI Stats Summary */}
       <PortalStatsGrid
         productsCount={products.length}
         rfqsCount={rfqs.length}
@@ -202,46 +202,49 @@ export const SupplierPortalPage: React.FC = () => {
       />
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-1.5">
         <button
+          type="button"
           onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'products'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+              ? 'bg-indigo-600 text-white shadow-xs'
               : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Layers className="w-4 h-4" />
-          <span>جدول المنتجات الذكي (Pro Data Grid)</span>
+          <Layers className="w-3.5 h-3.5" />
+          <span>كتالوج المنتجات ({products.length})</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('rfqs')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'rfqs'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+              ? 'bg-indigo-600 text-white shadow-xs'
               : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Send className="w-4 h-4" />
-          <span>طلبات التسعير الموجهة (RFQs)</span>
+          <Send className="w-3.5 h-3.5" />
+          <span>طلبات التسعير ({rfqs.length})</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('quotations')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'quotations'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+              ? 'bg-indigo-600 text-white shadow-xs'
               : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>سجل عروض الأسعار والمراجعات ({quotations.length})</span>
+          <FileText className="w-3.5 h-3.5" />
+          <span>عروض الأسعار والمراجعات ({quotations.length})</span>
         </button>
       </div>
 
       {/* Tab Panels */}
-      <div className="flex-1 min-h-[500px]">
+      <div className="flex-1 min-h-[460px]">
         {activeTab === 'products' && (
           <ProductsTab
             products={products}
