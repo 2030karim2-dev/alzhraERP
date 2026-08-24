@@ -112,7 +112,7 @@ export const useChatRealtime = () => {
       });
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [companyId, userId, addIncomingMessage, updateMessageInState, fetchChannels, playIncomingBeep]);
 };

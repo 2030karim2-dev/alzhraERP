@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.chat_channels (
     reference_type TEXT,
     reference_id   UUID,
     is_private     BOOLEAN NOT NULL DEFAULT FALSE,
-    created_by     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_by     UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     archived_at    TIMESTAMPTZ
@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_channels_updated_at ON public.chat_channels(
 CREATE TABLE IF NOT EXISTS public.chat_channel_members (
     id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     channel_id           UUID NOT NULL REFERENCES public.chat_channels(id) ON DELETE CASCADE,
-    user_id              UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id              UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     role                 TEXT NOT NULL DEFAULT 'member'
                          CONSTRAINT chat_channel_members_role_check CHECK (role IN ('owner', 'admin', 'member')),
     last_read_message_id UUID,
@@ -76,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_members_channel ON public.chat_channel_membe
 CREATE TABLE IF NOT EXISTS public.chat_messages (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     channel_id        UUID NOT NULL REFERENCES public.chat_channels(id) ON DELETE CASCADE,
-    sender_id         UUID NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE SET NULL,
+    sender_id         UUID NOT NULL DEFAULT auth.uid() REFERENCES public.profiles(id) ON DELETE SET NULL,
     message_type      TEXT NOT NULL DEFAULT 'text'
                       CONSTRAINT chat_messages_type_check
                       CHECK (message_type IN ('text', 'image', 'file', 'entity_card', 'system', 'action_request')),
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS public.chat_message_attachments (
     file_name    TEXT NOT NULL,
     mime_type    TEXT NOT NULL DEFAULT 'application/octet-stream',
     file_size    BIGINT NOT NULL DEFAULT 0,
-    uploaded_by  UUID NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE SET NULL,
+    uploaded_by  UUID NOT NULL DEFAULT auth.uid() REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -124,7 +124,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_attachments_company ON public.chat_message_a
 CREATE TABLE IF NOT EXISTS public.chat_message_reactions (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     message_id UUID NOT NULL REFERENCES public.chat_messages(id) ON DELETE CASCADE,
-    user_id    UUID NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id    UUID NOT NULL DEFAULT auth.uid() REFERENCES public.profiles(id) ON DELETE CASCADE,
     emoji      TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT chat_message_reactions_unique UNIQUE (message_id, user_id, emoji)
@@ -174,8 +174,8 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Owners and Admins have universal access across the company
-    IF v_user_role.role IN ('owner', 'admin') THEN
+    -- Owners, Admins, and Company Admins have universal access across the company
+    IF v_user_role.role IN ('owner', 'admin', 'company_admin') THEN
         RETURN TRUE;
     END IF;
 
@@ -800,7 +800,30 @@ END;
 $$;
 
 -- ────────────────────────────────────────────────────────────
--- 11. GRANT PRIVILEGES TO APP ROLES
+-- 11. AUTOMATIC CHANNEL TIMESTAMP BUMP TRIGGER
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.fn_bump_chat_channel_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+    UPDATE public.chat_channels
+    SET updated_at = NOW()
+    WHERE id = NEW.channel_id;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_chat_message_channel_bump ON public.chat_messages;
+CREATE TRIGGER trg_chat_message_channel_bump
+AFTER INSERT ON public.chat_messages
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_bump_chat_channel_updated_at();
+
+-- ────────────────────────────────────────────────────────────
+-- 12. GRANT PRIVILEGES TO APP ROLES
 -- ────────────────────────────────────────────────────────────
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_channels TO authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_channel_members TO authenticated, service_role;
@@ -809,6 +832,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_message_attachments TO authe
 GRANT SELECT, INSERT, DELETE ON public.chat_message_reactions TO authenticated, service_role;
 
 GRANT EXECUTE ON FUNCTION public.fn_can_access_chat_channel(UUID, UUID) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.fn_bump_chat_channel_updated_at() TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.rpc_send_chat_message(UUID, TEXT, TEXT, JSONB, UUID, TEXT) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.rpc_get_or_create_direct_channel(UUID, UUID) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.rpc_get_or_create_contextual_channel(UUID, TEXT, UUID, TEXT) TO authenticated, service_role;

@@ -48,7 +48,7 @@ interface ChatState {
   // Data Actions
   fetchChannels: (companyId: string, userId: string) => Promise<void>;
   fetchMessages: (channelId: string, loadMore?: boolean) => Promise<void>;
-  sendMessage: (payload: SendMessagePayload, currentUserId: string, currentUserName?: string) => Promise<void>;
+  sendMessage: (payload: SendMessagePayload, currentUserId: string, currentUserName?: string, file?: File | null, companyId?: string) => Promise<void>;
   addIncomingMessage: (message: ChatMessage, currentUserId: string) => void;
   updateMessageInState: (messageId: string, updates: Partial<ChatMessage>) => void;
   markChannelAsRead: (channelId: string) => Promise<void>;
@@ -150,7 +150,7 @@ export const useChatStore = create<ChatState>()(
         }
       },
 
-      sendMessage: async (payload, currentUserId, currentUserName) => {
+      sendMessage: async (payload, currentUserId, currentUserName, file, companyId) => {
         const tempId = `temp_${Date.now()}`;
         const optimisticMessage: ChatMessage = {
           id: tempId,
@@ -163,6 +163,21 @@ export const useChatStore = create<ChatState>()(
           created_at: new Date().toISOString(),
           sender_name: currentUserName || 'أنت',
           is_optimistic: true,
+          attachments: file
+            ? [
+                {
+                  id: `temp_att_${Date.now()}`,
+                  message_id: tempId,
+                  company_id: companyId || '',
+                  storage_path: '',
+                  file_name: file.name,
+                  mime_type: file.type,
+                  file_size: file.size,
+                  uploaded_by: currentUserId,
+                  created_at: new Date().toISOString(),
+                },
+              ]
+            : [],
         };
 
         // 1. Optimistic Update
@@ -182,10 +197,26 @@ export const useChatStore = create<ChatState>()(
           // 2. Network Send
           const confirmed = await chatService.sendMessage(payload);
           if (confirmed) {
+            let uploadedAttachment = null;
+            if (file && companyId) {
+              try {
+                uploadedAttachment = await chatService.uploadAttachment(companyId, confirmed.id, file);
+              } catch (uploadErr) {
+                logger.error('ChatStore', 'Attachment upload failed', uploadErr as Error);
+              }
+            }
+
             set((state) => {
               const currentList = state.messagesByChannel[payload.channel_id] || [];
               const updatedList: ChatMessage[] = currentList.map((m) =>
-                m.id === tempId ? { ...confirmed, is_optimistic: false, sender_name: currentUserName || 'أنت' } : m
+                m.id === tempId
+                  ? {
+                      ...confirmed,
+                      is_optimistic: false,
+                      sender_name: currentUserName || 'أنت',
+                      attachments: uploadedAttachment ? [uploadedAttachment] : (confirmed.attachments || []),
+                    }
+                  : m
               );
               return {
                 messagesByChannel: {

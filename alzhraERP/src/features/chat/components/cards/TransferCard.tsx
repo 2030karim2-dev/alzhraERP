@@ -22,7 +22,11 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
   const quantity = Number(details.quantity || 1);
 
   const status = metadata.action_status || 'pending';
-  const isManager = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager';
+  const isManager =
+    user?.role === 'owner' ||
+    user?.role === 'admin' ||
+    user?.role === 'company_admin' ||
+    user?.role === 'manager';
 
   const handleAction = async (action: 'approve' | 'reject') => {
     setIsProcessing(true);

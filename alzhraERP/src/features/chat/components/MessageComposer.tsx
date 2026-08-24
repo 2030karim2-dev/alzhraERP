@@ -84,7 +84,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
           reply_to_id: replyingTo?.id || null,
         },
         user.id,
-        user.full_name || user.email
+        user.full_name || user.email,
+        selectedFile,
+        user.company_id
       );
 
       // Clear state

@@ -99,7 +99,7 @@ export const useChatPresence = (activeChannelId?: string | null) => {
       });
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
       presenceChannelRef.current = null;
     };
   }, [companyId, userId, userName, branchId, branchName, setUserPresence, setTyping, user?.avatar_url]);

@@ -151,16 +151,17 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
     const targetBranch = branches.find((b) => b.id === targetBranchId);
     const fromBranchName = user?.branch_name || 'الفرع الحالي';
+    const trNumber = `TR-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const metadata: EntityCardMetadata = {
       entity_type: 'transfer',
       entity_id: selectedProductForTransfer.id,
-      title: `TR-${Math.floor(1000 + Math.random() * 9000)}`,
+      title: trNumber,
       subtitle: `طلب مناقلة ${selectedProductForTransfer.name}`,
       action_type: 'stock_transfer_approval',
       action_status: 'pending',
       details: {
-        transfer_number: `TR-${Math.floor(1000 + Math.random() * 9000)}`,
+        transfer_number: trNumber,
         item_name: selectedProductForTransfer.name || selectedProductForTransfer.part_number,
         part_number: selectedProductForTransfer.part_number,
         quantity: transferQty,

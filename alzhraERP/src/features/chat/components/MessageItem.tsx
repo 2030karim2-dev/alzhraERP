@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Reply, Smile, Check, Clock, FileText, Download, User } from 'lucide-react';
 import type { ChatMessage } from '../types';
 import { EntityCardMessage } from './cards/EntityCardMessage';
 import { useChatStore } from '../stores/chatStore';
+import { chatService } from '../services/chatService';
 
 interface Props {
   message: ChatMessage;
@@ -97,33 +98,9 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           {/* Attachments */}
           {message.attachments && message.attachments.length > 0 && (
             <div className="mt-2 space-y-1.5">
-              {message.attachments.map((att) => {
-                const isImage = att.mime_type.startsWith('image/');
-                return (
-                  <div key={att.id}>
-                    {isImage ? (
-                      <img
-                        src={att.public_url || att.storage_path}
-                        alt={att.file_name}
-                        className="max-h-56 rounded-xl object-cover"
-                      />
-                    ) : (
-                      <a
-                        href={att.public_url || '#'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`flex items-center gap-2 rounded-xl p-2 text-xs font-semibold ${
-                          isOwn ? 'bg-white/20 text-white' : 'bg-[var(--app-bg)] text-[var(--app-text)]'
-                        }`}
-                      >
-                        <FileText size={16} />
-                        <span className="line-clamp-1">{att.file_name}</span>
-                        <Download size={14} className="ms-auto" />
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
+              {message.attachments.map((att) => (
+                <ChatAttachmentItem key={att.id} attachment={att} isOwn={isOwn} />
+              ))}
             </div>
           )}
 
@@ -203,5 +180,64 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
         </div>
       </div>
     </div>
+  );
+};
+
+const ChatAttachmentItem: React.FC<{
+  attachment: NonNullable<ChatMessage['attachments']>[number];
+  isOwn: boolean;
+}> = ({ attachment, isOwn }) => {
+  const [signedUrl, setSignedUrl] = useState<string | null>(attachment.public_url || null);
+  const isImage = attachment.mime_type.startsWith('image/');
+
+  useEffect(() => {
+    if (signedUrl || !attachment.storage_path) return;
+
+    let isMounted = true;
+    chatService.getAttachmentSignedUrl(attachment.storage_path).then((url) => {
+      if (isMounted && url) {
+        setSignedUrl(url);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [attachment.storage_path, signedUrl]);
+
+  if (isImage) {
+    return (
+      <div className="relative overflow-hidden rounded-xl bg-black/5">
+        {signedUrl ? (
+          <img
+            src={signedUrl}
+            alt={attachment.file_name}
+            className="max-h-60 max-w-full rounded-xl object-contain cursor-pointer transition-transform hover:scale-[1.02]"
+            onClick={() => window.open(signedUrl, '_blank')}
+          />
+        ) : (
+          <div className="flex h-36 w-48 items-center justify-center rounded-xl bg-[var(--app-bg)] text-xs text-[var(--app-text-secondary)]">
+            جاري تحميل الصورة...
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={signedUrl || '#'}
+      target="_blank"
+      rel="noreferrer"
+      className={`flex items-center gap-2 rounded-xl p-2.5 text-xs font-semibold transition-all ${
+        isOwn
+          ? 'bg-white/20 text-white hover:bg-white/30'
+          : 'bg-[var(--app-bg)] text-[var(--app-text)] hover:bg-[var(--app-surface-hover)]'
+      }`}
+    >
+      <FileText size={16} />
+      <span className="line-clamp-1">{attachment.file_name}</span>
+      <Download size={14} className="ms-auto flex-shrink-0" />
+    </a>
   );
 };
