@@ -220,7 +220,6 @@ export const QuotationHistoryModal: React.FC<Props> = ({
                           <th className="p-3 text-center">الكمية</th>
                           <th className="p-3 text-left">سعر الوحدة</th>
                           <th className="p-3 text-center">الخصم %</th>
-                          <th className="p-3 text-center">الضريبة %</th>
                           <th className="p-3 text-left">الإجمالي</th>
                         </tr>
                       </thead>
@@ -242,9 +241,6 @@ export const QuotationHistoryModal: React.FC<Props> = ({
                             </td>
                             <td className="p-3 text-center font-mono text-slate-500">
                               {item.discount_percentage || 0}%
-                            </td>
-                            <td className="p-3 text-center font-mono text-slate-500">
-                              {item.tax_percentage || 0}%
                             </td>
                             <td className="p-3 text-left font-mono font-bold text-slate-900 dark:text-white" dir="ltr">
                               {formatCurrency(item.total_price, selectedRev.currency)}

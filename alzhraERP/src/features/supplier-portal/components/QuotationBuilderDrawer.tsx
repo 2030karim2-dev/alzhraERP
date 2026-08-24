@@ -273,7 +273,6 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                     <th className="p-3 w-20 text-center">الكمية</th>
                     <th className="p-3 w-28 text-center">سعر الوحدة</th>
                     <th className="p-3 w-20 text-center">الخصم %</th>
-                    <th className="p-3 w-20 text-center">الضريبة %</th>
                     <th className="p-3 w-28 text-center">الإجمالي</th>
                     <th className="p-3 w-28 text-center">التوفر</th>
                     <th className="p-3 w-10"></th>
@@ -320,16 +319,6 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                           value={item.discount_percentage}
                           onChange={e => handleUpdateItem(idx, 'discount_percentage', Number(e.target.value) || 0)}
                           className="w-full text-center py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-rose-500"
-                        />
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={item.tax_percentage}
-                          onChange={e => handleUpdateItem(idx, 'tax_percentage', Number(e.target.value) || 0)}
-                          className="w-full text-center py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-500"
                         />
                       </td>
                       <td className="p-3 text-center font-mono font-bold text-slate-900 dark:text-white" dir="ltr">
@@ -413,12 +402,6 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                 </span>
               </div>
             )}
-            <div>
-              <span className="text-xs text-slate-400 block">الضريبة</span>
-              <span className="font-mono font-bold text-sm text-slate-800 dark:text-slate-200" dir="ltr">
-                {formatCurrency(totals.taxAmount, currency)}
-              </span>
-            </div>
             <div className="pl-4 border-l border-slate-200 dark:border-slate-700">
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 block">الإجمالي النهائي</span>
               <span className="font-mono font-extrabold text-xl text-indigo-600 dark:text-indigo-400" dir="ltr">

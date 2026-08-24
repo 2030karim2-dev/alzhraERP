@@ -123,7 +123,7 @@ export const VendorComparisonModal: React.FC<Props> = ({
                     <div className="font-mono font-black text-lg text-slate-900 dark:text-white" dir="ltr">
                       {formatCurrency(vendor.total_amount, vendor.currency)}
                     </div>
-                    <span className="text-[10px] text-slate-400">شامل الضرائب</span>
+                    <span className="text-[10px] text-slate-400">صافي السعر النهائي</span>
                   </div>
                 </div>
 

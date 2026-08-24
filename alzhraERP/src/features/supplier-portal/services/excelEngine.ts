@@ -140,7 +140,6 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
     'الوحدة',
     'سعر الوحدة',
     'نسبة الخصم %',
-    'نسبة الضريبة %',
     'الإجمالي',
     'حالة التوفر',
     'الضمان (أيام)',
@@ -161,7 +160,6 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
       { v: sanitizeExcelValue(item.unit_of_measure), s: cellStyle },
       { v: Math.max(0, Number(item.unit_price) || 0), s: moneyStyle },
       { v: Math.min(100, Math.max(0, Number(item.discount_percentage) || 0)), s: cellStyle },
-      { v: Math.max(0, Number(item.tax_percentage) || 0), s: cellStyle },
       { v: Math.max(0, Number(item.total_price) || 0), s: moneyStyle },
       { v: item.availability === 'in_stock' ? 'متوفر' : item.availability === 'on_order' ? 'تحت الطلب' : 'غير متوفر', s: cellStyle },
       { v: Math.max(0, Number(item.warranty_days) || 0), s: cellStyle },
@@ -172,19 +170,13 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
   // Summary Rows
   wsData.push([]);
   wsData.push([
-    {}, {}, {}, {}, {}, {}, {}, {},
+    {}, {}, {}, {}, {}, {}, {},
     { v: 'المجموع الفرعي:', s: metaLabelStyle },
     {},
     { v: Math.max(0, options.subtotal), s: moneyStyle },
   ]);
   wsData.push([
-    {}, {}, {}, {}, {}, {}, {}, {},
-    { v: 'إجمالي الضريبة:', s: metaLabelStyle },
-    {},
-    { v: Math.max(0, options.taxAmount), s: moneyStyle },
-  ]);
-  wsData.push([
-    {}, {}, {}, {}, {}, {}, {}, {},
+    {}, {}, {}, {}, {}, {}, {},
     { v: 'الإجمالي النهائي:', s: totalStyle },
     {},
     { v: Math.max(0, options.totalAmount), s: totalStyle },
@@ -208,7 +200,6 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
     { wch: 8 },  // Unit
     { wch: 14 }, // Unit Price
     { wch: 12 }, // Discount %
-    { wch: 12 }, // Tax %
     { wch: 16 }, // Total
     { wch: 14 }, // Availability
     { wch: 12 }, // Warranty
@@ -397,12 +388,12 @@ export const parseQuotationExcel = async (
     const rawQty = qtyCol >= 0 ? Number(r[qtyCol]) : 1;
     const rawPrice = priceCol >= 0 ? Number(r[priceCol]) : 0;
     const rawDisc = discCol >= 0 ? Number(r[discCol]) : 0;
-    const rawTax = taxCol >= 0 ? Number(r[taxCol]) : 15;
+    const rawTax = taxCol >= 0 ? Number(r[taxCol]) : 0;
 
     const parsedQty = isNaN(rawQty) || rawQty <= 0 ? 1 : rawQty;
     const parsedPrice = isNaN(rawPrice) || rawPrice < 0 ? 0 : rawPrice;
     const parsedDisc = isNaN(rawDisc) || rawDisc < 0 ? 0 : Math.min(rawDisc, 100);
-    const parsedTax = isNaN(rawTax) || rawTax < 0 ? 15 : rawTax;
+    const parsedTax = isNaN(rawTax) || rawTax < 0 ? 0 : rawTax;
 
     // Multi-Priority Matching
     let matchedProduct: VendorProductItem | undefined = undefined;

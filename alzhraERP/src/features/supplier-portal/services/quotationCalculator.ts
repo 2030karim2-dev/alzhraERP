@@ -43,12 +43,10 @@ export const calculateQuotationItem = (
   const safeQtyNum = sanitizeFinancialNumber(item.quantity, 1, 0.0001, 1000000);
   const safePriceNum = sanitizeFinancialNumber(item.unit_price, 0, 0, 1000000000);
   const safeDiscPctNum = sanitizeFinancialNumber(item.discount_percentage, 0, 0, 100);
-  const safeTaxPctNum = sanitizeFinancialNumber(item.tax_percentage, 15, 0, 100);
 
   const qty = safeDecimal(safeQtyNum);
   const unitPrice = safeDecimal(safePriceNum);
   const discountPct = safeDecimal(safeDiscPctNum);
-  const taxPct = safeDecimal(safeTaxPctNum);
 
   // Line subtotal: Qty * UnitPrice
   const lineSubtotal = qty.times(unitPrice);
@@ -58,16 +56,11 @@ export const calculateQuotationItem = (
     ? Decimal.min(lineSubtotal, safeDecimal(item.discount_amount))
     : lineSubtotal.times(discountPct.dividedBy(100));
 
-  // Net taxable line amount
+  // Net line amount (0% VAT in Yemen)
   const netAmount = Decimal.max(0, lineSubtotal.minus(discountAmount));
 
-  // Tax amount
-  const taxAmount = item.tax_amount !== undefined && item.tax_amount > 0
-    ? safeDecimal(item.tax_amount)
-    : netAmount.times(taxPct.dividedBy(100));
-
-  // Line total
-  const lineTotal = netAmount.plus(taxAmount);
+  // Line total equals net amount (no tax)
+  const lineTotal = netAmount;
 
   // Net Unit Price per piece
   const netUnitPrice = qty.isZero() ? unitPrice : netAmount.dividedBy(qty);
@@ -79,14 +72,14 @@ export const calculateQuotationItem = (
     discount_percentage: discountPct.toNumber(),
     discount_amount: discountAmount.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
     net_unit_price: netUnitPrice.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
-    tax_percentage: taxPct.toNumber(),
-    tax_amount: taxAmount.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
+    tax_percentage: 0,
+    tax_amount: 0,
     total_price: lineTotal.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
   };
 };
 
 /**
- * Aggregates all items in a quotation into deterministic header totals
+ * Aggregates all items in a quotation into deterministic header totals (0% Tax)
  */
 export const calculateQuotationTotals = (
   items: QuotationItemDraft[],
@@ -94,7 +87,6 @@ export const calculateQuotationTotals = (
 ): CalculatedQuotationTotals => {
   let subtotal = new Decimal(0);
   let totalLineDiscount = new Decimal(0);
-  let totalTax = new Decimal(0);
   let totalAmount = new Decimal(0);
 
   items.forEach(item => {
@@ -102,20 +94,19 @@ export const calculateQuotationTotals = (
     const lineSubtotal = safeDecimal(calculated.quantity).times(safeDecimal(calculated.unit_price));
     subtotal = subtotal.plus(lineSubtotal);
     totalLineDiscount = totalLineDiscount.plus(safeDecimal(calculated.discount_amount));
-    totalTax = totalTax.plus(safeDecimal(calculated.tax_amount));
     totalAmount = totalAmount.plus(safeDecimal(calculated.total_price));
   });
 
   const safeGlobalDisc = safeDecimal(sanitizeFinancialNumber(globalDiscountAmount, 0, 0));
   const totalDiscount = Decimal.min(subtotal, totalLineDiscount.plus(safeGlobalDisc));
   const taxableAmount = Decimal.max(0, subtotal.minus(totalDiscount));
-  const finalTotal = Decimal.max(0, taxableAmount.plus(totalTax));
+  const finalTotal = taxableAmount;
 
   return {
     subtotal: subtotal.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
     discountAmount: totalDiscount.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
     taxableAmount: taxableAmount.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
-    taxAmount: totalTax.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
+    taxAmount: 0,
     grandTotal: finalTotal.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
     itemsCount: items.length,
   };
