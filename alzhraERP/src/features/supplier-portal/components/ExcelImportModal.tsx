@@ -66,7 +66,7 @@ export const ExcelImportModal: React.FC<Props> = ({
         unit_price: r.unitPrice,
         discount_percentage: r.discountPercentage || 0,
         discount_amount: 0,
-        tax_percentage: r.taxPercentage || 15,
+        tax_percentage: 0,
         tax_amount: 0,
         net_unit_price: r.unitPrice,
         total_price: r.quantity * r.unitPrice,
