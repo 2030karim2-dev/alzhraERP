@@ -7,6 +7,8 @@ import {
   Sparkles,
   Copy,
   Check,
+  ExternalLink,
+  Globe,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
@@ -20,7 +22,14 @@ import {
   formatMarketLabel,
 } from '../utils/smartPartNamer';
 import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
-import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord } from '../types';
+import {
+  AUTO_PARTS_CATALOGS,
+  openCatalogSearch,
+  openCatalogVinSearch,
+} from '../constants/catalogs';
+import { partIntelligenceService } from '../services/partIntelligenceService';
+import { PartIntelligenceModal } from './PartIntelligenceModal';
+import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord, PartIntelligenceResult, PartAlternative } from '../types';
 
 type UiPart = ExtractedPart & { _key: string };
 
@@ -56,11 +65,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const [parts, setParts] = useState<UiPart[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCatalogId, setSelectedCatalogId] = useState('megazip');
   const [manualNumber, setManualNumber] = useState('');
   const [manualDesc, setManualDesc] = useState('');
   const [filterText, setFilterText] = useState('');
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [copiedVin, setCopiedVin] = useState(false);
+  const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(false);
+  const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
+  const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
 
   const vehicle: VehicleInfo | null = selected ? ((selected.decoded as VehicleInfo) ?? null) : null;
 
@@ -109,9 +122,53 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
+  const handleDeepInspectPart = async (partNum: string) => {
+    const q = partNum.trim().toUpperCase();
+    if (!q || q.length < 3) return;
+    setIsIntelligenceOpen(true);
+    setIsIntelligenceLoading(true);
+    try {
+      const intel = await partIntelligenceService.inspectPart(q, vehicle, selectedCatalogId);
+      setActiveIntelligence(intel);
+    } catch (err) {
+      showToast('تعذر فحص تفاصيل القطعة، يرجى المحاولة لاحقاً', 'error', err);
+    } finally {
+      setIsIntelligenceLoading(false);
+    }
+  };
+
+  const handleAddAlternativeToParts = (part: any) => {
+    const newPart: UiPart = {
+      partNumber: part.partNumber || '',
+      description: part.description || part.baseName || 'قطعة غيار',
+      manufacturer: part.manufacturer || vehicle?.make || '',
+      source: 'catalog',
+      _key: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+    };
+    setParts((prev) => [...prev, newPart]);
+    showToast(`تمت إضافة الرقم البديل ${part.partNumber} بنجاح ✨`, 'success');
+  };
+
+  const handleAddAllAlternativesToParts = (alternatives: PartAlternative[]) => {
+    if (!alternatives || alternatives.length === 0) return;
+    const newItems: UiPart[] = alternatives.map((alt) => ({
+      partNumber: alt.partNumber,
+      description: `${activeIntelligence?.primaryNameAr || 'قطعة غيار'} (${alt.brand || 'بديل'})`,
+      manufacturer: alt.brand || activeIntelligence?.manufacturer || vehicle?.make || '',
+      source: 'catalog' as const,
+      _key: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+    }));
+    setParts((prev) => [...prev, ...newItems]);
+    showToast(`تمت إضافة ${newItems.length} بديل معتمد بنجاح ✨`, 'success');
+  };
+
   const handleSearch = async () => {
     const q = searchQuery.trim();
     if (q.length < 3) return;
+
+    // Trigger deep intelligence modal
+    handleDeepInspectPart(q);
+
     const res = await onSearchPart(q);
     if (res.length > 0) {
       setParts((prev) => [
@@ -504,20 +561,39 @@ export const VinsTab: React.FC<VinsTabProps> = ({
 
                 {/* ── Search & Extract Additional Parts for this Vehicle ── */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                    استخراج وبحث قطع الغيار لهذه المركبة
-                  </h4>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <Globe size={16} className="text-blue-600 dark:text-blue-400" />
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        استخراج وبحث قطع الغيار لهذه المركبة من الكتالوجات العالمية
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>الكتالوج النشط:</span>
+                      <select
+                        value={selectedCatalogId}
+                        onChange={(e) => setSelectedCatalogId(e.target.value)}
+                        className="px-2.5 py-1 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {AUTO_PARTS_CATALOGS.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.nameAr}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* Catalog search */}
-                    <div className="flex items-end gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    {/* Catalog search input & action */}
+                    <div className="md:col-span-7 flex items-end gap-2">
                       <div className="flex-1">
                         <Input
-                          label="بحث OEM من الكتالوج (Megazip)"
+                          label="بحث OEM برقم القطعة"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                          placeholder="رقم القطعة..."
+                          placeholder="رقم القطعة OEM..."
                         />
                       </div>
                       <Button
@@ -527,13 +603,23 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                         isLoading={isSearching}
                         disabled={searchQuery.trim().length < 3}
                         className="rounded-xl font-bold"
+                        title="بحث واستخراج القطعة تلقائياً"
                       >
-                        <Search size={13} className="ml-1" /> بحث
+                        <Search size={13} className="ml-1" /> بحث واستخراج
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openCatalogSearch(selectedCatalogId, searchQuery || selected?.vin || '')}
+                        className="rounded-xl font-bold border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                        title="فتح نتيجة البحث في موقع الكتالوج مباشرة"
+                      >
+                        <ExternalLink size={13} className="ml-1" /> فتح في الكتالوج ↗
                       </Button>
                     </div>
 
                     {/* Manual part insertion */}
-                    <div className="flex items-end gap-2">
+                    <div className="md:col-span-5 flex items-end gap-2">
                       <div className="flex-1">
                         <Input
                           label="إضافة سريعة: رقم القطعة"
@@ -544,7 +630,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                       </div>
                       <div className="flex-1">
                         <Input
-                          label="الوصف (اختياري)"
+                          label="الوصف"
                           value={manualDesc}
                           onChange={(e) => setManualDesc(e.target.value)}
                           placeholder="الوصف..."
@@ -560,6 +646,45 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                         <Plus size={13} className="ml-1" /> إضافة
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Quick Catalogs Launcher Pill Buttons */}
+                  <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 ml-1">
+                      الكتالوجات المعتمدة:
+                    </span>
+                    {AUTO_PARTS_CATALOGS.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCatalogId(cat.id);
+                          openCatalogSearch(cat.id, searchQuery || selected?.vin || '');
+                        }}
+                        className={cn(
+                          'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all shadow-2xs',
+                          cat.colorClass.bg,
+                          cat.colorClass.text,
+                          cat.colorClass.border,
+                          cat.colorClass.hoverBg
+                        )}
+                        title={`${cat.description} - انقر للبحث في ${cat.nameEn}`}
+                      >
+                        <span>{cat.badge}</span>
+                        <ExternalLink size={11} className="opacity-70" />
+                      </button>
+                    ))}
+                    {selected?.vin && (
+                      <button
+                        type="button"
+                        onClick={() => openCatalogVinSearch('partsouq', selected.vin)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors"
+                        title="فحص شاصي هذه المركبة في PartSouq"
+                      >
+                        <span>🇦🇪 فحص الشاصي في PartSouq ({selected.vin})</span>
+                        <ExternalLink size={11} className="opacity-70" />
+                      </button>
+                    )}
                   </div>
 
                   {parts.length > 0 && (
@@ -582,12 +707,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                               <th className="p-2.5">رقم القطعة</th>
                               <th className="p-2.5">الوصف</th>
                               <th className="p-2.5">المصنع</th>
-                              <th className="p-2.5 text-center">المصدر</th>
+                              <th className="p-2.5 text-center">المصدر / الكتالوج</th>
+                              <th className="p-2.5 text-center w-16">فحص</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {parts.map((p) => {
                               const isSelected = selectedIds.has(p._key);
+                              const matchedCatalog = AUTO_PARTS_CATALOGS.find((c) => c.id === p.source);
+
                               return (
                                 <tr
                                   key={p._key}
@@ -620,9 +748,42 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                                     {p.manufacturer || '—'}
                                   </td>
                                   <td className="p-2.5 text-center">
-                                    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60">
-                                      {p.source === 'megazip' ? 'Megazip' : 'يدوي'}
+                                    <span
+                                      className={cn(
+                                        'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border',
+                                        matchedCatalog
+                                          ? cn(matchedCatalog.colorClass.bg, matchedCatalog.colorClass.text, matchedCatalog.colorClass.border)
+                                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                                      )}
+                                    >
+                                      {matchedCatalog ? matchedCatalog.nameEn : (p.source === 'manual' ? 'يدوي' : p.source)}
                                     </span>
+                                  </td>
+                                  <td className="p-2.5 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (p.partNumber) {
+                                            handleDeepInspectPart(p.partNumber);
+                                          }
+                                        }}
+                                        className="p-1 text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 transition-colors rounded-lg hover:bg-amber-50"
+                                        title="فحص ذكي للبدائل والسيارات المتوافقة ونسبة الثقة"
+                                      >
+                                        <Sparkles size={13} />
+                                      </button>
+                                      {p.partNumber && (
+                                        <button
+                                          type="button"
+                                          onClick={() => openCatalogSearch(selectedCatalogId, p.partNumber)}
+                                          className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-slate-100"
+                                          title={`فحص في ${selectedCatalogId}`}
+                                        >
+                                          <ExternalLink size={13} />
+                                        </button>
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -662,6 +823,16 @@ export const VinsTab: React.FC<VinsTabProps> = ({
           </div>
         </div>
       )}
+
+      {/* ── Smart Part Intelligence & Cross-Reference Modal ── */}
+      <PartIntelligenceModal
+        isOpen={isIntelligenceOpen}
+        onClose={() => setIsIntelligenceOpen(false)}
+        intelligence={activeIntelligence}
+        isLoading={isIntelligenceLoading}
+        onAddAlternativeToGrid={handleAddAlternativeToParts}
+        onAddAllAlternativesToGrid={handleAddAllAlternativesToParts}
+      />
 
       {/* ── Manual VIN Entry Modal ── */}
       <ManualVinModal

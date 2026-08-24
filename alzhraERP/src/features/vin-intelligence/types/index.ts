@@ -53,16 +53,69 @@ export interface MatchingInventoryProduct {
   match_source: string;
 }
 
+export interface PartAlternative {
+  partNumber: string;
+  brand?: string;
+  type?: 'OEM' | 'AFTERMARKET' | 'SUPERSEDED';
+  descriptionAr?: string;
+  descriptionEn?: string;
+  confidence: 'high' | 'medium' | 'low';
+  confidenceScore: number;
+  source?: string;
+}
+
+export interface CompatibleVehicle {
+  make: string;
+  makeAr: string;
+  model: string;
+  modelAr: string;
+  yearRange: string;
+  engine?: string | undefined;
+  notes?: string | undefined;
+}
+
 export interface ExtractedPart {
   partNumber: string;
   manufacturer?: string;
-  description?: string;
-  category?: string;
+  description?: string;        // الاسم بالعربية
+  descriptionEn?: string;      // Name in English
+  category?: string;           // الفئة بالعربية
+  categoryEn?: string;         // Category in English
   oemNumbers?: string[];
-  source: 'ai' | 'manual' | 'fapi' | 'megazip';
+  alternatives?: PartAlternative[];
+  compatibleVehicles?: CompatibleVehicle[];
+  source: 'ai' | 'manual' | 'fapi' | 'megazip' | 'partsouq' | 'spareto' | 'autodoc' | 'amayama' | 'catalog';
   confidence?: 'high' | 'medium' | 'low';
+  confidenceScore?: number;    // e.g. 95 (percentage)
+  sizeSpec?: string;
   salePrice?: number;
   purchasePrice?: number;
+  specs?: Record<string, string>;
+  imageUrl?: string | null;
+}
+
+export interface ExcelGridPart extends ExtractedPart {
+  _id: string;
+  baseName: string;
+  sizeSpec?: string;
+  selected?: boolean;
+}
+
+export interface PartIntelligenceResult {
+  partNumber: string;
+  primaryNameAr: string;
+  primaryNameEn: string;
+  categoryAr: string;
+  categoryEn: string;
+  manufacturer: string;
+  confidence: 'high' | 'medium' | 'low';
+  confidenceScore: number;
+  confidenceReason: string;
+  alternatives: PartAlternative[];
+  compatibleVehicles: CompatibleVehicle[];
+  specs: Record<string, string>;
+  source: string;
+  imageUrl?: string | null;
 }
 
 export interface VinAnalysisRecord {

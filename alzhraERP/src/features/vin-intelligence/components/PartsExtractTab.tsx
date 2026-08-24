@@ -15,6 +15,8 @@ import {
   Share2,
   FileText,
   RotateCcw,
+  ExternalLink,
+  Globe,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
@@ -30,10 +32,17 @@ import {
   parsePartsFromFile,
   formatPartsForWhatsApp,
 } from '../utils/partsExcelHelper';
+import {
+  AUTO_PARTS_CATALOGS,
+  openCatalogSearch,
+  openCatalogVinSearch,
+} from '../constants/catalogs';
+import { partIntelligenceService } from '../services/partIntelligenceService';
+import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { useFeedbackStore } from '../../feedback/store';
 import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
 import type { ItemRow } from '../../sales/hooks/useQuotationForm';
-import type { ExtractedPart, VehicleInfo } from '../types';
+import type { ExtractedPart, VehicleInfo, PartIntelligenceResult, PartAlternative } from '../types';
 
 export interface ExcelGridPart extends ExtractedPart {
   _id: string;
@@ -112,10 +121,14 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   });
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCatalogId, setSelectedCatalogId] = useState('megazip');
   const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
+  const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(false);
+  const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
+  const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
 
   // Update default custom template when vehicle changes if empty
   useEffect(() => {
@@ -279,9 +292,76 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     setRows((prev) => prev.map((r) => ({ ...r, selected: checked })));
   };
 
+  const handleDeepInspectPart = async (partNum: string) => {
+    const q = partNum.trim().toUpperCase();
+    if (!q || q.length < 3) return;
+    setIsIntelligenceOpen(true);
+    setIsIntelligenceLoading(true);
+    try {
+      const intel = await partIntelligenceService.inspectPart(q, vehicle, selectedCatalogId);
+      setActiveIntelligence(intel);
+    } catch (err) {
+      showToast('تعذر فحص تفاصيل القطعة، يرجى المحاولة لاحقاً', 'error', err);
+    } finally {
+      setIsIntelligenceLoading(false);
+    }
+  };
+
+  const handleAddAlternativeToGrid = (part: Partial<ExcelGridPart>) => {
+    const smartName = generateSmartPartName(
+      part.baseName || part.description || 'قطعة غيار',
+      vehicle,
+      { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
+    );
+
+    const newRow: ExcelGridPart = {
+      _id: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      partNumber: part.partNumber || '',
+      baseName: part.baseName || part.description || '',
+      description: smartName,
+      manufacturer: part.manufacturer || vehicle?.make || '',
+      sizeSpec: part.sizeSpec || '',
+      source: (part.source as any) || 'catalog',
+      salePrice: part.salePrice || 0,
+      purchasePrice: part.purchasePrice || 0,
+      selected: true,
+    };
+    setRows((prev) => [...prev, newRow]);
+  };
+
+  const handleAddAllAlternativesToGrid = (alternatives: PartAlternative[]) => {
+    if (!alternatives || alternatives.length === 0) return;
+    const newRows = alternatives.map((alt) => {
+      const smartName = generateSmartPartName(
+        activeIntelligence?.primaryNameAr || 'قطعة غيار',
+        vehicle,
+        { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
+      );
+      return {
+        _id: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        partNumber: alt.partNumber,
+        baseName: activeIntelligence?.primaryNameAr || '',
+        description: `${smartName} (${alt.brand || 'بديل'})`,
+        manufacturer: alt.brand || activeIntelligence?.manufacturer || vehicle?.make || '',
+        sizeSpec: '',
+        source: 'catalog' as const,
+        salePrice: 0,
+        purchasePrice: 0,
+        selected: true,
+      };
+    });
+    setRows((prev) => [...prev, ...newRows]);
+    showToast(`تمت إضافة ${newRows.length} بديل معتمد للجدول بنجاح ✨`, 'success');
+  };
+
   const handleSearchMegazip = async () => {
     const q = searchQuery.trim();
     if (q.length < 3) return;
+
+    // 1. Perform deep inspection
+    handleDeepInspectPart(q);
+
+    // 2. Perform catalog extraction & populate grid
     const res = await onSearchPart(q);
     if (res.length > 0) {
       const newItems: ExcelGridPart[] = res.map((p) => {
@@ -564,45 +644,115 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         </div>
       )}
 
-      {/* ── Search & Add Controls ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Quick OEM search from Megazip */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <Input
-                label="بحث OEM من الكتالوج (Megazip)"
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearchMegazip()}
-              />
-            </div>
+      {/* ── Search & Multi-Catalog Controls ── */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <Globe size={16} className="text-blue-600 dark:text-blue-400" />
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              بحث واستخراج قطع الغيار من الكتالوجات العالمية (OEM & Aftermarket)
+            </h4>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>الكتالوج النشط:</span>
+            <select
+              value={selectedCatalogId}
+              onChange={(e) => setSelectedCatalogId(e.target.value)}
+              className="px-2.5 py-1 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              {AUTO_PARTS_CATALOGS.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nameAr}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end">
+          {/* Part Number Search Input */}
+          <div className="lg:col-span-5">
+            <Input
+              label="رقم القطعة OEM / Part Number"
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchMegazip()}
+              placeholder="مثال: 90919-01253 أو 04465-42190..."
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="lg:col-span-4 flex items-center gap-2">
             <Button
               size="sm"
               variant="secondary"
               onClick={handleSearchMegazip}
               isLoading={isSearching}
               disabled={searchQuery.trim().length < 3}
-              className="rounded-lg font-bold"
+              className="flex-1 rounded-xl font-bold py-2"
+              title="جلب وتفريغ بيانات القطعة تلقائياً في الجدول"
             >
               <Search size={14} className="ml-1" /> بحث واستخراج
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => openCatalogSearch(selectedCatalogId, searchQuery || vehicle?.vinPrefix || '')}
+              className="rounded-xl font-bold py-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+              title="فتح نتيجة البحث مباشرة في موقع الكتالوج المختار"
+            >
+              <ExternalLink size={14} className="ml-1" /> فتح في الكتالوج ↗
+            </Button>
+          </div>
+
+          {/* Quick Row insertion actions */}
+          <div className="lg:col-span-3 flex items-center justify-end gap-2">
+            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl shadow-sm py-2">
+              <Plus size={14} className="ml-1" /> سطر جديد
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-xs rounded-xl py-2">
+              <Layers size={14} className="ml-1" /> +5 أسطر
             </Button>
           </div>
         </div>
 
-        {/* Quick Row insertion actions */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-lg shadow-sm">
-              <Plus size={14} className="ml-1" /> سطر جديد
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-xs rounded-lg">
-              <Layers size={14} className="ml-1" /> +5 أسطر
-            </Button>
-          </div>
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-            إجمالي الأسطر: {rows.length}
+        {/* Quick Catalogs Launcher Pill Buttons */}
+        <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 ml-1">
+            الكتالوجات المعتمدة (بحث فوري بضغطة زر):
           </span>
+          {AUTO_PARTS_CATALOGS.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => {
+                setSelectedCatalogId(cat.id);
+                openCatalogSearch(cat.id, searchQuery || vehicle?.vinPrefix || '');
+              }}
+              className={cn(
+                'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all shadow-2xs',
+                cat.colorClass.bg,
+                cat.colorClass.text,
+                cat.colorClass.border,
+                cat.colorClass.hoverBg
+              )}
+              title={`${cat.description} - انقر للبحث عن «${searchQuery || 'السيارة'}» في ${cat.nameEn}`}
+            >
+              <span>{cat.badge}</span>
+              <ExternalLink size={11} className="opacity-70" />
+            </button>
+          ))}
+          {vehicle?.vinPrefix && (
+            <button
+              type="button"
+              onClick={() => openCatalogVinSearch('partsouq', vehicle.vinPrefix || '')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors"
+              title="فحص شاصي هذه المركبة في كتالوج PartSouq المعتمد"
+            >
+              <span>🇦🇪 فحص الشاصي في PartSouq ({vehicle.vinPrefix})</span>
+              <ExternalLink size={11} className="opacity-70" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -846,9 +996,23 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                       />
                     </td>
 
-                    {/* Actions (Delete, Duplicate) */}
+                    {/* Actions (Inspect, Duplicate, Delete) */}
                     <td className="p-1.5 text-center">
                       <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (row.partNumber.trim() || row.baseName.trim()) {
+                              handleDeepInspectPart(row.partNumber.trim() || row.baseName.trim());
+                            } else {
+                              showToast('يرجى كتابة رقم القطعة أو اسمها أولاً للفحص', 'warning');
+                            }
+                          }}
+                          className="p-1.5 text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                          title="فحص بالذكاء الاصطناعي واستخراج البدائل والسيارات المتوافقة ونسبة الثقة"
+                        >
+                          <Sparkles size={13} />
+                        </button>
                         <button
                           type="button"
                           onClick={() => { duplicateRow(row._id); }}
@@ -905,6 +1069,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Smart Part Intelligence & Cross-Reference Modal ── */}
+      <PartIntelligenceModal
+        isOpen={isIntelligenceOpen}
+        onClose={() => setIsIntelligenceOpen(false)}
+        intelligence={activeIntelligence}
+        isLoading={isIntelligenceLoading}
+        onAddAlternativeToGrid={handleAddAlternativeToGrid}
+        onAddAllAlternativesToGrid={handleAddAllAlternativesToGrid}
+      />
 
       {/* ── Quotation Creation Modal ── */}
       {isQuotationModalOpen && (

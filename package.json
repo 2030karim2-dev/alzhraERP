@@ -13,12 +13,12 @@
     ]
   },
   "scripts": {
-    "dev": "cd alzhraERP && vite",
+    "dev": "npm --prefix alzhraERP run dev",
     "build": "node build.js",
-    "build:analyze": "cd alzhraERP && npm run build && npx vite-bundle-visualizer",
-    "lint": "cd alzhraERP && eslint . --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "cd alzhraERP && eslint . --fix",
-    "preview": "cd alzhraERP && vite preview",
+    "build:analyze": "npm --prefix alzhraERP run build:analyze",
+    "lint": "npm --prefix alzhraERP run lint",
+    "lint:fix": "npm --prefix alzhraERP run lint:fix",
+    "preview": "npm --prefix alzhraERP run preview",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --noEmit --strict",
     "test": "vitest",
