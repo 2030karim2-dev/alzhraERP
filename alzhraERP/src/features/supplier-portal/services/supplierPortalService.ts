@@ -22,18 +22,16 @@ interface RawSupplierProductRel {
 interface RawProductRow {
   id: string;
   company_id: string;
-  name: string;
   name_ar?: string | null;
+  description?: string | null;
   sku: string;
   part_number?: string | null;
   brand?: string | null;
-  category?: string | null;
   cost_price: number | string | null;
-  stock_quantity: number | string | null;
+  sale_price?: number | string | null;
   min_stock_level: number | string | null;
   unit?: string | null;
   image_url?: string | null;
-  supplier_id?: string | null;
   prc_supplier_products?: RawSupplierProductRel[] | null;
 }
 
@@ -81,8 +79,8 @@ interface RawQuotationItemRow {
   warranty_days?: number | string | null;
   vendor_notes?: string | null;
   product?: {
-    name?: string | null;
     name_ar?: string | null;
+    description?: string | null;
     part_number?: string | null;
   } | null;
 }
@@ -109,9 +107,10 @@ interface RawQuotationRow {
   converted_po_id?: string | null;
   created_at: string;
   updated_at?: string | null;
-  party?: {
-    id: string;
-    name: string;
+  prc_suppliers?: {
+    supplier_id: string;
+    legal_name: string;
+    trade_name?: string | null;
   } | null;
   rfq?: {
     rfq_number: string;
@@ -134,18 +133,16 @@ export const supplierPortalService = {
         .select(`
           id,
           company_id,
-          name,
           name_ar,
+          description,
           sku,
           part_number,
           brand,
-          category,
           cost_price,
-          stock_quantity,
+          sale_price,
           min_stock_level,
           unit,
           image_url,
-          supplier_id,
           prc_supplier_products (
             supplier_sku,
             lead_time_days,
@@ -157,7 +154,7 @@ export const supplierPortalService = {
         .is('deleted_at', null);
 
       if (search && search.trim() !== '') {
-        query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%,part_number.ilike.%${search}%`);
+        query = query.or(`name_ar.ilike.%${search}%,sku.ilike.%${search}%,part_number.ilike.%${search}%`);
       }
 
       const { data, error } = await query;
@@ -174,16 +171,16 @@ export const supplierPortalService = {
           id: row.id,
           company_id: row.company_id,
           product_id: row.id,
-          product_name: row.name_ar || row.name,
+          product_name: row.name_ar || row.description || row.part_number || 'قطعة غيار',
           ...(row.name_ar ? { product_name_ar: row.name_ar } : {}),
           sku: row.sku,
           oem_number: row.part_number || null,
           brand: row.brand || null,
-          category: row.category || null,
+          category: null,
           vendor_sku: supplierProd?.supplier_sku || null,
           cost_price: Number(row.cost_price) || 0,
           last_quoted_price: null,
-          stock_quantity: Number(row.stock_quantity) || 0,
+          stock_quantity: 0,
           min_stock_level: Number(row.min_stock_level) || 0,
           unit: row.unit || 'حبة',
           image_url: row.image_url || null,
@@ -304,10 +301,6 @@ export const supplierPortalService = {
             legal_name,
             trade_name
           ),
-          party:supplier_id (
-            id,
-            name
-          ),
           rfq:rfq_id (
             rfq_number
           ),
@@ -327,8 +320,8 @@ export const supplierPortalService = {
             warranty_days,
             vendor_notes,
             product:product_id (
-              name,
               name_ar,
+              description,
               part_number
             )
           )
@@ -352,7 +345,7 @@ export const supplierPortalService = {
         rfq_id: row.rfq_id || null,
         rfq_number: row.rfq?.rfq_number || null,
         supplier_id: row.supplier_id,
-        supplier_name: (row as any).prc_suppliers?.trade_name || (row as any).prc_suppliers?.legal_name || row.party?.name || 'مورد معتمد',
+        supplier_name: row.prc_suppliers?.trade_name || row.prc_suppliers?.legal_name || 'مورد معتمد',
         status: row.status as QuotationStatus,
         current_revision_number: row.current_revision_number || 1,
         valid_until: row.valid_until || null,
@@ -373,7 +366,7 @@ export const supplierPortalService = {
           id: item.quotation_item_id,
           ...(item.rfq_item_id ? { rfq_item_id: item.rfq_item_id } : {}),
           product_id: item.product_id || '',
-          product_name: item.product?.name_ar || item.product?.name || 'صنف',
+          product_name: item.product?.name_ar || item.product?.description || 'صنف',
           oem_number: item.product?.part_number ?? null,
           vendor_sku: item.vendor_sku ?? null,
           quantity: Number(item.offered_quantity) || 1,
