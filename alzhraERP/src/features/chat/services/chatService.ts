@@ -174,6 +174,14 @@ export const chatService = {
           created_at,
           edited_at,
           deleted_at,
+          reply_to_message:reply_to_id (
+            id,
+            content,
+            sender_id,
+            profiles:sender_id (
+              full_name
+            )
+          ),
           profiles:sender_id (
             full_name,
             avatar_url
@@ -221,6 +229,18 @@ export const chatService = {
         content: msg.content,
         metadata: msg.metadata || {},
         reply_to_id: msg.reply_to_id,
+        reply_to_message: msg.reply_to_message
+          ? {
+              id: msg.reply_to_message.id,
+              channel_id: msg.channel_id,
+              sender_id: msg.reply_to_message.sender_id,
+              message_type: 'text',
+              content: msg.reply_to_message.content,
+              metadata: {},
+              created_at: '',
+              sender_name: msg.reply_to_message.profiles?.full_name || 'موظف',
+            }
+          : undefined,
         client_message_id: msg.client_message_id,
         created_at: msg.created_at,
         edited_at: msg.edited_at,
