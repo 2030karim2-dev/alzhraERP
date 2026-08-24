@@ -14,6 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_channels: {
+        Row: {
+          archived_at: string | null
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_private: boolean
+          name: string
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_channel_members: {
+        Row: {
+          channel_id: string
+          id: string
+          joined_at: string
+          last_read_message_id: string | null
+          left_at: string | null
+          muted_until: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          joined_at?: string
+          last_read_message_id?: string | null
+          left_at?: string | null
+          muted_until?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          joined_at?: string
+          last_read_message_id?: string | null
+          left_at?: string | null
+          muted_until?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          channel_id: string
+          client_message_id: string | null
+          content: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          message_type: string
+          metadata: Json
+          reply_to_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          channel_id: string
+          client_message_id?: string | null
+          content?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Update: {
+          channel_id?: string
+          client_message_id?: string | null
+          content?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      chat_message_attachments: {
+        Row: {
+          company_id: string
+          created_at: string
+          file_name: string
+          file_size: number
+          id: string
+          message_id: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number
+          id?: string
+          message_id: string
+          mime_type?: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          message_id?: string
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      chat_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           allow_posting: boolean
@@ -5949,6 +6132,91 @@ export type Database = {
           },
         ]
       }
+      prc_quotation_revisions: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          delivery_lead_time_days: number | null
+          discount_amount: number
+          exchange_rate: number
+          id: string
+          items_snapshot: Json
+          notes: string | null
+          quotation_id: string
+          revision_number: number
+          status: string
+          subtotal: number
+          tax_amount: number
+          terms_and_conditions: string | null
+          total_amount: number
+          warranty_days: number | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_lead_time_days?: number | null
+          discount_amount?: number
+          exchange_rate?: number
+          id?: string
+          items_snapshot?: Json
+          notes?: string | null
+          quotation_id: string
+          revision_number?: number
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms_and_conditions?: string | null
+          total_amount?: number
+          warranty_days?: number | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_lead_time_days?: number | null
+          discount_amount?: number
+          exchange_rate?: number
+          id?: string
+          items_snapshot?: Json
+          notes?: string | null
+          quotation_id?: string
+          revision_number?: number
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms_and_conditions?: string | null
+          total_amount?: number
+          warranty_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prc_quotation_revisions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prc_quotation_revisions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prc_quotation_revisions_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "prc_quotations"
+            referencedColumns: ["quotation_id"]
+          },
+        ]
+      }
       prc_quotations: {
         Row: {
           company_id: string
@@ -11673,6 +11941,15 @@ export type Database = {
         }
         Returns: string
       }
+      convert_quotation_to_po_transactional: {
+        Args: {
+          p_company_id: string
+          p_expected_delivery_date?: string
+          p_notes?: string
+          p_quotation_id: string
+        }
+        Returns: Json
+      }
       create_cashbox: {
         Args: {
           p_branch_id?: string
@@ -12821,6 +13098,24 @@ export type Database = {
           tax_number: string
           type: string
         }[]
+      }
+      submit_vendor_quotation_revision: {
+        Args: {
+          p_company_id: string
+          p_currency: string
+          p_discount: number
+          p_items: Json
+          p_lead_time_days?: number
+          p_notes?: string
+          p_quotation_id: string
+          p_subtotal: number
+          p_tax: number
+          p_terms?: string
+          p_total: number
+          p_validity_date?: string
+          p_warranty_days?: number
+        }
+        Returns: Json
       }
       sync_product_search_numbers: {
         Args: { p_product_id: string }

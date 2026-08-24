@@ -55,6 +55,8 @@ const DebtPromisesPage = lazy(() => import('../features/debts/pages/PromisesPage
 const DebtOutboxPage = lazy(() => import('../features/debts/pages/OutboxPage'));
 const DebtStatementsPage = lazy(() => import('../features/debts/pages/StatementsPage'));
 const DebtSettingsPage = lazy(() => import('../features/debts/pages/SettingsPage'));
+const SupplierPortalPage = lazy(() => import('../features/supplier-portal/pages/SupplierPortalPage'));
+const ChatHubPage = lazy(() => import('../features/chat').then(m => ({ default: m.ChatHubPage })));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
@@ -332,6 +334,26 @@ export const AppRoutes: React.FC = () => {
           <Route path="statements" element={<DebtStatementsPage />} />
           <Route path="settings" element={<DebtSettingsPage />} />
         </Route>
+
+        {/* Supplier Portal & Smart Procurement */}
+        <Route
+          path={ROUTES.DASHBOARD.SUPPLIER_PORTAL}
+          element={
+            <FeatureBoundary name="supplier-portal">
+              <SupplierPortalPage />
+            </FeatureBoundary>
+          }
+        />
+
+        {/* Enterprise Chat & Branch Collaboration */}
+        <Route
+          path={ROUTES.DASHBOARD.CHAT}
+          element={
+            <FeatureBoundary name="chat">
+              <ChatHubPage />
+            </FeatureBoundary>
+          }
+        />
 
         {/* 404 Fallback */}
         <Route path="*" element={<NotFoundPage />} />

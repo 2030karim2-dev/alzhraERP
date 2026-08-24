@@ -38,6 +38,8 @@ export const ROUTES = {
     DEBTS_OUTBOX: '/debts/outbox',
     DEBTS_STATEMENTS: '/debts/statements',
     DEBTS_SETTINGS: '/debts/settings',
+    SUPPLIER_PORTAL: '/supplier-portal',
+    CHAT: '/chat',
   },
 } as const;
 

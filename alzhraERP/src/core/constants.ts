@@ -12,18 +12,22 @@ import {
   Settings,
   Package,
   Car,
-  HandCoins
+  HandCoins,
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
 
 export const MENU_ITEMS: MenuItem[] = [
   { id: 'dashboard', labelKey: 'overview', icon: LayoutDashboard, path: ROUTES.DASHBOARD.ROOT, color: 'purple' },
+  { id: 'chat', labelKey: 'internal_chat', icon: MessageSquare, path: ROUTES.DASHBOARD.CHAT, color: 'blue' },
   { id: 'sales', labelKey: 'invoices', icon: ShoppingBag, path: ROUTES.DASHBOARD.SALES, color: 'green' },
   { id: 'bonds', labelKey: 'receipts', icon: FileText, path: ROUTES.DASHBOARD.BONDS, color: 'yellow' },
   { id: 'debts', labelKey: 'debts', icon: HandCoins, path: ROUTES.DASHBOARD.DEBTS, color: 'red' },
   { id: 'clients', labelKey: 'customers', icon: Users, path: ROUTES.DASHBOARD.CLIENTS, color: 'emerald' },
   { id: 'suppliers', labelKey: 'suppliers', icon: Users, path: ROUTES.DASHBOARD.SUPPLIERS, color: 'blue' },
+  { id: 'supplier_portal', labelKey: 'supplier_portal', icon: Building2, path: ROUTES.DASHBOARD.SUPPLIER_PORTAL, color: 'indigo' },
   { id: 'inventory', labelKey: 'products', icon: Wrench, path: ROUTES.DASHBOARD.INVENTORY, color: 'orange' },
   { id: 'expenses', labelKey: 'expenses', icon: Receipt, path: ROUTES.DASHBOARD.EXPENSES, color: 'red' },
   { id: 'accounting', labelKey: 'accounting', icon: Calculator, path: ROUTES.DASHBOARD.ACCOUNTING, color: 'indigo' },

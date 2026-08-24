@@ -1,12 +1,13 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Bell, Moon, Sun, Volume2, VolumeX, LogOut, User as UserIcon, Building2 } from 'lucide-react';
+import { Bell, Moon, Sun, Volume2, VolumeX, LogOut, User as UserIcon, Building2, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../../lib/themeStore';
 import { useAuthStore } from '../../../features/auth/store';
 import { useI18nStore } from '../../../lib/i18nStore';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useNotificationStore, useSoundStore } from '../../../features/notifications/store';
+import { useChatStore } from '../../../features/chat/stores/chatStore';
 import NotificationDropdown from '../../../features/notifications/components/NotificationDropdown';
 import { useNetworkStatus } from '../../../lib/hooks/useNetworkStatus';
 import { cn } from '../../../core/utils';
@@ -140,6 +141,24 @@ const HeaderActions: React.FC = () => {
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}
       />
+
+      {/* Internal Branch Chat & Collaboration */}
+      <button
+        onClick={() => navigate('/chat')}
+        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] hover:text-[var(--accent)] transition-all duration-200 active:scale-95 border border-[var(--app-border)] relative focus:outline-none"
+        title="محادثات الفروع والموظفين"
+        aria-label="المحادثات والتواصل الداخلي"
+      >
+        <MessageSquare size={14} className="transition-transform duration-150" />
+        {useChatStore.getState().getTotalUnreadCount() > 0 && (
+          <span className={cn(
+            "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
+            dir === 'rtl' ? '-left-1.5' : '-right-1.5'
+          )}>
+            {useChatStore.getState().getTotalUnreadCount() > 9 ? '9+' : useChatStore.getState().getTotalUnreadCount()}
+          </span>
+        )}
+      </button>
 
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
