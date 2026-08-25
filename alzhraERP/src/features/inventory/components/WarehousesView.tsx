@@ -51,12 +51,12 @@ const WarehousesView: React.FC = () => {
     return (
         <FullscreenContainer isMaximized={isMaximized} onToggleMaximize={() => { setIsMaximized(false); }}>
             <div className={cn(
-                "animate-in fade-in duration-500 h-full flex flex-col",
+                "animate-in fade-in duration-500 h-full flex flex-col flex-1 min-h-0",
                 isMaximized && "bg-[var(--app-bg)] p-4 md:p-8"
             )}>
 
                 {viewMode === 'list' ? (
-                    <div className="space-y-2 h-full flex flex-col">
+                    <div className="space-y-2 h-full flex-1 min-h-0 flex flex-col">
                         <WarehouseListHeader 
                             isMaximized={isMaximized}
                             onMaximize={() => setIsMaximized(true)}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ArrowLeftRight, FileText } from 'lucide-react';
 import { useWarehouses } from '../hooks/useInventoryManagement';
 import { useProducts } from '../hooks/useProducts';
@@ -30,7 +30,24 @@ const NewTransferModal: React.FC<NewTransferModalProps> = ({ isOpen, onClose }) 
         isValid
     } = useNewTransfer(onClose);
 
-    const { products } = useProducts(productQuery);
+    // Fetch all products into memory for lightning-fast instant search & picker
+    const { products } = useProducts('');
+
+    // Auto-select initial warehouses if available and not selected
+    useEffect(() => {
+        if (warehouses && warehouses.length > 0) {
+            if (!fromWh) {
+                setFromWh(warehouses[0].id);
+            }
+            if (!toWh && warehouses.length > 1) {
+                setToWh(warehouses[1].id);
+            }
+        }
+    }, [warehouses, fromWh, toWh, setFromWh, setToWh]);
+
+    const selectedProductIds = useMemo(() => {
+        return new Set(selectedItems.map(i => i.product.id));
+    }, [selectedItems]);
 
     if (!isOpen) return null;
 
@@ -44,7 +61,7 @@ const NewTransferModal: React.FC<NewTransferModalProps> = ({ isOpen, onClose }) 
                 variant="success"
                 className="flex-1"
             >
-                تأكيد المناقلة
+                تأكيد المناقلة ({selectedItems.length} صنف)
             </Button>
         </>
     );
@@ -55,11 +72,11 @@ const NewTransferModal: React.FC<NewTransferModalProps> = ({ isOpen, onClose }) 
             onClose={onClose}
             icon={ArrowLeftRight}
             title="مناقلة بضاعة بين المستودعات"
-            description="تحويل كميات من فرع إلى آخر وتحديث الأرصدة"
+            description="تحويل كميات من فرع إلى آخر وتحديث الأرصدة فورياً"
             footer={footerContent}
             size="full"
         >
-            <div className="flex flex-col h-full space-y-1">
+            <div className="flex flex-col h-full space-y-2">
                 <TransferWarehousePicker 
                     warehouses={warehouses}
                     fromWh={fromWh}
@@ -71,28 +88,31 @@ const NewTransferModal: React.FC<NewTransferModalProps> = ({ isOpen, onClose }) 
                 <TransferProductSearch 
                     query={productQuery} 
                     setQuery={setProductQuery} 
+                    products={products || []}
+                    fromWarehouseId={fromWh}
+                    onAddItem={handleAddItem}
+                    selectedProductIds={selectedProductIds}
                 />
 
-                <div className="flex-1 min-h-0 relative">
+                <div className="flex-1 min-h-[320px] relative flex flex-col">
                     <TransferItemsList 
                         items={selectedItems}
                         onRemove={handleRemoveItem}
                         onUpdateQty={handleUpdateQty}
-                        searchResults={products || []}
-                        searchQuery={productQuery}
-                        onAddItem={handleAddItem}
+                        fromWarehouseId={fromWh}
                     />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-gray-400 uppercase mr-1 flex items-center gap-1.5">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase mr-1 flex items-center gap-1.5">
                         <FileText size={12} />
-                        ملاحظات
+                        ملاحظات أو سبب المناقلة
                     </label>
                     <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="w-full bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-2 text-xs font-bold"
+                        placeholder="أدخل أي ملاحظات خاصة بأمر المناقلة (اختياري)..."
+                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={2}
                     ></textarea>
                 </div>

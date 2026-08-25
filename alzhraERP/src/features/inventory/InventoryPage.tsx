@@ -282,7 +282,7 @@ const InventoryPage: React.FC = () => {
               </div>
             ) : (
               /* Standard Layout: single column */
-              <div className="flex flex-1 flex-col overflow-hidden transition-all duration-500">
+              <div className="flex flex-1 min-h-0 h-full flex-col overflow-hidden transition-all duration-500">
                 {isError ? (
                   <ErrorDisplay
                     error={error?.message || null}

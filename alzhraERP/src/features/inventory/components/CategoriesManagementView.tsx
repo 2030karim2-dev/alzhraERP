@@ -54,7 +54,7 @@ const CategoriesManagementView: React.FC<Props> = ({ onFilterProduct }) => {
     const alertedCategories = categories?.filter((c: any) => c.hasAlert).length || 0;
 
     return (
-        <div className="space-y-2 animate-in fade-in duration-500">
+        <div className="space-y-2 animate-in fade-in duration-500 h-full flex flex-col flex-1 min-h-0">
             <CategoryStats
                 categoriesCount={categories?.length || 0}
                 totalProducts={totalProducts}

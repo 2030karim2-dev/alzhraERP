@@ -414,7 +414,7 @@ function ExcelTable<T>({
   return (
     <FullscreenContainer isMaximized={isZoomed} onToggleMaximize={() => setIsZoomed(false)}>
       <div className={cn(
-        "w-full flex flex-col transition-all duration-300 relative",
+        "w-full flex-1 min-h-0 flex flex-col transition-all duration-300 relative",
         isZoomed ? "h-full bg-[var(--app-surface)] p-4" : "h-full min-h-[420px]"
       )}>
         <ExcelTableToolbar
