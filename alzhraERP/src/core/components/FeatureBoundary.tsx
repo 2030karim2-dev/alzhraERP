@@ -33,9 +33,9 @@ export const FeatureBoundary: React.FC<FeatureBoundaryProps> = ({ children, name
     <ErrorBoundary
       inline
       resetKeys={[pathname]}
-      onError={(err) => {
+      onError={(err, errorInfo) => {
         // In production this is where you'd forward to Sentry / analytics
-        logger.error('FeatureBoundary', `Error in feature: ${name}`, err);
+        logger.error('FeatureBoundary', `Error in feature: ${name}`, { error: err, ...errorInfo });
       }}
     >
       <Suspense fallback={<PageLoader />}>

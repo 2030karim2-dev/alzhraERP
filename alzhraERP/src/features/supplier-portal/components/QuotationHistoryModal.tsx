@@ -5,9 +5,9 @@ import {
   FileText,
 } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils';
-import { supabase } from '../../../lib/supabaseClient';
+import { supplierPortalService } from '../services/supplierPortalService';
 import { logger } from '../../../core/utils/logger';
-import type { QuotationRevision, QuotationItemDraft } from '../types';
+import type { QuotationRevision } from '../types';
 
 interface Props {
   isOpen: boolean;
@@ -32,34 +32,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
     const fetchRevisions = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('prc_quotation_revisions')
-          .select('*')
-          .eq('quotation_id', quotationId)
-          .order('revision_number', { ascending: false });
-
-        if (error) throw error;
-
-        const formattedRevs = (data || []).map((r): QuotationRevision => ({
-          id: r.id,
-          quotation_id: r.quotation_id,
-          revision_number: r.revision_number,
-          status: r.status,
-          subtotal: Number(r.subtotal) || 0,
-          discount_amount: Number(r.discount_amount) || 0,
-          tax_amount: Number(r.tax_amount) || 0,
-          total_amount: Number(r.total_amount) || 0,
-          currency: r.currency || 'SAR',
-          delivery_lead_time_days: Number(r.delivery_lead_time_days) || 0,
-          warranty_days: Number(r.warranty_days) || 0,
-          notes: r.notes ?? null,
-          terms_and_conditions: r.terms_and_conditions ?? null,
-          items_snapshot: Array.isArray(r.items_snapshot)
-            ? (r.items_snapshot as unknown as QuotationItemDraft[])
-            : [],
-          created_at: r.created_at,
-        }));
-
+        const formattedRevs = await supplierPortalService.getQuotationRevisions(quotationId);
         setRevisions(formattedRevs);
         if (formattedRevs.length > 0) {
           setSelectedRev(formattedRevs[0]);

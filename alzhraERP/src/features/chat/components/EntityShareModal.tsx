@@ -8,10 +8,15 @@ import {
   Search,
   Loader2,
 } from 'lucide-react';
-import { supabase } from '../../../lib/supabaseClient';
+import { chatService } from '../services/chatService';
 import { useAuthStore } from '../../auth/store';
 import type { EntityCardMetadata } from '../types';
 import { formatCurrency } from '../../../core/utils';
+
+interface BranchItem {
+  id: string;
+  name: string;
+}
 
 interface Props {
   isOpen: boolean;
@@ -28,7 +33,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
   // Transfer specific form state
   const [targetBranchId, setTargetBranchId] = useState('');
-  const [branches, setBranches] = useState<any[]>([]);
+  const [branches, setBranches] = useState<BranchItem[]>([]);
   const [transferQty, setTransferQty] = useState(1);
   const [selectedProductForTransfer, setSelectedProductForTransfer] = useState<any | null>(null);
 
@@ -37,13 +42,9 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   // Load branches
   useEffect(() => {
     if (!companyId) return;
-    supabase
-      .from('branches')
-      .select('id, name')
-      .eq('company_id', companyId)
-      .then(({ data }) => {
-        if (data) setBranches(data);
-      });
+    chatService.getCompanyBranches(companyId).then((data) => {
+      if (data) setBranches(data);
+    });
   }, [companyId]);
 
   // Search effect
@@ -57,29 +58,14 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
       setIsLoading(true);
       try {
         if (activeTab === 'product') {
-          const { data } = await supabase
-            .from('products')
-            .select('id, name, part_number, brand, sale_price, total_stock, stock')
-            .eq('company_id', companyId)
-            .or(`part_number.ilike.%${search}%,name.ilike.%${search}%`)
-            .limit(10);
-          setResults(data || []);
+          const data = await chatService.searchProducts(companyId, search);
+          setResults(data);
         } else if (activeTab === 'vin') {
-          const { data } = await supabase
-            .from('vin_analyses')
-            .select('id, vin, vehicle_id, decoded')
-            .eq('company_id', companyId)
-            .ilike('vin', `%${search}%`)
-            .limit(10);
-          setResults(data || []);
+          const data = await chatService.searchVins(companyId, search);
+          setResults(data);
         } else if (activeTab === 'invoice') {
-          const { data } = await supabase
-            .from('invoices')
-            .select('id, invoice_number, total, created_at, customer_name, status')
-            .eq('company_id', companyId)
-            .ilike('invoice_number', `%${search}%`)
-            .limit(10);
-          setResults(data || []);
+          const data = await chatService.searchInvoices(companyId, search);
+          setResults(data);
         }
       } catch (err) {
         // error ignored

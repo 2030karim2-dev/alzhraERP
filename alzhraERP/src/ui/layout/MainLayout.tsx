@@ -123,7 +123,6 @@ const MainLayout: React.FC = () => {
     { icon: Truck, label: t('purchases'), path: '/purchases' },
     { icon: ReceiptText, label: t('expenses'), path: '/expenses' },
     { icon: DollarSign, label: t('accounting'), path: '/accounting' },
-    { icon: Calculator, label: t('commission_dashboard'), path: ROUTES.DASHBOARD.COMMISSIONS },
     {
       icon: SlidersHorizontal,
       label: t('commission_config'),
@@ -193,14 +192,14 @@ const MainLayout: React.FC = () => {
         {isOnline && isUnstable && (
           <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-amber-500 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
             <Activity size={11} className="animate-pulse" />
-            <span>Connection unstable - Retrying background tasks</span>
+            <span>الاتصال غير مستقر — جارٍ إعادة المحاولة</span>
           </div>
         )}
 
         {!isOnline && (
           <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-rose-500 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
             <WifiOff size={11} className="animate-bounce" />
-            <span>Offline Mode Active - Performance optimized via Local Cache</span>
+            <span>وضع عدم الاتصال — البيانات المحلية المخزّنة مؤقتاً</span>
           </div>
         )}
 

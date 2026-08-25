@@ -449,6 +449,48 @@ export const chatService = {
   },
 
   /**
+   * Create a new group/topic channel and join the creator as owner
+   */
+  createGroupChannel: async (payload: {
+    companyId: string;
+    userId: string;
+    name: string;
+    description?: string | null;
+    type: 'branch' | 'topic';
+    branchId?: string | null;
+  }): Promise<string> => {
+    try {
+      const { data: newChannel, error } = await supabase
+        .from('chat_channels')
+        .insert({
+          company_id: payload.companyId,
+          type: payload.type,
+          name: payload.name,
+          description: payload.description || null,
+          branch_id: payload.type === 'branch' && payload.branchId ? payload.branchId : null,
+          is_private: false,
+          created_by: payload.userId,
+        } as never)
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Join creator to the channel
+      await supabase.from('chat_channel_members').insert({
+        channel_id: (newChannel as any).id,
+        user_id: payload.userId,
+        role: 'owner',
+      } as never);
+
+      return (newChannel as any).id;
+    } catch (err) {
+      logger.error('ChatService', 'Error creating group channel', err as Error);
+      throw err;
+    }
+  },
+
+  /**
    * Get list of company employees for starting new chats
    */
   getCompanyEmployees: async (companyId: string): Promise<Array<{ id: string; full_name: string; avatar_url: string | null; role: string; branch_name: string | null }>> => {
@@ -482,6 +524,84 @@ export const chatService = {
       }));
     } catch (err) {
       logger.error('ChatService', 'Error fetching company employees', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Get list of company branches for chat filtering and group channel creation
+   */
+  getCompanyBranches: async (companyId: string): Promise<Array<{ id: string; name: string }>> => {
+    try {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name')
+        .eq('company_id', companyId);
+
+      if (error) throw error;
+      return (data || []) as Array<{ id: string; name: string }>;
+    } catch (err) {
+      logger.error('ChatService', 'Error fetching company branches', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Search products for entity sharing in chat
+   */
+  searchProducts: async (companyId: string, search: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, part_number, brand, sale_price, total_stock, stock')
+        .eq('company_id', companyId)
+        .or(`part_number.ilike.%${search}%,name.ilike.%${search}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      logger.error('ChatService', 'Error searching products for sharing', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Search VIN analyses for entity sharing in chat
+   */
+  searchVins: async (companyId: string, search: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('vin_analyses')
+        .select('id, vin, vehicle_id, decoded')
+        .eq('company_id', companyId)
+        .ilike('vin', `%${search}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      logger.error('ChatService', 'Error searching VINs for sharing', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Search invoices for entity sharing in chat
+   */
+  searchInvoices: async (companyId: string, search: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, total, created_at, customer_name, status')
+        .eq('company_id', companyId)
+        .ilike('invoice_number', `%${search}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      logger.error('ChatService', 'Error searching invoices for sharing', err as Error);
       return [];
     }
   },

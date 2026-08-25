@@ -5,12 +5,27 @@ import type {
   VendorProductItem,
   VendorRFQ,
   VendorQuotation,
+  QuotationRevision,
   RFQStatus,
   QuotationStatus,
   ItemAvailability,
   QuotationItemDraft,
   ComparisonVendorScore,
 } from '../types';
+
+/**
+ * Escape PostgREST filter special characters to prevent query injection.
+ * Characters like `.`, `(`, `)`, `,`, `%` have special meaning in PostgREST
+ * filter strings and must be escaped or the query may break/return unexpected results.
+ */
+const sanitizeSearchInput = (input: string): string =>
+  input.replace(/[.(),\\%]/g, '');
+
+/**
+ * In-flight mutation guard — prevents double-submission of quotation revisions
+ * and PO conversions while a request is still pending.
+ */
+const inflightMutations = new Set<string>();
 
 interface RawSupplierProductRel {
   supplier_sku?: string | null;
@@ -154,7 +169,10 @@ export const supplierPortalService = {
         .is('deleted_at', null);
 
       if (search && search.trim() !== '') {
-        query = query.or(`name_ar.ilike.%${search}%,sku.ilike.%${search}%,part_number.ilike.%${search}%`);
+        const safe = sanitizeSearchInput(search.trim());
+        if (safe.length > 0) {
+          query = query.or(`name_ar.ilike.%${safe}%,sku.ilike.%${safe}%,part_number.ilike.%${safe}%`);
+        }
       }
 
       const { data, error } = await query;
@@ -408,11 +426,17 @@ export const supplierPortalService = {
     terms?: string | null;
     notes?: string | null;
   }): Promise<{ success: boolean; revision_number: number; total_amount: number }> => {
+    // Double-submit guard
+    const mutationKey = `revision:${payload.quotationId}`;
+    if (inflightMutations.has(mutationKey)) {
+      throw new Error('جارٍ إرسال المراجعة بالفعل، يرجى الانتظار');
+    }
+    inflightMutations.add(mutationKey);
     try {
-      const { data, error } = await (supabase.rpc as any)('submit_vendor_quotation_revision', {
+      const { data, error } = await supabase.rpc('submit_vendor_quotation_revision' as never, {
         p_company_id: payload.companyId,
         p_quotation_id: payload.quotationId,
-        p_items: payload.items as any,
+        p_items: JSON.stringify(payload.items),
         p_subtotal: payload.subtotal,
         p_discount: payload.discount,
         p_tax: payload.tax,
@@ -423,13 +447,15 @@ export const supplierPortalService = {
         p_validity_date: payload.validityDate || null,
         p_terms: payload.terms || null,
         p_notes: payload.notes || null,
-      });
+      } as never);
 
       if (error) throw error;
       return data as unknown as { success: boolean; revision_number: number; total_amount: number };
     } catch (err) {
       logger.error('supplierPortalService.submitQuotationRevision', 'RPC failed', err);
       throw parseError(err);
+    } finally {
+      inflightMutations.delete(mutationKey);
     }
   },
 
@@ -442,19 +468,27 @@ export const supplierPortalService = {
     expectedDeliveryDate?: string | null;
     notes?: string | null;
   }): Promise<{ success: boolean; po_id: string; po_number: string; quotation_id: string }> => {
+    // Double-submit guard
+    const mutationKey = `po:${payload.quotationId}`;
+    if (inflightMutations.has(mutationKey)) {
+      throw new Error('جارٍ تحويل عرض السعر بالفعل، يرجى الانتظار');
+    }
+    inflightMutations.add(mutationKey);
     try {
-      const { data, error } = await (supabase.rpc as any)('convert_quotation_to_po_transactional', {
+      const { data, error } = await supabase.rpc('convert_quotation_to_po_transactional' as never, {
         p_company_id: payload.companyId,
         p_quotation_id: payload.quotationId,
         p_expected_delivery_date: payload.expectedDeliveryDate || null,
         p_notes: payload.notes || null,
-      });
+      } as never);
 
       if (error) throw error;
       return data as unknown as { success: boolean; po_id: string; po_number: string; quotation_id: string };
     } catch (err) {
       logger.error('supplierPortalService.convertQuotationToPO', 'PO conversion failed', err);
       throw parseError(err);
+    } finally {
+      inflightMutations.delete(mutationKey);
     }
   },
 
@@ -535,5 +569,43 @@ export const supplierPortalService = {
     });
 
     return scored;
+  },
+
+  /**
+   * Fetches full revision history for a given vendor quotation
+   */
+  getQuotationRevisions: async (quotationId: string): Promise<QuotationRevision[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('prc_quotation_revisions')
+        .select('*')
+        .eq('quotation_id', quotationId)
+        .order('revision_number', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map((r): QuotationRevision => ({
+        id: r.id,
+        quotation_id: r.quotation_id,
+        revision_number: r.revision_number,
+        status: r.status,
+        subtotal: Number(r.subtotal) || 0,
+        discount_amount: Number(r.discount_amount) || 0,
+        tax_amount: Number(r.tax_amount) || 0,
+        total_amount: Number(r.total_amount) || 0,
+        currency: r.currency || 'SAR',
+        delivery_lead_time_days: Number(r.delivery_lead_time_days) || 0,
+        warranty_days: Number(r.warranty_days) || 0,
+        notes: r.notes ?? null,
+        terms_and_conditions: r.terms_and_conditions ?? null,
+        items_snapshot: Array.isArray(r.items_snapshot)
+          ? (r.items_snapshot as unknown as QuotationItemDraft[])
+          : [],
+        created_at: r.created_at,
+      }));
+    } catch (err) {
+      logger.error('supplierPortalService.getQuotationRevisions', 'Failed to load quotation revisions', err);
+      throw parseError(err);
+    }
   },
 };

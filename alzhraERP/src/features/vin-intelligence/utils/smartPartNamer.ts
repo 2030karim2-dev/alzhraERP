@@ -1,5 +1,5 @@
 import type { VehicleInfo } from '../types';
-import { driveLabel, transLabel } from './vehicleLabels';
+import { transLabel } from './vehicleLabels';
 
 /**
  * Automotive parts naming dictionary:
@@ -303,15 +303,18 @@ export function buildDefaultVehicleArabicSuffix(vehicle?: VehicleInfo | null): s
   // Transmission (تماتيك / عادي)
   let trans = '';
   if (vehicle.transmission) {
-    trans = transLabel(vehicle.transmission);
-    if (trans === 'أوتوماتيك') trans = 'تماتيك';
+    const t = vehicle.transmission.toLowerCase();
+    if (/auto|تماتيك|أوتوماتيك/i.test(t)) trans = 'تماتيك';
+    else if (/manual|عادي|يدوي|مانيوال/i.test(t)) trans = 'عادي';
+    else trans = transLabel(vehicle.transmission);
   }
 
   // Drive (دبل)
   let drive = '';
   if (vehicle.driveType) {
-    const d = driveLabel(vehicle.driveType);
-    if (d === 'دبل') drive = 'دبل';
+    const d = vehicle.driveType.toLowerCase();
+    if (/4wd|4x4|دبل/i.test(d)) drive = 'دبل';
+    else if (/awd/i.test(d)) drive = 'دبل مستمر';
   }
 
   // Submodel / Trim
@@ -377,15 +380,18 @@ export function generateSmartPartName(
   // Transmission (تماتيك / عادي)
   let trans = '';
   if (opts.includeTrans && vehicle.transmission) {
-    trans = transLabel(vehicle.transmission);
-    if (trans === 'أوتوماتيك') trans = 'تماتيك';
+    const t = vehicle.transmission.toLowerCase();
+    if (/auto|تماتيك|أوتوماتيك/i.test(t)) trans = 'تماتيك';
+    else if (/manual|عادي|يدوي|مانيوال/i.test(t)) trans = 'عادي';
+    else trans = transLabel(vehicle.transmission);
   }
 
   // Drive (دبل / سنجل)
   let drive = '';
   if (vehicle.driveType) {
-    const d = driveLabel(vehicle.driveType);
-    if (d === 'دبل') drive = 'دبل';
+    const d = vehicle.driveType.toLowerCase();
+    if (/4wd|4x4|دبل/i.test(d)) drive = 'دبل';
+    else if (/awd/i.test(d)) drive = 'دبل مستمر';
   }
 
   // Submodel / Trim

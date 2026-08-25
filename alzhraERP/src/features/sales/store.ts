@@ -72,6 +72,45 @@ const createNewItem = (): SalesCartItem => ({
   costPrice: 0,
 });
 
+/**
+ * Validate exchange rate before any foreign-currency conversion.
+ * Returns `true` if the rate is valid, `false` (with toast) otherwise.
+ */
+const assertValidExchangeRate = (currency: string, rate: number): boolean => {
+  if (currency !== 'SAR' && (!rate || rate <= 0)) {
+    useFeedbackStore.getState().showToast(
+      'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
+      'error'
+    );
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Safely convert a base-currency price to the current foreign currency.
+ * Returns the original price if the currency is SAR or conversion fails.
+ */
+const safeConvertFromBase = (
+  basePrice: number,
+  currency: string,
+  rate: number,
+  operator: 'multiply' | 'divide',
+  context: string
+): { price: number; failed: boolean } => {
+  if (currency === 'SAR') return { price: basePrice, failed: false };
+  try {
+    return { price: convertCurrency(basePrice, rate, 'fromBase', operator), failed: false };
+  } catch (e) {
+    logger.error('SalesStore', `Invalid exchange rate for ${context}`, { rate, currency });
+    useFeedbackStore.getState().showToast(
+      'خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'),
+      'error'
+    );
+    return { price: basePrice, failed: true };
+  }
+};
+
 export const useSalesStore = create<SalesState>((set, get) => ({
   items: [],
   selectedCustomer: null,
@@ -80,7 +119,8 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   currency: 'SAR',
   exchangeRate: 1,
   exchangeOperator: 'multiply',
-  warehouseId: 'wh_main',
+  // [FIX] warehouseId فارغ — يُعيّن تلقائياً من InvoiceMeta عند التحميل (مثل cashboxId)
+  warehouseId: '',
   // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
   cashboxId: '',
   showDiscount: false,
@@ -114,34 +154,16 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   },
 
   setProductForRow: (index, product) => {
-    // [FIX #2] التحقق من سعر الصرف قبل البدء — مع إشعار المستخدم
     const state = get();
-    if (state.currency !== 'SAR' && (!state.exchangeRate || state.exchangeRate <= 0)) {
-      useFeedbackStore.getState().showToast(
-        'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
-        'error'
-      );
-      return;
-    }
+    if (!assertValidExchangeRate(state.currency, state.exchangeRate)) return;
 
     set(state => {
       const newItems = [...state.items];
       const basePrice = product.selling_price || 0;
-      const rate = state.exchangeRate;
-
-      // Validate exchange rate before conversion
-      let convertedPrice = basePrice;
-      if (state.currency !== 'SAR') {
-        try {
-          // Convert from base (SAR) to foreign currency
-          convertedPrice = convertCurrency(basePrice, rate, 'fromBase', state.exchangeOperator);
-        } catch (e) {
-          // [FIX #2] لن نصل هنا نظرياً بعد التحقق أعلاه، لكن نحتفظ بـ safety net
-          logger.error('SalesStore', 'Invalid exchange rate for setProductForRow', { rate, currency: state.currency });
-          useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
-          return state; // Don't update if rate is invalid
-        }
-      }
+      const { price: convertedPrice, failed } = safeConvertFromBase(
+        basePrice, state.currency, state.exchangeRate, state.exchangeOperator, 'setProductForRow'
+      );
+      if (failed) return state;
 
       if (newItems[index]) {
         newItems[index] = {
@@ -166,15 +188,8 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   addItem: () => set(state => ({ items: [...state.items, createNewItem()] })),
 
   addProductToCart: (product) => {
-    // [FIX #2] التحقق من سعر الصرف قبل البدء — مع إشعار المستخدم
     const currentState = get();
-    if (currentState.currency !== 'SAR' && (!currentState.exchangeRate || currentState.exchangeRate <= 0)) {
-      useFeedbackStore.getState().showToast(
-        'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
-        'error'
-      );
-      return;
-    }
+    if (!assertValidExchangeRate(currentState.currency, currentState.exchangeRate)) return;
 
     set(state => {
       const existing = state.items.find(i => i.productId === product.id);
@@ -187,19 +202,10 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       }
 
       const basePrice = product.selling_price || 0;
-      const rate = state.exchangeRate;
-
-      // Validate exchange rate before conversion
-      let convertedPrice = basePrice;
-      if (state.currency !== 'SAR') {
-        try {
-          convertedPrice = convertCurrency(basePrice, rate, 'fromBase', state.exchangeOperator);
-        } catch (e) {
-          logger.error('SalesStore', 'Invalid exchange rate for addProductToCart', { rate, currency: state.currency });
-          useFeedbackStore.getState().showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
-          return state;
-        }
-      }
+      const { price: convertedPrice, failed } = safeConvertFromBase(
+        basePrice, state.currency, state.exchangeRate, state.exchangeOperator, 'addProductToCart'
+      );
+      if (failed) return state;
 
       const newItem: SalesCartItem = {
         id: crypto.randomUUID(),
@@ -299,7 +305,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     currency: 'SAR',
     exchangeRate: 1,
     exchangeOperator: 'multiply',
-    warehouseId: 'wh_main',
+    warehouseId: '',
     cashboxId: '',
     showDiscount: false,
     notes: ''

@@ -69,11 +69,13 @@ export const useAuthStore = create<AuthState>()(
         isInitializingGlobal = true;
 
         // ⚡ Trust Persisted Data First (Optimistic UI)
+        // NOTE: `isAuthenticated` is intentionally NOT persisted (QA-2026-003),
+        // so we rely on `persistedUser` existence (which IS persisted) to decide
+        // whether to show the app optimistically during background validation.
         const persistedUser = get().user;
-        const wasAuthenticated = get().isAuthenticated;
 
-        if (persistedUser && wasAuthenticated) {
-          set({ isLoading: false, isReady: true });
+        if (persistedUser) {
+          set({ isAuthenticated: true, isLoading: false, isReady: true });
         }
 
         try {
@@ -271,8 +273,10 @@ export const useAuthStore = create<AuthState>()(
       name: 'alzhra-auth',
       partialize: (state) => ({
         user: state.user,
-        // isAuthenticated intentionally NOT persisted — must be derived from Supabase session
-        // to prevent localStorage tampering (security fix: QA-2026-003)
+        // isAuthenticated intentionally NOT persisted (QA-2026-003) — derived
+        // from `user` presence during initialize(). Storing a bare boolean in
+        // localStorage would let a user bypass auth by tampering the JSON.
+        // The Optimistic UI now checks `persistedUser` directly instead.
       }),
     }
   )

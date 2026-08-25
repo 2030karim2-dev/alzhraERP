@@ -1,6 +1,7 @@
 
 import { partiesApi } from './api';
 import { supabase } from '../../lib/supabaseClient';
+import { useAuthStore } from '../auth/store';
 import { Party, PartyStats, PartyFormData, PartyType, PartyCategory } from './types';
 
 export interface StatementMovement {
@@ -37,17 +38,26 @@ export const partiesService = {
 
   // ⚡ Server-side party statement via RPC — no frontend aggregation
   getStatement: async (partyId: string, _type: PartyType, options?: { startDate?: string; endDate?: string }): Promise<StatementMovement[]> => {
-    const { data: authData } = await supabase.auth.getUser();
-    const userId = authData?.user?.id || '';
-    const { data: role } = await supabase.from('user_company_roles')
-      .select('company_id')
-      .eq('user_id', userId)
-      .single();
+    // 1. Get companyId from active unified session
+    let companyId = useAuthStore.getState().user?.company_id;
 
-    if (!role?.company_id) return [];
+    // Fallback if store is not populated
+    if (!companyId) {
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (userId) {
+        const { data: roles } = await supabase.from('user_company_roles')
+          .select('company_id')
+          .eq('user_id', userId)
+          .limit(1);
+        companyId = roles?.[0]?.company_id;
+      }
+    }
+
+    if (!companyId) return [];
 
     const { data, error } = await supabase.rpc('get_party_statement', {
-      p_company_id: role.company_id,
+      p_company_id: companyId,
       p_party_id: partyId
     });
     if (error) throw error;

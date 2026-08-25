@@ -3,7 +3,19 @@ import { X, User, MessageSquare, Plus, Search, Loader2 } from 'lucide-react';
 import { chatService } from '../services/chatService';
 import { useAuthStore } from '../../auth/store';
 import { useChatStore } from '../stores/chatStore';
-import { supabase } from '../../../lib/supabaseClient';
+
+interface EmployeeItem {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string;
+  branch_name: string | null;
+}
+
+interface BranchItem {
+  id: string;
+  name: string;
+}
 
 interface Props {
   isOpen: boolean;
@@ -16,8 +28,8 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   const [mode, setMode] = useState<'direct' | 'group'>('direct');
   const [search, setSearch] = useState('');
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<EmployeeItem[]>([]);
+  const [branches, setBranches] = useState<BranchItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,9 +47,9 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     Promise.all([
       chatService.getCompanyEmployees(companyId),
-      supabase.from('branches').select('id, name').eq('company_id', companyId),
+      chatService.getCompanyBranches(companyId),
     ])
-      .then(([emps, { data: brs }]) => {
+      .then(([emps, brs]) => {
         // Filter out current user from direct chat candidates
         setEmployees(emps.filter((e) => e.id !== user?.id));
         if (brs) setBranches(brs);
@@ -75,31 +87,17 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
     try {
-      const { data: newChannel, error } = await (supabase as any)
-        .from('chat_channels')
-        .insert({
-          company_id: companyId,
-          type: groupType,
-          name: groupName.trim(),
-          description: groupDescription.trim() || null,
-          branch_id: groupType === 'branch' && selectedBranchId ? selectedBranchId : null,
-          is_private: false,
-          created_by: user.id,
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      // Join creator to the channel
-      await (supabase as any).from('chat_channel_members').insert({
-        channel_id: newChannel.id,
-        user_id: user.id,
-        role: 'owner',
+      const channelId = await chatService.createGroupChannel({
+        companyId,
+        userId: user.id,
+        name: groupName.trim(),
+        description: groupDescription.trim() || null,
+        type: groupType,
+        branchId: groupType === 'branch' && selectedBranchId ? selectedBranchId : null,
       });
 
       await fetchChannels(companyId, user.id);
-      setActiveChannel(newChannel.id);
+      setActiveChannel(channelId);
       onClose();
     } catch (err) {
       // Error handled

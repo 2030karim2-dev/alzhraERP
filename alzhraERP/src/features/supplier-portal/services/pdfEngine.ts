@@ -1,5 +1,3 @@
-import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
 import { formatCurrency } from '../../../core/utils';
 import type { QuotationItemDraft } from '../types';
 
@@ -25,6 +23,11 @@ export interface PDFQuotationOptions {
 }
 
 export const generateQuotationPDF = async (options: PDFQuotationOptions): Promise<void> => {
+  const [{ default: jsPDF }, QRCode] = await Promise.all([
+    import('jspdf'),
+    import('qrcode'),
+  ]);
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
