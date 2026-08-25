@@ -177,7 +177,14 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
 
       // Retry only while the circuit is closed and the request opted in.
       if (i < MAX_RETRIES && isNetworkError && !skipRetry && !isCircuitOpen()) {
-        logger.warn('Supabase', `Request failed (network instability), retrying ${i + 1}/${MAX_RETRIES}...`, { attempt: i + 1 });
+        // SECURITY (R-11): never log the request options — they include the
+        // bearer Authorization header, which would be leaked to the browser
+        // console (and any console-capturing extension / Sentry replay).
+        logger.warn('Supabase', `Request failed (network instability), retrying ${i + 1}/${MAX_RETRIES}...`, {
+          attempt: i + 1,
+          url: typeof url === 'string' ? url : (url as URL).toString(),
+          method: options.method ?? 'GET',
+        });
 
         const backoff = (Math.pow(2, i) * 1000) + Math.random() * 500;
         await new Promise(resolve => setTimeout(resolve, backoff));

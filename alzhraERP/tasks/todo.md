@@ -1,5 +1,17 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-25) — نشر وتحديث قاعدة بيانات الإنتاج + إصلاح تشابه المنتجات ✅
+
+- [x] **إصلاح ونشر دالة `get_similar_products` على Supabase**:
+  - تفعيل إضافة `pg_trgm` ونشر دالة البحث بالتشابه الذكي `get_similar_products(p_name text, p_company_id uuid)` مع تأمين الصلاحيات (authenticated فقط) وعزل الشركات.
+  - إصلاح الاستعلام الاحتياطي في `productService.ts` لاستخدام `.ilike(...)` ومعالجة الأخطاء بمرونة.
+- [x] **تطبيق ومزامنة كافة الـ Migrations المعلقة (42/42)**:
+  - تطبيق الـ migrations المتبقية بنجاح عبر Supabase Management API وتحديث سجل `schema_migrations` (تتضمن بوابة الموردين والمشتريات الذكية والمحادثات الداخلية).
+  - جعل سياسات `20260825000004_supplier_portal_security_hardening.sql` معيارية وقابلة لإعادة التشغيل (idempotent).
+- [x] **التحقق الحي**:
+  - التأكد من مطابقة وصلاحيات الدوال الأساسية (`get_similar_products`, `search_inventory_paginated`, `get_dashboard_summary`, `commit_purchase_return`).
+  - التحقق من عمل حراس الأمان وعزل الشركات `fn_assert_company_access`.
+
 ## Checkpoint (2026-08-22) — مراجعة تكامل Frontend↔Supabase + إصلاحات حرجة ✅
 
 - [x] **مراجعة دقيقة شاملة** للواجهة الأمامية والتحقق الحي من الخلفية (Management API + REST + SQL مباشر):

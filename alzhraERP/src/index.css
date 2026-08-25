@@ -15,8 +15,11 @@
     --app-text: #1e293b;
     --app-text-secondary: #64748b;
     --accent: #3b82f6;
-    --app-font-size: 16px;
+    --app-font-size: 15px;
     --radius: 0.5rem;
+    --glass-blur: 10px;
+    --glass-opacity: 0.1;
+    --shadow-strength: 0.05;
     /* Responsive scale factor — used by components */
     --scale: 1;
   }
@@ -29,44 +32,44 @@
     }
   }
 
-  /* Dark mode overrides */
+  /* Dark mode overrides (Clean neutral OLED dark, not washed blue) */
   .dark {
-    --app-bg: #020617;
-    --app-surface: #0f172a;
-    --app-surface-hover: #1e293b;
-    --app-border: #334155;
-    --app-text: #f1f5f9;
-    --app-text-secondary: #cbd5e1;
+    --app-bg: #09090b;
+    --app-surface: #141417;
+    --app-surface-hover: #1f1f24;
+    --app-border: #27272a;
+    --app-text: #fafafa;
+    --app-text-secondary: #a1a1aa;
     --accent: #3b82f6;
   }
 
   html {
     scrollbar-gutter: stable;
-    /* Stepped responsive typography: Mobile is 20% more compact (11.5px) */
-    font-size: 11.5px;
+    /* Stepped responsive typography tied dynamically to user font-size setting */
+    font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 0.77);
   }
 
   @media (min-width: 768px) {
     html {
-      font-size: 15px;
+      font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 1.0);
     }
   }
 
   @media (min-width: 1280px) {
     html {
-      font-size: 16px;
+      font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 1.06);
     }
   }
 
   @media (min-width: 1920px) {
     html {
-      font-size: 17px;
+      font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 1.13);
     }
   }
 
   @media (min-width: 2560px) {
     html {
-      font-size: 18px;
+      font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 1.2);
     }
   }
 
@@ -143,11 +146,16 @@
 
 /* خلفيات الصفحات */
 [data-theme-scope] .bg-gray-50,
-[data-theme-scope] .bg-\[\#f8fafc\] {
+[data-theme-scope] .bg-\[\#f8fafc\],
+.bg-gray-50.theme-aware,
+.bg-\[\#f8fafc\].theme-aware {
   background-color: var(--app-bg) !important;
 }
 
-.dark [data-theme-scope] .dark\:bg-slate-950 {
+.dark [data-theme-scope] .dark\:bg-slate-950,
+.dark .dark\:bg-slate-950,
+.dark [data-theme-scope] .dark\:bg-gray-950,
+.dark .dark\:bg-gray-950 {
   background-color: var(--app-bg) !important;
 }
 
@@ -157,20 +165,26 @@
   background-color: color-mix(in srgb, var(--app-surface) 80%, transparent) !important;
 }
 
-.dark [data-theme-scope] .dark\:bg-slate-900\/80 {
+.dark [data-theme-scope] .dark\:bg-slate-900\/80,
+.dark .dark\:bg-slate-900\/80 {
   background-color: color-mix(in srgb, var(--app-surface) 80%, transparent) !important;
 }
 
-.dark [data-theme-scope] .dark\:bg-slate-950\/40 {
+.dark [data-theme-scope] .dark\:bg-slate-950\/40,
+.dark .dark\:bg-slate-950\/40 {
   background-color: color-mix(in srgb, var(--app-surface) 40%, transparent) !important;
 }
 
-/* أسطح بيضاء صافية */
-[data-theme-scope] .bg-white {
+/* أسطح بيضاء صافية / كروت */
+[data-theme-scope] .bg-white,
+.bg-white.theme-surface-auto {
   background-color: var(--app-surface) !important;
 }
 
-.dark [data-theme-scope] .dark\:bg-slate-900 {
+.dark [data-theme-scope] .dark\:bg-slate-900,
+.dark .dark\:bg-slate-900,
+.dark [data-theme-scope] .dark\:bg-gray-900,
+.dark .dark\:bg-gray-900 {
   background-color: var(--app-surface) !important;
 }
 
@@ -180,7 +194,12 @@
   border-color: var(--app-border) !important;
 }
 
-.dark [data-theme-scope] .dark\:border-slate-800 {
+.dark [data-theme-scope] .dark\:border-slate-800,
+.dark .dark\:border-slate-800,
+.dark [data-theme-scope] .dark\:border-slate-700,
+.dark .dark\:border-slate-700,
+.dark [data-theme-scope] .dark\:border-gray-800,
+.dark .dark\:border-gray-800 {
   border-color: var(--app-border) !important;
 }
 
@@ -191,8 +210,13 @@
 }
 
 .dark [data-theme-scope] .dark\:bg-slate-900\/50,
+.dark .dark\:bg-slate-900\/50,
 .dark [data-theme-scope] .dark\:bg-slate-900\/30,
-.dark [data-theme-scope] .dark\:bg-slate-800 {
+.dark .dark\:bg-slate-900\/30,
+.dark [data-theme-scope] .dark\:bg-slate-800,
+.dark .dark\:bg-slate-800,
+.dark [data-theme-scope] .dark\:bg-gray-800,
+.dark .dark\:bg-gray-800 {
   background-color: var(--app-surface-hover) !important;
 }
 
@@ -201,7 +225,8 @@
   color: var(--app-text) !important;
 }
 
-.dark [data-theme-scope] .dark\:text-slate-100 {
+.dark [data-theme-scope] .dark\:text-slate-100,
+.dark .dark\:text-slate-100 {
   color: var(--app-text) !important;
 }
 
@@ -211,7 +236,9 @@
 }
 
 .dark [data-theme-scope] .dark\:text-slate-400,
-.dark [data-theme-scope] .dark\:text-slate-500 {
+.dark .dark\:text-slate-400,
+.dark [data-theme-scope] .dark\:text-slate-500,
+.dark .dark\:text-slate-500 {
   color: var(--app-text-secondary) !important;
 }
 

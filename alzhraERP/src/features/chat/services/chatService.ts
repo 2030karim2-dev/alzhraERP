@@ -551,37 +551,43 @@ export const chatService = {
    */
   searchProducts: async (companyId: string, search: string) => {
     try {
+      const term = search.trim();
+      if (!term) return [];
+
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, part_number, brand, sale_price, total_stock, stock')
+        .select(`
+          id,
+          name_ar,
+          part_number,
+          sku,
+          brand,
+          sale_price,
+          product_stock (
+            quantity
+          )
+        `)
         .eq('company_id', companyId)
-        .or(`part_number.ilike.%${search}%,name.ilike.%${search}%`)
+        .or(`part_number.ilike.%${term}%,name_ar.ilike.%${term}%,sku.ilike.%${term}%`)
         .limit(10);
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map((p: any) => {
+        const totalStock = Array.isArray(p.product_stock)
+          ? p.product_stock.reduce((sum: number, s: any) => sum + (Number(s.quantity) || 0), 0)
+          : 0;
+        return {
+          id: p.id,
+          name: p.name_ar || p.part_number || p.sku || 'بدون اسم',
+          part_number: p.part_number || p.sku || '',
+          brand: p.brand || '',
+          sale_price: Number(p.sale_price) || 0,
+          total_stock: totalStock,
+          stock: totalStock,
+        };
+      });
     } catch (err) {
       logger.error('ChatService', 'Error searching products for sharing', err as Error);
-      return [];
-    }
-  },
-
-  /**
-   * Search VIN analyses for entity sharing in chat
-   */
-  searchVins: async (companyId: string, search: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('vin_analyses')
-        .select('id, vin, vehicle_id, decoded')
-        .eq('company_id', companyId)
-        .ilike('vin', `%${search}%`)
-        .limit(10);
-
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      logger.error('ChatService', 'Error searching VINs for sharing', err as Error);
       return [];
     }
   },
@@ -591,17 +597,97 @@ export const chatService = {
    */
   searchInvoices: async (companyId: string, search: string) => {
     try {
+      const term = search.trim();
+      if (!term) return [];
+
       const { data, error } = await supabase
         .from('invoices')
-        .select('id, invoice_number, total, created_at, customer_name, status')
+        .select(`
+          id,
+          invoice_number,
+          total_amount,
+          created_at,
+          status,
+          type,
+          party:party_id (
+            name
+          )
+        `)
         .eq('company_id', companyId)
-        .ilike('invoice_number', `%${search}%`)
+        .ilike('invoice_number', `%${term}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return (data || []).map((inv: any) => ({
+        id: inv.id,
+        invoice_number: inv.invoice_number || 'INV',
+        total: Number(inv.total_amount) || 0,
+        customer_name: inv.party?.name || (inv.type === 'purchase' ? 'مورد' : 'عميل نقدي'),
+        status: inv.status,
+        created_at: inv.created_at,
+      }));
+    } catch (err) {
+      logger.error('ChatService', 'Error searching invoices for sharing', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Search stock transfers for entity sharing in chat
+   */
+  searchTransfers: async (companyId: string, search: string) => {
+    try {
+      const term = search.trim();
+      if (!term) return [];
+
+      const { data, error } = await supabase
+        .from('stock_transfers')
+        .select(`
+          id,
+          transfer_number,
+          status,
+          created_at,
+          from_warehouse:warehouses!stock_transfers_from_warehouse_id_fkey (name_ar),
+          to_warehouse:warehouses!stock_transfers_to_warehouse_id_fkey (name_ar)
+        `)
+        .eq('company_id', companyId)
+        .ilike('transfer_number', `%${term}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return (data || []).map((tr: any) => ({
+        id: tr.id,
+        transfer_number: tr.transfer_number || 'TR',
+        status: tr.status,
+        from_warehouse: tr.from_warehouse?.name_ar || 'مستودع المصدر',
+        to_warehouse: tr.to_warehouse?.name_ar || 'مستودع الوجهة',
+        created_at: tr.created_at,
+      }));
+    } catch (err) {
+      logger.error('ChatService', 'Error searching transfers for sharing', err as Error);
+      return [];
+    }
+  },
+
+  /**
+   * Search VIN analyses for entity sharing in chat
+   */
+  searchVins: async (companyId: string, search: string) => {
+    try {
+      const term = search.trim();
+      if (!term) return [];
+
+      const { data, error } = await supabase
+        .from('vin_analyses')
+        .select('id, vin, vehicle_id, decoded')
+        .eq('company_id', companyId)
+        .ilike('vin', `%${term}%`)
         .limit(10);
 
       if (error) throw error;
       return data || [];
     } catch (err) {
-      logger.error('ChatService', 'Error searching invoices for sharing', err as Error);
+      logger.error('ChatService', 'Error searching VINs for sharing', err as Error);
       return [];
     }
   },

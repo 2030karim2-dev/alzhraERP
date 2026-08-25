@@ -49,8 +49,8 @@ const ColorCustomizer: React.FC = () => {
                 ref={colorInputRef}
                 type="color"
                 className="absolute w-0 h-0 opacity-0"
-                onInput={(e) => setDraftAccentColor((e.target as HTMLInputElement).value)}
-                defaultValue={accentColor}
+                onChange={(e) => setDraftAccentColor(e.target.value)}
+                value={accentColor}
               />
             </div>
             <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400">مخصص</span>

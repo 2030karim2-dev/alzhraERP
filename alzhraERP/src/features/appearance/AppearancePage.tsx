@@ -13,7 +13,7 @@ import FontSelector from './components/FontSelector';
 import EffectsCustomizer from './components/EffectsCustomizer';
 import { cn } from '../../core/utils';
 
-type CategoryFilter = 'all' | 'premium' | 'classic' | 'beige' | 'royal' | 'accounting' | 'nature' | 'bold' | 'corporate' | 'night' | 'seasonal' | 'artistic' | 'industry' | 'glass' | 'bento';
+type CategoryFilter = 'all' | 'premium' | 'automotive' | 'glass' | 'bento' | 'royal' | 'accounting' | 'beige' | 'classic' | 'nature' | 'bold' | 'corporate' | 'night' | 'seasonal' | 'artistic' | 'industry';
 
 const AppearancePage: React.FC = () => {
   const {
@@ -85,7 +85,7 @@ const AppearancePage: React.FC = () => {
     if (categoryFilter !== 'all') return null; // Don't group when a specific category is selected
 
     const groups: { category: string; presets: typeof THEME_PRESETS }[] = [];
-    const categories = ['premium', 'glass', 'bento', 'royal', 'accounting', 'beige', 'classic', 'nature', 'bold', 'corporate', 'night', 'seasonal', 'artistic', 'industry'] as const;
+    const categories = ['premium', 'automotive', 'glass', 'bento', 'royal', 'accounting', 'beige', 'classic', 'nature', 'bold', 'corporate', 'night', 'seasonal', 'artistic', 'industry'] as const;
 
     for (const cat of categories) {
       const catPresets = filteredPresets.filter(p => p.category === cat);
@@ -106,6 +106,9 @@ const AppearancePage: React.FC = () => {
   const CATEGORY_FILTERS: { id: CategoryFilter; label: string; emoji: string }[] = [
     { id: 'all', label: 'الكل', emoji: '🎨' },
     { id: 'premium', label: 'باقات برو ✨', emoji: '✨' },
+    { id: 'automotive', label: 'قطع غيار 🏎️', emoji: '🏎️' },
+    { id: 'glass', label: 'زجاجي ✨', emoji: '🪟' },
+    { id: 'bento', label: 'بينتو 🍱', emoji: '🍱' },
     { id: 'royal', label: 'ملكي فاخر', emoji: '👑' },
     { id: 'accounting', label: 'محاسبي', emoji: '📊' },
     { id: 'beige', label: 'بيج ودافئ', emoji: '🏜️' },
@@ -114,11 +117,9 @@ const AppearancePage: React.FC = () => {
     { id: 'bold', label: 'جريء', emoji: '🔥' },
     { id: 'corporate', label: 'شركة', emoji: '🏢' },
     { id: 'night', label: 'ليلي', emoji: '🌙' },
-    { id: 'seasonal', label: 'موسيقي', emoji: '🌸' },
+    { id: 'seasonal', label: 'موسمي', emoji: '🌸' },
     { id: 'artistic', label: 'فني', emoji: '🎨' },
     { id: 'industry', label: 'قطاعي', emoji: '🏭' },
-    { id: 'glass', label: 'زجاجي ✨', emoji: '🪟' },
-    { id: 'bento', label: 'بينتو 🍱', emoji: '🍱' },
   ];
 
   const renderContent = () => {

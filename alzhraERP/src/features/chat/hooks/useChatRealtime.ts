@@ -6,9 +6,12 @@ import { useChatNotifications } from './useChatNotifications';
 import { logger } from '../../../core/utils/logger';
 import type { ChatMessage } from '../types';
 
+// In-memory profile cache for fast realtime rendering
+const senderProfileCache = new Map<string, { full_name: string; avatar_url: string | null }>();
+
 export const useChatRealtime = () => {
   const { user } = useAuthStore();
-  const { addIncomingMessage, updateMessageInState, fetchChannels } = useChatStore();
+  const { addIncomingMessage, updateMessageInState, fetchChannels, activeChannelId, fetchMessages } = useChatStore();
   const { playIncomingBeep } = useChatNotifications();
 
   const companyId = user?.company_id;
@@ -17,6 +20,7 @@ export const useChatRealtime = () => {
   useEffect(() => {
     if (!companyId || !userId) return;
 
+    let hasSubscribedBefore = false;
     const channelName = `chat-realtime-${companyId}`;
     const channel = supabase
       .channel(channelName)
@@ -31,22 +35,30 @@ export const useChatRealtime = () => {
           const row = payload.new as any;
           if (!row) return;
 
-          // Fetch sender profile for the new message
+          // Fetch sender profile with in-memory caching
           let senderName = 'موظف';
-          let senderAvatar = null;
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name, avatar_url')
-              .eq('id', row.sender_id)
-              .single();
+          let senderAvatar: string | null = null;
 
-            if (profile) {
-              senderName = profile.full_name || 'موظف';
-              senderAvatar = profile.avatar_url;
+          if (senderProfileCache.has(row.sender_id)) {
+            const cached = senderProfileCache.get(row.sender_id)!;
+            senderName = cached.full_name;
+            senderAvatar = cached.avatar_url;
+          } else {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', row.sender_id)
+                .single();
+
+              if (profile) {
+                senderName = profile.full_name || 'موظف';
+                senderAvatar = profile.avatar_url;
+                senderProfileCache.set(row.sender_id, { full_name: senderName, avatar_url: senderAvatar });
+              }
+            } catch {
+              // Fallback to default
             }
-          } catch (e) {
-            // Ignore profile fetch failure
           }
 
           const message: ChatMessage = {
@@ -108,11 +120,19 @@ export const useChatRealtime = () => {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           logger.debug('ChatRealtime', `Connected to chat realtime channel [${channelName}]`);
+          // If reconnected after initial connection, resync channels & messages
+          if (hasSubscribedBefore) {
+            fetchChannels(companyId, userId);
+            if (activeChannelId) {
+              fetchMessages(activeChannelId);
+            }
+          }
+          hasSubscribedBefore = true;
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, userId, addIncomingMessage, updateMessageInState, fetchChannels, playIncomingBeep]);
+  }, [companyId, userId, addIncomingMessage, updateMessageInState, fetchChannels, activeChannelId, fetchMessages, playIncomingBeep]);
 };

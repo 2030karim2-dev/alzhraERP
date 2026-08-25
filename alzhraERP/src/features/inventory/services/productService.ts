@@ -412,29 +412,23 @@ export const productService = {
    * Get products with similar names to detect potential duplicates
    */
   getSimilarProducts: async (name: string, companyId: string) => {
-    const { data, error } = await supabase.rpc('get_similar_products', {
-      p_name: name,
-      p_company_id: companyId,
-    });
+    try {
+      const { data, error } = await supabase.rpc('get_similar_products', {
+        p_name: name,
+        p_company_id: companyId,
+      });
 
-    const code = error?.code || '';
-    const message = error?.message?.toLowerCase() || '';
+      if (!error && data) {
+        return data;
+      }
 
-    if (
-      error &&
-      (code === 'PGRST202' ||
-        message.includes('could not find the function') ||
-        message.includes('404'))
-    ) {
-      // Use trigram similarity matching for the fallback, which is much faster than ILIKE %...%
-      const { data: fallbackData, error: fallbackError } = await supabase
+      // If RPC fails (e.g. 404 / function missing / schema cache), fallback to ILIKE search
+      const { data: fallbackData } = await supabase
         .from('products')
         .select('id, name_ar, sku')
         .eq('company_id', companyId)
-        .filter('name_ar', 'match', `%${name}%`) // Using trigram if available, or ILIKE fallback
+        .ilike('name_ar', `%${name}%`)
         .limit(5);
-
-      if (fallbackError) throw fallbackError;
 
       return (fallbackData || []).map(
         (product: { id: string; name_ar: string; sku: string | null }) => ({
@@ -442,10 +436,9 @@ export const productService = {
           similarity: 0.5,
         })
       );
+    } catch {
+      return [];
     }
-
-    if (error) throw error;
-    return data || [];
   },
 
   /**

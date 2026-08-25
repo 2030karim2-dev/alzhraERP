@@ -35,6 +35,7 @@ DROP POLICY IF EXISTS "Company staff access prc_quotation_revisions" ON public.p
 DROP POLICY IF EXISTS "Company staff access prc_supplier_products" ON public.prc_supplier_products;
 
 -- Table: prc_rfqs (Suppliers can ONLY read RFQs they are invited to; Company staff can manage)
+DROP POLICY IF EXISTS "prc_rfqs_select_policy" ON public.prc_rfqs;
 CREATE POLICY "prc_rfqs_select_policy" ON public.prc_rfqs
   FOR SELECT TO authenticated
   USING (
@@ -42,18 +43,21 @@ CREATE POLICY "prc_rfqs_select_policy" ON public.prc_rfqs
     OR rfq_id IN (SELECT rfq_id FROM public.prc_rfq_suppliers WHERE supplier_id = public.get_user_supplier_id(auth.uid()))
   );
 
+DROP POLICY IF EXISTS "prc_rfqs_insert_policy" ON public.prc_rfqs;
 CREATE POLICY "prc_rfqs_insert_policy" ON public.prc_rfqs
   FOR INSERT TO authenticated
   WITH CHECK (
     company_id IN (SELECT company_id FROM public.user_company_roles WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_rfqs_update_policy" ON public.prc_rfqs;
 CREATE POLICY "prc_rfqs_update_policy" ON public.prc_rfqs
   FOR UPDATE TO authenticated
   USING (
     company_id IN (SELECT company_id FROM public.user_company_roles WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_rfqs_delete_policy" ON public.prc_rfqs;
 CREATE POLICY "prc_rfqs_delete_policy" ON public.prc_rfqs
   FOR DELETE TO authenticated
   USING (
@@ -61,6 +65,7 @@ CREATE POLICY "prc_rfqs_delete_policy" ON public.prc_rfqs
   );
 
 -- Table: prc_rfq_items (Suppliers can ONLY read items of invited RFQs; Company staff can manage)
+DROP POLICY IF EXISTS "prc_rfq_items_select_policy" ON public.prc_rfq_items;
 CREATE POLICY "prc_rfq_items_select_policy" ON public.prc_rfq_items
   FOR SELECT TO authenticated
   USING (
@@ -68,18 +73,21 @@ CREATE POLICY "prc_rfq_items_select_policy" ON public.prc_rfq_items
     OR rfq_id IN (SELECT rfq_id FROM public.prc_rfq_suppliers WHERE supplier_id = public.get_user_supplier_id(auth.uid()))
   );
 
+DROP POLICY IF EXISTS "prc_rfq_items_insert_policy" ON public.prc_rfq_items;
 CREATE POLICY "prc_rfq_items_insert_policy" ON public.prc_rfq_items
   FOR INSERT TO authenticated
   WITH CHECK (
     company_id IN (SELECT company_id FROM public.user_company_roles WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_rfq_items_update_policy" ON public.prc_rfq_items;
 CREATE POLICY "prc_rfq_items_update_policy" ON public.prc_rfq_items
   FOR UPDATE TO authenticated
   USING (
     company_id IN (SELECT company_id FROM public.user_company_roles WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_rfq_items_delete_policy" ON public.prc_rfq_items;
 CREATE POLICY "prc_rfq_items_delete_policy" ON public.prc_rfq_items
   FOR DELETE TO authenticated
   USING (
@@ -87,6 +95,7 @@ CREATE POLICY "prc_rfq_items_delete_policy" ON public.prc_rfq_items
   );
 
 -- Table: prc_quotations (Isolation between suppliers; Staff can view all within tenant)
+DROP POLICY IF EXISTS "prc_quotations_select_policy" ON public.prc_quotations;
 CREATE POLICY "prc_quotations_select_policy" ON public.prc_quotations
   FOR SELECT TO authenticated
   USING (
@@ -94,6 +103,7 @@ CREATE POLICY "prc_quotations_select_policy" ON public.prc_quotations
     OR supplier_id = public.get_user_supplier_id(auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_quotations_insert_policy" ON public.prc_quotations;
 CREATE POLICY "prc_quotations_insert_policy" ON public.prc_quotations
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -101,6 +111,7 @@ CREATE POLICY "prc_quotations_insert_policy" ON public.prc_quotations
     OR supplier_id = public.get_user_supplier_id(auth.uid())
   );
 
+DROP POLICY IF EXISTS "prc_quotations_update_policy" ON public.prc_quotations;
 CREATE POLICY "prc_quotations_update_policy" ON public.prc_quotations
   FOR UPDATE TO authenticated
   USING (
@@ -108,6 +119,7 @@ CREATE POLICY "prc_quotations_update_policy" ON public.prc_quotations
     OR (supplier_id = public.get_user_supplier_id(auth.uid()) AND status IN ('draft', 'submitted'))
   );
 
+DROP POLICY IF EXISTS "prc_quotations_delete_policy" ON public.prc_quotations;
 CREATE POLICY "prc_quotations_delete_policy" ON public.prc_quotations
   FOR DELETE TO authenticated
   USING (
@@ -116,6 +128,7 @@ CREATE POLICY "prc_quotations_delete_policy" ON public.prc_quotations
   );
 
 -- Table: prc_quotation_items
+DROP POLICY IF EXISTS "prc_quotation_items_select_policy" ON public.prc_quotation_items;
 CREATE POLICY "prc_quotation_items_select_policy" ON public.prc_quotation_items
   FOR SELECT TO authenticated
   USING (
@@ -123,6 +136,7 @@ CREATE POLICY "prc_quotation_items_select_policy" ON public.prc_quotation_items
     OR quotation_id IN (SELECT quotation_id FROM public.prc_quotations WHERE supplier_id = public.get_user_supplier_id(auth.uid()))
   );
 
+DROP POLICY IF EXISTS "prc_quotation_items_insert_policy" ON public.prc_quotation_items;
 CREATE POLICY "prc_quotation_items_insert_policy" ON public.prc_quotation_items
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -130,6 +144,7 @@ CREATE POLICY "prc_quotation_items_insert_policy" ON public.prc_quotation_items
     OR quotation_id IN (SELECT quotation_id FROM public.prc_quotations WHERE supplier_id = public.get_user_supplier_id(auth.uid()))
   );
 
+DROP POLICY IF EXISTS "prc_quotation_items_update_policy" ON public.prc_quotation_items;
 CREATE POLICY "prc_quotation_items_update_policy" ON public.prc_quotation_items
   FOR UPDATE TO authenticated
   USING (
@@ -137,6 +152,7 @@ CREATE POLICY "prc_quotation_items_update_policy" ON public.prc_quotation_items
     OR quotation_id IN (SELECT quotation_id FROM public.prc_quotations WHERE supplier_id = public.get_user_supplier_id(auth.uid()) AND status IN ('draft', 'submitted'))
   );
 
+DROP POLICY IF EXISTS "prc_quotation_items_delete_policy" ON public.prc_quotation_items;
 CREATE POLICY "prc_quotation_items_delete_policy" ON public.prc_quotation_items
   FOR DELETE TO authenticated
   USING (
@@ -145,6 +161,7 @@ CREATE POLICY "prc_quotation_items_delete_policy" ON public.prc_quotation_items
   );
 
 -- Table: prc_quotation_revisions
+DROP POLICY IF EXISTS "prc_quotation_revisions_select_policy" ON public.prc_quotation_revisions;
 CREATE POLICY "prc_quotation_revisions_select_policy" ON public.prc_quotation_revisions
   FOR SELECT TO authenticated
   USING (
@@ -152,6 +169,7 @@ CREATE POLICY "prc_quotation_revisions_select_policy" ON public.prc_quotation_re
     OR quotation_id IN (SELECT quotation_id FROM public.prc_quotations WHERE supplier_id = public.get_user_supplier_id(auth.uid()))
   );
 
+DROP POLICY IF EXISTS "prc_quotation_revisions_insert_policy" ON public.prc_quotation_revisions;
 CREATE POLICY "prc_quotation_revisions_insert_policy" ON public.prc_quotation_revisions
   FOR INSERT TO authenticated
   WITH CHECK (

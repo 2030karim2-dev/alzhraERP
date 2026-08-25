@@ -52,7 +52,7 @@ const FontSelector: React.FC = () => {
           <Text size={24} className="text-gray-400" />
         </div>
         <div className="text-center mt-3 text-xs font-mono text-gray-500 dark:text-slate-400">
-          حجم الخط الأساسي: {fontSize}px (سيتمปรับขนาด جميع الواجهة)
+          حجم الخط الأساسي: {fontSize}px (سيتم ضبط مقاس كامل الواجهة)
         </div>
       </div>
     </div>

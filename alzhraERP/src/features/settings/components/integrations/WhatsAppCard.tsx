@@ -1,10 +1,10 @@
-// ============================================
-// WhatsAppCard — بطاقة إعدادات WhatsApp Business API
-// ============================================
-import React from 'react';
-import { CheckCircle, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle, XCircle, Send, Loader2 } from 'lucide-react';
 import Card from '@/ui/base/Card';
 import type { MessagingConfig } from '@/features/notifications/messagingApi';
+import { messagingApi } from '@/features/notifications/messagingApi';
+import { useAuthStore } from '@/features/auth/store';
+import { useFeedbackStore } from '@/feedback/store';
 
 const WhatsAppIcon = () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -17,81 +17,129 @@ interface Props {
     onUpdate: (updates: Partial<MessagingConfig>) => void;
 }
 
-const WhatsAppCard: React.FC<Props> = ({ config, onUpdate }) => (
-    <Card className="overflow-hidden border border-[var(--app-border)]">
-        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-b border-gray-100 dark:border-slate-800">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="text-[#25D366]">
-                        <WhatsAppIcon />
+const WhatsAppCard: React.FC<Props> = ({ config, onUpdate }) => {
+    const [isTesting, setIsTesting] = useState(false);
+    const companyId = useAuthStore((s) => s.user?.company_id);
+    const { showToast } = useFeedbackStore();
+
+    const handleTest = async () => {
+        if (!config.whatsapp_api_url || !config.whatsapp_api_key || !config.whatsapp_phone) {
+            showToast('يرجى ملء جميع حقول WhatsApp (الرابط، المفتاح، ورقم الهاتف) أولاً', 'error');
+            return;
+        }
+
+        if (!companyId) return;
+
+        try {
+            setIsTesting(true);
+            const res = await messagingApi.sendNotification(
+                companyId,
+                'test_connection',
+                'اختبار اتصال Al-Zahra Smart ERP مع WhatsApp ناجح! 🚀'
+            );
+
+            if (res.success) {
+                showToast('تم إرسال رسالة الاختبار بنجاح إلى WhatsApp!', 'success');
+            } else {
+                showToast('فشل اختبار الاتصال، تأكد من صحة المفاتيح والرابط', 'error');
+            }
+        } catch {
+            showToast('حدث خطأ أثناء اختبار الاتصال', 'error');
+        } finally {
+            setIsTesting(false);
+        }
+    };
+
+    return (
+        <Card className="overflow-hidden border border-[var(--app-border)]">
+            <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-b border-gray-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="text-[#25D366]">
+                            <WhatsAppIcon />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-slate-800 dark:text-white">WhatsApp</h3>
+                            <p className="text-xs text-slate-500">إرسال الإشعارات عبر واتساب بيزنس API</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-base font-bold text-slate-800 dark:text-white">WhatsApp</h3>
-                        <p className="text-xs text-slate-500">إرسال الإشعارات عبر واتساب بيزنس API</p>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                        config.whatsapp_enabled
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                    }`}>
+                        {config.whatsapp_enabled
+                            ? <><CheckCircle className="w-3.5 h-3.5" /><span>مفعل</span></>
+                            : <><XCircle className="w-3.5 h-3.5" /><span>معطل</span></>
+                        }
                     </div>
-                </div>
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
-                    config.whatsapp_enabled
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                }`}>
-                    {config.whatsapp_enabled
-                        ? <><CheckCircle className="w-3.5 h-3.5" /><span>مفعل</span></>
-                        : <><XCircle className="w-3.5 h-3.5" /><span>معطل</span></>
-                    }
                 </div>
             </div>
-        </div>
 
-        <div className="p-5 space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                    type="checkbox"
-                    checked={config.whatsapp_enabled}
-                    onChange={(e) => onUpdate({ whatsapp_enabled: e.target.checked })}
-                    className="w-5 h-5 text-green-600 rounded-lg focus:ring-green-500 cursor-pointer"
-                />
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">تفعيل إشعارات واتساب</span>
-            </label>
+            <div className="p-5 space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={config.whatsapp_enabled}
+                        onChange={(e) => onUpdate({ whatsapp_enabled: e.target.checked })}
+                        className="w-5 h-5 text-green-600 rounded-lg focus:ring-green-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">تفعيل إشعارات واتساب</span>
+                </label>
 
-            {config.whatsapp_enabled && (
-                <div className="space-y-4 mr-8 animate-in fade-in duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">رابط API</label>
-                            <input
-                                type="text"
-                                value={config.whatsapp_api_url}
-                                onChange={(e) => onUpdate({ whatsapp_api_url: e.target.value })}
-                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
-                                dir="ltr"
-                            />
+                {config.whatsapp_enabled && (
+                    <div className="space-y-4 mr-8 animate-in fade-in duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">رابط API</label>
+                                <input
+                                    type="text"
+                                    value={config.whatsapp_api_url}
+                                    onChange={(e) => onUpdate({ whatsapp_api_url: e.target.value })}
+                                    placeholder="https://graph.facebook.com/v18.0/..."
+                                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
+                                    dir="ltr"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">API Key / Token</label>
+                                <input
+                                    type="password"
+                                    value={config.whatsapp_api_key}
+                                    onChange={(e) => onUpdate({ whatsapp_api_key: e.target.value })}
+                                    placeholder="Bearer Token..."
+                                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
+                                    dir="ltr"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">API Key / Token</label>
-                            <input
-                                type="password"
-                                value={config.whatsapp_api_key}
-                                onChange={(e) => onUpdate({ whatsapp_api_key: e.target.value })}
-                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
-                                dir="ltr"
-                            />
+                        <div className="flex flex-wrap items-end gap-3">
+                            <div className="flex-1 min-w-[240px]">
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهاتف المستلم</label>
+                                <input
+                                    type="text"
+                                    value={config.whatsapp_phone}
+                                    onChange={(e) => onUpdate({ whatsapp_phone: e.target.value })}
+                                    placeholder="966500000000"
+                                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
+                                    dir="ltr"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                disabled={isTesting}
+                                onClick={handleTest}
+                                className="flex items-center gap-1.5 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-60 shadow-sm"
+                            >
+                                {isTesting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                <span>اختبار الإرسال</span>
+                            </button>
                         </div>
                     </div>
-                    <div className="max-w-sm">
-                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهاتف المستلم</label>
-                        <input
-                            type="text"
-                            value={config.whatsapp_phone}
-                            onChange={(e) => onUpdate({ whatsapp_phone: e.target.value })}
-                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm font-mono"
-                            dir="ltr"
-                        />
-                    </div>
-                </div>
-            )}
-        </div>
-    </Card>
-);
+                )}
+            </div>
+        </Card>
+    );
+};
 
 export default WhatsAppCard;

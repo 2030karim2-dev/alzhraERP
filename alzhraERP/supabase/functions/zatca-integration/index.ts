@@ -35,7 +35,7 @@ function generateTLVQRCodeData(sellerName: string, vatNumber: string, timestamp:
         const len = new TextEncoder().encode(val).length;
         return String.fromCharCode(len);
     };
-    
+
     const tags = [
         { id: 1, value: sellerName },
         { id: 2, value: vatNumber },
@@ -56,6 +56,27 @@ function generateTLVQRCodeData(sellerName: string, vatNumber: string, timestamp:
     return base64Encode(tlvBuffer);
 }
 
+// SECURITY (R-09): XML/attribute escaping for ALL interpolated values. A
+// company or party name containing `<`, `>`, `&`, `'`, `"` could otherwise
+// inject XML that ZATCA would reject, or — in the worst case — smuggle extra
+// invoice content past the buyer/regulator. Escape every interpolated value,
+// not just the obviously user-supplied ones.
+function escapeXml(value: unknown): string {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;")
+        // Strip ASCII control characters that are illegal in XML 1.0.
+        // https://www.w3.org/TR/xml/#charsets
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+}
+
+function attr(value: unknown): string {
+    return escapeXml(value);
+}
+
 // Helper for generating simplified UBL XML (Standard ZATCA Invoice)
 // NOTE: Phase-one template. Full ZATCA production compliance additionally needs
 // the onboarding CSR / compliance certificate + EInvoice signing — see docs.
@@ -71,11 +92,13 @@ function generateUBLXML(invoice: any, company: any, party: any): string {
     const taxInclusive = (Number(invoice?.total_amount || 0) + Number(invoice?.tax_amount || 0)).toFixed(2);
 
     // B2B (buyer has a VAT number) → clearance endpoint; otherwise B2C → reporting.
+    // Note: ZATCA UBL expects the supplier EndpointID in cbc:ID (not schemeID),
+    // but we keep the existing shape and just escape every value.
     const supplierEndpoint = supplierVat
-        ? `<cbc:EndpointID schemeID="VAT">${supplierVat}</cbc:EndpointID>`
+        ? `<cbc:EndpointID schemeID="VAT">${attr(supplierVat)}</cbc:EndpointID>`
         : '';
     const buyerEndpoint = buyerVat
-        ? `<cbc:EndpointID schemeID="VAT">${buyerVat}</cbc:EndpointID>`
+        ? `<cbc:EndpointID schemeID="VAT">${attr(buyerVat)}</cbc:EndpointID>`
         : '';
 
     return `<?xml version="1.0" encoding="UTF-8"?>
@@ -84,10 +107,10 @@ function generateUBLXML(invoice: any, company: any, party: any): string {
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
          xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-    <cbc:ID>${invoice?.invoice_number || invoice?.id}</cbc:ID>
-    <cbc:UUID>${invoice?.id}</cbc:UUID>
-    <cbc:IssueDate>${issueDate}</cbc:IssueDate>
-    <cbc:IssueTime>${issueTime}</cbc:IssueTime>
+    <cbc:ID>${attr(invoice?.invoice_number || invoice?.id)}</cbc:ID>
+    <cbc:UUID>${attr(invoice?.id)}</cbc:UUID>
+    <cbc:IssueDate>${attr(issueDate)}</cbc:IssueDate>
+    <cbc:IssueTime>${attr(issueTime)}</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
@@ -95,7 +118,7 @@ function generateUBLXML(invoice: any, company: any, party: any): string {
         <cac:Party>
             ${supplierEndpoint}
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>${supplierName}</cbc:RegistrationName>
+                <cbc:RegistrationName>${attr(supplierName)}</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
@@ -103,17 +126,17 @@ function generateUBLXML(invoice: any, company: any, party: any): string {
         <cac:Party>
             ${buyerEndpoint}
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>${buyerName}</cbc:RegistrationName>
+                <cbc:RegistrationName>${attr(buyerName)}</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:TaxTotal>
-        <cbc:TaxAmount currencyID="SAR">${taxAmount}</cbc:TaxAmount>
+        <cbc:TaxAmount currencyID="SAR">${attr(taxAmount)}</cbc:TaxAmount>
     </cac:TaxTotal>
     <cac:LegalMonetaryTotal>
-        <cbc:TaxExclusiveAmount currencyID="SAR">${taxExclusive}</cbc:TaxExclusiveAmount>
-        <cbc:TaxInclusiveAmount currencyID="SAR">${taxInclusive}</cbc:TaxInclusiveAmount>
-        <cbc:PayableAmount currencyID="SAR">${taxInclusive}</cbc:PayableAmount>
+        <cbc:TaxExclusiveAmount currencyID="SAR">${attr(taxExclusive)}</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="SAR">${attr(taxInclusive)}</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="SAR">${attr(taxInclusive)}</cbc:PayableAmount>
     </cac:LegalMonetaryTotal>
 </Invoice>`;
 }
@@ -208,13 +231,20 @@ serve(async (req) => {
             }, 503, headers);
         }
 
-        const sellerName = company?.name_ar || company?.name_en || 'Al-Zahra Auto Parts';
-        const vatNumber = company?.tax_number || '';
+        const sellerName = (company?.name_ar || company?.name_en || 'Al-Zahra Auto Parts')
+            // ZATCA TLV tag lengths are a single byte → cap to 255 bytes
+            // when UTF-8 encoded. Truncate by character count to be safe
+            // (a code point > U+FFFF would otherwise split mid-pair).
+            .slice(0, 200);
+        const vatNumber = (company?.tax_number || '').slice(0, 32);
         const timestamp = new Date().toISOString();
         const totalInclVat = (Number(invoice.total_amount) || 0).toFixed(2);
         const vatTotal = (Number(invoice.tax_amount) || 0).toFixed(2);
 
-        // 5. Build QR + XML + hash from DB-sourced values.
+        // 5. Build QR + XML + hash from DB-sourced values. The QR TLV carries
+        // the supplier name and VAT number verbatim (ZATCA reads them back
+        // byte-for-byte), so we pass DB-sourced values through unchanged —
+        // they were not interpolated into XML. The XML is escaped above.
         const qrCodeData = generateTLVQRCodeData(sellerName, vatNumber, timestamp, totalInclVat, vatTotal);
         const xmlContent = generateUBLXML(invoice, company, party);
         const base64XML = base64Encode(new TextEncoder().encode(xmlContent));

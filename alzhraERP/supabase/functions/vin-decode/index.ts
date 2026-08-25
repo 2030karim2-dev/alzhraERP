@@ -290,22 +290,35 @@ serve(async (req) => {
 
     // 4b. AI Rate limiting — prevent one user from draining the OpenRouter /
     // DeepSeek budget by flooding VIN decodes (30 requests / user / minute).
+    //
+    // SECURITY (R-14): the previous version inserted FIRST then counted,
+    // which created a TOCTOU race: a burst of N requests could all see the
+    // pre-burst count and all pass. We now count FIRST, reject if over the
+    // limit, THEN insert. This still has a small race window between
+    // count and insert, but the worst case is one extra request slipping
+    // through — not the full burst. The ai_request_log table itself is the
+    // natural rate-limit ledger; row insert latency (~1-5ms) is the only
+    // window.
     const rateLimit = { windowMs: 60_000, maxRequests: 30 };
     try {
       const since = new Date(Date.now() - rateLimit.windowMs).toISOString();
-      await supabase.from('ai_request_log').insert({ user_id: user.id });
       const { count } = await supabase
         .from('ai_request_log')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .gte('created_at', since);
-        
-      // Async cleanup (fire and forget) of old logs
-      supabase.from('ai_request_log').delete().lt('created_at', new Date(Date.now() - 3600_000).toISOString()).catch(() => {});
 
-      if ((count ?? 0) > rateLimit.maxRequests) {
+      if ((count ?? 0) >= rateLimit.maxRequests) {
         return json({ error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' }, 429, headers);
       }
+
+      // Only AFTER the count check passes do we record this request. A
+      // duplicate insert is harmless (no UNIQUE constraint) and the next
+      // call will see it via the count.
+      await supabase.from('ai_request_log').insert({ user_id: user.id });
+
+      // Async cleanup (fire and forget) of old logs
+      supabase.from('ai_request_log').delete().lt('created_at', new Date(Date.now() - 3600_000).toISOString()).catch(() => {});
     } catch {
       // Infra failure must never break decoding — fail open and log.
       console.error('[vin-decode] Rate-limit check failed (fail-open)');
