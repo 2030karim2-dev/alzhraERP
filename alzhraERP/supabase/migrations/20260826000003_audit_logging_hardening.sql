@@ -190,6 +190,7 @@ END $do$;
 -- right before the last RETURN. The body must already be parsed.
 DO $do$
 DECLARE
+  v_rpc_name text;
   v_func record;
   v_body text;
   v_new_body text;
@@ -209,7 +210,7 @@ DECLARE
     'quick_adjust_stock_batch'
   ];
 BEGIN
-  FOREACH v_func.proname IN ARRAY v_rpcs LOOP
+  FOREACH v_rpc_name IN ARRAY v_rpcs LOOP
     SELECT
       p.oid,
       p.proname,
@@ -219,7 +220,7 @@ BEGIN
     FROM pg_proc p
     JOIN pg_language l ON l.oid = p.prolang
     JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = v_func.proname
+    WHERE n.nspname = 'public' AND p.proname = v_rpc_name
     LIMIT 1;
 
     IF NOT FOUND THEN

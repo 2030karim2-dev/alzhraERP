@@ -60,40 +60,34 @@ INSERT INTO public._text_length_limits (table_name, column_name, max_length) VAL
   ('companies',        'name',           200),
   ('companies',        'name_ar',        200),
   ('companies',        'name_en',        200),
-  ('users',            'full_name',      200)
+  ('user_profiles',    'full_name',      200)
 ON CONFLICT (table_name, column_name) DO UPDATE
   SET max_length = EXCLUDED.max_length;
 
--- Guard function
+-- Trigger function
 CREATE OR REPLACE FUNCTION public.guard_text_lengths()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $func$
 DECLARE
-  v_limit record;
-  v_actual text;
-  v_too_long text := '';
+  v_rec record;
+  v_val text;
 BEGIN
-  FOR v_limit IN
+  FOR v_rec IN
     SELECT column_name, max_length
     FROM public._text_length_limits
     WHERE table_name = TG_TABLE_NAME
   LOOP
-    -- Use NEW for INSERT/UPDATE, OLD for DELETE (but we don't validate
-    -- deletes — text is already stored).
-    EXECUTE format('SELECT ($1).%I::text', v_limit.column_name)
-      INTO v_actual
+    EXECUTE format('SELECT ($1).%I::text', v_rec.column_name)
+      INTO v_val
       USING NEW;
-    IF v_actual IS NOT NULL AND length(v_actual) > v_limit.max_length THEN
-      v_too_long := v_too_long || format('%s (%s chars, max %s); ',
-        v_limit.column_name, length(v_actual), v_limit.max_length);
+
+    IF v_val IS NOT NULL AND length(v_val) > v_rec.max_length THEN
+      RAISE EXCEPTION '% exceeds maximum length of % characters',
+        v_rec.column_name, v_rec.max_length
+        USING ERRCODE = '22023';
     END IF;
   END LOOP;
-
-  IF v_too_long <> '' THEN
-    RAISE EXCEPTION 'input_validation: column(s) exceed max length: %', v_too_long
-      USING ERRCODE = '22023';
-  END IF;
 
   RETURN NEW;
 END;
@@ -110,16 +104,18 @@ GRANT EXECUTE ON FUNCTION public.guard_text_lengths() TO authenticated;
 
 DO $do$
 DECLARE
-  v_t text;
+  v_t record;
 BEGIN
   FOR v_t IN
-    SELECT DISTINCT table_name FROM public._text_length_limits
+    SELECT DISTINCT l.table_name
+    FROM public._text_length_limits l
+    JOIN pg_tables t ON t.schemaname = 'public' AND t.tablename = l.table_name
   LOOP
-    EXECUTE format('DROP TRIGGER IF EXISTS trg_guard_text_lengths ON public.%I', v_t);
+    EXECUTE format('DROP TRIGGER IF EXISTS trg_guard_text_lengths ON public.%I', v_t.table_name);
     EXECUTE format(
       'CREATE TRIGGER trg_guard_text_lengths BEFORE INSERT OR UPDATE ON public.%I
        FOR EACH ROW EXECUTE FUNCTION public.guard_text_lengths()',
-      v_t
+      v_t.table_name
     );
   END LOOP;
 END $do$;
@@ -171,16 +167,18 @@ REVOKE EXECUTE ON FUNCTION public.guard_text_control_chars() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.guard_text_control_chars() TO authenticated;
 
 DO $do$
+DECLARE
+  v_t record;
 BEGIN
   FOR v_t IN
     SELECT DISTINCT table_name FROM public._text_length_limits
     WHERE table_name IN ('parties', 'products', 'accounts', 'companies', 'expenses', 'invoices', 'payments')
   LOOP
-    EXECUTE format('DROP TRIGGER IF EXISTS trg_guard_text_control_chars ON public.%I', v_t);
+    EXECUTE format('DROP TRIGGER IF EXISTS trg_guard_text_control_chars ON public.%I', v_t.table_name);
     EXECUTE format(
       'CREATE TRIGGER trg_guard_text_control_chars BEFORE INSERT OR UPDATE ON public.%I
        FOR EACH ROW EXECUTE FUNCTION public.guard_text_control_chars()',
-      v_t
+      v_t.table_name
     );
   END LOOP;
 END $do$;

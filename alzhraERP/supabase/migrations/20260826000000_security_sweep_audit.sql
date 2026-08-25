@@ -227,12 +227,8 @@ CREATE TRIGGER trg_storage_guard_mime
 
 
 -- ─────────────────────────────────────────────────────────────
--- 7) Chat body sanitization — reject control characters in
---    chat_messages.body BEFORE INSERT/UPDATE. The frontend
---    already renders messages as text (no Markdown), but a
---    poisoned message body containing a NULL byte, BOM, or
---    bidi override can still break clients that auto-detect
---    encoding or do string slicing.
+-- 7) Chat body/content sanitization — reject control characters in
+--    chat_messages.content BEFORE INSERT/UPDATE.
 -- ─────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.chat_guard_body()
 RETURNS trigger
@@ -241,7 +237,7 @@ AS $func$
 DECLARE
   v_body text;
 BEGIN
-  v_body := NEW.body;
+  v_body := NEW.content;
 
   -- Strip ASCII control characters except whitespace (\t \n \r).
   -- Also strip bidi overrides (U+202A-U+202E, U+2066-U+2069) which
@@ -253,21 +249,21 @@ BEGIN
     'g'
   );
 
-  -- Hard cap on body size to prevent a single message from
+  -- Hard cap on content size to prevent a single message from
   -- blowing up the row (Postgres TOAST handles >2KB automatically,
   -- but a 1MB chat message is abuse).
   IF length(v_body) > 16000 THEN
-    RAISE EXCEPTION 'chat_messages.body exceeds 16KB cap' USING ERRCODE = '22023';
+    RAISE EXCEPTION 'chat_messages.content exceeds 16KB cap' USING ERRCODE = '22023';
   END IF;
 
-  NEW.body := v_body;
+  NEW.content := v_body;
   RETURN NEW;
 END;
 $func$;
 
 DROP TRIGGER IF EXISTS trg_chat_messages_body_guard ON public.chat_messages;
 CREATE TRIGGER trg_chat_messages_body_guard
-  BEFORE INSERT OR UPDATE OF body ON public.chat_messages
+  BEFORE INSERT OR UPDATE OF content ON public.chat_messages
   FOR EACH ROW
   EXECUTE FUNCTION public.chat_guard_body();
 
