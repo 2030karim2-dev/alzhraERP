@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Package, MapPin, Building2, Hash } from 'lucide-react';
+import { Package, MapPin, Hash } from 'lucide-react';
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';

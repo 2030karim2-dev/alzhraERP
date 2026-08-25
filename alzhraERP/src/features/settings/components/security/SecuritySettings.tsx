@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { ShieldCheck, Key, Smartphone, LogOut, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ShieldCheck, Key, Smartphone, LogOut, CheckCircle2, Loader2 } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
 import Input from '../../../../ui/base/Input';
 import { usePasswordChange } from '../../../auth/hooks';

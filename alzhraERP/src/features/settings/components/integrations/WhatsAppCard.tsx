@@ -4,7 +4,7 @@ import Card from '@/ui/base/Card';
 import type { MessagingConfig } from '@/features/notifications/messagingApi';
 import { messagingApi } from '@/features/notifications/messagingApi';
 import { useAuthStore } from '@/features/auth/store';
-import { useFeedbackStore } from '@/feedback/store';
+import { useFeedbackStore } from '@/features/feedback/store';
 
 const WhatsAppIcon = () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
