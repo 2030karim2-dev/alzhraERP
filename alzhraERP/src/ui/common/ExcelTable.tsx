@@ -223,7 +223,7 @@ function ExcelTable<T>({
   const totalPages = Math.ceil(processedData.length / itemsPerPage);
 
   // Custom Hooks
-  const { orderedData, handlers: { handleDragStart, handleDragEnter, handleDragEnd, handleDrop } } = useTableDragDrop(paginatedData, onOrderChange);
+  const { orderedData, handlers: { handleDragStart, handleDragEnter, handleDragOver, handleDragEnd, handleDrop } } = useTableDragDrop(paginatedData, onOrderChange, tableRef);
   const { toggleAllSelection, toggleRowSelection } = useTableSelection(orderedData, selectedRowIds, onSelectionChange, getRowId);
 
   const {
@@ -415,7 +415,7 @@ function ExcelTable<T>({
     <FullscreenContainer isMaximized={isZoomed} onToggleMaximize={() => setIsZoomed(false)}>
       <div className={cn(
         "w-full flex flex-col transition-all duration-300 relative",
-        isZoomed ? "h-full bg-[var(--app-surface)] p-4" : "h-full"
+        isZoomed ? "h-full bg-[var(--app-surface)] p-4" : "h-full min-h-[420px]"
       )}>
         <ExcelTableToolbar
           title={title}
@@ -436,7 +436,7 @@ function ExcelTable<T>({
         {/* Table Wrapper with Resize Handles */}
         <div
           ref={tableWrapperRef}
-          className="flex-1 border border-[var(--app-border)] shadow-sm bg-[var(--app-surface)] overflow-hidden rounded-xl relative flex flex-col"
+          className="flex-1 min-h-0 border border-[var(--app-border)] shadow-sm bg-[var(--app-surface)] overflow-hidden rounded-xl relative flex flex-col"
           style={{
             ...(customSize.width ? { width: customSize.width } : {}),
             ...(customSize.height ? { maxHeight: customSize.height } : {}),
@@ -483,8 +483,8 @@ function ExcelTable<T>({
           )}
           <div
             ref={tableRef}
-            tabIndex={-1}
-            className="flex-1 overflow-auto custom-scrollbar outline-none"
+            tabIndex={0}
+            className="flex-1 min-h-0 overflow-auto custom-scrollbar outline-none overscroll-contain"
             onMouseDown={() => setIsMouseDown(true)}
             onMouseUp={() => { setIsMouseDown(false); endSelection(); }}
             onMouseLeave={() => { setIsMouseDown(false); endSelection(); }}
@@ -539,6 +539,7 @@ function ExcelTable<T>({
                 getRowId={getRowId}
                 handleDragStart={handleDragStart}
                 handleDragEnter={handleDragEnter}
+                handleDragOver={handleDragOver}
                 handleDragEnd={handleDragEnd}
                 handleDrop={handleDrop}
                 onRowClick={onRowClick}

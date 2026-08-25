@@ -105,7 +105,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
     ];
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 h-full flex-1 min-h-[480px] flex flex-col">
             <ExcelTable
                 columns={columns}
                 data={categories}

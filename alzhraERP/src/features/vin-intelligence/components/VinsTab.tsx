@@ -9,9 +9,11 @@ import {
   Check,
   ExternalLink,
   Globe,
+  Trash2,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
+import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { cn } from '../../../core/utils';
 import { useFeedbackStore } from '../../feedback/store';
 import { ManualVinModal } from './ManualVinModal';
@@ -42,6 +44,7 @@ interface VinsTabProps {
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
   onOpenInExtract?: (record: VinAnalysisRecord) => void;
   onSaveManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<any>;
+  onDeleteSavedVin?: (id: string) => Promise<any>;
   isAdding: boolean;
   canAdd?: boolean;
 }
@@ -55,6 +58,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   onAddParts,
   onOpenInExtract,
   onSaveManualVehicle,
+  onDeleteSavedVin,
   isAdding,
   canAdd,
 }) => {
@@ -74,8 +78,27 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(false);
   const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
   const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
+  const [deleteConfirmVin, setDeleteConfirmVin] = useState<VinAnalysisRecord | null>(null);
+  const [isDeletingVin, setIsDeletingVin] = useState(false);
 
   const vehicle: VehicleInfo | null = selected ? ((selected.decoded as VehicleInfo) ?? null) : null;
+
+  const handleDeleteVin = async () => {
+    if (!deleteConfirmVin || !onDeleteSavedVin) return;
+    setIsDeletingVin(true);
+    try {
+      await onDeleteSavedVin(deleteConfirmVin.id);
+      if (selected?.id === deleteConfirmVin.id) {
+        const remaining = savedVins.filter((v) => v.id !== deleteConfirmVin.id);
+        setSelected(remaining[0] || null);
+      }
+      setDeleteConfirmVin(null);
+    } catch {
+      /* handled in hook */
+    } finally {
+      setIsDeletingVin(false);
+    }
+  };
 
   // Automatically select the first vehicle if none selected
   useEffect(() => {
@@ -374,18 +397,38 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                           >
                             {v.vin}
                           </span>
-                          {market && (
-                            <span
-                              className={cn(
-                                'text-[9px] font-bold px-1.5 py-0.5 rounded-md border',
-                                isActive
-                                  ? 'bg-white/20 text-white border-white/30'
-                                  : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-800'
-                              )}
-                            >
-                              {market}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {market && (
+                              <span
+                                className={cn(
+                                  'text-[9px] font-bold px-1.5 py-0.5 rounded-md border',
+                                  isActive
+                                    ? 'bg-white/20 text-white border-white/30'
+                                    : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                                )}
+                              >
+                                {market}
+                              </span>
+                            )}
+                            {onDeleteSavedVin && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirmVin(v);
+                                }}
+                                className={cn(
+                                  'opacity-0 group-hover:opacity-100 p-1 rounded-md transition-opacity',
+                                  isActive
+                                    ? 'text-white/80 hover:text-white hover:bg-white/20'
+                                    : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                                )}
+                                title="حذف الشاصي من السجل"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {/* Arabic Title */}
@@ -431,7 +474,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                           {formatVehicleYears(vehicle) ? `(${formatVehicleYears(vehicle)})` : ''}
                         </h3>
 
-                        {/* VIN Number with 1-click copy */}
+                        {/* VIN Number with 1-click copy and delete */}
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
                             {selected.vin}
@@ -454,6 +497,17 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                               </>
                             )}
                           </button>
+                          {onDeleteSavedVin && (
+                            <button
+                              type="button"
+                              onClick={() => setDeleteConfirmVin(selected)}
+                              className="text-xs text-rose-500 hover:text-rose-700 font-bold flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                              title="حذف هذا الشاصي من السجل"
+                            >
+                              <Trash2 size={12} />
+                              <span className="text-[11px]">حذف</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -840,6 +894,19 @@ export const VinsTab: React.FC<VinsTabProps> = ({
         onClose={() => setIsManualModalOpen(false)}
         onSave={handleSaveManualModal}
         onSaveAndExtract={handleSaveAndExtractModal}
+      />
+
+      {/* ── Confirm Delete VIN Modal ── */}
+      <ConfirmModal
+        isOpen={!!deleteConfirmVin}
+        onClose={() => setDeleteConfirmVin(null)}
+        onConfirm={handleDeleteVin}
+        isLoading={isDeletingVin}
+        title="حذف الشاصي من السجل"
+        message={`هل أنت متأكد من حذف الشاصي (${deleteConfirmVin?.vin}) من السجل؟ لن يؤثر هذا على المنتجات المسجلة مسبقاً في المخزون.`}
+        variant="danger"
+        confirmLabel="نعم، احذف الشاصي"
+        cancelLabel="إلغاء"
       />
     </div>
   );

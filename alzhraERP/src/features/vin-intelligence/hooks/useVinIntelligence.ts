@@ -175,6 +175,15 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     onError: (err) => showToast('فشل إلغاء الربط', 'error', err),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => vinService.deleteAnalysis(id),
+    onSuccess: () => {
+      showToast('تم حذف الشاصي من السجل بنجاح 🗑️', 'success');
+      queryClient.invalidateQueries({ queryKey: ['vin', 'history'] });
+    },
+    onError: (err) => showToast('فشل حذف الشاصي', 'error', err),
+  });
+
   const loadLinkedProducts = useCallback(
     (vehicleId: string): Promise<VehicleProductLink[]> => vinService.listLinkedProducts(vehicleId),
     [],
@@ -202,6 +211,8 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     isSavedVinsLoading: historyQuery.isLoading,
     saveCurrentResult: saveMutation.mutateAsync,
     isSaving: saveMutation.isPending,
+    deleteSavedVin: deleteMutation.mutateAsync,
+    isDeletingVin: deleteMutation.isPending,
     loadLinkedProducts,
     searchPartByNumber: searchMutation.mutateAsync,
     isSearching: searchMutation.isPending,

@@ -55,8 +55,8 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
         default: // Products View
             if (isDesktop) {
                 return (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 overflow-hidden">
-                        <div className={`flex-1 min-h-0 overflow-hidden flex flex-col transition-all duration-300 ${selectedProduct ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 h-full overflow-hidden">
+                        <div className={`flex-1 min-h-0 h-full overflow-hidden flex flex-col transition-all duration-300 ${selectedProduct ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
                             <ProductExcelGrid
                                 products={products}
                                 isLoading={isLoading}
@@ -68,7 +68,7 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
                             />
                         </div>
                         {selectedProduct && (
-                            <div className="lg:col-span-4 h-full overflow-hidden animate-in slide-in-from-right-4 fade-in duration-300">
+                            <div className="lg:col-span-4 h-full min-h-0 overflow-hidden animate-in slide-in-from-right-4 fade-in duration-300">
                                 <ProductDetailPane
                                     product={selectedProduct}
                                     onEdit={handleEdit}
@@ -83,17 +83,19 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
             }
             // Mobile View
             return displayMode === 'table' ? (
-                <ProductExcelGrid
-                    products={products}
-                    isLoading={isLoading}
-                    onDelete={deleteProduct}
-                    onViewDetails={setSelectedProduct}
-                    onEdit={handleEdit}
-                    searchValue={searchTerm}
-                    onSearchChange={setSearchTerm}
-                />
+                <div className="flex-1 min-h-0 h-full flex flex-col overflow-hidden">
+                    <ProductExcelGrid
+                        products={products}
+                        isLoading={isLoading}
+                        onDelete={deleteProduct}
+                        onViewDetails={setSelectedProduct}
+                        onEdit={handleEdit}
+                        searchValue={searchTerm}
+                        onSearchChange={setSearchTerm}
+                    />
+                </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                     {products.map(p => (
                         <ProductMicroCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
                     ))}

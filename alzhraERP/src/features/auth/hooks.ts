@@ -8,6 +8,57 @@ import { ROUTES } from '../../core/routes/paths';
 import { parseError } from '../../core/utils/errorUtils';
 import { logger } from '../../core/utils/logger';
 
+// SECURITY (R-02): registration input validation. The same rules
+// are duplicated server-side via a Supabase Auth Hook (project-
+// level configuration). They exist here for UX (immediate feedback)
+// and as a first line of defense against direct API callers who
+// disable JS. Throws on the first failure.
+function validateRegistrationInputs(
+  email: string,
+  pass: string,
+  companyName: string,
+  fullName: string
+): void {
+  if (!email || !pass || !companyName || !fullName) {
+    throw new Error('جميع الحقول مطلوبة');
+  }
+  if (email.length > 254) {
+    throw new Error('البريد الإلكتروني طويل جداً');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('صيغة البريد الإلكتروني غير صحيحة');
+  }
+  if (companyName.length > 200) {
+    throw new Error('اسم الشركة طويل جداً (الحد الأقصى 200 حرف)');
+  }
+  if (fullName.length > 200) {
+    throw new Error('الاسم الكامل طويل جداً (الحد الأقصى 200 حرف)');
+  }
+  if (pass.length < 8) {
+    throw new Error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+  }
+  if (pass.length > 128) {
+    // bcrypt truncates at 72 bytes; reject anything over 128 to
+    // avoid silent truncation and to discourage abuse.
+    throw new Error('كلمة المرور طويلة جداً (الحد الأقصى 128 حرف)');
+  }
+  if (!/[A-Z]/.test(pass)) {
+    throw new Error('كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل');
+  }
+  if (!/[a-z]/.test(pass)) {
+    throw new Error('كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل');
+  }
+  if (!/[0-9]/.test(pass)) {
+    throw new Error('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل');
+  }
+  if (/^(.)\1+$/.test(pass)) {
+    throw new Error('كلمة المرور لا يمكن أن تتكون من حرف واحد مكرر');
+  }
+  if (/^(password|12345678|qwerty|admin|test)/i.test(pass)) {
+    throw new Error('كلمة المرور شائعة جداً، يرجى اختيار كلمة مرور أقوى');
+  }
+}
+
 export const useAuth = () => {
     const { user, isAuthenticated, isLoading, isReady, initialize, logout } = useAuthStore();
 
@@ -95,19 +146,7 @@ export const useRegister = () => {
         setError(null);
 
         try {
-            // 1. Client-side Validation
-            if (!email || !pass || !companyName || !fullName) {
-                throw new Error("جميع الحقول مطلوبة");
-            }
-            if (pass.length < 8) {
-                throw new Error("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
-            }
-            if (!/[A-Z]/.test(pass)) {
-                throw new Error("كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل");
-            }
-            if (!/[0-9]/.test(pass)) {
-                throw new Error("كلمة المرور يجب أن تحتوي على رقم واحد على الأقل");
-            }
+            validateRegistrationInputs(email, pass, companyName, fullName);
 
             // 2. Call Supabase API
             const { data, error } = await authApi.signUp(email, pass, companyName, fullName);

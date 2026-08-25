@@ -122,6 +122,10 @@ export const vinService = {
     return vinApi.listVinAnalyses(companyId) as unknown as VinAnalysisRecord[];
   },
 
+  async deleteAnalysis(id: string): Promise<void> {
+    await vinApi.deleteVinAnalysis(id);
+  },
+
   async listLinkedProducts(vehicleId: string): Promise<VehicleProductLink[]> {
     return vinApi.listVehicleProducts(vehicleId);
   },

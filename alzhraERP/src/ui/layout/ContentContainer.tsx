@@ -10,18 +10,22 @@ import { cn } from '../../core/utils';
  * - على ultra-wide: max-width 2200px مع محاذاة مركزية
  *
  * استخدم `fluid` للجداول والصفحات التي تحتاج العرض الكامل.
+ * استخدم `fillHeight` للصفحات التي تحتوي جداول أو تخطيطات تحتاج ملء كامل الارتفاع المتاح.
  */
 interface ContentContainerProps {
     children: React.ReactNode;
     /** السماح بعرض كامل على الشاشات الكبيرة (للوحات البيانات والجداول) */
     fluid?: boolean;
     className?: string;
+    /** ملء كامل الارتفاع وتفعيل flex-1 min-h-0 للجداول والشاشات المتقدمة */
+    fillHeight?: boolean;
 }
 
-const ContentContainer: React.FC<ContentContainerProps> = ({ children, fluid, className }) => (
+const ContentContainer: React.FC<ContentContainerProps> = ({ children, fluid, className, fillHeight = false }) => (
     <div
         className={cn(
             'mx-auto w-full px-3 md:px-4 lg:px-6 xl:px-8',
+            fillHeight && 'h-full flex-1 flex flex-col min-h-0',
             !fluid && [
                 'max-w-none',                          // mobile/tablet: full width
                 'xl:max-w-[1400px]',                   // laptop: comfortable reading

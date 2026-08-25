@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { GripVertical } from 'lucide-react';
 import { cn } from '../../core/utils';
 import EmptyState from '../base/EmptyState';
 import { Column } from './ExcelTable';
@@ -15,6 +16,7 @@ interface ExcelTableBodyProps<T> {
     getRowId?: ((row: T) => string) | undefined;
     handleDragStart: (e: React.DragEvent<HTMLTableRowElement>, idx: number) => void;
     handleDragEnter: (e: React.DragEvent<HTMLTableRowElement>, idx: number) => void;
+    handleDragOver?: (e: React.DragEvent<HTMLTableRowElement>, idx: number) => void;
     handleDragEnd: (e: React.DragEvent<HTMLTableRowElement>) => void;
     handleDrop: () => void;
     onRowClick?: ((row: T) => void) | undefined;
@@ -50,6 +52,7 @@ export function ExcelTableBody<T>({
     getRowId,
     handleDragStart,
     handleDragEnter,
+    handleDragOver,
     handleDragEnd,
     handleDrop,
     onRowClick,
@@ -78,8 +81,15 @@ export function ExcelTableBody<T>({
         count: isLoading ? 0 : orderedData.length,
         getScrollElement: () => scrollRef.current,
         estimateSize: () => rowHeight,
-        overscan: 5,
+        overscan: 10,
     });
+
+    // Auto-scroll when keyboard navigation changes focused row
+    useEffect(() => {
+        if (focusedCell && focusedCell.row >= 0 && rowVirtualizer) {
+            rowVirtualizer.scrollToIndex(focusedCell.row, { align: 'auto' });
+        }
+    }, [focusedCell?.row, rowVirtualizer]);
 
     if (isLoading) {
         return (
@@ -144,14 +154,21 @@ export function ExcelTableBody<T>({
                         draggable={!!onOrderChange}
                         onDragStart={(e) => handleDragStart(e, rowIdx)}
                         onDragEnter={(e) => handleDragEnter(e, rowIdx)}
+                        onDragOver={(e) => {
+                            if (handleDragOver) {
+                                handleDragOver(e, rowIdx);
+                            } else {
+                                e.preventDefault();
+                                if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+                            }
+                        }}
                         onDragEnd={handleDragEnd}
                         onDrop={handleDrop}
-                        onDragOver={(e) => e.preventDefault()}
                         onClick={() => onRowClick && onRowClick(row)}
                         className={cn(
-                            "transition-colors group border-b border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)]",
+                            "transition-colors group border-b border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] select-none",
                             onRowClick ? "cursor-pointer" : "",
-                            !!onOrderChange && "cursor-grab",
+                            !!onOrderChange && "cursor-grab active:cursor-grabbing",
                             currentTheme.hover,
                             isSelected ? "bg-blue-50/80 dark:bg-blue-900/40" : "",
                             isInSelection ? "bg-blue-30/30 dark:bg-blue-900/20" : ""
@@ -171,10 +188,17 @@ export function ExcelTableBody<T>({
                             </td>
                         )}
                         <td className={cn(
-                            "p-2 text-[11px] text-[var(--app-text-secondary)] font-mono text-center border-r border-[var(--app-border)] bg-[var(--app-bg)]/50",
+                            "p-2 text-[11px] text-[var(--app-text-secondary)] font-mono text-center border-r border-[var(--app-border)] bg-[var(--app-bg)]/50 select-none",
                             focusedCell?.row === rowIdx ? currentTheme.glow : ""
                         )}>
-                            {(currentPage - 1) * itemsPerPage + rowIdx + 1}
+                            {!!onOrderChange ? (
+                                <div className="flex items-center justify-center gap-1">
+                                    <GripVertical size={12} className="text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+                                    <span>{(currentPage - 1) * itemsPerPage + rowIdx + 1}</span>
+                                </div>
+                            ) : (
+                                (currentPage - 1) * itemsPerPage + rowIdx + 1
+                            )}
                         </td>
                         {columns.map((col, colIdx) => {
                             const isFocused = focusedCell?.row === rowIdx && focusedCell?.col === colIdx;
@@ -243,3 +267,4 @@ export function ExcelTableBody<T>({
         </tbody>
     );
 }
+

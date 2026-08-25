@@ -127,6 +127,17 @@ serve(async (req: Request) => {
     const { data: ad, error: ae } = await su.auth.getUser();
     if (ae || !ad?.user) return buildJsonResponse({ error: "UNAUTHENTICATED" }, 401, corsH);
 
+    // SECURITY (R-21): per-user rate limit. FAPI charges per call
+    // and the cache is global (not per-tenant), so the limit is
+    // keyed by user, not company. 30 requests / minute.
+    if (!checkRateLimit(ad.user.id, "part-search", 30, 60_000)) {
+      return buildJsonResponse(
+        { error: "Rate limit exceeded. Please wait and try again." },
+        429,
+        { ...corsH, "Retry-After": "60" }
+      );
+    }
+
     const b = await req.json();
     let res: { data: unknown; status: number };
 
@@ -152,10 +163,34 @@ serve(async (req: Request) => {
       default:
         return buildJsonResponse({ error: `Unknown action: ${b.action}` }, 400, corsH);
     }
-    
+
     return buildJsonResponse(res.data, res.status, corsH);
   } catch (e: unknown) {
     console.error("[part-search]", e instanceof Error ? e.message : "Internal error");
     return buildJsonResponse({ error: e instanceof Error ? e.message : "Internal error" }, 500, corsH);
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// In-memory rate limiter (per Edge Function instance).
+//
+// Deno isolates are NOT shared across instances, so this is a
+// per-instance limit. The real cross-instance cap is the FAPI
+// upstream (429 on overflow). 30 req/min × N instances is the
+// effective limit. If we need strict global limits we would
+// need a shared store (e.g. Upstash Redis) or use the
+// check_rate_limit RPC with a synthetic global company_id.
+// ─────────────────────────────────────────────────────────────────────
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+function checkRateLimit(userId: string, endpoint: string, max: number, windowMs: number): boolean {
+  const key = `${endpoint}:${userId}`;
+  const now = Date.now();
+  const bucket = rateLimitBuckets.get(key);
+  if (!bucket || now >= bucket.resetAt) {
+    rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (bucket.count >= max) return false;
+  bucket.count += 1;
+  return true;
+}

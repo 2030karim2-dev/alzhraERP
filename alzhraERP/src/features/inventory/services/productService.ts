@@ -97,6 +97,8 @@ async function searchProductsFallback(
   return data.map(mapSearchRow);
 }
 
+let isSimilarProductsRpcAvailable = true;
+
 export const productService = {
   /**
    * Get all products for a company
@@ -413,16 +415,31 @@ export const productService = {
    */
   getSimilarProducts: async (name: string, companyId: string) => {
     try {
-      const { data, error } = await supabase.rpc('get_similar_products', {
-        p_name: name,
-        p_company_id: companyId,
-      });
+      if (isSimilarProductsRpcAvailable) {
+        const { data, error } = await supabase.rpc('get_similar_products', {
+          p_name: name,
+          p_company_id: companyId,
+        });
 
-      if (!error && data) {
-        return data;
+        if (!error && data) {
+          return data;
+        }
+
+        if (error) {
+          const errCode = (error as any).code || '';
+          const errMsg = (error as any).message || '';
+          if (
+            errCode === 'PGRST202' ||
+            errCode === '404' ||
+            errMsg.includes('not found') ||
+            errMsg.includes('does not exist')
+          ) {
+            isSimilarProductsRpcAvailable = false;
+          }
+        }
       }
 
-      // If RPC fails (e.g. 404 / function missing / schema cache), fallback to ILIKE search
+      // If RPC fails or is unavailable on backend, fallback to fast ILIKE search
       const { data: fallbackData } = await supabase
         .from('products')
         .select('id, name_ar, sku')
@@ -445,11 +462,15 @@ export const productService = {
    * Get all potential duplicate pairs in the company inventory
    */
   getPotentialDuplicates: async (companyId: string) => {
-    const { data, error } = await supabase.rpc('get_potential_duplicates', {
-      p_company_id: companyId,
-    });
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase.rpc('get_potential_duplicates', {
+        p_company_id: companyId,
+      });
+      if (error) return [];
+      return data || [];
+    } catch {
+      return [];
+    }
   },
 };
 

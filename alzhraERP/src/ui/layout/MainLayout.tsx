@@ -206,7 +206,7 @@ const MainLayout: React.FC = () => {
         <main
           id="main-content"
           className={cn(
-            'custom-scrollbar relative flex-1 overflow-y-auto print:!m-0 print:!block print:!w-full print:!overflow-visible print:!p-0',
+            'custom-scrollbar relative flex-1 flex flex-col min-h-0 overflow-y-auto print:!m-0 print:!block print:!w-full print:!overflow-visible print:!p-0',
             mainPaddingBottom
           )}
         >

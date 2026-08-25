@@ -84,6 +84,49 @@ const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ model: string; modelAr: str
     { model: 'L200', modelAr: 'إل 200' },
     { model: 'Canter', modelAr: 'كانتر' },
   ],
+  Lexus: [
+    { model: 'LS', modelAr: 'LS' },
+    { model: 'ES', modelAr: 'ES' },
+    { model: 'GS', modelAr: 'GS' },
+    { model: 'LX', modelAr: 'LX' },
+    { model: 'RX', modelAr: 'RX' },
+    { model: 'GX', modelAr: 'GX' },
+    { model: 'IS', modelAr: 'IS' },
+  ],
+  Suzuki: [
+    { model: 'Grand Vitara', modelAr: 'جراند فيتارا' },
+    { model: 'Vitara', modelAr: 'فيتارا' },
+    { model: 'Swift', modelAr: 'سويفت' },
+    { model: 'Jimny', modelAr: 'جيمني' },
+    { model: 'Baleno', modelAr: 'بالينو' },
+  ],
+  Chevrolet: [
+    { model: 'Tahoe', modelAr: 'تاهو' },
+    { model: 'Suburban', modelAr: 'سوبربان' },
+    { model: 'Silverado', modelAr: 'سلفرادو' },
+    { model: 'Cruze', modelAr: 'كروز' },
+    { model: 'Malibu', modelAr: 'ماليبو' },
+    { model: 'Traverse', modelAr: 'ترافيرس' },
+  ],
+  GMC: [
+    { model: 'Yukon', modelAr: 'يوكن' },
+    { model: 'Sierra', modelAr: 'سييرا' },
+    { model: 'Acadia', modelAr: 'أكاديا' },
+    { model: 'Terrain', modelAr: 'تيرين' },
+  ],
+  Ford: [
+    { model: 'F-150', modelAr: 'إف 150' },
+    { model: 'Explorer', modelAr: 'إكسبلورر' },
+    { model: 'Expedition', modelAr: 'إكسبيديشن' },
+    { model: 'Taurus', modelAr: 'تورس' },
+    { model: 'Ranger', modelAr: 'رينجر' },
+  ],
+  Mazda: [
+    { model: 'CX-9', modelAr: 'سي إكس 9' },
+    { model: 'CX-5', modelAr: 'سي إكس 5' },
+    { model: 'Mazda 6', modelAr: 'مازدا 6' },
+    { model: 'Mazda 3', modelAr: 'مازدا 3' },
+  ],
 };
 
 export const ManualVinModal: React.FC<ManualVinModalProps> = ({

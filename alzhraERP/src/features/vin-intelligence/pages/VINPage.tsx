@@ -87,6 +87,7 @@ const VINPage: React.FC = () => {
                 }
               }}
               onSaveManualVehicle={vin.saveManualVehicle}
+              onDeleteSavedVin={vin.deleteSavedVin}
               isAdding={vin.isAdding}
               canAdd={canAddToInventory}
             />

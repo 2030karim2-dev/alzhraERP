@@ -1,0 +1,86 @@
+name: Security Canary
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly on Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  canary:
+    name: Security canary (audit views + canary SQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Supabase DB connection string for the staging project.
+      # Stored as a GitHub Actions secret. The CI runner does NOT
+      # have write access to production.
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+      # psql client version pinned in the runner image
+      PGPASSWORD: ${{ secrets.SUPABASE_STAGING_DB_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install psql
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Verify required secrets are present
+        if: env.SUPABASE_DB_URL == ''
+        run: |
+          echo "::error::SUPABASE_STAGING_DB_URL is not set."
+          exit 1
+
+      - name: Run canary SQL
+        run: |
+          set -euo pipefail
+          DB_URL="${SUPABASE_DB_URL}"
+          echo "Running canary against $DB_URL ..."
+          psql "$DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_canary_all_audit_views.sql
+
+      - name: Run security authorization tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_security_authorization.sql
+
+      - name: Run RLS isolation tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_rls_isolation.sql
+
+      - name: Run audit trail tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_audit_trail.sql
+
+      - name: Run injection / XSS tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_injection_xss.sql
+
+      - name: Run business logic tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_business_logic.sql
+
+      - name: Run api_v1 cross-tenant tests
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_api_v1_cross_tenant.sql
+
+      - name: Fail on any CANARY FAIL
+        run: |
+          set -euo pipefail
+          if grep -q "CANARY FAIL" sql_output.log 2>/dev/null; then
+            echo "::error::One or more security canaries failed."
+            grep "CANARY FAIL" sql_output.log
+            exit 1
+          fi

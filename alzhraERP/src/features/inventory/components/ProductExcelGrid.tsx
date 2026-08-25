@@ -25,6 +25,7 @@ interface Props {
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     visibleColumns?: string[];
+    onOrderChange?: ((reorderedData: Product[]) => void) | undefined;
 }
 
 const ProductExcelGrid: React.FC<Props> = ({
@@ -43,7 +44,8 @@ const ProductExcelGrid: React.FC<Props> = ({
     onCellUpdate,
     searchValue,
     onSearchChange,
-    visibleColumns
+    visibleColumns,
+    onOrderChange
 }) => {
     const { saveProduct, bulkDeleteProducts } = useProductMutations();
     const { showToast } = useFeedbackStore();
@@ -93,7 +95,7 @@ const ProductExcelGrid: React.FC<Props> = ({
     if (isLoading) return <TableSkeleton rows={10} cols={6} />;
 
     return (
-        <div className="relative h-full flex flex-col bg-white dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/80 p-1.5 transition-all duration-300">
+        <div className="relative h-full flex-1 min-h-0 flex flex-col bg-white dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/80 p-1.5 transition-all duration-300 overflow-hidden">
             {!hideBulkActions && selectedRowIds.size > 0 && (
                 <BulkActionsBar
                     selectedCount={selectedRowIds.size}
@@ -113,7 +115,7 @@ const ProductExcelGrid: React.FC<Props> = ({
                 pageSize={100}
                 onRowDoubleClick={onViewDetails}
                 onRowClick={onRowClick}
-                onOrderChange={() => { }}
+                onOrderChange={onOrderChange || (() => { })}
                 onCellUpdate={onCellUpdate || handleCellUpdate}
                 enableSelection={!hideBulkActions}
                 selectedRowIds={selectedRowIds}

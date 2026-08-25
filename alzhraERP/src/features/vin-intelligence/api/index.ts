@@ -132,6 +132,11 @@ export const vinApi = {
     return data;
   },
 
+  deleteVinAnalysis: async (id: string) => {
+    const { error } = await supabase.from('vin_analyses').delete().eq('id', id);
+    if (error) throw error;
+  },
+
   // ── vehicle_products (vehicle ↔ product links) ───────────
   listVehicleProducts: async (vehicleId: string): Promise<VehicleProductLink[]> => {
     const { data, error } = await supabase.from('vehicle_products').select('*').eq('vehicle_id', vehicleId);
