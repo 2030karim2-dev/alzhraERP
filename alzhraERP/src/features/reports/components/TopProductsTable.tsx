@@ -27,7 +27,7 @@ export const TopProductsTable: React.FC<TopProductsTableProps> = ({ data }) => {
                     <p className="text-[10px] text-slate-500 mt-1 ml-6">أعلى الأصناف من حيث الكمية المباعة والإيرادات</p>
                 </div>
             </div>
-            <div className="p-0 flex-1">
+            <div className="p-0 flex-1 min-h-[380px] flex flex-col">
                 <ExcelTable
                     data={data}
                     columns={[

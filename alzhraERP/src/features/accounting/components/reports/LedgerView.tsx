@@ -118,7 +118,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
         isLoading ? (
           <div className="flex-1 flex items-center justify-center p-12 max-md:p-5"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
         ) : (
-          <div className="flex-1 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
+          <div className="flex-1 min-h-[480px] flex flex-col overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
             <ExcelTable
               columns={columns}
               data={ledger || []}

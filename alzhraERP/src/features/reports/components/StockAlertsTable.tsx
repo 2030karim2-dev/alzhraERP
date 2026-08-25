@@ -32,7 +32,7 @@ export const StockAlertsTable: React.FC<StockAlertsTableProps> = ({ data }) => {
                     </span>
                 )}
             </div>
-            <div className="p-0 flex-1">
+            <div className="p-0 flex-1 min-h-[380px] flex flex-col">
                 <ExcelTable
                     data={data}
                     columns={[

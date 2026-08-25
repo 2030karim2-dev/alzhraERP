@@ -208,7 +208,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950/50 custom-scrollbar p-2">
+                    <div className="flex-1 min-h-[480px] flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950/50 p-2">
                         <ExcelTable
                             columns={columns}
                             data={extractedItems}

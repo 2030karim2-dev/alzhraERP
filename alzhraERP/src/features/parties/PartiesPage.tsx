@@ -201,7 +201,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                     <div className="space-y-4 animate-in fade-in duration-500">
                         <PartiesStats stats={stats} type={partyType} />
 
-                        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 min-h-[480px] flex flex-col">
                             <ExcelTable
                                 columns={columns}
                                 data={parties || []}

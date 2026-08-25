@@ -146,7 +146,7 @@ const TransferHistoryView: React.FC = () => {
 
   // ── Desktop Table View ───────────────────────────────────────────
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex-1 min-h-[480px] flex flex-col gap-4">
       <ExcelTable
         columns={columns}
         data={transfers}

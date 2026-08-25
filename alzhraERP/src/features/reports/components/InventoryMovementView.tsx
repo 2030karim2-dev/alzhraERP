@@ -307,8 +307,8 @@ const InventoryMovementView: React.FC = () => {
                     </div>
 
                     {/* Transaction Ledger Table */}
-                    <div className="lg:col-span-8">
-                        <div className="glass-panel bento-item bg-white dark:bg-slate-900 border-none shadow-2xl overflow-hidden min-h-full">
+                    <div className="lg:col-span-8 flex flex-col min-h-[500px]">
+                        <div className="glass-panel bento-item bg-white dark:bg-slate-900 border-none shadow-2xl overflow-hidden flex-1 min-h-[480px] flex flex-col">
                             <ExcelTable
                                 columns={columns}
                                 data={movement || []}

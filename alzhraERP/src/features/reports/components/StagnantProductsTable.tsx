@@ -27,7 +27,7 @@ export const StagnantProductsTable: React.FC<StagnantProductsTableProps> = ({ da
                     <p className="text-[10px] text-slate-500 mt-1 ml-6">منتجات لم تتحرك منذ فترة طويلة وتكلف مساحة وأموال</p>
                 </div>
             </div>
-            <div className="p-0 flex-1">
+            <div className="p-0 flex-1 min-h-[380px] flex flex-col">
                 <ExcelTable
                     data={data}
                     columns={[
