@@ -64,5 +64,19 @@ tsconfig.tsbuildinfo
 tmp_supabase_test.mjs
 supabase/.temp/
 
-# one-off / secret-bearing scripts
+# one-off / secret-bearing scripts & credentials
+*.ps1
+!scripts/*.ps1
 test.ps1
+test-creds.ps1
+cred-helper.ps1
+push-with-token.ps1
+test-auth-header.ps1
+push-detached.ps1
+*-creds*
+*creds*
+*token*
+*-token*
+.pg/
+pg-test/
+
