@@ -67,3 +67,5 @@ tmp_supabase_test.mjs
 
 # one-off / secret-bearing scripts
 test.ps1
+.pg/
+pg-test/
