@@ -23,13 +23,13 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
 }) => {
     return (
         <div className="flex justify-end pt-2">
-            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl p-5 border border-gray-100 dark:border-slate-800 w-full md:w-80 space-y-3 shadow-inner">
+            <div className="bg-[var(--app-surface)] border border-[var(--app-border)] p-3 md:p-5 w-full md:w-80 space-y-3">
                 <div className="flex justify-between items-start text-sm">
-                    <span className="text-gray-500 dark:text-slate-400">إجمالي المدين</span>
+                    <span className="text-[var(--app-text-secondary)]">إجمالي المدين</span>
                     <div className="flex flex-col items-end">
-                        <span dir="ltr" className="font-mono font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totals.debit_amount, currencyCode || 'SAR')}</span>
+                        <span dir="ltr" className="font-mono font-bold text-[var(--app-text)]">{formatCurrency(totals.debit_amount, currencyCode || 'SAR')}</span>
                         {currencyCode !== 'SAR' && (
-                            <span dir="ltr" className="font-mono text-[10px] text-gray-500">
+                            <span dir="ltr" className="font-mono text-[10px] text-[var(--app-text-secondary)]">
                                 {formatCurrency(convertToBaseCurrency({
                                     amount: totals.debit_amount,
                                     currencyCode: (currencyCode || 'SAR'),
@@ -41,11 +41,11 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                     </div>
                 </div>
                 <div className="flex justify-between items-start text-sm">
-                    <span className="text-gray-500 dark:text-slate-400">إجمالي الدائن</span>
+                    <span className="text-[var(--app-text-secondary)]">إجمالي الدائن</span>
                     <div className="flex flex-col items-end">
-                        <span dir="ltr" className="font-mono font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totals.credit_amount, currencyCode || 'SAR')}</span>
+                        <span dir="ltr" className="font-mono font-bold text-[var(--app-text)]">{formatCurrency(totals.credit_amount, currencyCode || 'SAR')}</span>
                         {currencyCode !== 'SAR' && (
-                            <span dir="ltr" className="font-mono text-[10px] text-gray-500">
+                            <span dir="ltr" className="font-mono text-[10px] text-[var(--app-text-secondary)]">
                                 {formatCurrency(convertToBaseCurrency({
                                     amount: totals.credit_amount,
                                     currencyCode: (currencyCode || 'SAR'),
@@ -56,7 +56,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                         )}
                     </div>
                 </div>
-                <div className={`flex justify-between items-start text-sm pt-3 border-t border-gray-200 dark:border-slate-700 font-bold ${isBalanced ? 'text-emerald-600' : 'text-red-600'}`}>
+                <div className={`flex justify-between items-start text-sm pt-3 border-t border-[var(--app-border)] font-bold ${isBalanced ? 'text-emerald-600' : 'text-rose-600'}`}>
                     <span>الفرق</span>
                     <div className="flex flex-col items-end">
                         <span dir="ltr" className="font-mono">{formatCurrency(Math.abs(difference), currencyCode || 'SAR')}</span>
@@ -73,7 +73,7 @@ const JournalEntryTotals: React.FC<JournalEntryTotalsProps> = ({
                     </div>
                 </div>
                 {(!isBalanced || errors.lines) && (
-                    <div className="text-[10px] text-red-500 dark:text-red-400 text-center bg-red-50 dark:bg-red-900/20 p-1.5 rounded-lg border border-red-100 dark:border-red-900/30 animate-pulse flex items-center justify-center gap-1">
+                    <div className="text-[10px] text-rose-600 dark:text-rose-400 text-center bg-rose-50 dark:bg-rose-900/20 p-2 border border-rose-100 dark:border-rose-900/30 flex items-center justify-center gap-1">
                         <AlertCircle size={10} />
                         <span>{errors.lines?.message || (totals.debit_amount === 0 ? 'يجب إدخال مبالغ' : 'القيد غير متوازن')}</span>
                     </div>

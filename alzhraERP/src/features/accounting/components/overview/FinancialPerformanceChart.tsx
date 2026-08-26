@@ -34,7 +34,7 @@ const FinancialPerformanceChart: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-64 flex flex-col items-center justify-center  max-md:gap-4 text-slate-400">
+      <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--app-text-secondary)]">
         <Loader2 className="animate-spin text-blue-500" size={32} />
         <p className="text-[10px] font-bold uppercase tracking-widest animate-pulse">جاري تحليل البيانات...</p>
       </div>
@@ -44,7 +44,7 @@ const FinancialPerformanceChart: React.FC = () => {
   if (isError) {
     logger.error("FinancialPerformanceChart", 'Error fetching chart data');
     return (
-      <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-500">
+      <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--app-text-secondary)]">
         <AlertTriangle size={28} className="text-amber-500" />
         <p className="text-[10px] font-bold uppercase tracking-widest">تعذر تحميل بيانات الأداء المالي</p>
         <button
@@ -58,9 +58,9 @@ const FinancialPerformanceChart: React.FC = () => {
   }
 
   return (
-    <div className="h-72 w-full relative group  max-md:p-2">
-      <div className="absolute top-0 right-0  max-md:p-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="flex items-center  max-md:gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 shadow-xl">
+    <div className="h-72 w-full relative group p-2 max-md:p-1">
+      <div className="absolute top-0 end-0 p-4 max-md:p-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 shadow-xl">
           <TrendingUp size={12} className="text-emerald-500" />
           <span className="text-[10px] font-bold uppercase text-emerald-500 tracking-tighter">Performance Optimized</span>
         </div>
@@ -100,7 +100,7 @@ const FinancialPerformanceChart: React.FC = () => {
                 if (active && payload && payload.length) {
                   return (
                     <div className={cn(
-                      " max-md:p-4 rounded-3xl max-md:rounded-xl border shadow-2xl backdrop-blur-xl transition-all duration-300",
+                      "p-4 max-md:p-2 rounded-xl max-md:rounded-lg border shadow-2xl backdrop-blur-xl transition-all duration-300",
                       isDark
                         ? "bg-slate-900/80 border-slate-700/50 shadow-black/50"
                         : "bg-white/90 border-slate-200/50 shadow-slate-200/50"
@@ -109,7 +109,7 @@ const FinancialPerformanceChart: React.FC = () => {
                       <div className="space-y-3">
                         {payload.map((entry: any, index: number) => (
                           <div key={index} className="flex items-center justify-between gap-8 max-md:gap-3">
-                            <div className="flex items-center  max-md:gap-2">
+                            <div className="flex items-center gap-2 max-md:gap-1">
                               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                               <span className="text-[11px] font-bold text-slate-500 uppercase">{entry.name}</span>
                             </div>

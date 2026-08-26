@@ -26,27 +26,27 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
     isLoadingAccounts
 }) => {
     return (
-        <div className="border border-gray-200 dark:border-slate-800 rounded-2xl max-md:rounded-xl overflow-hidden shadow-sm transition-colors">
-            <div className="bg-gray-100 dark:bg-slate-800 px-4 py-2.5 grid grid-cols-12 gap-4 max-md:gap-3 text-[11px] font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+        <div className="border border-[var(--app-border)] overflow-hidden shadow-sm transition-colors">
+            <div className="bg-[var(--app-surface-hover)] px-4 py-2.5 grid grid-cols-12 gap-4 max-md:gap-3 text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest">
                 <div className="col-span-1 text-center">#</div>
                 <div className="col-span-3">الحساب</div>
                 <div className="col-span-4">البيان (اختياري)</div>
-                <div className="col-span-2 text-left">مدين</div>
-                <div className="col-span-2 text-left">دائن</div>
+                <div className="col-span-2 text-start">مدين</div>
+                <div className="col-span-2 text-start">دائن</div>
             </div>
 
-            <div className="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
+            <div className="divide-y divide-[var(--app-border)] bg-[var(--app-surface)]">
                 {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-4 max-md:gap-3 px-4 py-3 items-start group hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div key={field.id} className="grid grid-cols-12 gap-4 max-md:gap-3 px-4 py-3 items-start group hover:bg-[var(--app-surface-hover)] transition-colors">
                         <div className="col-span-1 flex items-center justify-center pt-2">
-                            <span dir="ltr" className="w-6 h-6 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 flex items-center justify-center text-xs font-bold">
+                            <span dir="ltr" className="w-6 h-6 rounded-full bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] flex items-center justify-center text-xs font-bold">
                                 {index + 1}
                             </span>
                         </div>
 
                         <div className="col-span-3">
                             {isLoadingAccounts ? (
-                                <div className="text-xs text-gray-400 p-2 animate-pulse">جاري التحميل...</div>
+                                <div className="text-xs text-[var(--app-text-secondary)] p-2 animate-pulse">جاري التحميل...</div>
                             ) : (
                                 <SearchableAccountSelector
                                     accounts={accounts || []}
@@ -56,14 +56,14 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                     postableOnly
                                 />
                             )}
-                            {errors.lines?.[index]?.account_id && <p className="text-[9px] text-red-500 font-bold px-1 mt-0.5">{errors.lines[index]?.account_id?.message}</p>}
+                            {errors.lines?.[index]?.account_id && <p className="text-[10px] text-rose-500 font-bold px-1 mt-0.5">{errors.lines[index]?.account_id?.message}</p>}
                         </div>
 
                         <div className="col-span-4">
                             <input
                                 type="text"
                                 {...register(`lines.${index}.description` as const)}
-                                className="w-full px-2 py-2 bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-slate-700 rounded-xl text-sm dark:text-slate-200 focus:border-accent outline-none transition-all"
+                                className="w-full px-2 py-2 bg-transparent border border-transparent hover:border-[var(--app-border)] rounded-[var(--radius)] text-sm text-[var(--app-text)] focus:border-[var(--accent)] outline-none transition-all"
                             />
                         </div>
 
@@ -73,14 +73,14 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                                {...register(`lines.${index}.debit_amount` as const, { 
+                                {...register(`lines.${index}.debit_amount` as const, {
                                     valueAsNumber: true,
                                     onChange: (e) => {
                                         const val = parseFloat(e.target.value);
                                         if (val > 0) setValue(`lines.${index}.credit_amount`, 0, { shouldValidate: true });
                                     }
                                 })}
-                                className="w-full px-2 py-2 bg-emerald-50/10 dark:bg-emerald-900/5 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/30 rounded-xl text-sm dark:text-emerald-400 focus:border-accent outline-none text-left font-mono"
+                                className="w-full px-2 py-2 bg-emerald-50/10 dark:bg-emerald-900/5 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/30 rounded-[var(--radius)] text-sm text-emerald-700 dark:text-emerald-400 focus:border-[var(--accent)] outline-none text-start font-mono"
                                 dir="ltr"
                             />
                         </div>
@@ -91,20 +91,21 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                                {...register(`lines.${index}.credit_amount` as const, { 
+                                {...register(`lines.${index}.credit_amount` as const, {
                                     valueAsNumber: true,
                                     onChange: (e) => {
                                         const val = parseFloat(e.target.value);
                                         if (val > 0) setValue(`lines.${index}.debit_amount`, 0, { shouldValidate: true });
                                     }
                                 })}
-                                className="w-full px-2 py-2 bg-red-50/10 dark:bg-red-900/5 border border-transparent hover:border-red-200 dark:hover:border-red-900/30 rounded-xl text-sm dark:text-red-400 focus:border-accent outline-none text-left font-mono"
+                                className="w-full px-2 py-2 bg-red-50/10 dark:bg-red-900/5 border border-transparent hover:border-red-200 dark:hover:border-red-900/30 rounded-[var(--radius)] text-sm text-red-700 dark:text-red-400 focus:border-[var(--accent)] outline-none text-start font-mono"
                                 dir="ltr"
                             />
                             <button
                                 type="button"
                                 onClick={() => remove(index)}
-                                className="absolute -left-10 top-2 p-1.5 text-gray-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all max-md:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                className="absolute -end-10 top-2 p-1.5 text-[var(--app-text-secondary)] opacity-50 hover:text-rose-500 hover:opacity-100 group-hover:opacity-100 transition-all max-md:opacity-100 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-[var(--radius)]"
+                                aria-label="حذف السطر"
                             >
                                 <Trash2 size={16} />
                             </button>
@@ -116,7 +117,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
             <button
                 type="button"
                 onClick={() => append({ account_id: '', description: '', debit_amount: 0, credit_amount: 0 })}
-                className="w-full py-3 bg-gray-50/50 dark:bg-slate-800/30 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 text-sm font-bold flex items-center justify-center gap-2 border-t border-gray-100 dark:border-slate-800 transition-colors"
+                className="w-full py-3 bg-[var(--app-surface-hover)] hover:bg-[var(--app-border)] text-[var(--app-text-secondary)] text-sm font-bold flex items-center justify-center gap-2 border-t border-[var(--app-border)] transition-colors"
             >
                 <Plus size={18} />
                 <span>إضافة صف جديد</span>

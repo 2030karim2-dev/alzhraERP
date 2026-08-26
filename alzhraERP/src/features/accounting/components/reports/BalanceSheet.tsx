@@ -23,22 +23,22 @@ const ReportSection: React.FC<ReportSectionProps> = ({ title, items, total, icon
     const currentTheme = theme[color];
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col rounded-none">
-            <div className={` max-md:p-3 border-b border-gray-100 dark:border-slate-800 flex items-center  max-md:gap-2 ${currentTheme.header}`}>
+        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm flex flex-col">
+            <div className={`p-3 max-md:p-2 border-b border-[var(--app-border)] flex items-center gap-2 ${currentTheme.header}`}>
                 <Icon size={14} />
                 <h3 className="text-[10px] font-bold uppercase tracking-widest">{title}</h3>
             </div>
-            <div className="flex-1 divide-y divide-gray-50 dark:divide-slate-800/50">
+            <div className="flex-1 divide-y divide-[var(--app-border)]">
                 {items.map((item) => (
-                    <div key={item.code} className="flex justify-between items-center  max-md:p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/20">
-                        <span className="text-[10px] font-bold text-gray-700 dark:text-slate-200">{item.name}</span>
-                        <span dir="ltr" className="font-mono text-[10px] font-bold text-gray-800 dark:text-slate-100">{formatCurrency(Math.abs(item.net_balance))}</span>
+                    <div key={item.code} className="flex justify-between items-center p-2 max-md:p-1.5 hover:bg-[var(--app-surface-hover)]">
+                        <span className="text-[11px] font-bold text-[var(--app-text)]">{item.name}</span>
+                        <span dir="ltr" className="font-mono text-xs font-bold text-[var(--app-text)]">{formatCurrency(Math.abs(item.net_balance))}</span>
                     </div>
                 ))}
             </div>
-            <div className={` max-md:p-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center ${currentTheme.total}`}>
+            <div className={`p-3 max-md:p-2 border-t border-[var(--app-border)] flex justify-between items-center ${currentTheme.total}`}>
                 <span className="text-[10px] font-bold uppercase tracking-widest">الإجمالي</span>
-                <span dir="ltr" className="font-mono text-xl font-bold">{formatCurrency(total)}</span>
+                <span dir="ltr" className="font-mono text-base font-bold">{formatCurrency(total)}</span>
             </div>
         </div>
     );
@@ -55,38 +55,38 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
             <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
-            <p className="text-gray-500 font-medium">جاري إعداد الميزانية العمومية...</p>
+            <p className="text-[var(--app-text-secondary)] font-medium">جاري إعداد الميزانية العمومية...</p>
         </div>
     );
 
-    if (!financials) return <div className="p-8 max-md:p-4 text-center text-gray-500">لا توجد بيانات مالية متاحة</div>;
+    if (!financials) return <div className="p-8 max-md:p-4 text-center text-[var(--app-text-secondary)]">لا توجد بيانات مالية متاحة</div>;
 
     const { assets, liabilities, equity, netIncome, isBalanced, difference, totals } = financials.balanceSheet;
 
     const totalAssets = totals.assets;
     const totalLiabilities = Math.abs(totals.liabilities);
     const totalEquity = Math.abs(totals.equity);
-    
+
     // Server already computes difference accurately
     const differenceAmount = difference || 0;
 
     return (
         <div className="max-w-none mx-auto space-y-4 pb-12 print-area animate-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800  max-md:p-4 rounded-none text-center shadow-sm flex justify-between items-center">
+            <div className="bg-[var(--app-surface)] border border-[var(--app-border)] p-3 max-md:p-2 text-center shadow-sm flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tight">المركز المالي</h2>
-                    <p className="text-xs text-gray-400">كما في تاريخ <b dir="ltr" className="text-gray-600">{dateRange.to}</b></p>
+                    <h2 className="text-lg font-bold text-[var(--app-text)] uppercase tracking-tight">المركز المالي</h2>
+                    <p className="text-xs text-[var(--app-text-secondary)]">كما في تاريخ <b dir="ltr" className="text-[var(--app-text)]">{dateRange.to}</b></p>
                 </div>
-                <div className=" max-md:p-3 bg-slate-900 text-white"><Landmark size={24} /></div>
+                <div className="p-3 max-md:p-2 bg-slate-900 text-white"><Landmark size={24} /></div>
             </div>
 
-            <div className="grid lg:grid-cols-2  max-md:gap-4 items-start">
+            <div className="grid lg:grid-cols-2 gap-3 max-md:gap-3 items-start">
                 {/* Left Column: Assets */}
                 <ReportSection title="الأصول" icon={Wallet} items={assets} total={totalAssets} color="blue" />
 
                 {/* Right Column: Liabilities & Equity */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                     <ReportSection title="الخصوم" icon={Scale} items={liabilities} total={totalLiabilities} color="rose" />
                     <ReportSection
                         title="حقوق الملكية"
@@ -100,13 +100,13 @@ const BalanceSheet: React.FC<Props> = ({ dateRange }) => {
 
             {/* Verification Footer */}
             <div className={cn(
-                "mt-4  max-md:p-4 rounded-none flex items-center justify-center  max-md:gap-3 border-2 font-bold",
+                "mt-4 p-3 max-md:p-2 flex items-center justify-center gap-3 max-md:gap-2 border-2 font-bold text-xs",
                 isBalanced
                     ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                     : 'bg-rose-50 border-rose-200 text-rose-800'
             )}>
                 <ShieldCheck size={20} />
-                <span className="text-sm uppercase tracking-widest">
+                <span className="uppercase tracking-widest">
                     {isBalanced ? 'الميزانية متزنة (Balanced)' : `غير متزنة - الفرق ${formatCurrency(Math.abs(differenceAmount))}`}
                 </span>
             </div>

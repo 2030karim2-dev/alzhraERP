@@ -11,9 +11,12 @@ const AccountingStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0.5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="h-28 bg-gray-100 dark:bg-slate-800/50 animate-pulse"></div>
+          <div
+            key={i}
+            className="h-28 bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm animate-pulse"
+          />
         ))}
       </div>
     );
@@ -26,7 +29,7 @@ const AccountingStats: React.FC = () => {
   const totalLiabilities = Math.abs(financials?.balanceSheet?.totals?.liabilities || 0);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0.5 transition-colors duration-300">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 transition-colors duration-300">
       <StatCard
         title="صافي الربح"
         value={formatCurrency(netIncome)}

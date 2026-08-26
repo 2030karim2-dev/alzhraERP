@@ -6,6 +6,7 @@ import { Wallet, Landmark, Users, Building, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../../../core/utils';
 import { useCurrencies } from '../../../settings/hooks';
 import type { Account } from '../../types/models';
+import Card from '../../../../ui/base/Card';
 
 const KeyAccountBalances: React.FC = () => {
   const { data: accounts, isLoading } = useAccounts();
@@ -29,9 +30,9 @@ const KeyAccountBalances: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 p-4 shadow-sm h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-gray-300" />
-      </div>
+      <Card variant="ledger" className="h-full flex items-center justify-center">
+        <Loader2 className="animate-spin text-[var(--app-text-secondary)]" />
+      </Card>
     );
   }
 
@@ -77,27 +78,27 @@ const KeyAccountBalances: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 p-3 shadow-sm">
-      <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">أرصدة رئيسية</h3>
+    <Card variant="ledger">
+      <h3 className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest mb-3 px-1">أرصدة رئيسية</h3>
       <div className="space-y-1">
         {keyAccounts.map(ka => {
           const root = findRootAccount(ka);
           const hasAccount = root !== null;
           const totalBalance = hasAccount ? computeBalance(root) : null;
           return (
-            <div key={ka.code} className="flex justify-between items-center p-2 hover:bg-gray-50/50 dark:hover:bg-slate-800/30">
+            <div key={ka.code} className="flex justify-between items-center p-2 hover:bg-[var(--app-surface-hover)] transition-colors">
               <div className="flex items-center gap-2">
                 <ka.icon size={14} className={ka.color} />
-                <span className="text-[10px] font-bold text-gray-700 dark:text-slate-200">{ka.label}</span>
+                <span className="text-[11px] font-bold text-[var(--app-text)]">{ka.label}</span>
               </div>
-              <span dir="ltr" className={`text-[11px] font-bold font-mono ${(totalBalance ?? 0) < 0 ? 'text-rose-600' : 'text-gray-800 dark:text-slate-100'}`}>
+              <span dir="ltr" className={`text-[11px] font-bold font-mono ${(totalBalance ?? 0) < 0 ? 'text-rose-600' : 'text-[var(--app-text)]'}`}>
                 {hasAccount ? formatCurrency(totalBalance ?? 0) : '—'}
               </span>
             </div>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 };
 

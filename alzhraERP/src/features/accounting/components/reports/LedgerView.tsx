@@ -94,7 +94,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     <div className="space-y-4 print-area h-full flex flex-col">
       {/* Show dropdown only if explicitly requested and no account is forced */}
       {showAccountSelector && !accountId && (
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md  max-md:p-2 rounded-2xl max-md:rounded-xl border border-gray-100 dark:border-slate-800 flex items-center  max-md:gap-3 no-print shadow-sm">
+        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] p-2 max-md:p-1 flex items-center gap-3 max-md:gap-2 no-print shadow-sm">
           <SearchableAccountSelector
             accounts={accounts || []}
             selectedId={internalAccountId}
@@ -118,7 +118,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
         isLoading ? (
           <div className="flex-1 flex items-center justify-center p-12 max-md:p-5"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
         ) : (
-          <div className="flex-1 min-h-[480px] flex flex-col overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
+          <div className="flex-1 min-h-[480px] flex flex-col overflow-hidden border border-[var(--app-border)] shadow-sm">
             <ExcelTable
               columns={columns}
               data={ledger || []}

@@ -16,7 +16,7 @@ const AccountingOverview: React.FC<AccountingOverviewProps> = ({ onNewJournal })
     <div className="space-y-4 animate-in fade-in duration-500">
       {/* Top Stats Bar */}
       <div className="space-y-2">
-         <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+         <h3 className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest px-1 flex items-center gap-2">
             <Activity size={14} className="text-blue-500" /> الحالة المالية اللحظية
          </h3>
          <AccountingStats />
@@ -26,8 +26,8 @@ const AccountingOverview: React.FC<AccountingOverviewProps> = ({ onNewJournal })
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-md:gap-3 items-start">
         {/* Main Column */}
         <div className="lg:col-span-2 space-y-4">
-            <Card className="p-4 rounded-none">
-              <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-4 px-1 flex items-center gap-2">
+            <Card variant="ledger" className="p-4">
+              <h3 className="text-xs font-bold text-[var(--app-text)] mb-4 px-1 flex items-center gap-2">
                 <BarChart3 size={16} className="text-blue-500" />
                 أداء الإيرادات مقابل المصروفات
               </h3>
@@ -35,7 +35,7 @@ const AccountingOverview: React.FC<AccountingOverviewProps> = ({ onNewJournal })
             </Card>
             <RecentJournals />
         </div>
-        
+
         {/* Sidebar Column */}
         <div className="lg:col-span-1 space-y-4">
             <QuickActions {...(onNewJournal ? { onNewJournal } : {})} />
