@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
+import { parseError } from '../../../core/utils/errorUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -62,11 +63,21 @@ export const treasuryApi = {
     return data as { cashbox_id: string; account_id: string; account_code: string };
   },
 
-  deactivateCashbox: async (id: string) => {
-    return await supabase
+  /**
+   * Deactivate a cashbox (soft-off). Defense-in-depth: explicit company_id
+   * filter on top of RLS, and returns the updated row id so callers can detect
+   * "not found / not owned by this company" (null) instead of a silent no-op.
+   */
+  deactivateCashbox: async (companyId: string, id: string) => {
+    const { data, error } = await supabase
       .from('cashboxes')
       .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId)
+      .select('id')
+      .maybeSingle();
+    if (error) throw parseError(error);
+    return data;
   },
 
   // ── Exchange Companies ─────────────────────────────────────────────────────
@@ -92,10 +103,19 @@ export const treasuryApi = {
     return data as { exchange_company_id: string; account_id: string; account_code: string };
   },
 
-  deactivateExchangeCompany: async (id: string) => {
-    return await supabase
+  /**
+   * Deactivate an exchange company (soft-off). Defense-in-depth mirrors
+   * `deactivateCashbox`: explicit company_id filter + ownership-aware result.
+   */
+  deactivateExchangeCompany: async (companyId: string, id: string) => {
+    const { data, error } = await supabase
       .from('exchange_companies')
       .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId)
+      .select('id')
+      .maybeSingle();
+    if (error) throw parseError(error);
+    return data;
   },
 };

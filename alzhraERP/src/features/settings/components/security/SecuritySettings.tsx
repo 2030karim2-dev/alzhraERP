@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { ShieldCheck, Key, Smartphone, LogOut, CheckCircle2, Loader2 } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
 import Input from '../../../../ui/base/Input';
-import { usePasswordChange } from '../../../auth/hooks';
+import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
+import { usePasswordChange, useTerminateSessions } from '../../../auth/hooks';
 import { useI18nStore } from '@/lib/i18nStore';
 import { useFeedbackStore } from '../../../feedback/store';
-import { supabase } from '@/lib/supabaseClient';
+
+interface SecurityFormValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 const SecuritySettings: React.FC = () => {
   const { dictionary: t } = useI18nStore();
   const { showToast } = useFeedbackStore();
-  const { register, handleSubmit, formState: { errors }, watch, reset } = useForm();
-  const { changePassword, isLoading } = usePasswordChange();
-  const [isTerminatingSessions, setIsTerminatingSessions] = useState(false);
+  // المخطط داخل المكوّن حتى تأتي رسائل التحقق من القاموس النشط (i18n).
+  const securitySchema = useMemo(() => z.object({
+    currentPassword: z.string().min(1, t.current_password_required || 'كلمة المرور الحالية مطلوبة'),
+    newPassword: z.string().min(8, t.password_min_8 || 'يجب أن تكون كلمة المرور 8 أحرف على الأقل'),
+    confirmPassword: z.string().min(1, t.confirm_password_required || 'تأكيد كلمة المرور مطلوب'),
+  }).refine(data => data.newPassword === data.confirmPassword, {
+    message: t.passwords_not_match || 'كلمتا المرور غير متطابقتين',
+    path: ['confirmPassword'],
+  }), [t]);
+
+  const { register, handleSubmit, formState: { errors }, watch, reset } = useForm<SecurityFormValues>({
+    resolver: zodResolver(securitySchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
+  const { changePassword, isLoading, error: changeError } = usePasswordChange();
+  const { terminateOthers, isLoading: isTerminatingSessions, error: terminateError } = useTerminateSessions();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const newPasswordValue = watch('newPassword') || '';
 
-  // Calculate password strength
+  // Calculate password strength (same scoring rules, i18n-backed labels)
   const getPasswordStrength = (pwd: string) => {
     if (!pwd) return { score: 0, label: '', color: '' };
     let score = 0;
@@ -26,38 +48,26 @@ const SecuritySettings: React.FC = () => {
     if (/[0-9]/.test(pwd)) score += 1;
     if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
 
-    if (score <= 1) return { score: 1, label: 'ضعيفة', color: 'bg-rose-500 text-rose-600' };
-    if (score === 2 || score === 3) return { score: 2, label: 'متوسطة', color: 'bg-amber-500 text-amber-600' };
-    return { score: 3, label: 'قوية جداً', color: 'bg-emerald-500 text-emerald-600' };
+    if (score <= 1) return { score: 1, label: t.password_weak || 'ضعيفة', color: 'bg-rose-500 text-rose-600' };
+    if (score === 2 || score === 3) return { score: 2, label: t.password_medium || 'متوسطة', color: 'bg-amber-500 text-amber-600' };
+    return { score: 3, label: t.password_strong || 'قوية جداً', color: 'bg-emerald-500 text-emerald-600' };
   };
 
   const strength = getPasswordStrength(newPasswordValue);
 
-  const onSubmit = async (data: any) => {
-    if (data.newPassword !== data.confirmPassword) {
-      return;
-    }
-    const success = await changePassword(data.newPassword);
+  const onSubmit = async (values: SecurityFormValues) => {
+    const success = await changePassword(values.newPassword);
     if (success) {
       reset();
       showToast(t.password_updated_success || 'تم تحديث كلمة المرور بنجاح', 'success');
     }
   };
 
-  const handleTerminateOtherSessions = async () => {
-    if (!window.confirm('هل أنت متأكد من تسجيل الخروج من كافة الأجهزة والمتصفحات الأخرى؟')) {
-      return;
-    }
-
-    try {
-      setIsTerminatingSessions(true);
-      const { error } = await supabase.auth.signOut({ scope: 'others' });
-      if (error) throw error;
-      showToast('تم تسجيل الخروج بنجاح من كافة الأجهزة الأخرى', 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'تعذر إنهاء الجلسات الأخرى', 'error');
-    } finally {
-      setIsTerminatingSessions(false);
+  const handleConfirmTerminate = async () => {
+    const ok = await terminateOthers();
+    setIsConfirmOpen(false);
+    if (ok) {
+      showToast(t.sessions_terminated_success || 'تم تسجيل الخروج بنجاح من كافة الأجهزة الأخرى', 'success');
     }
   };
 
@@ -91,10 +101,10 @@ const SecuritySettings: React.FC = () => {
               type="password"
               dir="ltr"
               variant="micro"
-              {...register('newPassword', { required: t.password_required || 'كلمة المرور الجديدة مطلوبة', minLength: { value: 6, message: t.password_min_length || 'يجب أن تكون 6 أحرف على الأقل' } })}
-              error={errors.newPassword?.message as string}
+              {...register('newPassword')}
+              error={errors.newPassword?.message}
             />
-            {newPasswordValue && (
+              {newPasswordValue && (
               <div className="mt-1.5 flex items-center justify-between text-[10px]">
                 <div className="flex gap-1 items-center">
                   <div className={`h-1.5 w-6 rounded-full ${strength.score >= 1 ? strength.color.split(' ')[0] : 'bg-gray-200 dark:bg-slate-700'}`} />
@@ -102,7 +112,7 @@ const SecuritySettings: React.FC = () => {
                   <div className={`h-1.5 w-6 rounded-full ${strength.score >= 3 ? strength.color.split(' ')[0] : 'bg-gray-200 dark:bg-slate-700'}`} />
                 </div>
                 <span className={`font-bold ${strength.color.split(' ')[1]}`}>
-                  قوة الكلمة: {strength.label}
+                  {t.password_strength_label || 'قوة الكلمة'}: {strength.label}
                 </span>
               </div>
             )}
@@ -112,9 +122,12 @@ const SecuritySettings: React.FC = () => {
             type="password"
             dir="ltr"
             variant="micro"
-            {...register('confirmPassword', { required: t.confirm_password_required || 'تأكيد كلمة المرور مطلوب', validate: value => value === watch('newPassword') || (t.passwords_not_match || 'كلمتا المرور غير متطابقتين') })}
-            error={errors.confirmPassword?.message as string}
+            {...register('confirmPassword')}
+            error={errors.confirmPassword?.message}
           />
+          {changeError != null && (
+            <p className="text-[10px] font-bold text-rose-600" role="alert">{changeError}</p>
+          )}
           <Button type="submit" isLoading={isLoading} className="w-full rounded-xl py-2 text-[11px] font-bold">
             {t.update_password || 'تحديث كلمة السر'}
           </Button>
@@ -162,13 +175,13 @@ const SecuritySettings: React.FC = () => {
             <button
               type="button"
               disabled={isTerminatingSessions}
-              onClick={handleTerminateOtherSessions}
+              onClick={() => setIsConfirmOpen(true)}
               className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-[10px] font-bold shadow-lg shadow-rose-500/20 active:scale-95 transition-all disabled:opacity-60"
             >
               {isTerminatingSessions ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  <span>جاري إنهاء الجلسات...</span>
+                  <span>{t.terminating_sessions || 'جاري إنهاء الجلسات...'}</span>
                 </>
               ) : (
                 <>
@@ -177,9 +190,25 @@ const SecuritySettings: React.FC = () => {
                 </>
               )}
             </button>
+            {terminateError != null && (
+              <p className="mt-2 text-[10px] font-bold text-rose-600" role="alert">{terminateError}</p>
+            )}
           </div>
         </div>
       </div>
+
+      {/* تأكيد إنهاء الجلسات — عبر نظام النوافذ الموحد بدل window.confirm */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => { if (!isTerminatingSessions) setIsConfirmOpen(false); }}
+        onConfirm={() => { void handleConfirmTerminate(); }}
+        title={t.terminate_sessions_confirm_title || 'إنهاء الجلسات الأخرى؟'}
+        message={t.terminate_sessions_confirm_desc || 'سيتم تسجيل الخروج من كافة الأجهزة والمتصفحات الأخرى المسجلة، وستبقى جلستك الحالية نشطة.'}
+        confirmLabel={t.confirm_terminate_sessions || 'نعم، أنهِ الجلسات'}
+        cancelLabel={t.cancel || 'إلغاء'}
+        variant="danger"
+        isLoading={isTerminatingSessions}
+      />
     </div>
   );
 };

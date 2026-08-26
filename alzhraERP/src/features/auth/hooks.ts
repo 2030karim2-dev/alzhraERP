@@ -235,6 +235,34 @@ export const usePasswordChange = () => {
 
     return { changePassword, isLoading, error };
 };
+
+/**
+ * Signs the user out of all other devices/browsers while keeping the current
+ * session alive. Backed by `authApi.terminateOtherSessions()` — the component
+ * layer stays free of any direct supabase calls (Layer rule).
+ */
+export const useTerminateSessions = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const terminateOthers = async (): Promise<boolean> => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            await authApi.terminateOtherSessions();
+            return true;
+        } catch (err: unknown) {
+            const parsed = parseError(err);
+            setError(parsed.message);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return { terminateOthers, isLoading, error };
+};
+
 export const useGoogleLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

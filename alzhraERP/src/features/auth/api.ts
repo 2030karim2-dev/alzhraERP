@@ -214,6 +214,16 @@ export const authApi = {
     await supabase.auth.signOut();
   },
 
+  /**
+   * Revoke every refresh/access token issued for this user on OTHER devices,
+   * keeping the current session alive (`scope: 'others'`).
+   * Called only from authApi — components must never touch supabase directly.
+   */
+  terminateOtherSessions: async () => {
+    const { error } = await supabase.auth.signOut({ scope: 'others' });
+    if (error) throw error;
+  },
+
   resetPasswordForEmail: async (email: string) => {
     return await supabase.auth.resetPasswordForEmail(email);
   },

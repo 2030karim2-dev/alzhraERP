@@ -11,6 +11,25 @@ import FullscreenContainer from '../../ui/base/FullscreenContainer';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '../../core/utils';
+import type { LucideIcon } from 'lucide-react';
+import { DOMAIN_KEYS } from '../../lib/invalidation';
+import type { JournalEntryFormData } from './types/models';
+
+// إبطال موجّه لمفاتيح صفحة المحاسبة ذاتها فقط — بدل الإبطال الشامل لكاش التطبيق كله.
+// (نفس تغطية preset «journal» من lib/invalidation + مفاتيح الخزينة والتقارير المحاسبية.)
+const REFRESH_KEYS: readonly string[] = [
+  ...new Set<string>([
+    ...DOMAIN_KEYS.accounting,
+    ...DOMAIN_KEYS.dashboard,
+    ...DOMAIN_KEYS.reports,
+    'ledger',
+    'trial_balance',
+    'financials',
+    'audit_journals',
+    'cashboxes',
+    'exchange_companies',
+  ]),
+];
 
 // Lazy loading for components
 const AccountingOverview = lazy(() => import('./components/layout/AccountingOverview'));
@@ -40,17 +59,23 @@ const AccountingPage: React.FC = () => {
 
   const { createJournal, isCreating } = useJournalMutation();
 
-  const handleCreate = (data: any) => {
+  const handleCreate = (data: JournalEntryFormData) => {
     createJournal(data, { onSuccess: () => closeJournalModal() });
   };
 
+  // ينتظر اكتمال عمليات الإبطال/إعادة الجلب فعلياً — لا تأخير اصطناعي بعد الآن
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await queryClient.invalidateQueries();
-    setTimeout(() => setIsRefreshing(false), 500);
+    try {
+      await Promise.all(
+        REFRESH_KEYS.map(key => queryClient.invalidateQueries({ queryKey: [key] }))
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
-  const TABS: { id: AccountingView; label: string; icon: any }[] = [
+  const TABS: { id: AccountingView; label: string; icon: LucideIcon }[] = [
     { id: 'overview', label: t('accounting_overview'), icon: LayoutDashboard },
     { id: 'journal', label: t('journal'), icon: BookOpen },
     { id: 'treasury', label: t('treasury'), icon: Wallet },
