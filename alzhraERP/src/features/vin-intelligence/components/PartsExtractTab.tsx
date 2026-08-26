@@ -1,26 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PackagePlus,
-  Search,
-  Plus,
-  Sparkles,
-  Trash2,
-  Copy,
-  RefreshCw,
-  Car,
-  Check,
-  Layers,
-  Upload,
-  Download,
-  Share2,
-  FileText,
-  RotateCcw,
-  ExternalLink,
-  Globe,
 } from 'lucide-react';
 import Button from '../../../ui/base/Button';
-import Input from '../../../ui/base/Input';
-import { cn } from '../../../core/utils';
 import {
   generateSmartPartName,
   buildDefaultVehicleArabicSuffix,
@@ -39,13 +21,12 @@ import {
   saveDraftRows,
   saveVehicleTemplate,
 } from '../utils/draftStorage';
-import {
-  AUTO_PARTS_CATALOGS,
-  openCatalogSearch,
-  openCatalogVinSearch,
-} from '../constants/catalogs';
 import { partIntelligenceService } from '../services/partIntelligenceService';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
+import { PartsGridTable } from './PartsGridTable';
+import { PartsSearchControls } from './PartsSearchControls';
+import { QuickPartsToolbar, QUICK_PARTS_TEMPLATES } from './QuickPartsToolbar';
+import { VehicleContextBanner } from './VehicleContextBanner';
 import { useFeedbackStore } from '../../feedback/store';
 import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
 import type { ItemRow } from '../../sales/hooks/useQuotationForm';
@@ -60,7 +41,7 @@ import type {
 interface PartsExtractTabProps {
   hasVehicle: boolean;
   /** Active tenant context — scopes localStorage drafts/templates per company */
-  companyId?: string;
+  companyId?: string | undefined;
   vehicle: VehicleInfo | null;
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
@@ -70,21 +51,6 @@ interface PartsExtractTabProps {
   isAdding: boolean;
   canAdd?: boolean;
 }
-
-/** Pre-defined common parts for rapid 1-click addition */
-const QUICK_PARTS_TEMPLATES = [
-  { base: 'بلاكات', oem: '', mfr: 'DENSO', spec: 'طقم 4 حبات' },
-  { base: 'فحمات فرامل أمامية', oem: '', mfr: 'TOYOTA', spec: 'طقم أمامي' },
-  { base: 'فحمات فرامل خلفية', oem: '', mfr: 'TOYOTA', spec: 'طقم خلفي' },
-  { base: 'فلتر زيت', oem: '', mfr: 'TOYOTA', spec: 'سيفون أصلي' },
-  { base: 'فلتر هواء', oem: '', mfr: 'TOYOTA', spec: 'فلتر شوية' },
-  { base: 'فلتر مكيف', oem: '', mfr: 'TOYOTA', spec: 'فلتر صالون' },
-  { base: 'مساعدات أمامية', oem: '', mfr: 'KYB', spec: 'يمين / يسار' },
-  { base: 'دينمو', oem: '', mfr: 'DENSO', spec: '12V' },
-  { base: 'سلف', oem: '', mfr: 'DENSO', spec: 'أصلي' },
-  { base: 'سير مكينة', oem: '', mfr: 'BANDO', spec: '6PK' },
-  { base: 'طرمبة ماء', oem: '', mfr: 'AISIN', spec: 'مع الوجوه' },
-];
 
 export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   hasVehicle,
@@ -392,6 +358,14 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   const selectedRows = rows.filter((r) => r.selected);
 
+  const handleOpenQuotation = () => {
+    if (selectedRows.length === 0) {
+      showToast('يرجى تحديد قطعة واحدة على الأقل لإنشاء عرض السعر', 'warning');
+      return;
+    }
+    setIsQuotationModalOpen(true);
+  };
+
   const handleSaveToInventory = async () => {
     if (selectedRows.length === 0) return;
     // No synthetic fallback numbering: fabricating "PART-<timestamp>" faked an
@@ -540,88 +514,18 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       />
 
       {/* ── Active Vehicle Context Banner & Custom Generalization Template ── */}
-      <div className="bg-gradient-to-l from-slate-900/90 to-slate-950 text-white border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
-              <Car size={22} className="flex-shrink-0" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-800">
-                  السيارة النشطة
-                </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  {vehicle.vinPrefix ? `(VIN: ${vehicle.vinPrefix})` : ''}
-                </span>
-              </div>
-              <h4 className="text-sm md:text-base font-bold text-white mt-1">
-                {makeAr} {modelAr}{' '}
-                {years ? `(${years})` : ''}{' '}
-                {vehicle.market ? `[${vehicle.market}]` : ''}{' '}
-                {vehicle.transmission ? `[${vehicle.transmission}]` : ''}{' '}
-                {vehicle.displacement ? `[مكينة ${vehicle.displacement}]` : ''}
-              </h4>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold" title="حفظ المسودة تلقائياً في المتصفح لمنع فقدان البيانات">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>مسودة محفوظة تلقائياً 💾</span>
-            </div>
-            {rows.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClearAllRows}
-                className="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 hover:bg-rose-900/60 text-xs font-bold transition-all"
-                title="مسح المسودة والبدء من جديد"
-              >
-                مسح المسودة
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Generalization Override Bar (الميزة الأولى: تعميم الجدول اليدوي المتقن) ── */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-300 shrink-0">
-            <Sparkles size={16} className="text-amber-400" />
-            <span>تعميم وصف السيارة للجدول (يدوي / دقيق):</span>
-          </div>
-
-          <div className="flex-1 min-w-[240px] relative">
-            <input
-              type="text"
-              value={customVehicleTemplate}
-              onChange={(e) => setCustomVehicleTemplate(e.target.value)}
-              placeholder="مثال: فيتز 2005 مكينة 1.3"
-              className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg text-xs font-bold text-emerald-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => applyGeneralizationToAllRows()}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-sm"
-              title="تطبيق هذا الوصف فوراً على جميع أسطر الجدول الحالية والجديدة"
-            >
-              <Sparkles size={13} className="ml-1" />
-              تطبيق التعميم على الجدول ✨
-            </Button>
-            <button
-              type="button"
-              onClick={resetTemplateToSmartDefault}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              title="استعادة الصياغة التلقائية المقترحة"
-            >
-              <RotateCcw size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
+      <VehicleContextBanner
+        vehicle={vehicle}
+        makeAr={makeAr}
+        modelAr={modelAr}
+        years={years}
+        customVehicleTemplate={customVehicleTemplate}
+        onTemplateChange={setCustomVehicleTemplate}
+        onApplyGeneralization={() => { applyGeneralizationToAllRows(); }}
+        onResetTemplate={resetTemplateToSmartDefault}
+        hasRows={rows.length > 0}
+        onClearDraft={handleClearAllRows}
+      />
 
       {/* Success Notification Alert */}
       {lastAddedCount !== null && (
@@ -656,430 +560,49 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       )}
 
       {/* ── Search & Multi-Catalog Controls ── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <Globe size={16} className="text-blue-600 dark:text-blue-400" />
-            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              بحث واستخراج قطع الغيار من الكتالوجات العالمية (OEM & Aftermarket)
-            </h4>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-            <span>الكتالوج النشط:</span>
-            <select
-              value={selectedCatalogId}
-              onChange={(e) => setSelectedCatalogId(e.target.value)}
-              className="px-2.5 py-1 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {AUTO_PARTS_CATALOGS.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.nameAr}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end">
-          {/* Part Number Search Input */}
-          <div className="lg:col-span-5">
-            <Input
-              label="رقم القطعة OEM / Part Number"
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); }}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearchMegazip()}
-              placeholder="مثال: 90919-01253 أو 04465-42190..."
-            />
-          </div>
-
-          {/* Action buttons */}
-          <div className="lg:col-span-4 flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleSearchMegazip}
-              isLoading={isSearching}
-              disabled={searchQuery.trim().length < 3}
-              className="flex-1 rounded-xl font-bold py-2"
-              title="جلب وتفريغ بيانات القطعة تلقائياً في الجدول"
-            >
-              <Search size={14} className="ml-1" /> بحث واستخراج
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => openCatalogSearch(selectedCatalogId, searchQuery || vehicle?.vinPrefix || '')}
-              className="rounded-xl font-bold py-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-              title="فتح نتيجة البحث مباشرة في موقع الكتالوج المختار"
-            >
-              <ExternalLink size={14} className="ml-1" /> فتح في الكتالوج ↗
-            </Button>
-          </div>
-
-          {/* Quick Row insertion actions */}
-          <div className="lg:col-span-3 flex items-center justify-end gap-2">
-            <Button size="sm" variant="primary" onClick={() => { addRow(); }} className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl shadow-sm py-2">
-              <Plus size={14} className="ml-1" /> سطر جديد
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => { addMultipleRows(5); }} className="font-bold text-xs rounded-xl py-2">
-              <Layers size={14} className="ml-1" /> +5 أسطر
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Catalogs Launcher Pill Buttons */}
-        <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 ml-1">
-            الكتالوجات المعتمدة (بحث فوري بضغطة زر):
-          </span>
-          {AUTO_PARTS_CATALOGS.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => {
-                setSelectedCatalogId(cat.id);
-                openCatalogSearch(cat.id, searchQuery || vehicle?.vinPrefix || '');
-              }}
-              className={cn(
-                'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all shadow-2xs',
-                cat.colorClass.bg,
-                cat.colorClass.text,
-                cat.colorClass.border,
-                cat.colorClass.hoverBg
-              )}
-              title={`${cat.description} - انقر للبحث عن «${searchQuery || 'السيارة'}» في ${cat.nameEn}`}
-            >
-              <span>{cat.badge}</span>
-              <ExternalLink size={11} className="opacity-70" />
-            </button>
-          ))}
-          {vehicle?.vinPrefix && (
-            <button
-              type="button"
-              onClick={() => openCatalogVinSearch('partsouq', vehicle.vinPrefix || '')}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors"
-              title="فحص شاصي هذه المركبة في كتالوج PartSouq المعتمد"
-            >
-              <span>🇦🇪 فحص الشاصي في PartSouq ({vehicle.vinPrefix})</span>
-              <ExternalLink size={11} className="opacity-70" />
-            </button>
-          )}
-        </div>
-      </div>
+      <PartsSearchControls
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        selectedCatalogId={selectedCatalogId}
+        onCatalogChange={setSelectedCatalogId}
+        isSearching={isSearching}
+        onSearch={handleSearchMegazip}
+        vehicle={vehicle}
+        onAddRow={() => { addRow(); }}
+        onAddMultipleRows={(count) => { addMultipleRows(count); }}
+      />
 
       {/* ── Quick Templates Chips & Action Toolbar ── */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">إضافة سريعة:</span>
-          {QUICK_PARTS_TEMPLATES.map((tmpl) => (
-            <button
-              key={tmpl.base}
-              type="button"
-              onClick={() => { addRow(tmpl); }}
-              className="shrink-0 px-3 py-1 text-xs font-bold rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-sm"
-            >
-              + {tmpl.base}
-            </button>
-          ))}
-        </div>
-
-        {/* Pro Tools: Excel Export, Import, WhatsApp Memo Copy, Quotations */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {/* Create Quotation Directly (الميزة الثانية: الربط المباشر مع عروض الأسعار) */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              if (selectedRows.length === 0) {
-                showToast('يرجى تحديد قطعة واحدة على الأقل لإنشاء عرض السعر', 'warning');
-                return;
-              }
-              setIsQuotationModalOpen(true);
-            }}
-            disabled={selectedRows.length === 0}
-            className="text-xs font-bold rounded-lg border-indigo-300 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-100 shadow-sm"
-            title="إنشاء عرض أسعار للعميل مباشرة من هذه القطع دون إدخالها للمخزون"
-          >
-            <FileText size={13} className="ml-1 text-indigo-600 dark:text-indigo-400" />
-            إنشاء عرض سعر ({selectedRows.length})
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            isLoading={isImporting}
-            className="text-xs font-bold rounded-lg border-slate-300 dark:border-slate-700"
-            title="استيراد أسطر قطع من ملف Excel أو CSV"
-          >
-            <Upload size={13} className="ml-1 text-slate-600 dark:text-slate-300" />
-            استيراد Excel/CSV
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleExportExcel}
-            isLoading={isExporting}
-            disabled={rows.length === 0}
-            className="text-xs font-bold rounded-lg border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-            title="تصدير جدول القطع بالكامل إلى ملف Excel منسق"
-          >
-            <Download size={13} className="ml-1 text-emerald-600 dark:text-emerald-400" />
-            تصدير Excel
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleCopyWhatsAppMemo}
-            disabled={rows.length === 0}
-            className="text-xs font-bold rounded-lg border-green-300 dark:border-green-800 text-green-800 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
-            title="نسخ قائمة القطع كنص منسق للواتساب أو عروض الأسعار"
-          >
-            <Share2 size={13} className="ml-1 text-green-600 dark:text-green-400" />
-            نسخ للواتساب
-          </Button>
-        </div>
-      </div>
+      <QuickPartsToolbar
+        templates={QUICK_PARTS_TEMPLATES}
+        selectedCount={selectedRows.length}
+        rowsCount={rows.length}
+        isImporting={isImporting}
+        isExporting={isExporting}
+        onAddFromTemplate={(tmpl) => { addRow(tmpl); }}
+        onOpenQuotation={handleOpenQuotation}
+        onImportClick={() => { fileInputRef.current?.click(); }}
+        onExport={handleExportExcel}
+        onCopyWhatsApp={handleCopyWhatsAppMemo}
+      />
 
       {/* ── Professional Excel Grid Table ── */}
-      <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-        <div className="overflow-x-auto max-h-[540px] custom-scrollbar">
-          <table className="w-full text-right border-collapse text-xs">
-            <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 select-none">
-              <tr>
-                <th className="p-2.5 text-center w-9">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={(e) => { toggleSelectAll(e.target.checked); }}
-                    className="rounded text-blue-600 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="p-2.5 w-10 text-center text-slate-400">#</th>
-                <th className="p-2.5 min-w-[130px]">رقم القطعة (OEM / Part No)</th>
-                <th className="p-2.5 min-w-[120px]">نوع القطعة (الأولي)</th>
-                <th className="p-2.5 min-w-[280px]">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles size={13} className="text-amber-500" />
-                    <span>اسم المنتج المكتمل (تلقائي / يدوي)</span>
-                  </div>
-                </th>
-                <th className="p-2.5 min-w-[100px]">الشركة الصانعة</th>
-                <th className="p-2.5 min-w-[110px]">المقاس / المواصفات</th>
-                <th className="p-2.5 min-w-[85px] text-center">سعر الشراء</th>
-                <th className="p-2.5 min-w-[85px] text-center">سعر البيع</th>
-                <th className="p-2.5 w-16 text-center">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="p-8 text-center text-slate-400">
-                    لا توجد أسطر حالياً. انقر على «سطر جديد» أو «إضافة سريعة» للبدء.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row, idx) => (
-                  <tr
-                    key={row._id}
-                    className={cn(
-                      'hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors group',
-                      row.selected ? 'bg-blue-50/30 dark:bg-blue-950/30' : 'bg-white dark:bg-slate-900'
-                    )}
-                  >
-                    {/* Select Checkbox */}
-                    <td className="p-2 text-center">
-                      <input
-                        type="checkbox"
-                        checked={!!row.selected}
-                        onChange={(e) => { updateRow(row._id, { selected: e.target.checked }); }}
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                    </td>
-
-                    {/* Row Index */}
-                    <td className="p-2 text-center font-mono text-xs text-slate-400 font-bold">
-                      {idx + 1}
-                    </td>
-
-                    {/* Part Number Input */}
-                    <td className="p-1.5">
-                      <input
-                        type="text"
-                        value={row.partNumber}
-                        onChange={(e) => { updateRow(row._id, { partNumber: e.target.value }); }}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="رقم القطعة..."
-                        className="w-full px-2.5 py-1.5 font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </td>
-
-                    {/* Base Name / Category Input */}
-                    <td className="p-1.5">
-                      <input
-                        type="text"
-                        value={row.baseName}
-                        onChange={(e) => { updateRow(row._id, { baseName: e.target.value }); }}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="مثال: بلاكات..."
-                        className="w-full px-2.5 py-1.5 font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </td>
-
-                    {/* Auto-Completed / Editable Smart Product Name */}
-                    <td className="p-1.5">
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={row.description}
-                          onChange={(e) => { updateRow(row._id, { description: e.target.value }); }}
-                          onFocus={(e) => e.target.select()}
-                          title={row.description}
-                          className="w-full px-2.5 py-1.5 font-bold text-xs text-slate-900 dark:text-blue-200 bg-blue-50/40 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updateRow(row._id, {
-                              description: generateSmartPartName(row.baseName || 'قطعة غيار', vehicle, {
-                                customVehicleTemplate: customVehicleTemplate.trim() || undefined,
-                              }),
-                            });
-                          }}
-                          className="absolute left-2 p-1 text-blue-500 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                          title="إعادة صياغة الاسم بناءً على التعميم المعتمد"
-                        >
-                          <RefreshCw size={12} />
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Manufacturer / Brand */}
-                    <td className="p-1.5">
-                      <input
-                        type="text"
-                        value={row.manufacturer || ''}
-                        onChange={(e) => { updateRow(row._id, { manufacturer: e.target.value }); }}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-2.5 py-1.5 font-medium text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </td>
-
-                    {/* Size & Specification */}
-                    <td className="p-1.5">
-                      <input
-                        type="text"
-                        value={row.sizeSpec || ''}
-                        onChange={(e) => { updateRow(row._id, { sizeSpec: e.target.value }); }}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="المقاس..."
-                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </td>
-
-                    {/* Purchase Price */}
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={row.purchasePrice || ''}
-                        onChange={(e) => { updateRow(row._id, { purchasePrice: parseFloat(e.target.value) || 0 }); }}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="0.00"
-                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-emerald-600 dark:text-emerald-400"
-                      />
-                    </td>
-
-                    {/* Sale Price */}
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={row.salePrice || ''}
-                        onChange={(e) => { updateRow(row._id, { salePrice: parseFloat(e.target.value) || 0 }); }}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="0.00"
-                        className="w-full px-2 py-1.5 text-center font-mono font-bold text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-blue-600 dark:text-blue-400"
-                      />
-                    </td>
-
-                    {/* Actions (Inspect, Duplicate, Delete) */}
-                    <td className="p-1.5 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (row.partNumber.trim() || row.baseName.trim()) {
-                              handleDeepInspectPart(row.partNumber.trim() || row.baseName.trim());
-                            } else {
-                              showToast('يرجى كتابة رقم القطعة أو اسمها أولاً للفحص', 'warning');
-                            }
-                          }}
-                          className="p-1.5 text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
-                          title="فحص بالذكاء الاصطناعي واستخراج البدائل والسيارات المتوافقة ونسبة الثقة"
-                        >
-                          <Sparkles size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { duplicateRow(row._id); }}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                          title="تكرار السطر"
-                        >
-                          <Copy size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { deleteRow(row._id); }}
-                          className="p-1.5 text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                          title="حذف السطر"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ── Grid Footer & Batch Commit ── */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-              تم تحديد <strong className="text-blue-600 dark:text-blue-400 font-bold">{selectedRows.length}</strong> من أصل {rows.length} قطعة
-            </span>
-            <Button size="sm" variant="outline" onClick={() => { addRow(); }} className="text-xs font-bold rounded-lg">
-              <Plus size={12} className="ml-1" /> إضافة سطر
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {canAdd === false ? (
-              <p className="text-xs text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
-                تتطلب إضافة القطع للمخزون صلاحية مدير أو مسؤول
-              </p>
-            ) : (
-              <Button
-                size="md"
-                variant="success"
-                onClick={handleSaveToInventory}
-                isLoading={isAdding}
-                disabled={selectedRows.length === 0}
-                className="font-bold px-5 bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md shadow-emerald-500/10"
-              >
-                <Check size={16} className="ml-1.5" /> حفظ وإضافة القطع المحددة ({selectedRows.length}) للمخزون
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+      <PartsGridTable
+        rows={rows}
+        allSelected={allSelected}
+        onToggleSelectAll={toggleSelectAll}
+        onUpdateRow={updateRow}
+        onDuplicateRow={duplicateRow}
+        onDeleteRow={deleteRow}
+        onInspectPart={handleDeepInspectPart}
+        selectedRows={selectedRows}
+        onAddRow={() => { addRow(); }}
+        onSaveToInventory={handleSaveToInventory}
+        canAdd={canAdd}
+        isAdding={isAdding}
+        vehicle={vehicle}
+        customVehicleTemplate={customVehicleTemplate}
+      />
 
       {/* ── Smart Part Intelligence & Cross-Reference Modal ── */}
       <PartIntelligenceModal
