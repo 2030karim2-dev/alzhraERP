@@ -37,6 +37,45 @@ interface PartsListRowProps {
   onOpenCatalog: (partNumber: string) => void;
 }
 
+interface RowActionsCellProps {
+  partNumber: string;
+  catalogId: string;
+  onInspect: (partNumber: string) => void;
+  onOpenCatalog: (partNumber: string) => void;
+}
+
+const RowActionsCell: React.FC<RowActionsCellProps> = ({
+  partNumber,
+  catalogId,
+  onInspect,
+  onOpenCatalog,
+}) => (
+  <div className="flex items-center justify-center gap-1">
+    <button
+      type="button"
+      onClick={() => {
+        if (partNumber) onInspect(partNumber);
+      }}
+      className="rounded-lg p-1 text-amber-500 transition-colors hover:bg-amber-50 hover:text-amber-700 dark:hover:text-amber-300"
+      title="فحص ذكي للبدائل والسيارات المتوافقة ونسبة الثقة"
+    >
+      <Sparkles size={13} />
+    </button>
+    {partNumber && (
+      <button
+        type="button"
+        onClick={() => {
+          onOpenCatalog(partNumber);
+        }}
+        className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:text-blue-400"
+        title={`فحص في ${catalogId}`}
+      >
+        <ExternalLink size={13} />
+      </button>
+    )}
+  </div>
+);
+
 export const PartsListRow: React.FC<PartsListRowProps> = ({
   part: p,
   isSelected,
@@ -75,30 +114,12 @@ export const PartsListRow: React.FC<PartsListRowProps> = ({
         <SourceBadge matchedCatalog={matchedCatalog} source={p.source} />
       </td>
       <td className="p-2.5 text-center">
-        <div className="flex items-center justify-center gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              if (p.partNumber) onInspect(p.partNumber);
-            }}
-            className="rounded-lg p-1 text-amber-500 transition-colors hover:bg-amber-50 hover:text-amber-700 dark:hover:text-amber-300"
-            title="فحص ذكي للبدائل والسيارات المتوافقة ونسبة الثقة"
-          >
-            <Sparkles size={13} />
-          </button>
-          {p.partNumber && (
-            <button
-              type="button"
-              onClick={() => {
-                onOpenCatalog(p.partNumber);
-              }}
-              className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:hover:text-blue-400"
-              title={`فحص في ${catalogId}`}
-            >
-              <ExternalLink size={13} />
-            </button>
-          )}
-        </div>
+        <RowActionsCell
+          partNumber={p.partNumber}
+          catalogId={catalogId}
+          onInspect={onInspect}
+          onOpenCatalog={onOpenCatalog}
+        />
       </td>
     </tr>
   );

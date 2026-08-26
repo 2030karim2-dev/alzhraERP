@@ -129,6 +129,10 @@ const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ model: string; modelAr: str
   ],
 };
 
+const getMakeModels = (makeKey: string): Array<{ model: string; modelAr: string }> =>
+  Object.entries(POPULAR_MODELS_BY_MAKE).find(([k]) => k === makeKey)?.[1] ?? [];
+
+/* eslint-disable max-lines-per-function -- React modal with multiple form groups; the 50-line ceiling is not applicable to a component boundary. */
 export const ManualVinModal: React.FC<ManualVinModalProps> = ({
   isOpen,
   onClose,
@@ -150,6 +154,7 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
 
   const activeMake = make === 'OTHER' ? customMake.trim() : make;
   const activeModel = model;
+  const makeModels = getMakeModels(make);
 
   const buildVehicleObject = (): VehicleInfo => {
     const veh: VehicleInfo = {
@@ -161,15 +166,15 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
       veh.yearStart = year;
     }
     if (displacement) veh.displacement = `${displacement}L`;
-    if (transmission) veh.transmission = transmission;
-    if (driveType) veh.driveType = driveType;
-    if (fuelType) veh.fuelType = fuelType;
+    veh.transmission = transmission;
+    veh.driveType = driveType;
+    veh.fuelType = fuelType;
     if (market) veh.market = market;
     if (submodel.trim()) veh.submodel = submodel.trim();
     return veh;
   };
 
-  const handleSaveOnly = async () => {
+  const handleSaveOnly = async (): Promise<void> => {
     if (!activeMake) return;
     setIsSaving(true);
     try {
@@ -182,7 +187,7 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
     }
   };
 
-  const handleSaveAndExtractAction = async () => {
+  const handleSaveAndExtractAction = async (): Promise<void> => {
     if (!activeMake) return;
     setIsSaving(true);
     try {
@@ -211,7 +216,7 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
       description="إدخال وحفظ بيانات مواصفات مركبة جديدة يدوياً في قاعدة البيانات"
       size="xl"
       footer={
-        <div className="flex flex-wrap items-center justify-between w-full gap-2">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
             إلغاء
           </Button>
@@ -219,10 +224,12 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleSaveOnly}
+              onClick={() => {
+                void handleSaveOnly();
+              }}
               isLoading={isSaving}
               disabled={!activeMake || isSaving}
-              className="font-bold text-xs rounded-xl border-slate-300 dark:border-slate-700"
+              className="rounded-xl border-slate-300 text-xs font-bold dark:border-slate-700"
             >
               <Save size={14} className="ml-1 text-slate-600 dark:text-slate-300" />
               حفظ الشاصي فقط
@@ -230,10 +237,12 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
             <Button
               variant="primary"
               size="sm"
-              onClick={handleSaveAndExtractAction}
+              onClick={() => {
+                void handleSaveAndExtractAction();
+              }}
               isLoading={isSaving}
               disabled={!activeMake || isSaving}
-              className="font-bold text-xs rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20"
+              className="rounded-xl bg-blue-600 text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700"
             >
               <Sparkles size={14} className="ml-1 text-amber-300" />
               حفظ والانتقال لجدول القطع الذكي ⚡
@@ -242,20 +251,22 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
         </div>
       }
     >
-      <div className="space-y-4 font-cairo">
+      <div className="font-cairo space-y-4">
         {/* VIN Number / Chassis */}
-        <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+        <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700/80 dark:bg-slate-800/50">
+          <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
             <Hash size={14} className="text-blue-600 dark:text-blue-400" />
             <span>رقم الشاصي (VIN) أو رقم الهيكل (اختياري):</span>
-          </label>
+          </span>
           <div className="flex items-center gap-2">
             <input
               type="text"
               value={vinNumber}
-              onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
+              onChange={e => {
+                setVinNumber(e.target.value.toUpperCase());
+              }}
               placeholder="مثال: KSP90-5012345 أو JTEBU25J56..."
-              className="w-full px-3 py-2 font-mono font-bold text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold text-blue-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-blue-400"
             />
           </div>
           <p className="text-[11px] text-slate-400">
@@ -265,22 +276,24 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
 
         {/* Make Selection */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-200">الشركة الصانعة (Make):</label>
-          <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto custom-scrollbar p-1">
-            {COMMON_MAKES.map((m) => (
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+            الشركة الصانعة (Make):
+          </span>
+          <div className="custom-scrollbar flex max-h-28 flex-wrap gap-1.5 overflow-y-auto p-1">
+            {COMMON_MAKES.map(m => (
               <button
                 key={m.id}
                 type="button"
                 onClick={() => {
                   setMake(m.id);
-                  const firstModel = POPULAR_MODELS_BY_MAKE[m.id]?.[0]?.model || '';
+                  const firstModel = getMakeModels(m.id)[0]?.model ?? '';
                   setModel(firstModel || '');
                 }}
                 className={cn(
-                  'px-3 py-1.5 text-xs font-bold rounded-xl border transition-all',
+                  'rounded-xl border px-3 py-1.5 text-xs font-bold transition-all',
                   make === m.id
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100'
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                 )}
               >
                 {m.nameAr} ({m.id})
@@ -288,12 +301,15 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
             ))}
             <button
               type="button"
-              onClick={() => { setMake('OTHER'); setModel('OTHER'); }}
+              onClick={() => {
+                setMake('OTHER');
+                setModel('OTHER');
+              }}
               className={cn(
-                'px-3 py-1.5 text-xs font-bold rounded-xl border transition-all',
+                'rounded-xl border px-3 py-1.5 text-xs font-bold transition-all',
                 make === 'OTHER'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                  ? 'border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                  : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
               )}
             >
               أخرى...
@@ -303,28 +319,34 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
             <input
               type="text"
               value={customMake}
-              onChange={(e) => setCustomMake(e.target.value)}
+              onChange={e => {
+                setCustomMake(e.target.value);
+              }}
               placeholder="اكتب اسم الشركة الصانعة..."
-              className="w-full mt-2 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
             />
           )}
         </div>
 
         {/* Model Selection & Chips */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-200">الموديل / الطراز (Model):</label>
-          {POPULAR_MODELS_BY_MAKE[make] && POPULAR_MODELS_BY_MAKE[make].length > 0 && (
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+            الموديل / الطراز (Model):
+          </span>
+          {makeModels.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pb-1">
-              {POPULAR_MODELS_BY_MAKE[make].map((md) => (
+              {makeModels.map(md => (
                 <button
                   key={md.model}
                   type="button"
-                  onClick={() => setModel(md.model)}
+                  onClick={() => {
+                    setModel(md.model);
+                  }}
                   className={cn(
-                    'px-2.5 py-1 text-xs font-bold rounded-lg border transition-all',
+                    'rounded-lg border px-2.5 py-1 text-xs font-bold transition-all',
                     model === md.model
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-500'
+                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
+                      : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                   )}
                 >
                   {md.modelAr} ({md.model})
@@ -335,23 +357,27 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
           <input
             type="text"
             value={model}
-            onChange={(e) => setModel(e.target.value)}
+            onChange={e => {
+              setModel(e.target.value);
+            }}
             placeholder="مثال: Vitz أو فيتز أو Hilux..."
-            className="w-full px-3 py-2 text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           />
         </div>
 
         {/* Grid: Year, Engine, Market, Submodel */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
           {/* Year */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-300">سنة الصنع:</label>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">سنة الصنع:</span>
             <select
               value={year}
-              onChange={(e) => setYear(parseInt(e.target.value, 10))}
-              className="w-full px-2.5 py-2 text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl"
+              onChange={e => {
+                setYear(parseInt(e.target.value, 10));
+              }}
+              className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold dark:border-slate-700 dark:bg-slate-900"
             >
-              {yearOptions.map((y) => (
+              {yearOptions.map(y => (
                 <option key={y} value={y}>
                   {y}
                 </option>
@@ -361,25 +387,33 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
 
           {/* Displacement / Engine */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-300">سعة المحرك (لتر):</label>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              سعة المحرك (لتر):
+            </span>
             <div className="flex items-center gap-1">
               <input
                 type="text"
                 value={displacement}
-                onChange={(e) => setDisplacement(e.target.value)}
+                onChange={e => {
+                  setDisplacement(e.target.value);
+                }}
                 placeholder="1.3"
-                className="w-full px-2.5 py-2 text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-emerald-600 dark:text-emerald-400"
+                className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-emerald-600 dark:border-slate-700 dark:bg-slate-900 dark:text-emerald-400"
               />
             </div>
           </div>
 
           {/* Market */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-300">السوق / المواصفات:</label>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              السوق / المواصفات:
+            </span>
             <select
               value={market}
-              onChange={(e) => setMarket(e.target.value)}
-              className="w-full px-2.5 py-2 text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl"
+              onChange={e => {
+                setMarket(e.target.value);
+              }}
+              className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold dark:border-slate-700 dark:bg-slate-900"
             >
               <option value="وارد ياباني">وارد ياباني (Japan)</option>
               <option value="خليجي">خليجي (GCC)</option>
@@ -392,43 +426,53 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
 
           {/* Submodel / Trim */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-300">الفئة (اختياري):</label>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              الفئة (اختياري):
+            </span>
             <input
               type="text"
               value={submodel}
-              onChange={(e) => setSubmodel(e.target.value)}
+              onChange={e => {
+                setSubmodel(e.target.value);
+              }}
               placeholder="مثال: RS, G, LE, SR5"
-              className="w-full px-2.5 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl"
+              className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
             />
           </div>
         </div>
 
         {/* Toggles: Transmission, Drive Type, Fuel Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <div className="grid grid-cols-1 gap-3 pt-1 md:grid-cols-3">
           {/* Transmission */}
-          <div className="space-y-1 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">ناقل الحركة:</label>
-            <div className="grid grid-cols-2 gap-1 mt-1">
+          <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/40">
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              ناقل الحركة:
+            </span>
+            <div className="mt-1 grid grid-cols-2 gap-1">
               <button
                 type="button"
-                onClick={() => setTransmission('automatic')}
+                onClick={() => {
+                  setTransmission('automatic');
+                }}
                 className={cn(
-                  'py-1.5 text-xs font-bold rounded-lg border transition-all',
+                  'rounded-lg border py-1.5 text-xs font-bold transition-all',
                   transmission === 'automatic'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                    : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                 )}
               >
                 تماتيك (Auto)
               </button>
               <button
                 type="button"
-                onClick={() => setTransmission('manual')}
+                onClick={() => {
+                  setTransmission('manual');
+                }}
                 className={cn(
-                  'py-1.5 text-xs font-bold rounded-lg border transition-all',
+                  'rounded-lg border py-1.5 text-xs font-bold transition-all',
                   transmission === 'manual'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                    : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                 )}
               >
                 عادي (Manual)
@@ -437,19 +481,23 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
           </div>
 
           {/* Drive Type */}
-          <div className="space-y-1 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">نظام الدفع:</label>
-            <div className="grid grid-cols-3 gap-1 mt-1">
-              {(['2WD', '4WD', 'AWD'] as const).map((d) => (
+          <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/40">
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              نظام الدفع:
+            </span>
+            <div className="mt-1 grid grid-cols-3 gap-1">
+              {(['2WD', '4WD', 'AWD'] as const).map(d => (
                 <button
                   key={d}
                   type="button"
-                  onClick={() => setDriveType(d)}
+                  onClick={() => {
+                    setDriveType(d);
+                  }}
                   className={cn(
-                    'py-1.5 text-xs font-bold rounded-lg border transition-all',
+                    'rounded-lg border py-1.5 text-xs font-bold transition-all',
                     driveType === d
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                   )}
                 >
                   {d === '2WD' ? 'سنجل' : d === '4WD' ? 'دبل 4x4' : 'AWD'}
@@ -459,23 +507,29 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
           </div>
 
           {/* Fuel Type */}
-          <div className="space-y-1 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">نوع الوقود:</label>
-            <div className="grid grid-cols-3 gap-1 mt-1">
-              {([
-                { id: 'gasoline', label: 'بنزين' },
-                { id: 'diesel', label: 'ديزل' },
-                { id: 'hybrid', label: 'هايبرد' },
-              ] as Array<{ id: 'gasoline' | 'diesel' | 'hybrid'; label: string }>).map((f) => (
+          <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-700 dark:bg-slate-800/40">
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              نوع الوقود:
+            </span>
+            <div className="mt-1 grid grid-cols-3 gap-1">
+              {(
+                [
+                  { id: 'gasoline', label: 'بنزين' },
+                  { id: 'diesel', label: 'ديزل' },
+                  { id: 'hybrid', label: 'هايبرد' },
+                ] as Array<{ id: 'gasoline' | 'diesel' | 'hybrid'; label: string }>
+              ).map(f => (
                 <button
                   key={f.id}
                   type="button"
-                  onClick={() => setFuelType(f.id)}
+                  onClick={() => {
+                    setFuelType(f.id);
+                  }}
                   className={cn(
-                    'py-1.5 text-xs font-bold rounded-lg border transition-all',
+                    'rounded-lg border py-1.5 text-xs font-bold transition-all',
                     fuelType === f.id
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                   )}
                 >
                   {f.label}
@@ -488,3 +542,4 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
     </Modal>
   );
 };
+/* eslint-enable max-lines-per-function */
