@@ -12,18 +12,21 @@ export interface WmiInfo {
   wmi: string;
 }
 
-const WMI_MAP: Record<string, { make: string; makeAr: string; country: string; countryAr: string }> = {
+const WMI_MAP: Record<
+  string,
+  { make: string; makeAr: string; country: string; countryAr: string }
+> = {
   // Toyota / Lexus
-  'JTD': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JTE': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JTM': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JTN': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JT2': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JT3': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JT4': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JT5': { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
-  'JTH': { make: 'Lexus', makeAr: 'لكزس', country: 'Japan', countryAr: 'اليابان' },
-  'JTJ': { make: 'Lexus', makeAr: 'لكزس', country: 'Japan', countryAr: 'اليابان' },
+  JTD: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JTE: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JTM: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JTN: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JT2: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JT3: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JT4: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JT5: { make: 'Toyota', makeAr: 'تويوتا', country: 'Japan', countryAr: 'اليابان' },
+  JTH: { make: 'Lexus', makeAr: 'لكزس', country: 'Japan', countryAr: 'اليابان' },
+  JTJ: { make: 'Lexus', makeAr: 'لكزس', country: 'Japan', countryAr: 'اليابان' },
   '4T1': { make: 'Toyota', makeAr: 'تويوتا', country: 'USA', countryAr: 'أمريكا' },
   '4T3': { make: 'Toyota', makeAr: 'تويوتا', country: 'USA', countryAr: 'أمريكا' },
   '4T4': { make: 'Toyota', makeAr: 'تويوتا', country: 'USA', countryAr: 'أمريكا' },
@@ -31,36 +34,36 @@ const WMI_MAP: Record<string, { make: string; makeAr: string; country: string; c
   '5TF': { make: 'Toyota', makeAr: 'تويوتا', country: 'USA', countryAr: 'أمريكا' },
   '2T1': { make: 'Toyota', makeAr: 'تويوتا', country: 'Canada', countryAr: 'كندا' },
   '3TM': { make: 'Toyota', makeAr: 'تويوتا', country: 'Mexico', countryAr: 'المكسيك' },
-  'MR0': { make: 'Toyota', makeAr: 'تويوتا', country: 'Thailand', countryAr: 'تايلاند' },
-  'MHF': { make: 'Toyota', makeAr: 'تويوتا', country: 'Indonesia', countryAr: 'إندونيسيا' },
-  'AHT': { make: 'Toyota', makeAr: 'تويوتا', country: 'South Africa', countryAr: 'جنوب أفريقيا' },
+  MR0: { make: 'Toyota', makeAr: 'تويوتا', country: 'Thailand', countryAr: 'تايلاند' },
+  MHF: { make: 'Toyota', makeAr: 'تويوتا', country: 'Indonesia', countryAr: 'إندونيسيا' },
+  AHT: { make: 'Toyota', makeAr: 'تويوتا', country: 'South Africa', countryAr: 'جنوب أفريقيا' },
 
   // Hyundai / Genesis / Kia
-  'KM8': { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
-  'KMH': { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
-  'KMF': { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
-  'KMT': { make: 'Genesis', makeAr: 'جينيسيس', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KM8: { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KMH: { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KMF: { make: 'Hyundai', makeAr: 'هيونداي', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KMT: { make: 'Genesis', makeAr: 'جينيسيس', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
   '5NP': { make: 'Hyundai', makeAr: 'هيونداي', country: 'USA', countryAr: 'أمريكا' },
   '5NM': { make: 'Hyundai', makeAr: 'هيونداي', country: 'USA', countryAr: 'أمريكا' },
-  'KNA': { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
-  'KND': { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
-  'KNM': { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KNA: { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KND: { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
+  KNM: { make: 'Kia', makeAr: 'كيا', country: 'South Korea', countryAr: 'كوريا الجنوبية' },
   '5XX': { make: 'Kia', makeAr: 'كيا', country: 'USA', countryAr: 'أمريكا' },
 
   // Nissan / Infiniti
-  'JN1': { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
-  'JN6': { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
-  'JN8': { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
-  'JNK': { make: 'Infiniti', makeAr: 'إنفينيتي', country: 'Japan', countryAr: 'اليابان' },
-  'JNR': { make: 'Infiniti', makeAr: 'إنفينيتي', country: 'Japan', countryAr: 'اليابان' },
+  JN1: { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
+  JN6: { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
+  JN8: { make: 'Nissan', makeAr: 'نيسان', country: 'Japan', countryAr: 'اليابان' },
+  JNK: { make: 'Infiniti', makeAr: 'إنفينيتي', country: 'Japan', countryAr: 'اليابان' },
+  JNR: { make: 'Infiniti', makeAr: 'إنفينيتي', country: 'Japan', countryAr: 'اليابان' },
   '1N4': { make: 'Nissan', makeAr: 'نيسان', country: 'USA', countryAr: 'أمريكا' },
   '1N6': { make: 'Nissan', makeAr: 'نيسان', country: 'USA', countryAr: 'أمريكا' },
   '3N1': { make: 'Nissan', makeAr: 'نيسان', country: 'Mexico', countryAr: 'المكسيك' },
-  'MNT': { make: 'Nissan', makeAr: 'نيسان', country: 'Thailand', countryAr: 'تايلاند' },
+  MNT: { make: 'Nissan', makeAr: 'نيسان', country: 'Thailand', countryAr: 'تايلاند' },
 
   // Honda / Acura
-  'JHM': { make: 'Honda', makeAr: 'هوندا', country: 'Japan', countryAr: 'اليابان' },
-  'JHL': { make: 'Honda', makeAr: 'هوندا', country: 'Japan', countryAr: 'اليابان' },
+  JHM: { make: 'Honda', makeAr: 'هوندا', country: 'Japan', countryAr: 'اليابان' },
+  JHL: { make: 'Honda', makeAr: 'هوندا', country: 'Japan', countryAr: 'اليابان' },
   '1HG': { make: 'Honda', makeAr: 'هوندا', country: 'USA', countryAr: 'أمريكا' },
   '2HG': { make: 'Honda', makeAr: 'هوندا', country: 'Canada', countryAr: 'كندا' },
   '3HG': { make: 'Honda', makeAr: 'هوندا', country: 'Mexico', countryAr: 'المكسيك' },
@@ -81,35 +84,61 @@ const WMI_MAP: Record<string, { make: string; makeAr: string; country: string; c
   '1FT': { make: 'Ford', makeAr: 'فورد', country: 'USA', countryAr: 'أمريكا' },
   '2FM': { make: 'Ford', makeAr: 'فورد', country: 'Canada', countryAr: 'كندا' },
   '3FA': { make: 'Ford', makeAr: 'فورد', country: 'Mexico', countryAr: 'المكسيك' },
-  'MNB': { make: 'Ford', makeAr: 'فورد', country: 'Thailand', countryAr: 'تايلاند' },
+  MNB: { make: 'Ford', makeAr: 'فورد', country: 'Thailand', countryAr: 'تايلاند' },
 
   // Isuzu / Mitsubishi / Mazda / Suzuki
-  'MPA': { make: 'Isuzu', makeAr: 'إيسوزو', country: 'Thailand', countryAr: 'تايلاند' },
-  'JAA': { make: 'Isuzu', makeAr: 'إيسوزو', country: 'Japan', countryAr: 'اليابان' },
-  'JA3': { make: 'Mitsubishi', makeAr: 'ميتسوبيشي', country: 'Japan', countryAr: 'اليابان' },
-  'MMB': { make: 'Mitsubishi', makeAr: 'ميتسوبيشي', country: 'Thailand', countryAr: 'تايلاند' },
-  'JM1': { make: 'Mazda', makeAr: 'مازدا', country: 'Japan', countryAr: 'اليابان' },
-  'JM7': { make: 'Mazda', makeAr: 'مازدا', country: 'Japan', countryAr: 'اليابان' },
-  'JS2': { make: 'Suzuki', makeAr: 'سوزوكي', country: 'Japan', countryAr: 'اليابان' },
-  'MA3': { make: 'Suzuki', makeAr: 'سوزوكي', country: 'India', countryAr: 'الهند' },
+  MPA: { make: 'Isuzu', makeAr: 'إيسوزو', country: 'Thailand', countryAr: 'تايلاند' },
+  JAA: { make: 'Isuzu', makeAr: 'إيسوزو', country: 'Japan', countryAr: 'اليابان' },
+  JA3: { make: 'Mitsubishi', makeAr: 'ميتسوبيشي', country: 'Japan', countryAr: 'اليابان' },
+  MMB: { make: 'Mitsubishi', makeAr: 'ميتسوبيشي', country: 'Thailand', countryAr: 'تايلاند' },
+  JM1: { make: 'Mazda', makeAr: 'مازدا', country: 'Japan', countryAr: 'اليابان' },
+  JM7: { make: 'Mazda', makeAr: 'مازدا', country: 'Japan', countryAr: 'اليابان' },
+  JS2: { make: 'Suzuki', makeAr: 'سوزوكي', country: 'Japan', countryAr: 'اليابان' },
+  MA3: { make: 'Suzuki', makeAr: 'سوزوكي', country: 'India', countryAr: 'الهند' },
 
   // German: Mercedes / BMW / VW / Audi
-  'WDB': { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
-  'WDC': { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
-  'WDD': { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
-  'WBA': { make: 'BMW', makeAr: 'بي إم دبليو', country: 'Germany', countryAr: 'ألمانيا' },
-  'WBS': { make: 'BMW', makeAr: 'بي إم دبليو', country: 'Germany', countryAr: 'ألمانيا' },
+  WDB: { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
+  WDC: { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
+  WDD: { make: 'Mercedes-Benz', makeAr: 'مرسيدس', country: 'Germany', countryAr: 'ألمانيا' },
+  WBA: { make: 'BMW', makeAr: 'بي إم دبليو', country: 'Germany', countryAr: 'ألمانيا' },
+  WBS: { make: 'BMW', makeAr: 'بي إم دبليو', country: 'Germany', countryAr: 'ألمانيا' },
   '5UX': { make: 'BMW', makeAr: 'بي إم دبليو', country: 'USA', countryAr: 'أمريكا' },
-  'WVW': { make: 'Volkswagen', makeAr: 'فولكس فاجن', country: 'Germany', countryAr: 'ألمانيا' },
-  'WAU': { make: 'Audi', makeAr: 'أودي', country: 'Germany', countryAr: 'ألمانيا' },
+  WVW: { make: 'Volkswagen', makeAr: 'فولكس فاجن', country: 'Germany', countryAr: 'ألمانيا' },
+  WAU: { make: 'Audi', makeAr: 'أودي', country: 'Germany', countryAr: 'ألمانيا' },
 };
 
 /** ISO 3779 Model Year character map (10th character of 17-char VIN) */
 const YEAR_MAP: Record<string, number> = {
-  Y: 2000, '1': 2001, '2': 2002, '3': 2003, '4': 2004, '5': 2005, '6': 2006, '7': 2007,
-  '8': 2008, '9': 2009, A: 2010, B: 2011, C: 2012, D: 2013, E: 2014, F: 2015,
-  G: 2016, H: 2017, J: 2018, K: 2019, L: 2020, M: 2021, N: 2022, P: 2023,
-  R: 2024, S: 2025, T: 2026, V: 2027, W: 2028, X: 2029,
+  Y: 2000,
+  '1': 2001,
+  '2': 2002,
+  '3': 2003,
+  '4': 2004,
+  '5': 2005,
+  '6': 2006,
+  '7': 2007,
+  '8': 2008,
+  '9': 2009,
+  A: 2010,
+  B: 2011,
+  C: 2012,
+  D: 2013,
+  E: 2014,
+  F: 2015,
+  G: 2016,
+  H: 2017,
+  J: 2018,
+  K: 2019,
+  L: 2020,
+  M: 2021,
+  N: 2022,
+  P: 2023,
+  R: 2024,
+  S: 2025,
+  T: 2026,
+  V: 2027,
+  W: 2028,
+  X: 2029,
 };
 
 /**
@@ -122,7 +151,7 @@ const YEAR_MAP: Record<string, number> = {
  */
 export function resolveModelYear(
   ch: string,
-  nowYear: number = new Date().getFullYear(),
+  nowYear: number = new Date().getFullYear()
 ): number | null {
   // Index access widens through a cast so the `typeof` guard below stays
   // meaningful under strict-boolean / no-unnecessary-condition rules.
@@ -137,6 +166,25 @@ export function resolveModelYear(
   return best;
 }
 
+const COUNTRY_BY_PREFIX: Array<[string, string]> = [
+  ['145', 'أمريكا'],
+  ['2', 'كندا'],
+  ['3', 'المكسيك'],
+  ['J', 'اليابان'],
+  ['K', 'كوريا الجنوبية'],
+  ['L', 'الصين'],
+  ['STUVWXYZ', 'أوروبا'],
+  ['67', 'أستراليا'],
+  ['M', 'آسيا / تايلاند'],
+];
+
+const countryFromPrefix = (c1: string): string => {
+  for (const [prefix, label] of COUNTRY_BY_PREFIX) {
+    if (prefix.includes(c1)) return label;
+  }
+  return 'غير محدد';
+};
+
 /**
  * Fast client-side VIN pre-decoding (instant WMI + Year).
  * Model-year resolution uses resolveModelYear() (see above).
@@ -146,14 +194,14 @@ export function preDecodeVin(vinInput: string): WmiInfo | null {
   if (clean.length < 3) return null;
 
   const wmi = clean.slice(0, 3);
-  const match = WMI_MAP[wmi];
+  const match = Object.entries(WMI_MAP).find(([k]) => k === wmi)?.[1];
 
   let year: number | null = null;
   if (clean.length >= 10) {
     year = resolveModelYear(clean[9]);
   }
 
-  if (match) {
+  if (match != null) {
     return {
       wmi,
       make: match.make,
@@ -166,16 +214,7 @@ export function preDecodeVin(vinInput: string): WmiInfo | null {
 
   // Country fallback based on 1st character
   const c1 = clean[0];
-  let fallbackCountry = 'غير محدد';
-  if ('145'.includes(c1)) fallbackCountry = 'أمريكا';
-  else if (c1 === '2') fallbackCountry = 'كندا';
-  else if (c1 === '3') fallbackCountry = 'المكسيك';
-  else if (c1 === 'J') fallbackCountry = 'اليابان';
-  else if (c1 === 'K') fallbackCountry = 'كوريا الجنوبية';
-  else if (c1 === 'L') fallbackCountry = 'الصين';
-  else if ('STUVWXYZ'.includes(c1)) fallbackCountry = 'أوروبا';
-  else if ('67'.includes(c1)) fallbackCountry = 'أستراليا';
-  else if (c1 === 'M') fallbackCountry = 'آسيا / تايلاند';
+  const fallbackCountry = countryFromPrefix(c1);
 
   return {
     wmi,

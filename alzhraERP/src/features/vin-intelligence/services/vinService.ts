@@ -54,7 +54,7 @@ export const vinService = {
   /** Validate + decode a VIN (vPIC → internal DB → AI fallback) */
   async decodeVin(
     input: string,
-    mode: 'hybrid' | 'db' | 'ai' = 'hybrid',
+    mode: 'hybrid' | 'db' | 'ai' = 'hybrid'
   ): Promise<VinDecodeResult> {
     const validation = validateVin(input);
     if (!validation.isValid) {
@@ -67,7 +67,7 @@ export const vinService = {
     }
 
     const raw = await vinApi.decodeVin({ vin: validation.normalizedVin, mode });
-    const vehicle = normalizeVehicle(raw.vehicle as Record<string, unknown> | null);
+    const vehicle = normalizeVehicle(raw.vehicle);
 
     return {
       vin: raw.vin ?? validation.normalizedVin,
@@ -80,13 +80,16 @@ export const vinService = {
   },
 
   /** Match inventory products to a decoded vehicle via the graph */
-  async matchInventory(companyId: string, vehicle: VehicleInfo): Promise<MatchingInventoryProduct[]> {
+  async matchInventory(
+    companyId: string,
+    vehicle: VehicleInfo
+  ): Promise<MatchingInventoryProduct[]> {
     if (!vehicle.make) return [];
     return vinApi.getMatchingInventoryProducts(
       companyId,
       vehicle.make,
       vehicle.model ?? null,
-      vehicle.year ?? vehicle.yearStart ?? null,
+      vehicle.year ?? vehicle.yearStart ?? null
     );
   },
 
@@ -119,7 +122,7 @@ export const vinService = {
   },
 
   async listAnalyses(companyId: string): Promise<VinAnalysisRecord[]> {
-    return vinApi.listVinAnalyses(companyId) as unknown as VinAnalysisRecord[];
+    return (await vinApi.listVinAnalyses(companyId)) as unknown as VinAnalysisRecord[];
   },
 
   async deleteAnalysis(id: string): Promise<void> {
@@ -135,14 +138,13 @@ export const vinService = {
     companyId: string,
     userId: string,
     vehicleId: string,
-    productId: string,
-    fitmentStatus: 'CONFIRMED' | 'POSSIBLE' | 'UNKNOWN' = 'POSSIBLE',
+    productId: string
   ): Promise<void> {
     await vinApi.linkVehicleProduct({
       company_id: companyId,
       vehicle_id: vehicleId,
       product_id: productId,
-      fitment_status: fitmentStatus,
+      fitment_status: 'POSSIBLE',
       source: 'manual',
       created_by: userId,
     });

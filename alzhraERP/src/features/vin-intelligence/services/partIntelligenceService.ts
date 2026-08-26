@@ -62,11 +62,46 @@ const PART_PATTERNS: Array<{
     nameEn: 'Spark Plug (Iridium / Platinum)',
     mfr: 'TOYOTA / DENSO',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Corolla', modelAr: 'كورولا', yearRange: '2008-2019', engine: '1.6L / 1.8L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2007-2018', engine: '2.4L / 2.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'RAV4', modelAr: 'راف فور', yearRange: '2006-2018', engine: '2.4L / 2.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Yaris', modelAr: 'يارس', yearRange: '2006-2018', engine: '1.3L / 1.5L' },
-      { make: 'Lexus', makeAr: 'لكزس', model: 'ES350', modelAr: 'إي إس 350', yearRange: '2007-2018', engine: '3.5L V6' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Corolla',
+        modelAr: 'كورولا',
+        yearRange: '2008-2019',
+        engine: '1.6L / 1.8L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2007-2018',
+        engine: '2.4L / 2.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'RAV4',
+        modelAr: 'راف فور',
+        yearRange: '2006-2018',
+        engine: '2.4L / 2.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Yaris',
+        modelAr: 'يارس',
+        yearRange: '2006-2018',
+        engine: '1.3L / 1.5L',
+      },
+      {
+        make: 'Lexus',
+        makeAr: 'لكزس',
+        model: 'ES350',
+        modelAr: 'إي إس 350',
+        yearRange: '2007-2018',
+        engine: '3.5L V6',
+      },
     ],
   },
   {
@@ -77,10 +112,38 @@ const PART_PATTERNS: Array<{
     nameEn: 'Front Brake Pads Set',
     mfr: 'TOYOTA / ADVICS',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2006-2017', engine: '2.4L / 2.5L / 3.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Avalon', modelAr: 'أفالون', yearRange: '2008-2018', engine: '3.5L V6' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Aurion', modelAr: 'أوريون', yearRange: '2007-2016', engine: '3.5L V6' },
-      { make: 'Lexus', makeAr: 'لكزس', model: 'ES350', modelAr: 'إي إس 350', yearRange: '2007-2015', engine: '3.5L V6' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2006-2017',
+        engine: '2.4L / 2.5L / 3.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Avalon',
+        modelAr: 'أفالون',
+        yearRange: '2008-2018',
+        engine: '3.5L V6',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Aurion',
+        modelAr: 'أوريون',
+        yearRange: '2007-2016',
+        engine: '3.5L V6',
+      },
+      {
+        make: 'Lexus',
+        makeAr: 'لكزس',
+        model: 'ES350',
+        modelAr: 'إي إس 350',
+        yearRange: '2007-2015',
+        engine: '3.5L V6',
+      },
     ],
   },
   {
@@ -91,9 +154,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Rear Brake Pads Set',
     mfr: 'TOYOTA / ADVICS',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2006-2017', engine: '2.4L / 2.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Avalon', modelAr: 'أفالون', yearRange: '2008-2018', engine: '3.5L V6' },
-      { make: 'Lexus', makeAr: 'لكزس', model: 'ES350', modelAr: 'إي إس 350', yearRange: '2007-2018', engine: '3.5L V6' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2006-2017',
+        engine: '2.4L / 2.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Avalon',
+        modelAr: 'أفالون',
+        yearRange: '2008-2018',
+        engine: '3.5L V6',
+      },
+      {
+        make: 'Lexus',
+        makeAr: 'لكزس',
+        model: 'ES350',
+        modelAr: 'إي إس 350',
+        yearRange: '2007-2018',
+        engine: '3.5L V6',
+      },
     ],
   },
   {
@@ -104,11 +188,46 @@ const PART_PATTERNS: Array<{
     nameEn: 'Engine Oil Filter Element with O-Rings',
     mfr: 'TOYOTA / DENSO',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Corolla', modelAr: 'كورولا', yearRange: '2009-2022', engine: '1.8L / 2.0L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2010-2022', engine: '2.5L / 3.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'RAV4', modelAr: 'راف فور', yearRange: '2009-2021', engine: '2.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Prado', modelAr: 'برادو', yearRange: '2010-2022', engine: '4.0L V6' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Land Cruiser', modelAr: 'لاندكروزر', yearRange: '2008-2021', engine: '5.7L V8' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Corolla',
+        modelAr: 'كورولا',
+        yearRange: '2009-2022',
+        engine: '1.8L / 2.0L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2010-2022',
+        engine: '2.5L / 3.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'RAV4',
+        modelAr: 'راف فور',
+        yearRange: '2009-2021',
+        engine: '2.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Prado',
+        modelAr: 'برادو',
+        yearRange: '2010-2022',
+        engine: '4.0L V6',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Land Cruiser',
+        modelAr: 'لاندكروزر',
+        yearRange: '2008-2021',
+        engine: '5.7L V8',
+      },
     ],
   },
   {
@@ -119,9 +238,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Engine Air Cleaner Filter',
     mfr: 'TOYOTA / DENSO',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Corolla', modelAr: 'كورولا', yearRange: '2008-2019', engine: '1.6L / 1.8L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Yaris', modelAr: 'يارس', yearRange: '2006-2019', engine: '1.3L / 1.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Vitz', modelAr: 'فيتز', yearRange: '2005-2019', engine: '1.0L / 1.3L / 1.5L' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Corolla',
+        modelAr: 'كورولا',
+        yearRange: '2008-2019',
+        engine: '1.6L / 1.8L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Yaris',
+        modelAr: 'يارس',
+        yearRange: '2006-2019',
+        engine: '1.3L / 1.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Vitz',
+        modelAr: 'فيتز',
+        yearRange: '2005-2019',
+        engine: '1.0L / 1.3L / 1.5L',
+      },
     ],
   },
   {
@@ -132,11 +272,46 @@ const PART_PATTERNS: Array<{
     nameEn: 'Cabin Air Conditioner Filter',
     mfr: 'TOYOTA / DENSO',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2007-2022', engine: 'جميع المحركات' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Corolla', modelAr: 'كورولا', yearRange: '2008-2022', engine: 'جميع المحركات' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Hilux', modelAr: 'هايلوكس', yearRange: '2006-2022', engine: 'بنزين / ديزل' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Fortuner', modelAr: 'فورتشنر', yearRange: '2006-2022', engine: '2.7L / 4.0L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Prado', modelAr: 'برادو', yearRange: '2009-2022', engine: '2.7L / 4.0L' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2007-2022',
+        engine: 'جميع المحركات',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Corolla',
+        modelAr: 'كورولا',
+        yearRange: '2008-2022',
+        engine: 'جميع المحركات',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Hilux',
+        modelAr: 'هايلوكس',
+        yearRange: '2006-2022',
+        engine: 'بنزين / ديزل',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Fortuner',
+        modelAr: 'فورتشنر',
+        yearRange: '2006-2022',
+        engine: '2.7L / 4.0L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Prado',
+        modelAr: 'برادو',
+        yearRange: '2009-2022',
+        engine: '2.7L / 4.0L',
+      },
     ],
   },
   {
@@ -147,9 +322,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Engine Water Pump Assembly',
     mfr: 'TOYOTA / AISIN',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2002-2011', engine: '2.4L (2AZ-FE)' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'RAV4', modelAr: 'راف فور', yearRange: '2004-2008', engine: '2.4L (2AZ-FE)' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Previa', modelAr: 'بريفيا', yearRange: '2000-2006', engine: '2.4L' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2002-2011',
+        engine: '2.4L (2AZ-FE)',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'RAV4',
+        modelAr: 'راف فور',
+        yearRange: '2004-2008',
+        engine: '2.4L (2AZ-FE)',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Previa',
+        modelAr: 'بريفيا',
+        yearRange: '2000-2006',
+        engine: '2.4L',
+      },
     ],
   },
   {
@@ -160,9 +356,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Spark Plug Platinum / Iridium',
     mfr: 'NISSAN / NGK',
     fitmentExamples: [
-      { make: 'Nissan', makeAr: 'نيسان', model: 'Sunny', modelAr: 'صني', yearRange: '2007-2020', engine: '1.5L / 1.6L' },
-      { make: 'Nissan', makeAr: 'نيسان', model: 'Altima', modelAr: 'ألتيما', yearRange: '2008-2018', engine: '2.5L' },
-      { make: 'Nissan', makeAr: 'نيسان', model: 'Patrol', modelAr: 'باترول', yearRange: '2010-2022', engine: '4.0L / 5.6L V8' },
+      {
+        make: 'Nissan',
+        makeAr: 'نيسان',
+        model: 'Sunny',
+        modelAr: 'صني',
+        yearRange: '2007-2020',
+        engine: '1.5L / 1.6L',
+      },
+      {
+        make: 'Nissan',
+        makeAr: 'نيسان',
+        model: 'Altima',
+        modelAr: 'ألتيما',
+        yearRange: '2008-2018',
+        engine: '2.5L',
+      },
+      {
+        make: 'Nissan',
+        makeAr: 'نيسان',
+        model: 'Patrol',
+        modelAr: 'باترول',
+        yearRange: '2010-2022',
+        engine: '4.0L / 5.6L V8',
+      },
     ],
   },
   {
@@ -173,9 +390,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Spark Plug Iridium Genuine Mobis',
     mfr: 'HYUNDAI / MOBIS',
     fitmentExamples: [
-      { make: 'Hyundai', makeAr: 'هيونداي', model: 'Elantra', modelAr: 'إلنترا', yearRange: '2011-2020', engine: '1.6L / 2.0L' },
-      { make: 'Hyundai', makeAr: 'هيونداي', model: 'Accent', modelAr: 'أكسنت', yearRange: '2012-2020', engine: '1.4L / 1.6L' },
-      { make: 'Kia', makeAr: 'كيا', model: 'Cerato', modelAr: 'سيراتو', yearRange: '2013-2020', engine: '1.6L' },
+      {
+        make: 'Hyundai',
+        makeAr: 'هيونداي',
+        model: 'Elantra',
+        modelAr: 'إلنترا',
+        yearRange: '2011-2020',
+        engine: '1.6L / 2.0L',
+      },
+      {
+        make: 'Hyundai',
+        makeAr: 'هيونداي',
+        model: 'Accent',
+        modelAr: 'أكسنت',
+        yearRange: '2012-2020',
+        engine: '1.4L / 1.6L',
+      },
+      {
+        make: 'Kia',
+        makeAr: 'كيا',
+        model: 'Cerato',
+        modelAr: 'سيراتو',
+        yearRange: '2013-2020',
+        engine: '1.6L',
+      },
     ],
   },
   {
@@ -186,9 +424,30 @@ const PART_PATTERNS: Array<{
     nameEn: 'Denso Iridium Tough / Power Spark Plug',
     mfr: 'DENSO',
     fitmentExamples: [
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Corolla', modelAr: 'كورولا', yearRange: '2005-2022', engine: '1.6L / 1.8L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Camry', modelAr: 'كامري', yearRange: '2003-2022', engine: '2.4L / 2.5L / 3.5L' },
-      { make: 'Toyota', makeAr: 'تويوتا', model: 'Land Cruiser', modelAr: 'لاندكروزر', yearRange: '2008-2021', engine: '4.6L / 5.7L' },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Corolla',
+        modelAr: 'كورولا',
+        yearRange: '2005-2022',
+        engine: '1.6L / 1.8L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Camry',
+        modelAr: 'كامري',
+        yearRange: '2003-2022',
+        engine: '2.4L / 2.5L / 3.5L',
+      },
+      {
+        make: 'Toyota',
+        makeAr: 'تويوتا',
+        model: 'Land Cruiser',
+        modelAr: 'لاندكروزر',
+        yearRange: '2008-2021',
+        engine: '4.6L / 5.7L',
+      },
     ],
   },
 ];
@@ -234,13 +493,13 @@ export const partIntelligenceService = {
       throw new Error('يرجى إدخال رقم قطعة صالح');
     }
 
-    const normTargetPN = cleanPN.replace(/[\s\-\.]/g, '');
+    const normTargetPN = cleanPN.replace(/[\s\-.]/g, '');
 
     // 1. Check known patterns for instant deep intelligence
-    let matchedPattern = PART_PATTERNS.find((p) => p.regex.test(cleanPN));
-    
+    const matchedPattern = PART_PATTERNS.find(p => p.regex.test(cleanPN));
+
     // 2. Fetch live data from edge function (vin-parts / ai-part-lookup)
-    let liveAlternatives: PartAlternative[] = [];
+    const liveAlternatives: PartAlternative[] = [];
     let liveDescription = '';
     let liveMake = '';
     let liveSource = targetCatalog;
@@ -261,9 +520,15 @@ export const partIntelligenceService = {
 
         // Build alternatives from other returned parts in the catalog
         for (const p of vpData.parts.slice(1)) {
-          const rawPN = String(p.partNumber || '').trim().toUpperCase();
-          const normPN = rawPN.replace(/[\s\-\.]/g, '');
-          if (normPN && normPN !== normTargetPN && !liveAlternatives.some((a) => a.partNumber.replace(/[\s\-\.]/g, '') === normPN)) {
+          const rawPN = String(p.partNumber || '')
+            .trim()
+            .toUpperCase();
+          const normPN = rawPN.replace(/[\s\-.]/g, '');
+          if (
+            normPN &&
+            normPN !== normTargetPN &&
+            !liveAlternatives.some(a => a.partNumber.replace(/[\s\-.]/g, '') === normPN)
+          ) {
             liveAlternatives.push({
               partNumber: rawPN,
               brand: p.make || detectPartBrand(rawPN),
@@ -276,7 +541,11 @@ export const partIntelligenceService = {
         }
       }
     } catch (err) {
-      logger.warn('PartIntelligence', 'vin-parts edge function failed, falling back to local engine', err);
+      logger.warn(
+        'PartIntelligence',
+        'vin-parts edge function failed, falling back to local engine',
+        err
+      );
     }
 
     // Also check ai-part-lookup cache/race
@@ -287,15 +556,25 @@ export const partIntelligenceService = {
 
       if (aiData?.alternatives && Array.isArray(aiData.alternatives)) {
         for (const alt of aiData.alternatives) {
-          const altPN = String(alt.part_number || '').trim().toUpperCase();
-          const normAlt = altPN.replace(/[\s\-\.]/g, '');
-          if (normAlt && normAlt !== normTargetPN && !liveAlternatives.some((a) => a.partNumber.replace(/[\s\-\.]/g, '') === normAlt)) {
-            const conf = alt.confidence === 'high' ? 'high' : alt.confidence === 'medium' ? 'medium' : 'low';
+          const altPN = String(alt.part_number || '')
+            .trim()
+            .toUpperCase();
+          const normAlt = altPN.replace(/[\s\-.]/g, '');
+          if (
+            normAlt &&
+            normAlt !== normTargetPN &&
+            !liveAlternatives.some(a => a.partNumber.replace(/[\s\-.]/g, '') === normAlt)
+          ) {
+            const conf =
+              alt.confidence === 'high' ? 'high' : alt.confidence === 'medium' ? 'medium' : 'low';
             const score = conf === 'high' ? 90 : conf === 'medium' ? 80 : 65;
             liveAlternatives.push({
               partNumber: altPN,
               brand: detectPartBrand(altPN),
-              type: alt.sources?.includes('partsouq') || alt.sources?.includes('megazip') ? 'OEM' : 'AFTERMARKET',
+              type:
+                alt.sources?.includes('partsouq') || alt.sources?.includes('megazip')
+                  ? 'OEM'
+                  : 'AFTERMARKET',
               confidence: conf,
               confidenceScore: score,
               source: alt.sources?.join(', ') || 'cross-ref',
@@ -308,16 +587,19 @@ export const partIntelligenceService = {
     }
 
     // 3. Synthesize Bilingual Names & Fitment
-    const detectedMfr = liveMake || detectPartBrand(cleanPN, matchedPattern?.mfr || activeVehicle?.make || 'TOYOTA');
-    
+    const detectedMfr =
+      liveMake || detectPartBrand(cleanPN, matchedPattern?.mfr || activeVehicle?.make || 'TOYOTA');
+
     // Arabic Name synthesis
-    const arabicTerm = findArabicPartTerm(liveDescription) || matchedPattern?.nameAr || 'قطعة غيار أصلية';
+    const arabicTerm =
+      findArabicPartTerm(liveDescription) || matchedPattern?.nameAr || 'قطعة غيار أصلية';
     const primaryNameAr = activeVehicle
       ? `${arabicTerm} - ${getArabicVehicleName(activeVehicle).makeAr} ${getArabicVehicleName(activeVehicle).modelAr} ${formatVehicleYears(activeVehicle)}`
       : `${arabicTerm} (${detectedMfr})`;
 
     // English Name synthesis
-    const primaryNameEn = liveDescription || matchedPattern?.nameEn || `${detectedMfr} OEM Genuine Auto Part`;
+    const primaryNameEn =
+      liveDescription || matchedPattern?.nameEn || `${detectedMfr} OEM Genuine Auto Part`;
     const categoryAr = matchedPattern?.categoryAr || 'قطع غيار وصيانة دورية';
     const categoryEn = matchedPattern?.categoryEn || 'Replacement Parts & Maintenance';
 
@@ -333,7 +615,9 @@ export const partIntelligenceService = {
         model: activeVehicle.model || 'جميع الفئات',
         modelAr: modelAr || activeVehicle.model || 'جميع الفئات',
         yearRange: formatVehicleYears(activeVehicle) || '2005-2024',
-        engine: activeVehicle.displacement ? `${activeVehicle.displacement}` : activeVehicle.engine || undefined,
+        engine: activeVehicle.displacement
+          ? activeVehicle.displacement
+          : activeVehicle.engine || undefined,
         notes: 'السيارة المحددة حالياً (مطابقة مباشرة)',
       });
     }
@@ -341,7 +625,7 @@ export const partIntelligenceService = {
     // Add pattern examples if available
     if (matchedPattern?.fitmentExamples) {
       for (const f of matchedPattern.fitmentExamples) {
-        if (!compatibleVehicles.some((v) => v.make === f.make && v.model === f.model)) {
+        if (!compatibleVehicles.some(v => v.make === f.make && v.model === f.model)) {
           compatibleVehicles.push(f);
         }
       }
@@ -373,7 +657,10 @@ export const partIntelligenceService = {
       compatibleVehicles,
       specs: {
         'الشركة الصانعة': detectedMfr,
-        'بلد المنشأ / الاعتماد': detectedMfr.includes('TOYOTA') || detectedMfr.includes('DENSO') ? 'اليابان (Japan)' : 'أصلي عالمي',
+        'بلد المنشأ / الاعتماد':
+          detectedMfr.includes('TOYOTA') || detectedMfr.includes('DENSO')
+            ? 'اليابان (Japan)'
+            : 'أصلي عالمي',
         'نوع التوافق': 'مباشر (Direct OEM Replacement)',
         'حالة القطعة': 'جديد أصلي / بديل معتمد',
       },

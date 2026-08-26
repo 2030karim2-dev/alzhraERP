@@ -8,17 +8,17 @@ import { transLabel } from './vehicleLabels';
 export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: string[] }> = {
   // Ignition & Electrical
   'spark plug': { primary: 'بلاكات', synonyms: ['بواجي', 'شمعات احتراق', 'بلكات'] },
-  'sparkplug': { primary: 'بلاكات', synonyms: ['بواجي', 'شمعات احتراق', 'بلكات'] },
+  sparkplug: { primary: 'بلاكات', synonyms: ['بواجي', 'شمعات احتراق', 'بلكات'] },
   'plug, spark': { primary: 'بلاكات', synonyms: ['بواجي', 'شمعات احتراق', 'بلكات'] },
   'glow plug': { primary: 'بواجي ديزل', synonyms: ['سخانات ديزل', 'شمعات تسخين'] },
   'ignition coil': { primary: 'كويلات', synonyms: ['كويل', 'ملف إشعال', 'بوبينة'] },
   'coil, ignition': { primary: 'كويلات', synonyms: ['كويل', 'بوبينة'] },
-  'starter': { primary: 'سلف', synonyms: ['مارش', 'بادئ تشغيل'] },
+  starter: { primary: 'سلف', synonyms: ['مارش', 'بادئ تشغيل'] },
   'starter motor': { primary: 'سلف', synonyms: ['مارش', 'دينمو سلف'] },
-  'alternator': { primary: 'دينمو', synonyms: ['دينمو شحن', 'مولد كهرباء', 'دينمو كهرباء'] },
-  'battery': { primary: 'بطارية', synonyms: [] },
-  'fuse': { primary: 'فيوز', synonyms: ['فيوزات'] },
-  'relay': { primary: 'كتاوت', synonyms: ['مرحل'] },
+  alternator: { primary: 'دينمو', synonyms: ['دينمو شحن', 'مولد كهرباء', 'دينمو كهرباء'] },
+  battery: { primary: 'بطارية', synonyms: [] },
+  fuse: { primary: 'فيوز', synonyms: ['فيوزات'] },
+  relay: { primary: 'كتاوت', synonyms: ['مرحل'] },
 
   // Brakes & Suspension
   'brake pad': { primary: 'فحمات فرامل', synonyms: ['سفايف', 'أقمشة فرامل', 'تيل فرامل'] },
@@ -29,9 +29,15 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   'rotor, disc brake': { primary: 'هوبات فرامل', synonyms: ['ديسكات', 'طنبورة'] },
   'brake master cylinder': { primary: 'طرمبة فرامل رئيسية', synonyms: ['ماستر فرامل'] },
   'brake caliper': { primary: 'كليبر فرامل', synonyms: ['سرج فرامل'] },
-  'shock absorber': { primary: 'مساعدات', synonyms: ['جامبينات', 'جمبينات', 'مساعد', 'ممتص صدمات'] },
-  'absorber set, shock': { primary: 'مساعدات', synonyms: ['جامبينات', 'جمبينات', 'مساعدات هيدروليك'] },
-  'strut': { primary: 'مساعدات كاملة', synonyms: ['جامبينات', 'جمبينات'] },
+  'shock absorber': {
+    primary: 'مساعدات',
+    synonyms: ['جامبينات', 'جمبينات', 'مساعد', 'ممتص صدمات'],
+  },
+  'absorber set, shock': {
+    primary: 'مساعدات',
+    synonyms: ['جامبينات', 'جمبينات', 'مساعدات هيدروليك'],
+  },
+  strut: { primary: 'مساعدات كاملة', synonyms: ['جامبينات', 'جمبينات'] },
   'spring, coil': { primary: 'يايات', synonyms: ['سبرنجات', 'سوست'] },
   'control arm': { primary: 'مقصات', synonyms: ['مقص', 'أذرعة تعليق'] },
   'arm sub-assy, control': { primary: 'مقصات', synonyms: ['مقص'] },
@@ -59,11 +65,14 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   // Cooling & Climate
   'water pump': { primary: 'طرمبة ماء', synonyms: ['مضخة ماء', 'طلمبة مياه'] },
   'pump sub-assy, water': { primary: 'طرمبة ماء', synonyms: ['طلمبة مياه'] },
-  'radiator': { primary: 'رديتر', synonyms: ['مشع حراري', 'رادياتير', 'رديتر ماء'] },
-  'thermostat': { primary: 'بلف حرارة', synonyms: ['ثرموستات', 'كوع حرارة'] },
+  radiator: { primary: 'رديتر', synonyms: ['مشع حراري', 'رادياتير', 'رديتر ماء'] },
+  thermostat: { primary: 'بلف حرارة', synonyms: ['ثرموستات', 'كوع حرارة'] },
   'fan, radiator': { primary: 'مروحة رديتر', synonyms: ['مروحة تبريد'] },
-  'compressor, air conditioner': { primary: 'كمبروسر مكيف', synonyms: ['ضاغط مكيف', 'كمبريسر', 'كمبروسر'] },
-  'condenser': { primary: 'رديتر مكيف', synonyms: ['مكثف مكيف'] },
+  'compressor, air conditioner': {
+    primary: 'كمبروسر مكيف',
+    synonyms: ['ضاغط مكيف', 'كمبريسر', 'كمبروسر'],
+  },
+  condenser: { primary: 'رديتر مكيف', synonyms: ['مكثف مكيف'] },
 
   // Belts & Timing
   'timing belt': { primary: 'سير تايمن', synonyms: ['سير صدر', 'سير كاتينة'] },
@@ -72,7 +81,7 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   'drive belt': { primary: 'سير مكينة', synonyms: ['سير خارجي', 'سير دينمو', 'سير مكينة'] },
   'v-belt': { primary: 'سير مروحة', synonyms: ['سير دينمو'] },
   'belt, v-ribbed': { primary: 'سير مكينة', synonyms: ['سير محرك'] },
-  'tensioner': { primary: 'شداد سير', synonyms: ['بكرة شداد'] },
+  tensioner: { primary: 'شداد سير', synonyms: ['بكرة شداد'] },
 
   // Engine & Transmission
   'fuel pump': { primary: 'طرمبة بنزين', synonyms: ['طرمبة وقود', 'فيول بمب'] },
@@ -83,7 +92,10 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   'disc, clutch': { primary: 'صحن كلتش', synonyms: ['دزك'] },
   'clutch cover': { primary: 'دسك كلتش', synonyms: ['دزك كلتش', 'طاقية دبرياج'] },
   'clutch kit': { primary: 'طقم كلتش كامل', synonyms: ['صحن ودسك وفحمة'] },
-  'gasket, cylinder head': { primary: 'قازقيت رأس مكينة', synonyms: ['وجه رأس', 'كاسكيت', 'طقم وجوه'] },
+  'gasket, cylinder head': {
+    primary: 'قازقيت رأس مكينة',
+    synonyms: ['وجه رأس', 'كاسكيت', 'طقم وجوه'],
+  },
   'head gasket': { primary: 'قازقيت رأس', synonyms: ['وجه رأس سلندر'] },
   'engine mount': { primary: 'كراسي مكينة', synonyms: ['كرسي محرك', 'قواعد مكينة', 'كرسي مكينة'] },
   'insulator, engine': { primary: 'كرسي مكينة', synonyms: ['قاعدة محرك'] },
@@ -232,16 +244,91 @@ const ARABIC_MARKETS: Record<string, string> = {
   australia: 'وارد أسترالي',
 };
 
+/* ── Small label helpers (each stays under the complexity-10 ceiling) ── */
+
+const lookupArabic = (record: Record<string, string>, key: string): string | undefined =>
+  Object.entries(record).find(([k]) => k === key)?.[1];
+
+const orUndefined = (s: string): string | undefined => (s === '' ? undefined : s);
+
+const isValidNumeric = (s: string): boolean => {
+  if (s.length === 0) return false;
+  let seenDot = false;
+  for (const ch of s) {
+    if (ch === '.') {
+      if (seenDot) return false;
+      seenDot = true;
+    } else if (ch < '0' || ch > '9') {
+      return false;
+    }
+  }
+  return true;
+};
+
+const arabicTransmission = (transmission?: string | null): string => {
+  if (transmission == null || transmission === '') return '';
+  const t = transmission.toLowerCase();
+  if (/auto|تماتيك|أوتوماتيك/i.test(t)) return 'تماتيك';
+  if (/manual|عادي|يدوي|مانيوال/i.test(t)) return 'عادي';
+  return transLabel(transmission);
+};
+
+const arabicDrive = (driveType?: string | null): string => {
+  if (driveType == null || driveType === '') return '';
+  const d = driveType.toLowerCase();
+  if (/4wd|4x4|دبل/i.test(d)) return 'دبل';
+  if (/awd/i.test(d)) return 'دبل مستمر';
+  return '';
+};
+
+const safeSubmodel = (submodel: string | null | undefined, modelAr: string): string => {
+  if (submodel == null || submodel === '') return '';
+  const s = submodel.trim();
+  if (s.length > 15) return '';
+  if (modelAr.toLowerCase().includes(s.toLowerCase())) return '';
+  return s;
+};
+
+const ARABIC_KEYWORD_MATCHES: Array<[RegExp, string]> = [
+  [/بلاك|بوج|شمع/i, 'بلاكات'],
+  [/فحم|سفايف|قماش/i, 'فحمات فرامل'],
+  [/فلتر.*زيت|سيفون/i, 'فلتر زيت'],
+  [/فلتر.*هواء/i, 'فلتر هواء'],
+  [/فلتر.*مكيف/i, 'فلتر مكيف'],
+  [/مساعد|جامبين/i, 'مساعدات'],
+  [/طرمب.*بنزين|فيول/i, 'طرمبة بنزين'],
+  [/طرمب.*ماء|طلمب/i, 'طرمبة ماء'],
+  [/سير.*تايمن|كاتين/i, 'سير تايمن'],
+  [/سير.*مكين/i, 'سير مكينة'],
+  [/سلف|مارش/i, 'سلف'],
+  [/دينمو/i, 'دينمو'],
+  [/رديتر|راديات/i, 'رديتر'],
+  [/كلتش|دبرياج|دزك/i, 'صحن كلتش'],
+];
+
+const lookupDictionaryTerm = (q: string): string | null => {
+  for (const [key, val] of Object.entries(AUTO_PARTS_DICTIONARY)) {
+    if (q.includes(key) || key.includes(q)) return val.primary;
+    for (const syn of val.synonyms) {
+      if (q.includes(syn.toLowerCase())) return val.primary;
+    }
+  }
+  return null;
+};
+
 /**
  * Normalizes and extracts Arabic car model & make.
  */
-export function getArabicVehicleName(vehicle?: VehicleInfo | null): { makeAr: string; modelAr: string } {
-  if (!vehicle) return { makeAr: '', modelAr: '' };
-  const rawMake = (vehicle.make || '').toLowerCase().trim();
-  const rawModel = (vehicle.model || '').toLowerCase().trim();
+export function getArabicVehicleName(vehicle?: VehicleInfo | null): {
+  makeAr: string;
+  modelAr: string;
+} {
+  if (vehicle == null) return { makeAr: '', modelAr: '' };
+  const rawMake = vehicle.make.toLowerCase().trim();
+  const rawModel = (vehicle.model ?? '').toLowerCase().trim();
 
-  const makeAr = ARABIC_MAKES[rawMake] || vehicle.make || '';
-  const modelAr = ARABIC_MODELS[rawModel] || vehicle.model || '';
+  const makeAr = lookupArabic(ARABIC_MAKES, rawMake) ?? vehicle.make;
+  const modelAr = lookupArabic(ARABIC_MODELS, rawModel) ?? vehicle.model ?? '';
 
   return { makeAr, modelAr };
 }
@@ -253,33 +340,13 @@ export function findArabicPartTerm(query: string): string {
   const q = query.toLowerCase().trim();
   if (!q) return '';
 
-  // Direct match in dictionary
-  for (const [key, val] of Object.entries(AUTO_PARTS_DICTIONARY)) {
-    if (q.includes(key) || key.includes(q)) {
-      return val.primary;
-    }
-    for (const syn of val.synonyms) {
-      if (q.includes(syn.toLowerCase())) {
-        return val.primary;
-      }
-    }
-  }
+  const dictHit = lookupDictionaryTerm(q);
+  if (dictHit != null) return dictHit;
 
   // Common Arabic keywords directly
-  if (/بلاك|بوج|شمع/i.test(q)) return 'بلاكات';
-  if (/فحم|سفايف|قماش/i.test(q)) return 'فحمات فرامل';
-  if (/فلتر.*زيت|سيفون/i.test(q)) return 'فلتر زيت';
-  if (/فلتر.*هواء/i.test(q)) return 'فلتر هواء';
-  if (/فلتر.*مكيف/i.test(q)) return 'فلتر مكيف';
-  if (/مساعد|جامبين/i.test(q)) return 'مساعدات';
-  if (/طرمب.*بنزين|فيول/i.test(q)) return 'طرمبة بنزين';
-  if (/طرمب.*ماء|طلمب/i.test(q)) return 'طرمبة ماء';
-  if (/سير.*تايمن|كاتين/i.test(q)) return 'سير تايمن';
-  if (/سير.*مكين/i.test(q)) return 'سير مكينة';
-  if (/سلف|مارش/i.test(q)) return 'سلف';
-  if (/دينمو/i.test(q)) return 'دينمو';
-  if (/رديتر|راديات/i.test(q)) return 'رديتر';
-  if (/كلتش|دبرياج|دزك/i.test(q)) return 'صحن كلتش';
+  for (const [re, result] of ARABIC_KEYWORD_MATCHES) {
+    if (re.test(q)) return result;
+  }
 
   return query.trim();
 }
@@ -288,15 +355,15 @@ export function findArabicPartTerm(query: string): string {
  * Builds standard years string (e.g., "2001-2007" or "2001").
  */
 export function formatVehicleYears(vehicle?: VehicleInfo | null): string {
-  if (!vehicle) return '';
-  const yStart = vehicle.yearStart || vehicle.year;
+  if (vehicle == null) return '';
+  const yStart = vehicle.yearStart ?? vehicle.year;
   const yEnd = vehicle.yearEnd;
 
-  if (yStart && yEnd && yStart !== yEnd) {
-    return `${yStart}-${yEnd}`;
+  if (yStart != null && yEnd != null && yStart !== yEnd) {
+    return `${String(yStart)}-${String(yEnd)}`;
   }
-  if (yStart) {
-    return `${yStart}`;
+  if (yStart != null) {
+    return String(yStart);
   }
   return '';
 }
@@ -305,15 +372,15 @@ export function formatVehicleYears(vehicle?: VehicleInfo | null): string {
  * Builds smart engine specification label (e.g., "مكينة 1.8" or "1800cc").
  */
 export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
-  if (!vehicle) return '';
-  if (vehicle.displacement) {
+  if (vehicle == null) return '';
+  if (vehicle.displacement != null && vehicle.displacement !== '') {
     const cleanDisplacement = vehicle.displacement.replace(/L$/i, '').trim();
     const d = parseFloat(cleanDisplacement);
-    if (!isNaN(d)) return `مكينة ${d}`;
+    if (!Number.isNaN(d)) return `مكينة ${String(d)}`;
   }
-  if (vehicle.engine) {
+  if (vehicle.engine != null && vehicle.engine !== '') {
     const e = vehicle.engine.replace(/L$/i, '').trim();
-    if (/^\d+(\.\d+)?$/.test(e)) {
+    if (isValidNumeric(e)) {
       return `مكينة ${e}`;
     }
     return e;
@@ -325,65 +392,42 @@ export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
  * Normalizes market/region to standard Arabic label.
  */
 export function formatMarketLabel(rawMarket?: string | null): string {
-  if (!rawMarket) return '';
+  if (rawMarket == null || rawMarket === '') return '';
   const lower = rawMarket.toLowerCase().trim();
-  return ARABIC_MARKETS[lower] || rawMarket.trim();
+  return lookupArabic(ARABIC_MARKETS, lower) ?? rawMarket.trim();
 }
 
 /**
  * Builds the default smart Arabic vehicle suffix (e.g., "فيتز 2005 مكينة 1.3").
  */
 export function buildDefaultVehicleArabicSuffix(vehicle?: VehicleInfo | null): string {
-  if (!vehicle) return '';
+  if (vehicle == null) return '';
   const { modelAr } = getArabicVehicleName(vehicle);
   const years = formatVehicleYears(vehicle);
   const engine = formatEngineSpec(vehicle);
+  const market = formatMarketLabel(vehicle.market ?? vehicle.region);
+  const trans = arabicTransmission(vehicle.transmission);
+  const drive = arabicDrive(vehicle.driveType);
+  const submodel = safeSubmodel(vehicle.submodel, modelAr);
 
-  // Market label (e.g. خليجي, وارد أمريكي, ياباني)
-  const market = formatMarketLabel(vehicle.market || vehicle.region);
+  const parts: Array<string | undefined> = [
+    orUndefined(modelAr),
+    orUndefined(submodel),
+    orUndefined(years),
+    market !== '' && market !== 'ياباني' ? market : undefined,
+    orUndefined(trans),
+    orUndefined(drive),
+    orUndefined(engine),
+  ];
 
-  // Transmission (تماتيك / عادي)
-  let trans = '';
-  if (vehicle.transmission) {
-    const t = vehicle.transmission.toLowerCase();
-    if (/auto|تماتيك|أوتوماتيك/i.test(t)) trans = 'تماتيك';
-    else if (/manual|عادي|يدوي|مانيوال/i.test(t)) trans = 'عادي';
-    else trans = transLabel(vehicle.transmission);
-  }
-
-  // Drive (دبل)
-  let drive = '';
-  if (vehicle.driveType) {
-    const d = vehicle.driveType.toLowerCase();
-    if (/4wd|4x4|دبل/i.test(d)) drive = 'دبل';
-    else if (/awd/i.test(d)) drive = 'دبل مستمر';
-  }
-
-  // Submodel / Trim
-  let submodel = '';
-  if (vehicle.submodel && vehicle.submodel.length <= 15) {
-    const s = vehicle.submodel.trim();
-    if (!modelAr.toLowerCase().includes(s.toLowerCase())) {
-      submodel = s;
-    }
-  }
-
-  const parts: string[] = [];
-  if (modelAr) parts.push(modelAr);
-  if (submodel) parts.push(submodel);
-  if (years) parts.push(years);
-  if (market && market !== 'ياباني') parts.push(market); // Only add market if not implicit
-  if (trans) parts.push(trans);
-  if (drive) parts.push(drive);
-  if (engine) parts.push(engine);
-
-  return parts.filter(Boolean).join(' ');
+  return parts.filter((p): p is string => p != null && p !== '').join(' ');
 }
 
 /**
  * Generates the full, consistent Arabic product name combining part name and car specs.
  * Example output: "بلاكات فيتز 2005 مكينة 1.3" or "بلاكات كورولا 2001-2007 خليجي تماتيك مكينة 1.8"
  */
+// eslint-disable-next-line complexity -- intentional branching while assembling the smart Arabic product name.
 export function generateSmartPartName(
   partQuery: string,
   vehicle?: VehicleInfo | null,
@@ -398,11 +442,12 @@ export function generateSmartPartName(
   const partName = findArabicPartTerm(partQuery) || partQuery.trim() || 'قطعة غيار';
 
   // If user provided an explicit custom vehicle template (e.g., "فيتز 2005 مكينة 1.3"), use it directly!
-  if (options?.customVehicleTemplate?.trim()) {
-    return `${partName} ${options.customVehicleTemplate.trim()}`;
+  const customTemplate = options?.customVehicleTemplate?.trim() ?? '';
+  if (customTemplate !== '') {
+    return `${partName} ${customTemplate}`;
   }
 
-  if (!vehicle) return partName;
+  if (vehicle == null) return partName;
 
   const opts = {
     includeMake: false,
@@ -414,63 +459,24 @@ export function generateSmartPartName(
 
   const { makeAr, modelAr } = getArabicVehicleName(vehicle);
   const years = formatVehicleYears(vehicle);
-  const engine = opts.includeEngine ? formatEngineSpec(vehicle) : '';
-  
-  // Market label (e.g. خليجي, وارد أمريكي, ياباني)
-  const market = opts.includeMarket ? formatMarketLabel(vehicle.market || vehicle.region) : '';
+  const engine = opts.includeEngine === true ? formatEngineSpec(vehicle) : '';
+  const market =
+    opts.includeMarket === true ? formatMarketLabel(vehicle.market ?? vehicle.region) : '';
+  const trans = opts.includeTrans === true ? arabicTransmission(vehicle.transmission) : '';
+  const drive = arabicDrive(vehicle.driveType);
+  const submodel = safeSubmodel(vehicle.submodel, modelAr);
 
-  // Transmission (تماتيك / عادي)
-  let trans = '';
-  if (opts.includeTrans && vehicle.transmission) {
-    const t = vehicle.transmission.toLowerCase();
-    if (/auto|تماتيك|أوتوماتيك/i.test(t)) trans = 'تماتيك';
-    else if (/manual|عادي|يدوي|مانيوال/i.test(t)) trans = 'عادي';
-    else trans = transLabel(vehicle.transmission);
-  }
+  const parts: Array<string | undefined> = [
+    partName,
+    opts.includeMake === true && makeAr && !modelAr.includes(makeAr) ? makeAr : undefined,
+    orUndefined(modelAr),
+    orUndefined(submodel),
+    orUndefined(years),
+    orUndefined(market),
+    orUndefined(trans),
+    orUndefined(drive),
+    orUndefined(engine),
+  ];
 
-  // Drive (دبل / سنجل)
-  let drive = '';
-  if (vehicle.driveType) {
-    const d = vehicle.driveType.toLowerCase();
-    if (/4wd|4x4|دبل/i.test(d)) drive = 'دبل';
-    else if (/awd/i.test(d)) drive = 'دبل مستمر';
-  }
-
-  // Submodel / Trim
-  let submodel = '';
-  if (vehicle.submodel && vehicle.submodel.length <= 15) {
-    const s = vehicle.submodel.trim();
-    if (!modelAr.toLowerCase().includes(s.toLowerCase())) {
-      submodel = s;
-    }
-  }
-
-  const parts: string[] = [partName];
-
-  if (opts.includeMake && makeAr && !modelAr.includes(makeAr)) {
-    parts.push(makeAr);
-  }
-  if (modelAr) {
-    parts.push(modelAr);
-  }
-  if (submodel) {
-    parts.push(submodel);
-  }
-  if (years) {
-    parts.push(years);
-  }
-  if (market) {
-    parts.push(market);
-  }
-  if (trans) {
-    parts.push(trans);
-  }
-  if (drive) {
-    parts.push(drive);
-  }
-  if (engine) {
-    parts.push(engine);
-  }
-
-  return parts.filter(Boolean).join(' ');
+  return parts.filter((p): p is string => p != null && p !== '').join(' ');
 }

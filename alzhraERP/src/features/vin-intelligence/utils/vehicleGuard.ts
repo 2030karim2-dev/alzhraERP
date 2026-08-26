@@ -9,20 +9,46 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
+const hasValidOptionalStrings = (value: Record<string, unknown>, keys: string[]): boolean => {
+  for (const key of keys) {
+    const entry = Object.entries(value).find(([k]) => k === key);
+    if (entry != null && entry[1] !== null && typeof entry[1] !== 'string') return false;
+  }
+  return true;
+};
+
+const hasValidOptionalNumbers = (value: Record<string, unknown>, keys: string[]): boolean => {
+  for (const key of keys) {
+    const entry = Object.entries(value).find(([k]) => k === key);
+    if (entry != null && entry[1] !== null && typeof entry[1] !== 'number') return false;
+  }
+  return true;
+};
+
 export function isValidVehicleInfo(value: unknown): value is VehicleInfo {
   if (!isPlainObject(value)) return false;
   if (typeof value.make !== 'string' || value.make.trim().length === 0) return false;
   const optionalStrings = [
-    'model', 'submodel', 'trim', 'engine', 'displacement', 'cylinders',
-    'bodyType', 'driveType', 'fuelType', 'transmission', 'region', 'market',
-    'vinPrefix', 'doors', 'brakeSystem', 'vehicleType', 'id',
+    'model',
+    'submodel',
+    'trim',
+    'engine',
+    'displacement',
+    'cylinders',
+    'bodyType',
+    'driveType',
+    'fuelType',
+    'transmission',
+    'region',
+    'market',
+    'vinPrefix',
+    'doors',
+    'brakeSystem',
+    'vehicleType',
+    'id',
   ];
-  for (const key of optionalStrings) {
-    if (key in value && value[key] !== null && typeof value[key] !== 'string') return false;
-  }
-  for (const key of ['year', 'yearStart', 'yearEnd']) {
-    if (key in value && value[key] !== null && typeof value[key] !== 'number') return false;
-  }
+  if (!hasValidOptionalStrings(value, optionalStrings)) return false;
+  if (!hasValidOptionalNumbers(value, ['year', 'yearStart', 'yearEnd'])) return false;
   return true;
 }
 

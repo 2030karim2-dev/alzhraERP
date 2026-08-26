@@ -115,7 +115,7 @@ describe('partIntelligenceService.inspectPart — known patterns', () => {
   it('includes the active vehicle in compatible list with direct fit note', async () => {
     const result = await partIntelligenceService.inspectPart('90919-01253', toyotaActive);
     const direct = result.compatibleVehicles.find(
-      (v) => v.notes && v.notes.includes('مطابقة مباشرة'),
+      v => v.notes && v.notes.includes('مطابقة مباشرة')
     );
     expect(direct).toBeDefined();
     expect(direct?.make).toBe('Toyota');
@@ -171,14 +171,14 @@ describe('partIntelligenceService.inspectPart — input validation', () => {
 describe('partIntelligenceService.inspectPart — graceful network failure', () => {
   it('swallows vin-parts / ai-part-lookup failures and still returns a result', async () => {
     const { supabase } = await import('../../../lib/supabaseClient');
-    vi.mocked(supabase.functions.invoke).mockRejectedValue(new Error('network down'));
+    vi.spyOn(supabase.functions, 'invoke').mockRejectedValue(new Error('network down'));
     const result = await partIntelligenceService.inspectPart('90919-01253', toyotaActive);
     expect(result.partNumber).toBe('90919-01253');
   });
 
   it('keeps alternatives empty when both edge functions fail and no pattern match', async () => {
     const { supabase } = await import('../../../lib/supabaseClient');
-    vi.mocked(supabase.functions.invoke).mockRejectedValue(new Error('network down'));
+    vi.spyOn(supabase.functions, 'invoke').mockRejectedValue(new Error('network down'));
     const result = await partIntelligenceService.inspectPart('UNKNOWN-XYZ-99', toyotaActive);
     expect(result.alternatives).toEqual([]);
   });
