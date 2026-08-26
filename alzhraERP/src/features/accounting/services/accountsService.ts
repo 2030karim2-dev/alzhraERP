@@ -108,11 +108,10 @@ export const accountsService = {
     };
   },
 
-  // Fix: Added missing deleteAccount method
-  deleteAccount: async (id: string, isSystem: boolean) => {
+  // حذف حساب من دليل الحسابات — يعبر عبر accountsApi الذري (RPC + fallback)
+  deleteAccount: async (companyId: string, id: string, isSystem: boolean) => {
     if (isSystem) throw new Error("لا يمكن حذف حساب نظام");
-    const { error } = await accountsApi.deleteAccount(id);
-    if (error) throw error;
+    await accountsApi.deleteAccount(companyId, id);
   },
 
   // Fix: Added missing seedDefaultAccounts method

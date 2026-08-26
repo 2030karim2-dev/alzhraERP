@@ -56,7 +56,8 @@ export const useAccountMutations = () => {
 
   const deleteAccount = useMutation({
     mutationFn: ({ id, isSystem }: { id: string; isSystem: boolean }) => {
-      return accountingService.deleteAccount(id, isSystem);
+      if (!user?.company_id) throw new Error("جلسة العمل منتهية");
+      return accountingService.deleteAccount(user.company_id, id, isSystem);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });

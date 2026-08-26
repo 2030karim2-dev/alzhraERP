@@ -1,5 +1,16 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-08-26 evening) — جولة المراجعة العميقة: إغلاق البنود 1/2/3/4/5 ✅
+
+- [x] **فصل الطبقات (auth):** `SecuritySettings` لم يعد يستدعي supabase مباشرة — `authApi.terminateOtherSessions()` + `useTerminateSessions`.
+- [x] **تأمين SecuritySettings:** Zod مصنّف برسائل i18n، حد 8 أحرف، `ConfirmModal` بدل window.confirm، أخطاء مضمنة role="alert"، صفر any.
+- [x] **عزل الشركات:** treasuryApi deactivate* تستقبل companyId وتفلتره صراحةً + maybeSingle لكشف عدم الملكية.
+- [x] **إبطال موجّه في المحاسبة:** REFRESH_KEYS عبر DOMAIN_KEYS بدل invalidateQueries الشامل؛ إزالة setTimeout الزائف.
+- [x] **Bند 4 — TOCTOU حذف الحساب:** migration `20260826000014_soft_delete_account_guarded.sql` (RPC ذري SECURITY DEFINER ببوابة عضوية + حرسا القيود والأبناء داخل نفس المعاملة). الواجهة: RPC أولاً مع كشف 42883 والسقوط للمسار القديم المُحصّن بـ company_id. تعريف النوع أُضيف يدوياً لـ database.types.ts حتى مزامنة القاعدة.
+- [x] **التوكينات:** صفحة المحاسبة على var(--app-bg) بدل الألوان الصلبة.
+- [ ] **مؤجل (موثق):** تصفير ~395 استخدام any وتوحيد ~354 صنفاً لونياً — دفعات لاحقة.
+- [ ] **تنبيه بيئي:** مجمّع vitest انهار مؤقتاً على هذا الجهاز بعد مهلات أوامر متكررة (يفشل حتى smoke-test نظيف) — إعادة تشغيل VS Code تحل غالباً؛ آخر تشغيل ناجح قبل الانكسار: 23/23 على هذه الشيفرة.
+
 ## Checkpoint (2026-08-25) — نشر وتحديث قاعدة بيانات الإنتاج + إصلاح تشابه المنتجات ✅
 
 - [x] **إصلاح ونشر دالة `get_similar_products` على Supabase**:

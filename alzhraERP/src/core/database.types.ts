@@ -13123,6 +13123,13 @@ export type Database = {
           type: string
         }[]
       }
+      soft_delete_account_guarded: {
+        Args: {
+          p_account_id: string
+          p_company_id: string
+        }
+        Returns: Json
+      }
       submit_vendor_quotation_revision: {
         Args: {
           p_company_id: string

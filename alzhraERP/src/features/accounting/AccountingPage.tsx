@@ -157,7 +157,7 @@ const AccountingPage: React.FC = () => {
 
   return (
     <FullscreenContainer isMaximized={isMaximized} onToggleMaximize={() => { setIsMaximized(false); setIsZenMode(false); }} isZenMode={isZenMode}>
-      <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 font-cairo">
+      <div className="flex flex-col h-full bg-[var(--app-bg)] font-cairo">
         <MicroHeader
           title={t('accounting_center_title')}
           icon={Calculator}
