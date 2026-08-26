@@ -18,6 +18,10 @@ export default tseslint.config(
             'e2e/**',
             // Deno Edge Functions — ملفات مستقلة عن مشروع Vite/React (لا TSConfig يغطيها).
             'supabase/**',
+            // Vitest setup وأدوات الصيانة (tsx scripts) — ليست كود التطبيق المنشور،
+            // وخارج مشروع TSConfig الذي يغذّي المحلل النوعي (نفس منطق e2e/**).
+            'test/**',
+            'scripts/**',
         ],
     },
     {
@@ -172,12 +176,4 @@ export default tseslint.config(
             'jsx-a11y/no-autofocus': 'off',
         },
     },
-    // Scripts and config files
-    {
-        files: ['scripts/**/*', '*.config.{js,ts}'],
-        rules: {
-            'no-console': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
-        },
-    }
 );
