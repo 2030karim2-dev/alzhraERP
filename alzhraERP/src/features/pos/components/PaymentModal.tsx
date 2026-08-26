@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSalesStore } from '../../sales/store';
 import { useCashPaymentAccounts, useExchangePaymentAccounts, usePaymentAccounts } from '../../accounting/hooks/usePaymentAccounts';
 import type { POSPaymentResult, POSPaymentMethod, PaymentAccount } from './payment';
@@ -50,20 +50,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }, [isOpen]);
 
     // Auto-select first exchange when switching to exchange tab
-    const { data: cashAccounts } = useCashPaymentAccounts();
-    const { data: exchangeAccounts } = useExchangePaymentAccounts();
-    const { data: paymentAccounts } = usePaymentAccounts();
+    const { data: cashAccountsData } = useCashPaymentAccounts();
+    const { data: exchangeAccountsData } = useExchangePaymentAccounts();
+    const { data: paymentAccountsData } = usePaymentAccounts();
     // تحويل آمن: النوع القادم من usePaymentAccounts (accounting) يختلف عن
     // النوع المحلي PaymentAccount رغم تطابق الحقول وظيفياً
-    const accounts: PaymentAccount[] = (paymentAccounts || []) as unknown as PaymentAccount[];
+    const accounts: PaymentAccount[] = (paymentAccountsData || []) as unknown as PaymentAccount[];
+    const cashList = useMemo(() => cashAccountsData ?? [], [cashAccountsData]);
+    const exchangeList = useMemo(() => exchangeAccountsData ?? [], [exchangeAccountsData]);
 
     useEffect(() => {
-        if (method === 'exchange') {
-            setSelectedAccountId(prev => (exchangeAccounts || []).find((a) => a.id === prev) ? prev : ((exchangeAccounts || [])[0]?.id ?? null));
-        } else {
-            setSelectedAccountId(prev => (cashAccounts || []).find((a) => a.id === prev) ? prev : ((cashAccounts || [])[0]?.id ?? null));
-        }
-    }, [method, (cashAccounts || []).length, (exchangeAccounts || []).length]);
+        const targetList = method === 'exchange' ? exchangeList : cashList;
+        setSelectedAccountId(prev =>
+            targetList.some((a: { id: string }) => a.id === prev) ? prev : targetList[0]?.id ?? null);
+    }, [method, cashList, exchangeList]);
 
     const receivedNum = parseFloat(received) || 0;
     const change = receivedNum - total;
@@ -72,7 +72,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             ? !!selectedAccountId
             : receivedNum >= total && !!selectedAccountId
     );
-    const selectedAccount = accounts.find((a: any) => a.id === selectedAccountId);
+    const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+
+    const handleConfirm = useCallback((): void => {
+        onConfirm({
+            method,
+            treasuryAccountId: selectedAccountId,
+            received: receivedNum,
+        });
+    }, [onConfirm, method, selectedAccountId, receivedNum]);
 
     // Keyboard shortcuts — all hooks must be declared before any early return
     useEffect(() => {
@@ -83,17 +91,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, canConfirm, isProcessing]);
+    }, [isOpen, canConfirm, isProcessing, onClose, handleConfirm]);
 
     if (!isOpen) return null;
 
-    const handleConfirm = () => {
-        onConfirm({
-            method,
-            treasuryAccountId: selectedAccountId,
-            received: receivedNum,
-        });
-    };
 
     return (
         <div

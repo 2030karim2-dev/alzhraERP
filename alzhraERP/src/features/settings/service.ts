@@ -210,7 +210,9 @@ export const settingsService = {
                 'expense_categories', 'expenses'
             ];
 
-            // Validate ALL rows for tenant isolation BEFORE writing anything.
+            // Validate ALL rows for tenant isolation BEFORE sending anything —
+            // fail fast in the UI; the server enforces the same rule again
+            // inside the atomic RPC below.
             for (const table of tables) {
                 const tableData = json.data[table];
                 if (tableData && Array.isArray(tableData)) {
@@ -220,20 +222,28 @@ export const settingsService = {
                 }
             }
 
-            // Perform the restore. Any failure aborts the remaining tables so a
-            // partial import cannot masquerade as a successful restore.
-            for (const table of tables) {
-                const tableData = json.data[table];
-                if (tableData && Array.isArray(tableData) && tableData.length > 0) {
-                    const tableName = table as keyof import('../../core/database.types').Database['public']['Tables'];
-                    const { error } = await (supabase.from(tableName) as unknown as { upsert: (data: unknown[], opts: { onConflict: string }) => Promise<{ error: unknown }> }).upsert(tableData, { onConflict: 'id' });
-                    if (error) {
-                        throw new Error(`فشل استيراد جدول ${table}: ${(error as { message?: string }).message ?? String(error)}`);
-                    }
-                }
+            // [FIX] Perform the restore ATOMICALLY server-side.
+            // Previously this looped 23 separate upsert requests: a failure at
+            // table N silently kept tables 1..N-1 written (partial restore).
+            // `restore_company_data` runs the whole set inside ONE transaction
+            // — any failure rolls back everything — and re-validates tenant
+            // isolation plus owner/admin authorization on the server.
+            const { data: summary, error } = await supabase.rpc('restore_company_data', {
+                p_company_id: companyId,
+                p_payload: json.data,
+            });
+            if (error) {
+                const message = (error as { message?: string }).message ?? String(error);
+                throw new Error(`فشل استيراد البيانات: ${message}`);
             }
 
-            settingsService.addBackupLog('System Data Restore', `${(file.size / 1024).toFixed(1)} KB`, 'Success');
+            const totalRows = (Array.isArray(summary) ? summary : [])
+                .reduce((sum: number, entry: unknown) => {
+                    const rowsCount = isRecord(entry) && typeof entry.rows_count === 'number' ? entry.rows_count : 0;
+                    return sum + rowsCount;
+                }, 0);
+
+            settingsService.addBackupLog('System Data Restore', `${(file.size / 1024).toFixed(1)} KB · ${totalRows} صف`, 'Success');
             return true;
         } catch (err) {
             settingsService.addBackupLog('System Data Restore', '0 KB', 'Error');

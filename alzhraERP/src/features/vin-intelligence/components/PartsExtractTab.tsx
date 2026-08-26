@@ -57,6 +57,7 @@ interface PartsExtractTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAdd: (parts: ExtractedPart[]) => Promise<number>;
+                /** resolved count = added + already-existing duplicates */
   onNavigateToInventory?: () => void;
   isAdding: boolean;
   canAdd?: boolean;
@@ -138,18 +139,28 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   }, [vehicle, customVehicleTemplate]);
 
-  // Add initial empty rows if no draft existed and rows are empty
+  // Add initial empty rows only on FIRST vehicle selection (not on every switch).
+  // Previously this fired on every vehicle change and polluted the grid with two
+  // pre-filled rows even when the user just wanted to browse a different vehicle.
+  const initialSeedRan = useRef(false);
   useEffect(() => {
-    if (vehicle && rows.length === 0) {
-      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (!saved) {
-        setRows([
-          createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات', customVehicleTemplate),
-          createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي', customVehicleTemplate),
-        ]);
-      }
+    if (initialSeedRan.current) return;
+    if (!vehicle) return;
+    if (rows.length > 0) {
+      initialSeedRan.current = true;
+      return;
     }
-  }, [vehicle]);
+    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (saved) {
+      initialSeedRan.current = true;
+      return;
+    }
+    setRows([
+      createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات', customVehicleTemplate),
+      createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي', customVehicleTemplate),
+    ]);
+    initialSeedRan.current = true;
+  }, [vehicle, rows.length, customVehicleTemplate]);
 
   // Persist draft rows to localStorage on change
   useEffect(() => {
@@ -186,7 +197,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [rows.length]);
-
   function createEmptyRow(
     veh: VehicleInfo | null,
     defaultBase = '',
@@ -271,14 +281,28 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     const activeTemplate = (templateText !== undefined ? templateText : customVehicleTemplate).trim();
     if (!vehicle && !activeTemplate) return;
 
-    setRows((prev) =>
-      prev.map((r) => ({
+    setRows((prev) => {
+      const overriddenCount = prev.reduce((acc, r) => {
+        const smart = generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle, {
+          customVehicleTemplate: activeTemplate || undefined,
+        });
+        return r.description && r.description !== smart ? acc + 1 : acc;
+      }, 0);
+
+      if (overriddenCount > 0) {
+        const ok = window.confirm(
+          `لدى ${overriddenCount} سطر أوصافاً مُعدَّلة يدوياً. تطبيق التعميم سيستبدلها. هل تريد المتابعة؟`,
+        );
+        if (!ok) return prev;
+      }
+
+      return prev.map((r) => ({
         ...r,
         description: generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle, {
           customVehicleTemplate: activeTemplate || undefined,
         }),
-      }))
-    );
+      }));
+    });
     showToast('تم تطبيق التعميم على كافة أسطر الجدول بنجاح ✨', 'success');
   };
 

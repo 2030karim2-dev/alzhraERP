@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScanLine, Sparkles, Database, History, Car, Save, AlertTriangle, Edit3, PackagePlus } from 'lucide-react';
 import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
@@ -88,11 +88,16 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   };
 
   // Reset confirmation whenever a new result arrives
-  const prevVinRef = React.useRef<string | null>(null);
-  if (result?.vin && result.vin !== prevVinRef.current) {
-    prevVinRef.current = result.vin;
-    Promise.resolve().then(() => { setAiSaveConfirmed(false); });
-  }
+  const prevVinRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (result?.vin && result.vin !== prevVinRef.current) {
+      prevVinRef.current = result.vin;
+      setAiSaveConfirmed(false);
+    } else if (!result) {
+      prevVinRef.current = null;
+      setAiSaveConfirmed(false);
+    }
+  }, [result]);
 
   const validation = validateVin(vin);
   const wmiPreview = preDecodeVin(vin);

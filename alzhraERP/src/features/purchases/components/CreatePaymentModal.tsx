@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, Loader2, Search, Banknote, Calendar, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Loader2, Search, Banknote, Calendar, ShieldCheck, Wallet } from 'lucide-react';
 import { useCreatePayment } from '../hooks';
 import { useParties } from '../../parties/hooks';
 import type { Party } from '../../parties/types';
+import { useCashPaymentAccounts, useExchangePaymentAccounts, type PaymentAccount } from '../../accounting/hooks/usePaymentAccounts';
 import { formatCurrency } from '../../../core/utils';
 
 interface CreatePaymentModalProps {
@@ -65,6 +66,26 @@ const PaymentFooter: React.FC<PaymentFooterProps> = ({ isPending, canSubmit, onC
     <div className="pt-2 flex gap-3"><button type="button" onClick={onClose} className="flex-1 py-3.5 text-gray-600 dark:text-slate-400 font-bold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-sm">إلغاء</button><button type="submit" disabled={isPending || !canSubmit} className="flex-[2] bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-lg shadow-xl shadow-purple-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed">{isPending ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}<span>حفظ وترحيل السند</span></button></div>
 );
 
+interface TreasuryPickerProps {
+    accounts: PaymentAccount[];
+    selectedId: string | null;
+    onSelect: (id: string) => void;
+}
+
+/** منتقي الحساب المالي لسند الصرف — يستبدل الارتباط الثابت بحساب '1010' */
+const TreasuryPicker: React.FC<TreasuryPickerProps> = ({ accounts, selectedId, onSelect }) => (
+    <div className="space-y-2">
+        <label htmlFor="purchase-payment-treasury" className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Wallet size={12} />الحساب المالي (الخزينة / البنك)</label>
+        {accounts.length === 0 ? (
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs text-amber-700 dark:text-amber-400 font-bold">لا توجد خزائن متاحة — أنشئ خزينة من صفحة المحاسبة أولاً</div>
+        ) : (
+            <select id="purchase-payment-treasury" dir="rtl" value={selectedId ?? ''} onChange={event => { onSelect(event.target.value); }} className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:text-slate-100 font-bold transition-all">
+                {accounts.map(account => <option key={account.id} value={account.id}>{account.name_ar} ({account.currency_code}) · {formatCurrency(account.balance)}</option>)}
+            </select>
+        )}
+    </div>
+);
+
 const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose }) => {
     const { mutate: createPayment, isPending } = useCreatePayment();
     const [amount, setAmount] = useState('');
@@ -74,16 +95,32 @@ const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({ isOpen, onClose
     const [selectedSupplier, setSelectedSupplier] = useState<Party | null>(null);
     const [supplierQuery, setSupplierQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [treasuryAccountId, setTreasuryAccountId] = useState<string | null>(null);
     const { data: suppliers } = useParties('supplier', supplierQuery);
+    // نقداً → الصناديق النشطة، بنكياً → شركات الصرافة المرتبطة بحسابات دفترية
+    const { data: cashAccounts } = useCashPaymentAccounts();
+    const { data: exchangeAccounts } = useExchangePaymentAccounts();
+    const treasuryOptions: PaymentAccount[] = method === 'bank' ? (exchangeAccounts ?? []) : (cashAccounts ?? []);
+
+    // إبقاء الاختيار صالحاً عند تغيير طريقة الدفع أو تحميل القوائم، مع افتراضي أول حساب
+    useEffect(() => {
+        setTreasuryAccountId(prev =>
+            prev !== null && treasuryOptions.some(account => account.id === prev)
+                ? prev
+                : (treasuryOptions[0]?.id ?? null),
+        );
+    }, [method, treasuryOptions.length]);
+
+    const handleTreasurySelect = (id: string): void => { setTreasuryAccountId(id !== '' ? id : null); };
 
     const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>): void => {
         event.preventDefault();
-        if (selectedSupplier === null || amount === '') return;
-        createPayment({ supplierId: selectedSupplier.id, amount: parseFloat(amount), date, method, notes }, { onSuccess: () => { onClose(); setAmount(''); setSelectedSupplier(null); setSupplierQuery(''); setNotes(''); setMethod('cash'); } });
+        if (selectedSupplier === null || amount === '' || treasuryAccountId === null) return;
+        createPayment({ supplierId: selectedSupplier.id, amount: parseFloat(amount), date, method, notes, treasuryAccountId }, { onSuccess: () => { onClose(); setAmount(''); setSelectedSupplier(null); setSupplierQuery(''); setNotes(''); setMethod('cash'); } });
     };
     const selectSupplier = (supplier: Party): void => { setSelectedSupplier(supplier); setSupplierQuery(''); setIsDropdownOpen(false); };
     if (!isOpen) return null;
-    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"><div className="bg-white dark:bg-slate-900 rounded-none shadow-2xl w-full max-w-lg my-auto animate-in fade-in zoom-in duration-200 border dark:border-slate-800"><div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 rounded-none"><div className="flex items-center gap-3"><div className="p-2 bg-purple-600/10 rounded-md text-purple-600"><Banknote size={24} /></div><div><h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">سند صرف جديد</h2><p className="text-xs text-gray-500 dark:text-slate-400 font-medium">تسجيل دفعة نقدية أو بنكية للمورد</p></div></div><button type="button" onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors"><X size={24} /></button></div><form onSubmit={handleSubmit} className="p-6 space-y-6"><SupplierPicker selectedSupplier={selectedSupplier} supplierQuery={supplierQuery} isDropdownOpen={isDropdownOpen} suppliers={suppliers} onQueryChange={query => { setSupplierQuery(query); setIsDropdownOpen(true); }} onSelect={selectSupplier} onClear={() => { setSelectedSupplier(null); }} /><PaymentFields amount={amount} method={method} date={date} onAmountChange={setAmount} onMethodChange={setMethod} onDateChange={setDate} /><div className="space-y-2"><label htmlFor="purchase-payment-notes" className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">البيان / الوصف</label><textarea id="purchase-payment-notes" value={notes} onChange={event => { setNotes(event.target.value); }} className="w-full p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:text-slate-200 transition-all resize-none h-28" /></div><PaymentFooter isPending={isPending} canSubmit={selectedSupplier !== null && amount !== ''} onClose={onClose} /></form></div></div>;
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"><div className="bg-white dark:bg-slate-900 rounded-none shadow-2xl w-full max-w-lg my-auto animate-in fade-in zoom-in duration-200 border dark:border-slate-800"><div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 rounded-none"><div className="flex items-center gap-3"><div className="p-2 bg-purple-600/10 rounded-md text-purple-600"><Banknote size={24} /></div><div><h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">سند صرف جديد</h2><p className="text-xs text-gray-500 dark:text-slate-400 font-medium">تسجيل دفعة نقدية أو بنكية للمورد</p></div></div><button type="button" onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors"><X size={24} /></button></div><form onSubmit={handleSubmit} className="p-6 space-y-6"><SupplierPicker selectedSupplier={selectedSupplier} supplierQuery={supplierQuery} isDropdownOpen={isDropdownOpen} suppliers={suppliers} onQueryChange={query => { setSupplierQuery(query); setIsDropdownOpen(true); }} onSelect={selectSupplier} onClear={() => { setSelectedSupplier(null); }} /><PaymentFields amount={amount} method={method} date={date} onAmountChange={setAmount} onMethodChange={setMethod} onDateChange={setDate} /><TreasuryPicker accounts={treasuryOptions} selectedId={treasuryAccountId} onSelect={handleTreasurySelect} /><div className="space-y-2"><label htmlFor="purchase-payment-notes" className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">البيان / الوصف</label><textarea id="purchase-payment-notes" value={notes} onChange={event => { setNotes(event.target.value); }} className="w-full p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:text-slate-200 transition-all resize-none h-28" /></div><PaymentFooter isPending={isPending} canSubmit={selectedSupplier !== null && amount !== '' && treasuryAccountId !== null} onClose={onClose} /></form></div></div>;
 };
 
 export default CreatePaymentModal;

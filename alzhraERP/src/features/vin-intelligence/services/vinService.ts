@@ -163,7 +163,7 @@ export const vinService = {
     userId: string;
     vehicle: VehicleInfo;
     parts: ExtractedPart[];
-  }): Promise<number> {
+  }): Promise<{ added: number; existing: number }> {
     const { companyId, vehicle, parts } = params;
     return vinApi.addPartsToInventory(companyId, vehicle, parts);
   },

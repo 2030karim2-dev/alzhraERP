@@ -61,22 +61,29 @@ export const PartIntelligenceModal: React.FC<PartIntelligenceModalProps> = ({
   };
 
   const getConfidenceBadge = (score: number) => {
+    if (score >= 95) {
+      return {
+        label: 'مطابقة عالية (OEM موثق)',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        barBg: 'bg-emerald-500',
+      };
+    }
     if (score >= 90) {
       return {
-        label: 'ثقة عالية جداً (مؤكد 100%)',
+        label: 'مطابقة عالية (نمط OEM معروف)',
         bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
         barBg: 'bg-emerald-500',
       };
     }
     if (score >= 75) {
       return {
-        label: 'ثقة جيدة (بديل متطابق)',
+        label: 'مطابقة محتملة (تحقق من المقاس)',
         bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
         barBg: 'bg-blue-500',
       };
     }
     return {
-      label: 'ثقة متوسطة (بديل محتمل)',
+      label: 'مطابقة أولية (يُنصح بالتحقق من المصدر)',
       bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
       barBg: 'bg-amber-500',
     };
@@ -94,7 +101,7 @@ export const PartIntelligenceModal: React.FC<PartIntelligenceModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-md">
-                  الذكاء الاصطناعي لاستخراج وتوافق القطع
+                  فحص وتوافق القطع (Pattern + Catalog Engine)
                 </span>
                 <span className="text-xs text-slate-400">
                   {intelligence?.manufacturer || 'OEM Catalog'}

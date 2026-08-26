@@ -3,6 +3,7 @@ import { logger } from '../../core/utils/logger';
 import { reportsApi } from './api';
 import { PartyDebt, ReportsStats } from './types';
 import { supabase } from '../../lib/supabaseClient';
+import { reportService as accountingReportService } from '../accounting/services/reportService';
 
 
 // Type definitions for report data
@@ -62,8 +63,13 @@ export const reportsService = {
   },
 
   /**
-   * ⚡ Server-side P&L via RPC
-   * RPC returns TABLE rows: {category, amount, type}
+   * ⚡ Server-side P&L — مصدر حقيقة وحيد.
+   *
+   * [FIX] كان هنا استدعاء RPC مكرر بمنطق منفصل (`report_profit_loss`)
+   * انحرف زمنياً عن نظيره في خدمة المحاسبة. الآن يُفوَّض إلى
+   * accountingReportService.getFinancials الذي يستخدم التفصيل لكل حساب
+   * (migration 20260826000012) مع رجوع آمن للتجميعي، ويُترجم الناتج إلى
+   * نفس عقد الإخراج السابق حتى لا تتأثر مكونات الواجهة.
    */
   getProfitAndLoss: async (companyId: string, fromDate?: string, toDate?: string): Promise<{
     revenues: TrialBalanceItem[];
@@ -72,39 +78,28 @@ export const reportsService = {
     totalExpenses: number;
     netProfit: number;
   }> => {
-    const { from, to } = (fromDate && toDate)
-      ? { from: fromDate, to: toDate }
-      : getYearDateRange();
+    const financials = await accountingReportService.getFinancials(companyId, undefined, fromDate, toDate);
+    const incomeStatement = financials.incomeStatement;
 
-    const { data, error } = await supabase.rpc('report_profit_loss', {
-      p_company_id: companyId,
-      p_from: from,
-      p_to: to
+    const mapRow = (row: {
+      account_id: string; code: string; name: string; type: string;
+      total_debit: number; total_credit: number; net_balance: number;
+    }): TrialBalanceItem => ({
+      id: row.account_id,
+      code: row.code,
+      name: row.name,
+      type: row.type,
+      totalDebit: Number(row.total_debit) || 0,
+      totalCredit: Number(row.total_credit) || 0,
+      netBalance: Number(row.net_balance) || 0,
     });
-    if (error) throw error;
-
-    // RPC returns rows: [{category, amount, type}]
-    const rows = (data || []) as { category: string; amount: number; type: string }[];
-    const revenueRow = rows.find(r => r.type === 'revenue');
-    const expenseRow = rows.find(r => r.type === 'expense');
-    const netRow = rows.find(r => r.type === 'net_profit');
-
-    const totalRevenues = Number(revenueRow?.amount) || 0;
-    const totalExpenses = Number(expenseRow?.amount) || 0;
-    const netProfit = Number(netRow?.amount) || (totalRevenues - totalExpenses);
 
     return {
-      revenues: revenueRow ? [{
-        id: 'revenue', code: '4', name: revenueRow.category, type: 'revenue',
-        totalDebit: 0, totalCredit: 0, netBalance: totalRevenues
-      }] : [],
-      expenses: expenseRow ? [{
-        id: 'expense', code: '5', name: expenseRow.category, type: 'expense',
-        totalDebit: 0, totalCredit: 0, netBalance: totalExpenses
-      }] : [],
-      totalRevenues,
-      totalExpenses,
-      netProfit
+      revenues: incomeStatement.revenues.map(mapRow),
+      expenses: incomeStatement.expenses.map(mapRow),
+      totalRevenues: incomeStatement.totalRevenue,
+      totalExpenses: incomeStatement.totalExpense,
+      netProfit: incomeStatement.netIncome
     };
   },
 

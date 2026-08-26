@@ -165,7 +165,8 @@ export function invalidateByPreset(
     // Deduplicate keys
     const uniqueKeys = [...new Set(keys)];
     for (const key of uniqueKeys) {
-        queryClient.invalidateQueries({ queryKey: [key] });
+        // void: fire-and-forget invalidation — failures surface via React Query retry
+        void queryClient.invalidateQueries({ queryKey: [key] });
     }
 }
 
@@ -180,7 +181,8 @@ export function invalidateKeys(
     keys: string[]
 ): void {
     for (const key of keys) {
-        queryClient.invalidateQueries({ queryKey: [key] });
+        // void: fire-and-forget invalidation — failures surface via React Query retry
+        void queryClient.invalidateQueries({ queryKey: [key] });
     }
 }
 

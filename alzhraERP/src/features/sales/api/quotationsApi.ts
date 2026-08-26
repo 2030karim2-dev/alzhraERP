@@ -4,6 +4,8 @@
  */
 import { supabase } from '../../../lib/supabaseClient';
 import type { CreateQuotationDTO } from '../types/quotation';
+import { generateQuotationNumber } from '../../../lib/quotationNumbering';
+import type { Database } from '../../../core/database.types';
 
 // DB row types
 interface QuotationRow {
@@ -105,7 +107,12 @@ export const salesQuotationsApi = {
   },
 
   /**
-   * Create a new sales quotation
+   * Create a new sales quotation — single atomic write.
+   *
+   * Header + items are sent in ONE PostgREST request via related-resource
+   * insert (FK quotation_items.quotation_id), so a mid-flight failure can no
+   * longer leave an orphaned quotation without items. Numbering is delegated
+   * to the shared race-resistant generator (see src/lib/quotationNumbering.ts).
    */
   createQuotation: async (companyId: string, userId: string, dto: CreateQuotationDTO) => {
     // Calculate totals
@@ -113,68 +120,58 @@ export const salesQuotationsApi = {
       const lineTotal = item.quantity * item.unitPrice * (1 - (item.discountPercent || 0) / 100);
       return { ...item, total: Math.round(lineTotal * 100) / 100, sortOrder: idx };
     });
+    if (items.length === 0) {
+      throw new Error('لا يمكن حفظ عرض سعر بدون أصناف — أضف صنفاً واحداً على الأقل');
+    }
     const subtotal = items.reduce((sum, i) => sum + i.total, 0);
     const discountAmount = dto.discountAmount || 0;
     const totalAmount = subtotal - discountAmount;
 
-    // Get next quotation number
-    const { count } = await supabase
-      .from('quotations')
-      .select('id', { count: 'exact', head: true })
-      .eq('company_id', companyId)
-      .eq('type', 'sales');
+    // Race-resistant numbering (max+1 scan incl. soft-deleted; DB unique index is the backstop)
+    const quotationNumber = await generateQuotationNumber(companyId, 'sales');
 
-    const quotationNumber = `QS-${String((count || 0) + 1).padStart(4, '0')}`;
+    // Documented cast: PostgREST accepts the nested quotation_items array as a
+    // related-resource insert executed atomically server-side.
+    const payload = {
+      company_id: companyId,
+      branch_id: dto.branchId || null,
+      quotation_number: quotationNumber,
+      type: 'sales',
+      status: 'draft',
+      party_id: dto.partyId,
+      issue_date: dto.issueDate,
+      valid_until: dto.validUntil || null,
+      subtotal,
+      discount_amount: discountAmount,
+      tax_amount: 0,
+      total_amount: totalAmount,
+      currency_code: dto.currencyCode || 'SAR',
+      exchange_rate: dto.exchangeRate || 1,
+      notes: dto.notes || null,
+      terms_and_conditions: dto.termsAndConditions || null,
+      delivery_terms: dto.deliveryTerms || null,
+      payment_terms: dto.paymentTerms || null,
+      created_by: userId,
+      quotation_items: items.map(item => ({
+        company_id: companyId,
+        product_id: item.productId || null,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        discount_percent: item.discountPercent || 0,
+        total: item.total,
+        sort_order: item.sortOrder,
+      })),
+    } as unknown as Database['public']['Tables']['quotations']['Insert'];
 
-    // Insert quotation
     const { data: quotation, error: qError } = await supabase
       .from('quotations')
-      .insert({
-        company_id: companyId,
-        branch_id: dto.branchId || null,
-        quotation_number: quotationNumber,
-        type: 'sales',
-        status: 'draft',
-        party_id: dto.partyId,
-        issue_date: dto.issueDate,
-        valid_until: dto.validUntil || null,
-        subtotal,
-        discount_amount: discountAmount,
-        tax_amount: 0,
-        total_amount: totalAmount,
-        currency_code: dto.currencyCode || 'SAR',
-        exchange_rate: dto.exchangeRate || 1,
-        notes: dto.notes || null,
-        terms_and_conditions: dto.termsAndConditions || null,
-        delivery_terms: dto.deliveryTerms || null,
-        payment_terms: dto.paymentTerms || null,
-        created_by: userId,
-      })
+      .insert(payload)
       .select('id, quotation_number')
       .single();
 
     if (qError) throw qError;
-
-    // Insert items
-    const itemRows = items.map((item, idx) => ({
-      quotation_id: quotation.id,
-      company_id: companyId,
-      product_id: item.productId || null,
-      description: item.description,
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-      discount_percent: item.discountPercent || 0,
-      total: item.total,
-      sort_order: idx,
-    }));
-
-    const { error: iError } = await supabase
-      .from('quotation_items')
-      .insert(itemRows);
-
-    if (iError) throw iError;
-
-    return quotation;
+    return quotation as { id: string; quotation_number: string };
   },
 
   /**

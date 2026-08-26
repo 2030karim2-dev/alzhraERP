@@ -31,6 +31,7 @@ import {
 } from '../constants/catalogs';
 import { partIntelligenceService } from '../services/partIntelligenceService';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
+import { safeParseVehicleInfo } from '../utils/vehicleGuard';
 import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord, PartIntelligenceResult, PartAlternative } from '../types';
 
 type UiPart = ExtractedPart & { _key: string };
@@ -42,6 +43,7 @@ interface VinsTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
+                                          /** resolved count = added + already-existing duplicates */
   onOpenInExtract?: (record: VinAnalysisRecord) => void;
   onSaveManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<any>;
   onDeleteSavedVin?: (id: string) => Promise<any>;
@@ -81,7 +83,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const [deleteConfirmVin, setDeleteConfirmVin] = useState<VinAnalysisRecord | null>(null);
   const [isDeletingVin, setIsDeletingVin] = useState(false);
 
-  const vehicle: VehicleInfo | null = selected ? ((selected.decoded as VehicleInfo) ?? null) : null;
+  const vehicle: VehicleInfo | null = selected ? safeParseVehicleInfo(selected.decoded) : null;
 
   const handleDeleteVin = async () => {
     if (!deleteConfirmVin || !onDeleteSavedVin) return;
@@ -255,7 +257,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const filteredVins = savedVins.filter((v) => {
     if (!filterText.trim()) return true;
     const q = filterText.toLowerCase().trim();
-    const info = v.decoded as VehicleInfo | null;
+    const info = safeParseVehicleInfo(v.decoded);
     const { makeAr, modelAr } = getArabicVehicleName(info);
     const rawMake = (info?.make || '').toLowerCase();
     const rawModel = (info?.model || '').toLowerCase();
@@ -370,7 +372,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                   <p className="text-xs text-center text-slate-400 py-8">لا توجد نتائج مطابقة للبحث</p>
                 ) : (
                   filteredVins.map((v) => {
-                    const info = v.decoded as VehicleInfo | null;
+                    const info = safeParseVehicleInfo(v.decoded);
                     const { makeAr, modelAr } = getArabicVehicleName(info);
                     const years = formatVehicleYears(info);
                     const engine = formatEngineSpec(info);

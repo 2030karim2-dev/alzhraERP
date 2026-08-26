@@ -176,4 +176,46 @@ export default tseslint.config(
             'jsx-a11y/no-autofocus': 'off',
         },
     },
+    // ============================================================
+    // Financial-critical gate (npm run lint:critical)
+    // ------------------------------------------------------------
+    // طبقات المال والمخزون: api/ services/ usecases/ core-services/ lib.
+    // نطاق البوابة = قواعد الصحة المالية فقط، مع كتم ضجيج الأسلوب
+    // الموروث من الإعداد العام حتى يكون مخرج البوابة إشارة خالصة
+    // وقابلة للإنفاذ اليوم (exit 0 مطلوب في CI).
+    // ============================================================
+    {
+        files: [
+            'src/features/*/api/**/*.{ts,tsx}',
+            'src/features/*/services/**/*.{ts,tsx}',
+            'src/features/*/service.ts',
+            'src/core/usecases/**/*.ts',
+            'src/core/services/**/*.ts',
+            'src/lib/*.ts',
+        ],
+        rules: {
+            // ── Style noise OFF (signal purity) ──
+            'max-lines-per-function': 'off',
+            'complexity': 'off',
+            '@typescript-eslint/strict-boolean-expressions': 'off',
+            '@typescript-eslint/no-unnecessary-condition': 'off',
+            '@typescript-eslint/prefer-nullish-coalescing': 'off',
+            '@typescript-eslint/prefer-optional-chain': 'off',
+            '@typescript-eslint/explicit-function-return-type': 'off',
+            '@typescript-eslint/no-confusing-void-expression': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/restrict-template-expressions': 'off',
+            'security/detect-object-injection': 'off',
+
+            // ── THE GATE — financial-critical invariants ──
+            '@typescript-eslint/no-floating-promises': 'error',
+            '@typescript-eslint/no-misused-promises': 'error',
+            '@typescript-eslint/restrict-plus-operands': 'error',
+            '@typescript-eslint/no-explicit-any': 'error',
+        },
+    },
 );

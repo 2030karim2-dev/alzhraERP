@@ -8,6 +8,7 @@ import { VinDecodeTab } from '../components/VinDecodeTab';
 import { InventoryMatchTab } from '../components/InventoryMatchTab';
 import { PartsExtractTab } from '../components/PartsExtractTab';
 import { VinsTab } from '../components/VinsTab';
+import { safeParseVehicleInfo } from '../utils/vehicleGuard';
 import type { VinDecodeMode } from '../types';
 
 const VINPage: React.FC = () => {
@@ -79,7 +80,7 @@ const VINPage: React.FC = () => {
               isSearching={vin.isSearching}
               onAddParts={(vehicle, parts) => vin.addToInventory({ vehicle, parts })}
               onOpenInExtract={(v) => {
-                const info = v.decoded as import('../types').VehicleInfo | null;
+                const info = safeParseVehicleInfo(v.decoded);
                 if (info) {
                   vin.setManualVehicle(info, v.vin).then(() => {
                     setActiveTab('extract');

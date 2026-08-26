@@ -175,12 +175,15 @@ export const vinApi = {
     return data;
   },
 
-  /** Atomically create products + link + graph edges for extracted parts (RPC) */
+  /** Atomically create products + link + graph edges for extracted parts (RPC)
+   * Returns a tuple of { added, existing } so the UI can surface duplicates
+   * honestly (P0 audit fix: previous shape silently reported "added" for
+   * duplicates that the unique constraint on part_compatibility skipped). */
   addPartsToInventory: async (
     companyId: string,
     vehicle: VehicleInfo,
     parts: ExtractedPart[],
-  ): Promise<number> => {
+  ): Promise<{ added: number; existing: number }> => {
     const { data, error } = await supabase.rpc('add_vin_parts_to_inventory', {
       p_company_id: companyId,
       p_vehicle: {
@@ -207,6 +210,10 @@ export const vinApi = {
       })),
     });
     if (error) throw error;
-    return (data as number) ?? 0;
+    const raw = data as { added?: number; existing?: number } | number | null;
+    if (raw && typeof raw === 'object') {
+      return { added: raw.added ?? 0, existing: raw.existing ?? 0 };
+    }
+    return { added: raw ?? 0, existing: 0 };
   },
 };

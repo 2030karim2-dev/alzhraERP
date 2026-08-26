@@ -7,6 +7,26 @@ import type { POSSearchResult } from './types';
 /**
  * Get popular products (most sold in last 30 days).
  */
+/**
+ * Minimal row shapes for the popular-products RPC and its fallback query.
+ * Kept permissive (all optional) because both sources vary in availability.
+ */
+interface PopularRow {
+  product_id?: string | null;
+  id?: string | null;
+  name_ar?: string | null;
+  name?: string | null;
+  sku?: string | null;
+  part_number?: string | null;
+  brand?: string | null;
+  sale_price?: number | string | null;
+  purchase_price?: number | string | null;
+  stock_quantity?: number | string | null;
+  unit?: string | null;
+  image_url?: string | null;
+  sales_count?: number | string | null;
+}
+
 export async function getPopularProducts(
     companyId: string,
     limit: number = 10
@@ -30,8 +50,8 @@ export async function getPopularProducts(
                 .order('updated_at', { ascending: false })
                 .limit(limit);
 
-            return (fallback || []).map((row: any) => ({
-                id: row.id,
+            return ((fallback || []) as unknown as PopularRow[]).map((row) => ({
+                id: row.id ?? '',
                 type: 'product' as const,
                 name: row.name_ar || '',
                 name_ar: row.name_ar || '',
@@ -48,8 +68,8 @@ export async function getPopularProducts(
             }));
         }
 
-        return (data || []).map((row: any) => ({
-            id: row.product_id || row.id,
+        return ((data || []) as unknown as PopularRow[]).map((row) => ({
+            id: row.product_id || row.id || '',
             type: 'product' as const,
             name: row.name_ar || row.name || '',
             name_ar: row.name_ar || row.name || '',

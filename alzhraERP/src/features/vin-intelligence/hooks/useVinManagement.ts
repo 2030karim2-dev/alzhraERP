@@ -9,6 +9,7 @@ import type {
 } from '../types';
 import { partIntelligenceService } from '../services/partIntelligenceService';
 import { useFeedbackStore } from '../../feedback/store';
+import { safeParseVehicleInfo } from '../utils/vehicleGuard';
 
 export type UiPart = ExtractedPart & { _key: string };
 
@@ -17,6 +18,7 @@ interface UseVinManagementProps {
   onLoadParts: (vehicleId: string) => Promise<VehicleProductLink[]>;
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
+                                          /** resolved count = added + already-existing duplicates */
 }
 
 export function useVinManagement({
@@ -42,7 +44,7 @@ export function useVinManagement({
   const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
   const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
 
-  const vehicle: VehicleInfo | null = selected ? ((selected.decoded as VehicleInfo) ?? null) : null;
+  const vehicle: VehicleInfo | null = selected ? safeParseVehicleInfo(selected.decoded) : null;
 
   // Automatically select the first vehicle if none selected
   useEffect(() => {
@@ -158,11 +160,12 @@ export function useVinManagement({
   }, [manualNumber, manualDesc]);
 
   const handleAdd = useCallback(async () => {
-    if (!vehicle || selectedIds.size === 0) return;
-    await onAddParts(
+    if (!vehicle || selectedIds.size === 0) return 0;
+    const result = await onAddParts(
       vehicle,
       parts.filter((p) => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p)
     );
+    const total = typeof result === 'number' ? result : (result as { added?: number; existing?: number }).added ?? 0;
     setSelectedIds(new Set());
     if (selected?.vehicle_id) {
       try {
@@ -172,6 +175,7 @@ export function useVinManagement({
         // ignore
       }
     }
+    return total;
   }, [vehicle, selectedIds, parts, onAddParts, selected, onLoadParts]);
 
   const toggleSelectAll = useCallback(() => {

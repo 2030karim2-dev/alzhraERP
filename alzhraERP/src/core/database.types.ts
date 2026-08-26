@@ -12373,6 +12373,30 @@ export type Database = {
         Args: { p_company_id: string; p_sequence_name: string }
         Returns: string
       }
+      /**
+       * [PRE-DECLARED] Pending `supabase gen types` regeneration after
+       * migration 20260826000012_report_profit_loss_detailed.sql is applied.
+       */
+      report_profit_loss_detailed: {
+        Args: { p_company_id: string; p_from: string; p_to: string; p_branch_id?: string | null | undefined }
+        Returns: Array<{
+          account_id: string
+          account_code: string
+          account_name: string
+          account_type: string
+          total_debit: number
+          total_credit: number
+          balance: number
+        }>
+      }
+      /**
+       * [PRE-DECLARED] Pending `supabase gen types` regeneration after
+       * migration 20260826000013_restore_company_data_atomic.sql is applied.
+       */
+      restore_company_data: {
+        Args: { p_company_id: string; p_payload: Json }
+        Returns: Array<{ t_name: string; rows_count: number }>
+      }
       get_overdue_invoices: {
         Args: { p_company_id: string; p_type?: string }
         Returns: {

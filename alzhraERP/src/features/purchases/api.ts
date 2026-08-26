@@ -2,6 +2,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { parseError } from '../../core/utils/errorUtils';
 import type { CreatePurchaseDTO, SupplierPaymentData } from './types';
 import type { Json } from '../../core/database.types';
+import { treasuryApi } from '../accounting/api/treasuryApi';
 
 type PurchaseItem = CreatePurchaseDTO['items'][number];
 interface PurchaseItemPayload {
@@ -130,16 +131,38 @@ export const purchasesApi = {
     return result;
   },
 
+  /**
+   * سند صرف لمورد — يمر عبر RPC المالي الذرّي create_financial_bond.
+   *
+   * ترتيب تحديد الحساب المالي:
+   * 1) الحساب الذي اختاره المستخدم صراحةً من منتقي الخزينة (treasuryAccountId).
+   * 2) احتياطياً: أول صندوق نشط مرتبط بحساب دفتري.
+   *
+   * [FIX] سابقاً كان البحث ثابتاً على رمز الحساب '1010' برسالة خطأ إنجليزية،
+   * ما كان يفشل عند غيابه ويمنع الدفع البنكي أو من عملات أخرى.
+   */
   createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, userId: string) => {
-    const { data: cashAccount } = await supabase.from('accounts').select('id').eq('company_id', companyId).eq('code', '1010').single();
-    if (cashAccount === null) throw new Error('Cash account (1010) not found');
-    return supabase.rpc('create_financial_bond', {
+    let treasuryAccountId = hasText(paymentData.treasuryAccountId) ? paymentData.treasuryAccountId : null;
+
+    if (treasuryAccountId === null) {
+      const { data: cashboxes, error: cashboxError } = await treasuryApi.getCashboxes(companyId);
+      if (cashboxError !== null) throw asError(parseError(cashboxError));
+      const linkedAccountId = (cashboxes ?? [])
+        .map(cb => cb.account_id)
+        .find((id): id is string => id !== null && id !== '');
+      if (linkedAccountId === undefined) {
+        throw new Error('لا يوجد صندوق نشط مرتبط بحساب مالي — أنشئ خزينة من صفحة المحاسبة أو اختر الحساب يدوياً');
+      }
+      treasuryAccountId = linkedAccountId;
+    }
+
+    const { data, error } = await supabase.rpc('create_financial_bond', {
       p_bond_type: 'payment',
       p_company_id: companyId,
       p_user_id: userId,
       p_amount: paymentData.amount,
       p_date: paymentData.date,
-      p_cash_account_id: cashAccount.id,
+      p_cash_account_id: treasuryAccountId,
       p_counterparty_type: 'party',
       p_counterparty_id: paymentData.supplierId,
       p_description: paymentData.notes ?? 'سند صرف لمورد',
@@ -147,6 +170,9 @@ export const purchasesApi = {
       p_exchange_rate: paymentData.exchangeRate ?? 1,
       p_foreign_amount: paymentData.foreignAmount ?? paymentData.amount,
     });
+    // [FIX] سابقاً كان خطأ الـ RPC يعود كقيمة بدون رمي → نجاح وهمي في الواجهة
+    if (error !== null) throw asError(parseError(error));
+    return { data, error: null };
   },
 
   getPurchaseInvoicesForReturn: async (companyId: string, supplierId: string | null, branchId?: string | null) => {

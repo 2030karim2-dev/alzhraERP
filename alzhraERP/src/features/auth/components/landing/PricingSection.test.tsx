@@ -1,9 +1,29 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PricingSection from './PricingSection';
 
 describe('PricingSection', () => {
+  // jsdom يرمي "Not implemented: navigation" عبر قناة stderr الخاصة به عند
+  // أي تخصيص لـ location.href — نستبدل location بنموذج قبل أي نقر بريدي
+  // لمنع الضجيج من مصدره بدلاً من محاولة التقاطه بعد وقوعه.
+  const originalLocation = window.location;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
+    vi.restoreAllMocks();
+  });
+
+  const stubNavigation = (): void => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, href: '', assign: vi.fn() },
+    });
+  };
+
   it('يستدعي onStart عند النقر على "ابدأ مجاناً" (الباقة المجانية)', () => {
     const onStart = vi.fn();
     render(<PricingSection onStart={onStart} />);
@@ -22,14 +42,13 @@ describe('PricingSection', () => {
 
   it('لا يستدعي onStart عند النقر على باقة المؤسسات (ترسل بريداً)', () => {
     const onStart = vi.fn();
+    stubNavigation();
     render(<PricingSection onStart={onStart} />);
 
-    // jsdom لا ينفّذ التنقل عبر mailto — نتجاهل أي خطأ ناتج عنه
-    try {
-      fireEvent.click(screen.getByRole('button', { name: 'اتصل بالمبيعات' }));
-    } catch {
-      /* navigation not implemented in jsdom */
-    }
+    fireEvent.click(screen.getByRole('button', { name: 'اتصل بالمبيعات' }));
     expect(onStart).not.toHaveBeenCalled();
+    // تم محاولة الانتقال إلى البريد بدلاً من بدء الاشتراك
+    expect(window.location.href).toContain('mailto:');
   });
 });
+

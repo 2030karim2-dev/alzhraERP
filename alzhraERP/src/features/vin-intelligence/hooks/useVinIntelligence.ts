@@ -142,11 +142,18 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
 
   const addMutation = useMutation({
     mutationFn: ({ vehicle: target, parts }: { vehicle: VehicleInfo; parts: ExtractedPart[] }) => {
-      if (!companyId || !userId) return Promise.resolve(0);
+      if (!companyId || !userId) return Promise.resolve({ added: 0, existing: 0 });
       return vinService.addPartsToInventory({ companyId, userId, vehicle: target, parts });
     },
-    onSuccess: (count) => {
-      showToast(`تمت إضافة ${count} قطعة إلى المخزون`, 'success');
+    onSuccess: (result) => {
+      const { added, existing } = result;
+      if (added > 0 && existing > 0) {
+        showToast(`تمت إضافة ${added} قطعة، و${existing} كانت موجودة مسبقاً`, 'success');
+      } else if (added > 0) {
+        showToast(`تمت إضافة ${added} قطعة إلى المخزون`, 'success');
+      } else if (existing > 0) {
+        showToast(`كل القطع (${existing}) موجودة مسبقاً في المخزون`, 'info');
+      }
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['vin', 'matching'] });
       queryClient.invalidateQueries({ queryKey: ['vin', 'linked'] });
@@ -194,6 +201,17 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     setDecodeError(null);
   }, []);
 
+  /** Backward-compatible wrapper: returns total count (added + existing) so the
+   * legacy `Promise<number>` shape keeps working in PartsExtractTab / VinsTab.
+   * Toast feedback still surfaces the breakdown accurately. */
+  const addToInventory = useCallback(
+    (args: { vehicle: VehicleInfo; parts: ExtractedPart[] }): Promise<number> =>
+      addMutation
+        .mutateAsync(args)
+        .then((res) => (res.added ?? 0) + (res.existing ?? 0)),
+    [addMutation],
+  );
+
   return {
     result,
     vehicle,
@@ -216,7 +234,7 @@ export function useVinIntelligence(companyId?: string, userId?: string) {
     loadLinkedProducts,
     searchPartByNumber: searchMutation.mutateAsync,
     isSearching: searchMutation.isPending,
-    addToInventory: addMutation.mutateAsync,
+    addToInventory,
     isAdding: addMutation.isPending,
     linkProduct: linkMutation.mutateAsync,
     isLinking: linkMutation.isPending,

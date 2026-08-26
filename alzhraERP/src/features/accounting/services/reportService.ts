@@ -1,6 +1,7 @@
 
 import { TrialBalanceItem, LedgerEntry } from '../types/index';
 import { supabase } from '../../../lib/supabaseClient';
+import { logger } from '../../../core/utils/logger';
 
 interface LedgerRpcLine {
     entry_date: string | undefined;
@@ -180,35 +181,78 @@ export const reportService = {
         const to = toDate || now.toISOString().split('T')[0];
 
         // ── P&L ──────────────────────────────────────────────────────────────
-        // report_profit_loss signature: (p_company_id uuid, p_from date, p_to date, p_branch_id uuid DEFAULT NULL)
-        const { data: plRows, error: plError } = await supabase.rpc('report_profit_loss', {
+        // Preferred: per-account breakdown via report_profit_loss_detailed
+        // (migration 20260826000012) — same conventions as the aggregate RPC
+        // (posted-only, soft-delete aware, line-level branch filter, positive
+        // balances per side). Graceful fallback to the legacy aggregate RPC
+        // ONLY while that migration has not been applied yet (42883/PGRST202).
+        const toPnlItem = (row: TrialBalanceRpcRow): TrialBalanceItem => ({
+            account_id: row.account_id,
+            code: row.account_code,
+            name: row.account_name,
+            type: row.account_type,
+            total_debit: row.total_debit,
+            total_credit: row.total_credit,
+            net_balance: row.balance,
+            currency_code: 'SAR'
+        });
+
+        let revenueTBI: TrialBalanceItem[];
+        let expenseTBI: TrialBalanceItem[];
+        let totalRevenue = 0;
+        let totalExpense = 0;
+        let netIncome = 0;
+
+        const { data: detailRows, error: detailError } = await supabase.rpc('report_profit_loss_detailed', {
             p_company_id: companyId,
             p_from: from,
             p_to: to,
             ...(branchId ? { p_branch_id: branchId } : {})
         });
-        if (plError) throw plError;
 
-        const plData = (plRows || []) as Array<{ category: string; amount: number; type: string }>;
-        const revenueRow = plData.find(r => r.type === 'revenue');
-        const expenseRow = plData.find(r => r.type === 'expense');
-        const netRow     = plData.find(r => r.type === 'net_profit');
+        if (detailError === null) {
+            const rows = toTrialBalanceRows(detailRows);
+            revenueTBI = rows.filter(r => r.account_type === 'revenue').map(toPnlItem);
+            expenseTBI = rows.filter(r => r.account_type === 'expense').map(toPnlItem);
+            totalRevenue = revenueTBI.reduce((sum, item) => sum + item.net_balance, 0);
+            totalExpense = expenseTBI.reduce((sum, item) => sum + item.net_balance, 0);
+            netIncome = totalRevenue - totalExpense;
+        } else {
+            const detailMessage = String((detailError as { message?: string }).message ?? '');
+            if (!/does not exist|PGRST202|42883/i.test(detailMessage)) throw detailError;
 
-        const totalRevenue = Number(revenueRow?.amount) || 0;
-        const totalExpense = Number(expenseRow?.amount) || 0;
-        const netIncome    = Number(netRow?.amount)     || (totalRevenue - totalExpense);
+            logger.warn('reportService', 'report_profit_loss_detailed not available — falling back to aggregate report_profit_loss (apply migration 20260826000012)');
 
-        // Build mock list items so existing components can iterate
-        const revenueTBI: TrialBalanceItem[] = revenueRow ? [{
-            account_id: 'revenue-total', code: '4', name: revenueRow.category,
-            type: 'revenue', total_debit: 0, total_credit: totalRevenue,
-            net_balance: totalRevenue, currency_code: 'SAR'
-        }] : [];
-        const expenseTBI: TrialBalanceItem[] = expenseRow ? [{
-            account_id: 'expense-total', code: '5', name: expenseRow.category,
-            type: 'expense', total_debit: totalExpense, total_credit: 0,
-            net_balance: totalExpense, currency_code: 'SAR'
-        }] : [];
+            // report_profit_loss signature: (p_company_id uuid, p_from date, p_to date, p_branch_id uuid DEFAULT NULL)
+            const { data: plRows, error: plError } = await supabase.rpc('report_profit_loss', {
+                p_company_id: companyId,
+                p_from: from,
+                p_to: to,
+                ...(branchId ? { p_branch_id: branchId } : {})
+            });
+            if (plError) throw plError;
+
+            const plData = (plRows || []) as Array<{ category: string; amount: number; type: string }>;
+            const revenueRow = plData.find(r => r.type === 'revenue');
+            const expenseRow = plData.find(r => r.type === 'expense');
+            const netRow     = plData.find(r => r.type === 'net_profit');
+
+            totalRevenue = Number(revenueRow?.amount) || 0;
+            totalExpense = Number(expenseRow?.amount) || 0;
+            netIncome    = Number(netRow?.amount)     || (totalRevenue - totalExpense);
+
+            // Build single synthetic items so existing components can iterate
+            revenueTBI = revenueRow ? [{
+                account_id: 'revenue-total', code: '4', name: revenueRow.category,
+                type: 'revenue', total_debit: 0, total_credit: totalRevenue,
+                net_balance: totalRevenue, currency_code: 'SAR'
+            }] : [];
+            expenseTBI = expenseRow ? [{
+                account_id: 'expense-total', code: '5', name: expenseRow.category,
+                type: 'expense', total_debit: totalExpense, total_credit: 0,
+                net_balance: totalExpense, currency_code: 'SAR'
+            }] : [];
+        }
 
         // ── Balance Sheet ─────────────────────────────────────────────────────
         // report_balance_sheet signature: (p_company_id uuid, p_as_of_date date DEFAULT NULL, p_branch_id uuid DEFAULT NULL)

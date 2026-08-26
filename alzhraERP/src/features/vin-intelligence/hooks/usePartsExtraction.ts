@@ -223,7 +223,7 @@ export function usePartsExtraction(vehicle: VehicleInfo | null) {
     const targetVeh: VehicleInfo = vehicle || { make: 'Toyota', model: 'عام' };
     const message = formatPartsForWhatsApp(targetVeh, rows);
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }, [rows, vehicle, showToast]);
 
   const handleImportFile = useCallback(async (file: File) => {
