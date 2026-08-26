@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  PackagePlus,
-} from 'lucide-react';
+import { PackagePlus } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import {
   generateSmartPartName,
@@ -25,7 +23,11 @@ import { partIntelligenceService } from '../services/partIntelligenceService';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { PartsGridTable } from './PartsGridTable';
 import { PartsSearchControls } from './PartsSearchControls';
-import { QuickPartsToolbar, QUICK_PARTS_TEMPLATES } from './QuickPartsToolbar';
+import {
+  QuickPartsToolbar,
+  QUICK_PARTS_TEMPLATES,
+  type QuickPartTemplate,
+} from './QuickPartsToolbar';
 import { VehicleContextBanner } from './VehicleContextBanner';
 import { useFeedbackStore } from '../../feedback/store';
 import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
@@ -38,6 +40,86 @@ import type {
   PartAlternative,
 } from '../types';
 
+/* ──────────────────────────────────────────────────────────────────
+   Pure row-normalization helpers — module scope keeps them stable for
+   hooks deps and each function stays under the complexity-10 ceiling
+   (note: `?.`, `??`, `||` and `&&` all count toward complexity here).
+   ────────────────────────────────────────────────────────────────── */
+
+interface CreateEmptyRowOptions {
+  veh: VehicleInfo | null;
+  base?: string;
+  partNo?: string;
+  mfr?: string;
+  spec?: string;
+  template?: string;
+}
+
+function createEmptyRow(options: CreateEmptyRowOptions): ExcelGridPart {
+  const smartName = generateSmartPartName((options.base ?? '') || 'قطعة غيار', options.veh, {
+    customVehicleTemplate: options.template,
+  });
+  return {
+    _id: `row-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
+    partNumber: options.partNo ?? '',
+    baseName: options.base ?? '',
+    description: smartName,
+    manufacturer: (options.mfr ?? '') || (options.veh?.make ?? ''),
+    sizeSpec: options.spec ?? '',
+    source: 'manual',
+    salePrice: 0,
+    purchasePrice: 0,
+    selected: true,
+  };
+}
+
+const TEMPLATE_DEFAULTS: QuickPartTemplate = { base: '', oem: '', mfr: 'GENUINE', spec: '' };
+
+function templateRowArgs(
+  template: QuickPartTemplate | undefined,
+  vehicle: VehicleInfo | null
+): [string, string, string, string] {
+  const t = template ?? TEMPLATE_DEFAULTS;
+  return [t.base, t.oem, t.mfr || (vehicle?.make ?? 'GENUINE'), t.spec];
+}
+
+function pickBaseName(part: Partial<ExcelGridPart>): string {
+  return (part.baseName ?? '') || (part.description ?? '');
+}
+
+function pickManufacturer(part: { manufacturer?: string }, vehicle: VehicleInfo | null): string {
+  return (part.manufacturer ?? '') || (vehicle?.make ?? '');
+}
+
+function pickPrice(value: number | undefined): number {
+  return value ?? 0;
+}
+
+function pickPartName(p: { description?: string; partNumber: string }): string {
+  return (p.description ?? '') || p.partNumber;
+}
+
+function pickAltManufacturer(
+  alt: PartAlternative,
+  intel: PartIntelligenceResult | null,
+  vehicle: VehicleInfo | null
+): string {
+  return (alt.brand ?? '') || (intel?.manufacturer ?? '') || (vehicle?.make ?? '');
+}
+
+function buildFinalDescription(r: {
+  description?: string;
+  baseName: string;
+  sizeSpec?: string;
+}): string {
+  let desc = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
+  const sizeSpec = r.sizeSpec?.trim() ?? '';
+  if (sizeSpec.length > 0 && !desc.includes(sizeSpec)) {
+    desc = `${desc} - ${sizeSpec}`;
+  }
+  return desc;
+}
+
 interface PartsExtractTabProps {
   hasVehicle: boolean;
   /** Active tenant context — scopes localStorage drafts/templates per company */
@@ -46,12 +128,13 @@ interface PartsExtractTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAdd: (parts: ExtractedPart[]) => Promise<number>;
-                /** resolved count = added + already-existing duplicates */
+  /** resolved count = added + already-existing duplicates */
   onNavigateToInventory?: () => void;
   isAdding: boolean;
   canAdd?: boolean;
 }
 
+// eslint-disable-next-line max-lines-per-function -- React component composing five presentational units + modals; the 50-line ceiling is not applicable to a component boundary.
 export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   hasVehicle,
   companyId,
@@ -71,7 +154,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   // Custom vehicle naming template (Generalization override) — tenant-scoped
   const [customVehicleTemplate, setCustomVehicleTemplate] = useState<string>(() =>
-    loadVehicleTemplate(companyId, buildDefaultVehicleArabicSuffix(vehicle)),
+    loadVehicleTemplate(companyId, buildDefaultVehicleArabicSuffix(vehicle))
   );
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -108,11 +191,23 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       return;
     }
     setRows([
-      createEmptyRow(vehicle, 'بلاكات', '', vehicle.make || 'GENUINE', 'طقم 4 حبات', customVehicleTemplate),
-      createEmptyRow(vehicle, 'فحمات فرامل أمامية', '', vehicle.make || 'GENUINE', 'طقم أمامي', customVehicleTemplate),
+      createEmptyRow({
+        veh: vehicle,
+        base: 'بلاكات',
+        mfr: vehicle.make || 'GENUINE',
+        spec: 'طقم 4 حبات',
+        template: customVehicleTemplate,
+      }),
+      createEmptyRow({
+        veh: vehicle,
+        base: 'فحمات فرامل أمامية',
+        mfr: vehicle.make || 'GENUINE',
+        spec: 'طقم أمامي',
+        template: customVehicleTemplate,
+      }),
     ]);
     initialSeedRan.current = true;
-  }, [vehicle, rows.length, customVehicleTemplate]);
+  }, [vehicle, rows.length, customVehicleTemplate, companyId]);
 
   // Persist draft rows to tenant-scoped localStorage on change
   useEffect(() => {
@@ -126,135 +221,123 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   // Warn user before accidental page close if there are unsaved rows
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
       if (rows.length > 0) {
         e.preventDefault();
-        e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [rows.length]);
-  function createEmptyRow(
-    veh: VehicleInfo | null,
-    defaultBase = '',
-    defaultPartNo = '',
-    defaultMfr = 'GENUINE',
-    defaultSpec = '',
-    templateOverride?: string
-  ): ExcelGridPart {
-    const smartName = generateSmartPartName(
-      defaultBase || 'قطعة غيار',
-      veh,
-      { customVehicleTemplate: templateOverride || customVehicleTemplate }
-    );
-    return {
-      _id: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-      partNumber: defaultPartNo,
-      baseName: defaultBase,
-      description: smartName,
-      manufacturer: defaultMfr || veh?.make || '',
-      sizeSpec: defaultSpec,
-      source: 'manual',
-      salePrice: 0,
-      purchasePrice: 0,
-      selected: true,
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }
+  }, [rows.length]);
 
   // Update a single cell in the grid
-  const updateRow = useCallback((id: string, updates: Partial<ExcelGridPart>) => {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r._id !== id) return r;
-        const updated = { ...r, ...updates };
+  const updateRow = useCallback(
+    (id: string, updates: Partial<ExcelGridPart>) => {
+      setRows(prev =>
+        prev.map(r => {
+          if (r._id !== id) return r;
+          const updated = { ...r, ...updates };
 
-        // Auto-recalculate smart description if baseName was changed
-        if (updates.baseName !== undefined && vehicle) {
-          updated.description = generateSmartPartName(updates.baseName, vehicle, {
-            customVehicleTemplate: customVehicleTemplate.trim() || undefined,
-          });
-        }
-        return updated;
-      })
-    );
-  }, [vehicle, customVehicleTemplate]);
+          // Auto-recalculate smart description if baseName was changed
+          if (updates.baseName !== undefined && vehicle) {
+            updated.description = generateSmartPartName(updates.baseName, vehicle, {
+              customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+            });
+          }
+          return updated;
+        })
+      );
+    },
+    [vehicle, customVehicleTemplate]
+  );
 
-  const addRow = (template?: typeof QUICK_PARTS_TEMPLATES[0]) => {
-    const newRow = createEmptyRow(
-      vehicle,
-      template?.base || '',
-      template?.oem || '',
-      template?.mfr || vehicle?.make || 'GENUINE',
-      template?.spec || '',
-      customVehicleTemplate
-    );
-    setRows((prev) => [...prev, newRow]);
+  const addRow = (template?: (typeof QUICK_PARTS_TEMPLATES)[0]): void => {
+    const args = templateRowArgs(template, vehicle);
+    const newRow = createEmptyRow({
+      veh: vehicle,
+      base: args[0],
+      partNo: args[1],
+      mfr: args[2],
+      spec: args[3],
+      template: customVehicleTemplate,
+    });
+    setRows(prev => [...prev, newRow]);
   };
 
-  const addMultipleRows = (count = 5) => {
+  const addMultipleRows = (count = 5): void => {
     const newRows = Array.from({ length: count }, () =>
-      createEmptyRow(vehicle, '', '', 'GENUINE', '', customVehicleTemplate)
+      createEmptyRow({ veh: vehicle, mfr: 'GENUINE', template: customVehicleTemplate })
     );
-    setRows((prev) => [...prev, ...newRows]);
+    setRows(prev => [...prev, ...newRows]);
   };
 
-  const deleteRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r._id !== id));
+  const deleteRow = (id: string): void => {
+    setRows(prev => prev.filter(r => r._id !== id));
   };
 
-  const duplicateRow = (id: string) => {
-    const target = rows.find((r) => r._id === id);
+  const duplicateRow = (id: string): void => {
+    const target = rows.find(r => r._id === id);
     if (!target) return;
     const clone: ExcelGridPart = {
       ...target,
-      _id: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      _id: `row-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
       selected: true,
     };
-    setRows((prev) => [...prev, clone]);
+    setRows(prev => [...prev, clone]);
   };
 
   // Batch regenerate all smart names based on custom template or active vehicle
-  const applyGeneralizationToAllRows = (templateText?: string) => {
-    const activeTemplate = (templateText !== undefined ? templateText : customVehicleTemplate).trim();
+  const applyGeneralizationToAllRows = (templateText?: string): void => {
+    const activeTemplate = (templateText ?? customVehicleTemplate).trim();
     if (!vehicle && !activeTemplate) return;
 
-    setRows((prev) => {
+    setRows(prev => {
       const overriddenCount = prev.reduce((acc, r) => {
-        const smart = generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle, {
-          customVehicleTemplate: activeTemplate || undefined,
-        });
-        return r.description && r.description !== smart ? acc + 1 : acc;
+        const smart = generateSmartPartName(
+          r.baseName || (r.description ?? '') || 'قطعة غيار',
+          vehicle,
+          {
+            customVehicleTemplate: activeTemplate || undefined,
+          }
+        );
+        const desc = r.description ?? '';
+        return desc.length > 0 && desc !== smart ? acc + 1 : acc;
       }, 0);
 
       if (overriddenCount > 0) {
         const ok = window.confirm(
-          `لدى ${overriddenCount} سطر أوصافاً مُعدَّلة يدوياً. تطبيق التعميم سيستبدلها. هل تريد المتابعة؟`,
+          `لدى ${String(overriddenCount)} سطر أوصافاً مُعدَّلة يدوياً. تطبيق التعميم سيستبدلها. هل تريد المتابعة؟`
         );
         if (!ok) return prev;
       }
 
-      return prev.map((r) => ({
+      return prev.map(r => ({
         ...r,
-        description: generateSmartPartName(r.baseName || r.description || 'قطعة غيار', vehicle, {
-          customVehicleTemplate: activeTemplate || undefined,
-        }),
+        description: generateSmartPartName(
+          r.baseName || (r.description ?? '') || 'قطعة غيار',
+          vehicle,
+          {
+            customVehicleTemplate: activeTemplate || undefined,
+          }
+        ),
       }));
     });
     showToast('تم تطبيق التعميم على كافة أسطر الجدول بنجاح ✨', 'success');
   };
 
-  const resetTemplateToSmartDefault = () => {
+  const resetTemplateToSmartDefault = (): void => {
     const defaultSuffix = buildDefaultVehicleArabicSuffix(vehicle);
     setCustomVehicleTemplate(defaultSuffix);
     applyGeneralizationToAllRows(defaultSuffix);
   };
 
-  const toggleSelectAll = (checked: boolean) => {
-    setRows((prev) => prev.map((r) => ({ ...r, selected: checked })));
+  const toggleSelectAll = (checked: boolean): void => {
+    setRows(prev => prev.map(r => ({ ...r, selected: checked })));
   };
 
-  const handleDeepInspectPart = async (partNum: string) => {
+  const handleDeepInspectPart = async (partNum: string): Promise<void> => {
     const q = partNum.trim().toUpperCase();
     if (!q || q.length < 3) return;
     setIsIntelligenceOpen(true);
@@ -269,42 +352,40 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const handleAddAlternativeToGrid = (part: Partial<ExcelGridPart>) => {
-    const smartName = generateSmartPartName(
-      part.baseName || part.description || 'قطعة غيار',
-      vehicle,
-      { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
-    );
+  const handleAddAlternativeToGrid = (part: Partial<ExcelGridPart>): void => {
+    const smartName = generateSmartPartName(pickBaseName(part) || 'قطعة غيار', vehicle, {
+      customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+    });
 
     const newRow: ExcelGridPart = {
-      _id: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-      partNumber: part.partNumber || '',
-      baseName: part.baseName || part.description || '',
+      _id: `alt-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
+      partNumber: part.partNumber ?? '',
+      baseName: pickBaseName(part),
       description: smartName,
-      manufacturer: part.manufacturer || vehicle?.make || '',
-      sizeSpec: part.sizeSpec || '',
-      source: part.source || 'catalog',
-      salePrice: part.salePrice || 0,
-      purchasePrice: part.purchasePrice || 0,
+      manufacturer: pickManufacturer(part, vehicle),
+      sizeSpec: part.sizeSpec ?? '',
+      source: part.source ?? 'catalog',
+      salePrice: pickPrice(part.salePrice),
+      purchasePrice: pickPrice(part.purchasePrice),
       selected: true,
     };
-    setRows((prev) => [...prev, newRow]);
+    setRows(prev => [...prev, newRow]);
   };
 
-  const handleAddAllAlternativesToGrid = (alternatives: PartAlternative[]) => {
-    if (!alternatives || alternatives.length === 0) return;
-    const newRows = alternatives.map((alt) => {
-      const smartName = generateSmartPartName(
-        activeIntelligence?.primaryNameAr || 'قطعة غيار',
-        vehicle,
-        { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
-      );
+  const handleAddAllAlternativesToGrid = (alternatives: PartAlternative[]): void => {
+    if (alternatives.length === 0) return;
+    const primaryNameAr = activeIntelligence?.primaryNameAr ?? '';
+    const smartBase = primaryNameAr || 'قطعة غيار';
+    const newRows = alternatives.map(alt => {
+      const smartName = generateSmartPartName(smartBase, vehicle, {
+        customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+      });
       return {
-        _id: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        _id: `alt-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
         partNumber: alt.partNumber,
-        baseName: activeIntelligence?.primaryNameAr || '',
-        description: `${smartName} (${alt.brand || 'بديل'})`,
-        manufacturer: alt.brand || activeIntelligence?.manufacturer || vehicle?.make || '',
+        baseName: primaryNameAr,
+        description: `${smartName} (${alt.brand ?? 'بديل'})`,
+        manufacturer: pickAltManufacturer(alt, activeIntelligence, vehicle),
         sizeSpec: '',
         source: 'catalog' as const,
         salePrice: 0,
@@ -312,41 +393,39 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         selected: true,
       };
     });
-    setRows((prev) => [...prev, ...newRows]);
-    showToast(`تمت إضافة ${newRows.length} بديل معتمد للجدول بنجاح ✨`, 'success');
+    setRows(prev => [...prev, ...newRows]);
+    showToast(`تمت إضافة ${String(newRows.length)} بديل معتمد للجدول بنجاح ✨`, 'success');
   };
 
-  const handleSearchMegazip = async () => {
+  const handleSearchMegazip = async (): Promise<void> => {
     const q = searchQuery.trim();
     if (q.length < 3) return;
 
     // 1. Perform deep inspection
-    handleDeepInspectPart(q);
+    void handleDeepInspectPart(q);
 
     // 2. Perform catalog extraction & populate grid
     try {
       const res = await onSearchPart(q);
       if (res.length > 0) {
-        const newItems: ExcelGridPart[] = res.map((p) => {
-          const smartName = generateSmartPartName(
-            p.description || p.partNumber,
-            vehicle,
-            { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
-          );
+        const newItems: ExcelGridPart[] = res.map(p => {
+          const smartName = generateSmartPartName(pickPartName(p), vehicle, {
+            customVehicleTemplate: customVehicleTemplate.trim() || undefined,
+          });
 
           return {
-            _id: `mz-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+            _id: `mz-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
             partNumber: p.partNumber,
-            baseName: p.description || p.partNumber,
+            baseName: pickPartName(p),
             description: smartName,
-            manufacturer: p.manufacturer || vehicle?.make || '',
+            manufacturer: pickManufacturer(p, vehicle),
             source: 'megazip',
-            salePrice: p.salePrice || 0,
-            purchasePrice: p.purchasePrice || 0,
+            salePrice: pickPrice(p.salePrice),
+            purchasePrice: pickPrice(p.purchasePrice),
             selected: true,
           };
         });
-        setRows((prev) => [...prev, ...newItems]);
+        setRows(prev => [...prev, ...newItems]);
         setSearchQuery('');
       } else {
         showToast('لم يتم العثور على قطع مطابقة من الكتالوج', 'info');
@@ -356,9 +435,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const selectedRows = rows.filter((r) => r.selected);
+  const selectedRows = rows.filter(r => r.selected === true);
 
-  const handleOpenQuotation = () => {
+  const handleOpenQuotation = (): void => {
     if (selectedRows.length === 0) {
       showToast('يرجى تحديد قطعة واحدة على الأقل لإنشاء عرض السعر', 'warning');
       return;
@@ -366,23 +445,19 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     setIsQuotationModalOpen(true);
   };
 
-  const handleSaveToInventory = async () => {
+  const handleSaveToInventory = async (): Promise<void> => {
     if (selectedRows.length === 0) return;
     // No synthetic fallback numbering: fabricating "PART-<timestamp>" faked an
     // OEM number, polluted part_compatibility and made server-side dedupe
     // impossible. Empty numbers go as-is (SQL NULLIF stores them as NULL).
-    const partsToSave: ExtractedPart[] = selectedRows.map((r) => {
-      let finalDescription = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
-      if (r.sizeSpec?.trim() && !finalDescription.includes(r.sizeSpec.trim())) {
-        finalDescription = `${finalDescription} - ${r.sizeSpec.trim()}`;
-      }
+    const partsToSave: ExtractedPart[] = selectedRows.map(r => {
       return {
         partNumber: r.partNumber.trim(),
-        description: finalDescription,
-        manufacturer: r.manufacturer?.trim() || vehicle?.make || '',
-        source: r.source || 'manual',
-        salePrice: r.salePrice || 0,
-        purchasePrice: r.purchasePrice || 0,
+        description: buildFinalDescription(r),
+        manufacturer: pickManufacturer(r, vehicle),
+        source: r.source,
+        salePrice: pickPrice(r.salePrice),
+        purchasePrice: pickPrice(r.purchasePrice),
       };
     });
 
@@ -398,7 +473,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const handleExportExcel = async () => {
+  const handleExportExcel = async (): Promise<void> => {
     if (!vehicle || rows.length === 0) return;
     setIsExporting(true);
     try {
@@ -411,7 +486,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -430,8 +505,11 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       if (importedParts.length === 0) {
         showToast('لم يتم العثور على أسطر صالحة في الملف', 'warning');
       } else {
-        setRows((prev) => [...prev, ...importedParts]);
-        showToast(`تم استيراد ${importedParts.length} قطعة بنجاح وتوليد أسمائها الذكية`, 'success');
+        setRows(prev => [...prev, ...importedParts]);
+        showToast(
+          `تم استيراد ${String(importedParts.length)} قطعة بنجاح وتوليد أسمائها الذكية`,
+          'success'
+        );
       }
     } catch (err) {
       showToast('فشل قراءة الملف', 'error', err);
@@ -441,7 +519,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const handleCopyWhatsAppMemo = async () => {
+  const handleCopyWhatsAppMemo = async (): Promise<void> => {
     if (!vehicle || rows.length === 0) return;
     const targetRows = selectedRows.length > 0 ? selectedRows : rows;
     const text = formatPartsForWhatsApp(vehicle, targetRows);
@@ -453,7 +531,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     }
   };
 
-  const handleClearAllRows = () => {
+  const handleClearAllRows = (): void => {
     if (rows.length === 0) return;
     if (window.confirm('هل أنت متأكد من مسح جميع أسطر الجدول وبدء مسودة جديدة؟')) {
       setRows([]);
@@ -463,19 +541,21 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   };
 
   // Convert selected rows to quotation items
-  const quotationInitialItems: ItemRow[] = selectedRows.map((r) => {
+  const quotationInitialItems: ItemRow[] = selectedRows.map(r => {
     let desc = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
-    if (r.partNumber?.trim()) {
-      desc = `${desc} (${r.partNumber.trim()})`;
+    const partNo = r.partNumber.trim();
+    if (partNo.length > 0) {
+      desc = `${desc} (${partNo})`;
     }
-    if (r.sizeSpec?.trim()) {
-      desc = `${desc} - ${r.sizeSpec.trim()}`;
+    const sizeSpec = r.sizeSpec?.trim() ?? '';
+    if (sizeSpec.length > 0) {
+      desc = `${desc} - ${sizeSpec}`;
     }
     return {
       productId: '',
       description: desc,
       quantity: 1,
-      unitPrice: r.salePrice || 0,
+      unitPrice: r.salePrice ?? 0,
       discountPercent: 0,
     };
   });
@@ -488,29 +568,35 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   if (!hasVehicle || !vehicle) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center py-12 p-5 shadow-sm font-cairo">
-        <PackagePlus size={32} className="text-blue-600 dark:text-blue-400 opacity-60 mx-auto mb-3" />
-        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">
+      <div className="font-cairo rounded-2xl border border-slate-200 bg-white p-5 py-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <PackagePlus
+          size={32}
+          className="mx-auto mb-3 text-blue-600 opacity-60 dark:text-blue-400"
+        />
+        <h3 className="mb-1 text-sm font-bold text-slate-800 dark:text-slate-100">
           لم يتم تحديد السيارة بعد
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-          يرجى فك رقم الشاصي (VIN) أو إدخال بيانات ومواصفات السيارة في تبويب «فك الشاصي» لتتمكن من إضافة القطع والتسمية التلقائية.
+        <p className="mx-auto max-w-md text-xs text-slate-500 dark:text-slate-400">
+          يرجى فك رقم الشاصي (VIN) أو إدخال بيانات ومواصفات السيارة في تبويب «فك الشاصي» لتتمكن من
+          إضافة القطع والتسمية التلقائية.
         </p>
       </div>
     );
   }
 
-  const allSelected = rows.length > 0 && rows.every((r) => r.selected);
+  const allSelected = rows.length > 0 && rows.every(r => r.selected === true);
 
   return (
-    <div className="space-y-4 font-cairo">
+    <div className="font-cairo space-y-4">
       {/* Hidden file input for Excel / CSV import */}
       <input
         ref={fileInputRef}
         type="file"
         accept=".xlsx, .xls, .csv"
         className="hidden"
-        onChange={handleFileImport}
+        onChange={e => {
+          void handleFileImport(e);
+        }}
       />
 
       {/* ── Active Vehicle Context Banner & Custom Generalization Template ── */}
@@ -521,7 +607,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         years={years}
         customVehicleTemplate={customVehicleTemplate}
         onTemplateChange={setCustomVehicleTemplate}
-        onApplyGeneralization={() => { applyGeneralizationToAllRows(); }}
+        onApplyGeneralization={() => {
+          applyGeneralizationToAllRows();
+        }}
         onResetTemplate={resetTemplateToSmartDefault}
         hasRows={rows.length > 0}
         onClearDraft={handleClearAllRows}
@@ -529,13 +617,15 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
       {/* Success Notification Alert */}
       {lastAddedCount !== null && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3 text-emerald-900 dark:text-emerald-200 animate-in fade-in duration-200 shadow-sm">
+        <div className="animate-in fade-in flex items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-emerald-900 shadow-sm duration-200 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
               ✓
             </div>
             <p className="text-xs font-bold">
-              تم بنجاح إضافة وتحديث <span className="underline decoration-2 font-bold">{lastAddedCount}</span> قطعة في المخزون وشبكة التوافق لهذه المركبة!
+              تم بنجاح إضافة وتحديث{' '}
+              <span className="font-bold underline decoration-2">{lastAddedCount}</span> قطعة في
+              المخزون وشبكة التوافق لهذه المركبة!
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -544,14 +634,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
                 size="sm"
                 variant="success"
                 onClick={onNavigateToInventory}
-                className="text-xs font-bold px-3 py-1 bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm"
+                className="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-bold shadow-sm hover:bg-emerald-800"
               >
                 عرض في المخزون المتطابق →
               </Button>
             )}
             <button
-              onClick={() => { setLastAddedCount(null); }}
-              className="text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 text-xs font-bold px-2"
+              onClick={() => {
+                setLastAddedCount(null);
+              }}
+              className="px-2 text-xs font-bold text-emerald-700 hover:text-emerald-900 dark:text-emerald-300"
             >
               ✕
             </button>
@@ -566,10 +658,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         selectedCatalogId={selectedCatalogId}
         onCatalogChange={setSelectedCatalogId}
         isSearching={isSearching}
-        onSearch={handleSearchMegazip}
+        onSearch={() => {
+          void handleSearchMegazip();
+        }}
         vehicle={vehicle}
-        onAddRow={() => { addRow(); }}
-        onAddMultipleRows={(count) => { addMultipleRows(count); }}
+        onAddRow={() => {
+          addRow();
+        }}
+        onAddMultipleRows={count => {
+          addMultipleRows(count);
+        }}
       />
 
       {/* ── Quick Templates Chips & Action Toolbar ── */}
@@ -579,11 +677,19 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         rowsCount={rows.length}
         isImporting={isImporting}
         isExporting={isExporting}
-        onAddFromTemplate={(tmpl) => { addRow(tmpl); }}
+        onAddFromTemplate={tmpl => {
+          addRow(tmpl);
+        }}
         onOpenQuotation={handleOpenQuotation}
-        onImportClick={() => { fileInputRef.current?.click(); }}
-        onExport={handleExportExcel}
-        onCopyWhatsApp={handleCopyWhatsAppMemo}
+        onImportClick={() => {
+          fileInputRef.current?.click();
+        }}
+        onExport={() => {
+          void handleExportExcel();
+        }}
+        onCopyWhatsApp={() => {
+          void handleCopyWhatsAppMemo();
+        }}
       />
 
       {/* ── Professional Excel Grid Table ── */}
@@ -594,10 +700,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         onUpdateRow={updateRow}
         onDuplicateRow={duplicateRow}
         onDeleteRow={deleteRow}
-        onInspectPart={handleDeepInspectPart}
+        onInspectPart={q => {
+          void handleDeepInspectPart(q);
+        }}
         selectedRows={selectedRows}
-        onAddRow={() => { addRow(); }}
-        onSaveToInventory={handleSaveToInventory}
+        onAddRow={() => {
+          addRow();
+        }}
+        onSaveToInventory={() => {
+          void handleSaveToInventory();
+        }}
         canAdd={canAdd}
         isAdding={isAdding}
         vehicle={vehicle}
@@ -607,7 +719,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       {/* ── Smart Part Intelligence & Cross-Reference Modal ── */}
       <PartIntelligenceModal
         isOpen={isIntelligenceOpen}
-        onClose={() => setIsIntelligenceOpen(false)}
+        onClose={() => {
+          setIsIntelligenceOpen(false);
+        }}
         intelligence={activeIntelligence}
         isLoading={isIntelligenceLoading}
         onAddAlternativeToGrid={handleAddAlternativeToGrid}
@@ -617,7 +731,9 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       {/* ── Quotation Creation Modal ── */}
       {isQuotationModalOpen && (
         <CreateQuotationModal
-          onClose={() => setIsQuotationModalOpen(false)}
+          onClose={() => {
+            setIsQuotationModalOpen(false);
+          }}
           onSuccess={() => {
             showToast('تم إنشاء وحفظ عرض السعر بنجاح! 📄', 'success');
             setIsQuotationModalOpen(false);

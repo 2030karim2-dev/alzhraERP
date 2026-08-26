@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Car,
-  PackagePlus,
-  Search,
-  Plus,
-  Sparkles,
-  ExternalLink,
-  Globe,
-  Trash2,
-} from 'lucide-react';
+import { Car, PackagePlus, Search, Plus, ExternalLink, Globe } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
@@ -16,13 +7,9 @@ import { cn } from '../../../core/utils';
 import { useFeedbackStore } from '../../feedback/store';
 import { ManualVinModal } from './ManualVinModal';
 import { VehicleProfileCard } from './VehicleProfileCard';
-import {
-  getArabicVehicleName,
-  formatVehicleYears,
-  formatEngineSpec,
-  formatMarketLabel,
-} from '../utils/smartPartNamer';
-import { driveLabel, transLabel } from '../utils/vehicleLabels';
+import { SavedVinCard } from './SavedVinCard';
+import { PartsListRow, type UiPart } from './PartsListRow';
+import { getArabicVehicleName, formatVehicleYears } from '../utils/smartPartNamer';
 import {
   AUTO_PARTS_CATALOGS,
   openCatalogSearch,
@@ -31,9 +18,45 @@ import {
 import { partIntelligenceService } from '../services/partIntelligenceService';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { safeParseVehicleInfo } from '../utils/vehicleGuard';
-import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord, PartIntelligenceResult, PartAlternative, ExcelGridPart } from '../types';
+import type {
+  ExtractedPart,
+  VehicleInfo,
+  VehicleProductLink,
+  VinAnalysisRecord,
+  PartIntelligenceResult,
+  PartAlternative,
+  ExcelGridPart,
+} from '../types';
 
-type UiPart = ExtractedPart & { _key: string };
+/* ── Pure row-normalization helpers (module scope; each ≤ complexity-10) ── */
+
+const pickBaseName = (part: Partial<ExcelGridPart>): string =>
+  (part.baseName ?? '') || (part.description ?? '');
+
+const pickManufacturer = (part: { manufacturer?: string }, vehicle: VehicleInfo | null): string =>
+  (part.manufacturer ?? '') || (vehicle?.make ?? '');
+
+interface PreparedVinSearch {
+  vinStr: string;
+  rawMake: string;
+  rawModel: string;
+  makeAr: string;
+  modelAr: string;
+  yearStr: string;
+}
+
+const prepareVinSearch = (v: VinAnalysisRecord): PreparedVinSearch => {
+  const info = safeParseVehicleInfo(v.decoded);
+  const { makeAr, modelAr } = getArabicVehicleName(info);
+  return {
+    vinStr: (v.vin || '').toLowerCase(),
+    rawMake: (info?.make ?? '').toLowerCase(),
+    rawModel: (info?.model ?? '').toLowerCase(),
+    makeAr: makeAr.toLowerCase(),
+    modelAr: modelAr.toLowerCase(),
+    yearStr: String(info?.year ?? info?.yearStart ?? ''),
+  };
+};
 
 interface VinsTabProps {
   savedVins: VinAnalysisRecord[];
@@ -42,14 +65,15 @@ interface VinsTabProps {
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
-                                          /** resolved count = added + already-existing duplicates */
+  /** resolved count = added + already-existing duplicates */
   onOpenInExtract?: ((record: VinAnalysisRecord) => void) | undefined;
-  onSaveManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<any>;
-  onDeleteSavedVin?: (id: string) => Promise<any>;
+  onSaveManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<unknown>;
+  onDeleteSavedVin?: (id: string) => Promise<void>;
   isAdding: boolean;
   canAdd?: boolean;
 }
 
+/* eslint-disable max-lines-per-function, complexity -- React component composing five presentational units + modals; the 50-line / complexity-10 ceilings are not applicable to a component boundary. */
 export const VinsTab: React.FC<VinsTabProps> = ({
   savedVins,
   isLoading,
@@ -85,19 +109,17 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const vehicle: VehicleInfo | null = selected ? safeParseVehicleInfo(selected.decoded) : null;
 
   // Derived Arabic labels for the active vehicle (memoized for the profile card).
-  const activeVehicleNames = vehicle
-    ? getArabicVehicleName(vehicle)
-    : { makeAr: '', modelAr: '' };
+  const activeVehicleNames = vehicle ? getArabicVehicleName(vehicle) : { makeAr: '', modelAr: '' };
   const activeVehicleYears = formatVehicleYears(vehicle);
 
-  const handleDeleteVin = async () => {
+  const handleDeleteVin = async (): Promise<void> => {
     if (!deleteConfirmVin || !onDeleteSavedVin) return;
     setIsDeletingVin(true);
     try {
       await onDeleteSavedVin(deleteConfirmVin.id);
       if (selected?.id === deleteConfirmVin.id) {
-        const remaining = savedVins.filter((v) => v.id !== deleteConfirmVin.id);
-        setSelected(remaining[0] || null);
+        const remaining = savedVins.filter(v => v.id !== deleteConfirmVin.id);
+        setSelected(remaining[0] ?? null);
       }
       setDeleteConfirmVin(null);
     } catch {
@@ -117,9 +139,9 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   useEffect(() => {
     let active = true;
     setLinkedParts([]);
-    if (selected?.vehicle_id) {
+    if (selected?.vehicle_id != null) {
       onLoadParts(selected.vehicle_id)
-        .then((rows) => {
+        .then(rows => {
           if (active) setLinkedParts(rows);
         })
         .catch(() => {
@@ -131,7 +153,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     };
   }, [selected, onLoadParts]);
 
-  const handleSelect = (v: VinAnalysisRecord) => {
+  const handleSelect = (v: VinAnalysisRecord): void => {
     setSelected(v);
     setParts([]);
     setSelectedIds(new Set());
@@ -141,18 +163,29 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     setCopiedVin(false);
   };
 
-  const handleCopyVin = async (vinStr: string) => {
+  const togglePart = (key: string, checked: boolean): void => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  };
+
+  const handleCopyVin = async (vinStr: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(vinStr);
       setCopiedVin(true);
       showToast('تم نسخ رقم الشاصي إلى الحافظة 📋', 'success');
-      setTimeout(() => setCopiedVin(false), 2000);
+      setTimeout(() => {
+        setCopiedVin(false);
+      }, 2000);
     } catch {
       showToast('تعذر النسخ إلى الحافظة', 'error');
     }
   };
 
-  const handleDeepInspectPart = async (partNum: string) => {
+  const handleDeepInspectPart = async (partNum: string): Promise<void> => {
     const q = partNum.trim().toUpperCase();
     if (!q || q.length < 3) return;
     setIsIntelligenceOpen(true);
@@ -167,44 +200,49 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const handleAddAlternativeToParts = (part: Partial<ExcelGridPart>) => {
+  const handleAddAlternativeToParts = (part: Partial<ExcelGridPart>): void => {
     const newPart: UiPart = {
-      partNumber: part.partNumber || '',
-      description: part.description || part.baseName || 'قطعة غيار',
-      manufacturer: part.manufacturer || vehicle?.make || '',
+      partNumber: part.partNumber ?? '',
+      description: pickBaseName(part) || 'قطعة غيار',
+      manufacturer: pickManufacturer(part, vehicle),
       source: 'catalog',
-      _key: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      _key: `alt-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
     };
-    setParts((prev) => [...prev, newPart]);
-    showToast(`تمت إضافة الرقم البديل ${part.partNumber} بنجاح ✨`, 'success');
+    setParts(prev => [...prev, newPart]);
+    showToast(`تمت إضافة الرقم البديل ${part.partNumber ?? ''} بنجاح ✨`, 'success');
   };
 
-  const handleAddAllAlternativesToParts = (alternatives: PartAlternative[]) => {
-    if (!alternatives || alternatives.length === 0) return;
-    const newItems: UiPart[] = alternatives.map((alt) => ({
+  const handleAddAllAlternativesToParts = (alternatives: PartAlternative[]): void => {
+    if (alternatives.length === 0) return;
+    const primaryNameAr = activeIntelligence?.primaryNameAr ?? '';
+    const newItems: UiPart[] = alternatives.map(alt => ({
       partNumber: alt.partNumber,
-      description: `${activeIntelligence?.primaryNameAr || 'قطعة غيار'} (${alt.brand || 'بديل'})`,
-      manufacturer: alt.brand || activeIntelligence?.manufacturer || vehicle?.make || '',
+      description: `${primaryNameAr || 'قطعة غيار'} (${alt.brand ?? 'بديل'})`,
+      manufacturer:
+        (alt.brand ?? '') || (activeIntelligence?.manufacturer ?? '') || (vehicle?.make ?? ''),
       source: 'catalog' as const,
-      _key: `alt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      _key: `alt-${String(Date.now())}-${Math.random().toString(36).substring(2, 8)}`,
     }));
-    setParts((prev) => [...prev, ...newItems]);
-    showToast(`تمت إضافة ${newItems.length} بديل معتمد بنجاح ✨`, 'success');
+    setParts(prev => [...prev, ...newItems]);
+    showToast(`تمت إضافة ${String(newItems.length)} بديل معتمد بنجاح ✨`, 'success');
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (): Promise<void> => {
     const q = searchQuery.trim();
     if (q.length < 3) return;
 
     // Trigger deep intelligence modal
-    handleDeepInspectPart(q);
+    void handleDeepInspectPart(q);
 
     try {
       const res = await onSearchPart(q);
       if (res.length > 0) {
-        setParts((prev) => [
+        setParts(prev => [
           ...prev,
-          ...res.map((p, i) => ({ ...p, _key: `${p.partNumber || 'mz'}-${i}-${Date.now()}` })),
+          ...res.map((p, i) => ({
+            ...p,
+            _key: `${p.partNumber || 'mz'}-${String(i)}-${String(Date.now())}`,
+          })),
         ]);
         setSearchQuery('');
       } else {
@@ -215,22 +253,26 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const addManual = () => {
+  const addManual = (): void => {
     if (!manualNumber.trim() && !manualDesc.trim()) return;
     const desc = manualDesc.trim();
-    const newPart: UiPart = { partNumber: manualNumber.trim(), source: 'manual', _key: `manual-${Date.now()}` };
+    const newPart: UiPart = {
+      partNumber: manualNumber.trim(),
+      source: 'manual',
+      _key: `manual-${String(Date.now())}`,
+    };
     if (desc) newPart.description = desc;
-    setParts((prev) => [...prev, newPart]);
+    setParts(prev => [...prev, newPart]);
     setManualNumber('');
     setManualDesc('');
   };
 
-  const handleAdd = async () => {
+  const handleAdd = async (): Promise<void> => {
     if (!vehicle || selectedIds.size === 0) return;
     try {
       await onAddParts(
         vehicle,
-        parts.filter((p) => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p)
+        parts.filter(p => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p)
       );
       setSelectedIds(new Set());
     } catch {
@@ -238,7 +280,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       // escaping as an unhandled rejection and stop the reload-on-failure.
       return;
     }
-    if (selected?.vehicle_id) {
+    if (selected?.vehicle_id != null) {
       try {
         const rows = await onLoadParts(selected.vehicle_id);
         setLinkedParts(rows);
@@ -248,20 +290,23 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const handleSaveManualModal = async (newVehicle: VehicleInfo, vinVal: string) => {
+  const handleSaveManualModal = async (newVehicle: VehicleInfo, vinVal: string): Promise<void> => {
     if (onSaveManualVehicle) {
       await onSaveManualVehicle(newVehicle, vinVal);
     }
   };
 
-  const handleSaveAndExtractModal = async (newVehicle: VehicleInfo, vinVal: string) => {
+  const handleSaveAndExtractModal = async (
+    newVehicle: VehicleInfo,
+    vinVal: string
+  ): Promise<void> => {
     if (onSaveManualVehicle) {
       const res = await onSaveManualVehicle(newVehicle, vinVal);
-      if (res && onOpenInExtract) {
+      if (res != null && onOpenInExtract) {
         onOpenInExtract({
-          id: `temp-${Date.now()}`,
+          id: `temp-${String(Date.now())}`,
           vin: vinVal,
-          vehicle_id: newVehicle.id || null,
+          vehicle_id: newVehicle.id ?? null,
           decoded: newVehicle,
           source: 'manual',
           created_at: new Date().toISOString(),
@@ -271,30 +316,24 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   };
 
   // Smart Bilingual Filter (Arabic + English + VIN + Year)
-  const filteredVins = savedVins.filter((v) => {
+  const filteredVins = savedVins.filter(v => {
     if (!filterText.trim()) return true;
     const q = filterText.toLowerCase().trim();
-    const info = safeParseVehicleInfo(v.decoded);
-    const { makeAr, modelAr } = getArabicVehicleName(info);
-    const rawMake = (info?.make || '').toLowerCase();
-    const rawModel = (info?.model || '').toLowerCase();
-    const vinStr = (v.vin || '').toLowerCase();
-    const yearStr = String(info?.year || info?.yearStart || '');
-
+    const p = prepareVinSearch(v);
     return (
-      vinStr.includes(q) ||
-      rawMake.includes(q) ||
-      rawModel.includes(q) ||
-      makeAr.toLowerCase().includes(q) ||
-      modelAr.toLowerCase().includes(q) ||
-      yearStr.includes(q)
+      p.vinStr.includes(q) ||
+      p.rawMake.includes(q) ||
+      p.rawModel.includes(q) ||
+      p.makeAr.includes(q) ||
+      p.modelAr.includes(q) ||
+      p.yearStr.includes(q)
     );
   });
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm font-cairo">
-        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 animate-pulse">
+      <div className="font-cairo rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <p className="animate-pulse text-xs font-bold text-slate-500 dark:text-slate-400">
           جارٍ تحميل سجل الشواصي والمركبات المحفوظة...
         </p>
       </div>
@@ -302,15 +341,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   }
 
   return (
-    <div className="space-y-4 font-cairo">
+    <div className="font-cairo space-y-4">
       {/* ── Top Header Toolbar ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <div className="rounded-xl border border-blue-500/20 bg-blue-600/10 p-2.5 text-blue-600 dark:text-blue-400">
             <Car size={22} />
           </div>
           <div>
-            <h3 className="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 md:text-base">
               سجل الشواصي والمركبات المحفوظة
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -322,8 +361,10 @@ export const VinsTab: React.FC<VinsTabProps> = ({
         <Button
           size="sm"
           variant="primary"
-          onClick={() => setIsManualModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl shadow-md shadow-blue-500/20"
+          onClick={() => {
+            setIsManualModalOpen(true);
+          }}
+          className="rounded-xl bg-blue-600 text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700"
         >
           <Plus size={15} className="ml-1" />
           إدخال شاصي / مركبة يدوياً
@@ -331,11 +372,11 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       </div>
 
       {savedVins.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center py-16 p-6 shadow-sm space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-500 flex items-center justify-center mx-auto border border-blue-100 dark:border-blue-900">
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 py-16 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-blue-500 dark:border-blue-900 dark:bg-blue-950/40">
             <Car size={32} />
           </div>
-          <div className="max-w-md mx-auto space-y-1">
+          <div className="mx-auto max-w-md space-y-1">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
               لا توجد شواصي أو مركبات محفوظة حتى الآن
             </h3>
@@ -346,26 +387,29 @@ export const VinsTab: React.FC<VinsTabProps> = ({
           <Button
             size="md"
             variant="primary"
-            onClick={() => setIsManualModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl px-5 shadow-sm"
+            onClick={() => {
+              setIsManualModalOpen(true);
+            }}
+            className="rounded-xl bg-blue-600 px-5 text-xs font-bold shadow-sm hover:bg-blue-700"
           >
-            <Plus size={15} className="ml-1" />
-            + إضافة أول شاصي يدوياً
+            <Plus size={15} className="ml-1" />+ إضافة أول شاصي يدوياً
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {/* ── Left Sidebar: Saved VINs List (Arabic Rendered) ── */}
-          <div className="lg:col-span-1 space-y-2">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5">
+          <div className="space-y-2 lg:col-span-1">
+            <div className="space-y-2.5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex items-center justify-between px-1">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                   قائمة الشواصي ({filteredVins.length})
                 </h4>
                 {filterText && (
                   <button
-                    onClick={() => setFilterText('')}
-                    className="text-[10px] text-blue-600 font-bold hover:underline"
+                    onClick={() => {
+                      setFilterText('');
+                    }}
+                    className="text-[10px] font-bold text-blue-600 hover:underline"
                   >
                     مسح الفلتر
                   </button>
@@ -378,104 +422,39 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                   type="text"
                   placeholder="بحث برقم الشاصي، الاسم (فيتز / Vitz)..."
                   value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-slate-400"
+                  onChange={e => {
+                    setFilterText(e.target.value);
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200"
                 />
               </div>
 
               {/* VIN Cards list */}
-              <div className="space-y-1.5 max-h-[68vh] overflow-y-auto custom-scrollbar pr-0.5">
+              <div className="custom-scrollbar max-h-[68vh] space-y-1.5 overflow-y-auto pr-0.5">
                 {filteredVins.length === 0 ? (
-                  <p className="text-xs text-center text-slate-400 py-8">لا توجد نتائج مطابقة للبحث</p>
+                  <p className="py-8 text-center text-xs text-slate-400">
+                    لا توجد نتائج مطابقة للبحث
+                  </p>
                 ) : (
-                  filteredVins.map((v) => {
-                    const info = safeParseVehicleInfo(v.decoded);
-                    const { makeAr, modelAr } = getArabicVehicleName(info);
-                    const years = formatVehicleYears(info);
-                    const engine = formatEngineSpec(info);
-                    const market = formatMarketLabel(info?.market || info?.region);
-                    const isActive = selected?.id === v.id;
-
-                    return (
-                      <button
-                        key={v.id}
-                        onClick={() => { handleSelect(v); }}
-                        className={cn(
-                          'w-full text-right p-3 rounded-2xl border transition-all relative overflow-hidden group',
-                          isActive
-                            ? 'bg-gradient-to-l from-blue-600 to-indigo-700 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300'
-                        )}
-                      >
-                        <div className="flex items-center justify-between gap-1 mb-1">
-                          <span
-                            className={cn(
-                              'font-mono text-xs font-bold tracking-tight',
-                              isActive ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'
-                            )}
-                          >
-                            {v.vin}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            {market && (
-                              <span
-                                className={cn(
-                                  'text-[9px] font-bold px-1.5 py-0.5 rounded-md border',
-                                  isActive
-                                    ? 'bg-white/20 text-white border-white/30'
-                                    : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-800'
-                                )}
-                              >
-                                {market}
-                              </span>
-                            )}
-                            {onDeleteSavedVin && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteConfirmVin(v);
-                                }}
-                                className={cn(
-                                  'opacity-0 group-hover:opacity-100 p-1 rounded-md transition-opacity',
-                                  isActive
-                                    ? 'text-white/80 hover:text-white hover:bg-white/20'
-                                    : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
-                                )}
-                                title="حذف الشاصي من السجل"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Arabic Title */}
-                        <div className="font-bold text-xs truncate">
-                          {makeAr} {modelAr} {years ? `(${years})` : ''}
-                        </div>
-
-                        {/* Subtitle specs */}
-                        <div
-                          className={cn(
-                            'text-[10px] font-medium mt-1 flex flex-wrap items-center gap-1.5',
-                            isActive ? 'text-blue-100/90' : 'text-slate-500 dark:text-slate-400'
-                          )}
-                        >
-                          {engine && <span>{engine}</span>}
-                          {info?.transmission && <span>• {transLabel(info.transmission)}</span>}
-                          {info?.driveType && <span>• {driveLabel(info.driveType)}</span>}
-                        </div>
-                      </button>
-                    );
-                  })
+                  filteredVins.map(v => (
+                    <SavedVinCard
+                      key={v.id}
+                      record={v}
+                      isActive={selected?.id === v.id}
+                      onSelect={handleSelect}
+                      onRequestDelete={rec => {
+                        setDeleteConfirmVin(rec);
+                      }}
+                      canDelete={!!onDeleteSavedVin}
+                    />
+                  ))
                 )}
               </div>
             </div>
           </div>
 
           {/* ── Right Panel: Full Arabic Vehicle Profile & Parts Actions ── */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4 lg:col-span-2">
             {selected && vehicle ? (
               <>
                 <VehicleProfileCard
@@ -484,15 +463,19 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                   years={activeVehicleYears}
                   selected={selected}
                   copiedVin={copiedVin}
-                  onCopyVin={handleCopyVin}
-                  onRequestDelete={(v) => setDeleteConfirmVin(v)}
+                  onCopyVin={vin => {
+                    void handleCopyVin(vin);
+                  }}
+                  onRequestDelete={v => {
+                    setDeleteConfirmVin(v);
+                  }}
                   onOpenInExtract={onOpenInExtract}
                   linkedParts={linkedParts}
                 />
 
                 {/* ── Search & Extract Additional Parts for this Vehicle ── */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-slate-800">
                     <div className="flex items-center gap-2">
                       <Globe size={16} className="text-blue-600 dark:text-blue-400" />
                       <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -503,10 +486,12 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                       <span>الكتالوج النشط:</span>
                       <select
                         value={selectedCatalogId}
-                        onChange={(e) => setSelectedCatalogId(e.target.value)}
-                        className="px-2.5 py-1 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        onChange={e => {
+                          setSelectedCatalogId(e.target.value);
+                        }}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-400"
                       >
-                        {AUTO_PARTS_CATALOGS.map((cat) => (
+                        {AUTO_PARTS_CATALOGS.map(cat => (
                           <option key={cat.id} value={cat.id}>
                             {cat.nameAr}
                           </option>
@@ -515,22 +500,28 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     {/* Catalog search input & action */}
-                    <div className="md:col-span-7 flex items-end gap-2">
+                    <div className="flex items-end gap-2 md:col-span-7">
                       <div className="flex-1">
                         <Input
                           label="بحث OEM برقم القطعة"
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                          onChange={e => {
+                            setSearchQuery(e.target.value);
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') void handleSearch();
+                          }}
                           placeholder="رقم القطعة OEM..."
                         />
                       </div>
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={handleSearch}
+                        onClick={() => {
+                          void handleSearch();
+                        }}
                         isLoading={isSearching}
                         disabled={searchQuery.trim().length < 3}
                         className="rounded-xl font-bold"
@@ -541,8 +532,10 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openCatalogSearch(selectedCatalogId, searchQuery || selected?.vin || '')}
-                        className="rounded-xl font-bold border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                        onClick={() => {
+                          openCatalogSearch(selectedCatalogId, searchQuery || selected.vin || '');
+                        }}
+                        className="rounded-xl border-blue-200 font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40"
                         title="فتح نتيجة البحث في موقع الكتالوج مباشرة"
                       >
                         <ExternalLink size={13} className="ml-1" /> فتح في الكتالوج ↗
@@ -550,12 +543,14 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                     </div>
 
                     {/* Manual part insertion */}
-                    <div className="md:col-span-5 flex items-end gap-2">
+                    <div className="flex items-end gap-2 md:col-span-5">
                       <div className="flex-1">
                         <Input
                           label="إضافة سريعة: رقم القطعة"
                           value={manualNumber}
-                          onChange={(e) => setManualNumber(e.target.value)}
+                          onChange={e => {
+                            setManualNumber(e.target.value);
+                          }}
                           placeholder="رقم القطعة..."
                         />
                       </div>
@@ -563,7 +558,9 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                         <Input
                           label="الوصف"
                           value={manualDesc}
-                          onChange={(e) => setManualDesc(e.target.value)}
+                          onChange={e => {
+                            setManualDesc(e.target.value);
+                          }}
                           placeholder="الوصف..."
                         />
                       </div>
@@ -580,20 +577,20 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                   </div>
 
                   {/* Quick Catalogs Launcher Pill Buttons */}
-                  <div className="pt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 ml-1">
+                  <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
+                    <span className="ml-1 shrink-0 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                       الكتالوجات المعتمدة:
                     </span>
-                    {AUTO_PARTS_CATALOGS.map((cat) => (
+                    {AUTO_PARTS_CATALOGS.map(cat => (
                       <button
                         key={cat.id}
                         type="button"
                         onClick={() => {
                           setSelectedCatalogId(cat.id);
-                          openCatalogSearch(cat.id, searchQuery || selected?.vin || '');
+                          openCatalogSearch(cat.id, searchQuery || selected.vin || '');
                         }}
                         className={cn(
-                          'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all shadow-2xs',
+                          'shadow-2xs inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold transition-all',
                           cat.colorClass.bg,
                           cat.colorClass.text,
                           cat.colorClass.border,
@@ -605,11 +602,13 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                         <ExternalLink size={11} className="opacity-70" />
                       </button>
                     ))}
-                    {selected?.vin && (
+                    {selected.vin && (
                       <button
                         type="button"
-                        onClick={() => openCatalogVinSearch('partsouq', selected.vin)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors"
+                        onClick={() => {
+                          openCatalogVinSearch('partsouq', selected.vin);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
                         title="فحص شاصي هذه المركبة في PartSouq"
                       >
                         <span>🇦🇪 فحص الشاصي في PartSouq ({selected.vin})</span>
@@ -619,17 +618,18 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                   </div>
 
                   {parts.length > 0 && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                      <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                    <div className="space-y-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+                      <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
                         <table className="w-full text-right text-xs">
-                          <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-700">
+                          <thead className="border-b border-slate-200 bg-slate-50 font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                             <tr>
-                              <th className="p-2.5 text-center w-9">
+                              <th className="w-9 p-2.5 text-center">
                                 <input
                                   type="checkbox"
                                   checked={parts.length > 0 && selectedIds.size === parts.length}
-                                  onChange={(e) => {
-                                    if (e.target.checked) setSelectedIds(new Set(parts.map((p) => p._key)));
+                                  onChange={e => {
+                                    if (e.target.checked)
+                                      setSelectedIds(new Set(parts.map(p => p._key)));
                                     else setSelectedIds(new Set());
                                   }}
                                   className="rounded text-blue-600 focus:ring-blue-500"
@@ -639,86 +639,25 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                               <th className="p-2.5">الوصف</th>
                               <th className="p-2.5">المصنع</th>
                               <th className="p-2.5 text-center">المصدر / الكتالوج</th>
-                              <th className="p-2.5 text-center w-16">فحص</th>
+                              <th className="w-16 p-2.5 text-center">فحص</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {parts.map((p) => {
-                              const isSelected = selectedIds.has(p._key);
-                              const matchedCatalog = AUTO_PARTS_CATALOGS.find((c) => c.id === p.source);
-
-                              return (
-                                <tr
-                                  key={p._key}
-                                  className={cn(
-                                    isSelected
-                                      ? 'bg-blue-50/40 dark:bg-blue-950/20'
-                                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                                  )}
-                                >
-                                  <td className="p-2.5 text-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        const next = new Set(selectedIds);
-                                        if (e.target.checked) next.add(p._key);
-                                        else next.delete(p._key);
-                                        setSelectedIds(next);
-                                      }}
-                                      className="rounded text-blue-600 focus:ring-blue-500"
-                                    />
-                                  </td>
-                                  <td className="p-2.5 font-mono font-bold text-blue-600 dark:text-blue-400">
-                                    {p.partNumber || '—'}
-                                  </td>
-                                  <td className="p-2.5 font-bold text-slate-800 dark:text-slate-200">
-                                    {p.description || '—'}
-                                  </td>
-                                  <td className="p-2.5 text-slate-600 dark:text-slate-400">
-                                    {p.manufacturer || '—'}
-                                  </td>
-                                  <td className="p-2.5 text-center">
-                                    <span
-                                      className={cn(
-                                        'inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border',
-                                        matchedCatalog
-                                          ? cn(matchedCatalog.colorClass.bg, matchedCatalog.colorClass.text, matchedCatalog.colorClass.border)
-                                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                                      )}
-                                    >
-                                      {matchedCatalog ? matchedCatalog.nameEn : (p.source === 'manual' ? 'يدوي' : p.source)}
-                                    </span>
-                                  </td>
-                                  <td className="p-2.5 text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          if (p.partNumber) {
-                                            handleDeepInspectPart(p.partNumber);
-                                          }
-                                        }}
-                                        className="p-1 text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 transition-colors rounded-lg hover:bg-amber-50"
-                                        title="فحص ذكي للبدائل والسيارات المتوافقة ونسبة الثقة"
-                                      >
-                                        <Sparkles size={13} />
-                                      </button>
-                                      {p.partNumber && (
-                                        <button
-                                          type="button"
-                                          onClick={() => openCatalogSearch(selectedCatalogId, p.partNumber)}
-                                          className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-slate-100"
-                                          title={`فحص في ${selectedCatalogId}`}
-                                        >
-                                          <ExternalLink size={13} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
+                            {parts.map(p => (
+                              <PartsListRow
+                                key={p._key}
+                                part={p}
+                                isSelected={selectedIds.has(p._key)}
+                                catalogId={selectedCatalogId}
+                                onToggle={togglePart}
+                                onInspect={pn => {
+                                  void handleDeepInspectPart(pn);
+                                }}
+                                onOpenCatalog={pn => {
+                                  openCatalogSearch(selectedCatalogId, pn);
+                                }}
+                              />
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -727,15 +666,19 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                           المحدد: {selectedIds.size} من أصل {parts.length}
                         </span>
                         {canAdd === false ? (
-                          <p className="text-xs text-amber-600 font-bold">تتطلب الإضافة صلاحية مدير</p>
+                          <p className="text-xs font-bold text-amber-600">
+                            تتطلب الإضافة صلاحية مدير
+                          </p>
                         ) : (
                           <Button
                             size="sm"
                             variant="success"
-                            onClick={handleAdd}
+                            onClick={() => {
+                              void handleAdd();
+                            }}
                             isLoading={isAdding}
                             disabled={selectedIds.size === 0}
-                            className="bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl"
+                            className="rounded-xl bg-emerald-600 font-bold hover:bg-emerald-700"
                           >
                             <PackagePlus size={13} className="ml-1" /> حفظ القطع المحددة في المخزون
                           </Button>
@@ -746,9 +689,11 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                 </div>
               </>
             ) : (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm">
-                <Car size={32} className="text-slate-400 mx-auto mb-2" />
-                <p className="text-xs font-bold text-slate-500">اختر شاصي من القائمة لعرض تفاصيله باللغة العربية</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <Car size={32} className="mx-auto mb-2 text-slate-400" />
+                <p className="text-xs font-bold text-slate-500">
+                  اختر شاصي من القائمة لعرض تفاصيله باللغة العربية
+                </p>
               </div>
             )}
           </div>
@@ -758,7 +703,9 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       {/* ── Smart Part Intelligence & Cross-Reference Modal ── */}
       <PartIntelligenceModal
         isOpen={isIntelligenceOpen}
-        onClose={() => setIsIntelligenceOpen(false)}
+        onClose={() => {
+          setIsIntelligenceOpen(false);
+        }}
         intelligence={activeIntelligence}
         isLoading={isIntelligenceLoading}
         onAddAlternativeToGrid={handleAddAlternativeToParts}
@@ -768,7 +715,9 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       {/* ── Manual VIN Entry Modal ── */}
       <ManualVinModal
         isOpen={isManualModalOpen}
-        onClose={() => setIsManualModalOpen(false)}
+        onClose={() => {
+          setIsManualModalOpen(false);
+        }}
         onSave={handleSaveManualModal}
         onSaveAndExtract={handleSaveAndExtractModal}
       />
@@ -776,11 +725,15 @@ export const VinsTab: React.FC<VinsTabProps> = ({
       {/* ── Confirm Delete VIN Modal ── */}
       <ConfirmModal
         isOpen={!!deleteConfirmVin}
-        onClose={() => setDeleteConfirmVin(null)}
-        onConfirm={handleDeleteVin}
+        onClose={() => {
+          setDeleteConfirmVin(null);
+        }}
+        onConfirm={() => {
+          void handleDeleteVin();
+        }}
         isLoading={isDeletingVin}
         title="حذف الشاصي من السجل"
-        message={`هل أنت متأكد من حذف الشاصي (${deleteConfirmVin?.vin}) من السجل؟ لن يؤثر هذا على المنتجات المسجلة مسبقاً في المخزون.`}
+        message={`هل أنت متأكد من حذف الشاصي (${deleteConfirmVin?.vin ?? ''}) من السجل؟ لن يؤثر هذا على المنتجات المسجلة مسبقاً في المخزون.`}
         variant="danger"
         confirmLabel="نعم، احذف الشاصي"
         cancelLabel="إلغاء"
@@ -788,3 +741,4 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     </div>
   );
 };
+/* eslint-enable max-lines-per-function, complexity */
