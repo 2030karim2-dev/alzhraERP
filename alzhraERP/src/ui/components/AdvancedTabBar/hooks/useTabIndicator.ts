@@ -49,8 +49,8 @@ export const useTabIndicator = ({ activeTab, tabRefs, containerRef }: UseTabIndi
 
     // تحديث الموضع عند تغيير التاب النشط
     useEffect(() => {
-        let t1: NodeJS.Timeout | number | undefined;
-        let t2: NodeJS.Timeout | number | undefined;
+        let t1: ReturnType<typeof setTimeout> | undefined;
+        let t2: ReturnType<typeof setTimeout> | undefined;
 
         if (isFirstRender.current) {
             isFirstRender.current = false;

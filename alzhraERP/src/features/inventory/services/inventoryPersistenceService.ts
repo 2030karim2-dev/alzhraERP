@@ -28,7 +28,7 @@ interface InventorySessionDraft {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 class InventoryPersistenceService {
-    private saveDebounceTimer: NodeJS.Timeout | null = null;
+    private saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     private lastServerSave = 0;
     private statusListeners: Array<(status: SaveStatus) => void> = [];
     private _status: SaveStatus = 'idle';

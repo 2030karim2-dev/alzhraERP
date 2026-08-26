@@ -7,7 +7,7 @@ export const useChatPresence = (activeChannelId?: string | null) => {
   const { user } = useAuthStore();
   const { setUserPresence, setTyping } = useChatStore();
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const companyId = user?.company_id;
   const userId = user?.id;
