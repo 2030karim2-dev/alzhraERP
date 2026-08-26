@@ -110,7 +110,7 @@ const VINPage: React.FC = () => {
           {activeTab === 'extract' && (
             <PartsExtractTab
               hasVehicle={!!vin.vehicle}
-              companyId={user?.company_id}
+              {...(user?.company_id !== undefined ? { companyId: user.company_id } : {})}
               vehicle={vin.vehicle}
               onSearchPart={vin.searchPartByNumber}
               isSearching={vin.isSearching}

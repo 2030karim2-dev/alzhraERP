@@ -88,8 +88,7 @@ export function loadVehicleTemplate(
   } catch {
     return fallback; // privacy mode / blocked storage
   }
-  const trimmed = saved?.trim();
-  if (trimmed !== undefined && trimmed.length > 0) return saved;
+  if (typeof saved === 'string' && saved.trim().length > 0) return saved;
   return fallback;
 }
 

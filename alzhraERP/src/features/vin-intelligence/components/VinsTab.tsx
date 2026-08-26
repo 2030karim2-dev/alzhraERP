@@ -5,8 +5,6 @@ import {
   Search,
   Plus,
   Sparkles,
-  Copy,
-  Check,
   ExternalLink,
   Globe,
   Trash2,
@@ -17,13 +15,14 @@ import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { cn } from '../../../core/utils';
 import { useFeedbackStore } from '../../feedback/store';
 import { ManualVinModal } from './ManualVinModal';
+import { VehicleProfileCard } from './VehicleProfileCard';
 import {
   getArabicVehicleName,
   formatVehicleYears,
   formatEngineSpec,
   formatMarketLabel,
 } from '../utils/smartPartNamer';
-import { driveLabel, fuelLabel, transLabel } from '../utils/vehicleLabels';
+import { driveLabel, transLabel } from '../utils/vehicleLabels';
 import {
   AUTO_PARTS_CATALOGS,
   openCatalogSearch,
@@ -44,7 +43,7 @@ interface VinsTabProps {
   isSearching: boolean;
   onAddParts: (vehicle: VehicleInfo, parts: ExtractedPart[]) => Promise<number>;
                                           /** resolved count = added + already-existing duplicates */
-  onOpenInExtract?: (record: VinAnalysisRecord) => void;
+  onOpenInExtract?: ((record: VinAnalysisRecord) => void) | undefined;
   onSaveManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<any>;
   onDeleteSavedVin?: (id: string) => Promise<any>;
   isAdding: boolean;
@@ -479,159 +478,17 @@ export const VinsTab: React.FC<VinsTabProps> = ({
           <div className="lg:col-span-2 space-y-4">
             {selected && vehicle ? (
               <>
-                {/* ── Vehicle Arabic Profile Card ── */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                  {/* Header Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                        <Car size={24} />
-                      </div>
-                      <div>
-                        {/* Arabic Vehicle Title */}
-                        <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">
-                          {activeVehicleNames.makeAr} {activeVehicleNames.modelAr}{' '}
-                          {activeVehicleYears ? `(${activeVehicleYears})` : ''}
-                        </h3>
-
-                        {/* VIN Number with 1-click copy and delete */}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                            {selected.vin}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyVin(selected.vin)}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 font-bold flex items-center gap-1 transition-colors"
-                            title="نسخ رقم الشاصي"
-                          >
-                            {copiedVin ? (
-                              <>
-                                <Check size={12} className="text-emerald-500" />
-                                <span className="text-emerald-600 text-[11px]">تم النسخ</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy size={12} />
-                                <span className="text-[11px]">نسخ</span>
-                              </>
-                            )}
-                          </button>
-                          {onDeleteSavedVin && (
-                            <button
-                              type="button"
-                              onClick={() => setDeleteConfirmVin(selected)}
-                              className="text-xs text-rose-500 hover:text-rose-700 font-bold flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                              title="حذف هذا الشاصي من السجل"
-                            >
-                              <Trash2 size={12} />
-                              <span className="text-[11px]">حذف</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Jump to Smart Parts Extraction Table */}
-                    {onOpenInExtract && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={() => { onOpenInExtract(selected); }}
-                        className="text-xs font-bold px-4 bg-gradient-to-l from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-md shadow-blue-500/20"
-                      >
-                        <Sparkles size={14} className="ml-1.5 text-amber-300" />
-                        إدارة في جدول القطع الذكي ⚡
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* ── Arabic Specifications Grid ── */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                    {/* Make */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">الشركة الصانعة</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {activeVehicleNames.makeAr || vehicle.make}
-                      </span>
-                    </div>
-
-                    {/* Model */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">الموديل / الطراز</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {activeVehicleNames.modelAr || vehicle.model || '—'}
-                      </span>
-                    </div>
-
-                    {/* Year */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">سنة الصنع</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {activeVehicleYears || '—'}
-                      </span>
-                    </div>
-
-                    {/* Market */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">المواصفات / السوق</span>
-                      <span className="block text-xs font-bold text-blue-600 dark:text-blue-400 mt-0.5">
-                        {formatMarketLabel(vehicle.market || vehicle.region) || '—'}
-                      </span>
-                    </div>
-
-                    {/* Engine */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">المحرك والسعة</span>
-                      <span className="block text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        {formatEngineSpec(vehicle) || '—'}
-                      </span>
-                    </div>
-
-                    {/* Transmission */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">ناقل الحركة</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {vehicle.transmission ? transLabel(vehicle.transmission) : '—'}
-                      </span>
-                    </div>
-
-                    {/* Drive Type */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">نظام الدفع</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {vehicle.driveType ? driveLabel(vehicle.driveType) : '—'}
-                      </span>
-                    </div>
-
-                    {/* Fuel Type */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-                      <span className="block text-[10px] font-bold text-slate-400">نوع الوقود</span>
-                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {vehicle.fuelType ? fuelLabel(vehicle.fuelType) : 'بنزين'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Linked Inventory Products Badge List */}
-                  {linkedParts.length > 0 && (
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                        القطع المتوافقة المرتبطة في المخزون ({linkedParts.length}):
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {linkedParts.map((l) => (
-                          <span
-                            key={l.id ?? l.product_id}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
-                          >
-                            {l.product_id.slice(0, 10)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <VehicleProfileCard
+                  vehicle={vehicle}
+                  names={activeVehicleNames}
+                  years={activeVehicleYears}
+                  selected={selected}
+                  copiedVin={copiedVin}
+                  onCopyVin={handleCopyVin}
+                  onRequestDelete={(v) => setDeleteConfirmVin(v)}
+                  onOpenInExtract={onOpenInExtract}
+                  linkedParts={linkedParts}
+                />
 
                 {/* ── Search & Extract Additional Parts for this Vehicle ── */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
