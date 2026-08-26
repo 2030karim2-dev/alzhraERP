@@ -32,7 +32,7 @@ import {
 import { partIntelligenceService } from '../services/partIntelligenceService';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { safeParseVehicleInfo } from '../utils/vehicleGuard';
-import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord, PartIntelligenceResult, PartAlternative } from '../types';
+import type { ExtractedPart, VehicleInfo, VehicleProductLink, VinAnalysisRecord, PartIntelligenceResult, PartAlternative, ExcelGridPart } from '../types';
 
 type UiPart = ExtractedPart & { _key: string };
 
@@ -84,6 +84,12 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const [isDeletingVin, setIsDeletingVin] = useState(false);
 
   const vehicle: VehicleInfo | null = selected ? safeParseVehicleInfo(selected.decoded) : null;
+
+  // Derived Arabic labels for the active vehicle (memoized for the profile card).
+  const activeVehicleNames = vehicle
+    ? getArabicVehicleName(vehicle)
+    : { makeAr: '', modelAr: '' };
+  const activeVehicleYears = formatVehicleYears(vehicle);
 
   const handleDeleteVin = async () => {
     if (!deleteConfirmVin || !onDeleteSavedVin) return;
@@ -162,7 +168,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const handleAddAlternativeToParts = (part: any) => {
+  const handleAddAlternativeToParts = (part: Partial<ExcelGridPart>) => {
     const newPart: UiPart = {
       partNumber: part.partNumber || '',
       description: part.description || part.baseName || 'قطعة غيار',
@@ -194,13 +200,19 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     // Trigger deep intelligence modal
     handleDeepInspectPart(q);
 
-    const res = await onSearchPart(q);
-    if (res.length > 0) {
-      setParts((prev) => [
-        ...prev,
-        ...res.map((p, i) => ({ ...p, _key: `${p.partNumber || 'mz'}-${i}-${Date.now()}` })),
-      ]);
-      setSearchQuery('');
+    try {
+      const res = await onSearchPart(q);
+      if (res.length > 0) {
+        setParts((prev) => [
+          ...prev,
+          ...res.map((p, i) => ({ ...p, _key: `${p.partNumber || 'mz'}-${i}-${Date.now()}` })),
+        ]);
+        setSearchQuery('');
+      } else {
+        showToast('لم يتم العثور على قطع مطابقة من الكتالوج', 'info');
+      }
+    } catch (err) {
+      showToast('فشل البحث في الكتالوج، يرجى المحاولة لاحقاً', 'error', err);
     }
   };
 
@@ -216,11 +228,17 @@ export const VinsTab: React.FC<VinsTabProps> = ({
 
   const handleAdd = async () => {
     if (!vehicle || selectedIds.size === 0) return;
-    await onAddParts(
-      vehicle,
-      parts.filter((p) => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p)
-    );
-    setSelectedIds(new Set());
+    try {
+      await onAddParts(
+        vehicle,
+        parts.filter((p) => selectedIds.has(p._key)).map(({ _key: _k, ...p }) => p)
+      );
+      setSelectedIds(new Set());
+    } catch {
+      // onError in the hook already surfaces a toast; keep this from
+      // escaping as an unhandled rejection and stop the reload-on-failure.
+      return;
+    }
     if (selected?.vehicle_id) {
       try {
         const rows = await onLoadParts(selected.vehicle_id);
@@ -472,8 +490,8 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                       <div>
                         {/* Arabic Vehicle Title */}
                         <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">
-                          {getArabicVehicleName(vehicle).makeAr} {getArabicVehicleName(vehicle).modelAr}{' '}
-                          {formatVehicleYears(vehicle) ? `(${formatVehicleYears(vehicle)})` : ''}
+                          {activeVehicleNames.makeAr} {activeVehicleNames.modelAr}{' '}
+                          {activeVehicleYears ? `(${activeVehicleYears})` : ''}
                         </h3>
 
                         {/* VIN Number with 1-click copy and delete */}
@@ -534,7 +552,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                     <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
                       <span className="block text-[10px] font-bold text-slate-400">الشركة الصانعة</span>
                       <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {getArabicVehicleName(vehicle).makeAr || vehicle.make}
+                        {activeVehicleNames.makeAr || vehicle.make}
                       </span>
                     </div>
 
@@ -542,7 +560,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                     <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
                       <span className="block text-[10px] font-bold text-slate-400">الموديل / الطراز</span>
                       <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {getArabicVehicleName(vehicle).modelAr || vehicle.model || '—'}
+                        {activeVehicleNames.modelAr || vehicle.model || '—'}
                       </span>
                     </div>
 
@@ -550,7 +568,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                     <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
                       <span className="block text-[10px] font-bold text-slate-400">سنة الصنع</span>
                       <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {formatVehicleYears(vehicle) || '—'}
+                        {activeVehicleYears || '—'}
                       </span>
                     </div>
 

@@ -358,29 +358,35 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     handleDeepInspectPart(q);
 
     // 2. Perform catalog extraction & populate grid
-    const res = await onSearchPart(q);
-    if (res.length > 0) {
-      const newItems: ExcelGridPart[] = res.map((p) => {
-        const smartName = generateSmartPartName(
-          p.description || p.partNumber,
-          vehicle,
-          { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
-        );
+    try {
+      const res = await onSearchPart(q);
+      if (res.length > 0) {
+        const newItems: ExcelGridPart[] = res.map((p) => {
+          const smartName = generateSmartPartName(
+            p.description || p.partNumber,
+            vehicle,
+            { customVehicleTemplate: customVehicleTemplate.trim() || undefined }
+          );
 
-        return {
-          _id: `mz-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-          partNumber: p.partNumber,
-          baseName: p.description || p.partNumber,
-          description: smartName,
-          manufacturer: p.manufacturer || vehicle?.make || '',
-          source: 'megazip',
-          salePrice: p.salePrice || 0,
-          purchasePrice: p.purchasePrice || 0,
-          selected: true,
-        };
-      });
-      setRows((prev) => [...prev, ...newItems]);
-      setSearchQuery('');
+          return {
+            _id: `mz-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+            partNumber: p.partNumber,
+            baseName: p.description || p.partNumber,
+            description: smartName,
+            manufacturer: p.manufacturer || vehicle?.make || '',
+            source: 'megazip',
+            salePrice: p.salePrice || 0,
+            purchasePrice: p.purchasePrice || 0,
+            selected: true,
+          };
+        });
+        setRows((prev) => [...prev, ...newItems]);
+        setSearchQuery('');
+      } else {
+        showToast('لم يتم العثور على قطع مطابقة من الكتالوج', 'info');
+      }
+    } catch (err) {
+      showToast('فشل البحث في الكتالوج، يرجى المحاولة لاحقاً', 'error', err);
     }
   };
 
@@ -406,10 +412,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       };
     });
 
-    const count = await onAdd(partsToSave);
-    setLastAddedCount(count);
-    // Clear draft on successful save (tenant-scoped key)
-    clearDraftRows(companyId);
+    try {
+      const count = await onAdd(partsToSave);
+      setLastAddedCount(count);
+      // Clear draft on successful save (tenant-scoped key)
+      clearDraftRows(companyId);
+    } catch (err) {
+      // onError in the hook surfaces a toast; keep rows intact on failure so
+      // the user can retry without entering the data again.
+      showToast('فشلت إضافة القطع إلى المخزون، تم حفظ المسودة للمراجعة', 'error', err);
+    }
   };
 
   const handleExportExcel = async () => {
@@ -428,6 +440,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Guard against oversized files (memory pressure / frozen tab on parse).
+    // Excel grid imports are expected to be modest; cap at 25 MB.
+    const MAX_IMPORT_BYTES = 25 * 1024 * 1024;
+    if (file.size > MAX_IMPORT_BYTES) {
+      showToast('حجم الملف كبير جداً (الحد الأقصى 25 ميجابايت)', 'warning');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setIsImporting(true);
     try {
       const importedParts = await parsePartsFromFile(file, vehicle);

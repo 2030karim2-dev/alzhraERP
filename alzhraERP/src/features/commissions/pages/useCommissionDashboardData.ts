@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
+import { useFeedbackStore } from '../../feedback/store';
 import { useAllPermissions } from '../../../core/hooks/usePermission';
 import { calculateCommissionPeriod, detectPendingInvoices, listCommissionCalculations, listCommissionPeriods, listPendingInvoices } from '../api';
 import { canCalculatePeriodByAccess } from '../authorization';
@@ -47,7 +48,27 @@ export function useCommissionDashboardData(): {
   const total = calculations.reduce((sum, item) => sum + item.total_commission, 0);
   const collected = calculations.reduce((sum, item) => sum + item.collected_amount, 0);
   const invoiceCount = calculations.reduce((sum, item) => sum + item.invoice_count, 0);
-  const calculateMutation = useMutation({ mutationFn: () => calculateCommissionPeriod(requiredText(companyId), requiredText(selectedPeriod?.id)), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.periods(companyId) }); await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.calculations(companyId, selectedPeriod?.id) }); } });
-  const detectMutation = useMutation({ mutationFn: () => detectPendingInvoices(requiredText(companyId)), onSuccess: () => queryClient.invalidateQueries({ queryKey: commissionQueryKeys.pending(companyId) }) });
+  const showToast = useFeedbackStore(state => state.showToast);
+  const calculateMutation = useMutation({
+    mutationFn: () => calculateCommissionPeriod(requiredText(companyId), requiredText(selectedPeriod?.id)),
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.periods(companyId) });
+      await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.calculations(companyId, selectedPeriod?.id) });
+      showToast(`تم تشغيل حساب العمولات بنجاح (تم إنشاء/تحديث ${result.calculations_created ?? 0} سجل)`, 'success');
+    },
+    onError: (error) => {
+      showToast('تعذر تشغيل حساب العمولات لهذه الفترة', 'error', error);
+    },
+  });
+  const detectMutation = useMutation({
+    mutationFn: () => detectPendingInvoices(requiredText(companyId)),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: commissionQueryKeys.pending(companyId) });
+      showToast('تم فحص وتحديث قائمة الفواتير المعلقة بنجاح', 'success');
+    },
+    onError: (error) => {
+      showToast('تعذر فحص الفواتير المعلقة', 'error', error);
+    },
+  });
   return { companyId, canCalculate, periods, selectedPeriod, calculations, pending, total, collected, invoiceCount, setSelectedPeriodId, calculate: () => { calculateMutation.mutate(); }, detect: () => { detectMutation.mutate(); }, calculating: calculateMutation.isPending, detecting: detectMutation.isPending, hasError: calculateMutation.error !== null || detectMutation.error !== null };
 }
