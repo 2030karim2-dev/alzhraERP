@@ -462,15 +462,15 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
           <div className="space-y-1 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
             <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300">نوع الوقود:</label>
             <div className="grid grid-cols-3 gap-1 mt-1">
-              {[
+              {([
                 { id: 'gasoline', label: 'بنزين' },
                 { id: 'diesel', label: 'ديزل' },
                 { id: 'hybrid', label: 'هايبرد' },
-              ].map((f) => (
+              ] as Array<{ id: 'gasoline' | 'diesel' | 'hybrid'; label: string }>).map((f) => (
                 <button
                   key={f.id}
                   type="button"
-                  onClick={() => setFuelType(f.id as any)}
+                  onClick={() => setFuelType(f.id)}
                   className={cn(
                     'py-1.5 text-xs font-bold rounded-lg border transition-all',
                     fuelType === f.id

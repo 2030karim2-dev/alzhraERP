@@ -175,10 +175,10 @@ export const vinApi = {
     return data;
   },
 
-  /** Atomically create products + link + graph edges for extracted parts (RPC)
-   * Returns a tuple of { added, existing } so the UI can surface duplicates
-   * honestly (P0 audit fix: previous shape silently reported "added" for
-   * duplicates that the unique constraint on part_compatibility skipped). */
+  /** Atomically create products + link + graph edges for extracted parts (RPC).
+   * Server contract (migration 20260826000001): the RPC deduplicates by
+   * part_number and returns { added, existing } jsonb, so callers receive an
+   * honest split instead of every row being silently reported as "added". */
   addPartsToInventory: async (
     companyId: string,
     vehicle: VehicleInfo,

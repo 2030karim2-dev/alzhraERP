@@ -6,6 +6,7 @@ import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
 import { preDecodeVin } from '../utils/wmiDecoder';
 import { driveLabel, fuelLabel, transLabel, bodyTypeLabel, regionLabel } from '../utils/vehicleLabels';
+import { canonicalizeMake, canonicalizeModel } from '../utils/vehicleCanonicalizer';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
 
 interface VinDecodeTabProps {
@@ -26,21 +27,35 @@ const MODES: Array<{ id: VinDecodeMode; label: string; icon: typeof ScanLine }> 
   { id: 'ai', label: 'ذكاء اصطناعي فقط', icon: Sparkles },
 ];
 
-/** Popular vehicle manufacturers for quick selection */
-const POPULAR_MAKES = ['تويوتا', 'نيسان', 'هيونداي', 'كيا', 'شفروليه', 'جمس', 'فورد', 'هوندا', 'إيسوزو', 'ميتسوبيشي', 'مازدا', 'لكزس'];
+/** Popular manufacturers — CANONICAL English ids persisted, Arabic shown (M1 fix) */
+const POPULAR_MAKE_OPTIONS: Array<{ id: string; label: string }> = [
+  { id: 'Toyota', label: 'تويوتا' },
+  { id: 'Nissan', label: 'نيسان' },
+  { id: 'Hyundai', label: 'هيونداي' },
+  { id: 'Kia', label: 'كيا' },
+  { id: 'Chevrolet', label: 'شفروليه' },
+  { id: 'GMC', label: 'جمس' },
+  { id: 'Ford', label: 'فورد' },
+  { id: 'Honda', label: 'هوندا' },
+  { id: 'Isuzu', label: 'إيسوزو' },
+  { id: 'Mitsubishi', label: 'ميتسوبيشي' },
+  { id: 'Mazda', label: 'مازدا' },
+  { id: 'Lexus', label: 'لكزس' },
+];
 
 /** Popular markets/specs */
 const POPULAR_MARKETS = ['خليجي', 'وارد أمريكي', 'وارد ياباني', 'سعودي', 'كوري', 'أوروبي'];
 
-/** Quick presets for popular vehicles in Yemen & Gulf market */
+/** Quick presets for popular vehicles in Yemen & Gulf market
+ *  (make/model stored as CANONICAL English per migration 20260826000002) */
 const QUICK_VEHICLE_PRESETS = [
-  { label: 'كورولا (2001-2007)', make: 'تويوتا', model: 'كورولا', yStart: '2001', yEnd: '2007', market: 'خليجي', engine: '1.8', trans: 'تماتيك', drive: 'سنجل' },
-  { label: 'هايلوكس (2006-2015)', make: 'تويوتا', model: 'هايلوكس', yStart: '2006', yEnd: '2015', market: 'خليجي', engine: '2.7', trans: 'عادي', drive: 'دبل' },
-  { label: 'شاص (2007-2022)', make: 'تويوتا', model: 'شاص', yStart: '2007', yEnd: '2022', market: 'خليجي', engine: '4.0', trans: 'عادي', drive: 'دبل' },
-  { label: 'كامري (2003-2006)', make: 'تويوتا', model: 'كامري', yStart: '2003', yEnd: '2006', market: 'خليجي', engine: '2.4', trans: 'تماتيك', drive: 'سنجل' },
-  { label: 'يارس (2006-2013)', make: 'تويوتا', model: 'يارس', yStart: '2006', yEnd: '2013', market: 'خليجي', engine: '1.3', trans: 'تماتيك', drive: 'سنجل' },
-  { label: 'سنتافي (2013-2018)', make: 'هيونداي', model: 'سنتافي', yStart: '2013', yEnd: '2018', market: 'وارد أمريكي', engine: '3.3', trans: 'تماتيك', drive: 'دبل' },
-  { label: 'توسان (2016-2020)', make: 'هيونداي', model: 'توسان', yStart: '2016', yEnd: '2020', market: 'خليجي', engine: '2.0', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'كورولا (2001-2007)', make: 'Toyota', model: 'Corolla', yStart: '2001', yEnd: '2007', market: 'خليجي', engine: '1.8', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'هايلوكس (2006-2015)', make: 'Toyota', model: 'Hilux', yStart: '2006', yEnd: '2015', market: 'خليجي', engine: '2.7', trans: 'عادي', drive: 'دبل' },
+  { label: 'شاص (2007-2022)', make: 'Toyota', model: 'Land Cruiser 70', yStart: '2007', yEnd: '2022', market: 'خليجي', engine: '4.0', trans: 'عادي', drive: 'دبل' },
+  { label: 'كامري (2003-2006)', make: 'Toyota', model: 'Camry', yStart: '2003', yEnd: '2006', market: 'خليجي', engine: '2.4', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'يارس (2006-2013)', make: 'Toyota', model: 'Yaris', yStart: '2006', yEnd: '2013', market: 'خليجي', engine: '1.3', trans: 'تماتيك', drive: 'سنجل' },
+  { label: 'سنتافي (2013-2018)', make: 'Hyundai', model: 'Santa Fe', yStart: '2013', yEnd: '2018', market: 'وارد أمريكي', engine: '3.3', trans: 'تماتيك', drive: 'دبل' },
+  { label: 'توسان (2016-2020)', make: 'Hyundai', model: 'Tucson', yStart: '2016', yEnd: '2020', market: 'خليجي', engine: '2.0', trans: 'تماتيك', drive: 'سنجل' },
 ];
 
 /** Result is considered "uncertain" when it comes from AI with low/medium confidence. */
@@ -113,9 +128,11 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
     if (!manualMake.trim()) return;
     const yStart = parseInt(manualYearStart, 10) || undefined;
     const yEnd = parseInt(manualYearEnd, 10) || undefined;
+    // M1: persist CANONICAL identifiers regardless of the input language,
+    // so inventory matching and catalog dedupe never split on spelling.
     const vehicleData: VehicleInfo = {
-      make: manualMake.trim(),
-      model: manualModel.trim() || null,
+      make: canonicalizeMake(manualMake) || manualMake.trim(),
+      model: canonicalizeModel(manualModel.trim()) || null,
       year: yStart ?? null,
       yearStart: yStart ?? null,
       yearEnd: (yEnd || yStart) ?? null,
@@ -271,19 +288,19 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                 الشركة المصنعة
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {POPULAR_MAKES.map((mk) => (
+                {POPULAR_MAKE_OPTIONS.map((mk) => (
                   <button
-                    key={mk}
+                    key={mk.id}
                     type="button"
-                    onClick={() => { setManualMake(mk); }}
+                    onClick={() => { setManualMake(mk.id); }}
                     className={cn(
                       'px-2.5 py-1 text-xs font-bold rounded-lg border transition-all',
-                      manualMake === mk
+                      manualMake === mk.id
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                         : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                     )}
                   >
-                    {mk}
+                    {mk.label}
                   </button>
                 ))}
               </div>

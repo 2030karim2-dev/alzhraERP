@@ -4,7 +4,7 @@
 
 import { generateSmartPartName } from './smartPartNamer';
 import type { VehicleInfo } from '../types';
-import type { ExcelGridPart } from '../components/PartsExtractTab';
+import type { ExcelGridPart } from '../types';
 
 let xlsxPromise: Promise<any> | null = null;
 const loadXLSX = (): Promise<any> => {

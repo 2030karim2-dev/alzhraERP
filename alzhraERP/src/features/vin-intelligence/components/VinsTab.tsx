@@ -245,7 +245,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
           id: `temp-${Date.now()}`,
           vin: vinVal,
           vehicle_id: newVehicle.id || null,
-          decoded: newVehicle as any,
+          decoded: newVehicle,
           source: 'manual',
           created_at: new Date().toISOString(),
         });

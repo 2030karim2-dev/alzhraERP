@@ -113,7 +113,33 @@ const YEAR_MAP: Record<string, number> = {
 };
 
 /**
+ * Resolves the ISO 3779 model-year character into a concrete year using
+ * the standard 30-year cycle window (chars recur every 30 model years).
+ * Without position-specific info we pick the LATEST candidate within
+ * the plausible future (`nowYear + 1`) so freshly-built vehicles roll
+ * forward automatically once their letter cycles around.
+ * `nowYear` is injectable for deterministic unit tests.
+ */
+export function resolveModelYear(
+  ch: string,
+  nowYear: number = new Date().getFullYear(),
+): number | null {
+  // Index access widens through a cast so the `typeof` guard below stays
+  // meaningful under strict-boolean / no-unnecessary-condition rules.
+  const mapped = YEAR_MAP[ch.toUpperCase()] as number | undefined;
+  if (typeof mapped !== 'number') return null;
+  let best = mapped;
+  let candidate = mapped + 30;
+  while (candidate <= nowYear + 1) {
+    best = candidate;
+    candidate += 30;
+  }
+  return best;
+}
+
+/**
  * Fast client-side VIN pre-decoding (instant WMI + Year).
+ * Model-year resolution uses resolveModelYear() (see above).
  */
 export function preDecodeVin(vinInput: string): WmiInfo | null {
   const clean = vinInput.replace(/[\s-]/g, '').toUpperCase();
@@ -124,8 +150,7 @@ export function preDecodeVin(vinInput: string): WmiInfo | null {
 
   let year: number | null = null;
   if (clean.length >= 10) {
-    const yearChar = clean[9];
-    year = YEAR_MAP[yearChar] ?? null;
+    year = resolveModelYear(clean[9]);
   }
 
   if (match) {

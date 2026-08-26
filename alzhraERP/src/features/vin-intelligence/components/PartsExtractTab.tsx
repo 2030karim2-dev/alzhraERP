@@ -33,6 +33,13 @@ import {
   formatPartsForWhatsApp,
 } from '../utils/partsExcelHelper';
 import {
+  clearDraftRows,
+  loadDraftRows,
+  loadVehicleTemplate,
+  saveDraftRows,
+  saveVehicleTemplate,
+} from '../utils/draftStorage';
+import {
   AUTO_PARTS_CATALOGS,
   openCatalogSearch,
   openCatalogVinSearch,
@@ -42,17 +49,18 @@ import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { useFeedbackStore } from '../../feedback/store';
 import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
 import type { ItemRow } from '../../sales/hooks/useQuotationForm';
-import type { ExtractedPart, VehicleInfo, PartIntelligenceResult, PartAlternative } from '../types';
-
-export interface ExcelGridPart extends ExtractedPart {
-  _id: string;
-  baseName: string;      // Initial input, e.g. 'بلاكات' or 'spark plug'
-  sizeSpec?: string;     // المقاس والمواصفات
-  selected?: boolean;
-}
+import type {
+  ExcelGridPart,
+  ExtractedPart,
+  VehicleInfo,
+  PartIntelligenceResult,
+  PartAlternative,
+} from '../types';
 
 interface PartsExtractTabProps {
   hasVehicle: boolean;
+  /** Active tenant context — scopes localStorage drafts/templates per company */
+  companyId?: string;
   vehicle: VehicleInfo | null;
   onSearchPart: (partNumber: string) => Promise<ExtractedPart[]>;
   isSearching: boolean;
@@ -62,9 +70,6 @@ interface PartsExtractTabProps {
   isAdding: boolean;
   canAdd?: boolean;
 }
-
-const DRAFT_STORAGE_KEY = 'alz_vin_extract_draft_rows';
-const TEMPLATE_STORAGE_KEY = 'alz_vin_extract_custom_template';
 
 /** Pre-defined common parts for rapid 1-click addition */
 const QUICK_PARTS_TEMPLATES = [
@@ -83,6 +88,7 @@ const QUICK_PARTS_TEMPLATES = [
 
 export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   hasVehicle,
+  companyId,
   vehicle,
   onSearchPart,
   isSearching,
@@ -94,32 +100,13 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   const { showToast } = useFeedbackStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Initialize rows from localStorage draft or empty array
-  const [rows, setRows] = useState<ExcelGridPart[]>(() => {
-    try {
-      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-    return [];
-  });
+  // Initialize rows from the tenant-scoped localStorage draft or empty array
+  const [rows, setRows] = useState<ExcelGridPart[]>(() => loadDraftRows<ExcelGridPart>(companyId));
 
-  // Custom vehicle naming template (Generalization override)
-  const [customVehicleTemplate, setCustomVehicleTemplate] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem(TEMPLATE_STORAGE_KEY);
-      if (saved && saved.trim()) return saved;
-    } catch {
-      /* ignore */
-    }
-    return buildDefaultVehicleArabicSuffix(vehicle);
-  });
+  // Custom vehicle naming template (Generalization override) — tenant-scoped
+  const [customVehicleTemplate, setCustomVehicleTemplate] = useState<string>(() =>
+    loadVehicleTemplate(companyId, buildDefaultVehicleArabicSuffix(vehicle)),
+  );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCatalogId, setSelectedCatalogId] = useState('megazip');
@@ -150,8 +137,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       initialSeedRan.current = true;
       return;
     }
-    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (saved) {
+    if (loadDraftRows(companyId).length > 0) {
       initialSeedRan.current = true;
       return;
     }
@@ -162,29 +148,15 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     initialSeedRan.current = true;
   }, [vehicle, rows.length, customVehicleTemplate]);
 
-  // Persist draft rows to localStorage on change
+  // Persist draft rows to tenant-scoped localStorage on change
   useEffect(() => {
-    try {
-      if (rows.length > 0) {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(rows));
-      } else {
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [rows]);
+    saveDraftRows(companyId, rows);
+  }, [rows, companyId]);
 
-  // Persist template
+  // Persist template (tenant-scoped; util ignores whitespace-only values)
   useEffect(() => {
-    try {
-      if (customVehicleTemplate.trim()) {
-        localStorage.setItem(TEMPLATE_STORAGE_KEY, customVehicleTemplate);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [customVehicleTemplate]);
+    saveVehicleTemplate(companyId, customVehicleTemplate);
+  }, [customVehicleTemplate, companyId]);
 
   // Warn user before accidental page close if there are unsaved rows
   useEffect(() => {
@@ -345,7 +317,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
       description: smartName,
       manufacturer: part.manufacturer || vehicle?.make || '',
       sizeSpec: part.sizeSpec || '',
-      source: (part.source as any) || 'catalog',
+      source: part.source || 'catalog',
       salePrice: part.salePrice || 0,
       purchasePrice: part.purchasePrice || 0,
       selected: true,
@@ -416,15 +388,16 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
   const handleSaveToInventory = async () => {
     if (selectedRows.length === 0) return;
-    const partsToSave: ExtractedPart[] = selectedRows.map((r, idx) => {
+    // No synthetic fallback numbering: fabricating "PART-<timestamp>" faked an
+    // OEM number, polluted part_compatibility and made server-side dedupe
+    // impossible. Empty numbers go as-is (SQL NULLIF stores them as NULL).
+    const partsToSave: ExtractedPart[] = selectedRows.map((r) => {
       let finalDescription = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
       if (r.sizeSpec?.trim() && !finalDescription.includes(r.sizeSpec.trim())) {
         finalDescription = `${finalDescription} - ${r.sizeSpec.trim()}`;
       }
       return {
-        partNumber:
-          r.partNumber.trim() ||
-          `PART-${Date.now().toString(36).toUpperCase()}-${(idx + 1).toString().padStart(2, '0')}`,
+        partNumber: r.partNumber.trim(),
         description: finalDescription,
         manufacturer: r.manufacturer?.trim() || vehicle?.make || '',
         source: r.source || 'manual',
@@ -435,12 +408,8 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
 
     const count = await onAdd(partsToSave);
     setLastAddedCount(count);
-    // Clear draft on successful save
-    try {
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
+    // Clear draft on successful save (tenant-scoped key)
+    clearDraftRows(companyId);
   };
 
   const handleExportExcel = async () => {
@@ -492,11 +461,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     if (rows.length === 0) return;
     if (window.confirm('هل أنت متأكد من مسح جميع أسطر الجدول وبدء مسودة جديدة؟')) {
       setRows([]);
-      try {
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      clearDraftRows(companyId);
       showToast('تم تفريغ الجدول ومسح المسودة', 'info');
     }
   };
