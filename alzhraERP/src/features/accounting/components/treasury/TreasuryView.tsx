@@ -40,7 +40,7 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
 
     return (
         <div className="flex flex-col md:flex-row gap-4 max-md:gap-3 items-start h-full">
-            <aside className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-slate-900 h-full border-l dark:border-slate-800">
+            <aside className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-[var(--app-surface)] h-full border-s border-[var(--app-border)]">
                 <TreasurySidebar onSelectAccount={setSelectedAccountId} selectedAccountId={selectedAccountId} />
             </aside>
             <main className="flex-1 w-full p-4 overflow-y-auto">
@@ -50,13 +50,13 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
                         <TreasurySummaryStats accountId={selectedAccountId} dateRange={dateRange} />
 
                         {/* Quick Actions */}
-                        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                            <h3 className="text-lg font-bold mb-4">إجراءات سريعة</h3>
+                        <div className="bg-[var(--app-surface)] p-4 border border-[var(--app-border)] shadow-sm">
+                            <h3 className="text-base font-bold mb-4 text-[var(--app-text)]">إجراءات سريعة</h3>
                             <TreasuryActions onAction={handleAction} onPrint={handlePrint} />
                         </div>
 
                         {/* Transactions Table */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm overflow-hidden">
                             <LedgerView dateRange={dateRange} accountId={selectedAccountId} />
                         </div>
                     </div>

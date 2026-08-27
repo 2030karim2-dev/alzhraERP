@@ -44,19 +44,20 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50  max-md:p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 max-md:p-2">
+            <div className="bg-[var(--app-surface)] shadow-2xl w-full max-w-md border border-[var(--app-border)]">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 max-md:px-3 py-4 border-b border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center  max-md:gap-2">
+                <div className="flex items-center justify-between px-6 max-md:px-3 py-4 border-b border-[var(--app-border)]">
+                    <div className="flex items-center gap-2 max-md:gap-1.5">
                         <Icon size={18} className={iconColor} />
-                        <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">{title}</h2>
+                        <h2 className="text-base font-bold text-[var(--app-text)]">{title}</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className=" max-md:p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
+                        className="p-1.5 max-md:p-1 hover:bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-colors"
+                        aria-label="إغلاق"
                     >
                         <X size={16} />
                     </button>
@@ -67,7 +68,7 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
 
                     {/* Name */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        <label className="block text-[10px] font-bold text-[var(--app-text-secondary)] mb-1 uppercase tracking-widest">
                             {type === 'cashbox' ? 'اسم الصندوق' : 'اسم الشركة'}
                         </label>
                         <input
@@ -75,19 +76,19 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
                             value={name}
                             onChange={e => setName(e.target.value)}
                             required
-                            className="w-full text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:border-emerald-400 transition-all text-slate-700 dark:text-slate-300"
+                            className="w-full text-sm font-medium px-3 py-2 rounded-[var(--radius)] border border-[var(--app-border)] bg-[var(--app-bg)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--app-text)]"
                         />
                     </div>
 
                     {/* Currency */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        <label className="block text-[10px] font-bold text-[var(--app-text-secondary)] mb-1 uppercase tracking-widest">
                             العملة
                         </label>
                         <select
                             value={currency}
                             onChange={e => setCurrency(e.target.value)}
-                            className="w-full text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:border-emerald-400 transition-all text-slate-700 dark:text-slate-300"
+                            className="w-full text-sm font-medium px-3 py-2 rounded-[var(--radius)] border border-[var(--app-border)] bg-[var(--app-bg)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--app-text)]"
                         >
                             {CURRENCIES.map(c => (
                                 <option key={c} value={c}>{c}</option>
@@ -97,7 +98,7 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
 
                     {/* Opening Balance */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        <label className="block text-[10px] font-bold text-[var(--app-text-secondary)] mb-1 uppercase tracking-widest">
                             الرصيد الافتتاحي (اختياري)
                         </label>
                         <input
@@ -106,28 +107,29 @@ export const AddTreasuryEntityModal: React.FC<AddTreasuryEntityModalProps> = ({ 
                             onChange={e => setOpeningBalance(e.target.value)}
                             min="0"
                             step="0.01"
-                            className="w-full text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:border-emerald-400 transition-all text-slate-700 dark:text-slate-300"
+                            className="w-full text-sm font-medium px-3 py-2 rounded-[var(--radius)] border border-[var(--app-border)] bg-[var(--app-bg)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all text-[var(--app-text)] font-mono"
+                            dir="ltr"
                         />
                     </div>
 
                     {/* Info note */}
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-3 py-2">
+                    <p className="text-[10px] text-[var(--app-text-secondary)] bg-[var(--app-surface-hover)] px-3 py-2 border border-[var(--app-border)]">
                         سيتم إنشاء حساب محاسبي مرتبط تلقائياً في شجرة الحسابات.
                     </p>
 
                     {/* Actions */}
-                    <div className="flex  max-md:gap-3 pt-2">
+                    <div className="flex gap-3 max-md:gap-2 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="flex-1 px-4 py-2.5 text-sm font-bold border border-[var(--app-border)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] transition-colors rounded-[var(--radius)]"
                         >
                             إلغاء
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading || !name.trim()}
-                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center  max-md:gap-2 ${btnColor} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`flex-1 px-4 py-2.5 text-sm font-bold text-white transition-all flex items-center justify-center gap-2 max-md:gap-1.5 rounded-[var(--radius)] ${btnColor} disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {isLoading ? (
                                 <>

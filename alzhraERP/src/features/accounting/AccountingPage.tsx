@@ -2,10 +2,9 @@ import React, {  useMemo, Suspense, lazy } from 'react';
 // Fix: Corrected import path to point to the barrel file.
 import { useJournalMutation, useAccountingView } from './hooks/index';
 import { AccountingView } from './types/index';
-import { Calculator, Plus, FileText,  Calendar, BookOpen,  Landmark, Layers, LayoutDashboard,  RefreshCw, ShieldCheck, Wallet } from 'lucide-react';
+import { Calculator, Plus, FileText,  Calendar, BookOpen,  Landmark, Layers, LayoutDashboard,  RefreshCw, Wallet } from 'lucide-react';
 import MicroHeader from '../../ui/base/MicroHeader';
 import PageLoader from '../../ui/base/PageLoader';
-// import { cn } from '../../core/utils';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import FullscreenContainer from '../../ui/base/FullscreenContainer';
 import { useState } from 'react';
@@ -14,6 +13,7 @@ import { cn } from '../../core/utils';
 import type { LucideIcon } from 'lucide-react';
 import { DOMAIN_KEYS } from '../../lib/invalidation';
 import type { JournalEntryFormData } from './types/models';
+import Button from '../../ui/base/Button';
 
 // إبطال موجّه لمفاتيح صفحة المحاسبة ذاتها فقط — بدل الإبطال الشامل لكاش التطبيق كله.
 // (نفس تغطية preset «journal» من lib/invalidation + مفاتيح الخزينة والتقارير المحاسبية.)
@@ -86,18 +86,24 @@ const AccountingPage: React.FC = () => {
   ];
 
   const headerActions = (
-    <div className="flex gap-1.5 print:hidden">
-      <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg">
-        <ShieldCheck size={14} className="text-emerald-600" />
-        <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Financial Core Active</span>
-      </div>
-      <button
+    <div className="flex gap-2 print:hidden">
+      <Button
         onClick={openJournalModal}
-        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 shadow-lg shadow-blue-500/20 transition-all"
+        variant="primary"
+        size="sm"
+        leftIcon={<Plus size={14} strokeWidth={3} />}
+        className="hidden sm:inline-flex uppercase tracking-tighter"
       >
-        <Plus size={14} strokeWidth={3} />
-        <span className="hidden sm:inline uppercase tracking-tighter">{t('new_journal_entry')}</span>
-      </button>
+        {t('new_journal_entry')}
+      </Button>
+      <Button
+        onClick={openJournalModal}
+        variant="primary"
+        size="sm"
+        aria-label={t('new_journal_entry')}
+        leftIcon={<Plus size={14} strokeWidth={3} />}
+        className="sm:hidden"
+      />
     </div>
   );
 
@@ -106,18 +112,18 @@ const AccountingPage: React.FC = () => {
     if (!showDateFilter) return undefined;
 
     return (
-      <div className="flex items-center gap-2 max-md:gap-1 bg-blue-50 dark:bg-blue-900/10 px-2 py-1.5 max-md:px-1.5 max-md:py-1 rounded-xl border border-blue-100 dark:border-blue-900/20 w-full md:w-fit animate-in slide-in-from-top-1 duration-300">
-        <div className="p-1.5 bg-blue-600 text-white rounded-lg shadow-sm">
+      <div className="flex items-center gap-2 max-md:gap-1 bg-blue-50 dark:bg-blue-900/10 px-2 py-1.5 max-md:px-1.5 max-md:py-1 rounded-[var(--radius)] border border-blue-100 dark:border-blue-900/20 w-full md:w-fit animate-in slide-in-from-top-1 duration-300">
+        <div className="p-1.5 bg-blue-600 text-white rounded-md">
           <Calendar size={14} />
         </div>
-        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[9px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tighter">
+        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[9px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tight">
           <div className="flex items-center gap-1.5">
             <span>{t('from_date')}:</span>
             <input
               type="date"
               value={dateRange.from}
               onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-              className="bg-white dark:bg-slate-800 border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[9px]"
+              className="bg-[var(--app-surface)] border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[10px]"
             />
           </div>
           <div className="w-px h-4 bg-blue-200 dark:bg-blue-800/50 mx-1"></div>
@@ -127,13 +133,14 @@ const AccountingPage: React.FC = () => {
               type="date"
               value={dateRange.to}
               onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-              className="bg-white dark:bg-slate-800 border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[9px]"
+              className="bg-[var(--app-surface)] border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[10px]"
             />
           </div>
         </div>
-        <button 
+        <button
           onClick={handleRefresh}
           disabled={isRefreshing}
+          aria-label="تحديث البيانات"
           className="p-1 text-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
         >
           <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />

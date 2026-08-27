@@ -86,29 +86,29 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
 
     const footer = (
         <div className="flex justify-between items-center w-full px-1">
-            <div className="flex  max-md:gap-3">
-                <div className="flex flex-col text-right">
-                    <span className="text-[7px] font-bold text-gray-400 uppercase">الفرق</span>
+            <div className="flex gap-3 max-md:gap-2">
+                <div className="flex flex-col text-start">
+                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">الفرق</span>
                     <span dir="ltr" className={`text-[11px] font-bold font-mono ${isBalanced ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {formatCurrency(Math.abs(difference))}
                     </span>
                 </div>
-                <div className="flex flex-col text-right">
-                    <span className="text-[7px] font-bold text-gray-400 uppercase">إجمالي المدين</span>
-                    <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-800 dark:text-slate-100">
+                <div className="flex flex-col text-start">
+                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">إجمالي المدين</span>
+                    <span dir="ltr" className="text-[11px] font-bold font-mono text-[var(--app-text)]">
                         {formatCurrency(totals.debit_amount)}
                     </span>
                 </div>
-                <div className="flex flex-col text-right">
-                    <span className="text-[7px] font-bold text-gray-400 uppercase">إجمالي الدائن</span>
-                    <span dir="ltr" className="text-[11px] font-bold font-mono text-gray-800 dark:text-slate-100">
+                <div className="flex flex-col text-start">
+                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">إجمالي الدائن</span>
+                    <span dir="ltr" className="text-[11px] font-bold font-mono text-[var(--app-text)]">
                         {formatCurrency(totals.credit_amount)}
                     </span>
                 </div>
             </div>
-            <div className="flex  max-md:gap-1">
-                <button onClick={onClose} className="px-4 py-2 text-[10px] font-bold text-gray-400 bg-white dark:bg-slate-800 border dark:border-slate-700 uppercase">إلغاء</button>
-                <Button onClick={handleSubmit(onSubmit)} isLoading={isCreating} disabled={!isBalanced || isCreating} className="rounded-none text-[10px] font-bold bg-blue-600 border-blue-700 uppercase">
+            <div className="flex gap-1 max-md:gap-1">
+                <Button variant="ghost" size="sm" onClick={onClose}>إلغاء</Button>
+                <Button onClick={handleSubmit(onSubmit)} isLoading={isCreating} disabled={!isBalanced || isCreating} variant="primary" size="sm">
                     اعتماد الأرصدة
                 </Button>
             </div>
@@ -125,21 +125,21 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
             footer={footer}
         >
             <div className="flex flex-col h-[500px]">
-                <div className="flex items-center  max-md:gap-2  max-md:p-2 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-900 sticky top-0 z-10">
+                <div className="flex items-center gap-2 max-md:gap-2 p-2 max-md:p-1.5 border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] sticky top-0 z-10">
                     <div className="relative flex-1">
-                        <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                        <Search className="absolute end-2 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]" size={12} />
                         <input
                             type="text"
                             placeholder="بحث سريع..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="w-full pr-7 pl-2 py-1.5 bg-white dark:bg-slate-800 border dark:border-slate-700 text-[10px] font-bold outline-none"
+                            className="w-full ps-7 pe-2 py-1.5 bg-[var(--app-surface)] border border-[var(--app-border)] text-[10px] font-bold text-[var(--app-text)] outline-none rounded-[var(--radius)]"
                         />
                     </div>
                     <input
                         type="date"
                         {...register('date')}
-                        className="w-28 py-1.5 px-2 bg-white dark:bg-slate-800 border dark:border-slate-700 text-[9px] font-bold outline-none"
+                        className="w-28 py-1.5 px-2 bg-[var(--app-surface)] border border-[var(--app-border)] text-[10px] font-bold text-[var(--app-text)] outline-none rounded-[var(--radius)]"
                         dir="ltr"
                     />
                 </div>
@@ -149,36 +149,36 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
                         <div className="p-20 max-md:p-6 text-center"><Spinner /></div>
                     ) : (
                         <table className="w-full border-collapse">
-                            <thead className="bg-gray-50 dark:bg-slate-800 text-[8px] font-bold text-gray-400 dark:text-slate-500 uppercase sticky top-0 z-10 border-b dark:border-slate-700">
+                            <thead className="bg-[var(--app-surface-hover)] text-[10px] font-bold text-[var(--app-text-secondary)] uppercase sticky top-0 z-10 border-b border-[var(--app-border)]">
                                 <tr>
-                                    <th className=" max-md:p-2 text-right">الحساب</th>
-                                    <th className=" max-md:p-2 text-left w-20 bg-emerald-50/20">مدين</th>
-                                    <th className=" max-md:p-2 text-left w-20 bg-rose-50/20">دائن</th>
+                                    <th className="p-2 max-md:p-1.5 text-start">الحساب</th>
+                                    <th className="p-2 max-md:p-1.5 text-start w-20 bg-emerald-50/20">مدين</th>
+                                    <th className="p-2 max-md:p-1.5 text-start w-20 bg-rose-50/20">دائن</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y dark:divide-slate-800">
+                            <tbody className="divide-y divide-[var(--app-border)]">
                                 {filteredFields.map((field) => {
                                     const account = accounts?.find(acc => acc.id === field.account_id);
                                     return (
                                         <tr key={field.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/5 transition-colors">
-                                            <td className=" max-md:p-2">
-                                                <div className="text-[10px] font-bold text-gray-800 dark:text-slate-200">{account?.name}</div>
-                                                <div className="text-[7px] font-mono text-gray-400">{account?.code}</div>
+                                            <td className="p-2 max-md:p-1.5">
+                                                <div className="text-[10px] font-bold text-[var(--app-text)]">{account?.name}</div>
+                                                <div className="text-[10px] font-mono text-[var(--app-text-secondary)]">{account?.code}</div>
                                             </td>
-                                            <td className=" max-md:p-0 border-r dark:border-slate-800">
+                                            <td className="p-0 max-md:p-0 border-s border-[var(--app-border)]">
                                                 <input
                                                     type="number" step="0.01"
                                                     {...register(`lines.${field.index}.debit_amount`, { valueAsNumber: true })}
-                                                    className="w-full h-full  max-md:p-2 bg-transparent text-[10px] font-bold font-mono text-emerald-600 outline-none focus:bg-emerald-50 dark:focus:bg-emerald-900/10"
+                                                    className="w-full h-full p-2 max-md:p-1.5 bg-transparent text-[10px] font-bold font-mono text-emerald-600 outline-none focus:bg-emerald-50 dark:focus:bg-emerald-900/10"
                                                     dir="ltr"
                                                     onChange={(e) => { if (parseFloat(e.target.value) > 0) setValue(`lines.${field.index}.credit_amount`, 0); }}
                                                 />
                                             </td>
-                                            <td className=" max-md:p-0">
+                                            <td className="p-0 max-md:p-0">
                                                 <input
                                                     type="number" step="0.01"
                                                     {...register(`lines.${field.index}.credit_amount`, { valueAsNumber: true })}
-                                                    className="w-full h-full  max-md:p-2 bg-transparent text-[10px] font-bold font-mono text-rose-600 outline-none focus:bg-rose-50 dark:focus:bg-rose-900/10"
+                                                    className="w-full h-full p-2 max-md:p-1.5 bg-transparent text-[10px] font-bold font-mono text-rose-600 outline-none focus:bg-rose-50 dark:focus:bg-rose-900/10"
                                                     dir="ltr"
                                                     onChange={(e) => { if (parseFloat(e.target.value) > 0) setValue(`lines.${field.index}.debit_amount`, 0); }}
                                                 />

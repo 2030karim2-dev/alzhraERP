@@ -1,10 +1,13 @@
 import { logger } from '../../../core/utils/logger';
 
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils';
 import { useAuditJournals } from '../hooks/useReports';
 import { useFeedbackStore } from '../../../features/feedback/store';
+import Modal from '../../../ui/base/Modal';
+import Button from '../../../ui/base/Button';
+import Card from '../../../ui/base/Card';
 
 interface AuditResult {
     id: string;
@@ -84,7 +87,7 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
         setResults(auditResults);
         setSummary({ total: entries?.length || 0, unbalanced: unbalancedCount, errors: errorCount });
         setIsAuditing(false); // Stop the loading state after processing
-    }, [isAuditing, isLoading, entries, fetchError]);
+    }, [isAuditing, isLoading, entries, fetchError, showToast]);
 
     const runAudit = () => {
         setResults([]);
@@ -92,124 +95,120 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
         setIsAuditing(true);
     };
 
+    const footer = (
+        <Button variant="primary" size="md" onClick={runAudit} disabled={isLoading}>
+            {isLoading ? 'جاري الفحص...' : 'إعادة الفحص'}
+        </Button>
+    );
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm  max-md:p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-slate-800">
+        <Modal
+            isOpen
+            onClose={onClose}
+            icon={ShieldCheck}
+            title="فحص سلامة النظام المحاسبي"
+            description="مراجعة توازن القيود واكتشاف الأخطاء"
+            size="2xl"
+            footer={footer}
+        >
+            <div className="space-y-4">
 
-                {/* Header */}
-                <div className="p-6 max-md:p-3 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center">
-                    <div className="flex items-center  max-md:gap-3">
-                        <div className=" max-md:p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                            <ShieldCheck size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">فحص سلامة النظام المحاسبي</h2>
-                            <p className="text-sm text-gray-500">مراجعة توازن القيود واكتشاف الأخطاء</p>
-                        </div>
+                {!isLoading && results.length === 0 && summary.total === 0 && (
+                    <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <ShieldCheck size={64} className="text-[var(--app-text-secondary)] opacity-40 mb-4" />
+                        <h3 className="text-base font-bold text-[var(--app-text)]">النظام جاهز للفحص</h3>
+                        <p className="text-[var(--app-text-secondary)] max-w-md mx-auto mt-2 text-sm">اضغط على زر "بدء الفحص" لمراجعة جميع القيود المحاسبية والتأكد من توازن الدائن والمدين.</p>
+                        <Button
+                            onClick={runAudit}
+                            variant="primary"
+                            size="md"
+                            className="mt-6"
+                            leftIcon={<ShieldCheck size={18} />}
+                        >
+                            بدء الفحص الشامل
+                        </Button>
                     </div>
-                    <button onClick={onClose} className=" max-md:p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 hover:text-red-500">
-                        <X size={20} />
-                    </button>
-                </div>
+                )}
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 max-md:p-3 bg-gray-50/50 dark:bg-slate-950/50">
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center h-64 text-center animate-in fade-in">
+                        <Loader2 size={48} className="text-indigo-600 animate-spin mb-4" />
+                        <h3 className="text-base font-bold text-[var(--app-text)]">جاري فحص القيود...</h3>
+                        <p className="text-[var(--app-text-secondary)] text-sm">يرجى الانتظار، يتم تحليل البيانات</p>
+                    </div>
+                )}
 
-                    {!isLoading && results.length === 0 && summary.total === 0 && (
-                        <div className="flex flex-col items-center justify-center h-64 text-center">
-                            <ShieldCheck size={64} className="text-gray-300 mb-4" />
-                            <h3 className="text-lg font-bold text-gray-600 dark:text-gray-300">النظام جاهز للفحص</h3>
-                            <p className="text-gray-400 max-w-md mx-auto mt-2">اضغط على زر "بدء الفحص" لمراجعة جميع القيود المحاسبية والتأكد من توازن الدائن والمدين.</p>
-                            <button
-                                onClick={runAudit}
-                                className="mt-6 max-md:mt-3 px-8 max-md:px-3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center  max-md:gap-2"
-                            >
-                                <ShieldCheck size={20} />
-                                بدء الفحص الشامل
-                            </button>
+                {!isLoading && summary.total > 0 && (
+                    <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-md:gap-3">
+                            <Card variant="ledger" className="p-3 max-md:p-2">
+                                <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest">إجمالي القيود</span>
+                                <div className="text-2xl max-md:text-lg font-bold text-[var(--app-text)] mt-1">{summary.total}</div>
+                            </Card>
+                            <Card variant="ledger" className="p-3 max-md:p-2 border-rose-200 dark:border-rose-900/50">
+                                <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">غير متوازنة (Unbalanced)</span>
+                                <div className="text-2xl max-md:text-lg font-bold text-rose-600 mt-1">{summary.unbalanced}</div>
+                            </Card>
+                            <Card variant="ledger" className="p-3 max-md:p-2 border-amber-200 dark:border-amber-900/50">
+                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">أخطاء (Errors)</span>
+                                <div className="text-2xl max-md:text-lg font-bold text-amber-600 mt-1">{summary.errors}</div>
+                            </Card>
                         </div>
-                    )}
 
-                    {isLoading && (
-                        <div className="flex flex-col items-center justify-center h-64 text-center animate-in fade-in">
-                            <Loader2 size={48} className="text-indigo-600 animate-spin mb-4" />
-                            <h3 className="text-lg font-bold text-gray-600 dark:text-gray-300">جاري فحص القيود...</h3>
-                            <p className="text-gray-400">يرجى الانتظار، يتم تحليل البيانات</p>
-                        </div>
-                    )}
-
-                    {!isLoading && summary.total > 0 && (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                            {/* Summary Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3  max-md:gap-4">
-                                <div className="bg-white dark:bg-slate-900  max-md:p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">إجمالي القيود</span>
-                                    <div className="text-2xl max-md:text-lg font-bold text-gray-800 dark:text-white mt-1">{summary.total}</div>
-                                </div>
-                                <div className="bg-white dark:bg-slate-900  max-md:p-4 rounded-xl border border-rose-100 dark:border-rose-900/30 shadow-sm">
-                                    <span className="text-xs font-bold text-rose-400 uppercase tracking-widest">غير متوازنة (Unbalanced)</span>
-                                    <div className="text-2xl max-md:text-lg font-bold text-rose-600 mt-1">{summary.unbalanced}</div>
-                                </div>
-                                <div className="bg-white dark:bg-slate-900  max-md:p-4 rounded-xl border border-amber-100 dark:border-amber-900/30 shadow-sm">
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">أخطاء (Errors)</span>
-                                    <div className="text-2xl max-md:text-lg font-bold text-amber-600 mt-1">{summary.errors}</div>
-                                </div>
-                            </div>
-
-                            {/* Results Table */}
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                                <div className=" max-md:p-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex justify-between items-center">
-                                    <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center  max-md:gap-2">
-                                        {results.length > 0 ? <AlertTriangle size={18} className="text-rose-500" /> : <CheckCircle size={18} className="text-emerald-500" />}
-                                        نتائج الفحص التفصيلية
-                                    </h3>
-                                    {results.length === 0 && (
-                                        <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">نظامك سليم 100%</span>
-                                    )}
-                                </div>
-
-                                {results.length > 0 ? (
-                                    <table className="w-full text-sm text-right">
-                                        <thead className="bg-gray-50 dark:bg-slate-800 text-gray-500">
-                                            <tr>
-                                                <th className=" max-md:p-4">رقم القيد / التاريخ</th>
-                                                <th className=" max-md:p-4">الوصف</th>
-                                                <th className=" max-md:p-4 text-left">المدين</th>
-                                                <th className=" max-md:p-4 text-left">الدائن</th>
-                                                <th className=" max-md:p-4">الحالة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                                            {results.map(res => (
-                                                <tr key={res.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                                    <td className=" max-md:p-4">
-                                                        <div className="font-mono text-xs text-gray-400">{res.id.slice(0, 8)}</div>
-                                                        <div className="font-bold text-gray-700 dark:text-gray-300">{res.date}</div>
-                                                    </td>
-                                                    <td className=" max-md:p-4 text-gray-600 dark:text-gray-400">{res.message}</td>
-                                                    <td className=" max-md:p-4 text-left font-mono font-bold text-gray-800 dark:text-gray-200">{formatCurrency(res.debit_amount)}</td>
-                                                    <td className=" max-md:p-4 text-left font-mono font-bold text-gray-800 dark:text-gray-200">{formatCurrency(res.credit_amount)}</td>
-                                                    <td className=" max-md:p-4">
-                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${res.status === 'unbalanced' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                            {res.status.toUpperCase()}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                ) : (
-                                    <div className="p-12 max-md:p-5 text-center text-gray-400">
-                                        <CheckCircle size={48} className="mx-auto text-emerald-500 mb-4 opacity-50" />
-                                        <p>لم يتم العثور على أي قيود غير متوازنة.</p>
-                                    </div>
+                        {/* Results Table */}
+                        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] overflow-hidden shadow-sm">
+                            <div className="p-3 max-md:p-2 border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] flex justify-between items-center">
+                                <h3 className="font-bold text-[var(--app-text)] flex items-center gap-2 text-sm">
+                                    {results.length > 0 ? <AlertTriangle size={18} className="text-rose-500" /> : <CheckCircle size={18} className="text-emerald-500" />}
+                                    نتائج الفحص التفصيلية
+                                </h3>
+                                {results.length === 0 && (
+                                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold">نظامك سليم 100%</span>
                                 )}
                             </div>
-                        </div>
-                    )}
 
-                </div>
+                            {results.length > 0 ? (
+                                <table className="w-full text-sm text-start">
+                                    <thead className="bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)]">
+                                        <tr>
+                                            <th className="p-3 max-md:p-2">رقم القيد / التاريخ</th>
+                                            <th className="p-3 max-md:p-2">الوصف</th>
+                                            <th className="p-3 max-md:p-2 text-start">المدين</th>
+                                            <th className="p-3 max-md:p-2 text-start">الدائن</th>
+                                            <th className="p-3 max-md:p-2">الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[var(--app-border)]">
+                                        {results.map(res => (
+                                            <tr key={res.id} className="hover:bg-[var(--app-surface-hover)]">
+                                                <td className="p-3 max-md:p-2">
+                                                    <div className="font-mono text-xs text-[var(--app-text-secondary)]">{res.id.slice(0, 8)}</div>
+                                                    <div className="font-bold text-[var(--app-text)] text-xs">{res.date}</div>
+                                                </td>
+                                                <td className="p-3 max-md:p-2 text-[var(--app-text-secondary)] text-xs">{res.message}</td>
+                                                <td className="p-3 max-md:p-2 text-start font-mono font-bold text-[var(--app-text)] text-xs">{formatCurrency(res.debit_amount)}</td>
+                                                <td className="p-3 max-md:p-2 text-start font-mono font-bold text-[var(--app-text)] text-xs">{formatCurrency(res.credit_amount)}</td>
+                                                <td className="p-3 max-md:p-2">
+                                                    <span className={`px-2 py-1 text-[10px] font-bold ${res.status === 'unbalanced' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                        {res.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="p-12 max-md:p-5 text-center text-[var(--app-text-secondary)]">
+                                    <CheckCircle size={48} className="mx-auto text-emerald-500 mb-4 opacity-50" />
+                                    <p>لم يتم العثور على أي قيود غير متوازنة.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
             </div>
-        </div>
+        </Modal>
     );
 };

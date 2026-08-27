@@ -32,7 +32,12 @@ const TreasurySummaryStats: React.FC<Props> = ({ accountId, dateRange }) => {
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-md:gap-3 mb-6 max-md:mb-3">
-                {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 dark:bg-slate-800 animate-pulse rounded-lg"></div>)}
+                {[1, 2, 3].map(i => (
+                    <div
+                        key={i}
+                        className="h-24 bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm animate-pulse"
+                    />
+                ))}
             </div>
         );
     }

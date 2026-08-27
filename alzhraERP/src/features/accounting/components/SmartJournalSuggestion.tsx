@@ -36,18 +36,18 @@ const SmartJournalSuggestion: React.FC<Props> = ({ description, amount }) => {
                     اقتراح القيد المحاسبي بالذكاء الاصطناعي
                 </button>
             ) : (
-                <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/30 rounded-xl p-3 space-y-2">
-                    <p className="text-[9px] font-bold text-violet-600 uppercase">اقتراح AI للقيد المحاسبي</p>
+                <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/30 p-3 space-y-2 rounded-[var(--radius)]">
+                    <p className="text-[10px] font-bold text-violet-600 uppercase">اقتراح AI للقيد المحاسبي</p>
                     <div className="flex items-center gap-2 text-xs">
-                        <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-lg font-bold flex-1 text-center">
+                        <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold flex-1 text-center rounded-[var(--radius)]">
                             مدين: {result.debitAccount}
                         </span>
-                        <ArrowLeftRight size={12} className="text-gray-400 flex-shrink-0" />
-                        <span className="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-lg font-bold flex-1 text-center">
+                        <ArrowLeftRight size={12} className="text-[var(--app-text-secondary)] shrink-0" />
+                        <span className="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 font-bold flex-1 text-center rounded-[var(--radius)]">
                             دائن: {result.creditAccount}
                         </span>
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-slate-400">{result.explanation}</p>
+                    <p className="text-[10px] text-[var(--app-text-secondary)]">{result.explanation}</p>
                 </div>
             )}
         </div>

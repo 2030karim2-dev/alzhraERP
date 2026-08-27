@@ -28,11 +28,13 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
 
   const footer = (
     <>
-      <button onClick={onClose} className="flex-1 py-3 text-[10px] font-bold text-gray-400 bg-white dark:bg-slate-800 border dark:border-slate-700 uppercase">إلغاء</button>
+      <button onClick={onClose} className="flex-1 py-3 text-[10px] font-bold text-[var(--app-text-secondary)] bg-[var(--app-surface)] border border-[var(--app-border)] uppercase hover:bg-[var(--app-surface-hover)] transition-colors">إلغاء</button>
       <Button
         onClick={handleSubmit(onSubmit)}
         isLoading={isSubmitting}
-        className="flex-[2] rounded-none text-[10px] font-bold bg-blue-600 border-blue-700 shadow-none uppercase"
+        variant="primary"
+        size="md"
+        className="flex-[2]"
         leftIcon={<Save size={14} />}
       >
         حفظ الحساب
@@ -70,11 +72,11 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           </div>
         </div>
 
-        <div className="flex flex-col border-b dark:border-slate-800">
-          <label className="text-[8px] font-bold text-gray-400 px-2 py-1 bg-gray-50 dark:bg-slate-800/30 uppercase tracking-widest">نوع الحساب (Account Classification)</label>
+        <div className="flex flex-col border-b border-[var(--app-border)]">
+          <label className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest">نوع الحساب (Account Classification)</label>
           <select
             {...register('type', { required: true })}
-            className="bg-white dark:bg-slate-900 text-[10px] font-bold p-3 outline-none appearance-none dark:text-white border-b dark:border-slate-800"
+            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
           >
             <option value="asset">أصول (Assets)</option>
             <option value="liability">خصوم (Liabilities)</option>
@@ -84,12 +86,12 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           </select>
         </div>
 
-        <div className="flex flex-col border-b dark:border-slate-800">
-          <label htmlFor="account-currency" className="text-[8px] font-bold text-gray-400 px-2 py-1 bg-gray-50 dark:bg-slate-800/30 uppercase tracking-widest">العملة (Currency)</label>
+        <div className="flex flex-col border-b border-[var(--app-border)]">
+          <label htmlFor="account-currency" className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest">العملة (Currency)</label>
           <select
             id="account-currency"
             {...register('currency_code')}
-            className="bg-white dark:bg-slate-900 text-[10px] font-bold p-3 outline-none appearance-none dark:text-white border-b dark:border-slate-800"
+            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
           >
             <option value="SAR">SAR — ريال سعودي</option>
             <option value="YER">YER — ريال يمني</option>
@@ -99,14 +101,14 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           </select>
         </div>
 
-        <div className="flex flex-col border-b dark:border-slate-800">
-          <label className="text-[8px] font-bold text-gray-400 px-2 py-1 bg-gray-50 dark:bg-slate-800/30 uppercase tracking-widest flex items-center gap-2">
+        <div className="flex flex-col border-b border-[var(--app-border)]">
+          <label className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest flex items-center gap-2">
             <FolderTree size={10} />
             الحساب الرئيسي (اختياري)
           </label>
           <select
             {...register('parent_id')}
-            className="bg-white dark:bg-slate-900 text-[10px] font-bold p-3 outline-none appearance-none dark:text-white"
+            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
           >
             <option value="">-- حساب رئيسي (Root) --</option>
             {potentialParents.map(acc => (
@@ -119,7 +121,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
 
         <div className="bg-blue-50/20 dark:bg-blue-900/5 p-3 flex gap-2 items-center">
           <Book size={14} className="text-blue-500 shrink-0" />
-          <p className="text-[9px] font-bold text-blue-800 dark:text-blue-400 leading-tight">
+          <p className="text-[10px] font-bold text-blue-800 dark:text-blue-400 leading-tight">
             سيتم إضافة هذا الحساب بشكل آلي إلى دفتر الأستاذ العام وسيكون متاحاً لترحيل القيود فور حفظه.
           </p>
         </div>

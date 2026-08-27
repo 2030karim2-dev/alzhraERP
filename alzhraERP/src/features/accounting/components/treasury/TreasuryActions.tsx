@@ -9,17 +9,19 @@ interface Props {
 
 const TreasuryActions: React.FC<Props> = ({ onAction, onPrint }) => {
     return (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
             <Button
                 onClick={() => onAction('receipt')}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                variant="success"
+                className="flex-1"
                 leftIcon={<ArrowDownLeft size={16} />}
             >
                 سند قبض
             </Button>
             <Button
                 onClick={() => onAction('payment')}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                variant="danger"
+                className="flex-1"
                 leftIcon={<ArrowUpRight size={16} />}
             >
                 سند صرف
@@ -27,7 +29,7 @@ const TreasuryActions: React.FC<Props> = ({ onAction, onPrint }) => {
             <Button
                 onClick={() => onAction('transfer')}
                 variant="outline"
-                className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-50 bg-white"
+                className="flex-1"
                 leftIcon={<ArrowRightLeft size={16} />}
             >
                 تحويل داخلي
@@ -35,6 +37,7 @@ const TreasuryActions: React.FC<Props> = ({ onAction, onPrint }) => {
             <Button
                 onClick={onPrint}
                 variant="secondary"
+                aria-label="طباعة"
                 className="px-3"
             >
                 <Printer size={18} />
