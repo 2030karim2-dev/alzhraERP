@@ -148,7 +148,7 @@ const bindChannelListeners = (
   queryClient: QueryClient
 ): RealtimeChannel => {
   let lastInvalidated = 0;
-  const THROTTLE_MS = 5000;
+  const THROTTLE_MS = 3000;
 
   const handleChange = (payload: RealtimeChangePayload): void => {
     useConnectionStore.getState().reportRealtimeEvent();
@@ -163,11 +163,7 @@ const bindChannelListeners = (
     }
   };
 
-  let bound = channel;
-  for (const table of TABLE_PRESET_MAP.keys()) {
-    bound = bound.on('postgres_changes', { event: '*', schema: 'public', table }, handleChange);
-  }
-  return bound;
+  return channel.on('postgres_changes', { event: '*', schema: 'public' }, handleChange);
 };
 
 const setupCompanyRealtimeChannel = (companyId: string, queryClient: QueryClient): void => {

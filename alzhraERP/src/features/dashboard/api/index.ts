@@ -38,17 +38,24 @@ function dashboardRpc(name: string, args: Record<string, unknown>, signal: Abort
 // branches on `error` presence and re-casts `data` to the expected T.
 type DashResult = PromiseSettledResult<{ data: unknown; error: { code?: string; message?: string } | null }>;
 
+function isAbort(err: unknown): boolean {
+    if (!err) return false;
+    if (typeof err === 'object') {
+        const anyErr = err as { name?: string; message?: string };
+        if (anyErr.name === 'AbortError') return true;
+        if (typeof anyErr.message === 'string' && anyErr.message.toLowerCase().includes('abort')) return true;
+    }
+    return false;
+}
+
 // Helper to extract data or fall back gracefully on RPC failure.
-// IMPORTANT: we deliberately do NOT throw here. The dashboard widgets
-// must keep rendering with zeroed/empty fallbacks when a dashboard RPC
-// is missing or temporarily failing (e.g. PGRST202 404), instead of
-// taking the whole page down and triggering endless refetch loops.
-// Failures are logged ONCE per session (logOnce) and cached so the same
-// broken RPC is not retried every dashboard load.
 function safeData<T>(result: DashResult, fallback: T, name = 'RPC'): T {
     if (result.status === 'fulfilled') {
         if (result.value.error) {
             const err = result.value.error;
+            if (isAbort(err)) {
+                return fallback;
+            }
             const detail = toDetail(err.message);
             // Only blacklist permanently if the RPC actually does not exist in Postgres (PGRST202)
             if (err.code === 'PGRST202') {
@@ -64,7 +71,7 @@ function safeData<T>(result: DashResult, fallback: T, name = 'RPC'): T {
     }
     const reason = result.reason as { name?: string; message?: string } | null | undefined;
     // Requests aborted or transiently rejected are not missing schema RPCs — do not blacklist
-    if (reason?.name === 'AbortError') {
+    if (isAbort(reason)) {
         return fallback;
     }
     const detail = toDetail(reason?.message);
