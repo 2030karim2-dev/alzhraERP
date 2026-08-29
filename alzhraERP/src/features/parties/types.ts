@@ -1,5 +1,4 @@
-
-import { Database } from '../../core/database.types';
+import type { Database } from '../../core/database.types';
 
 export type PartyType = 'customer' | 'supplier';
 export type PartyStatus = 'active' | 'blocked';
@@ -12,6 +11,7 @@ export type Party = Database['public']['Tables']['parties']['Row'] & {
   tax_number?: string;
   address?: string;
   balance?: number;
+  balances_by_currency?: Array<{ currency: string; balance: number; transaction_count?: number }>;
 };
 
 export interface PartyFormData {
@@ -35,6 +35,8 @@ export interface PartyStats {
   activeCount: number;
   /** Count of parties whose `status` is `blocked`. */
   blockedCount: number;
+  /** Breakdown of total balances by currency (e.g. SAR, YER). */
+  byCurrency?: Array<{ currency: string; balance: number; count: number }>;
 }
 
 export interface PartyCategory {

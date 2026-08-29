@@ -28,21 +28,21 @@ export const CustomerSegmentation: React.FC<CustomerSegmentationProps> = () => {
             <div className="grid grid-cols-3 gap-2.5">
                 <div className="text-center p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                     <div className="text-lg font-bold font-mono text-blue-500 leading-tight">{totalCustomers}</div>
-                    <div className="text-[9px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
+                    <div className="text-[10px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
                         <Users size={10} />
                         إجمالي
                     </div>
                 </div>
                 <div className="text-center p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                     <div className="text-lg font-bold font-mono text-emerald-500 leading-tight">{activeCustomers}</div>
-                    <div className="text-[9px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
+                    <div className="text-[10px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
                         <UserCheck size={10} />
                         نشطون
                     </div>
                 </div>
                 <div className="text-center p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
                     <div className="text-lg font-bold font-mono text-purple-500 leading-tight">{vipCustomers}</div>
-                    <div className="text-[9px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
+                    <div className="text-[10px] font-bold text-[var(--app-text-secondary)] mt-1 flex items-center justify-center gap-1">
                         <Crown size={10} />
                         VIP
                     </div>

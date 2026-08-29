@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, CreditCard, ShoppingCart, AlertCircle } from 'lucide-react';
-import { PartyStats, PartyType } from '../types';
+import type { PartyStats, PartyType } from '../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 
@@ -70,6 +70,20 @@ const PartiesStats: React.FC<Props> = ({ stats, type }) => {
             <h3 className="text-xl md:text-2xl font-bold text-white font-mono leading-none tracking-tighter truncate drop-shadow-sm">
               {card.value}
             </h3>
+
+            {idx === 1 && stats.byCurrency && stats.byCurrency.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {stats.byCurrency.map((c) => (
+                  <span
+                    key={c.currency}
+                    dir="ltr"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded bg-black/20 text-white/90 text-[10px] font-mono font-bold"
+                  >
+                    {formatCurrency(c.balance, c.currency)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ))}

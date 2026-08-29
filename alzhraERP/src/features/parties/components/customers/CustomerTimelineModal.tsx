@@ -92,7 +92,7 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
     return (
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+                <div className="bg-[var(--app-surface)] rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
                         <div className="flex items-center gap-3">

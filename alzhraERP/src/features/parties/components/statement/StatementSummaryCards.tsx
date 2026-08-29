@@ -18,7 +18,7 @@ export const StatementSummaryCards: React.FC<StatementSummaryCardsProps> = ({ mo
   const absBalance = Math.abs(finalBalance);
 
   return (
-    <div className="mt-5 screen:max-md:mt-3 p-5 screen:max-md:p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg shadow-blue-500/5 overflow-hidden relative group">
+    <div className="mt-5 screen:max-md:mt-3 p-5 screen:max-md:p-3 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg shadow-blue-500/5 overflow-hidden relative group">
       {/* Background Accent */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-blue-500/10 transition-colors no-print" />
 

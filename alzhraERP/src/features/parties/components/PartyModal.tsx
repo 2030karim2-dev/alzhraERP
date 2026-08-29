@@ -103,7 +103,7 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
       >
         <form className="flex flex-col overflow-hidden">
           {/* Section 1: Core Identity */}
-          <div className="p-6 bg-white dark:bg-slate-900 space-y-5">
+          <div className="p-6 bg-[var(--app-surface)] space-y-5">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] flex items-center gap-2">
                 <User size={14} />
@@ -114,7 +114,7 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
                   type="button"
                   onClick={() => setValue('status', 'active')}
                   className={cn(
-                    "flex-1 rounded-lg text-[9px] font-bold transition-all duration-300",
+                    "flex-1 rounded-lg text-[10px] font-bold transition-all duration-300",
                     currentStatus === 'active'
                       ? "bg-white dark:bg-slate-600 text-emerald-600 shadow-sm"
                       : "text-gray-400 hover:text-gray-500"
@@ -126,7 +126,7 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
                   type="button"
                   onClick={() => setValue('status', 'blocked')}
                   className={cn(
-                    "flex-1 rounded-lg text-[9px] font-bold transition-all duration-300",
+                    "flex-1 rounded-lg text-[10px] font-bold transition-all duration-300",
                     currentStatus === 'blocked'
                       ? "bg-white dark:bg-slate-600 text-rose-600 shadow-sm"
                       : "text-gray-400 hover:text-gray-500"
@@ -190,21 +190,21 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSubmit, isSu
                 label={t('phone_number')}
                 {...register('phone')}
                 dir="ltr"
-                className="bg-white dark:bg-slate-900 font-mono"
+                className="bg-[var(--app-surface)] font-mono"
               />
               <Input
                 label={t('email_address')}
                 {...register('email')}
                 type="email"
                 dir="ltr"
-                className="bg-white dark:bg-slate-900 font-mono"
+                className="bg-[var(--app-surface)] font-mono"
               />
             </div>
 
             <Input
               label={t('address')}
               {...register('address')}
-              className="bg-white dark:bg-slate-900"
+              className="bg-[var(--app-surface)]"
             />
           </div>
         </form>

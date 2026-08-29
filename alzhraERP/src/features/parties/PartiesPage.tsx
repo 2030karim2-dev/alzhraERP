@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Users, UserPlus, FileText, LayoutGrid, Edit, Trash2, History, LucideIcon } from 'lucide-react';
+import { Users, UserPlus, FileText, LayoutGrid, Edit, Trash2, History } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useParties, usePartyMutations, usePartiesView } from './hooks';
-import { Party, PartyView, PartyType, PartyFormData } from './types';
+import type { Party, PartyView, PartyType, PartyFormData } from './types';
 import { useAIPrefillStore } from '../ai/store';
 import MicroHeader from '../../ui/base/MicroHeader';
 import PartiesStats from './components/PartiesStats';
-import ExcelTable, { Column } from '../../ui/common/ExcelTable';
+import ExcelTable from '../../ui/common/ExcelTable';
+import type { Column } from '../../ui/common/ExcelTable';
 import PartyModal from './components/PartyModal';
 import StatementView from './components/StatementView';
 import CategoriesView from './components/CategoriesView';
@@ -118,6 +120,27 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
         {
             header: t('balance'),
             accessor: (row: Party) => {
+                const currencies = row.balances_by_currency?.filter(c => c.balance !== 0) || [];
+                if (currencies.length > 0) {
+                    return (
+                        <div className="flex flex-col items-center gap-1">
+                            {currencies.map(c => (
+                                <span
+                                    key={c.currency}
+                                    dir="ltr"
+                                    className={cn(
+                                        "text-xs font-bold font-mono tracking-tighter px-2 py-0.5 rounded-md",
+                                        c.balance > 0
+                                            ? "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40"
+                                            : "text-rose-700 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/40"
+                                    )}
+                                >
+                                    {formatCurrency(c.balance, c.currency)}
+                                </span>
+                            ))}
+                        </div>
+                    );
+                }
                 const val = Number(row.balance);
                 return (
                     <span dir="ltr" className={cn(
@@ -131,7 +154,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
             },
             accessorKey: 'balance',
             sortKey: 'balance',
-            width: '130px',
+            width: '140px',
             align: 'center'
         },
         {
@@ -201,7 +224,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                     <div className="space-y-4 animate-in fade-in duration-500">
                         <PartiesStats stats={stats} type={partyType} />
 
-                        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 min-h-[480px] flex flex-col">
+                        <div className="bg-[var(--app-surface)] border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 min-h-[480px] flex flex-col">
                             <ExcelTable
                                 columns={columns}
                                 data={parties || []}
@@ -248,7 +271,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
 
             <div className={cn(
                 "flex-1 overflow-hidden flex flex-col relative z-20",
-                isZenMode ? "bg-white dark:bg-slate-900" : ""
+                isZenMode ? "bg-[var(--app-surface)]" : ""
             )}>
                 <div className="flex-1 overflow-y-auto px-2 md:px-4 pt-5 md:pt-6 pb-24 custom-scrollbar">
                     {renderContent()}

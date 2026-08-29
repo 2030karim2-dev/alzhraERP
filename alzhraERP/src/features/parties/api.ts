@@ -12,6 +12,32 @@ const toCleanStr = (val: unknown): string | null => {
  * واجهة التفاعل مع جدول العملاء والموردين
  * تتبع هيكلية قاعدة البيانات v2.0
  */
+async function fetchPartyCurrencies(companyId: string): Promise<Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>> {
+  const { data } = await supabase
+    .from('party_balances_by_currency')
+    .select('party_id, currency_code, balance, transaction_count')
+    .eq('company_id', companyId);
+
+  const map = new Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>();
+  if (data !== null) {
+    data.forEach(c => {
+      if (typeof c.party_id === 'string' && typeof c.currency_code === 'string') {
+        const list = map.get(c.party_id) ?? [];
+        const item: { currency: string; balance: number; transaction_count?: number } = {
+          currency: c.currency_code,
+          balance: Number(c.balance) || 0,
+        };
+        if (typeof c.transaction_count === 'number') {
+          item.transaction_count = c.transaction_count;
+        }
+        list.push(item);
+        map.set(c.party_id, list);
+      }
+    });
+  }
+  return map;
+}
+
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType) => {
     const { data: partiesData, error: partiesError } = await supabase
@@ -25,8 +51,6 @@ export const partiesApi = {
     if (partiesError !== null) return { data: null, error: partiesError };
     if (partiesData.length === 0) return { data: [], error: null };
 
-    // Fetch balances separately by company_id and type to avoid PostgREST foreign key relationship
-    // errors on views and prevent massive URL length / net::ERR_FAILED when filtering with large .in() lists
     const { data: balancesData, error: balancesError } = await supabase
       .from('party_balances')
       .select('party_id, balance, type')
@@ -38,9 +62,12 @@ export const partiesApi = {
       balancesData.forEach(b => balancesMap.set(b.party_id, b));
     }
 
+    const currencyMap = await fetchPartyCurrencies(companyId);
+
     const mergedData = partiesData.map(p => ({
       ...p,
       party_balances: balancesMap.has(p.id) ? [balancesMap.get(p.id)] : [],
+      balances_by_currency: currencyMap.get(p.id) ?? [],
     }));
 
     return { data: mergedData, error: null };

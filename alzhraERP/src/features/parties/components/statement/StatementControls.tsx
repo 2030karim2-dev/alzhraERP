@@ -171,7 +171,7 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-4 max-md:p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 max-md:gap-2.5 items-end no-print shadow-sm">
+    <div className="bg-[var(--app-surface)] p-4 max-md:p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 max-md:gap-2.5 items-end no-print shadow-sm">
       <div className="flex-1 min-w-[200px] max-md:w-full">
         <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
           اختر {partyType === 'customer' ? 'العميل' : 'المورد'}

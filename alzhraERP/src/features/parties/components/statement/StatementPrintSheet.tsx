@@ -58,7 +58,7 @@ export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
       `}</style>
 
       {/* Professional Header - Visible on screen and print */}
-      <div className="mb-5 screen:max-md:mb-3 border-b-2 border-[#1F4E78] dark:border-blue-700 pb-4 screen:max-md:pb-2 bg-white dark:bg-slate-900 p-5 screen:max-md:p-3 rounded-xl shadow-sm">
+      <div className="mb-5 screen:max-md:mb-3 border-b-2 border-[#1F4E78] dark:border-blue-700 pb-4 screen:max-md:pb-2 bg-[var(--app-surface)] p-5 screen:max-md:p-3 rounded-xl shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <div className="text-right flex-1">
             <h1 className="text-xl font-bold text-[#1F4E78] dark:text-blue-400">{company.nameAr}</h1>

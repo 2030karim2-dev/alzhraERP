@@ -11,7 +11,7 @@ interface Props {
 
 const CategoryCard: React.FC<Props> = ({ category, onEdit, onDelete }) => {
   return (
-    <div className="group relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 transition-all flex flex-col hover:border-blue-500/40 rounded-none overflow-hidden">
+    <div className="group relative bg-[var(--app-surface)] border border-gray-100 dark:border-slate-800 transition-all flex flex-col hover:border-blue-500/40 rounded-none overflow-hidden">
       <div className="p-3 flex justify-between items-start">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -19,7 +19,7 @@ const CategoryCard: React.FC<Props> = ({ category, onEdit, onDelete }) => {
           </div>
           <div>
             <h4 className="text-[11px] font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tighter">{category.name}</h4>
-            <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase">
               <Users size={10} />
               <span>{category.count || 0} سجلات نشطة</span>
             </div>
@@ -27,10 +27,10 @@ const CategoryCard: React.FC<Props> = ({ category, onEdit, onDelete }) => {
         </div>
 
         <div className="flex gap-px bg-gray-100 dark:bg-slate-800 border dark:border-slate-800">
-          <button onClick={onEdit} className="p-1.5 bg-white dark:bg-slate-900 text-gray-400 hover:text-blue-500 transition-colors">
+          <button onClick={onEdit} className="p-1.5 bg-[var(--app-surface)] text-gray-400 hover:text-blue-500 transition-colors">
             <Edit size={12} />
           </button>
-          <button onClick={onDelete} className="p-1.5 bg-white dark:bg-slate-900 text-gray-400 hover:text-rose-500 transition-colors border-r dark:border-slate-800">
+          <button onClick={onDelete} className="p-1.5 bg-[var(--app-surface)] text-gray-400 hover:text-rose-500 transition-colors border-r dark:border-slate-800">
             <Trash2 size={12} />
           </button>
         </div>

@@ -2,7 +2,7 @@
 import { partiesApi } from './api';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../auth/store';
-import { Party, PartyStats, PartyFormData, PartyType, PartyCategory } from './types';
+import type { Party, PartyStats, PartyFormData, PartyType, PartyCategory } from './types';
 
 export interface StatementMovement {
   id: string;
@@ -25,12 +25,13 @@ export const partiesService = {
       // party_balances is a joined array — take the first record's balance
       const balanceRecords = p.party_balances as Array<{ balance: number; type: string }> | null;
       const firstRecord = balanceRecords?.[0];
-      const balance = firstRecord ? Number(firstRecord.balance) || 0 : 0;
+      const balance = firstRecord ? firstRecord.balance : 0;
       return {
         ...p,
         category_id: p.category_id,
         category: (p.party_categories as Record<string, unknown>)?.name || 'عام',
         balance,
+        balances_by_currency: (p.balances_by_currency as Party['balances_by_currency']) ?? [],
         status: p.status || 'active'
       };
     }) as Party[];
@@ -129,11 +130,38 @@ export const partiesService = {
   calculateStats: (parties: Party[]): PartyStats => {
     const activeCount = parties.filter(p => (p.status ?? 'active') === 'active').length;
     const blockedCount = parties.filter(p => p.status === 'blocked').length;
+
+    const currMap = new Map<string, { total: number; count: number }>();
+    for (const p of parties) {
+      if (p.balances_by_currency && p.balances_by_currency.length > 0) {
+        for (const bc of p.balances_by_currency) {
+          if (bc.balance !== 0) {
+            const entry = currMap.get(bc.currency) ?? { total: 0, count: 0 };
+            entry.total += bc.balance;
+            entry.count += 1;
+            currMap.set(bc.currency, entry);
+          }
+        }
+      } else if (p.balance !== undefined && p.balance !== 0) {
+        const entry = currMap.get('SAR') ?? { total: 0, count: 0 };
+        entry.total += p.balance;
+        entry.count += 1;
+        currMap.set('SAR', entry);
+      }
+    }
+
+    const byCurrency = Array.from(currMap.entries()).map(([currency, item]) => ({
+      currency,
+      balance: item.total,
+      count: item.count,
+    }));
+
     return {
       totalCount: parties.length,
-      totalBalance: parties.reduce((sum, p) => sum + (Number(p.balance) || 0), 0),
+      totalBalance: parties.reduce((sum, p) => sum + (p.balance ?? 0), 0),
       activeCount,
       blockedCount,
+      byCurrency,
     };
   },
 
@@ -170,8 +198,8 @@ export const partiesService = {
         .single();
       if (error) throw error;
       return result;
-    } catch (error: any) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23505') {
         throw new Error("عذراً، هذا الاسم موجود مسبقاً في قائمة الفئات");
       }
       throw error;
