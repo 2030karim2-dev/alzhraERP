@@ -108,7 +108,8 @@ const stopFallbackPolling = (channelId: string): void => {
 const TABLE_PRESET_MAP = new Map<string, InvalidationPreset>([
   ['invoices', 'sale'],
   ['invoice_items', 'sale'],
-  ['payments', 'account'],
+  ['payments', 'bond'],
+  ['payment_allocations', 'bond'],
   ['expenses', 'expense'],
   ['journal_entries', 'journal'],
   ['journal_entry_lines', 'journal'],
