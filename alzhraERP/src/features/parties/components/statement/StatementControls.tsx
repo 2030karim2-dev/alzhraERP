@@ -179,9 +179,9 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
         </label>
         <SmartPartySelect
           partyType={partyType}
-          parties={parties}
           selectedPartyId={selectedPartyId}
           onSelectPartyId={onSelectPartyId}
+          {...(parties ? { parties } : {})}
         />
       </div>
       <div className="w-36 max-md:flex-1">

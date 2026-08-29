@@ -19,55 +19,66 @@ const BREAKPOINTS = {
 
 export type BreakpointKey = keyof typeof BREAKPOINTS;
 
-// Check if we're at or above a breakpoint
+// هل نحن عند أو فوق نقطة توقف معيّنة؟
+// استخدام matchMedia بدل window.resize: لا يُحسب إلا عند تغيّر الحالة الفعلية
+// (يمنع إعادة الرسم المتكرر أثناء سحب قوائم المتصفح / تغيّر شريط العنوان)
 export const useBreakpoint = (breakpoint: BreakpointKey): boolean => {
-  const [isAbove, setIsAbove] = useState(false);
+  const query = `(min-width: ${BREAKPOINTS[breakpoint]}px)`;
+  const [matches, setMatches] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+  );
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsAbove(window.innerWidth >= BREAKPOINTS[breakpoint]);
-    };
+    const mql = window.matchMedia(query);
+    const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches);
+    setMatches(mql.matches); // sync initial state (SSR-safe)
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, [query]);
 
-    handleResize(); // Initial check
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [breakpoint]);
-
-  return isAbove;
+  return matches;
 };
 
 // Hook to get current breakpoint
 export const useCurrentBreakpoint = (): BreakpointKey => {
-  const [breakpoint, setBreakpoint] = useState<BreakpointKey>('xs');
+  const [breakpoint, setBreakpoint] = useState<BreakpointKey>(() =>
+    typeof window === 'undefined' ? 'xs' : getCurrentBreakpointFromWidth(window.innerWidth)
+  );
 
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
+    const mqls = (Object.entries(BREAKPOINTS) as Array<[BreakpointKey, number]>).map(
+      ([key, width]) => ({
+        key,
+        mql: window.matchMedia(`(min-width: ${width}px)`),
+      })
+    );
 
-      if (width >= BREAKPOINTS['5xl']) setBreakpoint('5xl');
-      else if (width >= BREAKPOINTS['4xl']) setBreakpoint('4xl');
-      else if (width >= BREAKPOINTS['3xl']) setBreakpoint('3xl');
-      else if (width >= BREAKPOINTS['2xl']) setBreakpoint('2xl');
-      else if (width >= BREAKPOINTS['xl']) setBreakpoint('xl');
-      else if (width >= BREAKPOINTS['lg']) setBreakpoint('lg');
-      else if (width >= BREAKPOINTS['md']) setBreakpoint('md');
-      else if (width >= BREAKPOINTS['sm']) setBreakpoint('sm');
-      else setBreakpoint('xs');
+    const handleChange = () => {
+      setBreakpoint(getCurrentBreakpointFromWidth(window.innerWidth));
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
+    mqls.forEach(({ mql }) => mql.addEventListener('change', handleChange));
+    // احسب الحالة الأولية + استجب لأي تغيير محتمل
+    handleChange();
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => mqls.forEach(({ mql }) => mql.removeEventListener('change', handleChange));
   }, []);
 
   return breakpoint;
 };
+
+// قراءة نقطة التوقف الحالية من عرض الشاشة (تُستخدم في التهيئة والمعالجة)
+function getCurrentBreakpointFromWidth(width: number): BreakpointKey {
+  if (width >= BREAKPOINTS['5xl']) return '5xl';
+  if (width >= BREAKPOINTS['4xl']) return '4xl';
+  if (width >= BREAKPOINTS['3xl']) return '3xl';
+  if (width >= BREAKPOINTS['2xl']) return '2xl';
+  if (width >= BREAKPOINTS['xl']) return 'xl';
+  if (width >= BREAKPOINTS['lg']) return 'lg';
+  if (width >= BREAKPOINTS['md']) return 'md';
+  if (width >= BREAKPOINTS['sm']) return 'sm';
+  return 'xs';
+}
 
 // Get breakpoint value
 export const getBreakpointValue = (breakpoint: BreakpointKey): number => {

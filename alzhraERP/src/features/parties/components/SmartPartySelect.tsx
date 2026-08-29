@@ -171,7 +171,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
+        <div className="absolute z-50 w-full mt-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
           {filteredParties.length === 0 ? (
             <div className="p-4 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
               لا توجد نتائج مطابقة لـ &quot;{query}&quot;
