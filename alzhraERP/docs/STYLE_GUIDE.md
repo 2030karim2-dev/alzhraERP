@@ -135,6 +135,18 @@
 
 **الحالات:** `online`, `offline`, `syncing`, `error`
 
+### MobileCardList / MobileCardRow
+
+```tsx
+<MobileCardList isEmpty={!rows.length} emptyMessage="لا توجد بيانات">
+  <MobileCardRow title={item.name} subtitle={item.phone}
+    badge={<StatusBadge {...meta} />}
+    meta={<>مبالغ/تفاصيل</>} actions={<>أزرار</>} />
+</MobileCardList>
+```
+
+**الاستخدام:** بديل الجداول العريضة على الهاتف (`md:hidden`). يُستخدم في القيود اليومية والديون وصندوق الرسائل — عدّل هذه الشاشات بدل تكرار أنماط جديدة.
+
 ---
 
 ## ⌨️ اختصارات لوحة المفاتيح

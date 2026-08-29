@@ -6,6 +6,7 @@ import { useDebtPromises } from '../hooks/useDebtQueries';
 import { useDebtMutations } from '../hooks/useDebtMutations';
 import { PROMISE_STATUS_META } from '../lib/constants';
 import StatusBadge from '../components/StatusBadge';
+import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
 import PromiseFormModal from '../components/PromiseFormModal';
 import type { PaymentPromiseWithParty, PromiseStatus } from '../types';
 
@@ -170,25 +171,26 @@ const PromisesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Cards — بديل الجدول على الهاتف */}
-      <div className="md:hidden space-y-2.5">
+      {/* Mobile Cards — بديل الجدول على الهاتف (مكوّن موحّد) */}
+      <MobileCardList>
         {filtered.map((p) => {
           const meta = PROMISE_STATUS_META[p.status as PromiseStatus] ?? PROMISE_STATUS_META.pending;
           return (
-            <div key={p.id} className="bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm p-3 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--app-text)] truncate">{p.parties?.name ?? '—'}</p>
-                  <p className="text-[11px] font-mono text-[var(--app-text-secondary)]" dir="ltr">{p.promise_date}</p>
-                </div>
-                <StatusBadge {...meta} />
-              </div>
-              <div className="flex items-center justify-between gap-2">
+            <MobileCardRow
+              key={p.id}
+              id={p.id}
+              title={p.parties?.name ?? '—'}
+              subtitle={p.promise_date}
+              badge={<StatusBadge {...meta} />}
+              meta={
                 <span className="text-sm font-bold font-mono text-[var(--app-text)]" dir="ltr">
                   {formatCurrency(Number(p.amount), p.currency_code)}
                 </span>
-                {showManage && (
-                  <div className="flex items-center gap-1.5">
+              }
+              body={p.notes || undefined}
+              actions={
+                showManage ? (
+                  <>
                     {p.status === 'pending' && (
                       <button
                         onClick={() => {
@@ -224,18 +226,13 @@ const PromisesPage: React.FC = () => {
                     >
                       <Trash2 size={16} />
                     </button>
-                  </div>
-                )}
-              </div>
-              {p.notes && (
-                <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-2 pt-2 border-t border-[var(--app-border)]">
-                  {p.notes}
-                </p>
-              )}
-            </div>
+                  </>
+                ) : undefined
+              }
+            />
           );
         })}
-      </div>
+      </MobileCardList>
 
       <PromiseFormModal
         isOpen={isModalOpen}

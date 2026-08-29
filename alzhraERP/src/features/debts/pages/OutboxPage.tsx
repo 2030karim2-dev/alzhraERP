@@ -3,6 +3,7 @@ import { MessageSquareWarning, Copy, Send } from 'lucide-react';
 import { useDebtMessageLog } from '../hooks/useDebtQueries';
 import { MESSAGE_STATUS_META } from '../lib/constants';
 import StatusBadge from '../components/StatusBadge';
+import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
 
 const STATUS_FILTERS: Array<{ value: string; label: string }> = [
   { value: '', label: 'الكل' },
@@ -134,39 +135,38 @@ const OutboxPage: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Cards — بديل الجدول على الهاتف */}
-      <div className="md:hidden space-y-2.5">
+      {/* Mobile Cards — بديل الجدول على الهاتف (مكوّن موحّد) */}
+      <MobileCardList>
         {filtered.map((m) => {
           const meta = MESSAGE_STATUS_META[m.status] ?? MESSAGE_STATUS_META.sent;
           return (
-            <div key={m.id} className="bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm p-3 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--app-text)] truncate">{m.parties?.name ?? '—'}</p>
-                  {m.recipient && (
-                    <p className="text-[11px] text-[var(--app-text-secondary)] font-mono" dir="ltr">
-                      {m.recipient}
+            <MobileCardRow
+              key={m.id}
+              id={m.id}
+              title={m.parties?.name ?? '—'}
+              subtitle={m.recipient || undefined}
+              badge={<StatusBadge {...meta} />}
+              badgeSecondary={
+                <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">{m.channel}</span>
+              }
+              body={
+                <>
+                  <p className="line-clamp-3 whitespace-pre-wrap">{m.message_text}</p>
+                  {m.status === 'failed' && m.error_info && (
+                    <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1 mt-1">
+                      <MessageSquareWarning size={11} /> {m.error_info}
                     </p>
                   )}
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <StatusBadge {...meta} />
-                  <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">{m.channel}</span>
-                </div>
-              </div>
-              <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-3 leading-relaxed whitespace-pre-wrap">
-                {m.message_text}
-              </p>
-              {m.status === 'failed' && m.error_info && (
-                <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1">
-                  <MessageSquareWarning size={11} /> {m.error_info}
-                </p>
-              )}
-              <div className="flex items-center justify-between pt-2 border-t border-[var(--app-border)]">
+                </>
+              }
+              meta={
                 <span className="text-[10px] font-mono text-[var(--app-text-secondary)]">
                   {new Date(m.created_at).toLocaleString('en-US')}
                 </span>
-                <div className="flex items-center gap-1.5">
+              }
+              actions={
+                <>
+                  <span className="flex-1" />
                   <button
                     type="button"
                     onClick={() => {
@@ -191,12 +191,12 @@ const OutboxPage: React.FC = () => {
                       <Send size={14} />
                     </button>
                   )}
-                </div>
-              </div>
-            </div>
+                </>
+              }
+            />
           );
         })}
-      </div>
+      </MobileCardList>
     </div>
   );
 };

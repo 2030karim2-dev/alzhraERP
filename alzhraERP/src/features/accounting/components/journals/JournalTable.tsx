@@ -5,6 +5,7 @@ import { useJournals } from '../../hooks/useJournals';
 // import EmptyState from '../../../../ui/base/EmptyState';
 import JournalEntryRow, { TRANSACTION_TYPE_LABELS } from './JournalEntryRow';
 import { formatNumberDisplay } from '../../../../core/utils';
+import MobileCardList, { MobileCardRow } from '../../../../ui/base/MobileCardList';
 // import Input from '../../../../ui/base/Input';
 import type { UIJournalEntry, UIJournalLine } from '../../types/models';
 
@@ -128,63 +129,60 @@ const JournalTable: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Mobile Cards — بديل الجدول على الهاتف */}
-                <div className="md:hidden">
-                    {filteredJournals.length === 0 ? (
-                        <div className="p-6 m-2 text-center text-sm text-[var(--app-text-secondary)] border-2 border-dashed border-[var(--app-border)] rounded-2xl">
-                            <Filter className="mx-auto mb-2 opacity-40" size={28} />
-                            <p>لا توجد قيود تطابق البحث</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-[var(--app-border)]">
-                            {filteredJournals.map((journal: UIJournalEntry) => {
-                                const totalDebit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.debit_amount || 0), 0);
-                                const totalCredit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.credit_amount || 0), 0);
-                                const statusMeta = journal.status === 'posted'
-                                    ? { label: 'مرحل', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' }
-                                    : journal.status === 'void'
-                                        ? { label: 'ملغى', cls: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' }
-                                        : { label: 'مسودة', cls: 'bg-slate-500/10 text-[var(--app-text-secondary)]' };
-                                return (
-                                    <div key={journal.id} className="p-3 space-y-2">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold text-[var(--app-text)] line-clamp-2">{journal.description}</p>
-                                                {journal.party_name && (
-                                                    <p className="text-[11px] text-[var(--app-text-secondary)] mt-0.5">{journal.party_name}</p>
-                                                )}
-                                            </div>
-                                            <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${statusMeta.cls}`}>
-                                                {statusMeta.label}
-                                            </span>
+                {/* Mobile Cards — بديل الجدول على الهاتف (مكوّن موحّد) */}
+                <MobileCardList isEmpty={filteredJournals.length === 0} emptyMessage="لا توجد قيود تطابق البحث">
+                    {filteredJournals.map((journal: UIJournalEntry) => {
+                        const totalDebit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.debit_amount || 0), 0);
+                        const totalCredit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.credit_amount || 0), 0);
+                        const statusMeta = journal.status === 'posted'
+                            ? { label: 'مرحل', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' }
+                            : journal.status === 'void'
+                                ? { label: 'ملغى', cls: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' }
+                                : { label: 'مسودة', cls: 'bg-slate-500/10 text-[var(--app-text-secondary)]' };
+                        return (
+                            <MobileCardRow
+                                key={journal.id}
+                                id={journal.id}
+                                title={journal.description}
+                                subtitle={journal.entry_number ? `#${journal.entry_number}` : undefined}
+                                badge={
+                                    <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${statusMeta.cls}`}>
+                                        {statusMeta.label}
+                                    </span>
+                                }
+                                meta={
+                                    <>
+                                        <span>{journal.entry_date}</span>
+                                        <span className="font-bold text-[var(--app-text)]">
+                                            {journal.reference_type ? (TRANSACTION_TYPE_LABELS[journal.reference_type] || journal.reference_type) : 'يدوي'}
+                                        </span>
+                                        <span className="truncate max-w-[120px]" title={journal.created_by_profile?.full_name || 'System'}>
+                                            {journal.created_by_profile?.full_name || 'System'}
+                                        </span>
+                                        <span>{(journal.journal_entry_lines || []).length} سطور</span>
+                                    </>
+                                }
+                                body={
+                                    journal.party_name ? (
+                                        <span className="block text-[11px] text-[var(--app-text-secondary)]">{journal.party_name}</span>
+                                    ) : undefined
+                                }
+                                actions={
+                                    <>
+                                        <div className="flex-1 rounded-lg bg-emerald-500/5 px-2 py-1.5">
+                                            <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">مدين</p>
+                                            <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400" dir="ltr">{formatNumberDisplay(totalDebit)}</p>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--app-text-secondary)]">
-                                            <span className="font-mono font-bold text-blue-700 dark:text-blue-400" dir="ltr">#{journal.entry_number}</span>
-                                            <span>{journal.entry_date}</span>
-                                            <span className="font-bold text-[var(--app-text)]">
-                                                {journal.reference_type ? (TRANSACTION_TYPE_LABELS[journal.reference_type] || journal.reference_type) : 'يدوي'}
-                                            </span>
-                                            <span className="truncate max-w-[120px]" title={journal.created_by_profile?.full_name || 'System'}>
-                                                {journal.created_by_profile?.full_name || 'System'}
-                                            </span>
-                                            <span>{(journal.journal_entry_lines || []).length} سطور</span>
+                                        <div className="flex-1 rounded-lg bg-rose-500/5 px-2 py-1.5">
+                                            <p className="text-[10px] font-bold text-red-700 dark:text-red-400">دائن</p>
+                                            <p className="text-xs font-mono font-bold text-red-700 dark:text-red-400" dir="ltr">{formatNumberDisplay(totalCredit)}</p>
                                         </div>
-                                        <div className="flex items-center gap-2 pt-1.5 border-t border-[var(--app-border)]">
-                                            <div className="flex-1 rounded-lg bg-emerald-500/5 px-2 py-1.5">
-                                                <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">مدين</p>
-                                                <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400" dir="ltr">{formatNumberDisplay(totalDebit)}</p>
-                                            </div>
-                                            <div className="flex-1 rounded-lg bg-rose-500/5 px-2 py-1.5">
-                                                <p className="text-[10px] font-bold text-red-700 dark:text-red-400">دائن</p>
-                                                <p className="text-xs font-mono font-bold text-red-700 dark:text-red-400" dir="ltr">{formatNumberDisplay(totalCredit)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                                    </>
+                                }
+                            />
+                        );
+                    })}
+                </MobileCardList>
 
                 {hasNextPage && (
                     <div className="p-4 max-md:p-3 text-center border-t border-[var(--app-border)] bg-[var(--app-surface-hover)]">
