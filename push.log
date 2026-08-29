@@ -1,9 +1,0 @@
-[pre-push] 1/6 Encoding guard (Arabic mojibake check)...
-[encoding-guard] OK: no mojibake signatures found. All source is clean UTF-8.
-[pre-push] 2/6 TypeScript ratchet (no NEW errors beyond baseline)...
-[ts-baseline] Running tsc --noEmit (can take a minute)...
-
-[ts-baseline] FAILED: 5 type errors (baseline: 0, +5 NEW).
-Fix the new errors before pushing. Inspect with: npx tsc --noEmit --pretty false
-
-error: failed to push some refs to 'https://github.com/2030karim2-dev/alzhraERP.git'
