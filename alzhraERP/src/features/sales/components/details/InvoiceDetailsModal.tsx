@@ -1,7 +1,17 @@
 import { logger } from '../../../../core/utils/logger';
-
 import React, { useState } from 'react';
-import { FileText, Loader2, RotateCcw, CheckCircle, AlertTriangle } from 'lucide-react';
+import {
+  FileText,
+  Loader2,
+  RotateCcw,
+  CheckCircle,
+  AlertTriangle,
+  User,
+  Calendar,
+  CreditCard,
+  Building2,
+  DollarSign,
+} from 'lucide-react';
 import Modal from '@/ui/base/Modal';
 import { exportToPDF } from '@/core/utils/pdfExporter';
 import { exportInvoiceToExcel } from '@/core/utils/invoiceExcelExporter';
@@ -11,15 +21,12 @@ import type { InvoiceDetailItem } from '../../api';
 import { useCompany } from '@/features/settings/hooks';
 import { useAuthStore } from '@/features/auth/store';
 import { useInvoicePaymentStatus } from '../../hooks/useInvoicePaymentStatus';
-import InvoiceHealthBadge from './InvoiceHealthBadge';
 import ReturnWizard from './ReturnWizard';
 import type { Invoice, InvoiceItem } from '../../../returns/types';
 import InvoiceItemsTable from './InvoiceItemsTable';
-import CompanyInfoSection from './CompanyInfoSection';
-import CustomerInfoSection from './CustomerInfoSection';
-import PaymentInfoSection from './PaymentInfoSection';
 import InvoiceActionButtons from './InvoiceActionButtons';
 import { ErrorBoundary } from '@/core/components/ErrorBoundary';
+import { formatCurrency, cn } from '@/core/utils';
 
 interface Props {
   invoiceId: string | null;
@@ -33,7 +40,10 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const { user } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
   const [showReturnSection, setShowReturnSection] = useState(false);
-  const [showAlert, setShowAlert] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  const [showAlert, setShowAlert] = useState<{
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  } | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'preview'>('details');
 
   const printRef = React.useRef<HTMLDivElement>(null);
@@ -47,19 +57,21 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     try {
       await exportToPDF(printRef.current, `فاتورة-${invoice.invoice_number}`);
       setShowAlert({ type: 'success', message: 'تم تصدير الفاتورة بنجاح' });
-    } catch (error) {
+    } catch {
       setShowAlert({ type: 'error', message: 'فشل في تصدير الفاتورة' });
     } finally {
       setIsExporting(false);
-      setTimeout(() => { setShowAlert(null); }, 3000);
+      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
   const handleExportExcel = async () => {
     if (!invoice || !company) return;
     const comp = company as Record<string, unknown>;
-    // [FIX] استخدام بيانات الشركة الحقيقية من الإعدادات
-    const companyName = (comp?.name_ar || comp?.name || (comp as { company_name?: string }).company_name || 'الشركة') as string;
+    const companyName = (comp?.name_ar ||
+      comp?.name ||
+      (comp as { company_name?: string }).company_name ||
+      'الشركة') as string;
     await exportInvoiceToExcel({
       companyName,
       companyAddress: (comp?.address || '') as string,
@@ -74,25 +86,31 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         unitPrice: i.unit_price,
         total: i.total,
       })),
-      subtotal: (invoice as Record<string, unknown>).subtotal as number || (invoice.total_amount - ((invoice as Record<string, unknown>).tax_amount as number || 0)),
+      subtotal:
+        ((invoice as Record<string, unknown>).subtotal as number) ||
+        invoice.total_amount -
+          (((invoice as Record<string, unknown>).tax_amount as number) || 0),
       totalAmount: invoice.total_amount,
     });
     setShowAlert({ type: 'success', message: 'تم تصدير ملف Excel بنجاح' });
-    setTimeout(() => { setShowAlert(null); }, 3000);
+    setTimeout(() => setShowAlert(null), 3000);
   };
 
   const handleReturnSubmit = (invoiceData: Invoice, items: InvoiceItem[]) => {
     if (onReturn) {
       onReturn(invoiceData, items);
-      setTimeout(() => { setShowAlert(null); }, 3000);
+      setTimeout(() => setShowAlert(null), 3000);
       setShowReturnSection(false);
     }
   };
 
-  const handleAlert = (alertOptions: { type: 'success' | 'warning' | 'error'; message: string }) => {
+  const handleAlert = (alertOptions: {
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  }) => {
     setShowAlert(alertOptions);
     if (alertOptions.type !== 'success') {
-       setTimeout(() => { setShowAlert(null); }, 3000);
+      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -100,10 +118,14 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     if (!invoice) return;
     setIsExporting(true);
     try {
-      const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import('../../../../core/utils/invoiceExcelExporter');
-      // [FIX] استخدام بيانات الشركة الحقيقية
+      const { generateInvoiceExcelBlob, exportInvoiceToExcel } = await import(
+        '../../../../core/utils/invoiceExcelExporter'
+      );
       const comp = (company || {}) as Record<string, unknown>;
-      const companyName = (comp?.name_ar || comp?.name || (comp as { company_name?: string }).company_name || 'الشركة') as string;
+      const companyName = (comp?.name_ar ||
+        comp?.name ||
+        (comp as { company_name?: string }).company_name ||
+        'الشركة') as string;
       const data = {
         companyName,
         companyAddress: (comp?.address || '') as string,
@@ -118,29 +140,33 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           unitPrice: i.unit_price,
           total: i.total,
         })),
-        subtotal: (invoice as Record<string, unknown>).subtotal as number || (invoice.total_amount - ((invoice as Record<string, unknown>).tax_amount as number || 0)),
+        subtotal:
+          ((invoice as Record<string, unknown>).subtotal as number) ||
+          invoice.total_amount -
+            (((invoice as Record<string, unknown>).tax_amount as number) || 0),
         totalAmount: invoice.total_amount,
       };
 
       const blob = await generateInvoiceExcelBlob(data);
       const file = new File([blob], `فاتورة_${data.invoiceNumber}.xlsx`, {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: `فاتورة ${data.invoiceNumber}`,
-          text: `مرفق فاتورة رقم ${data.invoiceNumber}`
+          text: `مرفق فاتورة رقم ${data.invoiceNumber}`,
         });
       } else {
-        // Fallback
         await exportInvoiceToExcel(data);
-        const text = encodeURIComponent(`مرفق فاتورة رقم ${data.invoiceNumber}. يرجى الاطلاع على الملف المرفق.`);
+        const text = encodeURIComponent(
+          `مرفق فاتورة رقم ${data.invoiceNumber}. يرجى الاطلاع على الملف المرفق.`
+        );
         window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
       }
     } catch (err) {
-      logger.error("InvoiceDetailsModal", 'Share via WhatsApp failed', err);
+      logger.error('InvoiceDetailsModal', 'Share via WhatsApp failed', err);
       setShowAlert({ type: 'error', message: 'حدث خطأ أثناء المشاركة' });
     } finally {
       setIsExporting(false);
@@ -148,25 +174,54 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   };
 
   // Prepare full data for PrintableInvoice
-  const fullInvoiceData = invoice && company ? {
-    ...invoice,
-    company,
-    party_name: invoice.parties?.name,
-    issuedBy: issuedByName,
-    items: invoice.invoice_items.map((i: InvoiceDetailItem) => ({
-      ...i,
-      name: i.description,
-      price: i.unit_price
-    }))
-  } : null;
+  const fullInvoiceData =
+    invoice && company
+      ? {
+          ...invoice,
+          company,
+          party_name: invoice.parties?.name,
+          issuedBy: issuedByName,
+          items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
+            ...i,
+            name: i.description,
+            price: i.unit_price,
+          })),
+        }
+      : null;
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return {
+          label: 'مدفوع بالكامل',
+          cls: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        };
+      case 'posted':
+        return {
+          label: 'مرحّل',
+          cls: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        };
+      case 'partial':
+      case 'partially_paid':
+        return {
+          label: 'مدفوع جزئياً',
+          cls: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+        };
+      default:
+        return {
+          label: 'مسودة',
+          cls: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        };
+    }
+  };
 
   return (
     <Modal
       isOpen={!!invoiceId}
       onClose={onClose}
       icon={FileText}
-      title="تفاصيل الفاتورة"
-      description="عرض تفصيلي لعملية البيع المسجلة"
+      title={invoice ? `فاتورة #${invoice.invoice_number || ''}` : 'تفاصيل الفاتورة'}
+      description="عرض تفصيلي لبيانات ومنتجات الفاتورة"
       size="4xl"
       footer={
         <InvoiceActionButtons
@@ -175,7 +230,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onShare={handleShareWhatsApp}
-          onToggleReturn={() => { setShowReturnSection(!showReturnSection); }}
+          onToggleReturn={() => setShowReturnSection(!showReturnSection)}
           isExporting={isExporting}
           issuedByName={issuedByName}
           printRef={printRef as React.RefObject<HTMLDivElement>}
@@ -184,94 +239,138 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
     >
       <ErrorBoundary inline>
         {showAlert && (
-          <div className={`mb-4 p-3 max-md:p-3 rounded-lg flex items-center gap-2 max-md:gap-2 ${showAlert.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-            showAlert.type === 'warning' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' :
-              'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-            }`}>
-            {showAlert.type === 'success' && <CheckCircle size={18} />}
-            {showAlert.type === 'warning' && <AlertTriangle size={18} />}
-            {showAlert.type === 'error' && <AlertTriangle size={18} />}
-            <span className="text-sm font-bold">{showAlert.message}</span>
-          </div>
-        )}
-
-        {invoice && invoice.type !== 'sale_return' && onReturn && (
-          <div className="flex justify-end px-4 mt-2">
-            <button
-              onClick={() => { setShowReturnSection(true); }}
-              className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 max-md:gap-1.5 transition-all active:scale-95 shadow-sm"
-              title="بدء عملية المرتجع لهذه الفاتورة"
-            >
-              <RotateCcw size={16} />
-              فتح واجهة المرتجع
-            </button>
+          <div
+            className={cn(
+              'mb-3 p-2.5 rounded-lg flex items-center gap-2 text-xs font-bold',
+              showAlert.type === 'success'
+                ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                : showAlert.type === 'warning'
+                ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+                : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+            )}
+          >
+            {showAlert.type === 'success' && <CheckCircle size={16} />}
+            {showAlert.type === 'warning' && <AlertTriangle size={16} />}
+            {showAlert.type === 'error' && <AlertTriangle size={16} />}
+            <span>{showAlert.message}</span>
           </div>
         )}
 
         {isLoading ? (
-          <div className="p-20 max-md:p-6 text-center flex justify-center"><Loader2 className="animate-spin text-blue-500" /></div>
+          <div className="p-16 text-center flex flex-col items-center justify-center gap-2">
+            <Loader2 className="animate-spin text-blue-500" size={28} />
+            <span className="text-xs text-slate-400 font-bold">جاري تحميل بيانات الفاتورة...</span>
+          </div>
         ) : invoice ? (
-          <div className="p-4 max-md:p-4 space-y-4">
-            <div className="flex bg-gray-100 dark:bg-slate-800 p-1 max-md:p-1 rounded-xl mb-4">
-                <button 
-                  onClick={() => { setActiveTab('details'); }}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'details' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  تفاصيل الفاتورة
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('preview'); }}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'preview' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  معاينة الطباعة
-                </button>
+          <div className="p-1 sm:p-2 space-y-3">
+            {/* Top Compact Tab Switcher */}
+            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveTab('details')}
+                className={cn(
+                  'flex-1 py-1.5 rounded-md transition-all',
+                  activeTab === 'details'
+                    ? 'bg-white dark:bg-slate-700 shadow-xs text-blue-600 dark:text-blue-400 font-black'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                )}
+              >
+                تفاصيل البنود والمنتجات
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('preview')}
+                className={cn(
+                  'flex-1 py-1.5 rounded-md transition-all',
+                  activeTab === 'preview'
+                    ? 'bg-white dark:bg-slate-700 shadow-xs text-blue-600 dark:text-blue-400 font-black'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                )}
+              >
+                معاينة الطباعة
+              </button>
             </div>
 
             {activeTab === 'details' ? (
               <>
-                <CompanyInfoSection company={company} user={user} />
-
-                {showReturnSection && (
-                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 max-md:p-4 animate-in slide-in-from-top-4 duration-300">
-                    <div className="flex items-center gap-2 max-md:gap-2 text-rose-700 dark:text-rose-400 mb-2">
-                      <RotateCcw size={20} />
-                      <h3 className="font-bold">إرجاع جزئي - بنفس السعر</h3>
+                {/* Unified High-Density Info Cards Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {/* Customer */}
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                      <User size={13} className="text-blue-500" />
+                      <span className="text-[10px] font-bold uppercase">العميل</span>
                     </div>
-                    <p className="text-sm text-rose-600 dark:text-rose-300">
-                      يمكنك اختيار أصناف وكميات محددة للإرجاع. سيتم استخدام سعر الفاتورة الأصلي.
+                    <p className="font-bold text-slate-800 dark:text-slate-100 truncate" title={invoice.parties?.name || 'عميل نقدي'}>
+                      {invoice.parties?.name || 'عميل نقدي'}
+                    </p>
+                    {invoice.parties?.phone && (
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">{invoice.parties.phone}</p>
+                    )}
+                  </div>
+
+                  {/* Date & Invoice # */}
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                      <Calendar size={13} className="text-purple-500" />
+                      <span className="text-[10px] font-bold uppercase">التاريخ والرقم</span>
+                    </div>
+                    <p className="font-mono font-bold text-slate-800 dark:text-slate-100">{invoice.issue_date}</p>
+                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">#{invoice.invoice_number}</p>
+                  </div>
+
+                  {/* Payment & Status */}
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                      <CreditCard size={13} className="text-amber-500" />
+                      <span className="text-[10px] font-bold uppercase">الحالة والدفع</span>
+                    </div>
+                    <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                      <span className={cn('px-1.5 py-0.2 rounded text-[10px] font-bold border', statusBadge(invoice.status).cls)}>
+                        {statusBadge(invoice.status).label}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold">
+                        {invoice.payment_method === 'credit' ? 'آجل' : 'نقداً'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Amount Summary */}
+                  <div className="p-2.5 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/60">
+                    <div className="flex items-center gap-1.5 text-blue-500 mb-1">
+                      <DollarSign size={13} />
+                      <span className="text-[10px] font-bold uppercase">المبلغ الإجمالي</span>
+                    </div>
+                    <p className="font-mono font-black text-sm text-blue-700 dark:text-blue-300">
+                      {formatCurrency(invoice.total_amount, invoice.currency_code || 'SAR')}
+                    </p>
+                    {paymentInfo && paymentInfo.remaining > 0 && (
+                      <p className="text-[10px] text-rose-600 font-mono font-bold mt-0.5">
+                        متبقي: {formatCurrency(paymentInfo.remaining, invoice.currency_code || 'SAR')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Return Banner (if return active) */}
+                {showReturnSection && (
+                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3 animate-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 mb-1">
+                      <RotateCcw size={16} />
+                      <h3 className="font-bold text-xs">إرجاع جزئي / كلي بنفس سعر الفاتورة</h3>
+                    </div>
+                    <p className="text-[11px] text-rose-600 dark:text-rose-300">
+                      اختر الأصناف والكميات المراد إرجاعها للمخزون واسترداد قيمتها.
                     </p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
-                  <CustomerInfoSection party={invoice.parties} />
-                  <PaymentInfoSection paymentInfo={paymentInfo} currencyCode={invoice.currency_code} />
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-md:gap-2 text-xs">
-                  <div className="p-2 max-md:p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
-                    <strong>التاريخ:</strong> {invoice.issue_date}
-                  </div>
-                  <div className="p-2 max-md:p-2.5 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700">
-                    {/* [FIX] ترجمة حالة الفاتورة للعربية */}
-                    <strong>الحالة:</strong> {invoice.status === 'posted' ? 'مرحّل' : invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'draft' ? 'مسودة' : invoice.status}
-                  </div>
-                </div>
-
-                <InvoiceHealthBadge invoice={{
-                  number: invoice.invoice_number || '',
-                  total: invoice.total_amount || 0,
-                  itemCount: invoice.invoice_items?.length || 0,
-                  customerName: invoice.parties?.name || 'غير محدد',
-                  customerDebt: 0,
-                  avgInvoiceTotal: 0
-                }} />
-
+                {/* Invoice Items & Products */}
                 {showReturnSection ? (
-                  <ReturnWizard 
-                    invoice={invoice as unknown as Invoice} 
-                    onReturn={handleReturnSubmit} 
-                    onCancel={() => { setShowReturnSection(false); }}
+                  <ReturnWizard
+                    invoice={invoice as unknown as Invoice}
+                    onReturn={handleReturnSubmit}
+                    onCancel={() => setShowReturnSection(false)}
                     onAlert={handleAlert}
                   />
                 ) : (
@@ -279,8 +378,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                 )}
               </>
             ) : (
-              <div className="bg-gray-200 dark:bg-slate-800 p-4 max-md:p-4 rounded-xl overflow-auto flex justify-center custom-scrollbar max-h-[65vh]">
-                <div className="bg-white shadow-lg border border-gray-300 w-full max-w-4xl shrink-0">
+              <div className="bg-slate-200 dark:bg-slate-900 p-3 rounded-xl overflow-auto flex justify-center custom-scrollbar max-h-[60vh]">
+                <div className="bg-white shadow-lg border border-slate-300 w-full max-w-3xl shrink-0">
                   <PrintableInvoice invoice={fullInvoiceData} />
                 </div>
               </div>
