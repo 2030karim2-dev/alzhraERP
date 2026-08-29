@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Handshake } from 'lucide-react';
 import { useParties } from '../../parties/hooks';
+import { SmartPartySelect } from '../../parties/components/SmartPartySelect';
 import { useCurrencies } from '../../settings/hooks';
 import { useDebtMutations } from '../hooks/useDebtMutations';
 import type { PaymentPromise } from '../types';
+import type { Party } from '../../parties/types';
 
 interface PromiseFormModalProps {
   isOpen: boolean;
@@ -42,27 +44,23 @@ const PartyField: React.FC<{
   id: string;
   value: string;
   disabled: boolean;
-  parties: Array<{ id: string; name: string }>;
+  parties: Party[];
   onChange: (value: string) => void;
 }> = ({ id, value, disabled, parties, onChange }) => (
   <div>
-    <FieldLabel htmlFor={id}>العميل *</FieldLabel>
-    <select
-      id={id}
-      value={value}
-      disabled={disabled}
-      onChange={(e) => {
-        onChange(e.target.value);
-      }}
-      className={inputClass}
-    >
-      <option value="">اختر العميل...</option>
-      {parties.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+    <FieldLabel htmlFor={id}>العميل * (بحث ذكي بالاسم أو الهاتف)</FieldLabel>
+    {disabled ? (
+      <div className={inputClass}>
+        {parties.find((p) => p.id === value)?.name || 'العميل المحدد'}
+      </div>
+    ) : (
+      <SmartPartySelect
+        partyType="customer"
+        parties={parties}
+        selectedPartyId={value}
+        onSelectPartyId={onChange}
+      />
+    )}
   </div>
 );
 

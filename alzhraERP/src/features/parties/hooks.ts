@@ -9,6 +9,8 @@ import { assertPermission } from '../../core/hooks/usePermission';
 import { syncStore } from '../../core/lib/sync-store';
 import { partyCache } from './lib/party-cache';
 
+import { filterPartiesSmart } from '../../core/utils/partySearch';
+
 export const useCustomers = (searchTerm: string = '') => useParties('customer', searchTerm);
 export const useSuppliers = (searchTerm: string = '') => useParties('supplier', searchTerm);
 
@@ -32,12 +34,7 @@ export const useParties = (type: PartyType, searchTerm: string = '') => {
   const filteredData = useMemo(() => {
     const data = query.data || [];
     if (!searchTerm) return data;
-    const term = searchTerm.toLowerCase();
-    return data.filter(p =>
-      p.name.toLowerCase().includes(term) ||
-      p.phone?.includes(term) ||
-      p.category?.toLowerCase().includes(term)
-    );
+    return filterPartiesSmart(data, searchTerm);
   }, [query.data, searchTerm]);
 
   const stats = useMemo(() => {

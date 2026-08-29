@@ -34,6 +34,30 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
     setIsOpen(false);
   };
 
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [query]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen || !filteredCustomers || filteredCustomers.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev < filteredCustomers.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredCustomers[highlightedIndex]) {
+        handleSelect(filteredCustomers[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
       {selectedCustomer ? (
@@ -52,12 +76,14 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
               <p className={cn("font-bold text-gray-800 dark:text-slate-100 truncate", compact ? "text-[10px]" : "text-sm")}>
                 {selectedCustomer.name}
               </p>
-              {!compact && <p className="text-xs text-gray-500 dark:text-slate-400">{selectedCustomer.phone}</p>}
+              {!compact && <p className="text-xs text-gray-500 dark:text-slate-400 font-mono">{selectedCustomer.phone}</p>}
             </div>
           </div>
           <button
+            type="button"
             onClick={() => { setCustomer(null); }}
             className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded text-gray-400 hover:text-rose-500 transition-all"
+            title="إلغاء العميل"
           >
             <X size={compact ? 14 : 18} />
           </button>
@@ -69,7 +95,8 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             value={query}
             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
             onFocus={() => { setIsOpen(true); }}
-            placeholder={compact ? "بحث عميل..." : "بحث عن عميل بالاسم أو الهاتف..."}
+            onKeyDown={handleKeyDown}
+            placeholder={compact ? "بحث عميل (ذكي)..." : "بحث ذكي بالاسم، الهاتف، أو حروف متقطعة..."}
             className={cn(
               "w-full bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 font-bold dark:text-slate-100 transition-all outline-none focus:ring-2 focus:ring-blue-500/20",
               compact ? "py-1.5 pr-8 pl-2 text-[10px] h-[38px]" : "py-3 pr-11 pl-4 rounded-2xl text-sm"
@@ -78,27 +105,38 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
           <Search className={cn("absolute right-2.5 text-gray-400", compact ? "top-2.5" : "top-3.5")} size={compact ? 14 : 20} />
 
           {isOpen && query.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-[var(--app-surface)] border border-blue-600 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
+            <div className="absolute z-50 w-full mt-1 bg-[var(--app-surface)] border border-blue-600 shadow-2xl overflow-hidden rounded-xl animate-in fade-in slide-in-from-top-1">
               {isLoading ? (
-                <div className="p-3 text-center text-[10px] text-gray-400 font-bold">جاري التحميل...</div>
+                <div className="p-3 text-center text-xs text-gray-400 font-bold">جاري البحث...</div>
               ) : filteredCustomers.length > 0 ? (
                 <ul className="max-h-64 overflow-y-auto custom-scrollbar">
-                  {filteredCustomers.map((customer: any) => (
-                    <li
-                      key={customer.id}
-                      onClick={() => { handleSelect(customer); }}
-                      className="px-3 py-2 hover:bg-blue-600 hover:text-white cursor-pointer border-b dark:border-slate-800 last:border-none flex items-center justify-between group transition-colors"
-                    >
-                      <div className="flex flex-col">
-                        <p className="text-[10px] font-bold">{customer.name}</p>
-                        <p className="text-[10px] opacity-60 font-mono">{customer.phone}</p>
-                      </div>
-                      <Check size={12} className="opacity-0 group-hover:opacity-100 max-md:opacity-100" />
-                    </li>
-                  ))}
+                  {filteredCustomers.map((customer: any, idx: number) => {
+                    const isHighlighted = idx === highlightedIndex;
+                    return (
+                      <li
+                        key={customer.id}
+                        onClick={() => { handleSelect(customer); }}
+                        onMouseEnter={() => setHighlightedIndex(idx)}
+                        className={cn(
+                          "px-3 py-2 cursor-pointer border-b dark:border-slate-800 last:border-none flex items-center justify-between group transition-colors",
+                          isHighlighted ? "bg-blue-600 text-white" : "hover:bg-blue-600 hover:text-white"
+                        )}
+                      >
+                        <div className="flex flex-col">
+                          <p className="text-xs font-bold">{customer.name}</p>
+                          {customer.phone && (
+                            <p className={cn("text-[10px] font-mono", isHighlighted ? "text-blue-100" : "text-gray-400")}>
+                              {customer.phone}
+                            </p>
+                          )}
+                        </div>
+                        <Check size={14} className={cn("opacity-0", isHighlighted && "opacity-100")} />
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
-                <div className="p-3 text-center text-[10px] text-gray-400">لا توجد نتائج</div>
+                <div className="p-3 text-center text-xs text-gray-400 font-bold">لا توجد نتائج مطابقة لـ &quot;{query}&quot;</div>
               )}
             </div>
           )}

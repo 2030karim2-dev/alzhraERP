@@ -6,6 +6,7 @@ import { Share2, FileDown, Printer } from 'lucide-react';
 import { logger } from '../../../../core/utils/logger';
 import { useAuthStore } from '../../../auth/store';
 import { useCompany } from '../../../settings/hooks';
+import { SmartPartySelect } from '../SmartPartySelect';
 
 interface StatementControlsProps {
   partyType: PartyType;
@@ -172,22 +173,16 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
 
   return (
     <div className="bg-[var(--app-surface)] p-4 max-md:p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 max-md:gap-2.5 items-end no-print shadow-sm">
-      <div className="flex-1 min-w-[200px] max-md:w-full">
-        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
-          اختر {partyType === 'customer' ? 'العميل' : 'المورد'}
+      <div className="flex-1 min-w-[240px] max-md:w-full">
+        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
+          اختر {partyType === 'customer' ? 'العميل' : 'المورد'} (بحث ذكي بالاسم أو الهاتف)
         </label>
-        <select
-          value={selectedPartyId}
-          onChange={(e) => onSelectPartyId(e.target.value)}
-          className="w-full mt-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg py-2 px-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-        >
-          <option value="">-- اختر من القائمة --</option>
-          {parties?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <SmartPartySelect
+          partyType={partyType}
+          parties={parties}
+          selectedPartyId={selectedPartyId}
+          onSelectPartyId={onSelectPartyId}
+        />
       </div>
       <div className="w-36 max-md:flex-1">
         <label className="text-xs font-bold text-slate-500 dark:text-slate-400">من تاريخ</label>
