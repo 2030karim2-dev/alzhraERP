@@ -202,7 +202,7 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
                       <div className="flex items-center gap-1.5">
                         <p className="truncate">{branch.name}</p>
                         {isMain && (
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-black">
+                          <span className="text-[10px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-black">
                             الرئيسي
                           </span>
                         )}
