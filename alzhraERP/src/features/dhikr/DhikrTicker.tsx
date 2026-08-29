@@ -1,13 +1,13 @@
 /**
  * Dhikr & Prayer Ticker — the visual, non-intrusive ticker bar.
- *  - 24px tall, uses the app's CSS variables so it adapts to every theme.
- *  - Smooth CSS marquee (transform only), paused on hover.
- *  - Respects `prefers-reduced-motion` (framer-motion) → static text swap.
- *  - Hide button (×) plus a persistent toggle in Settings.
+ *  - 26px tall, elegant emerald / gold spiritual styling with theme adaptability.
+ *  - Smooth CSS marquee, paused on hover.
+ *  - Mobile & desktop responsive.
+ *  - Toggleable and resilient.
  */
 import React, { useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Sparkles, Moon, Clock, X } from 'lucide-react';
 import { cn } from '../../core/utils';
 import { useI18nStore } from '../../lib/i18nStore';
 import { useDhikrStore } from './dhikrStore';
@@ -28,7 +28,20 @@ const DhikrTicker: React.FC = () => {
     const item = useDhikrTicker(prayerTimes);
     const [paused, setPaused] = useState(false);
 
-    if (!enabled) return null;
+    // If disabled, show a discreet, beautiful spiritual trigger pill in the header
+    if (!enabled) {
+        return (
+            <button
+                type="button"
+                onClick={() => setEnabled(true)}
+                title="إظهار شريط الذكر وأوقات الصلاة"
+                className="no-print h-5 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-b border-emerald-500/20 flex items-center justify-center gap-1.5 text-[10px] font-bold transition-all w-full select-none"
+            >
+                <Moon size={11} className="text-emerald-600 dark:text-emerald-400" />
+                <span>إظهار شريط الذكر وأوقات الصلاة 📿</span>
+            </button>
+        );
+    }
 
     const animationName = dir === 'rtl' ? 'dhikr-ticker-rtl' : 'dhikr-ticker-ltr';
 
@@ -36,46 +49,72 @@ const DhikrTicker: React.FC = () => {
         <div
             role="marquee"
             aria-label={item.text}
-            onMouseEnter={() => { setPaused(true); }}
-            onMouseLeave={() => { setPaused(false); }}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
             className={cn(
-                'relative h-6 flex-shrink-0 overflow-hidden no-print select-none max-sm:hidden',
-                'border-b border-[var(--app-border)]',
+                'relative h-6.5 flex-shrink-0 overflow-hidden no-print select-none transition-colors border-b',
                 item.kind === 'prayer'
-                    ? 'bg-emerald-50/80 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-[var(--app-surface-hover)]/70 text-[var(--app-text-secondary)]'
+                    ? 'bg-gradient-to-r from-emerald-600/15 via-teal-500/10 to-emerald-600/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/30'
+                    : 'bg-gradient-to-r from-emerald-500/10 via-amber-500/5 to-teal-500/10 dark:from-emerald-950/40 dark:via-slate-900/40 dark:to-emerald-950/40 text-slate-800 dark:text-slate-200 border-emerald-200/40 dark:border-emerald-800/30'
             )}
         >
             <style>{MARQUEE_KEYFRAMES}</style>
 
             {reducedMotion ? (
                 // Accessibility: no movement — phrase simply swaps in place.
-                <div className="flex items-center h-full px-4 text-[10px] font-semibold truncate">
-                    {item.text}
+                <div className="flex items-center justify-center h-full px-4 text-[11px] font-bold truncate gap-2">
+                    {item.kind === 'prayer' ? (
+                        <Clock size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    ) : (
+                        <Sparkles size={12} className="text-amber-500 shrink-0" />
+                    )}
+                    <span>{item.text}</span>
                 </div>
             ) : (
                 <div
-                    className="flex items-center h-full whitespace-nowrap text-[10px] font-semibold"
+                    className="flex items-center h-full whitespace-nowrap text-[11px] font-bold"
                     style={{
-                        animation: `${animationName} 30s linear infinite`,
+                        animation: `${animationName} 35s linear infinite`,
                         animationPlayState: paused ? 'paused' : 'running',
                         willChange: 'transform',
                     }}
                 >
-                    <span className="px-4">{item.text}</span>
-                    <span aria-hidden="true" className="px-4">{item.text}</span>
+                    <span className="inline-flex items-center gap-2 px-8">
+                        {item.kind === 'prayer' ? (
+                            <Clock size={12} className="text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                            <Sparkles size={12} className="text-amber-500" />
+                        )}
+                        <span>{item.text}</span>
+                    </span>
+                    <span aria-hidden="true" className="inline-flex items-center gap-2 px-8">
+                        {item.kind === 'prayer' ? (
+                            <Clock size={12} className="text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                            <Sparkles size={12} className="text-amber-500" />
+                        )}
+                        <span>{item.text}</span>
+                    </span>
+                    <span aria-hidden="true" className="inline-flex items-center gap-2 px-8">
+                        {item.kind === 'prayer' ? (
+                            <Clock size={12} className="text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                            <Sparkles size={12} className="text-amber-500" />
+                        )}
+                        <span>{item.text}</span>
+                    </span>
                 </div>
             )}
 
-            {/* Quick-hide button (persistent toggle lives in Settings) */}
+            {/* Quick-hide button with clean icon */}
             <button
                 type="button"
-                onClick={() => { setEnabled(false); }}
+                onClick={() => setEnabled(false)}
                 aria-label="إخفاء شريط الذكر وأوقات الصلاة"
-                title="إخفاء شريط الذكر"
-                className="absolute top-0 end-0 h-6 w-6 flex items-center justify-center text-[var(--app-text-secondary)] opacity-60 hover:opacity-100 hover:bg-[var(--app-surface)]/40 transition-opacity"
+                title="إخفاء شريط الذكر (يمكنك إعادة إظهاره في أي وقت)"
+                className="absolute top-0 end-0 h-full w-7 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-[var(--app-surface)]/60 backdrop-blur-xs transition-colors"
             >
-                <X size={10} />
+                <X size={11} />
             </button>
         </div>
     );
