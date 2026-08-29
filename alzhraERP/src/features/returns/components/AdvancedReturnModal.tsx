@@ -5,7 +5,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import * as z from 'zod';
 import { useFeedbackStore } from '../../feedback/store';
 import { zodResolver } from '../../../lib/zodResolver';
-import { ReturnType } from '../types';
+import type { ReturnType } from '../types';
 import { ReturnItemsStep } from './ReturnItemsStep';
 import { ReturnDetailsStep } from './ReturnDetailsStep';
 import { useSalesInvoicesForReturn, useCreateSalesReturn } from '../../sales/hooks/useSalesReturns';
@@ -73,7 +73,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     const { showToast } = useFeedbackStore();
 
     // Need to fetch invoices based on type
-    const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn((returnType === 'sale' ? partyId : null) as string | null);
+    const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn((returnType === 'sale' ? partyId : null));
     const { data: purchaseInvoices, isLoading: isLoadingPurchases } = usePurchaseInvoicesForReturn((returnType === 'purchase' ? partyId : null) as string | null);
 
     const invoices: SourceReturnInvoice[] = returnType === 'sale'
@@ -106,7 +106,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => { window.removeEventListener('keydown', handleKeyDown); };
     }, [isOpen, onClose]);
 
     // Center on first open and check mobile
@@ -134,7 +134,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             });
         }
 
-        return () => window.removeEventListener('resize', checkMobile);
+        return () => { window.removeEventListener('resize', checkMobile); };
     }, [isOpen, isMaximized, size.width, size.height, isMobile]);
 
     // Drag Handlers
@@ -215,7 +215,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                 <div
                     className={`flex flex-none items-center justify-between p-4 max-md:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 ${(isMaximized || isMobile) ? '' : 'cursor-move'}`}
                     onMouseDown={(!isMaximized && !isMobile) ? handleDragStart : undefined}
-                    onDoubleClick={!isMobile ? () => setIsMaximized(!isMaximized) : undefined}
+                    onDoubleClick={!isMobile ? () => { setIsMaximized(!isMaximized); } : undefined}
                 >
                     <div className="flex items-center gap-3 max-md:gap-3 select-none pointer-events-none">
                         <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
@@ -234,7 +234,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                     <div className="flex items-center gap-1 max-md:gap-1.5 pointer-events-auto">
                         {!isMobile && (
                             <button
-                                onClick={() => setIsMaximized(!isMaximized)}
+                                onClick={() => { setIsMaximized(!isMaximized); }}
                                 className="p-2 max-md:p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
                                 title={isMaximized ? "تصغير" : "تكبير"}
                             >

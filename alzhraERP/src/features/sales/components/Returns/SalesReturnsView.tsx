@@ -167,7 +167,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       {/* Add Return Button */}
       <div className="flex justify-end">
         <Button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setIsModalOpen(true); }}
           variant="danger"
           size="sm"
           leftIcon={<Plus size={14} />}
@@ -267,7 +267,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
                     ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                     : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
                     }`}>
-                    {STATUS_LABELS[(row.status ?? '') as string] || row.status}
+                    {STATUS_LABELS[(row.status ?? '')] || row.status}
                   </span>
                 ),
                 accessorKey: 'status',
@@ -305,7 +305,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
             data={processedReturns as unknown as SalesReturnRow[]}
             colorTheme="indigo"
             isRTL={true}
-            onRowDoubleClick={(row) => onViewDetails(row.id)}
+            onRowDoubleClick={(row) => { onViewDetails(row.id); }}
             showSearch={false}
             pageSize={10}
           />
@@ -333,7 +333,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       {/* Advanced Return Modal */}
       <AdvancedReturnModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); }}
         returnType="sale"
         partyName="عميل"
         onSuccess={() => {

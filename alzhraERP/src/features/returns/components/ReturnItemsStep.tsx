@@ -4,7 +4,7 @@ import { Package,  AlertCircle, ShoppingCart, RefreshCw } from 'lucide-react';
 import InvoiceItemsList from './InvoiceItemsList';
 import InvoiceSelector from './InvoiceSelector';
 import GlobalItemSearch from './GlobalItemSearch';
-import { Invoice } from '../types';
+import type { Invoice } from '../types';
 import {
     buildReturnItem,
     mergeReturnItem,

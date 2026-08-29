@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 import { useCrossReferences, useCrossReferenceMutations } from '../../hooks/index';
 import { Plus, Link as LinkIcon, Trash2, X } from 'lucide-react';
 import ProductSearch from '../../../../features/sales/components/create/ProductSearch';
@@ -47,7 +47,7 @@ export const CrossReferenceList: React.FC<CrossReferenceListProps> = ({ product 
                     <LinkIcon size={11} className="text-blue-500" /> البدائل والارتباطات
                 </h4>
                 <button
-                    onClick={() => setIsAdding(!isAdding)}
+                    onClick={() => { setIsAdding(!isAdding); }}
                     className={cn(
                         "flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded transition-colors",
                         isAdding ? "bg-rose-50 text-rose-600 dark:bg-rose-900/20" : "bg-blue-50 text-blue-600 dark:bg-blue-900/20 hover:bg-blue-100"
@@ -68,12 +68,12 @@ export const CrossReferenceList: React.FC<CrossReferenceListProps> = ({ product 
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between bg-[var(--app-surface)] px-2 py-1 border border-blue-100 dark:border-blue-800">
                                 <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{selectedProduct.name}</span>
-                                <button onClick={() => setSelectedProduct(null)} className="text-[10px] font-bold text-rose-500 uppercase">تغيير</button>
+                                <button onClick={() => { setSelectedProduct(null); }} className="text-[10px] font-bold text-rose-500 uppercase">تغيير</button>
                             </div>
                             <div className="grid grid-cols-2 gap-1.5">
                                 <select
                                     value={matchQuality}
-                                    onChange={(e) => setMatchQuality(e.target.value)}
+                                    onChange={(e) => { setMatchQuality(e.target.value); }}
                                     className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                                 >
                                     <option value="exact">مطابق تماماً</option>
@@ -83,7 +83,7 @@ export const CrossReferenceList: React.FC<CrossReferenceListProps> = ({ product 
                                 <input
                                     type="text"
                                     value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
+                                    onChange={(e) => { setNotes(e.target.value); }}
                                     placeholder="ملاحظات..."
                                     className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                                 />

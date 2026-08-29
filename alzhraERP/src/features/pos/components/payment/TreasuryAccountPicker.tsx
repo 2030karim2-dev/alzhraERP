@@ -47,7 +47,7 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                         ref={searchInputRef}
                         type="text"
                         value={searchQuery}
-                        onChange={e => onSearchChange(e.target.value)}
+                        onChange={e => { onSearchChange(e.target.value); }}
                         placeholder="ابحث عن شركة صرافة..."
                         className="w-full text-xs font-bold pr-9 pl-3 py-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-emerald-400 transition-all text-slate-700 dark:text-slate-300"
                     />
@@ -65,7 +65,7 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                         <button
                             key={acc.id}
                             type="button"
-                            onClick={() => onSelectAccount(acc.id)}
+                            onClick={() => { onSelectAccount(acc.id); }}
                             className={cn(
                                 "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95",
                                 selectedAccountId === acc.id

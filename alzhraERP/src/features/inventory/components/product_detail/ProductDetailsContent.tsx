@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Box, DollarSign, TrendingUp, TrendingDown, Package, ShieldCheck, Info, FileClock, Link2, Sparkles, Loader2, Building2, Activity } from 'lucide-react';
-import { Product, warehouseStock } from '../../types';
+import type { Product, warehouseStock } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
 import StatCard from './StatCard';
 import AlternativesSection from './AlternativesSection';
@@ -62,7 +62,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
             warehouses: whDistribution
                 .filter((wh: WarehouseDist) => {
                     const branchWarehouses = Array.isArray(branch.warehouses)
-                        ? (branch.warehouses as WarehouseRef[])
+                        ? (branch.warehouses)
                         : [];
                     return wh.warehouse_id && branchWarehouses.some((bw: WarehouseRef) => bw.id === wh.warehouse_id);
                 })
@@ -75,7 +75,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
         }));
     }, [branches, product.warehouse_distribution]);
 
-    const tabs: { id: TabType; label: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }[] = [
+    const tabs: Array<{ id: TabType; label: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = [
         { id: 'overview', label: 'نظرة عامة', icon: Info },
         { id: 'inventory', label: 'المخزون', icon: Box },
         { id: 'relations', label: 'الارتباطات', icon: Link2 },
@@ -90,7 +90,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => { setActiveTab(tab.id); }}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 text-[11px] font-bold border-l border-slate-200 dark:border-slate-800 transition-colors uppercase tracking-tight shrink-0",
                                 activeTab === tab.id
@@ -139,8 +139,8 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                         <StatCard icon={DollarSign} label="سعر التكلفة" value={formatCurrency(product.cost_price)} color="indigo" />
                                         <StatCard icon={TrendingUp} label="سعر البيع" value={formatCurrency(selling)} color="blue" />
                                         <StatCard icon={Activity} label="هامش الربح" value={`${margin.toFixed(1)}%`} color={margin > 0 ? "emerald" : "rose"} />
-                                        <StatCard icon={Package} label="المشتريات" value={formatNumberDisplay(stats.total_purchases as any)} color="slate" />
-                                        <StatCard icon={TrendingDown} label="المبيعات" value={formatNumberDisplay(stats.total_sales as any)} color="slate" />
+                                        <StatCard icon={Package} label="المشتريات" value={formatNumberDisplay(stats.total_purchases)} color="slate" />
+                                        <StatCard icon={TrendingDown} label="المبيعات" value={formatNumberDisplay(stats.total_sales)} color="slate" />
                                         <StatCard icon={ShieldCheck} label="متوفر" value={formatNumberDisplay(product.stock_quantity)} color="slate" />
                                     </div>
 

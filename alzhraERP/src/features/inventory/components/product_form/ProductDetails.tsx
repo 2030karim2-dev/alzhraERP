@@ -1,6 +1,6 @@
 import React from 'react';
-import { UseFormRegister } from 'react-hook-form';
-import { ProductFormData } from '../../types';
+import type { UseFormRegister } from 'react-hook-form';
+import type { ProductFormData } from '../../types';
 import Input from '../../../../ui/base/Input';
 import { Maximize2, MapPin, AlignRight } from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';

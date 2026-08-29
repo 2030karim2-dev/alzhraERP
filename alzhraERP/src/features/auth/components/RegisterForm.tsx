@@ -48,12 +48,12 @@ export const RegisterForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess })
                 )}
             </AnimatePresence>
 
-            <FloatingInput id="reg-name" label="الاسم الكامل" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} icon={<User size={18} />} autoComplete="name" required />
-            <FloatingInput id="reg-company" label="اسم المشروع / المحل" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} icon={<Building size={18} />} autoComplete="organization" required />
-            <FloatingInput id="reg-email" label="البريد الإلكتروني" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} icon={<Mail size={18} />} dir="ltr" autoComplete="email" required />
+            <FloatingInput id="reg-name" label="الاسم الكامل" value={formData.fullName} onChange={(e) => { setFormData({ ...formData, fullName: e.target.value }); }} icon={<User size={18} />} autoComplete="name" required />
+            <FloatingInput id="reg-company" label="اسم المشروع / المحل" value={formData.companyName} onChange={(e) => { setFormData({ ...formData, companyName: e.target.value }); }} icon={<Building size={18} />} autoComplete="organization" required />
+            <FloatingInput id="reg-email" label="البريد الإلكتروني" type="email" value={formData.email} onChange={(e) => { setFormData({ ...formData, email: e.target.value }); }} icon={<Mail size={18} />} dir="ltr" autoComplete="email" required />
             <FloatingInput
-                id="reg-pass" label="كلمة المرور" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} icon={<Lock size={18} />} dir="ltr" autoComplete="new-password" required minLength={8}
-                endIcon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />} onEndIconClick={() => setShowPassword(!showPassword)}
+                id="reg-pass" label="كلمة المرور" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); }} icon={<Lock size={18} />} dir="ltr" autoComplete="new-password" required minLength={8}
+                endIcon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />} onEndIconClick={() => { setShowPassword(!showPassword); }}
             />
 
             <button

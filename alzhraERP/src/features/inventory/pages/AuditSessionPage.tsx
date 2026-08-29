@@ -18,11 +18,11 @@ import type { Product } from '../types';
 import { logger } from '../../../core/utils/logger';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
-type AuditProgressItem = {
+interface AuditProgressItem {
     id?: string;
     product_id: string;
     counted_quantity: number;
-};
+}
 
 const AuditSessionPage: React.FC = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -63,13 +63,13 @@ const AuditSessionPage: React.FC = () => {
         sessionId: sessionId ?? '',
         // لا نمرر undefined صراحةً (exactOptionalPropertyTypes)
         ...(data?.session?.warehouse_id
-            ? { warehouseId: (data.session as { warehouse_id?: string }).warehouse_id as string }
+            ? { warehouseId: (data.session as { warehouse_id?: string }).warehouse_id! }
             : {}),
         initialItems: data?.items ?? [],
     });
 
     const { register, reset, getValues } = useForm({
-        defaultValues: { items: [] as Record<string, unknown>[] },
+        defaultValues: { items: [] as Array<Record<string, unknown>> },
         shouldUnregister: false,
     });
 
@@ -123,7 +123,7 @@ const AuditSessionPage: React.FC = () => {
             }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        return () => { window.removeEventListener('beforeunload', handleBeforeUnload); };
     }, [getValues, updateItems]);
 
     // When server data updates (realtime), merge with local state
@@ -232,7 +232,7 @@ const AuditSessionPage: React.FC = () => {
                 // Map the raw product to our domain model to get warehouse_distribution
                 if (res && res.data) {
                     const mapped = (await import('./../services/productService')).productService.mapRawProducts(
-                        [res.data as unknown as Product],
+                        [res.data],
                         (data?.session as { warehouse_id?: string })?.warehouse_id
                     );
                     if (mapped && mapped.length > 0) {
@@ -311,7 +311,7 @@ const AuditSessionPage: React.FC = () => {
         setIsBulkAdding(true);
         setBulkProgress({ current: 0, total: newProducts.length });
 
-        if (currentItems.length > 0) saveAuditProgress(currentItems as unknown as { id?: string; product_id: string; counted_quantity: number }[]);
+        if (currentItems.length > 0) saveAuditProgress(currentItems as unknown as Array<{ id?: string; product_id: string; counted_quantity: number }>);
 
         for (let i = 0; i < newProducts.length; i++) {
             const p = newProducts[i];
@@ -320,7 +320,7 @@ const AuditSessionPage: React.FC = () => {
             await new Promise<void>((resolve) => {
                 addItemToAudit(
                     { sessionId, productId: p.id, expectedQuantity },
-                    { onSuccess: () => resolve(), onError: () => resolve() }
+                    { onSuccess: () => { resolve(); }, onError: () => { resolve(); } }
                 );
             });
             setBulkProgress({ current: i + 1, total: newProducts.length });
@@ -352,7 +352,7 @@ const AuditSessionPage: React.FC = () => {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setShowBulkConfirm(true)}
+                                onClick={() => { setShowBulkConfirm(true); }}
                                 isLoading={isBulkAdding}
                                 leftIcon={isBulkAdding
                                     ? <Loader2 size={12} className="animate-spin" />
@@ -398,10 +398,10 @@ const AuditSessionPage: React.FC = () => {
                                 variant="default"
                                 size="md"
                                 className="flex-1 h-11 sm:h-12 text-sm sm:text-base font-bold"
-                                onEscape={() => setShowResults(false)}
+                                onEscape={() => { setShowResults(false); }}
                             />
                             <button
-                                onClick={() => setIsScannerOpen(true)}
+                                onClick={() => { setIsScannerOpen(true); }}
                                 className="flex items-center justify-center bg-blue-600 text-white w-12 rounded-xl shadow-lg shadow-blue-500/25 active:scale-95 transition-all shrink-0"
                             >
                                 <ScanBarcode size={22} />
@@ -411,7 +411,7 @@ const AuditSessionPage: React.FC = () => {
                         {/* Search Results Dropdown */}
                         <SearchDropdown
                             open={showResults && !!filter.trim()}
-                            onClose={() => setShowResults(false)}
+                            onClose={() => { setShowResults(false); }}
                             loading={isLoadingSearch || isAddingItem}
                             hasResults={(searchResults?.length ?? 0) > 0}
                             emptyMessage="لا توجد نتائج مطابقة"
@@ -451,7 +451,7 @@ const AuditSessionPage: React.FC = () => {
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-4 pb-16 custom-scrollbar" onClick={() => setShowResults(false)}>
+            <div className="flex-1 overflow-y-auto p-4 pb-16 custom-scrollbar" onClick={() => { setShowResults(false); }}>
                 <div className="max-w-[1600px] mx-auto space-y-4">
                     <AuditStats stats={stats} session={session} />
 
@@ -462,7 +462,7 @@ const AuditSessionPage: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-tighter whitespace-nowrap">الفئة:</span>
                         </div>
                         <button
-                            onClick={() => setSelectedCategory(null)}
+                            onClick={() => { setSelectedCategory(null); }}
                             className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${!selectedCategory ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 dark:bg-slate-800 text-gray-500'}`}
                         >
                             الكل
@@ -470,7 +470,7 @@ const AuditSessionPage: React.FC = () => {
                         {categories?.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => setSelectedCategory(cat.name ?? null)}
+                                onClick={() => { setSelectedCategory(cat.name ?? null); }}
                                 className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-50 dark:bg-slate-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
                             >
                                 {cat.name}
@@ -493,13 +493,13 @@ const AuditSessionPage: React.FC = () => {
             {isScannerOpen && (
                 <ScannerOverlay
                     onScan={handleScan}
-                    onClose={() => setIsScannerOpen(false)}
+                    onClose={() => { setIsScannerOpen(false); }}
                 />
             )}
 
             <ConfirmModal
                 isOpen={!!itemToDelete}
-                onClose={() => setItemToDelete(null)}
+                onClose={() => { setItemToDelete(null); }}
                 onConfirm={confirmRemoveItem}
                 title="إزالة الصنف من الجرد"
                 message="هل أنت متأكد من رغبتك في إزالة هذا الصنف من جلسة الجرد الميدانية الحالية؟"
@@ -510,7 +510,7 @@ const AuditSessionPage: React.FC = () => {
 
             <ConfirmModal
                 isOpen={showBulkConfirm}
-                onClose={() => setShowBulkConfirm(false)}
+                onClose={() => { setShowBulkConfirm(false); }}
                 onConfirm={handleBulkAddWarehouseProducts}
                 title="جرد كامل المستودع"
                 message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً. هذه العملية قد تستغرق بعض الوقت. هل تريد المتابعة؟"

@@ -45,14 +45,14 @@ const ExpensesPage: React.FC = () => {
   const headerActions = (
     <div className="flex items-center gap-2">
       <Button
-        onClick={() => setViewType(viewType === 'list' ? 'analytics' : 'list')}
+        onClick={() => { setViewType(viewType === 'list' ? 'analytics' : 'list'); }}
         variant="outline"
         size="sm"
       >
         {viewType === 'list' ? t('analytics_view') : t('list_view')}
       </Button>
       <Button
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => { setIsModalOpen(true); }}
         variant="danger"
         size="sm"
         leftIcon={<Plus size={14} />}
@@ -76,7 +76,7 @@ const ExpensesPage: React.FC = () => {
                 {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(p => (
                   <button
                     key={p}
-                    onClick={() => setPeriod(p)}
+                    onClick={() => { setPeriod(p); }}
                     className={`px-3 py-1 text-xs font-bold rounded transition-all ${period === p
                       ? 'bg-rose-600 text-white'
                       : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -87,7 +87,7 @@ const ExpensesPage: React.FC = () => {
                 ))}
               </div>
               <Button
-                onClick={() => setViewType('list')}
+                onClick={() => { setViewType('list'); }}
                 variant="outline"
                 size="sm"
               >
@@ -128,7 +128,7 @@ const ExpensesPage: React.FC = () => {
 
       <CreateExpenseModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); }}
         onSubmit={createExpense}
         isSubmitting={isCreating}
       />

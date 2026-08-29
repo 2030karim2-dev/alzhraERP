@@ -3,7 +3,7 @@ import {
   FileText, Plus, ArrowDownCircle, ArrowUpCircle, LayoutGrid, Table as TableIcon
 } from 'lucide-react';
 import { useBonds, useBondMutation, useBondsAnalytics } from './hooks';
-import { BondType } from './types';
+import type { BondType } from './types';
 import MicroHeader from '../../ui/base/MicroHeader';
 import Button from '../../ui/base/Button';
 import CreateBondModal from './components/CreateBondModal';
@@ -61,8 +61,8 @@ const BondsPage: React.FC = () => {
       totalAmount: safeAnalytics.totalAmount as number || 0,
       count: safeAnalytics.count as number || 0,
       avgAmount: safeAnalytics.avgAmount as number || 0,
-      chartData: safeAnalytics.chartData as { date: string; amount: number; count: number }[] || [],
-      accountData: safeAnalytics.accountData as { name: string; amount: number; count: number }[] || []
+      chartData: safeAnalytics.chartData as Array<{ date: string; amount: number; count: number }> || [],
+      accountData: safeAnalytics.accountData as Array<{ name: string; amount: number; count: number }> || []
     };
   }, [serverAnalytics]);
 
@@ -93,7 +93,7 @@ const BondsPage: React.FC = () => {
       <BondsAnalyticsView
         analytics={analytics}
         totals={totals}
-        onSwitchToList={() => setViewType('list')}
+        onSwitchToList={() => { setViewType('list'); }}
       />
     );
   }
@@ -102,14 +102,14 @@ const BondsPage: React.FC = () => {
     <div className="flex items-center gap-2">
       <div className="flex items-center bg-[var(--app-surface)] rounded-lg p-0.5 border border-gray-200 dark:border-slate-800 mr-2">
         <button
-          onClick={() => setDisplayMode('cards')}
+          onClick={() => { setDisplayMode('cards'); }}
           className={`p-1.5 rounded-md transition-all ${displayMode === 'cards' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'text-gray-400 hover:text-gray-600'}`}
           title="عرض البطاقات"
         >
           <LayoutGrid size={16} />
         </button>
         <button
-          onClick={() => setDisplayMode('table')}
+          onClick={() => { setDisplayMode('table'); }}
           className={`p-1.5 rounded-md transition-all ${displayMode === 'table' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'text-gray-400 hover:text-gray-600'}`}
           title="عرض الجدول (إكسل)"
         >
@@ -119,11 +119,11 @@ const BondsPage: React.FC = () => {
       <Button onClick={() => navigate('/pos')} variant="outline" size="sm" leftIcon={<LayoutGrid size={14} />}>
         نقطة البيع
       </Button>
-      <Button onClick={() => setViewType('analytics')} variant="outline" size="sm">
+      <Button onClick={() => { setViewType('analytics'); }} variant="outline" size="sm">
         تحليلات
       </Button>
       <Button
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => { setIsModalOpen(true); }}
         variant={activeTab === 'receipt' ? 'success' : 'danger'}
         size="sm"
         leftIcon={<Plus size={14} />}
@@ -145,7 +145,7 @@ const BondsPage: React.FC = () => {
           { id: 'payment', label: t('payment_bonds'), icon: ArrowUpCircle }
         ]}
         activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id as BondType)}
+        onTabChange={(id) => { setActiveTab(id as BondType); }}
         searchPlaceholder={t('search_in_bonds')}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
@@ -164,9 +164,9 @@ const BondsPage: React.FC = () => {
 
       <CreateBondModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); }}
         type={activeTab}
-        onSubmit={(data) => createBond(data, { onSuccess: () => setIsModalOpen(false) })}
+        onSubmit={(data) => { createBond(data, { onSuccess: () => { setIsModalOpen(false); } }); }}
         isSubmitting={isCreating}
       />
     </div>

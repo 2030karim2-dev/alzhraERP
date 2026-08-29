@@ -60,13 +60,13 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
             }
         };
         document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
+        return () => { document.removeEventListener('mousedown', handleClick); };
     }, []);
 
     const actions = (
         <div className="flex gap-1.5">
             <button
-                onClick={() => setShowSuspended(!showSuspended)}
+                onClick={() => { setShowSuspended(!showSuspended); }}
                 className="relative p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl hover:bg-amber-100 active:scale-95 transition-all border border-amber-100 dark:border-amber-900/30"
                 title={t('suspended_orders')}
             >
@@ -85,7 +85,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
                 <Home size={18} />
             </button>
             <button
-                onClick={() => setIsQuickMode(!isQuickMode)}
+                onClick={() => { setIsQuickMode(!isQuickMode); }}
                 className={`p-2 rounded-xl active:scale-95 transition-all border ${isQuickMode ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border-slate-100 dark:border-slate-800'}`}
                 title="الوضع السريع"
             >
@@ -114,7 +114,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
                     <div ref={warehouseDropdownRef} className="relative shrink-0">
                         <button
                             type="button"
-                            onClick={() => setShowWarehouseDropdown(!showWarehouseDropdown)}
+                            onClick={() => { setShowWarehouseDropdown(!showWarehouseDropdown); }}
                             className={`
                                 flex items-center justify-center gap-1.5 px-2.5 rounded-xl text-[10px] md:text-xs font-black transition-all active:scale-95 border-2 h-[34px] md:h-[38px] shrink-0
                                 ${selectedWarehouseId
@@ -203,7 +203,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
                             onSortChange={search.setSortMode}
                             onSelect={onSearchSelect}
                             onViewDetails={onViewDetails}
-                            triggerRef={searchContainerRef as React.RefObject<HTMLElement>}
+                            triggerRef={searchContainerRef}
                             total={search.total}
                             searchTimeMs={search.searchTimeMs}
                         />
@@ -211,7 +211,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
 
                     <button
                         type="button"
-                        onClick={() => setInStockOnly(!inStockOnly)}
+                        onClick={() => { setInStockOnly(!inStockOnly); }}
                         className={`
                 flex items-center justify-center gap-1.5 px-3 rounded-xl text-[10px] md:text-xs font-black transition-all active:scale-95 border-2 h-[34px] md:h-[38px] shrink-0
                 ${inStockOnly

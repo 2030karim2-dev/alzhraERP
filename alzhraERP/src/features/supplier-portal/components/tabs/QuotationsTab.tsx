@@ -102,7 +102,7 @@ export const QuotationsTab: React.FC<QuotationsTabProps> = ({
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => handleShareWhatsApp(quote)}
+                  onClick={() => { handleShareWhatsApp(quote); }}
                   className="p-1.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold transition-colors"
                   title="مشاركة عبر واتساب"
                 >
@@ -111,7 +111,7 @@ export const QuotationsTab: React.FC<QuotationsTabProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => onOpenHistory(quote.quotation_id, quote.quotation_number)}
+                  onClick={() => { onOpenHistory(quote.quotation_id, quote.quotation_number); }}
                   className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 transition-colors"
                 >
                   <History className="w-3.5 h-3.5" />
@@ -120,7 +120,7 @@ export const QuotationsTab: React.FC<QuotationsTabProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => onEditQuotation(quote)}
+                  onClick={() => { onEditQuotation(quote); }}
                   className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-600 text-indigo-600 hover:text-white dark:text-indigo-400 rounded-lg text-xs font-bold transition-colors"
                 >
                   <Edit3 className="w-3.5 h-3.5" />

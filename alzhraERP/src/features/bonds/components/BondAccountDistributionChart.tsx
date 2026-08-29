@@ -6,7 +6,7 @@ import { cn, formatCurrency } from '../../../core/utils';
 const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6'];
 
 interface BondAccountDistributionChartProps {
-    data: { name: string; amount: number; count: number }[];
+    data: Array<{ name: string; amount: number; count: number }>;
     isDark: boolean;
 }
 
@@ -51,8 +51,8 @@ const BondAccountDistributionChart: React.FC<BondAccountDistributionChartProps> 
                             paddingAngle={8}
                             dataKey="amount"
                             nameKey="name"
-                            onMouseEnter={(_: any, index: number) => setActiveIndex(index)}
-                            onMouseLeave={() => setActiveIndex(undefined)}
+                            onMouseEnter={(_: any, index: number) => { setActiveIndex(index); }}
+                            onMouseLeave={() => { setActiveIndex(undefined); }}
                             animationDuration={1500}
                         >
                             {data.map((_entry, index) => (
@@ -61,7 +61,7 @@ const BondAccountDistributionChart: React.FC<BondAccountDistributionChartProps> 
                         </Pie>
                         <Tooltip
                             content={({ active, payload }: any) => {
-                                if (active && payload && payload.length) {
+                                if (active && payload?.length) {
                                     return (
                                         <div className={cn(
                                             "p-4 rounded-3xl border shadow-2xl backdrop-blur-xl",

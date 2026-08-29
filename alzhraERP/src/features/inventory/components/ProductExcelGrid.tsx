@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Product, ProductFormData } from '../types';
+import type { Product, ProductFormData } from '../types';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import TableSkeleton from '../../../ui/base/TableSkeleton';
 import { useProductMutations, useProductBulkActions } from '../hooks/index';
@@ -86,7 +86,7 @@ const ProductExcelGrid: React.FC<Props> = ({
 
     const columns = useMemo(() => getProductColumns({
         onEdit,
-        onDeleteRequest: onDelete ? (p) => setDeleteConfirm({ id: p.id, type: 'single' }) : undefined,
+        onDeleteRequest: onDelete ? (p) => { setDeleteConfirm({ id: p.id, type: 'single' }); } : undefined,
         hideActions,
         extraColumns,
         visibleColumns
@@ -102,7 +102,7 @@ const ProductExcelGrid: React.FC<Props> = ({
                     onClear={clearSelection}
                     onCopy={handleCopy}
                     onSend={handleSend}
-                    onDelete={() => setDeleteConfirm({ id: Array.from(selectedRowIds), type: 'bulk' })}
+                    onDelete={() => { setDeleteConfirm({ id: Array.from(selectedRowIds), type: 'bulk' }); }}
                 />
             )}
 
@@ -127,7 +127,7 @@ const ProductExcelGrid: React.FC<Props> = ({
 
             <ConfirmModal
                 isOpen={!!deleteConfirm}
-                onClose={() => setDeleteConfirm(null)}
+                onClose={() => { setDeleteConfirm(null); }}
                 onConfirm={confirmDelete}
                 title={deleteConfirm?.type === 'bulk' ? 'حذف مجموعة منتجات' : 'حذف منتج'}
                 message={deleteConfirm?.type === 'bulk' ? `هل أنت متأكد من حذف ${deleteConfirm.id.length} صنف نهائياً؟` : 'هل أنت متأكد من حذف هذا الصنف نهائياً؟ لا يمكن التراجع عن هذه العملية.'}

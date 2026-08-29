@@ -2,7 +2,7 @@
 import React from 'react';
 import { AlertCircle, RotateCcw, ShieldAlert, ChevronRight } from 'lucide-react';
 import { cn } from '../../core/utils';
-import { AppError, parseError } from '../../core/utils/errorUtils';
+import { type AppError, parseError } from '../../core/utils/errorUtils';
 
 interface Props {
   error: AppError | string | null;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, TrendingUp, Hash, Tag, Factory, Ruler, Layers, History, Store, Info, Barcode, Sparkles } from 'lucide-react';
 import { cn, formatCurrency, formatNumberDisplay } from '../../../../core/utils';
-import { POSSearchResult } from '../../hooks/usePOSSearch';
+import type { POSSearchResult } from '../../hooks/usePOSSearch';
 
 interface SearchResultCardProps {
     result: POSSearchResult;
@@ -61,7 +61,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = React.memo(({
     return (
         <button
             type="button"
-            onClick={() => onSelect(result)}
+            onClick={() => { onSelect(result); }}
             onMouseEnter={onMouseEnter}
             className={cn(
                 'relative w-full text-right p-3.5 md:p-4 flex items-start gap-4 transition-all duration-150 border-b border-slate-100 dark:border-slate-800 last:border-b-0',

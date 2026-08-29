@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, PackageSearch, Table as TableIcon, Banknote, Calendar, User, UserSquare, X } from 'lucide-react';
-import { Invoice, InvoiceItem } from '../types';
+import type { Invoice, InvoiceItem } from '../types';
 
 interface GlobalItemSearchProps {
     invoices: Invoice[];
@@ -29,7 +29,7 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
         });
     };
 
-    const formatCurrency = (amount: number, currency: string = 'SAR') => {
+    const formatCurrency = (amount: number, currency = 'SAR') => {
         try {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -97,13 +97,13 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                     <input
                         type="text"
                         value={globalSearchTerm}
-                        onChange={(e) => setGlobalSearchTerm(e.target.value)}
+                        onChange={(e) => { setGlobalSearchTerm(e.target.value); }}
                         placeholder="ابحث عن قطعة مثلاً: فحمات كورولا..."
                         className="w-full ps-12 pe-10 py-3 bg-[var(--app-surface)] border-2 border-indigo-100 dark:border-indigo-900/50 rounded-2xl text-sm font-bold focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 transition-all shadow-sm"
                     />
                     {globalSearchTerm && (
                         <button
-                            onClick={() => setGlobalSearchTerm('')}
+                            onClick={() => { setGlobalSearchTerm(''); }}
                             className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors bg-[var(--app-surface)] rounded-full p-1 max-md:p-1"
                         >
                             <X size={16} />
@@ -133,7 +133,7 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                                 {searchResults.map((result, idx) => (
                                     <tr
                                         key={`${result.invoiceId}-${result.item.id}-${idx}`}
-                                        onClick={() => onItemSelect(result.invoiceId)}
+                                        onClick={() => { onItemSelect(result.invoiceId); }}
                                         className="hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors cursor-pointer group"
                                     >
                                         <td className="p-3 max-md:p-3 text-xs font-bold text-slate-400 text-center border-l dark:border-slate-800">{idx + 1}</td>

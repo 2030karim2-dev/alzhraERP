@@ -2,7 +2,7 @@ import React from 'react';
 import { Trash2, Plus, Minus, Edit3, Store, AlertTriangle } from 'lucide-react';
 import { cn, formatCurrency, formatNumberDisplay } from '../../../../core/utils';
 import { EditPriceInline } from './EditPriceInline';
-import { SalesCartItem } from '../../../sales/store';
+import type { SalesCartItem } from '../../../sales/store';
 
 interface CartItemRowProps {
     item: SalesCartItem;
@@ -94,7 +94,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                     </span>
 
                     <button
-                        onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() => { onUpdateQuantity(item.productId, item.quantity + 1); }}
                         className="w-7 h-7 md:w-8 md:h-8 rounded-md flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90"
                         title="زيادة"
                     >
@@ -109,7 +109,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                     <EditPriceInline
                         productId={item.productId}
                         currentPrice={item.price}
-                        onDone={() => setEditingPriceId(null)}
+                        onDone={() => { setEditingPriceId(null); }}
                     />
                 ) : (
                     <div className="flex flex-col items-end gap-1">
@@ -117,7 +117,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                             {formatCurrency(item.price * item.quantity)}
                         </span>
                         <button
-                            onClick={() => setEditingPriceId(item.productId)}
+                            onClick={() => { setEditingPriceId(item.productId); }}
                             className="text-[10px] md:text-[10px] text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 group/price transition-colors bg-slate-50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700/50"
                             title="تعديل السعر الوحدة"
                         >

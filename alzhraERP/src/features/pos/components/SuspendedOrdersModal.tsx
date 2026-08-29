@@ -49,14 +49,14 @@ export const SuspendedOrdersModal: React.FC<SuspendedOrdersModalProps> = ({
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => onResume(order.id)}
+                                        onClick={() => { onResume(order.id); }}
                                         className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md shadow-blue-500/15"
                                     >
                                         استعادة
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => onRemove(order.id)}
+                                        onClick={() => { onRemove(order.id); }}
                                         className="px-3 py-1.5 border border-rose-250 hover:bg-rose-50 hover:text-rose-600 dark:border-rose-900/30 dark:hover:bg-rose-950/20 text-rose-500 rounded-xl text-xs font-bold transition-all active:scale-95"
                                     >
                                         حذف

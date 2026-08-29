@@ -108,16 +108,16 @@ const AISmartNotifications: React.FC<AISmartNotificationsProps> = ({ stats, lowS
             </div>
             {smartAlerts.length > 1 && (
                 <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => setCurrentIndex(i => i > 0 ? i - 1 : smartAlerts.length - 1)} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
+                    <button onClick={() => { setCurrentIndex(i => i > 0 ? i - 1 : smartAlerts.length - 1); }} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
                         <ChevronRight size={12} className="text-[var(--app-text-secondary)]" />
                     </button>
                     <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">{currentIndex + 1}/{smartAlerts.length}</span>
-                    <button onClick={() => setCurrentIndex(i => i < smartAlerts.length - 1 ? i + 1 : 0)} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
+                    <button onClick={() => { setCurrentIndex(i => i < smartAlerts.length - 1 ? i + 1 : 0); }} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
                         <ChevronLeft size={12} className="text-[var(--app-text-secondary)]" />
                     </button>
                 </div>
             )}
-            <button onClick={() => setDismissed(true)} className="p-1 text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+            <button onClick={() => { setDismissed(true); }} className="p-1 text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
                 <X size={12} />
             </button>
         </div>

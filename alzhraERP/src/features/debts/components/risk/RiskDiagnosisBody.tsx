@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, AlertTriangle, Lightbulb, CheckCircle } from 'lucide-react';
-import { DebtRiskAnalysis } from '../../services/debtAiService';
+import type { DebtRiskAnalysis } from '../../services/debtAiService';
 
 interface RiskDiagnosisBodyProps {
   analysis: DebtRiskAnalysis;

@@ -8,8 +8,8 @@ import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
 import { cn } from '../../../core/utils';
 import {
   TransferMobileCard,
-  TransferHistoryRow,
-  TransferItemRow,
+  type TransferHistoryRow,
+  type TransferItemRow,
 } from './transfers/TransferMobileCard';
 
 const TransferHistoryView: React.FC = () => {

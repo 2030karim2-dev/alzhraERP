@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { cn } from '../../../core/utils';
-import { POSSearchResult, SortMode } from '../hooks/usePOSSearch';
+import type { POSSearchResult, SortMode } from '../hooks/usePOSSearch';
 import { SearchSortToolbar } from './search/SearchSortToolbar';
 import { SearchResultCard } from './search/SearchResultCard';
 import { SearchLoadingState, SearchPopularHeader, SearchEmptyState, SearchFooterStats } from './search/SearchStates';

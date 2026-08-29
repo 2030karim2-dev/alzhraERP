@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, Package } from 'lucide-react';
 import { useProducts, useInventoryCategories } from '../../inventory/hooks/index';
-import { Product } from '../../inventory/types';
+import type { Product } from '../../inventory/types';
 import { useSoundStore } from '../../notifications/store';
 import { CategoryPills } from './grid/CategoryPills';
 import { ProductCard } from './grid/ProductCard';

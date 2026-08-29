@@ -27,7 +27,7 @@ interface DailyInvoiceRow extends DailyInvoice {
   converted_amount?: number;
 }
 
-const useDailySalesReport = (days: number = 30) => {
+const useDailySalesReport = (days = 30) => {
     const { user } = useAuthStore();
     return useQuery({
         queryKey: ['daily_sales_report', user?.company_id, days],
@@ -182,7 +182,7 @@ const DailySalesReport: React.FC = () => {
                     {[7, 14, 30, 90].map(d => (
                         <button
                             key={d}
-                            onClick={() => setDays(d)}
+                            onClick={() => { setDays(d); }}
                             className={cn(
                                 "px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all active:scale-95 min-h-[36px]",
                                 days === d
@@ -248,7 +248,7 @@ const DailySalesReport: React.FC = () => {
                 </div>
                 {(data?.invoices.length || 0) > 10 && (
                     <button
-                        onClick={() => setShowAllInvoices(!showAllInvoices)}
+                        onClick={() => { setShowAllInvoices(!showAllInvoices); }}
                         className="w-full   max-md:p-2 sm:p-3 text-center text-[10px] sm:text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center   max-md:gap-1 border-t dark:border-slate-800 active:scale-[0.98] transition-all"
                     >
                         {showAllInvoices ? <><ChevronUp size={12} /> إخفاء</> : <><ChevronDown size={12} /> عرض الكل ({data?.invoices.length})</>}

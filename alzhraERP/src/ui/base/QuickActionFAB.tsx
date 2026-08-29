@@ -28,7 +28,7 @@ const QuickActionFAB: React.FC = () => {
       {/* Backdrop */}
       {isOpen && (
         <div className="fixed inset-0 z-[90] bg-slate-950/30 backdrop-blur-sm md:hidden"
-          onClick={() => setIsOpen(false)} />
+          onClick={() => { setIsOpen(false); }} />
       )}
 
       {/* Action Buttons */}
@@ -55,7 +55,7 @@ const QuickActionFAB: React.FC = () => {
 
         {/* Main FAB */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => { setIsOpen(!isOpen); }}
           aria-label={isOpen ? 'إغلاق القائمة' : 'إجراءات سريعة'}
           className={cn(
             'w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90',

@@ -3,8 +3,8 @@
 // Al-Zahra Smart ERP
 // ============================================
 
-import { Component, ReactNode } from 'react';
-import { AppError, ErrorCode, UnknownRecord } from '../types/common';
+import { Component, type ReactNode } from 'react';
+import { AppError, ErrorCode, type UnknownRecord } from '../types/common';
 import { logger } from '../utils/logger';
 
 interface Props {
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={() => window.location.reload()}
+                                onClick={() => { window.location.reload(); }}
                                 className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                             >
                                 {isVersionMismatch ? 'تحديث الآن' : 'إعادة تحميل الصفحة'}

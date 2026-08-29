@@ -29,14 +29,14 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
                 ))}
             </div>
             <div className="mr-auto flex items-center gap-1">
-                <button onClick={() => onPageChange(1)} disabled={safePage <= 1}
+                <button onClick={() => { onPageChange(1); }} disabled={safePage <= 1}
                     className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">««</button>
-                <button onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 1}
+                <button onClick={() => { onPageChange(safePage - 1); }} disabled={safePage <= 1}
                     className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">«</button>
                 <span className="px-1 text-[10px] font-mono">{safePage} / {totalPages}</span>
-                <button onClick={() => onPageChange(safePage + 1)} disabled={safePage >= totalPages}
+                <button onClick={() => { onPageChange(safePage + 1); }} disabled={safePage >= totalPages}
                     className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">»</button>
-                <button onClick={() => onPageChange(totalPages)} disabled={safePage >= totalPages}
+                <button onClick={() => { onPageChange(totalPages); }} disabled={safePage >= totalPages}
                     className="px-1 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">»»</button>
             </div>
             <span className="opacity-60">انقر مرتين أو Enter للإضافة</span>

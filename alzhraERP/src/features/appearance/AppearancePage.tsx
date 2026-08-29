@@ -5,7 +5,7 @@ import { useThemeStore } from '../../lib/themeStore';
 import { THEME_PRESETS, THEME_CATEGORIES } from './constants';
 import ThemePresetCard from './components/ThemePresetCard';
 import ModeSelector from './components/ModeSelector';
-import { AppearanceTab, ThemeMode } from './types';
+import type { AppearanceTab, ThemeMode } from './types';
 import { useFeedbackStore } from '../feedback/store';
 import MicroHeader from '../../ui/base/MicroHeader';
 import ColorCustomizer from './components/ColorCustomizer';
@@ -84,7 +84,7 @@ const AppearancePage: React.FC = () => {
   const groupedPresets = useMemo(() => {
     if (categoryFilter !== 'all') return null; // Don't group when a specific category is selected
 
-    const groups: { category: string; presets: typeof THEME_PRESETS }[] = [];
+    const groups: Array<{ category: string; presets: typeof THEME_PRESETS }> = [];
     const categories = ['premium', 'automotive', 'glass', 'bento', 'royal', 'accounting', 'beige', 'classic', 'nature', 'bold', 'corporate', 'night', 'seasonal', 'artistic', 'industry'] as const;
 
     for (const cat of categories) {
@@ -103,7 +103,7 @@ const AppearancePage: React.FC = () => {
     { id: 'effects', label: 'التأثيرات', icon: Wand2 },
   ];
 
-  const CATEGORY_FILTERS: { id: CategoryFilter; label: string; emoji: string }[] = [
+  const CATEGORY_FILTERS: Array<{ id: CategoryFilter; label: string; emoji: string }> = [
     { id: 'all', label: 'الكل', emoji: '🎨' },
     { id: 'premium', label: 'باقات برو ✨', emoji: '✨' },
     { id: 'automotive', label: 'قطع غيار 🏎️', emoji: '🏎️' },
@@ -133,7 +133,7 @@ const AppearancePage: React.FC = () => {
               {CATEGORY_FILTERS.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setCategoryFilter(cat.id)}
+                  onClick={() => { setCategoryFilter(cat.id); }}
                   className={cn(
                     "flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wide transition-all duration-300 border-2",
                     categoryFilter === cat.id
@@ -237,7 +237,7 @@ const AppearancePage: React.FC = () => {
         iconColor="text-blue-500"
         tabs={TABS}
         activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id as AppearanceTab)}
+        onTabChange={(id) => { setActiveTab(id as AppearanceTab); }}
       />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar pb-24">

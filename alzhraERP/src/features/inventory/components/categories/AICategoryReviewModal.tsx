@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Loader2, AlertCircle, Save } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
-import { aiCategoryService, ClassificationResult } from '../../services/aiCategoryService';
+import { aiCategoryService, type ClassificationResult } from '../../services/aiCategoryService';
 import { useAuthStore } from '../../../auth/store';
 import { useFeedbackStore } from '../../../feedback/store';
 import { useInventoryCategories } from '../../hooks/useInventoryManagement';
@@ -40,8 +40,8 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
             }
 
             const classifications = await aiCategoryService.classifyBatch(
-                (uncategorized || []) as { id: string; name_ar: string }[],
-                (currentCategories || []) as { id: string; name: string }[]
+                (uncategorized || []),
+                (currentCategories || []) as Array<{ id: string; name: string }>
             );
 
             setResults(classifications);
@@ -168,7 +168,7 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
                                     <span>تم العثور على {results.length} اقتراح، يرجى مراجعتها والموافقة عليها.</span>
                                 </div>
                                 <button
-                                    onClick={() => setAcceptedIds(new Set(results.map(r => r.product_id)))}
+                                    onClick={() => { setAcceptedIds(new Set(results.map(r => r.product_id))); }}
                                     className="text-[10px] underline"
                                 >
                                     اختيار الكل
@@ -194,7 +194,7 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
                                                     <input
                                                         type="checkbox"
                                                         checked={acceptedIds.has(res.product_id)}
-                                                        onChange={() => toggleAccepted(res.product_id)}
+                                                        onChange={() => { toggleAccepted(res.product_id); }}
                                                         className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600"
                                                     />
                                                 </td>
@@ -206,14 +206,14 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
                                                         <input
                                                             type="text"
                                                             value={res.suggested_category_name}
-                                                            onChange={(e) => updateResult(res.product_id, 'suggested_category_name', e.target.value)}
+                                                            onChange={(e) => { updateResult(res.product_id, 'suggested_category_name', e.target.value); }}
                                                             className="text-[10px] bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none py-0.5 px-0 dark:text-slate-200"
                                                         />
                                                         <label className="flex items-center gap-1 cursor-pointer">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={res.is_new_category}
-                                                                onChange={(e) => updateResult(res.product_id, 'is_new_category', e.target.checked)}
+                                                                onChange={(e) => { updateResult(res.product_id, 'is_new_category', e.target.checked); }}
                                                                 className="h-2.5 w-2.5 rounded border-gray-300 text-purple-600"
                                                             />
                                                             <span className="text-[10px] text-gray-500">قسم جديد</span>

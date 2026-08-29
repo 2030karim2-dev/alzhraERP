@@ -55,7 +55,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const { data: paymentAccountsData } = usePaymentAccounts();
     // تحويل آمن: النوع القادم من usePaymentAccounts (accounting) يختلف عن
     // النوع المحلي PaymentAccount رغم تطابق الحقول وظيفياً
-    const accounts: PaymentAccount[] = (paymentAccountsData || []) as unknown as PaymentAccount[];
+    const accounts: PaymentAccount[] = paymentAccountsData || [];
     const cashList = useMemo(() => cashAccountsData ?? [], [cashAccountsData]);
     const exchangeList = useMemo(() => exchangeAccountsData ?? [], [exchangeAccountsData]);
 
@@ -90,7 +90,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             if (e.key === 'Enter' && canConfirm && !isProcessing) handleConfirm();
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => { window.removeEventListener('keydown', handleKeyDown); };
     }, [isOpen, canConfirm, isProcessing, onClose, handleConfirm]);
 
     if (!isOpen) return null;
@@ -115,7 +115,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
                     <ItemPriceEditor
                         show={showItemEdit}
-                        onToggle={() => setShowItemEdit(v => !v)}
+                        onToggle={() => { setShowItemEdit(v => !v); }}
                         items={validItems}
                         allItems={items}
                         currency={currency}

@@ -73,7 +73,7 @@ const AuditLogHeader: React.FC<AuditLogHeaderProps> = ({
 
                 <div className="flex items-center gap-2">
                     <button 
-                        onClick={() => setIsMaximized(!isMaximized)}
+                        onClick={() => { setIsMaximized(!isMaximized); }}
                         className="p-3 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 shadow-sm text-gray-500 hover:text-blue-500 transition-all active:scale-90"
                         title={isMaximized ? "تصغير" : "تكبير"}
                     >
@@ -82,7 +82,7 @@ const AuditLogHeader: React.FC<AuditLogHeaderProps> = ({
                     
                     {isMaximized && (
                         <button 
-                            onClick={() => setIsMaximized(false)}
+                            onClick={() => { setIsMaximized(false); }}
                             className="p-3 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/20 transition-all active:scale-90"
                         >
                             <X size={20} />

@@ -15,7 +15,7 @@ export const SettingSection: React.FC<{
         <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
+                onClick={() => { setOpen(!open); }}
                 className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors"
             >
                 <div className="flex items-center gap-3">

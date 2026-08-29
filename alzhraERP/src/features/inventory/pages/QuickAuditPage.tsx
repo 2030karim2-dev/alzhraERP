@@ -9,8 +9,8 @@ import { useSearchProducts } from '../hooks/useProducts';
 import { useInventoryMutations } from '../hooks/useInventoryManagement';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
-import AuditSearchPanel, { SearchResult } from '../components/audit/AuditSearchPanel';
-import QuickAuditItemsTable, { AdjustedItem } from '../components/audit/QuickAuditItemsTable';
+import AuditSearchPanel, { type SearchResult } from '../components/audit/AuditSearchPanel';
+import QuickAuditItemsTable, { type AdjustedItem } from '../components/audit/QuickAuditItemsTable';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { useFeedbackStore } from '../../feedback/store';
 
@@ -202,7 +202,7 @@ const QuickAuditPage: React.FC = () => {
                         }}
                         filter={filter}
                         onFilterChange={setFilter}
-                        onScannerOpen={() => setIsScannerOpen(true)}
+                        onScannerOpen={() => { setIsScannerOpen(true); }}
                         searchResults={(searchResults ?? []) as unknown as SearchResult[]}
                         isLoadingSearch={isLoadingSearch}
                         onAddItem={handleAddItem}
@@ -220,7 +220,7 @@ const QuickAuditPage: React.FC = () => {
             {isScannerOpen && (
                 <ScannerOverlay
                     onScan={handleScan}
-                    onClose={() => setIsScannerOpen(false)}
+                    onClose={() => { setIsScannerOpen(false); }}
                 />
             )}
         </div>

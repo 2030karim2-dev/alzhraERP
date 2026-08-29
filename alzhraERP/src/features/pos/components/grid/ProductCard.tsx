@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Package, Hash, Eye, Layers, Store, Building2 } from 'lucide-react';
 import { cn, formatCurrency, formatNumberDisplay } from '../../../../core/utils';
-import { Product } from '../../../inventory/types';
+import type { Product } from '../../../inventory/types';
 
 interface ProductCardProps {
     product: Product;
@@ -36,8 +36,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                 playNotificationSound();
                 onAddToCart(product);
             }}
-            onMouseEnter={() => setShowWarehousePopover(true)}
-            onMouseLeave={() => setShowWarehousePopover(false)}
+            onMouseEnter={() => { setShowWarehousePopover(true); }}
+            onMouseLeave={() => { setShowWarehousePopover(false); }}
             className={cn(
                 'relative bg-[var(--app-surface)] p-2 rounded-2xl border transition-all text-right flex flex-col h-48 md:h-52 group select-none',
                 hasStock
@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                         )}
                     >
                         <Layers size={11} />
-                        {hasStock ? `${formatNumberDisplay(product.stock_quantity)}` : '0 نفذ'}
+                        {hasStock ? formatNumberDisplay(product.stock_quantity) : '0 نفذ'}
                     </span>
                 </div>
             </div>
@@ -165,8 +165,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             {showWarehousePopover && warehouseDist.length > 0 && (
                 <div
                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-150"
-                    onMouseEnter={() => setShowWarehousePopover(true)}
-                    onMouseLeave={() => setShowWarehousePopover(false)}
+                    onMouseEnter={() => { setShowWarehousePopover(true); }}
+                    onMouseLeave={() => { setShowWarehousePopover(false); }}
                 >
                     <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700">
                         <h4 className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">

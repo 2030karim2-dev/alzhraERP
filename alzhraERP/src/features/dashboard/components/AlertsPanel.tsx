@@ -103,7 +103,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
             {/* Header */}
             <div
                 className="flex items-center justify-between p-4 max-md:p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => { setIsExpanded(!isExpanded); }}
             >
                 <div className="flex items-center gap-2">
                     <div className="relative">

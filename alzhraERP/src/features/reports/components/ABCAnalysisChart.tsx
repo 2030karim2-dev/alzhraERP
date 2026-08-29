@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, S
 import { cn } from '@/core/utils';
 
 interface ABCAnalysisChartProps {
-    data: { name: string; value: number; color: string }[];
+    data: Array<{ name: string; value: number; color: string }>;
 }
 
 /** معاملات الشكل النشط في رسم recharts Pie. */
@@ -116,7 +116,7 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
                                 content={(({ active, payload }: { active?: boolean; payload?: Array<{ payload?: { name?: string; value?: number } }> }) => {
                                     if (!active || !payload || payload.length === 0) return null;
                                     const entry = payload[0].payload;
-                                    if (!entry || !entry.name || entry.value === undefined) return null;
+                                    if (!entry?.name || entry.value === undefined) return null;
                                     const info = getCategoryInfo(entry.name);
                                     return (
                                         <div className="  max-md:p-4 rounded-3xl max-md:rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">

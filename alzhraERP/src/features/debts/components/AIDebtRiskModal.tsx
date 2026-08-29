@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, X, Send } from 'lucide-react';
 import Button from '../../../ui/base/Button';
 import { useAuthStore } from '../../auth/store';
-import { debtAiService, DebtRiskAnalysis } from '../services/debtAiService';
+import { debtAiService, type DebtRiskAnalysis } from '../services/debtAiService';
 import type { FollowUpDashboardRow } from '../types';
 import { RiskMetricsGrid } from './risk/RiskMetricsGrid';
 import { RiskDiagnosisBody } from './risk/RiskDiagnosisBody';

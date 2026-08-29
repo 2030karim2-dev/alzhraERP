@@ -11,7 +11,7 @@ import InteractiveInvoiceTable from './InteractiveInvoiceTable';
 import InvoiceTotals from './InvoiceTotals';
 import InvoiceActions from './InvoiceActions';
 import PrintableInvoice from '../PrintableInvoice';
-import { InvoiceStatus } from '../../types';
+import type { InvoiceStatus } from '../../types';
 import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 import { useReactToPrint } from 'react-to-print';
@@ -155,13 +155,13 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         {/* [FIX #4] printRef يستهدف محتوى الفاتورة فقط */}
         <div className="bg-[var(--app-surface)] border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
           {comp && <InvoiceHeader company={comp} />}
-          <InvoiceMeta invoiceNumber={nextInvoiceNumber as string} />
+          <InvoiceMeta invoiceNumber={nextInvoiceNumber!} />
           <InteractiveInvoiceTable />
-          <InvoiceTotals notes={notes} onNotesChange={(value) => setMetadata('notes', value)} />
+          <InvoiceTotals notes={notes} onNotesChange={(value) => { setMetadata('notes', value); }} />
         </div>
 
         <div className="flex justify-end">
-          <InvoiceActions onSave={handleSave} onPrint={() => handlePrint()} isSaving={isPending} />
+          <InvoiceActions onSave={handleSave} onPrint={() => { handlePrint(); }} isSaving={isPending} />
         </div>
       </div>
 

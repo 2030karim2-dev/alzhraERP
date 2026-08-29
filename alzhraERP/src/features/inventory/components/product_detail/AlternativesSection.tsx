@@ -48,7 +48,7 @@ const AlternativesSection: React.FC<Props> = ({ alternatives, partNumber, brand,
     const handleCopy = (text: string, idx: number) => {
         navigator.clipboard.writeText(text);
         setCopiedIdx(idx);
-        setTimeout(() => setCopiedIdx(null), 1500);
+        setTimeout(() => { setCopiedIdx(null); }, 1500);
     };
 
     const handleAddSingle = (partNum: string) => {
@@ -161,7 +161,7 @@ const AlternativesSection: React.FC<Props> = ({ alternatives, partNumber, brand,
                                     <td className="px-2 py-1"><span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5"><CheckCircle size={7} /> محفوظ</span></td>
                                     <td className="px-2 py-1"><span className="text-[10px] font-bold text-emerald-600">✓</span></td>
                                     <td className="px-1 py-1">
-                                        <button onClick={() => handleCopy(alt, i)} className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 max-md:opacity-100 hover:text-blue-600 transition-all">
+                                        <button onClick={() => { handleCopy(alt, i); }} className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 max-md:opacity-100 hover:text-blue-600 transition-all">
                                             {copiedIdx === i ? <Check size={9} className="text-emerald-500" /> : <Copy size={9} />}
                                         </button>
                                     </td>
@@ -209,12 +209,12 @@ const AlternativesSection: React.FC<Props> = ({ alternatives, partNumber, brand,
                                             ) : (
                                                 <div className="flex items-center gap-0.5">
                                                     {onAlternativesUpdate && (
-                                                        <button onClick={() => handleAddSingle(alt.part_number)}
+                                                        <button onClick={() => { handleAddSingle(alt.part_number); }}
                                                             className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded hover:bg-indigo-100 flex items-center gap-0.5">
                                                             <Plus size={8} /> إضافة
                                                         </button>
                                                     )}
-                                                    <button onClick={() => handleCopy(alt.part_number, gi)} className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 max-md:opacity-100 hover:text-blue-600">
+                                                    <button onClick={() => { handleCopy(alt.part_number, gi); }} className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 max-md:opacity-100 hover:text-blue-600">
                                                         {copiedIdx === gi ? <Check size={8} className="text-emerald-500" /> : <Copy size={8} />}
                                                     </button>
                                                 </div>

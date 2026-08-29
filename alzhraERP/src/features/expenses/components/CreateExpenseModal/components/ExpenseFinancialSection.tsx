@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Wallet } from 'lucide-react';
-import { UseFormWatch, UseFormSetValue } from 'react-hook-form';
-import { ExpenseFormData } from '../../../types';
+import type { UseFormWatch, UseFormSetValue } from 'react-hook-form';
+import type { ExpenseFormData } from '../../../types';
 import { cn } from '../../../../../core/utils';
 
 interface ExpenseFinancialSectionProps {
@@ -16,15 +16,15 @@ export const ExpenseFinancialSection: React.FC<ExpenseFinancialSectionProps> = (
                 <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 px-1">طريقة السداد</label>
                     <div className="flex h-[42px] bg-gray-100 dark:bg-slate-800 p-1 rounded-xl border dark:border-slate-700">
-                        <button type="button" onClick={() => setValue('payment_method', 'cash')} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('payment_method') === 'cash' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400")}>كاش</button>
-                        <button type="button" onClick={() => setValue('payment_method', 'bank')} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('payment_method') === 'bank' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400")}>بنكي</button>
+                        <button type="button" onClick={() => { setValue('payment_method', 'cash'); }} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('payment_method') === 'cash' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400")}>كاش</button>
+                        <button type="button" onClick={() => { setValue('payment_method', 'bank'); }} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('payment_method') === 'bank' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400")}>بنكي</button>
                     </div>
                 </div>
                 <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 px-1">حالة القيد</label>
                     <div className="flex h-[42px] bg-gray-100 dark:bg-slate-800 p-1 rounded-xl border dark:border-slate-700">
-                        <button type="button" onClick={() => setValue('status', 'posted')} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('status') === 'posted' ? "bg-blue-600 text-white shadow-sm" : "text-gray-400")}>مرحل</button>
-                        <button type="button" onClick={() => setValue('status', 'draft')} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('status') === 'draft' ? "bg-white dark:bg-slate-600 text-gray-800 shadow-sm" : "text-gray-400")}>مسودة</button>
+                        <button type="button" onClick={() => { setValue('status', 'posted'); }} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('status') === 'posted' ? "bg-blue-600 text-white shadow-sm" : "text-gray-400")}>مرحل</button>
+                        <button type="button" onClick={() => { setValue('status', 'draft'); }} className={cn("flex-1 rounded-lg text-[10px] font-bold transition-all", watch('status') === 'draft' ? "bg-white dark:bg-slate-600 text-gray-800 shadow-sm" : "text-gray-400")}>مسودة</button>
                     </div>
                 </div>
             </div>

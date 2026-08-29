@@ -36,8 +36,8 @@ const DhikrTicker: React.FC = () => {
         <div
             role="marquee"
             aria-label={item.text}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
+            onMouseEnter={() => { setPaused(true); }}
+            onMouseLeave={() => { setPaused(false); }}
             className={cn(
                 'relative h-6 flex-shrink-0 overflow-hidden no-print select-none max-sm:hidden',
                 'border-b border-[var(--app-border)]',
@@ -70,7 +70,7 @@ const DhikrTicker: React.FC = () => {
             {/* Quick-hide button (persistent toggle lives in Settings) */}
             <button
                 type="button"
-                onClick={() => setEnabled(false)}
+                onClick={() => { setEnabled(false); }}
                 aria-label="إخفاء شريط الذكر وأوقات الصلاة"
                 title="إخفاء شريط الذكر"
                 className="absolute top-0 end-0 h-6 w-6 flex items-center justify-center text-[var(--app-text-secondary)] opacity-60 hover:opacity-100 hover:bg-[var(--app-surface)]/40 transition-opacity"

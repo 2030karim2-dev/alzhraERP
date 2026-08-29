@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormRegister } from 'react-hook-form';
+import type { UseFormRegister } from 'react-hook-form';
 import { Trash2, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { formatNumberDisplay } from '../../../../core/utils';
 import { cn } from '../../../../core/utils';
@@ -153,7 +153,7 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                         <td className="p-3 text-center">
                                             <button
                                                 type="button"
-                                                onClick={() => onRemoveItem!(field.id)}
+                                                onClick={() => { onRemoveItem(field.id); }}
                                                 className="text-rose-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all active:scale-95 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/40"
                                                 title="إزالة من الجلسة"
                                             >

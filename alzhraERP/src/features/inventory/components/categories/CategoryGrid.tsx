@@ -74,7 +74,7 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
                     </div>
 
                     <button
-                        onClick={() => onFilterProduct(cat.name)}
+                        onClick={() => { onFilterProduct(cat.name); }}
                         className="w-full py-1.5 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 group/btn"
                     >
                         تحليل

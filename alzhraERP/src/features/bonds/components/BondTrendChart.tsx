@@ -4,7 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { cn, formatCurrency } from '../../../core/utils';
 
 interface BondTrendChartProps {
-    data: { date: string; amount: number; count: number }[];
+    data: Array<{ date: string; amount: number; count: number }>;
     isDark: boolean;
 }
 
@@ -45,7 +45,7 @@ const BondTrendChart: React.FC<BondTrendChartProps> = ({ data, isDark }) => {
                         <Tooltip
                             cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '4 4' }}
                             content={({ active, payload }: any) => {
-                                if (active && payload && payload.length) {
+                                if (active && payload?.length) {
                                     return (
                                         <div className={cn(
                                             "p-4 rounded-3xl border shadow-2xl backdrop-blur-xl transition-all duration-300",

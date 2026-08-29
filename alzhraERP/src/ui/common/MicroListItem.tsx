@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LucideIcon, ChevronLeft } from 'lucide-react';
+import { type LucideIcon, ChevronLeft } from 'lucide-react';
 import { cn } from '../../core/utils';
 
 interface Tag {

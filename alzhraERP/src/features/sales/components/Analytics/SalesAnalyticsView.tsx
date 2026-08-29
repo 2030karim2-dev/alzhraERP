@@ -120,7 +120,7 @@ const SalesAnalyticsView: React.FC = () => {
     const renderPeriodButton = (p: PeriodType) => (
         <button
             key={p}
-            onClick={() => setPeriod(p)}
+            onClick={() => { setPeriod(p); }}
             className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-bold transition-all rounded-lg min-h-[44px] ${period === p
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                 : 'bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-border)]'

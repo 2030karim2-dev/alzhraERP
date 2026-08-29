@@ -40,7 +40,7 @@ const CategoriesManagementView: React.FC<Props> = ({ onFilterProduct }) => {
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newCatName.trim()) return;
-        createCategory(newCatName, { onSuccess: () => setNewCatName('') });
+        createCategory(newCatName, { onSuccess: () => { setNewCatName(''); } });
     };
 
     if (isLoading) return (
@@ -70,12 +70,12 @@ const CategoriesManagementView: React.FC<Props> = ({ onFilterProduct }) => {
                 setSearchQuery={setSearchQuery}
                 displayMode={displayMode}
                 setDisplayMode={setDisplayMode}
-                onOpenAICategorize={() => setIsAIModalOpen(true)}
+                onOpenAICategorize={() => { setIsAIModalOpen(true); }}
             />
 
             <AICategoryReviewModal
                 isOpen={isAIModalOpen}
-                onClose={() => setIsAIModalOpen(false)}
+                onClose={() => { setIsAIModalOpen(false); }}
                 onComplete={() => {
                     queryClient.invalidateQueries({ queryKey: ['inventory_categories'] });
                     queryClient.invalidateQueries({ queryKey: ['products'] });

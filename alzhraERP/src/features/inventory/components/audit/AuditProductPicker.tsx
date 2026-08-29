@@ -48,7 +48,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
                             <span className="text-[10px] bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg font-mono text-gray-500">{selectedProduct.sku}</span>
                         </div>
                         <button
-                            onClick={() => setSelectedProduct(null)}
+                            onClick={() => { setSelectedProduct(null); }}
                             className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-rose-500 rounded-xl transition-colors"
                         >
                             <X size={16} />
@@ -66,7 +66,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
                         size="sm"
                         clearable={false}
                         onKeyDown={handleKeyDown}
-                        onEscape={() => setIsDropdownOpen(false)}
+                        onEscape={() => { setIsDropdownOpen(false); }}
                         className="flex-1 border-none shadow-none ring-0"
                         inputClassName="placeholder:text-gray-400 dark:placeholder:text-slate-400"
                     />
@@ -75,7 +75,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
 
             <SearchDropdown
                 open={isDropdownOpen && searchQuery.trim().length > 0}
-                onClose={() => setIsDropdownOpen(false)}
+                onClose={() => { setIsDropdownOpen(false); }}
                 loading={isProductsLoading}
                 hasResults={products.length > 0}
                 emptyMessage="لا توجد نتائج مطابقة"

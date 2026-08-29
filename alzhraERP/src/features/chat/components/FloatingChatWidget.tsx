@@ -52,7 +52,7 @@ export const FloatingChatWidget: React.FC = () => {
     return (
       <div className="fixed bottom-5 end-5 z-40">
         <button
-          onClick={() => setFloatingOpen(true)}
+          onClick={() => { setFloatingOpen(true); }}
           className="relative flex h-13 w-13 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-2xl"
           title="محادثات الفروع والموظفين"
         >
@@ -84,7 +84,7 @@ export const FloatingChatWidget: React.FC = () => {
           )}
         </button>
         <button
-          onClick={() => setFloatingOpen(false)}
+          onClick={() => { setFloatingOpen(false); }}
           className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
         >
           <X size={14} />
@@ -107,7 +107,7 @@ export const FloatingChatWidget: React.FC = () => {
         <div className="flex items-center gap-2">
           {activeChannelId && (
             <button
-              onClick={() => setActiveChannel(null)}
+              onClick={() => { setActiveChannel(null); }}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
               title="الرجوع للقائمة"
             >
@@ -128,7 +128,7 @@ export const FloatingChatWidget: React.FC = () => {
             <ExternalLink size={14} />
           </button>
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => { setIsExpanded(!isExpanded); }}
             title={isExpanded ? 'تصغير' : 'توسيع'}
             className="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
           >
@@ -142,7 +142,7 @@ export const FloatingChatWidget: React.FC = () => {
             <Minus size={14} />
           </button>
           <button
-            onClick={() => setFloatingOpen(false)}
+            onClick={() => { setFloatingOpen(false); }}
             title="إغلاق"
             className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-rose-500"
           >
@@ -164,7 +164,7 @@ export const FloatingChatWidget: React.FC = () => {
             </div>
           </div>
         ) : activeChannelId ? (
-          <ConversationView onBack={() => setActiveChannel(null)} />
+          <ConversationView onBack={() => { setActiveChannel(null); }} />
         ) : (
           <ConversationList />
         )}

@@ -67,14 +67,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 type="text"
                 placeholder={pageSearchPlaceholder}
                 value={pageSearchValue}
-                onChange={(e) => onPageSearchChange(e.target.value)}
+                onChange={(e) => { onPageSearchChange(e.target.value); }}
                 autoFocus
                 className="w-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-500/30 rounded-lg py-1.5 ps-9 pe-10 text-xs text-[var(--app-text)] placeholder:text-blue-400 dark:placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold shadow-sm shadow-blue-500/5 ring-1 ring-blue-500/10"
               />
               <Search className={`absolute top-2.5 text-blue-500 transition-colors ${dir === 'rtl' ? 'right-3' : 'left-3'}`} size={14} />
               {pageSearchValue && (
                 <button 
-                  onClick={() => onPageSearchChange('')}
+                  onClick={() => { onPageSearchChange(''); }}
                   className={`absolute top-2.5 text-blue-400 hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-3' : 'right-3'}`}
                 >
                   <X size={14} />
@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 type="text"
                 placeholder={t('global_search_placeholder')}
                 value={globalSearchVal}
-                onChange={(e) => setGlobalSearchVal(e.target.value)}
+                onChange={(e) => { setGlobalSearchVal(e.target.value); }}
                 autoComplete="off"
                 aria-describedby="global-search-desc"
                 aria-label={t('global_search_placeholder')}
@@ -98,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               {globalSearchVal && (
                 <button 
                   type="button"
-                  onClick={() => setGlobalSearchVal('')}
+                  onClick={() => { setGlobalSearchVal(''); }}
                   className={`absolute top-2.5 text-[var(--app-text-secondary)] hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-3' : 'right-3'}`}
                 >
                   <X size={14} />
@@ -125,14 +125,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               inputMode="search"
               placeholder={pageSearchPlaceholder}
               value={pageSearchValue}
-              onChange={(e) => onPageSearchChange(e.target.value)}
+              onChange={(e) => { onPageSearchChange(e.target.value); }}
               aria-label={pageSearchPlaceholder}
               className="w-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-500/30 rounded-xl py-2.5 ps-9 pe-9 text-sm text-[var(--app-text)] placeholder:text-blue-400 dark:placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
             />
             <Search className={`absolute top-3 text-blue-500 ${dir === 'rtl' ? 'right-3' : 'left-3'}`} size={16} />
             {pageSearchValue && (
               <button
-                onClick={() => onPageSearchChange('')}
+                onClick={() => { onPageSearchChange(''); }}
                 aria-label="مسح البحث"
                 className={`absolute top-2.5 p-0.5 text-blue-400 hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-2' : 'right-2'}`}
               >

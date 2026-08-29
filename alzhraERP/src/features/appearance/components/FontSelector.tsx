@@ -21,7 +21,7 @@ const FontSelector: React.FC = () => {
         {FONTS.map(f => (
           <button
             key={f.name}
-            onClick={() => setDraftFont(f.name)}
+            onClick={() => { setDraftFont(f.name); }}
             className={cn(
               "w-full flex justify-between items-center p-4 rounded-xl border-2 transition-all text-right",
               font === f.name ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50"
@@ -46,7 +46,7 @@ const FontSelector: React.FC = () => {
             max="18"
             step="0.5"
             value={fontSize}
-            onChange={(e) => setDraftFontSize(parseFloat(e.target.value))}
+            onChange={(e) => { setDraftFontSize(parseFloat(e.target.value)); }}
             className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <Text size={24} className="text-gray-400" />

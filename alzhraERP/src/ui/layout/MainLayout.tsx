@@ -158,16 +158,16 @@ const MainLayout: React.FC = () => {
       {isMobileSidebarOpen && (
         <div
           className="bg-[var(--app-text)]/60 animate-in fade-in fixed inset-0 z-50 backdrop-blur-sm duration-300 md:hidden"
-          onClick={() => setIsMobileSidebarOpen(false)}
+          onClick={() => { setIsMobileSidebarOpen(false); }}
         ></div>
       )}
 
       <Sidebar
         className="no-print"
         isCollapsed={isSidebarCollapsed}
-        toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        toggleSidebar={() => { setIsSidebarCollapsed(!isSidebarCollapsed); }}
         isMobileOpen={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onCloseMobile={() => { setIsMobileSidebarOpen(false); }}
         sidebarWidth={sidebarWidth}
       />
 
@@ -186,7 +186,7 @@ const MainLayout: React.FC = () => {
         )}
       >
         <div className="no-print">
-          <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
+          <Header onMenuClick={() => { setIsMobileSidebarOpen(true); }} />
         </div>
 
         {isOnline && isUnstable && (
@@ -253,7 +253,7 @@ const MainLayout: React.FC = () => {
           })}
           {/* More Button */}
           <button
-            onClick={() => setIsMoreSheetOpen(true)}
+            onClick={() => { setIsMoreSheetOpen(true); }}
             aria-label={t('more') || 'المزيد'}
             className={cn(
               'flex h-full flex-1 flex-col items-center justify-center transition-all duration-300 active:scale-90',
@@ -279,7 +279,7 @@ const MainLayout: React.FC = () => {
         {/* More Actions BottomSheet */}
         <BottomSheet
           isOpen={isMoreSheetOpen}
-          onClose={() => setIsMoreSheetOpen(false)}
+          onClose={() => { setIsMoreSheetOpen(false); }}
           title={t('quick_actions') || 'إجراءات سريعة'}
         >
           <div className="grid grid-cols-3 gap-3 max-md:gap-2">

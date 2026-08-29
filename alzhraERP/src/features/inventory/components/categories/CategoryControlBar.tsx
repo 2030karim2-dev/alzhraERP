@@ -29,7 +29,7 @@ const CategoryControlBar: React.FC<Props> = ({
                     <input
                         type="text"
                         value={newCatName}
-                        onChange={(e) => setNewCatName(e.target.value)}
+                        onChange={(e) => { setNewCatName(e.target.value); }}
                         placeholder="إضافة قسم جديد..."
                         className="w-full bg-gray-50 dark:bg-slate-800 border-none py-2 pr-8 text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-500/20 dark:text-white"
                     />
@@ -48,7 +48,7 @@ const CategoryControlBar: React.FC<Props> = ({
             </Button>
             <div className="flex gap-1 bg-gray-50 dark:bg-slate-800 p-1 rounded-none">
                 <button
-                    onClick={() => setDisplayMode('grid')}
+                    onClick={() => { setDisplayMode('grid'); }}
                     className={cn(
                         "p-1.5 rounded-none transition-all",
                         displayMode === 'grid'
@@ -60,7 +60,7 @@ const CategoryControlBar: React.FC<Props> = ({
                     <LayoutGrid size={14} />
                 </button>
                 <button
-                    onClick={() => setDisplayMode('table')}
+                    onClick={() => { setDisplayMode('table'); }}
                     className={cn(
                         "p-1.5 rounded-none transition-all",
                         displayMode === 'table'

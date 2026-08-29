@@ -1,13 +1,13 @@
 import { Edit, Trash2, Package } from 'lucide-react';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../../core/utils';
-import { Column } from '../../../../ui/common/ExcelTable';
+import type { Column } from '../../../../ui/common/ExcelTable';
 
 interface GetProductColumnsProps {
     onEdit?: ((p: Product) => void) | undefined;
     onDeleteRequest?: ((p: Product) => void) | undefined;
     hideActions?: boolean;
-    extraColumns?: Column<Product>[];
+    extraColumns?: Array<Column<Product>>;
     visibleColumns?: string[] | undefined;
 }
 
@@ -17,8 +17,8 @@ export const getProductColumns = ({
     hideActions = false,
     extraColumns = [],
     visibleColumns
-}: GetProductColumnsProps): Column<Product>[] => {
-    const baseColumns: Column<Product>[] = [
+}: GetProductColumnsProps): Array<Column<Product>> => {
+    const baseColumns: Array<Column<Product>> = [
         {
             header: 'اسم القطعة',
             accessor: (p) => (

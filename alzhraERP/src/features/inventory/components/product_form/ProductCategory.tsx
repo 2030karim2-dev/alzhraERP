@@ -1,6 +1,6 @@
 import React from 'react';
-import { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
-import { ProductFormData } from '../../types';
+import type { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
+import type { ProductFormData } from '../../types';
 import { Layers } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import { useInventoryCategories } from '../../hooks/index';
@@ -44,7 +44,7 @@ const ProductCategory: React.FC<Props> = ({ register, watch, setValue }) => {
         <div className="flex h-[42px] bg-gray-100 dark:bg-slate-800 p-1 rounded-xl border dark:border-slate-700">
           <button
             type="button"
-            onClick={() => setValue('unit', 'piece')}
+            onClick={() => { setValue('unit', 'piece'); }}
             className={cn(
               "flex-1 rounded-lg text-[10px] font-bold transition-all",
               currentUnit === 'piece' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400"
@@ -52,7 +52,7 @@ const ProductCategory: React.FC<Props> = ({ register, watch, setValue }) => {
           >{t('piece')}</button>
           <button
             type="button"
-            onClick={() => setValue('unit', 'set')}
+            onClick={() => { setValue('unit', 'set'); }}
             className={cn(
               "flex-1 rounded-lg text-[10px] font-bold transition-all",
               currentUnit === 'set' ? "bg-white dark:bg-slate-600 text-blue-600 shadow-sm" : "text-gray-400"

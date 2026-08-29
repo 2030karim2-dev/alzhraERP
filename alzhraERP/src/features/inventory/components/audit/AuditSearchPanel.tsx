@@ -22,7 +22,7 @@ export interface SearchResult {
     alternative_numbers?: string;
     size?: string;
     stock_quantity?: number;
-    warehouse_distribution?: { warehouse_id: string; quantity: number }[];
+    warehouse_distribution?: Array<{ warehouse_id: string; quantity: number }>;
 }
 
 interface Props {
@@ -57,7 +57,7 @@ const AuditSearchPanel: React.FC<Props> = ({
                 ) : (
                     <select
                         value={selectedWarehouseId}
-                        onChange={(e) => onWarehouseChange(e.target.value)}
+                        onChange={(e) => { onWarehouseChange(e.target.value); }}
                         className="w-full bg-gray-50 dark:bg-slate-800 border-none rounded-lg py-2.5 px-4 text-sm font-bold shadow-inner ring-1 ring-gray-200 dark:ring-slate-700"
                     >
                         <option value="" disabled>-- اختر المستودع --</option>
@@ -86,7 +86,7 @@ const AuditSearchPanel: React.FC<Props> = ({
                         variant="default"
                         size="md"
                         className="flex-1"
-                        onEscape={() => setDropdownOpen(false)}
+                        onEscape={() => { setDropdownOpen(false); }}
                     />
                     <button
                         onClick={onScannerOpen}
@@ -99,7 +99,7 @@ const AuditSearchPanel: React.FC<Props> = ({
 
                 <SearchDropdown
                     open={dropdownOpen && !!filter.trim()}
-                    onClose={() => setDropdownOpen(false)}
+                    onClose={() => { setDropdownOpen(false); }}
                     loading={isLoadingSearch}
                     hasResults={hasResults}
                     emptyMessage="لا توجد أصناف مطابقة"

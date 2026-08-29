@@ -27,7 +27,7 @@ const BranchSwitcher: React.FC<{ className?: string }> = ({ className }) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    return () => { document.removeEventListener('mousedown', handler); };
   }, []);
 
   // إظهار فقط للمدير العام
@@ -41,7 +41,7 @@ const BranchSwitcher: React.FC<{ className?: string }> = ({ className }) => {
     <div ref={ref} className={cn('relative', className)}>
       {/* Trigger Button */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => { setOpen(!open); }}
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border',
           activeBranchId

@@ -5,7 +5,7 @@ import { aiService } from '../../ai/service';
 import { formatCurrency } from '../../../core/utils';
 
 interface Props {
-    monthlySales: { month: string; total: number }[];
+    monthlySales: Array<{ month: string; total: number }>;
 }
 
 const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {

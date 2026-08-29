@@ -74,7 +74,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
             <h2 className="text-base font-bold text-[var(--app-text)]">المحادثات والتواصل</h2>
           </div>
           <button
-            onClick={() => setIsNewChatOpen(true)}
+            onClick={() => { setIsNewChatOpen(true); }}
             title="محادثة جديدة"
             className="flex h-8 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 active:scale-95"
           >
@@ -90,7 +90,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
             type="text"
             placeholder="بحث في القنوات والرسائل..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); }}
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] py-1.5 pe-3 ps-8 text-xs text-[var(--app-text)] outline-none focus:border-[var(--accent)]"
           />
         </div>
@@ -106,7 +106,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveFilter(tab.id as any)}
+              onClick={() => { setActiveFilter(tab.id as any); }}
               className={`rounded-lg px-2.5 py-1 whitespace-nowrap transition-all ${
                 activeFilter === tab.id
                   ? 'bg-[var(--accent)] text-white shadow-xs'
@@ -242,7 +242,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
       </div>
 
       {/* New Chat Modal */}
-      <NewChatModal isOpen={isNewChatOpen} onClose={() => setIsNewChatOpen(false)} />
+      <NewChatModal isOpen={isNewChatOpen} onClose={() => { setIsNewChatOpen(false); }} />
     </div>
   );
 };

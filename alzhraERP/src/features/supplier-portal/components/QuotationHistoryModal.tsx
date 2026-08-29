@@ -93,7 +93,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
                 <button
                   key={rev.id}
                   type="button"
-                  onClick={() => setSelectedRev(rev)}
+                  onClick={() => { setSelectedRev(rev); }}
                   className={`w-full text-right p-2.5 rounded-xl transition-colors border ${
                     isSelected
                       ? 'bg-[var(--app-surface)] border-indigo-500 shadow-sm'

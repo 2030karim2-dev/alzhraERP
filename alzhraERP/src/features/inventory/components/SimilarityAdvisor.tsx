@@ -42,7 +42,7 @@ const SimilarityAdvisor: React.FC<Props> = ({ similarProducts, onApplyName, isVi
 
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100">
                             <button
-                                onClick={() => onApplyName(p.name_ar)}
+                                onClick={() => { onApplyName(p.name_ar); }}
                                 className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                 title="استخدام نفس الاسم"
                             >

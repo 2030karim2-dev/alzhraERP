@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign } from 'lucide-react';
-import { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
-import { ExpenseFormData } from '../../../types';
+import type { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
+import type { ExpenseFormData } from '../../../types';
 import { convertToBaseCurrency } from '../../../../../core/utils';
 
 interface ExpenseAmountSectionProps {
@@ -70,7 +70,7 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({ regi
                     <span className="text-sm font-bold text-amber-700 dark:text-amber-500 font-mono">
                         {convertToBaseCurrency({
                             amount,
-                            currencyCode: (selectedCurrency || 'SAR') as any,
+                            currencyCode: (selectedCurrency || 'SAR'),
                             exchangeRate,
                             exchangeOperator: isDivide ? 'divide' : 'multiply'
                         }).toFixed(2)} SAR

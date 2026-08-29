@@ -14,13 +14,13 @@ interface SalesByDayPoint {
 }
 
 interface SalesTrendChartProps {
-    salesByDay: Array<SalesByDayPoint>;
+    salesByDay: SalesByDayPoint[];
     periodLabel: string;
     formatCurrency: (value: number) => string;
 }
 
 const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
         const point = payload[0]?.payload as SalesByDayPoint | undefined;
         const returns = point?.returns ?? 0;
         return (
@@ -79,7 +79,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
             if (checkDimensions()) clearInterval(interval);
         }, 500);
 
-        return () => clearInterval(interval);
+        return () => { clearInterval(interval); };
     }, []);
 
     const commonProps = {
@@ -204,7 +204,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                 </div>
                 <div className="flex gap-1 max-md:gap-1 bg-[var(--app-surface-hover)] p-1 max-md:p-1 rounded-xl">
                     <button
-                        onClick={() => setActiveChart('area')}
+                        onClick={() => { setActiveChart('area'); }}
                         className={cn(
                             "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'area' ? "bg-[var(--app-surface)] text-[var(--accent)] shadow-sm" : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)]"
@@ -214,7 +214,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                         <AreaChartIcon size={16} />
                     </button>
                     <button
-                        onClick={() => setActiveChart('bar')}
+                        onClick={() => { setActiveChart('bar'); }}
                         className={cn(
                             "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'bar' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
@@ -224,7 +224,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                         <BarChart2 size={16} />
                     </button>
                     <button
-                        onClick={() => setActiveChart('line')}
+                        onClick={() => { setActiveChart('line'); }}
                         className={cn(
                             "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
                             activeChart === 'line' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"

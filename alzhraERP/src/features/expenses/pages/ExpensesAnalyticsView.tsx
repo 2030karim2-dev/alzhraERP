@@ -1,7 +1,7 @@
 import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { Receipt, DollarSign, Tag, Activity, PieChart as PieIcon, Wallet, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils';
-import { Expense } from '../types';
+import type { Expense } from '../types';
 import { useExpenseAnalytics } from '../hooks/useExpenseAnalytics';
 import { useThemeStore } from '@/lib/themeStore';
 import { cn } from '@/core/utils';
@@ -118,7 +118,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                                 <Tooltip
                                     cursor={{ stroke: '#f43f5e', strokeWidth: 2, strokeDasharray: '4 4' }}
                                     content={({ active, payload }: any) => {
-                                        if (active && payload && payload.length) {
+                                        if (active && payload?.length) {
                                             return (
                                                 <div className={cn(
                                                     "p-4 rounded-3xl border shadow-2xl backdrop-blur-xl transition-all duration-300",
@@ -197,7 +197,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                                 </Pie>
                                 <Tooltip
                                     content={({ active, payload }: any) => {
-                                        if (active && payload && payload.length) {
+                                        if (active && payload?.length) {
                                             return (
                                                 <div className={cn(
                                                     "p-4 rounded-3xl border shadow-2xl backdrop-blur-xl",
@@ -252,7 +252,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                             />
                             <Tooltip
                                 content={({ active, payload }: any) => {
-                                    if (active && payload && payload.length) {
+                                    if (active && payload?.length) {
                                         return (
                                             <div className={cn(
                                                 "p-4 rounded-3xl border shadow-2xl backdrop-blur-xl",

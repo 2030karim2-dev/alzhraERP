@@ -84,7 +84,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
   const handleCopyOem = (oem: string, id: string) => {
     navigator.clipboard.writeText(oem);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    setTimeout(() => { setCopiedId(null); }, 2000);
   };
 
   const selectedProductsList = useMemo(() => {
@@ -102,14 +102,14 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
               type="text"
               placeholder="بحث بالاسم، رقم OEM، أو كود SKU..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => { setSearchTerm(e.target.value); }}
               className="w-full pr-8 pl-3 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <select
             value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
+            onChange={e => { setCategoryFilter(e.target.value); }}
             className="px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             {categories.map(cat => (
@@ -185,7 +185,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => handleToggleRow(product.product_id)}
+                      onChange={() => { handleToggleRow(product.product_id); }}
                       className="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5 cursor-pointer"
                     />
                   </td>
@@ -226,7 +226,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
                         <span>{product.oem_number}</span>
                         <button
                           type="button"
-                          onClick={() => handleCopyOem(product.oem_number!, product.product_id)}
+                          onClick={() => { handleCopyOem(product.oem_number!, product.product_id); }}
                           className="text-slate-400 hover:text-indigo-600 transition-colors"
                           title="نسخ رقم القطعة"
                         >
@@ -281,7 +281,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
                   <td className="p-2.5 text-center">
                     <button
                       type="button"
-                      onClick={() => onCreateQuotation([product])}
+                      onClick={() => { onCreateQuotation([product]); }}
                       className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-600 text-indigo-600 hover:text-white dark:text-indigo-400 rounded-md text-xs font-bold transition-colors"
                     >
                       تسعير
@@ -316,7 +316,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => onCreateQuotation(selectedProductsList)}
+              onClick={() => { onCreateQuotation(selectedProductsList); }}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
             >
               <ShoppingCart className="w-3.5 h-3.5" />
@@ -325,7 +325,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
 
             <button
               type="button"
-              onClick={() => onSelectionChange(new Set())}
+              onClick={() => { onSelectionChange(new Set()); }}
               className="px-2.5 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg transition-colors"
             >
               إلغاء

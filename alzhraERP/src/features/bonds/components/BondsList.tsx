@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowDownCircle, ArrowUpCircle, Printer, Calendar, User, FileText, Wallet, Trash2, MessageCircle } from 'lucide-react';
-import { Bond } from '../types';
+import type { Bond } from '../types';
 import { cn, formatCurrency } from '../../../core/utils';
 import { useDeleteBond } from '../hooks';
 import { exportSingleBondToExcel } from '../../../core/utils/bondExcelExporter';
@@ -162,7 +162,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                         <button onClick={() => handleExport(bond)} className="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="تصدير إكسل / طباعة">
                                             <Printer size={14} />
                                         </button>
-                                        <button onClick={() => handleDelete(bond.id, bond.payment_number)} className="p-1.5 rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف">
+                                        <button onClick={() => { handleDelete(bond.id, bond.payment_number); }} className="p-1.5 rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف">
                                             <Trash2 size={14} />
                                         </button>
                                     </div>
@@ -229,7 +229,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                 <button onClick={() => handleExport(bond)} className="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="تصدير إكسل / طباعة">
                                     <Printer size={14} />
                                 </button>
-                                <button onClick={() => handleDelete(bond.id, bond.payment_number)} className="p-1.5 rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف">
+                                <button onClick={() => { handleDelete(bond.id, bond.payment_number); }} className="p-1.5 rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف">
                                     <Trash2 size={14} />
                                 </button>
                             </div>

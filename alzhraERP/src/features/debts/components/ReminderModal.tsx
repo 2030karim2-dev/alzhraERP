@@ -18,7 +18,7 @@ import { useDebtMutations } from '../hooks/useDebtMutations';
 import { debtsService, type PreparedReminder } from '../services/debtService';
 import {
   debtAiService,
-  ReminderTone,
+  type ReminderTone,
 } from '../services/debtAiService';
 import {
   buildWhatsAppLink,
@@ -32,7 +32,7 @@ interface ReminderModalProps {
   row: FollowUpDashboardRow;
 }
 
-const TONES: { key: ReminderTone; label: string; icon: string; desc: string }[] = [
+const TONES: Array<{ key: ReminderTone; label: string; icon: string; desc: string }> = [
   { key: 'friendly', label: 'ودي ومحترم', icon: '🤝', desc: 'تذكير لطيف للمستحقات القريبة' },
   { key: 'formal', label: 'رسمي ومهني', icon: '📋', desc: 'خطاب مالي للمنشآت والشركات' },
   { key: 'urgent', label: 'حازم وعاجل', icon: '⚠️', desc: 'للمتأخرات والوعود السابقة' },
@@ -108,7 +108,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
     navigator.clipboard.writeText(message);
     setIsCopied(true);
     showToast('تم نسخ نص الرسالة بنجاح', 'success');
-    setTimeout(() => setIsCopied(false), 2000);
+    setTimeout(() => { setIsCopied(false); }, 2000);
   };
 
   const handleSendApp = () => {
@@ -205,7 +205,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => setMode('template')}
+              onClick={() => { setMode('template'); }}
               className={cn(
                 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                 mode === 'template'
@@ -288,7 +288,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setSelectedTemplateId(t.id)}
+                    onClick={() => { setSelectedTemplateId(t.id); }}
                     className={cn(
                       'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border',
                       t.id === selectedTemplateId
@@ -318,7 +318,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
             </div>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => { setMessage(e.target.value); }}
               rows={8}
               dir="rtl"
               className="w-full rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/60 p-3.5 text-xs font-bold leading-relaxed focus:outline-none focus:ring-2 focus:ring-green-500/40"

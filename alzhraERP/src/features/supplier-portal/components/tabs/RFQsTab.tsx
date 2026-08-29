@@ -71,7 +71,7 @@ export const RFQsTab: React.FC<RFQsTabProps> = ({
             <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => handleShareWhatsApp(rfq)}
+                onClick={() => { handleShareWhatsApp(rfq); }}
                 className="p-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold transition-colors"
                 title="مشاركة عبر واتساب"
               >
@@ -80,7 +80,7 @@ export const RFQsTab: React.FC<RFQsTabProps> = ({
 
               <button
                 type="button"
-                onClick={() => onOpenQuotationFromRFQ(rfq)}
+                onClick={() => { onOpenQuotationFromRFQ(rfq); }}
                 className="flex-1 py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <ShoppingCart className="w-3.5 h-3.5" />

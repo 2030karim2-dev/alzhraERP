@@ -52,7 +52,7 @@ export const AIDebtAdvisor: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => { setIsExpanded(!isExpanded); }}
             className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
           >
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -98,7 +98,7 @@ export const AIDebtAdvisor: React.FC = () => {
                   <div className="pt-2 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
                     <button
                       type="button"
-                      onClick={() => setSelectedRowForRisk(debtor)}
+                      onClick={() => { setSelectedRowForRisk(debtor); }}
                       className="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
                     >
                       <Sparkles size={12} />
@@ -107,7 +107,7 @@ export const AIDebtAdvisor: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => setSelectedRowForReminder(debtor)}
+                      onClick={() => { setSelectedRowForReminder(debtor); }}
                       className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 hover:bg-green-100 border border-green-200 dark:border-green-800/40 transition-colors flex items-center gap-1"
                     >
                       <BellRing size={11} />
@@ -124,7 +124,7 @@ export const AIDebtAdvisor: React.FC = () => {
       {/* AI Risk Modal */}
       <AIDebtRiskModal
         isOpen={Boolean(selectedRowForRisk)}
-        onClose={() => setSelectedRowForRisk(null)}
+        onClose={() => { setSelectedRowForRisk(null); }}
         row={selectedRowForRisk}
         onOpenReminder={(r) => {
           setSelectedRowForRisk(null);
@@ -136,7 +136,7 @@ export const AIDebtAdvisor: React.FC = () => {
       {selectedRowForReminder && (
         <ReminderModal
           isOpen={Boolean(selectedRowForReminder)}
-          onClose={() => setSelectedRowForReminder(null)}
+          onClose={() => { setSelectedRowForReminder(null); }}
           row={selectedRowForReminder}
         />
       )}

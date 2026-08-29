@@ -1,7 +1,7 @@
 import React from 'react';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import Input from '../../../../ui/base/Input';
-import { ProductFormData } from '../../types';
+import type { ProductFormData } from '../../types';
 import { Tag, FileCode, Award, Combine } from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 
@@ -33,14 +33,14 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
           icon={<FileCode className="text-indigo-500" />}
           dir="ltr"
           className="font-mono text-xs"
-          error={errors.part_number?.message as string}
+          error={errors.part_number?.message}
         />
         <Input
           label={t('manufacturer')}
           {...register('brand')}
           icon={<Award className="text-amber-500" />}
           className="font-bold text-xs"
-          error={errors.brand?.message as string}
+          error={errors.brand?.message}
         />
       </div>
 

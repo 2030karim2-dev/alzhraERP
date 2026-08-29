@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Camera, X } from 'lucide-react';
 import { cn } from '../../../../core/utils';
-import { ProductFormData } from '../../types';
+import type { ProductFormData } from '../../types';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 
 interface Props {

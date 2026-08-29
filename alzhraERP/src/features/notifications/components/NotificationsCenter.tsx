@@ -51,7 +51,7 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
   const warningCount = notifications.filter(n => (n.type === 'warning' || n.type === 'error') && !n.archived).length;
 
-  const tabs: { key: FilterTab; label: string; count?: number }[] = [
+  const tabs: Array<{ key: FilterTab; label: string; count?: number }> = [
     { key: 'all', label: 'الكل' },
     { key: 'unread', label: 'غير مقروء', count: unreadCount },
     { key: 'warning', label: 'تنبيهات', count: warningCount },
@@ -77,7 +77,7 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
 
       <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--app-border)] overflow-x-auto">
         {tabs.map(tab => (
-          <button key={tab.key} onClick={() => setFilter(tab.key)}
+          <button key={tab.key} onClick={() => { setFilter(tab.key); }}
             className={cn('flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all',
               filter === tab.key ? 'bg-[var(--accent)] text-white' : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]')}>
             {tab.label}{tab.count !== undefined && tab.count > 0 && <span className="text-[10px] opacity-80">({tab.count})</span>}

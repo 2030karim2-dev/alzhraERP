@@ -2,8 +2,8 @@ import React from 'react';
 import { X, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { AppNotification } from '../store';
-import { typeConfig, NotificationType } from './notificationConfig';
+import type { AppNotification } from '../store';
+import { typeConfig, type NotificationType } from './notificationConfig';
 import { useI18nStore } from '../../../lib/i18nStore';
 
 interface NotificationItemProps {
@@ -14,7 +14,7 @@ interface NotificationItemProps {
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onDelete }) => {
     const { lang } = useI18nStore();
-    const config = typeConfig[notif.type as NotificationType] || typeConfig.info;
+    const config = typeConfig[notif.type] || typeConfig.info;
     const Icon = config.icon;
 
     return (

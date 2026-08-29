@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 import { useSupplierPrices, useSupplierPriceMutations } from '../../hooks/index';
 import { useFeedbackStore } from '../../../feedback/store';
 import { Plus, Building2, Truck, X } from 'lucide-react';
@@ -54,7 +54,7 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                     <Building2 size={11} className="text-emerald-500" /> أسعار الموردين (التوريد)
                 </h4>
                 <button
-                    onClick={() => setIsAdding(!isAdding)}
+                    onClick={() => { setIsAdding(!isAdding); }}
                     className={cn(
                         "flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded transition-colors",
                         isAdding ? "bg-rose-50 text-rose-600 dark:bg-rose-900/20" : "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 hover:bg-emerald-100"
@@ -71,7 +71,7 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                         <input
                             type="text"
                             value={supplierId}
-                            onChange={(e) => setSupplierId(e.target.value)}
+                            onChange={(e) => { setSupplierId(e.target.value); }}
                             placeholder="ID المورد"
                             className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                         />
@@ -80,7 +80,7 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                             <input
                                 type="number"
                                 value={costPrice || ''}
-                                onChange={(e) => setCostPrice(parseFloat(e.target.value))}
+                                onChange={(e) => { setCostPrice(parseFloat(e.target.value)); }}
                                 placeholder="التكلفة"
                                 className="w-full text-[10px] font-bold pr-1.5 pl-6 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                             />
@@ -90,7 +90,7 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                         <input
                             type="text"
                             value={partNumber}
-                            onChange={(e) => setPartNumber(e.target.value)}
+                            onChange={(e) => { setPartNumber(e.target.value); }}
                             placeholder="OEM #"
                             className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7 font-mono"
                             dir="ltr"
@@ -98,14 +98,14 @@ export const SupplierPricesList: React.FC<SupplierPricesListProps> = ({ product 
                         <input
                             type="number"
                             value={leadTime}
-                            onChange={(e) => setLeadTime(e.target.value === '' ? '' : parseInt(e.target.value))}
+                            onChange={(e) => { setLeadTime(e.target.value === '' ? '' : parseInt(e.target.value)); }}
                             placeholder="الأيام"
                             className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                         />
                         <input
                             type="text"
                             value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
+                            onChange={(e) => { setNotes(e.target.value); }}
                             placeholder="ملاحظات..."
                             className="text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                         />

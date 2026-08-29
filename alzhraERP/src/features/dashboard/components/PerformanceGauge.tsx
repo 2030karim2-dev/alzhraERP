@@ -47,7 +47,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
             if (checkDimensions()) clearInterval(interval);
         }, 500);
 
-        return () => clearInterval(interval);
+        return () => { clearInterval(interval); };
     }, []);
 
     const percentage = target > 0 ? Math.min(100, (value / target) * 100) : 0;

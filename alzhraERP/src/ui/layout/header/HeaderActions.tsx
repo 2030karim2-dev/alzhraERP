@@ -37,7 +37,7 @@ const HeaderActions: React.FC = () => {
     };
     checkPending();
     const interval = setInterval(checkPending, 5000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, []);
 
   const { getCompanyUnreadCount } = useNotificationStore();
@@ -96,7 +96,7 @@ const HeaderActions: React.FC = () => {
 
       {/* Language Toggle (Desktop Friendly) */}
       <button
-        onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+        onClick={() => { setLang(lang === 'ar' ? 'en' : 'ar'); }}
         className="hidden sm:flex w-8 h-8 items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] transition-all border border-[var(--app-border)] font-sans text-[10px] font-black uppercase tracking-tighter"
         title={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
         aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
@@ -122,7 +122,7 @@ const HeaderActions: React.FC = () => {
       {/* Sync Status Button */}
       {pendingCount > 0 && (
         <button
-          onClick={() => setIsSyncModalOpen(true)}
+          onClick={() => { setIsSyncModalOpen(true); }}
           className="relative w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all active:scale-95 border border-amber-200 dark:border-amber-800"
           title={`${pendingCount} عمليات بانتظار المزامنة`}
         >
@@ -139,7 +139,7 @@ const HeaderActions: React.FC = () => {
       {/* Sync Modal */}
       <SyncStatusModal
         isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
+        onClose={() => { setIsSyncModalOpen(false); }}
       />
 
       {/* Internal Branch Chat & Collaboration */}
@@ -163,7 +163,7 @@ const HeaderActions: React.FC = () => {
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
         <button
-          onClick={() => setIsNotifOpen(!isNotifOpen)}
+          onClick={() => { setIsNotifOpen(!isNotifOpen); }}
           className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] hover:text-[var(--accent)] transition-all duration-200 active:scale-95 border border-[var(--app-border)] relative focus:outline-none"
           title={t('notifications')}
           aria-label={`${t('notifications')} ${unreadCount > 0 ? `(${unreadCount} غير مقروء)` : ''}`}
@@ -180,13 +180,13 @@ const HeaderActions: React.FC = () => {
             </span>
           )}
         </button>
-        <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+        <NotificationDropdown isOpen={isNotifOpen} onClose={() => { setIsNotifOpen(false); }} />
       </div>
 
       {/* User Profile Dropdown */}
       <div className="relative" ref={profileRef}>
         <button
-          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          onClick={() => { setIsProfileOpen(!isProfileOpen); }}
           className="ms-1 group relative focus:outline-none rounded-lg"
           title={t('profile') || 'الملف الشخصي'}
           aria-label={t('profile') || 'الملف الشخصي'}
@@ -211,7 +211,7 @@ const HeaderActions: React.FC = () => {
             {/* Mobile backdrop */}
             <div
               className="fixed inset-0 z-40 sm:hidden"
-              onClick={() => setIsProfileOpen(false)}
+              onClick={() => { setIsProfileOpen(false); }}
             />
             <div className={cn(
               "absolute mt-2 w-56 max-w-[calc(100vw-1.5rem)] bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
@@ -257,7 +257,7 @@ const HeaderActions: React.FC = () => {
       {/* Logout Confirmation Modal */}
       <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
+        onClose={() => { setIsLogoutModalOpen(false); }}
         onConfirm={performLogout}
         isLoading={isLoggingOut}
       />

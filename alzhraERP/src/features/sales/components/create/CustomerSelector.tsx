@@ -25,7 +25,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => { document.removeEventListener("mousedown", handleClickOutside); };
   }, []);
 
   const handleSelect = (customer: any) => {
@@ -56,7 +56,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             </div>
           </div>
           <button
-            onClick={() => setCustomer(null)}
+            onClick={() => { setCustomer(null); }}
             className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded text-gray-400 hover:text-rose-500 transition-all"
           >
             <X size={compact ? 14 : 18} />
@@ -68,7 +68,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
-            onFocus={() => setIsOpen(true)}
+            onFocus={() => { setIsOpen(true); }}
             placeholder={compact ? "بحث عميل..." : "بحث عن عميل بالاسم أو الهاتف..."}
             className={cn(
               "w-full bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 font-bold dark:text-slate-100 transition-all outline-none focus:ring-2 focus:ring-blue-500/20",
@@ -86,7 +86,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                   {filteredCustomers.map((customer: any) => (
                     <li
                       key={customer.id}
-                      onClick={() => handleSelect(customer)}
+                      onClick={() => { handleSelect(customer); }}
                       className="px-3 py-2 hover:bg-blue-600 hover:text-white cursor-pointer border-b dark:border-slate-800 last:border-none flex items-center justify-between group transition-colors"
                     >
                       <div className="flex flex-col">

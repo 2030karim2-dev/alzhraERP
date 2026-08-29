@@ -21,8 +21,8 @@ const CashFlowView: React.FC = () => {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsMounted(true), 100);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setIsMounted(true); }, 100);
+        return () => { clearTimeout(timer); };
     }, []);
 
     if (isLoading) return (
@@ -161,7 +161,7 @@ const CashFlowView: React.FC = () => {
                                     <Tooltip
                                         cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '6 6' }}
                                         content={(({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number | string }>; label?: string }) => {
-                                            if (active && payload && payload.length) {
+                                            if (active && payload?.length) {
                                                 return (
                                                     <div className="bg-white/95 dark:bg-slate-900/95   max-md:p-4 sm:p-6 shadow-2xl min-w-[180px] sm:min-w-[220px]">
                                                         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">

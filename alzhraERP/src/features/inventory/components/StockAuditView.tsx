@@ -25,7 +25,7 @@ const StockAuditView: React.FC = () => {
     }
   };
 
-  const cancelDelete = () => setDeleteTarget(null);
+  const cancelDelete = () => { setDeleteTarget(null); };
 
   const stats = useMemo(() => {
     if (!audits) return { total: 0, active: 0, completed: 0 };
@@ -81,7 +81,7 @@ const StockAuditView: React.FC = () => {
       {/* ── Action Buttons ── */}
       <div className="grid grid-cols-2 gap-3 max-md:gap-1.5 shrink-0">
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setIsModalOpen(true); }}
           className="bg-[var(--app-surface)] border-2 border-dashed border-blue-300 dark:border-blue-800 rounded-xl p-3.5 max-md:p-2.5 text-blue-600 dark:text-blue-400 flex items-center justify-center gap-2 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all active:scale-95 shadow-sm group"
         >
           <div className="p-1 bg-blue-100 dark:bg-blue-900/40 rounded-lg group-hover:scale-110 transition-transform">
@@ -188,7 +188,7 @@ const StockAuditView: React.FC = () => {
 
                 {/* Delete button */}
                 <button
-                  onClick={(e) => handleDeleteClick(e, ad)}
+                  onClick={(e) => { handleDeleteClick(e, ad); }}
                   disabled={isDeletingSession}
                   className={cn(
                     "self-center shrink-0 rounded-lg p-2 max-md:p-1.5 border transition-all",
@@ -210,7 +210,7 @@ const StockAuditView: React.FC = () => {
         )}
       </div>
 
-      <StartAuditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <StartAuditModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); }} />
 
       {/* ── Delete Confirmation Dialog ── */}
       {deleteTarget && (
@@ -220,7 +220,7 @@ const StockAuditView: React.FC = () => {
         >
           <div
             className="w-full max-w-sm bg-[var(--app-surface)] rounded-t-2xl border-t border-gray-200 dark:border-slate-800 p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); }}
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2.5 bg-rose-100 dark:bg-rose-900/30 rounded-xl">

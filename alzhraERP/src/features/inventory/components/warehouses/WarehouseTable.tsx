@@ -54,13 +54,13 @@ const WarehouseTable: React.FC<Props> = ({ warehouses, onViewDetails, onEdit, on
             header: 'إجراءات',
             accessor: (row: WarehouseRow) => (
                 <div className="flex items-center justify-center gap-2">
-                    <Button onClick={() => onViewDetails(row.id)} variant="primary" size="sm" className="h-8 px-3" leftIcon={<Eye size={14} />}>
+                    <Button onClick={() => { onViewDetails(row.id); }} variant="primary" size="sm" className="h-8 px-3" leftIcon={<Eye size={14} />}>
                         عرض المخزون
                     </Button>
-                    <Button onClick={() => onEdit(row)} variant="outline" size="sm" className="h-8 px-3 text-blue-600 hover:bg-blue-50" leftIcon={<Edit size={14} />}>
+                    <Button onClick={() => { onEdit(row); }} variant="outline" size="sm" className="h-8 px-3 text-blue-600 hover:bg-blue-50" leftIcon={<Edit size={14} />}>
                         تعديل
                     </Button>
-                    <Button onClick={() => onDelete(row.id)} variant="danger" size="sm" className="h-8 px-3" leftIcon={<Trash2 size={14} />}>
+                    <Button onClick={() => { onDelete(row.id); }} variant="danger" size="sm" className="h-8 px-3" leftIcon={<Trash2 size={14} />}>
                         حذف
                     </Button>
                 </div>

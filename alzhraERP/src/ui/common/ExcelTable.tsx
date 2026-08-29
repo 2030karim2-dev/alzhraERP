@@ -10,7 +10,7 @@ import { ExcelTableBody } from './ExcelTableBody';
 import { ExcelTablePagination } from './ExcelTablePagination';
 import FullscreenContainer from '../base/FullscreenContainer';
 import ExcelTableToolbar from './ExcelTableToolbar';
-import { EXCEL_TABLE_THEMES, ExcelTableColorTheme } from './excelTableThemes';
+import { EXCEL_TABLE_THEMES, type ExcelTableColorTheme } from './excelTableThemes';
 
 export interface Column<T> {
   header: string;
@@ -25,7 +25,7 @@ export interface Column<T> {
 }
 
 interface ExcelTableProps<T> {
-  columns: Column<T>[];
+  columns: Array<Column<T>>;
   data: T[];
   title?: string;
   subtitle?: string;
@@ -98,7 +98,7 @@ function ExcelTable<T>({
     const timer = setTimeout(() => {
       setDebouncedSearch(internalSearch);
     }, 150);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [internalSearch, isMainSearch]);
 
   const searchTermForFilter = isMainSearch ? (searchValue ?? '') : debouncedSearch;
@@ -412,7 +412,7 @@ function ExcelTable<T>({
 
 
   return (
-    <FullscreenContainer isMaximized={isZoomed} onToggleMaximize={() => setIsZoomed(false)}>
+    <FullscreenContainer isMaximized={isZoomed} onToggleMaximize={() => { setIsZoomed(false); }}>
       <div className={cn(
         "w-full flex-1 min-h-0 flex flex-col transition-all duration-300 relative",
         isZoomed ? "h-full bg-[var(--app-surface)] p-4" : "h-full min-h-[420px]"
@@ -422,7 +422,7 @@ function ExcelTable<T>({
           currentTheme={currentTheme}
           showSearch={showSearch}
           internalSearch={effectiveSearch}
-          setInternalSearch={isMainSearch ? onSearchChange! : setInternalSearch}
+          setInternalSearch={isMainSearch ? onSearchChange : setInternalSearch}
           isRTL={isRTL}
           onExport={onExport}
           enableResize={enableResize}
@@ -451,28 +451,28 @@ function ExcelTable<T>({
               {/* Top */}
               <div
                 className="absolute top-0 left-0 right-0 h-1.5 cursor-n-resize hover:bg-blue-500/30 transition-colors z-10"
-                onMouseDown={(e) => handleWrapperResizeStart('n', e)}
+                onMouseDown={(e) => { handleWrapperResizeStart('n', e); }}
               />
               {/* Bottom */}
               <div
                 className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize hover:bg-blue-500/30 transition-colors z-10"
-                onMouseDown={(e) => handleWrapperResizeStart('s', e)}
+                onMouseDown={(e) => { handleWrapperResizeStart('s', e); }}
               />
               {/* Left */}
               <div
                 className="absolute top-0 bottom-0 left-0 w-1.5 cursor-w-resize hover:bg-blue-500/30 transition-colors z-10"
-                onMouseDown={(e) => handleWrapperResizeStart('w', e)}
+                onMouseDown={(e) => { handleWrapperResizeStart('w', e); }}
               />
               {/* Right */}
               <div
                 className="absolute top-0 bottom-0 right-0 w-1.5 cursor-e-resize hover:bg-blue-500/30 transition-colors z-10"
-                onMouseDown={(e) => handleWrapperResizeStart('e', e)}
+                onMouseDown={(e) => { handleWrapperResizeStart('e', e); }}
               />
               {/* Corners */}
-              <div className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => handleWrapperResizeStart('nw', e)} />
-              <div className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => handleWrapperResizeStart('ne', e)} />
-              <div className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => handleWrapperResizeStart('sw', e)} />
-              <div className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => handleWrapperResizeStart('se', e)} />
+              <div className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => { handleWrapperResizeStart('nw', e); }} />
+              <div className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => { handleWrapperResizeStart('ne', e); }} />
+              <div className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => { handleWrapperResizeStart('sw', e); }} />
+              <div className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-blue-500/30 transition-colors z-10" onMouseDown={(e) => { handleWrapperResizeStart('se', e); }} />
             </>
           )}
           {/* Drag Handle in Title */}
@@ -485,7 +485,7 @@ function ExcelTable<T>({
             ref={tableRef}
             tabIndex={0}
             className="flex-1 min-h-0 overflow-auto custom-scrollbar scroll-x-hint-surface outline-none overscroll-contain"
-            onMouseDown={() => setIsMouseDown(true)}
+            onMouseDown={() => { setIsMouseDown(true); }}
             onMouseUp={() => { setIsMouseDown(false); endSelection(); }}
             onMouseLeave={() => { setIsMouseDown(false); endSelection(); }}
           >
@@ -525,7 +525,7 @@ function ExcelTable<T>({
                 handleSort={handleSort}
                 sortConfig={sortConfig}
                 isRTL={isRTL}
-                handleMouseDown={(e, idx) => onResizeMouseDown(e, String(idx))}
+                handleMouseDown={(e, idx) => { onResizeMouseDown(e, String(idx)); }}
                 isLoading={isLoading}
               />
               <ExcelTableBody
@@ -553,7 +553,7 @@ function ExcelTable<T>({
                 handleCellClick={handleCellClick}
                 handleMouseDownCell={handleMouseDownCell}
                 handleMouseEnterCell={handleMouseEnterCell}
-                onRowDoubleClick={onRowDoubleClick as ((row: T) => void) | undefined}
+                onRowDoubleClick={onRowDoubleClick}
                 startEditing={startEditing}
                 editValue={editValue}
                 setEditValue={setEditValue}

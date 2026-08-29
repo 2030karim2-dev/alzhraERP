@@ -47,7 +47,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
   isOpen,
   onClose,
   initialItems = [],
-  allProducts = [],
+  allProducts,
   companyName,
   supplierName,
   quotationNumber = 'VQ-NEW',
@@ -253,7 +253,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
               </label>
               <select
                 value={currency}
-                onChange={e => setCurrency(e.target.value)}
+                onChange={e => { setCurrency(e.target.value); }}
                 className="w-full px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="SAR">ريال سعودي (SAR)</option>
@@ -271,7 +271,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                 type="number"
                 min="0"
                 value={leadTimeDays}
-                onChange={e => setLeadTimeDays(Number(e.target.value) || 0)}
+                onChange={e => { setLeadTimeDays(Number(e.target.value) || 0); }}
                 className="w-full px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold focus:ring-1 focus:ring-indigo-500"
               />
             </div>
@@ -284,7 +284,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                 type="number"
                 min="0"
                 value={warrantyDays}
-                onChange={e => setWarrantyDays(Number(e.target.value) || 0)}
+                onChange={e => { setWarrantyDays(Number(e.target.value) || 0); }}
                 className="w-full px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold focus:ring-1 focus:ring-indigo-500"
               />
             </div>
@@ -296,7 +296,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
               <input
                 type="date"
                 value={validityDate}
-                onChange={e => setValidityDate(e.target.value)}
+                onChange={e => { setValidityDate(e.target.value); }}
                 className="w-full px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold focus:ring-1 focus:ring-indigo-500"
               />
             </div>
@@ -315,7 +315,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                     setProductSearch(e.target.value);
                     setIsAddingProduct(true);
                   }}
-                  onFocus={() => setIsAddingProduct(true)}
+                  onFocus={() => { setIsAddingProduct(true); }}
                   className="w-full pr-8 pl-3 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
@@ -327,7 +327,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                   <button
                     key={p.product_id}
                     type="button"
-                    onClick={() => handleAddProductToDraft(p)}
+                    onClick={() => { handleAddProductToDraft(p); }}
                     className="w-full text-right p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition-colors"
                   >
                     <div>
@@ -391,7 +391,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                           type="number"
                           min="1"
                           value={item.quantity}
-                          onChange={e => handleUpdateItem(idx, 'quantity', Number(e.target.value) || 1)}
+                          onChange={e => { handleUpdateItem(idx, 'quantity', Number(e.target.value) || 1); }}
                           className="w-full text-center py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded text-xs font-bold"
                         />
                       </td>
@@ -401,7 +401,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                           min="0"
                           step="0.01"
                           value={item.unit_price}
-                          onChange={e => handleUpdateItem(idx, 'unit_price', Number(e.target.value) || 0)}
+                          onChange={e => { handleUpdateItem(idx, 'unit_price', Number(e.target.value) || 0); }}
                           className="w-full text-center py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded text-xs font-mono font-bold"
                         />
                       </td>
@@ -411,7 +411,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                           min="0"
                           max="100"
                           value={item.discount_percentage}
-                          onChange={e => handleUpdateItem(idx, 'discount_percentage', Number(e.target.value) || 0)}
+                          onChange={e => { handleUpdateItem(idx, 'discount_percentage', Number(e.target.value) || 0); }}
                           className="w-full text-center py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded text-xs font-bold text-rose-500"
                         />
                       </td>
@@ -421,7 +421,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                       <td className="p-2">
                         <select
                           value={item.availability}
-                          onChange={e => handleUpdateItem(idx, 'availability', e.target.value as ItemAvailability)}
+                          onChange={e => { handleUpdateItem(idx, 'availability', e.target.value as ItemAvailability); }}
                           className="w-full py-1 px-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded text-[11px]"
                         >
                           <option value="in_stock">متوفر</option>
@@ -432,7 +432,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
                       <td className="p-2 text-center">
                         <button
                           type="button"
-                          onClick={() => handleRemoveItem(idx)}
+                          onClick={() => { handleRemoveItem(idx); }}
                           className="text-slate-400 hover:text-rose-500 transition-colors p-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -460,7 +460,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
               <textarea
                 rows={2}
                 value={terms}
-                onChange={e => setTerms(e.target.value)}
+                onChange={e => { setTerms(e.target.value); }}
                 className="w-full p-2 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500"
                 placeholder="شروط التسليم والدفع..."
               />
@@ -472,7 +472,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
               <textarea
                 rows={2}
                 value={notes}
-                onChange={e => setNotes(e.target.value)}
+                onChange={e => { setNotes(e.target.value); }}
                 className="w-full p-2 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500"
                 placeholder="أي توضيحات للمشتري..."
               />

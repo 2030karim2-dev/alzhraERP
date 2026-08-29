@@ -4,11 +4,11 @@ import { ShoppingCart, Loader2,  ChevronDown, ChevronUp, Package } from 'lucide-
 import { aiService } from '../../ai/service';
 
 interface Props {
-    lowStockItems: { id?: string; name: string; quantity: number; min_quantity: number; avgMonthlyUsage?: number }[];
+    lowStockItems: Array<{ id?: string; name: string; quantity: number; min_quantity: number; avgMonthlyUsage?: number }>;
 }
 
 const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
-    const [result, setResult] = useState<{ items: { name: string; suggestedQty: number; priority: string }[]; summary: string } | null>(null);
+    const [result, setResult] = useState<{ items: Array<{ name: string; suggestedQty: number; priority: string }>; summary: string } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -52,7 +52,7 @@ const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
                         {isLoading ? <Loader2 size={12} className="animate-spin" /> : '🤖 تحليل'}
                     </button>
                     {result && (
-                        <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 text-gray-400">
+                        <button onClick={() => { setIsExpanded(!isExpanded); }} className="p-1 text-gray-400">
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
                     )}

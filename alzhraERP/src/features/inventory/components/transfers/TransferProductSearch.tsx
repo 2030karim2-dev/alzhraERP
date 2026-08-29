@@ -15,7 +15,7 @@ interface Props {
 const TransferProductSearch: React.FC<Props> = ({
     query,
     setQuery,
-    products = [],
+    products,
     fromWarehouseId,
     onAddItem,
     selectedProductIds
@@ -76,7 +76,7 @@ const TransferProductSearch: React.FC<Props> = ({
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => { document.removeEventListener('mousedown', handleClickOutside); };
     }, []);
 
     return (
@@ -94,7 +94,7 @@ const TransferProductSearch: React.FC<Props> = ({
                             setQuery(e.target.value);
                             setIsOpen(true);
                         }}
-                        onFocus={() => setIsOpen(true)}
+                        onFocus={() => { setIsOpen(true); }}
                         placeholder="ابحث بالاسم أو رقم القطعة أو الباركود لإضافة صنف..."
                         className="w-full bg-[var(--app-surface)] border border-gray-200 dark:border-slate-700 rounded-xl pr-9 pl-8 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
                     />

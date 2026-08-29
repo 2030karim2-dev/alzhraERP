@@ -51,7 +51,7 @@ const TransfersView: React.FC = () => {
                     ].map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveSubTab(tab.id as SubTab)}
+                            onClick={() => { setActiveSubTab(tab.id as SubTab); }}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black transition-all duration-300",
                                 activeSubTab === tab.id
@@ -102,7 +102,7 @@ const TransfersView: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4 max-md:gap-2">
                                 <button 
-                                    onClick={() => setActiveSubTab('suggestions')}
+                                    onClick={() => { setActiveSubTab('suggestions'); }}
                                     className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/50 p-4 max-md:p-2.5 rounded-xl flex items-center gap-4 max-md:gap-2 text-right hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-all group"
                                 >
                                     <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -114,7 +114,7 @@ const TransfersView: React.FC = () => {
                                     </div>
                                 </button>
                                 <button 
-                                    onClick={() => setActiveSubTab('history')}
+                                    onClick={() => { setActiveSubTab('history'); }}
                                     className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 p-4 max-md:p-2.5 rounded-xl flex items-center gap-4 max-md:gap-2 text-right hover:bg-blue-100/50 dark:hover:bg-blue-900/20 transition-all group"
                                 >
                                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">

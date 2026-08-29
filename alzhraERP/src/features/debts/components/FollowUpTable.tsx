@@ -164,7 +164,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                     <div className="flex items-center justify-center gap-1.5">
                       {/* AI Risk Analysis Button */}
                       <button
-                        onClick={() => setAiRiskRow(row)}
+                        onClick={() => { setAiRiskRow(row); }}
                         title="التحليل الذكي للمخاطر (AI)"
                         className="p-2 max-md:p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-all shadow-sm"
                       >
@@ -188,7 +188,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                       {/* WhatsApp Reminder Button */}
                       {canRemind && (
                         <button
-                          onClick={() => setReminderRow(row)}
+                          onClick={() => { setReminderRow(row); }}
                           title="تذكير واتساب ذكي"
                           className="p-2 max-md:p-1.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white transition-all shadow-sm"
                         >
@@ -199,7 +199,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                       {/* Payment Promise Button */}
                       {canManage && (
                         <button
-                          onClick={() => setPromiseRow(row)}
+                          onClick={() => { setPromiseRow(row); }}
                           title="تسجيل وعد سداد"
                           className="p-2 max-md:p-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white transition-all shadow-sm"
                         >
@@ -264,7 +264,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
 
               <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-[var(--app-border)]">
                 <button
-                  onClick={() => setAiRiskRow(row)}
+                  onClick={() => { setAiRiskRow(row); }}
                   title="التحليل الذكي للمخاطر (AI)"
                   className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-all active:scale-90"
                 >
@@ -284,7 +284,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                 </button>
                 {canRemind && (
                   <button
-                    onClick={() => setReminderRow(row)}
+                    onClick={() => { setReminderRow(row); }}
                     title="تذكير واتساب ذكي"
                     className="p-2.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white transition-all active:scale-90"
                   >
@@ -293,7 +293,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                 )}
                 {canManage && (
                   <button
-                    onClick={() => setPromiseRow(row)}
+                    onClick={() => { setPromiseRow(row); }}
                     title="تسجيل وعد سداد"
                     className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white transition-all active:scale-90"
                   >
@@ -310,7 +310,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
       {reminderRow && (
         <ReminderModal
           isOpen
-          onClose={() => setReminderRow(null)}
+          onClose={() => { setReminderRow(null); }}
           row={reminderRow}
         />
       )}
@@ -319,7 +319,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
       {promiseRow && (
         <PromiseFormModal
           isOpen
-          onClose={() => setPromiseRow(null)}
+          onClose={() => { setPromiseRow(null); }}
           partyId={promiseRow.party_id}
           partyName={promiseRow.party_name}
         />
@@ -329,7 +329,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
       {aiRiskRow && (
         <AIDebtRiskModal
           isOpen
-          onClose={() => setAiRiskRow(null)}
+          onClose={() => { setAiRiskRow(null); }}
           row={aiRiskRow}
           onOpenReminder={(r) => {
             setAiRiskRow(null);

@@ -1,17 +1,17 @@
 import React from 'react';
 import { Warehouse, MapPin, Building2, ChevronDown, ChevronUp, Layers } from 'lucide-react';
 import { cn, formatNumberDisplay } from '../../../../core/utils';
-import { warehouseStock } from '../../types';
+import type { warehouseStock } from '../../types';
 
 export interface BranchInfo {
     id: string;
     name: string;
-    warehouses: {
+    warehouses: Array<{
         id: string;
         name: string;
         quantity: number;
         location: string | null;
-    }[];
+    }>;
 }
 
 interface Props {
@@ -137,7 +137,7 @@ const BranchStockBreakdown: React.FC<Props> = ({
                             {/* Branch Header */}
                             <button
                                 type="button"
-                                onClick={() => toggleBranch(branch.id)}
+                                onClick={() => { toggleBranch(branch.id); }}
                                 className="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <div className="flex items-center gap-3 min-w-0">

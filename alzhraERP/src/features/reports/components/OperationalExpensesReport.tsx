@@ -21,7 +21,7 @@ interface ExpenseAccountRow {
   count: number;
 }
 
-const useOperationalExpenses = (days: number = 30) => {
+const useOperationalExpenses = (days = 30) => {
 /** سطر قيد خام من استعلام المصاريف التشغيلية. */
 interface OperationalExpenseLine {
   account?: { id: string; name_ar?: string | null; code?: string | null } | null;
@@ -149,7 +149,7 @@ const OperationalExpensesReport: React.FC = () => {
                 {[7, 14, 30, 90].map(d => (
                     <button
                         key={d}
-                        onClick={() => setDays(d)}
+                        onClick={() => { setDays(d); }}
                         className={cn(
                             "px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all active:scale-95 min-h-[36px] sm:min-h-[40px] flex-shrink-0",
                             days === d
@@ -217,7 +217,7 @@ const OperationalExpensesReport: React.FC = () => {
                     </div>
                     {(data?.expensesByAccount.length || 0) > 10 && (
                         <button
-                            onClick={() => setShowAll(!showAll)}
+                            onClick={() => { setShowAll(!showAll); }}
                             className="w-full   max-md:p-2 sm:p-3 text-center text-[10px] sm:text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-center   max-md:gap-1 border-t dark:border-slate-800 active:scale-[0.98] transition-all"
                         >
                             {showAll ? <><ChevronUp size={12} /> إخفاء</> : <><ChevronDown size={12} /> عرض الكل ({data?.expensesByAccount.length})</>}

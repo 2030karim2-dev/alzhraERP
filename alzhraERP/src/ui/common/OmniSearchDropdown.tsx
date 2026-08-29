@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Package, User, Truck, Receipt, FileText, Loader2 } from 'lucide-react';
 import { cn } from '../../core/utils';
-import { searchAll, OmniSearchResponse } from '../../core/services/omniSearchService';
+import { searchAll, type OmniSearchResponse } from '../../core/services/omniSearchService';
 import { useAuthStore } from '../../features/auth/store';
 import { useDebounce } from '../../lib/hooks/useDebounce';
 import { useTranslation } from '../../lib/hooks/useTranslation';
@@ -52,7 +52,7 @@ const OmniSearchDropdown: React.FC<OmniSearchDropdownProps> = ({
     const companyId = user?.company_id;
     if (!isOpen || !companyId || debouncedQuery.length < 2) { setResults(null); return; }
     setIsLoading(true);
-    searchAll(companyId, debouncedQuery).then(setResults).finally(() => setIsLoading(false));
+    searchAll(companyId, debouncedQuery).then(setResults).finally(() => { setIsLoading(false); });
   }, [debouncedQuery, isOpen, user?.company_id]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -68,7 +68,7 @@ const OmniSearchDropdown: React.FC<OmniSearchDropdownProps> = ({
   useEffect(() => {
     const h = (e: MouseEvent): void => { if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose(); };
     if (isOpen) document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    return () => { document.removeEventListener('mousedown', h); };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -85,7 +85,7 @@ const OmniSearchDropdown: React.FC<OmniSearchDropdownProps> = ({
         <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--app-border)]">
           <Search size={18} className="text-[var(--app-text-secondary)] flex-shrink-0" />
           <input ref={inputRef} type="text" value={query}
-            onChange={e => setQuery(e.target.value)} onKeyDown={handleKeyDown}
+            onChange={e => { setQuery(e.target.value); }} onKeyDown={handleKeyDown}
             placeholder="ابحث عن منتج، عميل، فاتورة..." aria-label="البحث الشامل"
             className="flex-1 bg-transparent text-sm font-medium text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] outline-none"
             autoComplete="off" spellCheck={false} dir={dir} />
@@ -109,7 +109,7 @@ const OmniSearchDropdown: React.FC<OmniSearchDropdownProps> = ({
                       return (
                         <button key={item.id}
                           onClick={() => { navigate(item.path); onClose(); }}
-                          onMouseEnter={() => setSelectedIdx(gi)}
+                          onMouseEnter={() => { setSelectedIdx(gi); }}
                           className={cn('w-full flex items-center gap-3 px-4 py-3 text-left transition-colors', selectedIdx===gi ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-[var(--app-surface-hover)]')}>
                           <div className="w-8 h-8 rounded-lg bg-[var(--app-bg)] flex items-center justify-center text-[var(--app-text-secondary)] flex-shrink-0">{iconMap[item.icon]}</div>
                           <div className="flex-1 min-w-0"><p className="text-sm font-bold text-[var(--app-text)] truncate">{item.title}</p><p className="text-[10px] text-[var(--app-text-secondary)] truncate">{item.subtitle}</p></div>

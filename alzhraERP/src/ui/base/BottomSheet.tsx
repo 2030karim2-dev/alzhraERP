@@ -39,9 +39,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       document.body.style.overflow = 'hidden';
       return;
     }
-    const timer = setTimeout(() => setIsAnimating(false), 300);
+    const timer = setTimeout(() => { setIsAnimating(false); }, 300);
     document.body.style.overflow = '';
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [isOpen]);
 
   if (!isOpen && !isAnimating) return null;
@@ -79,7 +79,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         aria-label={title || 'قائمة الإجراءات'}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); }}
         className={cn(
           'relative w-full bg-[var(--app-surface)] shadow-2xl flex flex-col transition-transform duration-300 ease-out rounded-t-2xl border-t border-[var(--app-border)]',
           heightMap[height] || 'h-[50dvh]',

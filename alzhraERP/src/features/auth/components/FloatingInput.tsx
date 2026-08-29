@@ -40,8 +40,8 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
                     type={type}
                     value={value}
                     onChange={onChange}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
+                    onFocus={() => { setFocused(true); }}
+                    onBlur={() => { setFocused(false); }}
                     required={required}
                     minLength={minLength}
                     autoFocus={autoFocus}

@@ -46,7 +46,7 @@ const AlternativePartSuggestion: React.FC<AlternativePartSuggestionProps> = ({
         {alternatives.map((alt) => (
           <button
             key={alt.id}
-            onClick={() => onSelect(alt)}
+            onClick={() => { onSelect(alt); }}
             className="w-full flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-[var(--app-border)] hover:border-amber-300 dark:hover:border-amber-700 transition-all text-left group"
           >
             <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">

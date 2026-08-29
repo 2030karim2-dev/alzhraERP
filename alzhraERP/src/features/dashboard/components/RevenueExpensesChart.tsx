@@ -8,7 +8,7 @@ import { TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { cn } from '../../../core/utils';
 
 interface RevenueExpensesChartProps {
-    data: { name: string; revenue: number; expenses: number }[];
+    data: Array<{ name: string; revenue: number; expenses: number }>;
     className?: string;
 }
 
@@ -165,7 +165,7 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
             if (checkDimensions()) clearInterval(interval);
         }, 500);
 
-        return () => clearInterval(interval);
+        return () => { clearInterval(interval); };
     }, []);
 
     const metrics = React.useMemo(() => {

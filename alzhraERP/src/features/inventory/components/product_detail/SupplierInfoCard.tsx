@@ -53,11 +53,11 @@ const SupplierInfoCard: React.FC<Props> = ({
                     </div>
                     <div className="min-w-0 flex-1">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {hasData ? supplierData!.name : supplierName}
+                            {hasData ? supplierData.name : supplierName}
                         </h4>
-                        {hasData && supplierData!.supplier_code && (
+                        {hasData && supplierData.supplier_code && (
                             <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                                كود: {supplierData!.supplier_code}
+                                كود: {supplierData.supplier_code}
                             </p>
                         )}
                     </div>
@@ -67,15 +67,15 @@ const SupplierInfoCard: React.FC<Props> = ({
             {/* Contact Info */}
             {hasData && (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {supplierData!.phone && (
+                    {supplierData.phone && (
                         <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
                             <Phone size={12} className="text-slate-400 shrink-0" />
                             <span dir="ltr" className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex-1">
-                                {supplierData!.phone}
+                                {supplierData.phone}
                             </span>
                             {onContact && (
                                 <button
-                                    onClick={() => onContact(supplierData!.phone!)}
+                                    onClick={() => { onContact(supplierData.phone!); }}
                                     className="p-1 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-all active:scale-95"
                                     title="اتصال"
                                 >
@@ -84,19 +84,19 @@ const SupplierInfoCard: React.FC<Props> = ({
                             )}
                         </div>
                     )}
-                    {supplierData!.address && (
+                    {supplierData.address && (
                         <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
                             <MapPin size={12} className="text-slate-400 shrink-0" />
                             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">
-                                {supplierData!.address}
+                                {supplierData.address}
                             </span>
                         </div>
                     )}
-                    {supplierData!.email && (
+                    {supplierData.email && (
                         <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
                             <Hash size={12} className="text-slate-400 shrink-0" />
                             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">
-                                {supplierData!.email}
+                                {supplierData.email}
                             </span>
                         </div>
                     )}

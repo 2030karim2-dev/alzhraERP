@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 import { useKitComponents, useKitMutations } from '../../hooks/index';
 import { Plus, Package, Trash2, Layers, X } from 'lucide-react';
 import ProductSearch from '../../../../features/sales/components/create/ProductSearch';
@@ -38,7 +38,7 @@ export const ProductKitList: React.FC<ProductKitListProps> = ({ product }) => {
                     <Layers size={11} className="text-indigo-500" /> مكونات الباقة (Kit)
                 </h4>
                 <button
-                    onClick={() => setIsAdding(!isAdding)}
+                    onClick={() => { setIsAdding(!isAdding); }}
                     className={cn(
                         "flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded transition-colors",
                         isAdding ? "bg-rose-50 text-rose-600 dark:bg-rose-900/20" : "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 hover:bg-indigo-100"
@@ -59,14 +59,14 @@ export const ProductKitList: React.FC<ProductKitListProps> = ({ product }) => {
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between bg-[var(--app-surface)] px-2 py-1 border border-indigo-100 dark:border-indigo-800">
                                 <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{selectedProduct.name}</span>
-                                <button onClick={() => setSelectedProduct(null)} className="text-[10px] font-bold text-rose-500 uppercase">تغيير</button>
+                                <button onClick={() => { setSelectedProduct(null); }} className="text-[10px] font-bold text-rose-500 uppercase">تغيير</button>
                             </div>
                             <div className="flex gap-1.5">
                                 <input
                                     type="number"
                                     min="1"
                                     value={quantity}
-                                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                    onChange={(e) => { setQuantity(parseInt(e.target.value) || 1); }}
                                     placeholder="الكمية"
                                     className="w-20 text-[10px] font-bold px-1.5 py-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 outline-none h-7"
                                 />

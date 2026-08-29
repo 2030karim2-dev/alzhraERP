@@ -27,7 +27,7 @@ const ColorCustomizer: React.FC = () => {
         {ACCENT_COLORS.map(color => (
           <button
             key={color.name}
-            onClick={() => setDraftAccentColor(color.value)}
+            onClick={() => { setDraftAccentColor(color.value); }}
             className="flex flex-col items-center gap-2 group"
             title={color.name}
           >
@@ -49,7 +49,7 @@ const ColorCustomizer: React.FC = () => {
                 ref={colorInputRef}
                 type="color"
                 className="absolute w-0 h-0 opacity-0"
-                onChange={(e) => setDraftAccentColor(e.target.value)}
+                onChange={(e) => { setDraftAccentColor(e.target.value); }}
                 value={accentColor}
               />
             </div>

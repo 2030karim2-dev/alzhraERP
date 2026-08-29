@@ -4,11 +4,11 @@ import { Timer, Loader2, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import { aiService } from '../../ai/service';
 
 interface Props {
-    products: { name: string; currentStock: number; avgDailySales: number }[];
+    products: Array<{ name: string; currentStock: number; avgDailySales: number }>;
 }
 
 const StockDepletionAlert: React.FC<Props> = ({ products }) => {
-    const [result, setResult] = useState<{ items: { name: string; daysLeft: number; urgency: string }[] } | null>(null);
+    const [result, setResult] = useState<{ items: Array<{ name: string; daysLeft: number; urgency: string }> } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const analyze = async () => {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LucideIcon, Expand, Shrink } from 'lucide-react';
+import { X, type LucideIcon, Expand, Shrink } from 'lucide-react';
 import { cn } from '../../core/utils';
 
 interface ModalProps {
@@ -16,8 +16,8 @@ interface ModalProps {
   zIndex?: string;
 }
 
-type Position = { x: number; y: number };
-type Size = { width: number | string; height: number | string };
+interface Position { x: number; y: number }
+interface Size { width: number | string; height: number | string }
 
 const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -211,11 +211,11 @@ const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        onClick={e => e.stopPropagation()}
+        onClick={e => { e.stopPropagation(); }}
         style={modalStyle}
         className={cn(
           "bg-[var(--app-surface)] w-full shadow-2xl flex flex-col animate-in duration-300 transition-shadow border border-[var(--app-border)]",
-          !position && sizeClasses[isMaximized ? 'full' : (size === 'resizable' ? 'lg' : size as keyof typeof sizeClasses)],
+          !position && sizeClasses[isMaximized ? 'full' : (size === 'resizable' ? 'lg' : size)],
           !isMaximized && "max-h-[95vh] rounded-t-2xl md:rounded-2xl md:max-h-[85vh] md:zoom-in-95",
           isMaximized && "rounded-none"
         )}
@@ -223,14 +223,14 @@ const Modal: React.FC<ModalProps> = ({
         {/* Multi-directional Resize Handles (Desktop Only) */}
         {!isMaximized && (
           <>
-            <div onMouseDown={(e) => handleResizeStart(e, 'n')} className="hidden md:block absolute top-0 left-0 right-0 h-1 cursor-ns-resize z-50 hover:bg-blue-500/20" />
-            <div onMouseDown={(e) => handleResizeStart(e, 's')} className="hidden md:block absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize z-50 hover:bg-blue-500/20" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'e')} className="hidden md:block absolute top-0 bottom-0 right-0 w-1 cursor-ew-resize z-50 hover:bg-blue-500/20" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'w')} className="hidden md:block absolute top-0 bottom-0 left-0 w-1 cursor-ew-resize z-50 hover:bg-blue-500/20" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'nw')} className="hidden md:block absolute top-0 left-0 w-3 h-3 cursor-nwse-resize z-[60] hover:bg-blue-500/40" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'ne')} className="hidden md:block absolute top-0 right-0 w-3 h-3 cursor-nesw-resize z-[60] hover:bg-blue-500/40" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'sw')} className="hidden md:block absolute bottom-0 left-0 w-3 h-3 cursor-nesw-resize z-[60] hover:bg-blue-500/40" />
-            <div onMouseDown={(e) => handleResizeStart(e, 'se')} className="hidden md:block absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize z-[60] hover:bg-blue-500/40" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'n'); }} className="hidden md:block absolute top-0 left-0 right-0 h-1 cursor-ns-resize z-50 hover:bg-blue-500/20" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 's'); }} className="hidden md:block absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize z-50 hover:bg-blue-500/20" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'e'); }} className="hidden md:block absolute top-0 bottom-0 right-0 w-1 cursor-ew-resize z-50 hover:bg-blue-500/20" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'w'); }} className="hidden md:block absolute top-0 bottom-0 left-0 w-1 cursor-ew-resize z-50 hover:bg-blue-500/20" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'nw'); }} className="hidden md:block absolute top-0 left-0 w-3 h-3 cursor-nwse-resize z-[60] hover:bg-blue-500/40" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'ne'); }} className="hidden md:block absolute top-0 right-0 w-3 h-3 cursor-nesw-resize z-[60] hover:bg-blue-500/40" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'sw'); }} className="hidden md:block absolute bottom-0 left-0 w-3 h-3 cursor-nesw-resize z-[60] hover:bg-blue-500/40" />
+            <div onMouseDown={(e) => { handleResizeStart(e, 'se'); }} className="hidden md:block absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize z-[60] hover:bg-blue-500/40" />
           </>
         )}
 

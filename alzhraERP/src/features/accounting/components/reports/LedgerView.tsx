@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAccounts, useLedger } from '../../hooks/index';
-import { LedgerEntry } from '../../types/index';
+import type { LedgerEntry } from '../../types/index';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { formatCurrency, formatNumberDisplay } from '../../../../core/utils';
 import { Loader2, FileText } from 'lucide-react';

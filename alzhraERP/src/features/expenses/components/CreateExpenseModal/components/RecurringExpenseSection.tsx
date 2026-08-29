@@ -1,7 +1,7 @@
 import React from 'react';
 import { Repeat } from 'lucide-react';
-import { UseFormRegister } from 'react-hook-form';
-import { ExpenseFormData } from '../../../types';
+import type { UseFormRegister } from 'react-hook-form';
+import type { ExpenseFormData } from '../../../types';
 
 interface RecurringExpenseSectionProps {
     register: UseFormRegister<ExpenseFormData>;

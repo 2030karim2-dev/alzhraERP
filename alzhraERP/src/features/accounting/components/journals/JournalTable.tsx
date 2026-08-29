@@ -6,7 +6,7 @@ import { useJournals } from '../../hooks/useJournals';
 import JournalEntryRow, { TRANSACTION_TYPE_LABELS } from './JournalEntryRow';
 import { formatNumberDisplay } from '../../../../core/utils';
 // import Input from '../../../../ui/base/Input';
-import { UIJournalEntry, UIJournalLine } from '../../types/models';
+import type { UIJournalEntry, UIJournalLine } from '../../types/models';
 
 const JournalTable: React.FC = () => {
     const {
@@ -71,13 +71,13 @@ const JournalTable: React.FC = () => {
                         placeholder="بحث برقم القيد، الوصف، أو اسم الحساب..."
                         className="w-full ps-4 pe-10 py-2 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--radius)] text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[var(--app-text)]"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); }}
                     />
                 </div>
 
                 <div className="flex items-center gap-2 max-md:gap-2 w-full md:w-auto">
                     <button
-                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                        onClick={() => { setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc'); }}
                         className="flex items-center gap-2 px-3 py-2 bg-[var(--app-surface-hover)] text-[var(--app-text)] hover:bg-[var(--app-border)] transition-colors text-sm font-bold rounded-[var(--radius)]"
                     >
                         <ArrowUpDown size={16} />

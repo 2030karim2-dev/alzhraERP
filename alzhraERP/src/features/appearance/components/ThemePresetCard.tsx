@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Check, Moon, Sparkles } from 'lucide-react';
-import { ThemePreset } from '../types';
+import type { ThemePreset } from '../types';
 import { cn } from '../../../core/utils';
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 const ThemePresetCard: React.FC<Props> = ({ preset, isActive, onSelect }) => {
   return (
     <button
-      onClick={() => onSelect(preset.id)}
+      onClick={() => { onSelect(preset.id); }}
       className={cn(
         "group relative flex flex-col rounded-2xl md:rounded-3xl border-2 transition-all duration-500 text-right overflow-hidden active:scale-[0.97] hover:shadow-lg",
         isActive

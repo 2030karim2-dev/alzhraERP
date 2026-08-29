@@ -1,9 +1,9 @@
 import React from 'react';
-import { LucideIcon, ArrowRight, ArrowLeft, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
+import { type LucideIcon, ArrowRight, ArrowLeft, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../../core/utils';
 import { useTranslation } from '../../lib/hooks/useTranslation';
-import { AdvancedTabBar, TabItem } from '../components/AdvancedTabBar';
+import { AdvancedTabBar, type TabItem } from '../components/AdvancedTabBar';
 import { useSearchStore } from '../../core/store/searchStore';
 
 interface MicroHeaderProps {

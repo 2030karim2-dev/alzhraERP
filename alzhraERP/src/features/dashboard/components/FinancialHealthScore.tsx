@@ -21,7 +21,7 @@ interface FinancialHealthProps {
     className?: string;
 }
 
-const useCountUp = (end: number, duration: number = 1500) => {
+const useCountUp = (end: number, duration = 1500) => {
     const [count, setCount] = useState(0);
     const prevEnd = useRef(0);
     useEffect(() => {
@@ -41,7 +41,7 @@ const useCountUp = (end: number, duration: number = 1500) => {
         };
         
         animationFrameId = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrameId);
+        return () => { cancelAnimationFrame(animationFrameId); };
     }, [end, duration]);
     return count;
 };

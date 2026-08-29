@@ -35,7 +35,7 @@ const AuditLogView: React.FC = () => {
                             log={log}
                             isMaximized={isMaximized}
                             setIsMaximized={setIsMaximized}
-                            onBack={() => setSelectedProduct(null)}
+                            onBack={() => { setSelectedProduct(null); }}
                         />
 
                         <div className="flex-1 overflow-auto custom-scrollbar relative">
@@ -69,7 +69,7 @@ const AuditLogView: React.FC = () => {
                     <ProductExcelGrid 
                         products={(products as any) || []}
                         isLoading={isProductsLoading}
-                        onRowClick={(p: any) => setSelectedProduct(p)}
+                        onRowClick={(p: any) => { setSelectedProduct(p); }}
                         hideActions={true}
                         hideBulkActions={true}
                         title="سجل الحركات"

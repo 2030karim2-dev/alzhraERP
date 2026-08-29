@@ -13,7 +13,7 @@ import { usePOSSearch } from '../hooks/usePOSSearch';
 import { posSearchService } from '../services/searchService';
 import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
 import { formatCurrency } from '../../../core/utils';
-import { Product } from '../../inventory/types';
+import type { Product } from '../../inventory/types';
 import { buildProductFromSearchResult } from '../utils/buildProductFromResult';
 import { SuspendedOrdersModal } from '../components/SuspendedOrdersModal';
 import { POSHeader } from '../components/layout/POSHeader';
@@ -79,7 +79,7 @@ const POSPage: React.FC = () => {
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => { window.removeEventListener('keydown', handleKeyDown); };
     }, []);
 
     const validCartItems = useMemo(
@@ -125,7 +125,7 @@ const POSPage: React.FC = () => {
                 showSuspended={showSuspended}
                 setShowSuspended={setShowSuspended}
                 onClearCart={resetCart}
-                onLaunchScanner={() => setIsScannerOpen(true)}
+                onLaunchScanner={() => { setIsScannerOpen(true); }}
                 onSearchSelect={handleSearchSelect}
                 onViewDetails={handleViewDetails}
                 warehouses={warehouses}
@@ -140,7 +140,7 @@ const POSPage: React.FC = () => {
         `}>
                     {!isDesktop && (
                         <div className="shrink-0 p-3 max-md:p-3 bg-[var(--app-surface)] border-b dark:border-slate-800 flex items-center justify-between">
-                            <button onClick={() => setActiveMobileTab('products')} className="flex items-center gap-2 max-md:gap-2 text-blue-600 font-bold text-xs">
+                            <button onClick={() => { setActiveMobileTab('products'); }} className="flex items-center gap-2 max-md:gap-2 text-blue-600 font-bold text-xs">
                                 <ChevronLeft size={16} /> العودة للمنتجات
                             </button>
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">مراجعة الطلب</span>
@@ -152,7 +152,7 @@ const POSPage: React.FC = () => {
 
                     {!isQuickMode && (
                         <div className="shrink-0 p-2 max-md:p-2 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 hidden md:block">
-                            <SmartRecommendations cartItems={validCartItems} onAdd={(name) => search.setQuery(name)} />
+                            <SmartRecommendations cartItems={validCartItems} onAdd={(name) => { search.setQuery(name); }} />
                         </div>
                     )}
                 </aside>
@@ -163,9 +163,9 @@ const POSPage: React.FC = () => {
         `}>
                     <ProductGrid
                         searchTerm={search.debouncedQuery}
-                        onAddToCart={(p) => addProductToCart(p)}
+                        onAddToCart={(p) => { addProductToCart(p); }}
                         inStockOnly={inStockOnly}
-                        onViewDetails={(p) => setDetailProduct(p)}
+                        onViewDetails={(p) => { setDetailProduct(p); }}
                         selectedWarehouseId={selectedWarehouseId}
                     />
                 </main>
@@ -174,7 +174,7 @@ const POSPage: React.FC = () => {
             {!isDesktop && activeMobileTab === 'products' && items.length > 0 && (
                 <div className="fixed bottom-0 inset-x-0 p-4 max-md:p-4 z-40 animate-in slide-in-from-bottom-10 h-24 pointer-events-none">
                     <div
-                        onClick={() => setActiveMobileTab('cart')}
+                        onClick={() => { setActiveMobileTab('cart'); }}
                         className="w-full max-w-md mx-auto h-full bg-blue-600 text-white rounded-[2rem] shadow-2xl shadow-blue-500/40 flex items-center justify-between px-6 py-3 cursor-pointer pointer-events-auto active:scale-[0.98] transition-all"
                     >
                         <div className="flex flex-col">
@@ -194,7 +194,7 @@ const POSPage: React.FC = () => {
             {isScannerOpen && (
                 <ScannerOverlay
                     onScan={(code) => handleBarcodeScanned(code)}
-                    onClose={() => setIsScannerOpen(false)}
+                    onClose={() => { setIsScannerOpen(false); }}
                 />
             )}
 
@@ -202,14 +202,14 @@ const POSPage: React.FC = () => {
             {detailProduct && (
                 <ProductDetailModal
                     product={detailProduct}
-                    onClose={() => setDetailProduct(null)}
+                    onClose={() => { setDetailProduct(null); }}
                 />
             )}
 
             {showSuspended && (
                 <SuspendedOrdersModal
                     orders={suspendedOrders}
-                    onClose={() => setShowSuspended(false)}
+                    onClose={() => { setShowSuspended(false); }}
                     onResume={(id) => {
                         const res = resumeOrder(id);
                         if (res) {

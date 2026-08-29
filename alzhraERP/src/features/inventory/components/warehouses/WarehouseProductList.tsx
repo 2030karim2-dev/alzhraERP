@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useInventoryCategories } from '../../hooks/index';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 import { Layers, Loader2 } from 'lucide-react';
 import ProductExcelGrid from '../ProductExcelGrid';
 
@@ -37,7 +37,7 @@ const WarehouseProductList: React.FC<Props> = ({ products, isLoading }) => {
                 <div className="relative w-full md:w-64">
                     <select
                         value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        onChange={(e) => { setSelectedCategory(e.target.value); }}
                         className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl py-2 pr-9 pl-3 text-[10px] font-bold outline-none appearance-none focus:border-blue-500/50 focus:bg-white transition-all dark:text-slate-200"
                     >
                         <option value="all">كل التصنيفات</option>

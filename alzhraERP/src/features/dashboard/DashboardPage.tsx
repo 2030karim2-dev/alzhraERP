@@ -4,7 +4,7 @@ import ContentContainer from '../../ui/layout/ContentContainer';
 import { useDashboardMetrics } from './hooks/useDashboardMetrics';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { useAuthStore } from '../auth/store';
-import { DashboardPeriod } from './types';
+import type { DashboardPeriod } from './types';
 
 import MicroHeader from '../../ui/base/MicroHeader';
 import ChartSkeleton from '../../ui/base/ChartSkeleton';
@@ -125,7 +125,7 @@ const DashboardPage: React.FC = () => {
                                 <button
                                     key={opt.key}
                                     type="button"
-                                    onClick={() => setPeriod(opt.key)}
+                                    onClick={() => { setPeriod(opt.key); }}
                                     className={cn(
                                         "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all duration-150",
                                         period === opt.key
@@ -278,7 +278,7 @@ const DashboardPage: React.FC = () => {
                             <AlertsPanel
                                 alerts={alerts.map((a) => ({
                                     id: a.id,
-                                    type: (a.type === 'critical' ? 'urgent' : a.type) as 'urgent' | 'warning' | 'info',
+                                    type: (a.type === 'critical' ? 'urgent' : a.type),
                                     message: a.message,
                                     time: a.time ?? '',
                                 }))}

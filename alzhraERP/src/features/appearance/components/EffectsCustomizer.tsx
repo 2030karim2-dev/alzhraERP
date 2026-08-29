@@ -23,7 +23,7 @@ const EffectsCustomizer: React.FC = () => {
               max="1.5"
               step="0.1"
               value={radius}
-              onChange={(e) => setDraftRadius(parseFloat(e.target.value))}
+              onChange={(e) => { setDraftRadius(parseFloat(e.target.value)); }}
               className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <Maximize size={16} className="text-gray-400" />
@@ -47,7 +47,7 @@ const EffectsCustomizer: React.FC = () => {
               max="0.25"
               step="0.01"
               value={shadowStrength}
-              onChange={(e) => setDraftShadowStrength(parseFloat(e.target.value))}
+              onChange={(e) => { setDraftShadowStrength(parseFloat(e.target.value)); }}
               className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <Droplet size={16} className="text-gray-400" />
@@ -72,7 +72,7 @@ const EffectsCustomizer: React.FC = () => {
               max="40"
               step="1"
               value={glassBlur}
-              onChange={(e) => setDraftGlassBlur(parseInt(e.target.value))}
+              onChange={(e) => { setDraftGlassBlur(parseInt(e.target.value)); }}
               className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <Droplet size={14} className="text-blue-500 shrink-0" />
@@ -90,7 +90,7 @@ const EffectsCustomizer: React.FC = () => {
               max="0.6"
               step="0.01"
               value={glassOpacity}
-              onChange={(e) => setDraftGlassOpacity(parseFloat(e.target.value))}
+              onChange={(e) => { setDraftGlassOpacity(parseFloat(e.target.value)); }}
               className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <span className="text-[10px] font-bold text-gray-400 shrink-0">60%</span>

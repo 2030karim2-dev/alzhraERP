@@ -3,7 +3,7 @@ import React from 'react';
 import { Trash2,  Calendar, Receipt } from 'lucide-react';
 import ExcelTable from '../../../ui/common/ExcelTable';
 // import { formatCurrency } from '../../../core/utils';
-import { Expense } from '../types';
+import type { Expense } from '../types';
 import { exportToCSV } from '../../../lib/exportUtils';
 import EmptyState from '../../../ui/base/EmptyState';
 

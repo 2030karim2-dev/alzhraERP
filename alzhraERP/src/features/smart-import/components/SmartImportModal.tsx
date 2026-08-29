@@ -24,7 +24,7 @@ const loadXLSX = (): Promise<XlsxLike> => {
     return xlsxPromise;
 };
 
-type ImportItem = {
+interface ImportItem {
     name?: string;
     quantity?: number | string;
     unitPrice?: number | string;
@@ -32,7 +32,7 @@ type ImportItem = {
     stock_quantity?: number | string;
     cost_price?: number | string;
     [key: string]: unknown;
-};
+}
 
 interface Props {
     isOpen: boolean;
@@ -48,7 +48,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
     const [step, setStep] = useState<'upload' | 'review'>('upload');
     const [isProcessing, setIsProcessing] = useState(false);
     const [extractedItems, setExtractedItems] = useState<ImportItem[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const [_filePreview, setFilePreview] = useState<string | null>(null);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +58,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
         // Preview setup
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
-            reader.onload = (e) => setFilePreview(e.target?.result as string);
+            reader.onload = (e) => { setFilePreview(e.target?.result as string); };
             reader.readAsDataURL(file);
         } else {
             setFilePreview(null);
@@ -72,7 +72,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
             if (!items || items.length === 0) {
                 throw new Error("لم يتم العثور على جداول بيانات واضحة في الملف");
             }
-            setExtractedItems(items as ImportItem[]);
+            setExtractedItems(items);
             setStep('review');
             showToast(`تم استخراج ${items.length} صنف بنجاح`, 'success');
         } catch (err) {
@@ -250,7 +250,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
                             <ExcelTable
                                 columns={columns}
                                 data={extractedItems}
-                                onCellUpdate={(rowIndex, key, val) => handleUpdateCell(rowIndex, key as string, val)}
+                                onCellUpdate={(rowIndex, key, val) => { handleUpdateCell(rowIndex, key, val); }}
                                 onRowClick={handleRemoveRow}
                                 title={`تم استخراج ${extractedItems.length} سجل`}
                             />

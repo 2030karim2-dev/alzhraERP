@@ -183,7 +183,7 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Top Header */}
       <PortalHeader
         isLoading={isLoading}
-        onOpenComparisonModal={() => setIsComparisonModalOpen(true)}
+        onOpenComparisonModal={() => { setIsComparisonModalOpen(true); }}
         onOpenNewQuotationDrawer={() => {
           setQuotationDraftItems([]);
           setActiveQuotationId(undefined);
@@ -205,7 +205,7 @@ export const SupplierPortalPage: React.FC = () => {
       <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-1.5">
         <button
           type="button"
-          onClick={() => setActiveTab('products')}
+          onClick={() => { setActiveTab('products'); }}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'products'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -218,7 +218,7 @@ export const SupplierPortalPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('rfqs')}
+          onClick={() => { setActiveTab('rfqs'); }}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'rfqs'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -231,7 +231,7 @@ export const SupplierPortalPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('quotations')}
+          onClick={() => { setActiveTab('quotations'); }}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'quotations'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -253,7 +253,7 @@ export const SupplierPortalPage: React.FC = () => {
             onSelectionChange={setSelectedProductIds}
             onCreateQuotation={handleOpenQuotationFromSelection}
             onExportExcel={handleExportCatalogExcel}
-            onOpenImport={() => setIsImportModalOpen(true)}
+            onOpenImport={() => { setIsImportModalOpen(true); }}
             isLoading={isLoading}
           />
         )}
@@ -268,7 +268,7 @@ export const SupplierPortalPage: React.FC = () => {
         {activeTab === 'quotations' && (
           <QuotationsTab
             quotations={quotations}
-            onOpenHistory={(id, num) => setHistoryQuotation({ id, number: num })}
+            onOpenHistory={(id, num) => { setHistoryQuotation({ id, number: num }); }}
             onEditQuotation={quote => {
               setQuotationDraftItems(quote.items);
               setActiveQuotationId(quote.quotation_id);
@@ -281,7 +281,7 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Quotation Builder Drawer */}
       <QuotationBuilderDrawer
         isOpen={isQuotationDrawerOpen}
-        onClose={() => setIsQuotationDrawerOpen(false)}
+        onClose={() => { setIsQuotationDrawerOpen(false); }}
         initialItems={quotationDraftItems}
         allProducts={products}
         companyName={user?.company_name || 'Al-Zahra Smart ERP'}
@@ -293,7 +293,7 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Excel Import Modal */}
       <ExcelImportModal
         isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
+        onClose={() => { setIsImportModalOpen(false); }}
         allProducts={products}
         onImportComplete={items => {
           setQuotationDraftItems(items);
@@ -305,7 +305,7 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Vendor Comparison Matrix Modal */}
       <VendorComparisonModal
         isOpen={isComparisonModalOpen}
-        onClose={() => setIsComparisonModalOpen(false)}
+        onClose={() => { setIsComparisonModalOpen(false); }}
         quotations={quotations}
         companyId={companyId}
         onConvertedSuccessfully={po => {
@@ -318,7 +318,7 @@ export const SupplierPortalPage: React.FC = () => {
       {historyQuotation && (
         <QuotationHistoryModal
           isOpen={!!historyQuotation}
-          onClose={() => setHistoryQuotation(null)}
+          onClose={() => { setHistoryQuotation(null); }}
           quotationId={historyQuotation.id}
           quotationNumber={historyQuotation.number}
         />

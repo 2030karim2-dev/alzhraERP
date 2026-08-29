@@ -127,7 +127,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
             {message.reactions.map((reaction) => (
               <button
                 key={reaction.id}
-                onClick={() => handleToggleEmoji(reaction.emoji)}
+                onClick={() => { handleToggleEmoji(reaction.emoji); }}
                 className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-all ${
                   reaction.user_id === currentUserId
                     ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
@@ -147,7 +147,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           }`}
         >
           <button
-            onClick={() => onReply(message)}
+            onClick={() => { onReply(message); }}
             title="رد"
             className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
           >
@@ -156,7 +156,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
 
           <div className="relative">
             <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              onClick={() => { setShowEmojiPicker(!showEmojiPicker); }}
               title="تفاعل"
               className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
             >
@@ -168,7 +168,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
                 {QUICK_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
-                    onClick={() => handleToggleEmoji(emoji)}
+                    onClick={() => { handleToggleEmoji(emoji); }}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-xs hover:bg-[var(--app-surface-hover)] active:scale-125"
                   >
                     {emoji}

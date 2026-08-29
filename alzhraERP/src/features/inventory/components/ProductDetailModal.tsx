@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Box, FileText, Maximize2, Minimize2, Trash2, ExternalLink, Printer } from 'lucide-react';
-import { Product } from '../types';
+import type { Product } from '../types';
 import StockStatusBadge from './product_detail/StockStatusBadge';
 import ProductDetailsContent from './product_detail/ProductDetailsContent';
 import { cn } from '../../../core/utils';
@@ -69,7 +69,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
         >
             <div
                 id="print-area"
-                onClick={e => e.stopPropagation()}
+                onClick={e => { e.stopPropagation(); }}
                 role="dialog"
                 aria-label={`تفاصيل المنتج: ${product.name}`}
                 aria-modal="true"
@@ -160,7 +160,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
 
                         <button
                             type="button"
-                            onClick={() => setIsMaximized(!isMaximized)}
+                            onClick={() => { setIsMaximized(!isMaximized); }}
                             className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg bg-transparent transition-all active:scale-95"
                             title={isMaximized ? "تصغير" : "تكبير"}
                             aria-label={isMaximized ? "تصغير النافذة" : "تكبير النافذة"}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { cn } from '../../../../core/utils';
-import { SmartSuggestion } from '../../hooks/useSmartTransferSuggestions';
+import type { SmartSuggestion } from '../../hooks/useSmartTransferSuggestions';
 
 interface SmartSuggestionsSectionProps {
     suggestions: SmartSuggestion[];
@@ -46,7 +46,7 @@ const SmartSuggestionsSection: React.FC<SmartSuggestionsSectionProps> = ({ sugge
                                 <span className="text-emerald-500 truncate max-w-[40px]">{s.toWarehouse}</span>
                             </div>
                             <button
-                                onClick={() => onTransfer(s)}
+                                onClick={() => { onTransfer(s); }}
                                 className="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded flex items-center gap-1 transition-all active:scale-95"
                             >
                                 نقل

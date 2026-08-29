@@ -57,7 +57,7 @@ export const LoginForm: React.FC = () => {
                 label={t('email_label')}
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); }}
                 icon={<Mail size={20} />}
                 dir="ltr"
                 autoComplete="email"
@@ -70,13 +70,13 @@ export const LoginForm: React.FC = () => {
                     label={t('password_label')}
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); }}
                     icon={<Lock size={20} />}
                     dir="ltr"
                     autoComplete="current-password"
                     required
                     endIcon={showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    onEndIconClick={() => setShowPassword(!showPassword)}
+                    onEndIconClick={() => { setShowPassword(!showPassword); }}
                 />
                 <div className="flex justify-start">
                     <a href="#/forgot-password" title="استعادة كلمة المرور" className="text-xs font-bold text-blue-500 hover:text-blue-600 hover:underline transition-colors uppercase">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Product } from '../types';
+import type { Product } from '../types';
 import { formatCurrency, formatNumberDisplay } from '../../../core/utils';
 import { Hash, MapPin, Box, Activity } from 'lucide-react';
 import { cn } from '../../../core/utils';
@@ -13,7 +13,7 @@ interface Props {
 const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
   return (
     <div
-      onClick={() => onClick(product.id)}
+      onClick={() => { onClick(product.id); }}
       className={cn(
         "group relative bg-[var(--app-surface)] border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col active:scale-[0.98] rounded-xl shadow-sm hover:shadow-md",
         product.isLowStock
