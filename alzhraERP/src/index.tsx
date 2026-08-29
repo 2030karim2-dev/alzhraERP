@@ -39,13 +39,18 @@ if (import.meta.env.PROD) {
       try {
         const data = await cloned.json();
         if (data && (data.code || data.message || data.details)) {
-          // Log silently
-          logger.error('DB_ERROR_SILENT', 'Underlying database error intercepted', data);
+          const msg = String(data.message || '');
+          const isAbort = msg.toLowerCase().includes('abort') || data.name === 'AbortError';
+
+          if (!isAbort) {
+            // Log silently in debug mode as intended
+            logger.debug('DB_ERROR_SILENT', 'Underlying database error intercepted', data);
+          }
 
           // احتفظ برسائل استثناءات دوالنا الداخلية العربية (RAISE EXCEPTION '...')
           // فهي مقصودة ومفهومة للمستخدم (مثل 'لا يوجد مستودع للفرع')،
           // وقم فقط بتغطية الأخطاء التقنية الداخلية (Postgres/PostgREST بالإنجليزية).
-          if (!/[\u0600-\u06FF]/.test(String(data.message ?? ''))) {
+          if (!/[\u0600-\u06FF]/.test(String(data.message ?? '')) && !isAbort) {
             // Modify the response body to return a generic message
             data.message = "حدث خطأ غير متوقع أثناء معالجة البيانات، المرجو المحاولة لاحقاً.";
           }
