@@ -3,7 +3,7 @@ import { X, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import type { AppNotification } from '../store';
-import { typeConfig, type NotificationType } from './notificationConfig';
+import { typeConfig } from './notificationConfig';
 import { useI18nStore } from '../../../lib/i18nStore';
 
 interface NotificationItemProps {

@@ -82,7 +82,7 @@ const InteractiveInvoiceTable: React.FC = () => {
 
     // Auto-focus quantity after selection
     setTimeout(() => {
-      const nextCell = tableRef.current?.querySelector(`[data-row-index="${modalState.rowIndex}"][data-col-field="quantity"]`)!;
+      const nextCell = tableRef.current?.querySelector<HTMLInputElement>(`[data-row-index="${modalState.rowIndex}"][data-col-field="quantity"]`) ?? null;
       nextCell?.focus();
       nextCell?.select();
     }, 50);
@@ -103,7 +103,7 @@ const InteractiveInvoiceTable: React.FC = () => {
     const colIndex = navigationFields.indexOf(field);
 
     const moveFocus = (row: number, colField: keyof SalesCartItem) => {
-      const nextCell = tableRef.current?.querySelector(`[data-row-index="${row}"][data-col-field="${colField}"]`)!;
+      const nextCell = tableRef.current?.querySelector<HTMLInputElement>(`[data-row-index="${row}"][data-col-field="${colField}"]`) ?? null;
       nextCell?.focus();
       if (nextCell) nextCell.select();
     };
