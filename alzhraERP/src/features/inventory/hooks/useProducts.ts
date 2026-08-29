@@ -6,6 +6,7 @@ import { useFeedbackStore } from '../../feedback/store';
 import { ProductFormData } from '../types';
 import { useMemo } from 'react';
 import { syncStore } from '../../../core/lib/sync-store';
+import { invalidateByPreset } from '../../../lib/invalidation';
 
 export const useProducts = (
   searchTerm: string = '',
@@ -180,9 +181,11 @@ export const useProductMutations = () => {
     },
     onSuccess: () => {
       showToast('تم حفظ بيانات المنتج بنجاح', 'success');
+      invalidateByPreset(queryClient, 'inventory');
     },
     onSettled: () => {
       // Always refetch after mutation to ensure consistency across all views
+      invalidateByPreset(queryClient, 'inventory');
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
       queryClient.invalidateQueries({ queryKey: ['item_movement'] });
@@ -193,6 +196,7 @@ export const useProductMutations = () => {
     // Fix: Call deleteProduct which will be added to inventoryService
     mutationFn: (id: string) => inventoryService.deleteProduct(id),
     onSuccess: () => {
+      invalidateByPreset(queryClient, 'inventory');
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
       showToast('تم حذف المنتج من المستودع', 'info');
@@ -202,6 +206,7 @@ export const useProductMutations = () => {
   const bulkDeleteProducts = useMutation({
     mutationFn: (ids: string[]) => inventoryService.bulkDeleteProducts(ids),
     onSuccess: () => {
+      invalidateByPreset(queryClient, 'inventory');
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
       showToast('تم حذف المنتجات المحددة بنجاح', 'info');

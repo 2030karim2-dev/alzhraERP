@@ -6,6 +6,7 @@ import { BondType, BondFormData } from './types';
 import { assertPermission } from '../../core/hooks/usePermission';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
 import { invalidateFinancialQueries } from '../../core/utils/querySyncUtils';
+import { invalidateByPreset } from '../../lib/invalidation';
 
 export const useBonds = (type?: BondType) => {
   const { user } = useAuthStore();
