@@ -6,6 +6,7 @@ import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { useLogout } from '../../../features/auth/hooks';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
 import BranchSwitcher from '../../../features/branches/components/BranchSwitcher';
+import { cn } from '../../../core/utils';
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -24,16 +25,21 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
 
   return (
     <div className="p-4 border-t border-[var(--app-border)] mt-auto space-y-3">
-      {/* Branch Switcher — for managers when expanded */}
-      {!isCollapsed && isManager && (
-        <BranchSwitcher className="w-full" />
+      {/* Branch Switcher — for managers */}
+      {isManager && (
+        <BranchSwitcher isCollapsed={isCollapsed} className="w-full" />
       )}
 
-      {/* Branch Badge — for restricted employees when expanded */}
-      {!isCollapsed && !isManager && user?.branch_name && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
-          <GitBranch size={12} className="text-indigo-500 shrink-0" />
-          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 truncate">{user.branch_name}</span>
+      {/* Branch Badge — for restricted employees */}
+      {!isManager && user?.branch_name && (
+        <div className={cn(
+          "flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800",
+          isCollapsed ? "w-10 h-10 justify-center p-0 mx-auto" : "px-3 py-1.5"
+        )} title={user.branch_name}>
+          <GitBranch size={14} className="text-indigo-500 shrink-0" />
+          {!isCollapsed && (
+            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 truncate">{user.branch_name}</span>
+          )}
         </div>
       )}
 
