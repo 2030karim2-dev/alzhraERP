@@ -68,7 +68,7 @@ const CurrencyDiffView: React.FC = () => {
            </span>
            <div className="flex items-center   max-md:gap-1">
              <div className={`w-1 h-3 rounded-full ${row.unrealizedGain >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-             <span className="text-[9px] font-black uppercase tracking-wider opacity-60">غير محققة</span>
+             <span className="text-[10px] font-black uppercase tracking-wider opacity-60">غير محققة</span>
            </div>
          </div>
        ),

@@ -135,10 +135,10 @@ const AppearancePage: React.FC = () => {
                   key={cat.id}
                   onClick={() => setCategoryFilter(cat.id)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-xs font-bold uppercase tracking-wide transition-all duration-300 border-2",
+                    "flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wide transition-all duration-300 border-2",
                     categoryFilter === cat.id
                       ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"
-                      : "bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 border-gray-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800"
+                      : "bg-[var(--app-surface)] text-gray-500 dark:text-slate-400 border-gray-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800"
                   )}
                 >
                   <span>{cat.emoji}</span>
@@ -160,7 +160,7 @@ const AppearancePage: React.FC = () => {
                         <h3 className="text-[11px] md:text-sm font-bold text-gray-700 dark:text-slate-200">
                           {catInfo.label}
                         </h3>
-                        <p className="text-[8px] md:text-[10px] text-gray-400 dark:text-slate-500 font-bold">
+                        <p className="text-[10px] md:text-[10px] text-gray-400 dark:text-slate-500 font-bold">
                           {catInfo.description}
                         </p>
                       </div>
@@ -243,7 +243,7 @@ const AppearancePage: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar pb-24">
         <div className="max-w-none mx-auto space-y-6 md:space-y-8">
 
-          <div className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 shadow-sm">
+          <div className="bg-[var(--app-surface)] p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-2 mb-3 md:mb-4 px-1">
               <span className="w-1.5 h-4 bg-blue-600 rounded-full"></span>
               <h3 className="text-[11px] md:text-sm font-bold text-gray-400 uppercase tracking-widest">نمط العرض الافتراضي</h3>

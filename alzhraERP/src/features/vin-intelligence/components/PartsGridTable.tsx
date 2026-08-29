@@ -162,7 +162,7 @@ interface PartsGridRowProps {
 }
 
 const PartsGridRow: React.FC<PartsGridRowProps> = ({ row, idx, onUpdate, onDuplicate, onDelete, onInspect, onRegenerateName }) => (
-  <tr className={cn('hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors group', row.selected === true ? 'bg-blue-50/30 dark:bg-blue-950/30' : 'bg-white dark:bg-slate-900')}>
+  <tr className={cn('hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors group', row.selected === true ? 'bg-blue-50/30 dark:bg-blue-950/30' : 'bg-[var(--app-surface)]')}>
     <td className="p-2 text-center">
       <input type="checkbox" checked={row.selected === true} onChange={(e) => { onUpdate(row._id, { selected: e.target.checked }); }} className="rounded text-blue-600 focus:ring-blue-500" />
     </td>
@@ -274,7 +274,7 @@ export const PartsGridTable: React.FC<PartsGridTableProps> = ({ rows, allSelecte
   };
 
   return (
-    <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+    <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-[var(--app-surface)] shadow-sm">
       <div className="overflow-x-auto max-h-[540px] custom-scrollbar">
         <table className="w-full text-right border-collapse text-xs">
           <PartsGridHeader allSelected={allSelected} onToggleSelectAll={onToggleSelectAll} />

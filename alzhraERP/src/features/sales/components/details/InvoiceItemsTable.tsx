@@ -21,7 +21,7 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
         </thead>
         <tbody>
           {invoice.invoice_items?.map((item: any, index: number) => (
-            <tr key={item.id} className={`border-b border-gray-200 dark:border-slate-700 ${index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-gray-50 dark:bg-slate-800/50'}`}>
+            <tr key={item.id} className={`border-b border-gray-200 dark:border-slate-700 ${index % 2 === 0 ? 'bg-[var(--app-surface)]' : 'bg-gray-50 dark:bg-slate-800/50'}`}>
               <td className="p-3 border-r border-gray-200 dark:border-slate-700 font-mono text-xs whitespace-nowrap">{item.product?.part_number || item.product?.sku || '---'}</td>
               <td className="p-3 font-bold border-r border-gray-200 dark:border-slate-700 text-right">{item.description}</td>
               <td className="p-3 text-center border-r border-gray-200 dark:border-slate-700">

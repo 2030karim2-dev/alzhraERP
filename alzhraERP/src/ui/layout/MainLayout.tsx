@@ -84,10 +84,10 @@ const MainLayout: React.FC = () => {
     return 'max-w-none px-0';
   }, []);
 
-  // Padding bottom for main content (to account for mobile nav)
+  // Padding bottom for main content (to account for mobile nav + iOS safe area)
   const mainPaddingBottom = useMemo(() => {
-    if (deviceCategory === 'phone') return 'pb-20';
-    if (isIPad && isTabletPortrait) return 'pb-16';
+    if (deviceCategory === 'phone') return 'pb-[calc(5rem_+_env(safe-area-inset-bottom))]';
+    if (isIPad && isTabletPortrait) return 'pb-[calc(4rem_+_env(safe-area-inset-bottom))]';
     return 'pb-4';
   }, [deviceCategory, isIPad, isTabletPortrait]);
 
@@ -190,14 +190,14 @@ const MainLayout: React.FC = () => {
         </div>
 
         {isOnline && isUnstable && (
-          <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-amber-500 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
+          <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-amber-500 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
             <Activity size={11} className="animate-pulse" />
             <span>الاتصال غير مستقر — جارٍ إعادة المحاولة</span>
           </div>
         )}
 
         {!isOnline && (
-          <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-rose-500 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
+          <div className="no-print animate-in slide-in-from-top flex items-center justify-center gap-2 bg-rose-500 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg duration-500">
             <WifiOff size={11} className="animate-bounce" />
             <span>وضع عدم الاتصال — البيانات المحلية المخزّنة مؤقتاً</span>
           </div>
@@ -221,7 +221,7 @@ const MainLayout: React.FC = () => {
         <nav
           role="navigation"
           aria-label={t('mobile_navigation') || 'التنقل السفلي'}
-          className="no-print bg-[var(--app-surface)]/95 fixed bottom-0 left-0 right-0 z-40 flex h-14 max-md:h-[3.5rem] items-center justify-around border-t-2 border-[var(--app-border)] px-1 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] backdrop-blur-md md:hidden"
+          className="no-print bg-[var(--app-surface)]/95 fixed bottom-0 left-0 right-0 z-40 flex h-[calc(3.5rem_+_env(safe-area-inset-bottom))] items-center justify-around border-t-2 border-[var(--app-border)] px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] backdrop-blur-md md:hidden"
         >
           {navItems.map(item => {
             const isActive = location.pathname === item.path;
@@ -245,7 +245,7 @@ const MainLayout: React.FC = () => {
                 >
                   <item.icon size={18} strokeWidth={isActive ? 3 : 2} />
                 </div>
-                <span className="mt-0.5 text-[8px] max-md:text-[7px] font-semibold uppercase leading-none tracking-widest">
+                <span className="mt-0.5 text-[10px] font-semibold uppercase leading-none tracking-widest">
                   {item.label}
                 </span>
               </button>
@@ -270,7 +270,7 @@ const MainLayout: React.FC = () => {
             >
               <Ellipsis size={18} strokeWidth={2} />
             </div>
-            <span className="mt-0.5 text-[8px] max-md:text-[7px] font-semibold uppercase leading-none tracking-widest">
+            <span className="mt-0.5 text-[10px] font-semibold uppercase leading-none tracking-widest">
               {t('more') || 'المزيد'}
             </span>
           </button>

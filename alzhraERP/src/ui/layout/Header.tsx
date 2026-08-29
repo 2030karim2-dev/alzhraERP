@@ -38,11 +38,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <div className="sticky top-0 z-50 flex-shrink-0 no-print">
-      <header className="flex h-10 md:h-12 items-center justify-between px-3 md:px-5 bg-[var(--app-surface)]/80 backdrop-blur-md border-b border-[var(--app-border)] transition-colors">
+      <header className="flex h-12 items-center justify-between px-3 md:px-5 bg-[var(--app-surface)]/80 backdrop-blur-md border-b border-[var(--app-border)] transition-colors">
       {/* Left side: Logo/Title (Mobile) / Page Title (Desktop) */}
       <div className="flex items-center gap-3 flex-1 md:flex-none">
         {/* Mobile Menu Button */}
-        <button onClick={onMenuClick} className="md:hidden p-2 -ms-2 text-[var(--app-text-secondary)]" aria-label={t('menu') || 'فتح القائمة'}>
+        <button onClick={onMenuClick} className="md:hidden p-2.5 -ms-2 text-[var(--app-text-secondary)]" aria-label={t('menu') || 'فتح القائمة'}>
           <Menu size={24} />
         </button>
         <div
@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         </div>
         <div className="flex flex-col">
           <h1 className="text-sm md:text-lg font-bold text-[var(--app-text)] leading-none">{title}</h1>
-          <span className="text-[8px] md:hidden text-[var(--app-text-secondary)] font-semibold uppercase tracking-widest mt-1">Al-Zahra Smart ERP</span>
+          <span className="text-[10px] md:hidden text-[var(--app-text-secondary)] font-semibold uppercase tracking-widest mt-1">Al-Zahra Smart ERP</span>
         </div>
       </div>
 
@@ -115,6 +115,33 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <HeaderActions />
       </div>
       </header>
+
+      {/* Mobile Page Search — يظهر فقط عندما تسجّل الصفحة حقل بحث في useSearchStore */}
+      {isPageSearchActive && (
+        <div className="md:hidden px-3 py-2 bg-[var(--app-surface)]/80 backdrop-blur-md border-b border-[var(--app-border)]">
+          <div className="relative animate-in slide-in-from-top-2 duration-300">
+            <input
+              type="text"
+              inputMode="search"
+              placeholder={pageSearchPlaceholder}
+              value={pageSearchValue}
+              onChange={(e) => onPageSearchChange(e.target.value)}
+              aria-label={pageSearchPlaceholder}
+              className="w-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-500/30 rounded-xl py-2.5 ps-9 pe-9 text-sm text-[var(--app-text)] placeholder:text-blue-400 dark:placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
+            />
+            <Search className={`absolute top-3 text-blue-500 ${dir === 'rtl' ? 'right-3' : 'left-3'}`} size={16} />
+            {pageSearchValue && (
+              <button
+                onClick={() => onPageSearchChange('')}
+                aria-label="مسح البحث"
+                className={`absolute top-2.5 p-0.5 text-blue-400 hover:text-rose-500 transition-colors ${dir === 'rtl' ? 'left-2' : 'right-2'}`}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Non-intrusive Dhikr & Prayer ticker */}
       <DhikrTicker />

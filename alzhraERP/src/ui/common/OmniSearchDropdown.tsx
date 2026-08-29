@@ -90,7 +90,7 @@ const OmniSearchDropdown: React.FC<OmniSearchDropdownProps> = ({
             className="flex-1 bg-transparent text-sm font-medium text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] outline-none"
             autoComplete="off" spellCheck={false} dir={dir} />
           {isLoading && <Loader2 size={16} className="animate-spin text-blue-500 flex-shrink-0" />}
-          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold rounded bg-[var(--app-bg)] border border-[var(--app-border)] text-[var(--app-text-secondary)]">ESC</kbd>
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded bg-[var(--app-bg)] border border-[var(--app-border)] text-[var(--app-text-secondary)]">ESC</kbd>
         </div>
         {/* Results */}
         <div className="max-h-[60dvh] overflow-y-auto custom-scrollbar">

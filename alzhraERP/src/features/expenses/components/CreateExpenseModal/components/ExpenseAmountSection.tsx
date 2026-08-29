@@ -20,7 +20,7 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({ regi
     const isDivide = currencyObj?.exchange_operator === 'divide';
 
     return (
-        <div className="p-5 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex flex-col gap-4">
+        <div className="p-5 bg-[var(--app-surface)] border-b dark:border-slate-800 flex flex-col gap-4">
             <div className="flex flex-row gap-4 items-end">
                 <div className="flex-1">
                     <label className="block text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1.5 px-1">
@@ -39,7 +39,7 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({ regi
 
                 {selectedCurrency !== 'SAR' && (
                     <div className="w-32 shrink-0">
-                        <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 px-1 truncate">سعر الصرف {isDivide ? '÷' : '×'}</label>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 px-1 truncate">سعر الصرف {isDivide ? '÷' : '×'}</label>
                         <input
                             type="number"
                             step="0.000001"
@@ -54,7 +54,7 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({ regi
                 )}
 
                 <div className="w-24 shrink-0 space-y-1.5">
-                    <label className="block text-[9px] font-bold text-gray-400 uppercase text-center">العملة</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase text-center">العملة</label>
                     <select
                         {...register('currency_code')}
                         className="w-full bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 p-3 rounded-xl text-sm font-bold outline-none appearance-none text-center"

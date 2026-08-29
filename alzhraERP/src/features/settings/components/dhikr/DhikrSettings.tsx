@@ -140,7 +140,7 @@ export const DhikrSettings: React.FC = () => {
                         <input
                             value={cityInput}
                             onChange={(e) => setCityInput(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-[var(--app-surface)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />
                     </div>
                     <div>
@@ -150,7 +150,7 @@ export const DhikrSettings: React.FC = () => {
                             value={latInput}
                             onChange={(e) => setLatInput(e.target.value)}
                             inputMode="decimal"
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-[var(--app-surface)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />
                     </div>
                     <div>
@@ -160,7 +160,7 @@ export const DhikrSettings: React.FC = () => {
                             value={lngInput}
                             onChange={(e) => setLngInput(e.target.value)}
                             inputMode="decimal"
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-[var(--app-surface)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                         />
                     </div>
                 </div>

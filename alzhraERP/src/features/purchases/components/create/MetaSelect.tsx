@@ -133,7 +133,7 @@ const MetaSelect: React.FC<MetaSelectProps> = ({
                 onKeyDown={handleButtonKeyDown}
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
-                className="w-full min-h-4 max-md:min-h-3 flex items-center justify-between gap-1 bg-transparent text-[11px] max-md:text-[7px] font-bold outline-none cursor-pointer text-blue-900 dark:text-white text-right leading-none"
+                className="w-full min-h-4 max-md:min-h-3 flex items-center justify-between gap-1 bg-transparent text-[11px] max-md:text-[10px] font-bold outline-none cursor-pointer text-blue-900 dark:text-white text-right leading-none"
             >
                                     <span className={`truncate ${selectedLabelClassName(selected)}`}>
 
@@ -147,7 +147,7 @@ const MetaSelect: React.FC<MetaSelectProps> = ({
                     ref={listRef}
                     role="listbox"
                     tabIndex={0}
-                    className="absolute top-full left-0 right-0 z-[70] mt-0.5 max-h-44 max-md:max-h-36 overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 border-2 border-blue-500 dark:border-slate-700 shadow-2xl rounded-md py-1 outline-none"
+                    className="absolute top-full left-0 right-0 z-[70] mt-0.5 max-h-44 max-md:max-h-36 overflow-y-auto custom-scrollbar bg-[var(--app-surface)] border-2 border-blue-500 dark:border-slate-700 shadow-2xl rounded-md py-1 outline-none"
                 >
                     {options.length === 0 ? (
                         <div className="px-3 py-2 text-[10px] font-bold text-gray-400 dark:text-slate-500">لا توجد خيارات</div>
@@ -163,7 +163,7 @@ const MetaSelect: React.FC<MetaSelectProps> = ({
                                     aria-selected={isSelected}
                                     onClick={() => { selectOption(opt.id); }}
                                     onMouseEnter={() => { setHighlightedIndex(index); }}
-                                    className={`w-full flex items-center justify-between gap-2 px-3 max-md:px-1.5 py-1.5 max-md:py-1 text-[10px] max-md:text-[8px] md:text-[11px] font-bold text-right transition-colors ${optionClassName(isHighlighted, isSelected)}`}
+                                    className={`w-full flex items-center justify-between gap-2 px-3 max-md:px-1.5 py-1.5 max-md:py-1 text-[10px] max-md:text-[10px] md:text-[11px] font-bold text-right transition-colors ${optionClassName(isHighlighted, isSelected)}`}
                                 >
                                     <span className="truncate">{opt.label}</span>
                                     {isSelected && <Check size={12} className="shrink-0" />}

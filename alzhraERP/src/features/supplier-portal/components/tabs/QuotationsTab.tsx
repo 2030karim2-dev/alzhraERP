@@ -43,7 +43,7 @@ export const QuotationsTab: React.FC<QuotationsTabProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+    <div className="bg-[var(--app-surface)] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
       <div className="p-3.5 bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
           عروض الأسعار المعتمدة والمراجعات

@@ -78,7 +78,7 @@ export const FloatingChatWidget: React.FC = () => {
           <MessageSquare size={18} className="text-[var(--accent)]" />
           <span>المحادثات</span>
           {totalUnread > 0 && (
-            <span className="rounded-full bg-rose-500 px-1.5 py-0.2 text-[9px] font-bold text-white">
+            <span className="rounded-full bg-rose-500 px-1.5 py-0.2 text-[10px] font-bold text-white">
               {totalUnread}
             </span>
           )}

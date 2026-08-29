@@ -101,7 +101,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
         },
         {
             header: `السعر (${detectedCurrency})`,
-            accessor: (row: ExtractedItem) => <span className="flex items-center gap-1 justify-center"><span className="font-mono">{row.unitPrice}</span><span className="text-[8px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">{detectedCurrency}</span></span>,
+            accessor: (row: ExtractedItem) => <span className="flex items-center gap-1 justify-center"><span className="font-mono">{row.unitPrice}</span><span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">{detectedCurrency}</span></span>,
             isEditable: true, accessorKey: 'unitPrice', width: 'w-28', className: 'text-rose-600 font-bold font-mono',
             footer: (data: ExtractedItem[]) => <span className="font-bold font-mono text-rose-600">{data.reduce((s, r) => s + (Number(r.unitPrice) || 0), 0).toFixed(2)}</span>
         },
@@ -126,7 +126,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
         },
         {
             header: `التكلفة (${detectedCurrency})`,
-            accessor: (row: ExtractedItem) => <span className="flex items-center gap-1 justify-center"><span className="font-mono">{row.cost_price}</span><span className="text-[8px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">{detectedCurrency}</span></span>,
+            accessor: (row: ExtractedItem) => <span className="flex items-center gap-1 justify-center"><span className="font-mono">{row.cost_price}</span><span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">{detectedCurrency}</span></span>,
             isEditable: true, accessorKey: 'cost_price', width: 'w-28',
             footer: (data: ExtractedItem[]) => <span className="font-bold font-mono text-rose-600">{data.reduce((s, r) => s + (Number(r.cost_price) || 0), 0).toFixed(2)}</span>
         },
@@ -144,7 +144,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                     <div
                         onClick={() => !isProcessing && fileInputRef.current?.click()}
                         className={cn(
-                            "relative w-full max-w-2xl h-96 border-2 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden group bg-white dark:bg-slate-900 shadow-2xl shadow-blue-500/5",
+                            "relative w-full max-w-2xl h-96 border-2 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden group bg-[var(--app-surface)] shadow-2xl shadow-blue-500/5",
                             isProcessing ? "border-blue-500 bg-blue-50/10 cursor-wait" : "border-gray-200 dark:border-slate-800 hover:border-blue-400 hover:bg-gray-50"
                         )}
                     >
@@ -174,7 +174,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-[1.5rem] border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="flex flex-col h-full bg-[var(--app-surface)] rounded-[1.5rem] border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
                     <div className="bg-slate-900 text-white px-4 py-2 flex flex-wrap justify-between items-center gap-2 z-20 shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="p-1 bg-blue-600 rounded-lg shadow-lg"><Sparkles size={14} /></div>
@@ -186,7 +186,7 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                                         value={detectedSupplier}
                                         onChange={(e) => { setDetectedSupplier(e.target.value); }}
                                         placeholder="المورد..."
-                                        className="bg-transparent text-[8px] font-black text-gray-300 border-none outline-none focus:text-white w-32"
+                                        className="bg-transparent text-[10px] font-black text-gray-300 border-none outline-none focus:text-white w-32"
                                     />
                                 </div>
                             </div>
@@ -195,13 +195,13 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                         <div className="flex items-center gap-1.5">
                             <div className="flex items-center bg-slate-800 rounded-lg px-2 py-1 border border-slate-700">
                                 <DollarSign size={10} className="text-emerald-400" />
-                                <select value={detectedCurrency} onChange={(e) => { setDetectedCurrency(e.target.value); }} className="bg-transparent text-[9px] font-black text-white outline-none appearance-none cursor-pointer">
+                                <select value={detectedCurrency} onChange={(e) => { setDetectedCurrency(e.target.value); }} className="bg-transparent text-[10px] font-black text-white outline-none appearance-none cursor-pointer">
                                     {currencies.data?.map((c: { code: string }) => <option key={c.code} value={c.code}>{c.code}</option>)}
                                 </select>
                             </div>
                             <div className="flex items-center bg-slate-800 rounded-lg px-2 py-1 border border-slate-700">
                                 <Warehouse size={10} className="text-blue-400" />
-                                <select value={selectedWarehouseId} onChange={(e) => { setSelectedWarehouseId(e.target.value); }} className="bg-transparent text-[9px] font-black text-white outline-none appearance-none cursor-pointer max-w-[80px]">
+                                <select value={selectedWarehouseId} onChange={(e) => { setSelectedWarehouseId(e.target.value); }} className="bg-transparent text-[10px] font-black text-white outline-none appearance-none cursor-pointer max-w-[80px]">
                                     {warehouses?.map((w: any) => <option key={w.id} value={w.id}>{w.name || w.name_ar}</option>)}
                                 </select>
                             </div>
@@ -231,11 +231,11 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                         />
                     </div>
 
-                    <div className="p-3 border-t dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-between items-center">
+                    <div className="p-3 border-t dark:border-slate-800 bg-[var(--app-surface)] flex justify-between items-center">
                         <Button variant="outline" onClick={() => { setStep('upload'); setExtractedItems([]); setFilePreview(null); }} size="sm" className="rounded-xl"><RefreshCw size={14} /> مسح وإعادة</Button>
                         <div className="flex items-center gap-4">
                             <div className="text-right hidden sm:block">
-                                <span className="text-[8px] font-bold text-gray-400 block uppercase">عدد الأصناف</span>
+                                <span className="text-[10px] font-bold text-gray-400 block uppercase">عدد الأصناف</span>
                                 <span className="text-sm font-bold text-blue-600">{extractedItems.length}</span>
                             </div>
                             <Button onClick={handleConfirm} variant="success" size="md" className="rounded-xl shadow-lg shadow-emerald-500/20" leftIcon={<ArrowRight size={16} />}>

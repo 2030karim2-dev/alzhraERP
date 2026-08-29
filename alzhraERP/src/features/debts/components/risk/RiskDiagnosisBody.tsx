@@ -57,7 +57,7 @@ export const RiskDiagnosisBody: React.FC<RiskDiagnosisBodyProps> = ({ analysis }
 
       {/* Immediate Suggested Actions */}
       {analysis.suggestedActions && analysis.suggestedActions.length > 0 && (
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div className="p-4 rounded-2xl bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800">
           <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-1.5">
             <CheckCircle size={14} className="text-emerald-500" />
             الإجراءات الفورية المقترحة

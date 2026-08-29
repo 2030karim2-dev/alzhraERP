@@ -121,7 +121,7 @@ const InventoryMovementView: React.FC = () => {
             header: 'تفاصيل المرجع', accessor: (row: MovementRow) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-[10px] text-slate-700 dark:text-slate-200">{row.document_number}</span>
-                    <span className="text-[9px] text-slate-400 font-medium">{row.source_name}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">{row.source_name}</span>
                 </div>
             )
         },
@@ -139,7 +139,7 @@ const InventoryMovementView: React.FC = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-20">
             {/* Command Center: Advanced Search & Control */}
-            <div className="glass-panel bento-item p-8 bg-white dark:bg-slate-900/50 border-none shadow-2xl flex flex-col lg:flex-row gap-8 items-end lg:items-center justify-between overflow-visible">
+            <div className="glass-panel bento-item p-8 bg-[var(--app-surface)]/50 border-none shadow-2xl flex flex-col lg:flex-row gap-8 items-end lg:items-center justify-between overflow-visible">
                 <div className="relative w-full lg:w-[450px]">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
@@ -214,7 +214,7 @@ const InventoryMovementView: React.FC = () => {
                     </p>
                 </div>
             ) : isLoading ? (
-                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col justify-center items-center gap-6 sm:gap-8 bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl sm:rounded-3xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] flex flex-col justify-center items-center gap-6 sm:gap-8 bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl sm:rounded-3xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
                     <div className="relative">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 border-4 sm:border-8 border-slate-100 border-t-blue-500 rounded-full animate-spin shadow-xl shadow-blue-500/20" />
                     </div>
@@ -226,7 +226,7 @@ const InventoryMovementView: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Insights Bento Column */}
                     <div className="lg:col-span-4 space-y-4 sm:space-y-6 h-full">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 md:p-10 relative overflow-hidden group">
+                        <div className="bg-[var(--app-surface)] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-6 md:p-10 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-5 group-hover:scale-125 transition-transform duration-1000">
                                 <Package size={80} className="sm:hidden" />
                                 <Package size={100} className="hidden sm:block md:hidden" />
@@ -250,34 +250,34 @@ const InventoryMovementView: React.FC = () => {
                                     <p className="text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 text-slate-500">معامل الدوران</p>
                                     <div className="flex items-center gap-3 sm:gap-4">
                                         <span className="text-2xl sm:text-3xl md:text-4xl font-black font-mono text-blue-400 italic">{analysis?.turnover || 0}</span>
-                                        <span className="px-2 sm:px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 hidden sm:inline-block">Active Flux</span>
+                                        <span className="px-2 sm:px-3 py-1 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 hidden sm:inline-block">Active Flux</span>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                     <div className="p-3 sm:p-4 md:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-emerald-500/20 transition-all">
                                         <ArrowDownRight size={16} className="text-emerald-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق وارد</p>
+                                        <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق وارد</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-emerald-600 tracking-tighter">+{analysis?.totalIn}</p>
                                     </div>
                                     <div className="p-3 sm:p-4 md:p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl max-md:rounded-xl sm:rounded-3xl group hover:bg-rose-500/20 transition-all">
                                         <ArrowUpRight size={16} className="text-rose-500 mb-2 sm:mb-3 group-hover:scale-125 transition-transform" />
-                                        <p className="text-[9px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق صادر</p>
+                                        <p className="text-[10px] font-black text-rose-600/60 uppercase tracking-wider mb-0.5 sm:mb-1">تدفق صادر</p>
                                         <p className="text-lg sm:text-xl font-black font-mono text-rose-600 tracking-tighter">-{analysis?.totalOut}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-6 max-md:mt-3 sm:mt-8 md:mt-10 pt-4 sm:pt-6 md:pt-8 border-t dark:border-slate-800 flex justify-between items-center opacity-40">
-                                <span className="text-[9px] font-black uppercase tracking-widest">Global Status</span>
-                                <span className="text-[9px] font-bold font-mono uppercase">SYSLOG_SYNC_OK</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Global Status</span>
+                                <span className="text-[10px] font-bold font-mono uppercase">SYSLOG_SYNC_OK</span>
                             </div>
                         </div>
 
                         {/* Chart Preview Card */}
                         <div className="bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden h-[200px] sm:h-[250px] md:h-[300px]">
                             <div className="absolute top-0 right-0 p-3 sm:p-4 md:p-6">
-                                <div className="px-2 sm:px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-[9px] font-black text-blue-400 uppercase tracking-widest hidden sm:inline-block">Live Dynamic Chart</div>
+                                <div className="px-2 sm:px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-[10px] font-black text-blue-400 uppercase tracking-widest hidden sm:inline-block">Live Dynamic Chart</div>
                             </div>
                             <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-4 md:mb-12 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6">اتـجـاه الرصـيـد</h4>
                             <div className="h-full w-full px-2 sm:px-4">
@@ -308,7 +308,7 @@ const InventoryMovementView: React.FC = () => {
 
                     {/* Transaction Ledger Table */}
                     <div className="lg:col-span-8 flex flex-col min-h-[500px]">
-                        <div className="glass-panel bento-item bg-white dark:bg-slate-900 border-none shadow-2xl overflow-hidden flex-1 min-h-[480px] flex flex-col">
+                        <div className="glass-panel bento-item bg-[var(--app-surface)] border-none shadow-2xl overflow-hidden flex-1 min-h-[480px] flex flex-col">
                             <ExcelTable
                                 columns={columns}
                                 data={movement || []}

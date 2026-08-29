@@ -77,7 +77,7 @@ export const PartsSearchControls: React.FC<PartsSearchControlsProps> = ({
   const [catalogsOpen, setCatalogsOpen] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+    <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
       {/* ── Header: title + catalog selector ── */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2">

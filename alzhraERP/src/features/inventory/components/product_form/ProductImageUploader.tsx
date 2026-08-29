@@ -39,7 +39,7 @@ const ProductImageUploader: React.FC<Props> = ({ setValue, watch }) => {
 
   return (
     <div className="w-32 shrink-0">
-      <label className="block text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-tighter mb-1 px-1">{t('product_preview')}</label>
+      <label className="block text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-tighter mb-1 px-1">{t('product_preview')}</label>
       <div className="relative group">
         <div className={cn(
             "w-32 h-32 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all",
@@ -51,7 +51,7 @@ const ProductImageUploader: React.FC<Props> = ({ setValue, watch }) => {
           ) : (
             <div className="flex flex-col items-center gap-1 text-gray-300 dark:text-slate-700">
               <Camera size={28} />
-              <span className="text-[8px] font-bold uppercase">{t('upload_image')}</span>
+              <span className="text-[10px] font-bold uppercase">{t('upload_image')}</span>
             </div>
           )}
           <label className="absolute inset-0 cursor-pointer">

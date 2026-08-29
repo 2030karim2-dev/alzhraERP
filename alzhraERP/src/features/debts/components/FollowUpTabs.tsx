@@ -20,7 +20,7 @@ const renderCount = (count: number | undefined, isActive: boolean): React.ReactN
   count !== undefined && count > 0 ? (
     <span
       className={cn(
-        'px-1.5 py-0.5 rounded-md text-[9px] font-extrabold',
+        'px-1.5 py-0.5 rounded-md text-[10px] font-extrabold',
         isActive ? 'bg-white/20 text-white' : 'bg-[var(--app-surface-hover)] text-blue-600'
       )}
     >

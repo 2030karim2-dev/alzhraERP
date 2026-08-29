@@ -225,7 +225,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                                             ref={el => { if (itemRefs.current[index]) itemRefs.current[index][1] = el; }}
                                             onFocus={() => { setFocusedRow(index); setFocusedCol(1); }}
                                             onKeyDown={(e) => handleKeyDown(e, index, 1, item, maxQty)}
-                                            className="w-16 p-1 max-md:p-1 text-center text-sm border rounded font-bold transition-all outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 border-gray-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder-transparent hover:border-indigo-400"
+                                            className="w-16 p-1 max-md:p-1 text-center text-sm border rounded font-bold transition-all outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-[var(--app-surface)] border-gray-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder-transparent hover:border-indigo-400"
                                             tabIndex={0}
                                         />
                                         <span className="text-xs text-gray-400 font-mono">/ {maxQty}</span>

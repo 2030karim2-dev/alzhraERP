@@ -21,7 +21,7 @@ const ColorCustomizer: React.FC = () => {
   const isCustomColor = !ACCENT_COLORS.some(c => c.value === accentColor);
   
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
+    <div className="bg-[var(--app-surface)] p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
       <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">اللون الأساسي (Accent Color)</h3>
       <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
         {ACCENT_COLORS.map(color => (

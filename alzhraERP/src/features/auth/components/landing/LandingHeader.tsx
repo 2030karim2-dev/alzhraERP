@@ -52,7 +52,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({
               >
                 نظام الزهراء
               </span>
-              <span className="mt-0.5 block text-[9px] font-bold text-blue-600 dark:text-blue-400 sm:text-[10px]">
+              <span className="mt-0.5 block text-[10px] font-bold text-blue-600 dark:text-blue-400 sm:text-[10px]">
                 Auto Parts ERP
               </span>
             </div>

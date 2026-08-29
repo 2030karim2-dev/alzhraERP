@@ -3,7 +3,7 @@ import { History } from 'lucide-react';
 
 const AuditLogWelcome: React.FC = () => {
     return (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-white dark:bg-slate-900 animate-in fade-in zoom-in duration-700">
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-[var(--app-surface)] animate-in fade-in zoom-in duration-700">
             <div className="relative mb-6">
                 <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full" />
                 <div className="relative p-8 bg-blue-600/5 text-blue-600/30 rounded-[2.5rem]">

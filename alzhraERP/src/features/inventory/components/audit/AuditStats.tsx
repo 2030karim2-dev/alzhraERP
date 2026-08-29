@@ -14,13 +14,13 @@ interface Props {
 }
 
 const StatBox: React.FC<{ icon: any, label: string, value: number, color: string}> = ({ icon: Icon, label, value, color }) => (
-    <div className={`bg-white dark:bg-slate-900/50 backdrop-blur-md p-1.5 sm:p-4 border-l sm:border-l-4 ${color.replace('text-','border-')} flex items-center gap-1.5 sm:gap-4 transition-all hover:bg-white/80 dark:hover:bg-slate-800`}>
+    <div className={`bg-[var(--app-surface)]/50 backdrop-blur-md p-1.5 sm:p-4 border-l sm:border-l-4 ${color.replace('text-','border-')} flex items-center gap-1.5 sm:gap-4 transition-all hover:bg-white/80 dark:hover:bg-slate-800`}>
         <div className={`p-1.5 sm:p-2 rounded-lg bg-gray-50 dark:bg-slate-800 ${color.replace('text-','bg-opacity-10 ')}`}>
             <Icon size={14} className={`${color} sm:w-6 sm:h-6`} />
         </div>
         <div className="min-w-0">
             <h4 className="text-sm sm:text-2xl font-black font-mono text-gray-900 dark:text-white leading-tight">{formatNumberDisplay(value)}</h4>
-            <p className="text-[7px] sm:text-xs font-black text-gray-400 uppercase tracking-tighter sm:tracking-widest truncate">{label}</p>
+            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-tighter sm:tracking-widest truncate">{label}</p>
         </div>
     </div>
 );

@@ -97,7 +97,7 @@ const OperationalExpensesReport: React.FC = () => {
     const columns = useMemo(() => [
         {
             header: 'كود الحساب',
-            accessor: (row: ExpenseAccountRow) => <span className="font-mono text-[9px] text-gray-400">{row.code}</span>,
+            accessor: (row: ExpenseAccountRow) => <span className="font-mono text-[10px] text-gray-400">{row.code}</span>,
             width: '80px',
         },
         {
@@ -129,7 +129,7 @@ const OperationalExpensesReport: React.FC = () => {
                         <div className="flex-1 bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
                             <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: `${Math.min(pct, 100)}%` }} />
                         </div>
-                        <span className="text-[9px] font-bold text-gray-500 w-10 text-left">{pct.toFixed(1)}%</span>
+                        <span className="text-[10px] font-bold text-gray-500 w-10 text-left">{pct.toFixed(1)}%</span>
                     </div>
                 );
             },

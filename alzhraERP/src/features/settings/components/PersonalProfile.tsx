@@ -42,7 +42,7 @@ const PersonalProfile: React.FC = () => {
                             <h2 className="text-sm md:text-base font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tighter">
                                 الملف الشخصي
                             </h2>
-                            <p className="text-[8px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
+                            <p className="text-[10px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
                                 إدارة بيانات الحساب الشخصية
                             </p>
                         </div>
@@ -50,7 +50,7 @@ const PersonalProfile: React.FC = () => {
                 </div>
 
                 {/* Profile Card */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
                     <div className="p-6 max-md:p-3 md:p-8 flex flex-col md:flex-row items-center gap-8 max-md:gap-3 border-b border-gray-100 dark:border-slate-800">
                         {/* Avatar Section */}
                         <div className="relative group">
@@ -123,7 +123,7 @@ const PersonalProfile: React.FC = () => {
                 {/* Security Section Shortcut */}
                 <div className="bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 p-6 max-md:p-3 flex flex-col md:flex-row items-center justify-between gap-6 max-md:gap-3">
                     <div className="flex items-center gap-4 max-md:gap-4">
-                        <div className="p-3 max-md:p-3 bg-white dark:bg-slate-900 rounded-xl text-amber-500 shadow-sm">
+                        <div className="p-3 max-md:p-3 bg-[var(--app-surface)] rounded-xl text-amber-500 shadow-sm">
                             <Shield size={24} />
                         </div>
                         <div className="text-right">

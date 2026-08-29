@@ -20,7 +20,7 @@ export const PortalStatsGrid: React.FC<PortalStatsGridProps> = ({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {/* Approved Products */}
-      <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="p-3.5 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
         <div className="space-y-0.5">
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
             الأصناف المعتمدة
@@ -35,7 +35,7 @@ export const PortalStatsGrid: React.FC<PortalStatsGridProps> = ({
       </div>
 
       {/* Active RFQs */}
-      <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="p-3.5 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
         <div className="space-y-0.5">
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
             طلبات التسعير (RFQs)
@@ -50,7 +50,7 @@ export const PortalStatsGrid: React.FC<PortalStatsGridProps> = ({
       </div>
 
       {/* Submitted Quotes */}
-      <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="p-3.5 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
         <div className="space-y-0.5">
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
             عروض الأسعار المرفوعة
@@ -65,7 +65,7 @@ export const PortalStatsGrid: React.FC<PortalStatsGridProps> = ({
       </div>
 
       {/* Total Value */}
-      <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="p-3.5 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
         <div className="space-y-0.5">
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
             إجمالي قيمة العروض

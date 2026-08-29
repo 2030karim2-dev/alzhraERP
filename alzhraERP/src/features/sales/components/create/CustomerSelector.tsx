@@ -78,7 +78,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
           <Search className={cn("absolute right-2.5 text-gray-400", compact ? "top-2.5" : "top-3.5")} size={compact ? 14 : 20} />
 
           {isOpen && query.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-blue-600 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
+            <div className="absolute z-50 w-full mt-1 bg-[var(--app-surface)] border border-blue-600 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
               {isLoading ? (
                 <div className="p-3 text-center text-[10px] text-gray-400 font-bold">جاري التحميل...</div>
               ) : filteredCustomers.length > 0 ? (
@@ -91,7 +91,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                     >
                       <div className="flex flex-col">
                         <p className="text-[10px] font-bold">{customer.name}</p>
-                        <p className="text-[8px] opacity-60 font-mono">{customer.phone}</p>
+                        <p className="text-[10px] opacity-60 font-mono">{customer.phone}</p>
                       </div>
                       <Check size={12} className="opacity-0 group-hover:opacity-100 max-md:opacity-100" />
                     </li>

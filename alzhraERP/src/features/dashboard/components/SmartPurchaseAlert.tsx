@@ -32,7 +32,7 @@ const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
     };
 
     return (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 rounded-2xl max-md:rounded-xl border border-amber-200/50 dark:border-amber-800/30 p-4 max-md:p-3 max-md:p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 rounded-2xl max-md:rounded-xl border border-amber-200/50 dark:border-amber-800/30 p-4 max-md:p-3 shadow-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-500/20">
@@ -40,7 +40,7 @@ const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-[var(--app-text)]">اقتراح شراء ذكي</h3>
-                        <p className="text-[9px] font-bold text-amber-600/60">{lowStockItems.length} منتج منخفض المخزون</p>
+                        <p className="text-[10px] font-bold text-amber-600/60">{lowStockItems.length} منتج منخفض المخزون</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ const SmartPurchaseAlert: React.FC<Props> = ({ lowStockItems }) => {
                                 <Package size={12} className="text-[var(--app-text-secondary)] flex-shrink-0" />
                                 <span className="font-bold text-[var(--app-text)] flex-1">{item.name}</span>
                                 <span className="font-bold font-mono text-[var(--app-text)]">{item.suggestedQty} وحدة</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${priorityColors[item.priority] || priorityColors['منخفض']}`}>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${priorityColors[item.priority] || priorityColors['منخفض']}`}>
                                     {item.priority}
                                 </span>
                             </div>

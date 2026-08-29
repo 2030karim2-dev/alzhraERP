@@ -172,7 +172,7 @@ const InventoryPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleAdd}
-                  className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white shadow-md shadow-blue-500/20 active:scale-95 max-md:px-2 max-md:py-1 max-md:text-[9px]"
+                  className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white shadow-md shadow-blue-500/20 active:scale-95 max-md:px-2 max-md:py-1 max-md:text-[10px]"
                 >
                   <Plus size={14} />
                   <span>{t('add_new_entity', { entity: t('product') })}</span>
@@ -206,7 +206,7 @@ const InventoryPage: React.FC = () => {
         <div
           className={cn(
             'relative z-20 flex flex-1 flex-col min-h-0 overflow-hidden transition-all duration-500',
-            isZenMode ? 'bg-white dark:bg-slate-900' : ''
+            isZenMode ? 'bg-[var(--app-surface)]' : ''
           )}
         >
           <ContentContainer fluid fillHeight className="h-full flex-1 flex flex-col min-h-0">

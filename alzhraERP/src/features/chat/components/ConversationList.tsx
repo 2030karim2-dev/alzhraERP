@@ -217,7 +217,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
 
                   {/* Unread Badge */}
                   {channel.unread_count ? (
-                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs">
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs">
                       {channel.unread_count}
                     </span>
                   ) : null}
@@ -226,7 +226,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
                 {/* Branch tag */}
                 {channel.branch_name && channel.type !== 'direct' && (
                   <span
-                    className={`mt-1 inline-block rounded px-1.5 py-0.2 text-[9px] font-medium ${
+                    className={`mt-1 inline-block rounded px-1.5 py-0.2 text-[10px] font-medium ${
                       isSelected
                         ? 'bg-white/20 text-white'
                         : 'bg-[var(--app-bg)] text-[var(--app-text-secondary)]'

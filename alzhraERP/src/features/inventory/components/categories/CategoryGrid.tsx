@@ -31,7 +31,7 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {categories.map((cat) => (
-                <div key={cat.id} className="group relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-none p-2.5 transition-all hover:border-blue-500/40 hover:shadow-lg active:scale-[0.99] overflow-hidden flex flex-col justify-between min-h-[120px]">
+                <div key={cat.id} className="group relative bg-[var(--app-surface)] border border-gray-100 dark:border-slate-800 rounded-none p-2.5 transition-all hover:border-blue-500/40 hover:shadow-lg active:scale-[0.99] overflow-hidden flex flex-col justify-between min-h-[120px]">
                     {cat.hasAlert && (
                         <div className="absolute top-0 left-0 w-8 h-8 bg-rose-500 text-white flex items-center justify-center -translate-x-4 -translate-y-4 rotate-45 shadow-sm">
                             <AlertCircle size={7} className="-rotate-45 translate-x-0.5 translate-y-0.5" />
@@ -45,7 +45,7 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
                             </div>
                             <div className="truncate">
                                 <h4 className="text-[11px] font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tighter truncate leading-none">{cat.name}</h4>
-                                <span className="text-[6px] font-bold text-gray-400 uppercase tracking-widest leading-none">SEGMENT</span>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">SEGMENT</span>
                             </div>
                         </div>
                         <button
@@ -58,16 +58,16 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
 
                     <div className="grid grid-cols-3 gap-0.5 mb-2 border-y border-gray-50 dark:border-slate-800 py-1.5">
                         <div className="text-center">
-                            <span className="text-[6px] font-bold text-gray-400 uppercase block mb-0.5">أصناف</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">أصناف</span>
                             <span className="text-[10px] font-bold text-blue-600 font-mono leading-none">{cat.productsCount || 0}</span>
                         </div>
                         <div className="text-center border-x border-gray-100 dark:border-slate-800">
-                            <span className="text-[6px] font-bold text-gray-400 uppercase block mb-0.5">كمية</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">كمية</span>
                             <span className="text-[10px] font-bold text-emerald-600 font-mono leading-none">{cat.totalStock || 0}</span>
                         </div>
                         <div className="text-center min-w-0">
-                            <span className="text-[6px] font-bold text-gray-400 uppercase block mb-0.5">القيمة</span>
-                            <span dir="ltr" className="text-[9px] font-bold text-gray-600 dark:text-gray-300 font-mono truncate block leading-none">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">القيمة</span>
+                            <span dir="ltr" className="text-[10px] font-bold text-gray-600 dark:text-gray-300 font-mono truncate block leading-none">
                                 {Math.round(cat.totalValue || 0).toLocaleString('en-US')}
                             </span>
                         </div>
@@ -75,7 +75,7 @@ const CategoryGrid: React.FC<Props> = ({ categories, onFilterProduct, deleteCate
 
                     <button
                         onClick={() => onFilterProduct(cat.name)}
-                        className="w-full py-1.5 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 group/btn"
+                        className="w-full py-1.5 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 group/btn"
                     >
                         تحليل
                         <TrendingUp size={10} className="group-hover/btn:translate-x-[-2px] transition-transform" />

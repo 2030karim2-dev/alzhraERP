@@ -166,7 +166,7 @@ const AddProductModal: React.FC<Props> = ({
           <div className="flex w-32 shrink-0 flex-col gap-2">
             <ProductImageUploader setValue={setValue} watch={watch} />
             <div className="space-y-1">
-              <label className="block text-center text-[9px] font-bold uppercase tracking-tighter text-blue-500">
+              <label className="block text-center text-[10px] font-bold uppercase tracking-tighter text-blue-500">
                 {t('product_code')}
               </label>
               <input
@@ -200,7 +200,7 @@ const AddProductModal: React.FC<Props> = ({
         <div className="space-y-6 bg-white p-5 dark:bg-slate-900">
           <div className="grid grid-cols-2 gap-x-6">
             <div className="space-y-3">
-              <h4 className="flex items-center gap-1.5 px-1 text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              <h4 className="flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                 <DollarSign size={12} /> {t('pricing')}
               </h4>
               <div className="grid grid-cols-2 gap-2">
@@ -208,7 +208,7 @@ const AddProductModal: React.FC<Props> = ({
               </div>
             </div>
             <div className="space-y-3">
-              <h4 className="flex items-center gap-1.5 px-1 text-[9px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+              <h4 className="flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
                 <Box size={12} /> {t('stock')}
               </h4>
               <div className="grid grid-cols-2 gap-2">

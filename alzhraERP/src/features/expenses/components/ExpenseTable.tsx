@@ -74,12 +74,12 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
           <div className="flex flex-col items-end">
             <span dir="ltr" className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm leading-none">
               {row.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              <span className="text-[9px] font-bold text-gray-400 uppercase ml-1 tracking-widest">{row.currency_code}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">{row.currency_code}</span>
             </span>
             {row.currency_code !== 'SAR' && (
               <span dir="ltr" className="text-xs font-bold text-blue-500 mt-1">
                 {baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                <span className="text-[9px] ml-1">SAR</span>
+                <span className="text-[10px] ml-1">SAR</span>
               </span>
             )}
           </div>
@@ -132,7 +132,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm transition-colors flex-1 min-h-[480px] flex flex-col">
+    <div className="bg-[var(--app-surface)] rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm transition-colors flex-1 min-h-[480px] flex flex-col">
       <ExcelTable
         columns={columns}
         data={expenses}

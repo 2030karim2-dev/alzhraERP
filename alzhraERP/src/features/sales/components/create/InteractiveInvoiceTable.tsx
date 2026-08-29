@@ -139,17 +139,17 @@ const InteractiveInvoiceTable: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
+    <div className="flex flex-col bg-[var(--app-surface)] overflow-hidden">
       {/* Table Toolbar */}
       <div className="p-1 flex justify-between items-center bg-gray-50 dark:bg-slate-950 border-y dark:border-slate-800">
         <div className="flex items-center gap-2 px-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">محتويات الفاتورة</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">محتويات الفاتورة</span>
         </div>
         <div className="flex gap-1.5">
           <div className="flex bg-gray-100 dark:bg-slate-800 p-0.5 rounded-lg border dark:border-slate-800">
             {useDiscountStore.getState().discountEnabled && (
-              <button onClick={() => toggleColumn('showDiscount')} className={cn("px-4 py-1 text-[9px] font-bold uppercase transition-all rounded-md", showDiscount ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-gray-400")}>خصم</button>
+              <button onClick={() => toggleColumn('showDiscount')} className={cn("px-4 py-1 text-[10px] font-bold uppercase transition-all rounded-md", showDiscount ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-gray-400")}>خصم</button>
             )}
 
           </div>
@@ -158,10 +158,10 @@ const InteractiveInvoiceTable: React.FC = () => {
       </div>
 
       {/* Main Grid */}
-      <div className="overflow-x-auto custom-scrollbar max-md:-mx-1">
+      <div className="overflow-x-auto custom-scrollbar scroll-x-hint max-md:-mx-1">
         <table ref={tableRef} className="w-full border-collapse table-fixed min-w-[680px] max-md:min-w-[540px]">
           <thead>
-            <tr className="bg-gray-50/50 dark:bg-slate-800/20 text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest text-right">
+            <tr className="bg-gray-50/50 dark:bg-slate-800/20 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest text-right">
               <th style={{ width: colWidths.index }} className="relative p-2 max-md:p-1 border-b border-l dark:border-slate-800 text-center max-md:hidden">#</th>
               <th style={{ width: colWidths.description }} className="relative p-2 max-md:p-1.5 border-b border-l dark:border-slate-800 group max-md:!w-[42%]">
                 وصف الصنف

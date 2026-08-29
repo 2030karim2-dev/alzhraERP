@@ -177,7 +177,7 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({ searchTerm: propSea
       </div>
 
       {/* Returns List Redesigned as Excel Table */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 min-h-[480px] flex flex-col">
+      <div className="bg-[var(--app-surface)] border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 min-h-[480px] flex flex-col">
         {isLoading ? (
           <div className="p-8 max-md:p-4 space-y-4">
             {[...Array(6)].map((_, i) => (

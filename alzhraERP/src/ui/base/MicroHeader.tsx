@@ -97,7 +97,7 @@ const MicroHeader: React.FC<MicroHeaderProps> = ({
             )}
             <div className="flex items-center gap-1 max-md:gap-0.5 bg-[var(--app-bg)]/50 px-2 max-md:px-1.5 py-0.5 rounded-full border border-[var(--app-border)]">
               <Icon className={iconColor} size={12} />
-              <h1 className="text-[9px] md:text-[10px] font-black text-[var(--app-text)] whitespace-nowrap uppercase tracking-widest">{title}</h1>
+              <h1 className="text-[10px] md:text-[10px] font-black text-[var(--app-text)] whitespace-nowrap uppercase tracking-widest">{title}</h1>
             </div>
           </div>
 

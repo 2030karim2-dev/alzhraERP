@@ -89,7 +89,7 @@ export const AIDebtAdvisor: React.FC = () => {
                       <span className="text-xs font-black font-mono text-gray-900 dark:text-slate-100 block">
                         {formatCurrency(Number(debtor.outstanding_balance), debtor.currency_code)}
                       </span>
-                      <span className="text-[9px] text-gray-400 block mt-0.5">
+                      <span className="text-[10px] text-gray-400 block mt-0.5">
                         {debtor.invoice_count} فواتير
                       </span>
                     </div>

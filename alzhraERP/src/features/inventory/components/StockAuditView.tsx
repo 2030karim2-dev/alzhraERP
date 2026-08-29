@@ -49,7 +49,7 @@ const StockAuditView: React.FC = () => {
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-3 gap-3 max-md:gap-1.5 shrink-0">
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 max-md:p-1.5 flex items-center gap-3 max-md:gap-1.5 shadow-sm">
+        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 max-md:p-1.5 flex items-center gap-3 max-md:gap-1.5 shadow-sm">
           <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg shrink-0">
             <ClipboardCheck size={16} className="text-blue-600 dark:text-blue-400" />
           </div>
@@ -58,7 +58,7 @@ const StockAuditView: React.FC = () => {
             <p className="text-xl max-md:text-lg font-black text-gray-900 dark:text-white leading-none mt-0.5">{stats.total}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
+        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
           <div className="p-2 max-md:p-1 bg-amber-50 dark:bg-amber-900/30 rounded-lg shrink-0">
             <Activity size={16} className="text-amber-600 dark:text-amber-400" />
           </div>
@@ -67,7 +67,7 @@ const StockAuditView: React.FC = () => {
             <p className="text-xl max-md:text-lg font-black text-amber-600 dark:text-amber-400 leading-none mt-0.5">{stats.active}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
+        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
           <div className="p-2 max-md:p-1 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg shrink-0">
             <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
           </div>
@@ -82,14 +82,14 @@ const StockAuditView: React.FC = () => {
       <div className="grid grid-cols-2 gap-3 max-md:gap-1.5 shrink-0">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-white dark:bg-slate-900 border-2 border-dashed border-blue-300 dark:border-blue-800 rounded-xl p-3.5 max-md:p-2.5 text-blue-600 dark:text-blue-400 flex items-center justify-center gap-2 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all active:scale-95 shadow-sm group"
+          className="bg-[var(--app-surface)] border-2 border-dashed border-blue-300 dark:border-blue-800 rounded-xl p-3.5 max-md:p-2.5 text-blue-600 dark:text-blue-400 flex items-center justify-center gap-2 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all active:scale-95 shadow-sm group"
         >
           <div className="p-1 bg-blue-100 dark:bg-blue-900/40 rounded-lg group-hover:scale-110 transition-transform">
             <Plus size={14} strokeWidth={3} />
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest">جلسة جرد ميداني</p>
-            <p className="text-[9px] text-gray-400 font-medium">إحصاء يدوي مفصّل</p>
+            <p className="text-[10px] text-gray-400 font-medium">إحصاء يدوي مفصّل</p>
           </div>
         </button>
 
@@ -102,7 +102,7 @@ const StockAuditView: React.FC = () => {
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest">جرد سريع</p>
-            <p className="text-[9px] text-emerald-100 font-medium">تسوية مخزون فورية</p>
+            <p className="text-[10px] text-emerald-100 font-medium">تسوية مخزون فورية</p>
           </div>
         </button>
       </div>
@@ -128,7 +128,7 @@ const StockAuditView: React.FC = () => {
               <div
                 key={ad.id}
                 className={cn(
-                  "w-full bg-white dark:bg-slate-900 rounded-xl border p-3.5 max-md:p-2.5 hover:shadow-md transition-all group flex items-stretch gap-2.5",
+                  "w-full bg-[var(--app-surface)] rounded-xl border p-3.5 max-md:p-2.5 hover:shadow-md transition-all group flex items-stretch gap-2.5",
                   isCompleted
                     ? "border-slate-200 dark:border-slate-800"
                     : "border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700",
@@ -142,7 +142,7 @@ const StockAuditView: React.FC = () => {
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className={cn(
-                      "text-[9px] font-black px-2 py-0.5 rounded-full uppercase flex items-center gap-1",
+                      "text-[10px] font-black px-2 py-0.5 rounded-full uppercase flex items-center gap-1",
                       isCompleted
                         ? "bg-slate-100 dark:bg-slate-800 text-slate-500"
                         : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
@@ -151,11 +151,11 @@ const StockAuditView: React.FC = () => {
                       {isCompleted ? 'مكتملة' : 'نشطة'}
                     </span>
                     {ad.accuracy && (
-                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
                         دقة {ad.accuracy}%
                       </span>
                     )}
-                    <span className="text-[9px] text-gray-400 dark:text-slate-600 flex items-center gap-1 mr-auto">
+                    <span className="text-[10px] text-gray-400 dark:text-slate-600 flex items-center gap-1 mr-auto">
                       <Clock size={9} /> {new Date(ad.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
                     </span>
                   </div>
@@ -167,7 +167,7 @@ const StockAuditView: React.FC = () => {
                   {/* Progress Bar */}
                   {progress > 0 && (
                     <div className="mt-2">
-                      <div className="flex justify-between text-[9px] font-bold text-gray-400 mb-1">
+                      <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1">
                         <span>التقدم</span>
                         <span>{progress}%</span>
                       </div>
@@ -219,7 +219,7 @@ const StockAuditView: React.FC = () => {
           onClick={cancelDelete}
         >
           <div
-            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-t-2xl border-t border-gray-200 dark:border-slate-800 p-5 shadow-2xl"
+            className="w-full max-w-sm bg-[var(--app-surface)] rounded-t-2xl border-t border-gray-200 dark:border-slate-800 p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3">

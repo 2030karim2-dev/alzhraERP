@@ -38,7 +38,7 @@ export const InventorySettings: React.FC = () => {
                         <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tighter">
                             {t.inventory_settings || 'إعدادات المخزون'}
                         </h2>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             {t.inventory_settings_desc || 'تخصيص إعدادات المخزون والتنبيهات'}
                         </p>
                     </div>
@@ -92,7 +92,7 @@ export const InventorySettings: React.FC = () => {
                                 />
                                 <div>
                                     <span className="text-[11px] font-bold text-slate-800 dark:text-white uppercase">{method.label}</span>
-                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide leading-none mt-0.5">{method.desc}</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-none mt-0.5">{method.desc}</p>
                                 </div>
                             </label>
                         ))}
@@ -184,7 +184,7 @@ export const InventorySettings: React.FC = () => {
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-white uppercase leading-none">
                                     {t.track_serial_numbers || 'تتبع الأرقام التسلسلية'}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mt-0.5">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mt-0.5">
                                     {t.track_serial_numbers_desc || 'تتبع كل منتج برقمه التسلسلي'}
                                 </p>
                             </div>
@@ -206,7 +206,7 @@ export const InventorySettings: React.FC = () => {
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-white uppercase leading-none">
                                     {t.track_expiry_dates || 'تتبع تواريخ الانتهاء'}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mt-0.5">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mt-0.5">
                                     {t.track_expiry_dates_desc || 'تتبع الفعالية والصلاحية'}
                                 </p>
                             </div>

@@ -16,7 +16,7 @@ export const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className={cn(
-                "p-4 max-md:p-3 max-md:p-4 rounded-3xl max-md:rounded-xl border shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition-all duration-200",
+                "p-4 max-md:p-3 rounded-3xl max-md:rounded-xl border shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition-all duration-200",
                 "bg-slate-900/90 border-slate-700/50"
             )}>
                 <p className="text-xs font-bold text-slate-400 mb-3 border-b border-slate-700/50 pb-2 flex items-center gap-2">

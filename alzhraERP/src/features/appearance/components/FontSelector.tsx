@@ -15,7 +15,7 @@ const FontSelector: React.FC = () => {
   const { font, fontSize } = draftSettings;
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
+    <div className="bg-[var(--app-surface)] p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
       <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">خطوط الواجهة (Interface Font)</h3>
       <div className="space-y-3">
         {FONTS.map(f => (

@@ -22,9 +22,9 @@ const InvoiceHeader = ({ company }: { company: any }) => {
                         {nameAr}
                     </h1>
                     {specialization && (
-                        <p className="text-[9px] max-md:text-[7px] font-bold text-blue-600 dark:text-blue-400 mb-0.5 max-md:mb-0">{specialization}</p>
+                        <p className="text-[10px] max-md:text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-0.5 max-md:mb-0">{specialization}</p>
                     )}
-                    <div className="text-[8px] max-md:text-[6px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0">
+                    <div className="text-[10px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0">
                         <p>{address}</p>
                     </div>
                 </div>
@@ -36,15 +36,15 @@ const InvoiceHeader = ({ company }: { company: any }) => {
                             <Car size={24} className="max-md:w-4 max-md:h-4" strokeWidth={2.5} />
                         </div>
                     </div>
-                    <span className="text-[7px] max-md:text-[5px] font-bold text-blue-500 uppercase tracking-[0.4em] mt-2 max-md:mt-1">SMART ERP</span>
+                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.4em] mt-2 max-md:mt-1">SMART ERP</span>
                 </div>
 
                 {/* Left Info */}
                 <div className="flex-1 text-left" dir="ltr">
-                    <h1 className="text-[11px] max-md:text-[8px] font-bold text-blue-900 dark:text-blue-400 leading-none mb-1 max-md:mb-0.5 uppercase tracking-tight">
+                    <h1 className="text-[11px] max-md:text-[10px] font-bold text-blue-900 dark:text-blue-400 leading-none mb-1 max-md:mb-0.5 uppercase tracking-tight">
                         {nameEn}
                     </h1>
-                    <div className="text-[8px] max-md:text-[6px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0 uppercase tracking-tighter">
+                    <div className="text-[10px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0 uppercase tracking-tighter">
                         <p>{settings.invoice_header_text || 'SALES INVOICE'}</p>
                     </div>
                 </div>

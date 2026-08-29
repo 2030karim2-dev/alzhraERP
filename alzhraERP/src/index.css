@@ -45,14 +45,10 @@
 
   html {
     scrollbar-gutter: stable;
-    /* Stepped responsive typography tied dynamically to user font-size setting */
-    font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 0.77);
-  }
-
-  @media (min-width: 768px) {
-    html {
-      font-size: calc(var(--app-font-size, 15px) * var(--scale, 1) * 1.0);
-    }
+    /* Stepped responsive typography tied dynamically to user font-size setting.
+       Mobile: بلا معامل انكماش إضافي — الجذر = 15px × scale(0.8) = 12px على الهاتف
+       (كان 9.24px مع معامل 0.77 — غير مقروء). Desktop: 15px عند md فأعلى (كما كان). */
+    font-size: calc(var(--app-font-size, 15px) * var(--scale, 1));
   }
 
   @media (min-width: 1280px) {
@@ -82,6 +78,42 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* ============================================================
+   iOS: منع التكبير التلقائي عند تركيز حقول الإدخال (يجب ≥ 16px)
+   هذا هو البديل القياسي لإزالة user-scalable=no مع الحفاظ على
+   قدرة المستخدم على التكبير اليدوي (WCAG 1.4.4)
+   ============================================================ */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================================
+   تلميح بصري للتمرير الأفقي — يظهر ظل خفيف على الحافة عندما يوجد
+   فائض فعلي فقط (خدعة background-attachment: local vs scroll).
+   للتطبيق على حاويات overflow-x-auto ذات الجداول العريضة.
+   لون غطاء الحافة يُخصَّص حسب خلفية الحاوية عبر --scroll-hint-cover.
+   ============================================================ */
+.scroll-x-hint {
+  --scroll-hint-cover: var(--app-bg);
+  background-image:
+    linear-gradient(to right, var(--scroll-hint-cover), rgba(0, 0, 0, 0)),
+    linear-gradient(to left, var(--scroll-hint-cover), rgba(0, 0, 0, 0)),
+    linear-gradient(to right, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0)),
+    linear-gradient(to left, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0));
+  background-position: left center, right center, left center, right center;
+  background-size: 24px 100%, 24px 100%, 10px 100%, 10px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+.scroll-x-hint-surface { --scroll-hint-cover: var(--app-surface); }
+.scroll-x-hint-card { --scroll-hint-cover: var(--app-card); }
+.scroll-x-hint-solid { --scroll-hint-cover: #ffffff; }
+.dark .scroll-x-hint-solid { --scroll-hint-cover: #0f172a; }
 
 /* ============================================================
    Theme-aware overrides 

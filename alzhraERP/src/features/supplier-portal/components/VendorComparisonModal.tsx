@@ -58,7 +58,7 @@ export const VendorComparisonModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="w-full max-w-5xl bg-[var(--app-surface)] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-4 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -100,7 +100,7 @@ export const VendorComparisonModal: React.FC<Props> = ({
                 className={`relative rounded-xl p-4 border transition-colors flex flex-col justify-between ${
                   vendor.is_recommended
                     ? 'bg-slate-50 dark:bg-slate-800/40 border-emerald-500/80 dark:border-emerald-500/60'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                    : 'bg-[var(--app-surface)] border-slate-200 dark:border-slate-800'
                 }`}
               >
                 <div>
@@ -216,7 +216,7 @@ export const VendorComparisonModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-colors"
+            className="px-3.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-colors"
           >
             إغلاق
           </button>

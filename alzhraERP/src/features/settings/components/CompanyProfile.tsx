@@ -77,7 +77,7 @@ const CompanyProfile: React.FC = () => {
               <h2 className="text-sm md:text-base font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tighter">
                 بيانات المنشأة
               </h2>
-              <p className="text-[8px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
+              <p className="text-[10px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
                 إدارة الهوية القانونية والمالية
               </p>
             </div>
@@ -105,7 +105,7 @@ const CompanyProfile: React.FC = () => {
         </div>
 
         {/* Company Identity Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Identity Section */}
           <div className="p-4 max-md:p-4 md:p-6 space-y-4 border-b border-gray-100 dark:border-slate-800">
             <div className="flex items-center gap-2 max-md:gap-2 mb-2">
@@ -140,7 +140,7 @@ const CompanyProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
               {/* Base Currency — العملات المتفق عليها فقط */}
               <div className="space-y-1.5">
-                <label className="text-[9px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mr-1 flex items-center gap-1 max-md:gap-1.5">
+                <label className="text-[10px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mr-1 flex items-center gap-1 max-md:gap-1.5">
                   <Banknote size={12} />
                   العملة الأساسية
                 </label>
@@ -156,7 +156,7 @@ const CompanyProfile: React.FC = () => {
                 </select>
                 <div className="flex items-center gap-2 max-md:gap-2 mt-1.5">
                   <Crown size={10} className="text-amber-500" />
-                  <span className="text-[8px] md:text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">
+                  <span className="text-[10px] md:text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">
                     العملة الأساسية لقيد المعاملات
                   </span>
                 </div>
@@ -172,7 +172,7 @@ const CompanyProfile: React.FC = () => {
                     <h4 className="text-[11px] md:text-xs font-bold text-gray-800 dark:text-slate-200">
                       تفعيل نظام الضرائب (VAT)
                     </h4>
-                    <p className="text-[9px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 mt-1">
+                    <p className="text-[10px] md:text-[10px] font-bold text-gray-500 dark:text-slate-400 mt-1">
                       إظهار خيارات وحقول الضرائب في واجهات الفواتير والمنتجات
                     </p>
                   </div>
@@ -195,8 +195,8 @@ const CompanyProfile: React.FC = () => {
             <FileText size={12} />
           </div>
           <div>
-            <p className="text-[9px] md:text-[10px] font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">ملاحظة</p>
-            <p className="text-[8px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 leading-relaxed">
+            <p className="text-[10px] md:text-[10px] font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">ملاحظة</p>
+            <p className="text-[10px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 leading-relaxed">
               تغيير العملة الأساسية يؤثر على جميع التقارير المالية والقيود المحاسبية. تأكد من مراجعة أسعار الصرف بعد التغيير.
             </p>
           </div>

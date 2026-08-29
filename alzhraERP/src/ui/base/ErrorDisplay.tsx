@@ -44,8 +44,8 @@ const ErrorDisplay: React.FC<Props> = ({ error, onRetry, variant = 'inline' }) =
 
         <div className="flex items-center justify-center gap-2 mt-4">
           <div className="bg-white/50 dark:bg-slate-800 px-3 py-1 rounded-lg border dark:border-slate-700">
-            <span className="text-[8px] font-semibold text-gray-400 uppercase mr-1">Code:</span>
-            <span className="text-[9px] font-mono font-bold text-blue-600">{errorObj.code}</span>
+            <span className="text-[10px] font-semibold text-gray-400 uppercase mr-1">Code:</span>
+            <span className="text-[10px] font-mono font-bold text-blue-600">{errorObj.code}</span>
           </div>
         </div>
       </div>

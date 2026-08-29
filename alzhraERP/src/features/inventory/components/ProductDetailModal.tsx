@@ -97,14 +97,14 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                     <span className="opacity-60 uppercase">SKU</span>
                                     <span dir="ltr" className="font-mono text-slate-700 dark:text-slate-300">{product.sku}</span>
                                 </span>
                                 {product.part_number && (
                                     <>
                                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                                        <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                             <span className="opacity-60 uppercase">Part #</span>
                                             <span dir="ltr" className="font-mono text-indigo-600 dark:text-indigo-400">{product.part_number}</span>
                                         </span>
@@ -185,7 +185,7 @@ const ProductDetailModal: React.FC<Props> = ({ product, onClose, onEdit, onDelet
                 </div>
 
                 {/* Keyboard shortcut hint */}
-                <div className="absolute bottom-3 left-3 bg-slate-900/80 dark:bg-slate-100/80 text-white dark:text-slate-900 text-[8px] font-bold px-2 py-1 rounded-lg opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                <div className="absolute bottom-3 left-3 bg-slate-900/80 dark:bg-slate-100/80 text-white dark:text-slate-900 text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
                     ESC لإغلاق
                 </div>
             </div>

@@ -128,7 +128,7 @@ const HeaderActions: React.FC = () => {
         >
           <RefreshCw size={14} className={cn(pendingCount > 0 && "animate-spin-slow")} />
           <span className={cn(
-            "absolute -top-1.5 flex items-center justify-center min-w-[14px] h-[14px] bg-amber-600 text-white text-[8px] font-black rounded-full border-2 border-[var(--app-surface)] shadow-sm",
+            "absolute -top-1.5 flex items-center justify-center min-w-[14px] h-[14px] bg-amber-600 text-white text-[10px] font-black rounded-full border-2 border-[var(--app-surface)] shadow-sm",
             dir === 'rtl' ? '-left-1.5' : '-right-1.5'
           )}>
             {pendingCount}
@@ -152,7 +152,7 @@ const HeaderActions: React.FC = () => {
         <MessageSquare size={14} className="transition-transform duration-150" />
         {useChatStore.getState().getTotalUnreadCount() > 0 && (
           <span className={cn(
-            "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
+            "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
             dir === 'rtl' ? '-left-1.5' : '-right-1.5'
           )}>
             {useChatStore.getState().getTotalUnreadCount() > 9 ? '9+' : useChatStore.getState().getTotalUnreadCount()}
@@ -173,7 +173,7 @@ const HeaderActions: React.FC = () => {
           <Bell size={14} className="transition-transform duration-150" />
           {unreadCount > 0 && (
             <span className={cn(
-              "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
+              "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
               dir === 'rtl' ? '-left-1.5' : '-right-1.5'
             )}>
               {unreadCount > 9 ? '9+' : unreadCount}

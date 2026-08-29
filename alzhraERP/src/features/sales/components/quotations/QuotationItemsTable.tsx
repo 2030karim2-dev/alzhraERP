@@ -19,7 +19,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
   handleOpenProductSearch
 }) => {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
+    <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
       <div className="p-3 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">بنود العرض</h3>
         <button

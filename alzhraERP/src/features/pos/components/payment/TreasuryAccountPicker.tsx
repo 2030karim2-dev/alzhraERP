@@ -79,7 +79,7 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                             <span className="max-w-[100px] truncate">{acc.name_ar}</span>
                             {acc.currency_code && (
                                 <span className={cn(
-                                    "text-[9px] font-mono",
+                                    "text-[10px] font-mono",
                                     selectedAccountId === acc.id ? 'opacity-80' : 'opacity-60'
                                 )}>
                                     {acc.currency_code}
@@ -87,7 +87,7 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                             )}
                             {acc.balance !== undefined && (
                                 <span className={cn(
-                                    "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded",
+                                    "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded",
                                     selectedAccountId === acc.id
                                         ? 'bg-white/20 text-white'
                                         : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
@@ -116,11 +116,11 @@ export const TreasuryAccountPicker: React.FC<TreasuryAccountPickerProps> = ({
                         </span>
                     </div>
                     <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[9px] text-slate-500 flex items-center gap-1">
+                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
                             <Wallet size={9} />
                             الرصيد: {formatBalance(selectedAccount.balance)} {selectedAccount.currency_code || ''}
                         </span>
-                        <span className="text-[9px] text-slate-500 flex items-center gap-1">
+                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
                             <DollarSign size={9} />
                             العملة: {selectedAccount.currency_code || ''}
                         </span>

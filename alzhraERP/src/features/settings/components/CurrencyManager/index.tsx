@@ -79,7 +79,7 @@ const CurrencyManager: React.FC = () => {
                 </h3>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center gap-1 max-md:gap-1.5 shadow-lg shadow-blue-500/20"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center gap-1 max-md:gap-1.5 shadow-lg shadow-blue-500/20"
                 >
                     <Plus size={14} /> إضافة عملة
                 </button>

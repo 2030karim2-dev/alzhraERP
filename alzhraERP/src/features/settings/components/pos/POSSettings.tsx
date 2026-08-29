@@ -40,7 +40,7 @@ export const POSSettings: React.FC = () => {
                         <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tighter">
                             {t.pos_settings || 'إعدادات نقطة البيع'}
                         </h2>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             {t.pos_settings_desc || 'تخصيص نقطة البيع والفواتير السريعة'}
                         </p>
                     </div>

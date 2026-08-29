@@ -12,7 +12,7 @@ export const SettingSection: React.FC<{
 }> = ({ icon, title, subtitle, color, defaultOpen = true, children }) => {
     const [open, setOpen] = useState(defaultOpen);
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
+        <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
@@ -24,7 +24,7 @@ export const SettingSection: React.FC<{
                     </div>
                     <div className="text-right">
                         <h3 className="text-xs md:text-sm font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tight">{title}</h3>
-                        {subtitle && <p className="text-[8px] md:text-[9px] text-gray-400 mt-0.5">{subtitle}</p>}
+                        {subtitle && <p className="text-[10px] md:text-[10px] text-gray-400 mt-0.5">{subtitle}</p>}
                     </div>
                 </div>
                 {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}

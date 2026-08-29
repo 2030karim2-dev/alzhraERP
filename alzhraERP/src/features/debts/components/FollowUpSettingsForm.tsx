@@ -67,7 +67,7 @@ const FollowUpSettingsForm: React.FC = () => {
             onChange={(e) => { setForm((p) => ({ ...p, due_soon_days: e.target.value })); }}
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
-          <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">
+          <p className="text-[10px] text-[var(--app-text-secondary)] mt-1">
             يُصنَّف الدين «قريباً» عندما يكون استحقاقه خلال هذه الأيام.
           </p>
         </div>
@@ -84,7 +84,7 @@ const FollowUpSettingsForm: React.FC = () => {
             onChange={(e) => { setForm((p) => ({ ...p, critical_days: e.target.value })); }}
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
-          <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">
+          <p className="text-[10px] text-[var(--app-text-secondary)] mt-1">
             بعد هذا التأخير يصبح التصنيف «حرجاً» بأولوية قصوى.
           </p>
         </div>
@@ -101,7 +101,7 @@ const FollowUpSettingsForm: React.FC = () => {
             onChange={(e) => { setForm((p) => ({ ...p, reminder_window_days: e.target.value })); }}
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
-          <p className="text-[9px] text-[var(--app-text-secondary)] mt-1">
+          <p className="text-[10px] text-[var(--app-text-secondary)] mt-1">
             العميل «بحاجة تذكير» إذا مرّت هذه المدة على آخر تذكير له.
           </p>
         </div>

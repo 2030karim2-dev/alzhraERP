@@ -70,7 +70,7 @@ const WarehouseTable: React.FC<Props> = ({ warehouses, onViewDetails, onEdit, on
     ];
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden flex-1 min-h-[480px] flex flex-col">
+        <div className="bg-[var(--app-surface)] rounded-none border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden flex-1 min-h-[480px] flex flex-col">
             <ExcelTable
                 columns={columns}
                 data={warehouses}

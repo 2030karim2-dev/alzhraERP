@@ -57,7 +57,7 @@ const RealtimeStatusIndicator: React.FC = () => {
             </span>
             <span
                 className={cn(
-                    'text-[9px] font-bold',
+                    'text-[10px] font-bold',
                     realtimeStatus === 'disconnected'
                         ? 'text-rose-500'
                         : 'text-[var(--app-text-secondary)] hidden sm:inline'

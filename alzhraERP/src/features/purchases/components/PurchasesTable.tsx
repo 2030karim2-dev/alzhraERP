@@ -40,7 +40,7 @@ const actionColumn = (onView: (id: string) => void, deletePurchase: DeletePurcha
 const DesktopPurchaseTable = ({ data, onView }: { data: PurchaseTableRow[]; onView: (id: string) => void }): React.ReactElement => {
     const { mutate: deletePurchase, isPending: isDeleting } = useDeletePurchase();
     const columns = [invoiceColumn, dateColumn, supplierColumn, paymentColumn, totalColumn, statusColumn, actionColumn(onView, deletePurchase, isDeleting)];
-    return <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden flex-1 min-h-[480px] flex flex-col"><ExcelTable columns={columns} data={data} colorTheme="blue" /></div>;
+    return <div className="hidden md:block bg-[var(--app-surface)] rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden flex-1 min-h-[480px] flex flex-col"><ExcelTable columns={columns} data={data} colorTheme="blue" /></div>;
 };
 
 const PurchasesTable: React.FC<PurchasesTableProps> = ({ data, isLoading, onView }) => {

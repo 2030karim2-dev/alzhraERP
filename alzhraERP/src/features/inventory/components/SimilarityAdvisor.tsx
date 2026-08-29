@@ -33,11 +33,11 @@ const SimilarityAdvisor: React.FC<Props> = ({ similarProducts, onApplyName, isVi
                 {similarProducts.map((p) => (
                     <div
                         key={p.id}
-                        className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 border border-amber-100 dark:border-amber-800/20 rounded-lg group transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                        className="flex items-center justify-between p-2 bg-[var(--app-surface)] border border-amber-100 dark:border-amber-800/20 rounded-lg group transition-all hover:border-amber-300 dark:hover:border-amber-700"
                     >
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300">{p.name_ar}</span>
-                            <span className="text-[8px] font-mono text-gray-400 uppercase">{p.sku}</span>
+                            <span className="text-[10px] font-mono text-gray-400 uppercase">{p.sku}</span>
                         </div>
 
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100">
@@ -53,7 +53,7 @@ const SimilarityAdvisor: React.FC<Props> = ({ similarProducts, onApplyName, isVi
                 ))}
             </div>
 
-            <p className="mt-3 text-[9px] text-amber-600/70 dark:text-amber-400/50 leading-relaxed italic">
+            <p className="mt-3 text-[10px] text-amber-600/70 dark:text-amber-400/50 leading-relaxed italic">
                 * ننصح بتعديل الاسم لتجنب التكرار، أو استخدام اسم المنتج الحالي إذا كان هو نفسه.
             </p>
         </div>

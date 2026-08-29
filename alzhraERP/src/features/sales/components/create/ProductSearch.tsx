@@ -102,7 +102,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onSelectProduct, }) => {
                                             <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                                                 {product.name_ar}
                                                 {searchTerm && product.alternative_numbers?.includes(searchTerm) && (
-                                                    <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-md font-bold">
+                                                    <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-md font-bold">
                                                         بديل
                                                     </span>
                                                 )}

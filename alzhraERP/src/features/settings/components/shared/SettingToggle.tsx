@@ -5,7 +5,7 @@ export const SettingToggle: React.FC<{ checked: boolean; onChange: (v: boolean) 
     <div className="flex items-center justify-between py-2.5">
         <div className="flex-1 min-w-0">
             <p className="text-[10px] md:text-xs font-bold text-gray-700 dark:text-slate-200">{label}</p>
-            {description && <p className="text-[8px] md:text-[9px] text-gray-400 dark:text-slate-500 mt-0.5">{description}</p>}
+            {description && <p className="text-[10px] md:text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{description}</p>}
         </div>
         <button
             type="button"

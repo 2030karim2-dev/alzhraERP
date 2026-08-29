@@ -24,8 +24,8 @@
     "test": "vitest",
     "test:ci": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "npm --prefix alzhraERP run test:e2e",
+    "test:e2e:ui": "npm --prefix alzhraERP run test:e2e:ui",
     "coverage": "vitest run --coverage",
     "prepare": "husky"
   },

@@ -19,7 +19,7 @@ export function Metric({ title, value, icon, tone }: { title: string; value: str
   return (
     <div className="min-w-0 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-1.5 max-md:rounded-lg sm:p-4">
       <div className={`mb-1 flex h-6 w-6 items-center justify-center rounded-md border max-md:mb-0.5 sm:mb-3 sm:h-9 sm:w-9 ${metricStyle(tone)}`}>{icon}</div>
-      <p className="truncate text-[9px] max-md:text-[8px] text-[var(--app-text-secondary)] sm:text-xs">{title}</p>
+      <p className="truncate text-[10px] max-md:text-[10px] text-[var(--app-text-secondary)] sm:text-xs">{title}</p>
       <p className="mt-0.5 truncate text-xs max-md:text-[10px] font-bold text-[var(--app-text)] sm:mt-1 sm:text-lg">{value}</p>
     </div>
   );
@@ -34,8 +34,8 @@ export function PeriodResults({ data }: { data: DashboardData }): React.JSX.Elem
           {data.periods.map((period: CommissionPeriod) => <option key={period.id} value={period.id}>{period.period_label} — {periodStateLabels[period.state]}{period.is_test_period ? ' (اختبار)' : ''}</option>)}
         </select>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] text-[10px] max-md:text-[9px] sm:min-w-[720px] sm:text-sm">
+      <div className="overflow-x-auto scroll-x-hint-card">
+        <table className="w-full min-w-[560px] text-[10px] max-md:text-[10px] sm:min-w-[720px] sm:text-sm">
           <thead><tr className="border-b border-[var(--app-border)] text-right text-[10px] text-[var(--app-text-secondary)] sm:text-xs"><th className="px-1.5 py-1 max-md:px-1 max-md:py-1 sm:p-4">المهندس</th><th className="px-1.5 py-1 max-md:px-1 max-md:py-1 sm:p-4">المبيعات</th><th className="px-1.5 py-1 max-md:px-1 max-md:py-1 sm:p-4">المحصل</th><th className="px-1.5 py-1 max-md:px-1 max-md:py-1 sm:p-4">الفواتير</th><th className="px-1.5 py-1 max-md:px-1 max-md:py-1 sm:p-4">الإجمالي</th></tr></thead>
           <tbody>{data.calculations.map(item => <tr key={item.id} className="border-b border-[var(--app-border)] last:border-0"><td className="px-3 py-2.5 font-medium text-[var(--app-text)] sm:p-4"><span className="inline-flex items-center gap-1.5"><Users size={13} className="text-emerald-600" />{item.user_id.slice(0, 8)}…</span></td><td className="px-3 py-2.5 text-[var(--app-text-secondary)] sm:p-4">{formatCommissionMoney(item.net_sales, item.currency_code)}</td><td className="px-3 py-2.5 text-[var(--app-text-secondary)] sm:p-4">{formatCommissionMoney(item.collected_amount, item.currency_code)}</td><td className="px-3 py-2.5 text-[var(--app-text-secondary)] sm:p-4">{formatCommissionNumber(item.invoice_count)}</td><td className="px-3 py-2.5 font-semibold text-emerald-600 sm:p-4">{formatCommissionMoney(item.total_commission, item.currency_code)}</td></tr>)}{data.calculations.length === 0 && <tr><td colSpan={5} className="px-3 py-8 text-center text-xs text-[var(--app-text-secondary)] sm:p-10 sm:text-sm">لا توجد حسابات لهذه الفترة بعد.</td></tr>}</tbody>
         </table>

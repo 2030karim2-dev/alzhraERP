@@ -37,7 +37,7 @@ const ChartTooltip = React.memo<ChartTooltipProps>(({ active, payload, label }) 
 
         return (
             <div className={cn(
-                "p-4 max-md:p-3 max-md:p-4 rounded-2xl max-md:rounded-xl border shadow-xl backdrop-blur-xl transition-all duration-200",
+                "p-4 max-md:p-3 rounded-2xl max-md:rounded-xl border shadow-xl backdrop-blur-xl transition-all duration-200",
                 "bg-[var(--app-surface)]/80 border-[var(--app-border)] shadow-black/50"
             )}>
                 <p className="text-xs font-bold text-[var(--app-text-secondary)] mb-3 border-b border-[var(--app-border)] pb-2">
@@ -90,17 +90,17 @@ const ChartHeader = React.memo(({ totalRevenue, totalExpenses }: { totalRevenue:
                 <h3 className="text-sm font-bold text-[var(--app-text)]">
                     الإيرادات vs المصروفات
                 </h3>
-                <p className="text-[9px] text-[var(--app-text-secondary)]">مقارنة شهرية</p>
+                <p className="text-[10px] text-[var(--app-text-secondary)]">مقارنة شهرية</p>
             </div>
         </div>
 
         <div className="flex items-center gap-3">
             <div className="text-center">
-                <p className="text-[8px] font-bold text-emerald-500 uppercase">الإيرادات</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase">الإيرادات</p>
                 <p className="text-sm font-bold text-emerald-600 font-mono">{formatNumber(totalRevenue)}</p>
             </div>
             <div className="text-center">
-                <p className="text-[8px] font-bold text-rose-500 uppercase">المصروفات</p>
+                <p className="text-[10px] font-bold text-rose-500 uppercase">المصروفات</p>
                 <p className="text-sm font-bold text-rose-600 font-mono">{formatNumber(totalExpenses)}</p>
             </div>
         </div>
@@ -132,7 +132,7 @@ const ChartFooter = React.memo(({ netProfit, profitMargin }: { netProfit: number
                 {netProfit >= 0 ? '+' : ''}{formatNumber(netProfit)}
             </p>
             <p className={cn(
-                "text-[9px] font-bold",
+                "text-[10px] font-bold",
                 netProfit >= 0 ? "text-emerald-500" : "text-rose-500"
             )}>
                 هامش ربح {Math.max(-100, Math.min(100, profitMargin)).toFixed(1)}%
@@ -179,7 +179,7 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
     if (!data || data.length === 0) {
         return (
             <div className={cn(
-                "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl flex items-center justify-center h-64",
+                "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl flex items-center justify-center h-64",
                 className
             )}>
                 <div className="text-center">
@@ -192,7 +192,7 @@ const RevenueExpensesChart: React.FC<RevenueExpensesChartProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl",
+            "bg-[var(--app-surface)] border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl",
             className
         )}>
             <ChartHeader

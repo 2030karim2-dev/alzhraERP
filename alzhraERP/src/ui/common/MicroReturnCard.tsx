@@ -39,7 +39,7 @@ const MicroReturnCard: React.FC<Props> = ({ data, onView }) => {
           <h4 className="text-[12px] font-bold text-gray-800 dark:text-slate-100 line-clamp-1">{data.partyName}</h4>
         </div>
         <span className={cn(
-          "px-2 py-0.5 rounded-lg text-[8px] font-semibold border uppercase tracking-widest",
+          "px-2 py-0.5 rounded-lg text-[10px] font-semibold border uppercase tracking-widest",
           data.status === 'posted' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-gray-50 text-gray-400 border-gray-100"
         )}>
           {data.status === 'posted' ? 'مرحل' : 'مسودة'}
@@ -48,7 +48,7 @@ const MicroReturnCard: React.FC<Props> = ({ data, onView }) => {
 
       <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 p-2.5 rounded-2xl border border-gray-100 dark:border-slate-800">
         <div className="flex flex-col">
-          <span className="text-[7px] font-semibold text-gray-400 uppercase leading-none mb-1">قيمة المرتجع</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase leading-none mb-1">قيمة المرتجع</span>
           <span dir="ltr" className={cn(
             "text-sm font-bold font-mono leading-none",
             isSale ? "text-rose-600" : "text-orange-600"
@@ -70,11 +70,11 @@ const MicroReturnCard: React.FC<Props> = ({ data, onView }) => {
       <div className="mt-2.5 flex items-center justify-between px-1">
         <div className="flex items-center gap-1 text-gray-400 dark:text-slate-500">
           <Calendar size={10} />
-          <span dir="ltr" className="text-[9px] font-bold">{data.date}</span>
+          <span dir="ltr" className="text-[10px] font-bold">{data.date}</span>
         </div>
         <div className="flex items-center gap-1">
           <ArrowLeftRight size={10} className={isSale ? "text-rose-400" : "text-orange-400"} />
-          <span className="text-[8px] font-semibold text-gray-400 uppercase tracking-tighter">
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
             {isSale ? "مرتجع مبيعات" : "مرتجع مشتريات"}
           </span>
         </div>

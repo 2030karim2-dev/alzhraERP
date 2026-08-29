@@ -80,14 +80,14 @@ const SecuritySettings: React.FC = () => {
             <ShieldCheck size={20} />
           </div>
         </h2>
-        <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
           {t.security_privacy_desc || 'تأمين حسابك وإدارة صلاحيات الوصول'}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Change Password */}
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-4 text-right">
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-[var(--app-surface)] p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-4 text-right">
           <div className="flex items-center gap-2 mb-2 justify-end">
             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               {t.change_password || 'تغيير كلمة المرور'}
@@ -135,7 +135,7 @@ const SecuritySettings: React.FC = () => {
 
         {/* 2FA & Sessions */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm text-right">
+          <div className="bg-[var(--app-surface)] p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm text-right">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-xl">
                 <Smartphone size={18} />
@@ -155,7 +155,7 @@ const SecuritySettings: React.FC = () => {
               <button
                 type="button"
                 onClick={() => showToast('إعدادات التحقق المزدوج متاحة ومُدارة عبر حساب الدخول الموحد', 'info')}
-                className="text-[9px] font-bold text-blue-600 border-2 border-blue-500/20 px-3 py-1.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-all uppercase"
+                className="text-[10px] font-bold text-blue-600 border-2 border-blue-500/20 px-3 py-1.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-all uppercase"
               >
                 {t.enable_protection || 'إدارة الحماية'}
               </button>

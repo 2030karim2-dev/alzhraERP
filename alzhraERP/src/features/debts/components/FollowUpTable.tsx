@@ -90,7 +90,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
 
   return (
     <>
-      <div className="overflow-x-auto bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
+      <div className="hidden md:block overflow-x-auto bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
         <table className="w-full text-right">
           <thead>
             <tr className="text-[10px] font-bold text-[var(--app-text-secondary)] border-b border-[var(--app-border)] bg-[var(--app-surface-hover)]/50">
@@ -134,7 +134,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                       {formatCurrency(Number(row.outstanding_balance), row.currency_code)}
                     </span>
                     {row.has_broken_promise && (
-                      <span className="block text-[9px] font-bold text-rose-500 mt-0.5">
+                      <span className="block text-[10px] font-bold text-rose-500 mt-0.5">
                         ⚠️ وعد مخلَف
                       </span>
                     )}
@@ -213,6 +213,97 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards — بديل الجدول على الهاتف */}
+      <div className="md:hidden space-y-2.5">
+        {rows.map((row) => {
+          const classification =
+            CLASSIFICATION_META[row.classification] ?? CLASSIFICATION_META.current;
+          const reminder =
+            REMINDER_STATUS_META[row.reminder_status] ?? REMINDER_STATUS_META.needs_reminder;
+          const isExportingThis = exportingPartyId === row.party_id;
+          return (
+            <div
+              key={`${row.party_id}-${row.currency_code}`}
+              className="bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm p-3 space-y-2.5"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[var(--app-text)] truncate">{row.party_name}</p>
+                  {row.party_phone && (
+                    <p className="text-[11px] text-[var(--app-text-secondary)] font-mono" dir="ltr">
+                      {row.party_phone}
+                    </p>
+                  )}
+                </div>
+                <div className="text-left shrink-0">
+                  <span className="text-sm font-bold font-mono text-[var(--app-text)]" dir="ltr">
+                    {formatCurrency(Number(row.outstanding_balance), row.currency_code)}
+                  </span>
+                  {row.days_overdue > 0 && (
+                    <p className="text-[11px] font-extrabold text-orange-600">{row.days_overdue} يوم تأخير</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <StatusBadge {...classification} />
+                <StatusBadge {...reminder} />
+                {row.has_broken_promise && (
+                  <span className="text-[10px] font-bold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                    ⚠️ وعد مخلَف
+                  </span>
+                )}
+                {row.oldest_due_date && (
+                  <span className="text-[10px] font-mono text-[var(--app-text-secondary)]" dir="ltr">
+                    {row.oldest_due_date}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-[var(--app-border)]">
+                <button
+                  onClick={() => setAiRiskRow(row)}
+                  title="التحليل الذكي للمخاطر (AI)"
+                  className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-all active:scale-90"
+                >
+                  <Sparkles size={16} />
+                </button>
+                <button
+                  onClick={() => handleExportExcel(row)}
+                  disabled={isExportingThis}
+                  title="تحميل كشف حساب إكسل احترافي (.xlsx)"
+                  className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-all active:scale-90 disabled:opacity-50"
+                >
+                  {isExportingThis ? (
+                    <Loader2 size={16} className="animate-spin text-blue-600" />
+                  ) : (
+                    <FileSpreadsheet size={16} />
+                  )}
+                </button>
+                {canRemind && (
+                  <button
+                    onClick={() => setReminderRow(row)}
+                    title="تذكير واتساب ذكي"
+                    className="p-2.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white transition-all active:scale-90"
+                  >
+                    <MessageSquare size={16} />
+                  </button>
+                )}
+                {canManage && (
+                  <button
+                    onClick={() => setPromiseRow(row)}
+                    title="تسجيل وعد سداد"
+                    className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white transition-all active:scale-90"
+                  >
+                    <Handshake size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Reminder Modal */}

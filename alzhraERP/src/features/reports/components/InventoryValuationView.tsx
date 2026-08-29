@@ -79,13 +79,13 @@ const InventoryValuationView: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-slate-900 flex items-center justify-center"><Box size={10} /></div>
               <div className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center"><ShieldCheck size={10} /></div>
             </div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">AI Valuation Confidence: 99.8%</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">AI Valuation Confidence: 99.8%</span>
           </div>
         </div>
       </div>
 
       {/* Analytics & Breakdown Section */}
-      <div className="glass-panel bento-item bg-white dark:bg-slate-900/50 border-none shadow-2xl p-10  max-md:p-5 flex flex-col lg:flex-row   max-md:gap-16 items-center overflow-hidden">
+      <div className="glass-panel bento-item bg-[var(--app-surface)]/50 border-none shadow-2xl p-10  max-md:p-5 flex flex-col lg:flex-row   max-md:gap-16 items-center overflow-hidden">
         {/* Visual Chart Area */}
         <div className="flex-[1.4] w-full min-h-[380px] relative">
           <div className="absolute top-0 right-0 flex items-center   max-md:gap-3">

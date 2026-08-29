@@ -36,7 +36,7 @@ const ProductCategory: React.FC<Props> = ({ register, watch, setValue }) => {
           </select>
           <Layers className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         </div>
-        <p className="text-[8px] text-gray-400 mt-1 px-1">{t('add_category_info')}</p>
+        <p className="text-[10px] text-gray-400 mt-1 px-1">{t('add_category_info')}</p>
       </div>
 
       <div>

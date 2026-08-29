@@ -50,7 +50,7 @@ const VinTitleRow: React.FC<VinTitleRowProps> = ({
       {market && (
         <span
           className={cn(
-            'rounded-md border px-1.5 py-0.5 text-[9px] font-bold',
+            'rounded-md border px-1.5 py-0.5 text-[10px] font-bold',
             isActive
               ? 'border-white/30 bg-white/20 text-white'
               : 'border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'

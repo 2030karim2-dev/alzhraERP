@@ -96,7 +96,7 @@ const TransferProductSearch: React.FC<Props> = ({
                         }}
                         onFocus={() => setIsOpen(true)}
                         placeholder="ابحث بالاسم أو رقم القطعة أو الباركود لإضافة صنف..."
-                        className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl pr-9 pl-8 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                        className="w-full bg-[var(--app-surface)] border border-gray-200 dark:border-slate-700 rounded-xl pr-9 pl-8 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
                     />
                     {query && (
                         <button
@@ -123,7 +123,7 @@ const TransferProductSearch: React.FC<Props> = ({
                             "px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap",
                             showOnlyInStock
                                 ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
-                                : "bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50"
+                                : "bg-[var(--app-surface)] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50"
                         )}
                     >
                         <Warehouse size={13} />
@@ -134,7 +134,7 @@ const TransferProductSearch: React.FC<Props> = ({
 
             {/* Instant Search & Picker Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center text-[10px] font-bold text-gray-500">
                         <span className="flex items-center gap-1">
                             <Package size={12} className="text-blue-500" />
@@ -176,7 +176,7 @@ const TransferProductSearch: React.FC<Props> = ({
                                                     {p.name_ar || p.name}
                                                 </span>
                                                 {p.brand && (
-                                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">
                                                         {p.brand}
                                                     </span>
                                                 )}
@@ -190,7 +190,7 @@ const TransferProductSearch: React.FC<Props> = ({
 
                                         <div className="flex items-center gap-3 shrink-0">
                                             <div className="text-left">
-                                                <span className="text-[9px] block text-gray-400 font-bold">المتوفر بالمصدر</span>
+                                                <span className="text-[10px] block text-gray-400 font-bold">المتوفر بالمصدر</span>
                                                 <span className={cn(
                                                     "text-xs font-mono font-black",
                                                     stockInWh > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"

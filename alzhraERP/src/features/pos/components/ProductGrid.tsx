@@ -41,7 +41,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         return (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 3xl:grid-cols-8 gap-2 p-2">
                 {[...Array(10)].map((_, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 rounded-xl h-28 animate-pulse shadow-sm border dark:border-slate-800"></div>
+                    <div key={i} className="bg-[var(--app-surface)] rounded-xl h-28 animate-pulse shadow-sm border dark:border-slate-800"></div>
                 ))}
             </div>
         );

@@ -15,7 +15,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
     <div
       onClick={() => onClick(product.id)}
       className={cn(
-        "group relative bg-white dark:bg-slate-900 border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col active:scale-[0.98] rounded-xl shadow-sm hover:shadow-md",
+        "group relative bg-[var(--app-surface)] border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col active:scale-[0.98] rounded-xl shadow-sm hover:shadow-md",
         product.isLowStock
           ? "border-rose-200 dark:border-rose-900/40 hover:border-rose-500"
           : "border-gray-100 dark:border-slate-800 hover:border-blue-500"
@@ -32,7 +32,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
         {/* Status Overlay */}
         <div className="absolute top-1 right-1">
           <span className={cn(
-            "px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-tighter",
+            "px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-tighter",
             product.isLowStock ? "bg-rose-600 text-white" : "bg-blue-600 text-white"
           )}>
             {product.isLowStock ? 'تنبيه مخزون' : 'متوفر'}
@@ -46,7 +46,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
           {product.name_ar || product.name}
         </h3>
 
-        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 font-mono tracking-tighter bg-gray-50 dark:bg-slate-950 px-1.5 py-1 rounded">
+        <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 font-mono tracking-tighter bg-gray-50 dark:bg-slate-950 px-1.5 py-1 rounded">
           <span className="flex items-center gap-1 uppercase"><Hash size={8} /> {product.sku}</span>
           <span className="text-blue-600">{product.brand}</span>
         </div>
@@ -62,13 +62,13 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
         {/* Pricing Segment */}
         <div className="grid grid-cols-2 gap-1 mt-1.5 border-t dark:border-slate-800 pt-1.5">
           <div className="text-center">
-            <p className="text-[7px] font-bold text-gray-400 uppercase leading-none mb-1">السعر</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">السعر</p>
             <p dir="ltr" className="text-[11px] font-bold text-blue-600 font-mono truncate">
               {formatCurrency(product.sale_price ?? product.selling_price ?? 0)}
             </p>
           </div>
           <div className="text-center border-r dark:border-slate-800">
-            <p className="text-[7px] font-bold text-gray-400 uppercase leading-none mb-1">المخزون</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">المخزون</p>
             <p dir="ltr" className={cn("text-[11px] font-bold font-mono", product.isLowStock ? "text-rose-600" : "text-gray-800 dark:text-white")}>
               {formatNumberDisplay(product.stock_quantity)}
             </p>
@@ -78,7 +78,7 @@ const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
 
       {/* Footer Info Strip */}
       <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 flex justify-between items-center opacity-60 rounded-b-xl">
-        <div className="flex items-center gap-1 text-[8px] font-bold text-gray-500 uppercase">
+        <div className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase">
           <MapPin size={8} />
           <span>{product.location || 'غير متوفر'}</span>
         </div>

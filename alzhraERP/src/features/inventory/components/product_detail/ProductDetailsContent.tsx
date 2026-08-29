@@ -112,7 +112,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                             <div className="grid grid-cols-1 md:grid-cols-12 border-b border-slate-200 dark:border-slate-800">
                                 {/* Product Image Cell */}
                                 <div className="md:col-span-3 border-l border-slate-200 dark:border-slate-800 p-4 bg-slate-50/20">
-                                    <div className="aspect-square bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded flex items-center justify-center overflow-hidden relative group">
+                                    <div className="aspect-square bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded flex items-center justify-center overflow-hidden relative group">
                                         {product.image_url || aiResult?.image_url ? (
                                             <img src={product.image_url || aiResult?.image_url || ''} alt={product.name} className="max-w-full max-h-full object-contain" />
                                         ) : (
@@ -123,7 +123,7 @@ const ProductDetailsContent: React.FC<Props> = ({ product }) => {
                                             <button
                                                 onClick={() => aiImageSearch({ partNumber: product.part_number || '', brand: product.brand })}
                                                 disabled={isAISearching}
-                                                className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1 text-[8px] font-bold py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100 hover:bg-indigo-50"
+                                                className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1 text-[10px] font-bold py-1 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100 hover:bg-indigo-50"
                                             >
                                                 {isAISearching ? <Loader2 size={9} className="animate-spin" /> : <Sparkles size={9} />}
                                                 {isAISearching ? 'جاري البحث...' : 'بحث ذكي عن صورة'}

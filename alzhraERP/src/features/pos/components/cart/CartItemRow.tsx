@@ -39,7 +39,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                     <div className="w-full flex flex-wrap gap-1 mt-1.5">
                         {item.warehouse_distribution.map((wd, i) => (
                             <span key={i} className={cn(
-                                "inline-flex items-center gap-0.5 text-[8px] md:text-[9px] px-1 py-0.5 rounded border",
+                                "inline-flex items-center gap-0.5 text-[10px] md:text-[10px] px-1 py-0.5 rounded border",
                                 wd.quantity > 0
                                     ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                                     : "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-700"
@@ -52,13 +52,13 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                     </div>
                 )}
                 {isOverStock && (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[8px] text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-lg border border-rose-200 dark:border-rose-700">
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-lg border border-rose-200 dark:border-rose-700">
                         <AlertTriangle size={10} />
                         <span>الكمية المطلوبة ({item.quantity}) تتجاوز المتاح ({totalAvailable})</span>
                     </div>
                 )}
                 {isLowStock && !isOverStock && (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[8px] text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-700">
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-700">
                         <AlertTriangle size={10} />
                         <span>تقريباً نفذ المخزون ({totalAvailable} متاح)</span>
                     </div>
@@ -72,7 +72,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
 
             {/* Quantity Column */}
             <td className="p-2 md:p-3 align-top border-l border-slate-100 dark:border-slate-800/50">
-                <div className="flex items-center justify-center gap-2 md:gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 md:p-1.5 w-fit mx-auto">
+                <div className="flex items-center justify-center gap-2 md:gap-3 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg p-1 md:p-1.5 w-fit mx-auto">
                     <button
                         onClick={() => {
                             if (item.quantity > 1) onUpdateQuantity(item.productId, item.quantity - 1);
@@ -118,7 +118,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = React.memo(({
                         </span>
                         <button
                             onClick={() => setEditingPriceId(item.productId)}
-                            className="text-[9px] md:text-[10px] text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 group/price transition-colors bg-slate-50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700/50"
+                            className="text-[10px] md:text-[10px] text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 group/price transition-colors bg-slate-50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700/50"
                             title="تعديل السعر الوحدة"
                         >
                             <span dir="ltr" className="font-mono">{formatCurrency(item.price)}</span>

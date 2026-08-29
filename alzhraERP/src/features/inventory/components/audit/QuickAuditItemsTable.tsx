@@ -48,7 +48,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                     const difference = item.quantity - item.system_quantity;
                     const diffColor = difference > 0 ? 'text-emerald-500' : difference < 0 ? 'text-rose-500' : 'text-gray-300';
                     return (
-                        <div key={item.product_id} className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div key={item.product_id} className="bg-[var(--app-surface)] rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             {/* Header */}
                             <div className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b dark:border-slate-700 flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
@@ -68,7 +68,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                             {/* Body */}
                             <div className="p-3 space-y-2">
                                 {item.brand && (
-                                    <span className="inline-block bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[9px] font-bold text-slate-600 dark:text-slate-400">
+                                    <span className="inline-block bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[10px] font-bold text-slate-600 dark:text-slate-400">
                                         {item.brand}
                                     </span>
                                 )}
@@ -76,11 +76,11 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                                 {/* Quantities */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg py-2">
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">المخزون الحالي</p>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">المخزون الحالي</p>
                                         <p className="font-mono font-black text-gray-500 dark:text-gray-300 text-lg leading-none">{item.system_quantity}</p>
                                     </div>
                                     <div className="text-center bg-blue-50/50 dark:bg-blue-900/10 rounded-lg py-2">
-                                        <p className="text-[8px] font-bold text-blue-500 uppercase mb-1">الجرد الفعلي</p>
+                                        <p className="text-[10px] font-bold text-blue-500 uppercase mb-1">الجرد الفعلي</p>
                                         <input
                                             type="number"
                                             value={item.quantity === 0 ? '' : item.quantity}
@@ -91,7 +91,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                                         />
                                     </div>
                                     <div className="text-center bg-emerald-50/30 dark:bg-emerald-900/5 rounded-lg py-2">
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">الفارق</p>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">الفارق</p>
                                         <p className={`font-mono font-black text-lg leading-none ${diffColor}`}>
                                             {difference > 0 ? `+${difference}` : difference}
                                         </p>
@@ -107,7 +107,7 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
 
     // ── Desktop Table View ───────────────────────────────────────────
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border-2 border-slate-200 dark:border-slate-800 overflow-hidden max-w-full">
+        <div className="bg-[var(--app-surface)] rounded-xl shadow-lg border-2 border-slate-200 dark:border-slate-800 overflow-hidden max-w-full">
             <div className="overflow-x-auto custom-scrollbar bg-white dark:bg-slate-950">
                 <table className="w-full text-right text-xs border-collapse max-md:min-w-0 min-w-[900px]">
                     <thead>

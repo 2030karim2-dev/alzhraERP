@@ -199,7 +199,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             <div
                 ref={modalRef}
                 className={`
-                    absolute bg-white dark:bg-slate-900 shadow-2xl flex flex-col pointer-events-auto
+                    absolute bg-[var(--app-surface)] shadow-2xl flex flex-col pointer-events-auto
                     transition-[width,height,transform,border-radius] duration-200 ease-in-out border border-slate-200 dark:border-slate-700
                     ${(isMaximized || isMobile) ? 'rounded-none' : 'rounded-2xl'}
                 `}

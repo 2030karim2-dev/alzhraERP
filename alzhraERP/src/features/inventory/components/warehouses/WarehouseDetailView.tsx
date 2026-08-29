@@ -23,7 +23,7 @@ const WarehouseDetailView: React.FC<Props> = ({ warehouseId, warehouses }) => {
 
     if (!warehouse) {
         return (
-            <div className="h-full flex items-center justify-center bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-none">
+            <div className="h-full flex items-center justify-center bg-[var(--app-surface)] border dark:border-slate-800 rounded-none">
                 <EmptyState icon={Warehouse} title="لم يتم اختيار مستودع" description="الرجاء اختيار مستودع من القائمة لعرض بياناته التفصيلية." />
             </div>
         );
@@ -31,7 +31,7 @@ const WarehouseDetailView: React.FC<Props> = ({ warehouseId, warehouses }) => {
 
     return (
         <div className="space-y-4 h-full flex flex-col">
-            <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden flex-shrink-0">
+            <div className="bg-[var(--app-surface)] rounded-none border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden flex-shrink-0">
                 {/* Header */}
                 <div className="p-3 border-b dark:border-slate-800 flex justify-between items-center bg-gradient-to-l from-blue-50/50 to-transparent dark:from-blue-900/10">
                     <div className="flex items-center gap-2.5">
@@ -82,7 +82,7 @@ const WarehouseDetailView: React.FC<Props> = ({ warehouseId, warehouses }) => {
                 />
             </div>
 
-            <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm p-4">
+            <div className="flex-1 min-h-0 bg-[var(--app-surface)] rounded-none border border-gray-100 dark:border-slate-800 shadow-sm p-4">
                 <h3 className="text-sm font-bold mb-4">أصناف المستودع</h3>
                 <div className="h-[calc(100%-2rem)]">
                     <WarehouseProductList

@@ -68,7 +68,7 @@ export const FloatingInput: React.FC<FloatingInputProps> = ({
             absolute transition-all duration-300 pointer-events-none font-medium
             ${dir === 'ltr' ? 'left-10' : 'right-10'}
             ${isActive
-                            ? `-top-2.5 text-[10px] px-1.5 bg-white dark:bg-slate-900
+                            ? `-top-2.5 text-[10px] px-1.5 bg-[var(--app-surface)]
                  ${error ? 'text-red-500' : 'text-blue-500'}`
                             : 'top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-slate-500'
                         }

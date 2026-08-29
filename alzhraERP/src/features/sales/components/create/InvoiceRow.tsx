@@ -67,7 +67,7 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ item, index, showDiscount, onUp
 
     return (
         <tr className="group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
-            <td className="p-2 max-md:p-1 text-center text-[10px] max-md:text-[9px] font-mono font-bold text-gray-300 dark:text-slate-600 border-l dark:border-slate-800 max-md:hidden">
+            <td className="p-2 max-md:p-1 text-center text-[10px] max-md:text-[10px] font-mono font-bold text-gray-300 dark:text-slate-600 border-l dark:border-slate-800 max-md:hidden">
                 {index + 1}
             </td>
             <ProductNameCell item={item} index={index} onKeyDown={onKeyDown} onOpenSearch={onOpenSearch} />

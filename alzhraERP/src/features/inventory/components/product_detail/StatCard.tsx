@@ -21,7 +21,7 @@ const StatCard: React.FC<Props> = ({ icon: Icon, label, value, color }) => {
         <div className="p-2 border-r border-slate-200 dark:border-slate-800 flex flex-col gap-1 min-w-0 bg-white dark:bg-slate-950">
             <div className="flex items-center gap-1">
                 <Icon size={11} className={cn("opacity-50", colorClasses[color] || 'text-slate-400')} />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">{label}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{label}</span>
             </div>
             <span dir="ltr" className={cn(
                 "text-sm font-bold font-mono tracking-tight truncate",

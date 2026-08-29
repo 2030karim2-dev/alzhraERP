@@ -97,7 +97,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
 
       <div>
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--app-text-secondary)]">
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--app-text-secondary)]">
             <Braces size={11} /> المتغيرات المتاحة:
           </span>
           {TEMPLATE_PLACEHOLDERS.map((ph) => (
@@ -159,10 +159,10 @@ const TemplateList: React.FC<TemplateListProps> = ({ templates, onEdit, onDelete
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-[var(--app-text)]">{t.name}</span>
-            <span className="text-[9px] font-bold text-[var(--app-text-secondary)] uppercase">
+            <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">
               {t.channel}
             </span>
-            {!t.is_active ? <span className="text-[9px] font-bold text-slate-400">معطّل</span> : null}
+            {!t.is_active ? <span className="text-[10px] font-bold text-slate-400">معطّل</span> : null}
           </div>
           <p className="text-[10px] text-[var(--app-text-secondary)] truncate max-w-md">{t.body}</p>
         </div>

@@ -113,35 +113,35 @@ const DebtAgingReport: React.FC = () => {
             accessor: (row: AgingPartyRow) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-gray-800 dark:text-slate-100 text-[10px]">{row.name}</span>
-                    <span className="text-[8px] text-gray-400">أقدم استحقاق: {row.oldestDate?.split('T')[0]}</span>
+                    <span className="text-[10px] text-gray-400">أقدم استحقاق: {row.oldestDate?.split('T')[0]}</span>
                 </div>
             ),
         },
         {
             header: 'حالية',
             accessor: (row: AgingPartyRow) => row.current > 0 ? (
-                <span dir="ltr" className="font-mono text-[9px] font-bold text-emerald-600">{formatCurrency(row.current)}</span>
+                <span dir="ltr" className="font-mono text-[10px] font-bold text-emerald-600">{formatCurrency(row.current)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '31-60',
             accessor: (row: AgingPartyRow) => row.days30 > 0 ? (
-                <span dir="ltr" className="font-mono text-[9px] font-bold text-amber-600">{formatCurrency(row.days30)}</span>
+                <span dir="ltr" className="font-mono text-[10px] font-bold text-amber-600">{formatCurrency(row.days30)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '61-90',
             accessor: (row: AgingPartyRow) => row.days60 > 0 ? (
-                <span dir="ltr" className="font-mono text-[9px] font-bold text-orange-600">{formatCurrency(row.days60)}</span>
+                <span dir="ltr" className="font-mono text-[10px] font-bold text-orange-600">{formatCurrency(row.days60)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },
         {
             header: '90+',
             accessor: (row: AgingPartyRow) => row.days90 > 0 ? (
-                <span dir="ltr" className="font-mono text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded">{formatCurrency(row.days90)}</span>
+                <span dir="ltr" className="font-mono text-[10px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded">{formatCurrency(row.days90)}</span>
             ) : <span className="text-gray-300">—</span>,
             width: '100px', align: 'center' as const,
         },

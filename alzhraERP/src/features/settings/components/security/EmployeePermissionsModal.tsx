@@ -142,7 +142,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-[var(--app-surface)] w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         dir="rtl"
       >
         {/* Header */}
@@ -325,7 +325,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
                                 'flex items-start gap-2.5 p-2 rounded-xl border transition-all cursor-pointer select-none text-right',
                                 isGranted
                                   ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50'
-                                  : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800/80 opacity-70 hover:opacity-100'
+                                  : 'bg-[var(--app-surface)] border-gray-100 dark:border-slate-800/80 opacity-70 hover:opacity-100'
                               )}
                             >
                               <input
@@ -347,12 +347,12 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
                                     {perm.label}
                                   </span>
                                   {perm.dangerous && (
-                                    <span className="text-[9px] px-1 py-0.2 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 font-bold">
+                                    <span className="text-[10px] px-1 py-0.2 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 font-bold">
                                       حساس
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[9px] font-mono text-gray-400 dark:text-slate-500 block dir-ltr text-right mt-0.5">
+                                <span className="text-[10px] font-mono text-gray-400 dark:text-slate-500 block dir-ltr text-right mt-0.5">
                                   {perm.key}
                                 </span>
                               </div>

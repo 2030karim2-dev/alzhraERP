@@ -100,7 +100,7 @@ const BondsPage: React.FC = () => {
 
   const headerActions = (
     <div className="flex items-center gap-2">
-      <div className="flex items-center bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-gray-200 dark:border-slate-800 mr-2">
+      <div className="flex items-center bg-[var(--app-surface)] rounded-lg p-0.5 border border-gray-200 dark:border-slate-800 mr-2">
         <button
           onClick={() => setDisplayMode('cards')}
           className={`p-1.5 rounded-md transition-all ${displayMode === 'cards' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'text-gray-400 hover:text-gray-600'}`}

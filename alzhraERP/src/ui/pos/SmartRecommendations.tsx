@@ -29,13 +29,13 @@ const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={14} className="text-amber-300 animate-pulse" />
-          <h4 className="text-[9px] font-bold uppercase tracking-widest text-blue-100">توصيات ذكاء الزهراء</h4>
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-100">توصيات ذكاء الزهراء</h4>
         </div>
 
         {isLoading ? (
           <div className="flex items-center gap-2 py-2">
             <Spinner size="sm" className="text-white" />
-            <span className="text-[8px] font-bold opacity-70">جاري تحليل احتياجات المحرك...</span>
+            <span className="text-[10px] font-bold opacity-70">جاري تحليل احتياجات المحرك...</span>
           </div>
         ) : (
           <div className="flex flex-wrap gap-1.5">
@@ -43,14 +43,14 @@ const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
               <button
                 key={idx}
                 onClick={() => onAdd(item)}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg text-[8px] font-semibold transition-all flex items-center gap-1.5 active:scale-95 group"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all flex items-center gap-1.5 active:scale-95 group"
               >
                 <span>{item}</span>
                 <Plus size={10} className="group-hover:rotate-90 transition-transform" />
               </button>
             ))}
             {(!suggestions || suggestions.length === 0) && (
-              <span className="text-[8px] font-bold opacity-50">لا توجد توصيات إضافية حالياً</span>
+              <span className="text-[10px] font-bold opacity-50">لا توجد توصيات إضافية حالياً</span>
             )}
           </div>
         )}

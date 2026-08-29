@@ -55,7 +55,7 @@ const ReportSection: React.FC<ReportSectionProps> = ({ title, items, total, icon
                 ))}
             </div>
             <div className="  max-md:p-5 border-t border-slate-50 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/10 flex justify-between items-center">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">إجمالي القسم</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">إجمالي القسم</span>
                 <span dir="ltr" className={cn("font-mono text-xl font-bold tracking-tighter", color === 'blue' ? "text-blue-600" : color === 'rose' ? "text-rose-600" : "text-emerald-600")}>
                     {formatCurrency(total)}
                 </span>
@@ -95,7 +95,7 @@ const BalanceSheetView: React.FC = () => {
 
                 <div className="flex items-center   max-md:gap-3 sm:gap-6 relative z-10">
                     <div className="text-left border-l border-slate-200 dark:border-slate-800/50 pl-3 sm:pl-6 hidden sm:block">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">صافي الأصول</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">صافي الأصول</p>
                         <p dir="ltr" className="text-lg sm:text-2xl font-bold font-mono text-blue-600 tracking-tighter">{formatCurrency(totalAssets)}</p>
                     </div>
                     <ShareButton

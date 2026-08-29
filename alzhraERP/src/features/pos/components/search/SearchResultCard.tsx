@@ -149,7 +149,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = React.memo(({
                 {result.warehouse_distribution && result.warehouse_distribution.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
                         {result.warehouse_distribution.map((wd, i) => (
-                            <span key={i} className="inline-flex items-center gap-1 text-[9px] md:text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                            <span key={i} className="inline-flex items-center gap-1 text-[10px] md:text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                                 <Store size={10} />
                                 <span className="font-semibold truncate max-w-[80px]" title={wd.warehouse_name}>{wd.warehouse_name}</span>
                                 <span className="text-blue-600 dark:text-blue-400 font-bold font-mono">({wd.quantity})</span>

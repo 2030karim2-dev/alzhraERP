@@ -147,8 +147,8 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
         };
     }, [onMouseMove, onMouseUp]);
 
-    const fontSizeClasses = { small: 'text-[9px]', medium: 'text-[11px]', large: 'text-[13px]' };
-    const headerFontSizeClasses = { small: 'text-[9px]', medium: 'text-[10px]', large: 'text-[12px]' };
+    const fontSizeClasses = { small: 'text-[10px]', medium: 'text-[11px]', large: 'text-[13px]' };
+    const headerFontSizeClasses = { small: 'text-[10px]', medium: 'text-[10px]', large: 'text-[12px]' };
 
     const moveColumnUp = (index: number) => { if (index > 0) reorderColumn(index, index - 1); };
     const moveColumnDown = (index: number) => { if (index < config.columns.length - 1) reorderColumn(index, index + 1); };
@@ -224,14 +224,14 @@ const ProductSelectionModal: React.FC<Props> = ({ isOpen, onClose, onSelect, ini
                 description="انقر مرتين على المنتج لإضافته للفاتورة"
                 footer={
                     <div className="w-full flex items-center justify-between gap-2 max-md:gap-2">
-                        <span className="text-[9px] text-gray-400 font-mono">{products.length} منتج</span>
+                        <span className="text-[10px] text-gray-400 font-mono">{products.length} منتج</span>
                         <button type="button" onClick={onClose} className="flex-1 py-2 text-[10px] font-bold bg-gray-100 dark:bg-slate-800 uppercase hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors rounded">إغلاق</button>
                     </div>
                 }
             >
-                <div className="flex flex-col h-[70vh] bg-white dark:bg-slate-900">
+                <div className="flex flex-col h-[70vh] bg-[var(--app-surface)]">
                     {/* Toolbar */}
-                    <div className="p-2 max-md:p-2 border-b dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap gap-2 max-md:gap-2 items-center">
+                    <div className="p-2 max-md:p-2 border-b dark:border-slate-800 bg-[var(--app-surface)] flex flex-wrap gap-2 max-md:gap-2 items-center">
                         {/* Add New Product - no need to leave the invoice flow */}
                         <button
                             type="button"

@@ -56,7 +56,7 @@ const SupplierInfoCard: React.FC<Props> = ({
                             {hasData ? supplierData!.name : supplierName}
                         </h4>
                         {hasData && supplierData!.supplier_code && (
-                            <p className="text-[9px] text-slate-500 font-mono mt-0.5">
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
                                 كود: {supplierData!.supplier_code}
                             </p>
                         )}
@@ -114,7 +114,7 @@ const SupplierInfoCard: React.FC<Props> = ({
                 <div className="border-t border-slate-200 dark:border-slate-800">
                     <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 flex items-center gap-2">
                         <Package size={11} className="text-emerald-500" />
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             آخر المشتريات
                         </span>
                     </div>

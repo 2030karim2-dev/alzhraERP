@@ -19,11 +19,11 @@ const AuditLogView: React.FC = () => {
         <div className={cn(
             "flex flex-col animate-in fade-in duration-500 max-w-none mx-auto transition-all h-full",
             isMaximized 
-                ? "fixed inset-0 z-[999] bg-white dark:bg-slate-900 overflow-hidden" 
+                ? "fixed inset-0 z-[999] bg-[var(--app-surface)] overflow-hidden" 
                 : "gap-6"
         )}>
             <div className={cn(
-                "flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 transition-all",
+                "flex-1 flex flex-col min-h-0 bg-[var(--app-surface)] transition-all",
                 isMaximized 
                     ? "h-full" 
                     : "rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden"

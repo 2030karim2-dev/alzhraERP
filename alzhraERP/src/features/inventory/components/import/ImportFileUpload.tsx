@@ -29,7 +29,7 @@ const ImportFileUpload: React.FC<Props> = ({ file, onClick, inputRef, onFileChan
                 <div className="text-center text-gray-400">
                     <Upload size={32} className="mx-auto mb-3 opacity-50" />
                     <p className="text-xs font-bold">اضغط لاختيار ملف Excel</p>
-                    <p className="text-[9px] mt-1">يدعم الامتدادات .xlsx, .csv</p>
+                    <p className="text-[10px] mt-1">يدعم الامتدادات .xlsx, .csv</p>
                 </div>
             )}
         </div>

@@ -171,7 +171,7 @@ const SettingsPage: React.FC = () => {
     <div className="flex h-full bg-[#f8fafc] dark:bg-slate-950 overflow-hidden font-cairo">
       {/* Sidebar */}
       <div className={cn(
-        "h-full bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col transition-all duration-300 shrink-0 shadow-sm",
+        "h-full bg-[var(--app-surface)] border-l border-gray-200 dark:border-slate-800 flex flex-col transition-all duration-300 shrink-0 shadow-sm",
         sidebarCollapsed ? "w-16" : "w-64"
       )}>
         {/* Sidebar Header */}
@@ -216,7 +216,7 @@ const SettingsPage: React.FC = () => {
             <div key={gIdx}>
               {!sidebarCollapsed && (
                 <div className="px-2 py-1">
-                  <span className="text-[8px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-[0.15em]">
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-[0.15em]">
                     {group.title}
                   </span>
                 </div>
@@ -252,7 +252,7 @@ const SettingsPage: React.FC = () => {
                           {item.label}
                         </span>
                         <span className={cn(
-                          "block text-[8px] truncate mt-0.5",
+                          "block text-[10px] truncate mt-0.5",
                           activeSection === item.id ? "text-white/60 dark:text-blue-400/60" : "text-gray-400 dark:text-slate-500"
                         )}>
                           {item.desc}
@@ -270,8 +270,8 @@ const SettingsPage: React.FC = () => {
         {!sidebarCollapsed && (
           <div className="p-3 border-t border-gray-100 dark:border-slate-800">
             <div className="bg-gradient-to-l from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-2.5 border border-blue-100 dark:border-blue-900/30">
-              <p className="text-[8px] font-bold text-blue-800 dark:text-blue-400 uppercase mb-0.5">الزهراء سمارت ERP</p>
-              <p className="text-[7px] font-bold text-blue-600/60 dark:text-blue-400/50">v2.0 — نظام إدارة متكامل</p>
+              <p className="text-[10px] font-bold text-blue-800 dark:text-blue-400 uppercase mb-0.5">الزهراء سمارت ERP</p>
+              <p className="text-[10px] font-bold text-blue-600/60 dark:text-blue-400/50">v2.0 — نظام إدارة متكامل</p>
             </div>
           </div>
         )}
@@ -280,7 +280,7 @@ const SettingsPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Content Header */}
-        <div className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-[var(--app-surface)] border-b border-gray-100 dark:border-slate-800 px-6 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             {activeItem && (
               <>
@@ -289,7 +289,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-gray-800 dark:text-white">{activeItem.label}</h2>
-                  <p className="text-[9px] font-bold text-gray-400 mt-0.5">{activeItem.desc}</p>
+                  <p className="text-[10px] font-bold text-gray-400 mt-0.5">{activeItem.desc}</p>
                 </div>
               </>
             )}

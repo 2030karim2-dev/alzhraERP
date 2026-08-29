@@ -80,7 +80,7 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
           <button key={tab.key} onClick={() => setFilter(tab.key)}
             className={cn('flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all',
               filter === tab.key ? 'bg-[var(--accent)] text-white' : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]')}>
-            {tab.label}{tab.count !== undefined && tab.count > 0 && <span className="text-[9px] opacity-80">({tab.count})</span>}
+            {tab.label}{tab.count !== undefined && tab.count > 0 && <span className="text-[10px] opacity-80">({tab.count})</span>}
           </button>
         ))}
         <div className="flex-1" />
@@ -105,7 +105,7 @@ const NotificationsCenter: React.FC<NotificationsCenterProps> = ({
                       {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] flex-shrink-0" />}
                     </div>
                     <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5 line-clamp-2">{notif.message}</p>
-                    <span className="text-[9px] text-[var(--app-text-secondary)] opacity-60 mt-1 block">
+                    <span className="text-[10px] text-[var(--app-text-secondary)] opacity-60 mt-1 block">
                       {new Date(notif.timestamp).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
                     </span>
                     {expandedId === notif.id && (

@@ -45,7 +45,7 @@ const BranchManager: React.FC = () => {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3">
+      <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3">
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -10,7 +10,7 @@ interface BondTrendChartProps {
 
 const BondTrendChart: React.FC<BondTrendChartProps> = ({ data, isDark }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
+        <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
             <div className="flex items-center gap-3 mb-8">
                 <div className="p-2.5 bg-blue-500/10 rounded-2xl">
                     <Activity size={18} className="text-blue-500" />

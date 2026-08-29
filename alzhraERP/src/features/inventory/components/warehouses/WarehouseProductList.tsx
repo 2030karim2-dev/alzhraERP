@@ -29,7 +29,7 @@ const WarehouseProductList: React.FC<Props> = ({ products, isLoading }) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-3 border-b-2 border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between items-center bg-[var(--app-surface)] p-3 border-b-2 border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
                     <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
                     <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest">فرز حسب التصنيف</h3>

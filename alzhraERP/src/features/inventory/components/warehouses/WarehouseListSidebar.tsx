@@ -13,7 +13,7 @@ interface Props {
 
 const WarehouseListSidebar: React.FC<Props> = ({ warehouses, selectedId, onSelect, onAdd }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col">
+        <div className="bg-[var(--app-surface)] rounded-none border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col">
             <div className="p-3 border-b dark:border-slate-800 bg-gray-50/50 dark:bg-slate-950/50 flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <Warehouse size={14} className="text-blue-500" />
@@ -41,7 +41,7 @@ const WarehouseListSidebar: React.FC<Props> = ({ warehouses, selectedId, onSelec
                                 {formatCurrency(Number(wh.stockValue || 0))}
                             </span>
                         </div>
-                        <div className="flex justify-between items-center text-[9px] font-bold">
+                        <div className="flex justify-between items-center text-[10px] font-bold">
                             <span className={cn(selectedId === wh.id ? "text-blue-200" : "text-gray-400")}>{wh.location || '---'}</span>
                             <div className="flex gap-3 font-mono">
                                 <span><b className={cn(selectedId === wh.id ? "text-white" : "text-gray-700 dark:text-slate-100")}>{formatNumberDisplay(Number(wh.itemCount || 0))}</b> صنف</span>

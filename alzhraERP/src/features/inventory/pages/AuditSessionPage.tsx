@@ -384,7 +384,7 @@ const AuditSessionPage: React.FC = () => {
 
             {/* Search and Scan Bar */}
             {session?.status !== 'completed' && (
-                <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-2 sm:p-4 sticky top-0 z-40 shadow-sm">
+                <div className="bg-[var(--app-surface)] border-b border-gray-200 dark:border-slate-800 p-2 sm:p-4 sticky top-0 z-40 shadow-sm">
                     <div className="max-w-[1600px] mx-auto relative">
                         <div className="flex gap-2 relative">
                             <SearchInput
@@ -437,10 +437,10 @@ const AuditSessionPage: React.FC = () => {
                                                 }}
                                                 className="hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
                                             >
-                                                <td className="py-3 px-4 font-bold border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">{p.name_ar || p.name}</td>
-                                                <td className="py-3 px-4 text-center font-mono text-gray-500 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.part_number || p.sku || '-'}</td>
-                                                <td className="py-3 px-4 text-center font-bold text-gray-600 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.brand || '-'}</td>
-                                                <td className="py-3 px-4 text-center text-blue-600 dark:text-blue-400 font-bold border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">{p.size || '-'}</td>
+                                                <td className="py-3 px-4 font-bold border border-gray-200 dark:border-slate-700 bg-[var(--app-surface)] text-slate-800 dark:text-slate-100">{p.name_ar || p.name}</td>
+                                                <td className="py-3 px-4 text-center font-mono text-gray-500 border border-gray-200 dark:border-slate-700 bg-[var(--app-surface)]">{p.part_number || p.sku || '-'}</td>
+                                                <td className="py-3 px-4 text-center font-bold text-gray-600 border border-gray-200 dark:border-slate-700 bg-[var(--app-surface)]">{p.brand || '-'}</td>
+                                                <td className="py-3 px-4 text-center text-blue-600 dark:text-blue-400 font-bold border border-gray-200 dark:border-slate-700 bg-[var(--app-surface)]">{p.size || '-'}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -456,10 +456,10 @@ const AuditSessionPage: React.FC = () => {
                     <AuditStats stats={stats} session={session} />
 
                     {/* Category Filter Bar - Mobile Optimized */}
-                    <div className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-gray-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm -mx-2 px-2 sm:mx-0 sm:px-0">
+                    <div className="bg-[var(--app-surface)] p-2 rounded-xl border border-gray-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm -mx-2 px-2 sm:mx-0 sm:px-0">
                         <div className="flex items-center gap-1 px-2 border-l dark:border-slate-800 text-gray-400">
                             <Layers size={12} />
-                            <span className="text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">الفئة:</span>
+                            <span className="text-[10px] font-black uppercase tracking-tighter whitespace-nowrap">الفئة:</span>
                         </div>
                         <button
                             onClick={() => setSelectedCategory(null)}

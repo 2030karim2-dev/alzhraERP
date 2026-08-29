@@ -45,7 +45,7 @@ const PERIOD_OPTIONS: Array<{ key: DashboardPeriod; label: string }> = [
 const DashboardLoading = () => {
     const { t } = useTranslation();
     return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-4 max-md:gap-3 p-10 max-md:p-5 max-md:p-10 text-center animate-pulse">
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-4 max-md:gap-3 p-10 max-md:p-5 text-center animate-pulse">
             <div className="w-16 h-16 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
             <div className="font-bold text-gray-400 text-lg">{t('loading_financial_data')}</div>
         </div>
@@ -53,8 +53,8 @@ const DashboardLoading = () => {
 };
 
 const DashboardError = ({ refetch, isFetching }: { refetch: () => void, isFetching: boolean }) => (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-6 max-md:gap-3 p-10 max-md:p-5 max-md:p-10 text-center bg-[var(--app-bg)] font-cairo">
-        <div className="p-4 max-md:p-3 max-md:p-4 bg-rose-500/10 rounded-2xl max-md:rounded-xl border border-rose-500/20">
+    <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-6 max-md:gap-3 p-10 max-md:p-5 text-center bg-[var(--app-bg)] font-cairo">
+        <div className="p-4 max-md:p-3 bg-rose-500/10 rounded-2xl max-md:rounded-xl border border-rose-500/20">
             <Activity size={32} className="max-md:hidden text-rose-500 animate-pulse" />
             <Activity size={24} className="hidden max-md:block text-rose-500 animate-pulse" />
         </div>
@@ -178,7 +178,7 @@ const DashboardPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3 mt-3">
                         <Suspense fallback={<ChartSkeleton />}>
-                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-4 max-md:p-3 max-md:p-4 rounded-2xl max-md:rounded-xl relative overflow-hidden group hover:border-[var(--accent)]/30 transition-all duration-500">
+                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-4 max-md:p-3 rounded-2xl max-md:rounded-xl relative overflow-hidden group hover:border-[var(--accent)]/30 transition-all duration-500">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] group-hover:bg-emerald-400/20 transition-all duration-700 pointer-events-none"></div>
                                 <div className="flex justify-between items-center mb-3 relative z-10">
                                     <div className="flex items-center gap-2">
@@ -187,9 +187,9 @@ const DashboardPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-xs font-bold text-[var(--app-text)]">
-                                                {t('sales_flow_analysis')} <span className="text-emerald-400 text-[9px]">(قطع الغيار)</span>
+                                                {t('sales_flow_analysis')} <span className="text-emerald-400 text-[10px]">(قطع الغيار)</span>
                                             </h3>
-                                            <p className="text-[9px] font-bold text-[var(--app-text-secondary)]">تدفق المبيعات اليومية</p>
+                                            <p className="text-[10px] font-bold text-[var(--app-text-secondary)]">تدفق المبيعات اليومية</p>
                                         </div>
                                     </div>
                                     <div className="text-left bg-black/20 px-2 py-1 rounded-lg border border-white/5">
@@ -251,7 +251,7 @@ const DashboardPage: React.FC = () => {
                         </Suspense>
 
                         <Suspense fallback={<div className="h-[300px] min-h-[300px] animate-pulse bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl" />}>
-                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 h-[350px]">
+                            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 h-[350px]">
                                 <h3 className="text-xs font-bold text-[var(--app-text)] mb-4 max-md:mb-3">التصنيفات الأكثر حركة</h3>
                                 <div className="flex flex-col h-full items-center p-2">
                                     <CategoriesChart data={categoryData.map(d => ({ name: d.name, value: d.value ?? 0 }))} />

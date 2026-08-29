@@ -52,7 +52,7 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="bg-[var(--app-surface)] rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
           <div className="flex items-center gap-3">

@@ -39,7 +39,7 @@ const DhikrTicker: React.FC = () => {
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             className={cn(
-                'relative h-6 flex-shrink-0 overflow-hidden no-print select-none',
+                'relative h-6 flex-shrink-0 overflow-hidden no-print select-none max-sm:hidden',
                 'border-b border-[var(--app-border)]',
                 item.kind === 'prayer'
                     ? 'bg-emerald-50/80 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'

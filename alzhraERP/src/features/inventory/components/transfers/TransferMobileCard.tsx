@@ -28,13 +28,13 @@ interface TransferMobileCardProps {
 
 export const TransferMobileCard: React.FC<TransferMobileCardProps> = ({ transfer: t }) => {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="bg-[var(--app-surface)] rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       {/* Header: Status + Number */}
       <div className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b dark:border-slate-700 flex items-center justify-between gap-2">
         <span className="font-mono font-bold text-gray-400 text-[10px]">{t.transfer_number || '—'}</span>
         <span
           className={cn(
-            'px-2.5 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1',
+            'px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1',
             t.status === 'completed'
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
               : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
@@ -57,14 +57,14 @@ export const TransferMobileCard: React.FC<TransferMobileCardProps> = ({ transfer
         {/* Warehouses */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 text-center bg-rose-50/50 dark:bg-rose-950/20 rounded-lg py-2 px-2 border border-rose-100 dark:border-rose-900/30">
-            <p className="text-[9px] font-bold text-rose-500 uppercase mb-0.5">من</p>
+            <p className="text-[10px] font-bold text-rose-500 uppercase mb-0.5">من</p>
             <p className="text-xs font-bold text-rose-700 dark:text-rose-300 truncate">
               {t.from_warehouse?.name_ar || t.from_warehouse_name || '-'}
             </p>
           </div>
           <ArrowLeftRight size={14} className="text-slate-400 dark:text-slate-600 shrink-0" />
           <div className="flex-1 text-center bg-emerald-50/50 dark:bg-emerald-950/20 rounded-lg py-2 px-2 border border-emerald-100 dark:border-emerald-900/30">
-            <p className="text-[9px] font-bold text-emerald-500 uppercase mb-0.5">إلى</p>
+            <p className="text-[10px] font-bold text-emerald-500 uppercase mb-0.5">إلى</p>
             <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 truncate">
               {t.to_warehouse?.name_ar || t.to_warehouse_name || '-'}
             </p>

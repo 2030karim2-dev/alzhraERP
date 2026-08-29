@@ -208,7 +208,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({ viewType, searchTerm,
     return (
         <div className="space-y-4 flex flex-col flex-1 min-h-0">
             {viewType === 'sale' && <SalesStats />}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border dark:border-slate-800 shadow-sm overflow-hidden flex-1 min-h-[480px] flex flex-col">
+            <div className="bg-[var(--app-surface)] rounded-2xl border dark:border-slate-800 shadow-sm overflow-hidden flex-1 min-h-[480px] flex flex-col">
                 <ExcelTable
                     columns={columns}
                     data={(filteredData as InvoiceListItem[]).map(item => ({

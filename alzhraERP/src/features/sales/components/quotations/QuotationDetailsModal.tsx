@@ -307,7 +307,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
           {/* Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
             {/* Customer */}
-            <div className="bg-white dark:bg-slate-900 p-4 max-md:p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
+            <div className="bg-[var(--app-surface)] p-4 max-md:p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
               <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2 max-md:gap-2 text-sm border-b border-gray-100 dark:border-slate-800 pb-2">
                 <User size={16} className="text-indigo-500" />
                 معلومات العميل
@@ -329,7 +329,7 @@ const QuotationDetailsModal: React.FC<Props> = ({ quotationId, onClose, onRefres
           </div>
 
           {/* Items */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
+          <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <div className="p-3 max-md:p-3 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800">
               <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 max-md:gap-2">
                 <Building2 size={14} className="text-indigo-500" />

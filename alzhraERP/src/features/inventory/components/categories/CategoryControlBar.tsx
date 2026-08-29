@@ -22,7 +22,7 @@ const CategoryControlBar: React.FC<Props> = ({
     onOpenAICategorize
 }) => {
     return (
-        <div className="flex flex-col md:flex-row gap-1.5 bg-white dark:bg-slate-900 p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm">
+        <div className="flex flex-col md:flex-row gap-1.5 bg-[var(--app-surface)] p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm">
             <form onSubmit={handleAdd} className="flex-1 flex gap-1.5">
                 <div className="relative flex-1">
                     <Layers className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={12} />
@@ -34,7 +34,7 @@ const CategoryControlBar: React.FC<Props> = ({
                         className="w-full bg-gray-50 dark:bg-slate-800 border-none py-2 pr-8 text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-500/20 dark:text-white"
                     />
                 </div>
-                <Button type="submit" isLoading={isCreating} size="sm" className="px-3 rounded-none text-[9px]">حفظ</Button>
+                <Button type="submit" isLoading={isCreating} size="sm" className="px-3 rounded-none text-[10px]">حفظ</Button>
             </form>
 
             <Button
@@ -81,7 +81,7 @@ const CategoryControlBar: React.FC<Props> = ({
                     variant="default"
                     size="sm"
                     className="h-full"
-                    inputClassName="text-[9px]"
+                    inputClassName="text-[10px]"
                 />
             </div>
         </div>

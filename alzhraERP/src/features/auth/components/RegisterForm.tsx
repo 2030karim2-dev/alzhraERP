@@ -74,7 +74,7 @@ export const RegisterForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess })
                     <div className="w-full border-t border-gray-100 dark:border-slate-800"></div>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-slate-900 px-4 text-gray-400 font-bold">أو عبر</span>
+                    <span className="bg-[var(--app-surface)] px-4 text-gray-400 font-bold">أو عبر</span>
                 </div>
             </div>
 

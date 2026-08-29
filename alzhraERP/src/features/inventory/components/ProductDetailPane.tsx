@@ -53,7 +53,7 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
                 />
               </div>
             </div>
-            <p dir="ltr" className="mt-0.5 font-mono text-[9px] font-bold text-slate-400">
+            <p dir="ltr" className="mt-0.5 font-mono text-[10px] font-bold text-slate-400">
               {product.sku}
             </p>
           </div>

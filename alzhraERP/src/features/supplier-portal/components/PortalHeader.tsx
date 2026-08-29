@@ -15,7 +15,7 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <header className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+    <header className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
       {/* Title & Badge */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center flex-shrink-0">

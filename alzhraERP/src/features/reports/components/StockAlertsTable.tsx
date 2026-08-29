@@ -16,7 +16,7 @@ interface StockAlertsTableProps {
 
 export const StockAlertsTable: React.FC<StockAlertsTableProps> = ({ data }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/30 overflow-hidden flex flex-col relative">
+        <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/30 overflow-hidden flex flex-col relative">
             <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
             <div className="p-5 border-b border-rose-50 dark:border-rose-900/20 flex justify-between items-center bg-rose-50/30 dark:bg-slate-800/50">
                 <div>

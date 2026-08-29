@@ -1,21 +1,27 @@
 #!/bin/sh
 # Husky pre-push hook - Al-Zahra Smart ERP
-# Gates: encoding guard -> TS error ratchet -> i18n key coverage -> production build
+# Gates: encoding guard -> TS error ratchet -> i18n key coverage -> UX guards -> production build
 # (Comments kept ASCII-only: this file once contained mojibake.)
 
-echo "[pre-push] 1/4 Encoding guard (Arabic mojibake check)..."
+echo "[pre-push] 1/6 Encoding guard (Arabic mojibake check)..."
 
 cd alzhraERP || exit 1
 
 npx tsx scripts/check-encoding.ts || exit 1
 
-echo "[pre-push] 2/4 TypeScript ratchet (no NEW errors beyond baseline)..."
+echo "[pre-push] 2/6 TypeScript ratchet (no NEW errors beyond baseline)..."
 npx tsx scripts/check-ts-baseline.ts || exit 1
 
-echo "[pre-push] 3/4 i18n key coverage (used t() keys must exist in ar/en)..."
+echo "[pre-push] 3/6 i18n key coverage (used t() keys must exist in ar/en)..."
 node scripts/check-i18n-keys.mjs || exit 1
 
-echo "[pre-push] 4/4 Production build..."
+echo "[pre-push] 4/6 Tailwind contradicting classes guard..."
+node scripts/check-contradicting-classes.mjs || exit 1
+
+echo "[pre-push] 5/6 Tiny font-sizes guard (no text-[1-9px])..."
+node scripts/check-tiny-fonts.mjs || exit 1
+
+echo "[pre-push] 6/6 Production build..."
 npx vite build --logLevel error 2>&1
 if [ $? -ne 0 ]; then
   echo ""

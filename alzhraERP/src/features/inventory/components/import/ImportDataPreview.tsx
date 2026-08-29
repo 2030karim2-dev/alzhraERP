@@ -11,7 +11,7 @@ const ImportDataPreview: React.FC<Props> = ({ preview }) => {
         <div className="space-y-2">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">معاينة البيانات (أول 5 صفوف)</h4>
             <div className="overflow-x-auto border border-gray-100 dark:border-slate-800 rounded-lg">
-                <table className="w-full text-[9px]">
+                <table className="w-full text-[10px]">
                     <tbody>
                         {preview.map((row, i) => (
                             <tr key={i} className={i === 0 ? "bg-gray-100 dark:bg-slate-800 font-bold" : "border-t dark:border-slate-800"}>

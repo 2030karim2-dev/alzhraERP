@@ -80,7 +80,7 @@ const TransferHistoryView: React.FC = () => {
               </span>
               {displayNames && (
                 <span
-                  className="text-[9px] text-gray-500 truncate max-w-[150px]"
+                  className="text-[10px] text-gray-500 truncate max-w-[150px]"
                   title={productNames.join('\n')}
                 >
                   {displayNames} {remaining > 0 ? ` (+${remaining} أخرى)` : ''}
@@ -97,7 +97,7 @@ const TransferHistoryView: React.FC = () => {
         accessor: (row: TransferHistoryRow) => (
           <span
             className={cn(
-              'px-2.5 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 w-fit mx-auto',
+              'px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 w-fit mx-auto',
               row.status === 'completed'
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
                 : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'

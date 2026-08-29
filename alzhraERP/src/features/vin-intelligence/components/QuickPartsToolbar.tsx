@@ -64,7 +64,7 @@ export const QuickPartsToolbar: React.FC<QuickPartsToolbarProps> = ({
   const visibleTemplates = showAllChips ? templates : templates.slice(0, CHIPS_VISIBLE_DEFAULT);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-sm">
+    <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
 
         {/* ── Quick-add label ── */}

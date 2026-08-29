@@ -51,7 +51,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="w-full max-w-5xl bg-[var(--app-surface)] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -96,7 +96,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
                   onClick={() => setSelectedRev(rev)}
                   className={`w-full text-right p-2.5 rounded-xl transition-colors border ${
                     isSelected
-                      ? 'bg-white dark:bg-slate-900 border-indigo-500 shadow-sm'
+                      ? 'bg-[var(--app-surface)] border-indigo-500 shadow-sm'
                       : 'bg-transparent hover:bg-white/60 dark:hover:bg-slate-900/40 border-transparent text-slate-600 dark:text-slate-400'
                   }`}
                 >
@@ -106,7 +106,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
                         مراجعة #{rev.revision_number}
                       </span>
                       {isLatest && (
-                        <span className="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold">
+                        <span className="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
                           الأحدث
                         </span>
                       )}
@@ -136,7 +136,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
           </div>
 
           {/* Selected Revision Snapshot Content */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white dark:bg-slate-900">
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[var(--app-surface)]">
             {selectedRev ? (
               <>
                 {/* Snapshot Header Stats */}
@@ -254,7 +254,7 @@ export const QuotationHistoryModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-colors"
+            className="px-3.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-colors"
           >
             إغلاق
           </button>

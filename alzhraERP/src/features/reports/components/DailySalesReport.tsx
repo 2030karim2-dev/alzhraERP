@@ -122,7 +122,7 @@ const DailySalesReport: React.FC = () => {
             header: 'النوع',
             accessor: (row: DailyInvoiceRow) => (
                 <span className={cn(
-                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase",
+                    "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
                     row.type === 'sale' ? 'bg-blue-50 text-blue-700' : 'bg-rose-50 text-rose-700'
                 )}>
                     {row.type === 'sale' ? 'بيع' : 'مرتجع'}
@@ -148,7 +148,7 @@ const DailySalesReport: React.FC = () => {
             header: 'الحالة',
             accessor: (row: DailyInvoiceRow) => (
                 <span className={cn(
-                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase",
+                    "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
                     row.status === 'paid' ? 'bg-emerald-50 text-emerald-700' :
                         row.status === 'void' ? 'bg-gray-50 text-gray-700' : 'bg-amber-50 text-amber-700'
                 )}>

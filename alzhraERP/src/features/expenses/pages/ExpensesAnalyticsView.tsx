@@ -46,7 +46,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                 </div>
 
                 {/* Categories */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+                <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
                     <div className="absolute bottom-0 right-0 p-6 opacity-5 transform group-hover:-translate-y-2 transition-transform duration-500">
                         <Tag size={80} className="text-purple-500" />
                     </div>
@@ -58,7 +58,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                 </div>
 
                 {/* Highest Category */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+                <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
                     <div className="absolute bottom-0 right-0 p-6 opacity-5 transform group-hover:-translate-y-2 transition-transform duration-500">
                         <TrendingUp size={80} className="text-emerald-500" />
                     </div>
@@ -75,7 +75,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Trend Chart */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
@@ -137,7 +137,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                                                             {formatCurrency(payload[0].value)}
                                                         </p>
                                                     </div>
-                                                    <p className="text-[9px] text-slate-500 mt-1 font-bold italic">
+                                                    <p className="text-[10px] text-slate-500 mt-1 font-bold italic">
                                                         {payload[0].payload.count} عملية إنفاق مسجلة
                                                     </p>
                                                 </div>
@@ -162,7 +162,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
                 </div>
 
                 {/* Category Chart */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
@@ -230,7 +230,7 @@ const ExpensesAnalyticsView: React.FC<ExpensesAnalyticsViewProps> = ({ expenses 
             </div>
 
             {/* Payment Methods Chart */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+            <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-blue-500/10 rounded-xl">
                         <Wallet size={16} className="text-blue-500" />

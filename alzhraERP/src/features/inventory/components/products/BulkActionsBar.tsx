@@ -19,7 +19,7 @@ const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
     if (selectedCount === 0) return null;
 
     return (
-        <div className="absolute top-0 left-0 right-0 z-50 p-3 bg-white dark:bg-slate-900 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-blue-200 dark:border-blue-900/50 rounded-lg flex items-center justify-between mx-2 mt-2 animate-in slide-in-from-top-4 duration-300">
+        <div className="absolute top-0 left-0 right-0 z-50 p-3 bg-[var(--app-surface)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-blue-200 dark:border-blue-900/50 rounded-lg flex items-center justify-between mx-2 mt-2 animate-in slide-in-from-top-4 duration-300">
             <div className="flex items-center gap-3">
                 <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
                     تم تحديد {selectedCount} منتج

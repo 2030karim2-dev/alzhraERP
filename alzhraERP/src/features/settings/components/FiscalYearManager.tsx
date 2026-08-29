@@ -35,7 +35,7 @@ const FiscalYearManager: React.FC = () => {
   if (isLoading) return <div className="p-8 max-md:p-4 text-center animate-pulse">جاري تحميل...</div>;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 max-md:p-4 space-y-3">
+    <div className="bg-[var(--app-surface)] rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 max-md:p-4 space-y-3">
       <div className="flex justify-between items-center px-1">
         <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300">السنوات المالية</h3>
         <Button onClick={() => setIsModalOpen(true)} size="sm" leftIcon={<Plus size={12} />}>سنة جديدة</Button>

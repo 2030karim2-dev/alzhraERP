@@ -23,10 +23,10 @@ interface MetaBlockProps {
 }
 
 const MetaBlock: React.FC<MetaBlockProps> = ({ label, value, icon: Icon, isSelect, options, field, colorClass, onChange }) => (
-    <div className="flex-1 bg-white dark:bg-slate-900/50 border-r border-gray-100 dark:border-slate-800 p-2.5 flex flex-col group hover:bg-gray-50/40 transition-colors">
+    <div className="flex-1 bg-[var(--app-surface)]/50 border-r border-gray-100 dark:border-slate-800 p-2.5 flex flex-col group hover:bg-gray-50/40 transition-colors">
         <div className="flex items-center gap-1.5 mb-1.5">
             <Icon size={12} className={colorClass || "text-gray-400"} />
-            <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">{label}</span>
+            <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">{label}</span>
         </div>
         {isSelect && options && field && onChange ? (
             <select
@@ -38,7 +38,7 @@ const MetaBlock: React.FC<MetaBlockProps> = ({ label, value, icon: Icon, isSelec
                     <option
                         key={opt.id}
                         value={opt.id}
-                        className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-100"
+                        className="bg-[var(--app-surface)] text-gray-800 dark:text-slate-100"
                     >
                         {opt.label}
                     </option>
@@ -135,10 +135,10 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                         options={(currencies.data as { code: string }[])?.map(c => ({ id: c.code, label: c.code })) || [{ id: 'SAR', label: 'SAR' }]}
                         onChange={setMetadata} />
                     {currency && currency !== 'SAR' && (
-                        <div className="flex-1 bg-white dark:bg-slate-900/50 border-r border-gray-100 dark:border-slate-800 p-2.5 flex flex-col group hover:bg-gray-50/40 transition-colors">
+                        <div className="flex-1 bg-[var(--app-surface)]/50 border-r border-gray-100 dark:border-slate-800 p-2.5 flex flex-col group hover:bg-gray-50/40 transition-colors">
                             <div className="flex items-center gap-1.5 mb-1.5">
                                 <Coins size={12} className="text-amber-500" />
-                                <span className="text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
                                     سعر الصرف {exchangeOperator === 'divide' ? '(القسمة ÷)' : '(الضرب ×)'}
                                 </span>
                             </div>

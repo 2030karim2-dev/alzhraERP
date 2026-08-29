@@ -88,7 +88,7 @@ const POSSearchDropdown: React.FC<POSSearchDropdownProps> = ({
             ref={dropdownRef}
             className={cn(
                 'absolute top-full left-0 right-0 mt-1.5 z-50',
-                'bg-white dark:bg-slate-900 rounded-2xl',
+                'bg-[var(--app-surface)] rounded-2xl',
                 'shadow-2xl shadow-slate-900/10 dark:shadow-black/50',
                 'border-2 border-slate-200 dark:border-slate-700',
                 'overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200',

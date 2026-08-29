@@ -113,7 +113,7 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
+            <div className="bg-[var(--app-surface)] w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
                     <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
                                     <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                                         {results.map((res) => (
                                             <tr key={res.product_id} className={
-                                                `transition-colors ${acceptedIds.has(res.product_id) ? "bg-white dark:bg-slate-900" : "bg-gray-50/50 dark:bg-slate-900/20 opacity-60"}`
+                                                `transition-colors ${acceptedIds.has(res.product_id) ? "bg-[var(--app-surface)]" : "bg-gray-50/50 dark:bg-slate-900/20 opacity-60"}`
                                             }>
                                                 <td className="p-3 text-center">
                                                     <input
@@ -216,11 +216,11 @@ const AICategoryReviewModal: React.FC<Props> = ({ isOpen, onClose, onComplete })
                                                                 onChange={(e) => updateResult(res.product_id, 'is_new_category', e.target.checked)}
                                                                 className="h-2.5 w-2.5 rounded border-gray-300 text-purple-600"
                                                             />
-                                                            <span className="text-[8px] text-gray-500">قسم جديد</span>
+                                                            <span className="text-[10px] text-gray-500">قسم جديد</span>
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td className="p-3 text-[9px] text-gray-400 dark:text-slate-500 italic max-w-xs">{res.reasoning}</td>
+                                                <td className="p-3 text-[10px] text-gray-400 dark:text-slate-500 italic max-w-xs">{res.reasoning}</td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -29,13 +29,13 @@ export const ItemPriceEditor: React.FC<ItemPriceEditorProps> = ({
                     {items.map((item) => {
                         const realIdx = allItems.findIndex(i => i.productId === item.productId);
                         return (
-                            <div key={item.productId} className="flex items-center gap-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2">
+                            <div key={item.productId} className="flex items-center gap-2 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{item.name}</p>
-                                    <p className="text-[9px] text-slate-400">×{item.quantity}</p>
+                                    <p className="text-[10px] text-slate-400">×{item.quantity}</p>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
-                                    <span className="text-[9px] text-slate-400">سعر:</span>
+                                    <span className="text-[10px] text-slate-400">سعر:</span>
                                     <input
                                         type="number"
                                         defaultValue={item.price}
@@ -49,7 +49,7 @@ export const ItemPriceEditor: React.FC<ItemPriceEditorProps> = ({
                                         className="w-20 text-xs font-mono font-black text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 text-center"
                                         dir="ltr"
                                     />
-                                    <span className="text-[9px] text-slate-400">{currency}</span>
+                                    <span className="text-[10px] text-slate-400">{currency}</span>
                                 </div>
                             </div>
                         );

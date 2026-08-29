@@ -99,12 +99,12 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                         value={globalSearchTerm}
                         onChange={(e) => setGlobalSearchTerm(e.target.value)}
                         placeholder="ابحث عن قطعة مثلاً: فحمات كورولا..."
-                        className="w-full ps-12 pe-10 py-3 bg-white dark:bg-slate-900 border-2 border-indigo-100 dark:border-indigo-900/50 rounded-2xl text-sm font-bold focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 transition-all shadow-sm"
+                        className="w-full ps-12 pe-10 py-3 bg-[var(--app-surface)] border-2 border-indigo-100 dark:border-indigo-900/50 rounded-2xl text-sm font-bold focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 transition-all shadow-sm"
                     />
                     {globalSearchTerm && (
                         <button
                             onClick={() => setGlobalSearchTerm('')}
-                            className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors bg-white dark:bg-slate-900 rounded-full p-1 max-md:p-1"
+                            className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors bg-[var(--app-surface)] rounded-full p-1 max-md:p-1"
                         >
                             <X size={16} />
                         </button>
@@ -114,7 +114,7 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
 
             {/* Results Table */}
             {globalSearchTerm.length >= 2 && searchResults.length > 0 && (
-                <div className="mt-6 border-2 border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-inner animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="mt-6 border-2 border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-[var(--app-surface)] shadow-inner animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="overflow-x-auto max-h-[300px]">
                         <table className="w-full text-right border-collapse">
                             <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10 shadow-sm border-b-2 border-slate-200 dark:border-slate-700">

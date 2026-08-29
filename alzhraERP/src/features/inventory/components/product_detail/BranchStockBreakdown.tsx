@@ -65,7 +65,7 @@ const BranchStockBreakdown: React.FC<Props> = ({
                                         {wh.warehouse_name}
                                     </p>
                                     {wh.location && (
-                                        <p className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                        <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
                                             <MapPin size={8} />
                                             {wh.location}
                                         </p>
@@ -148,7 +148,7 @@ const BranchStockBreakdown: React.FC<Props> = ({
                                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                                             {branch.name}
                                         </p>
-                                        <p className="text-[9px] text-slate-500">
+                                        <p className="text-[10px] text-slate-500">
                                             {branch.warehouses.length} مستودع
                                         </p>
                                     </div>
@@ -184,7 +184,7 @@ const BranchStockBreakdown: React.FC<Props> = ({
                                                         {wh.name}
                                                     </span>
                                                     {wh.location && (
-                                                        <span className="text-[8px] text-slate-400 hidden md:inline">
+                                                        <span className="text-[10px] text-slate-400 hidden md:inline">
                                                             ({wh.location})
                                                         </span>
                                                     )}

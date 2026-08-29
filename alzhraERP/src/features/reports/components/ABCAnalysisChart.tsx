@@ -68,7 +68,7 @@ export const ABCAnalysisChart: React.FC<ABCAnalysisChartProps> = ({ data }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8  max-md:p-4 shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col group">
+        <div className="bg-[var(--app-surface)] rounded-[2rem] p-8  max-md:p-4 shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col group">
             <div className="flex items-center justify-between mb-8 max-md:mb-3">
                 <div>
                     <h3 className="text-base font-bold flex items-center   max-md:gap-3 text-slate-800 dark:text-slate-100">

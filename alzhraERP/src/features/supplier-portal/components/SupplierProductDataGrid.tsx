@@ -92,7 +92,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
   }, [products, selectedIds]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
+    <div className="flex flex-col h-full bg-[var(--app-surface)] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
       {/* Compact Top Toolbar */}
       <div className="p-3 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 flex-1 min-w-[260px]">
@@ -103,14 +103,14 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
               placeholder="بحث بالاسم، رقم OEM، أو كود SKU..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pr-8 pl-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              className="w-full pr-8 pl-3 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="px-2.5 py-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             {categories.map(cat => (
               <option key={cat} value={cat}>
@@ -176,7 +176,7 @@ export const SupplierProductDataGrid: React.FC<Props> = ({
                     isSelected
                       ? 'bg-indigo-50/50 dark:bg-indigo-950/20'
                       : index % 2 === 0
-                      ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                      ? 'bg-[var(--app-surface)] hover:bg-slate-50 dark:hover:bg-slate-800/40'
                       : 'bg-slate-50/20 dark:bg-slate-900/30 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                   }`}
                 >

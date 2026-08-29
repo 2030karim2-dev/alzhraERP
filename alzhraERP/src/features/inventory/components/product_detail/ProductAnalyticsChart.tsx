@@ -89,12 +89,12 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                         <MiniSparkline values={data.history} color="bg-blue-400 dark:bg-blue-500" />
                     ) : (
                         <div className="flex items-center justify-center h-8">
-                            <span className="text-[9px] text-slate-400">لا توجد بيانات كافية</span>
+                            <span className="text-[10px] text-slate-400">لا توجد بيانات كافية</span>
                         </div>
                     )}
                     <div className="flex justify-between mt-1">
-                        <span className="text-[8px] text-slate-400">آخر 7 حركات</span>
-                        <span className="text-[8px] text-slate-400">الآن</span>
+                        <span className="text-[10px] text-slate-400">آخر 7 حركات</span>
+                        <span className="text-[10px] text-slate-400">الآن</span>
                     </div>
                 </div>
 
@@ -104,7 +104,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                     <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-2.5 border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-1 mb-1">
                             <TrendingUp size={10} className="text-blue-500" />
-                            <span className="text-[8px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight">
+                            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight">
                                 مبيعات
                             </span>
                         </div>
@@ -117,7 +117,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                     <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-900/30">
                         <div className="flex items-center gap-1 mb-1">
                             <Package size={10} className="text-indigo-500" />
-                            <span className="text-[8px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">
+                            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">
                                 مشتريات
                             </span>
                         </div>
@@ -135,7 +135,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                     )}>
                         <div className="flex items-center gap-1 mb-1">
                             <DollarSign size={10} className={data.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'} />
-                            <span className="text-[8px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400">
+                            <span className="text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400">
                                 ربح
                             </span>
                         </div>
@@ -150,7 +150,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                     <div className="grid grid-cols-2 gap-2 mt-2">
                         {data.turnoverRate !== undefined && (
                             <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                                <span className="text-[9px] font-bold text-slate-500">معدل الدوران</span>
+                                <span className="text-[10px] font-bold text-slate-500">معدل الدوران</span>
                                 <span className="text-[10px] font-mono font-bold text-slate-800 dark:text-slate-200">
                                     {data.turnoverRate.toFixed(1)}x
                                 </span>
@@ -158,7 +158,7 @@ const ProductAnalyticsChart: React.FC<Props> = ({ data, isLoading = false }) => 
                         )}
                         {data.stockDays !== undefined && (
                             <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                                <span className="text-[9px] font-bold text-slate-500">أيام المخزون</span>
+                                <span className="text-[10px] font-bold text-slate-500">أيام المخزون</span>
                                 <span className="text-[10px] font-mono font-bold text-slate-800 dark:text-slate-200">
                                     {data.stockDays} يوم
                                 </span>

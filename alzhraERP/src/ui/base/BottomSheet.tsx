@@ -108,7 +108,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {children}
         </div>
       </div>

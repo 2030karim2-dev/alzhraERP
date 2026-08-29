@@ -30,7 +30,7 @@ const BondAccountDistributionChart: React.FC<BondAccountDistributionChartProps> 
     const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
+        <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
             <div className="flex items-center gap-3 mb-8">
                 <div className="p-2.5 bg-purple-500/10 rounded-2xl">
                     <Wallet size={18} className="text-purple-500" />

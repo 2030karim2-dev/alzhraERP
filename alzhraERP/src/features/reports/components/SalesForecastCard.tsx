@@ -25,7 +25,7 @@ const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {
     const trendColor = forecast?.trend === 'صاعد' ? 'text-emerald-500' : forecast?.trend === 'هابط' ? 'text-rose-500' : 'text-yellow-500';
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl border dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl border dark:border-slate-800 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-xl">
@@ -33,7 +33,7 @@ const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-gray-800 dark:text-white">توقع المبيعات بالذكاء الاصطناعي</h3>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">AI Sales Forecast</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">AI Sales Forecast</p>
                     </div>
                 </div>
                 <button
@@ -52,7 +52,7 @@ const SalesForecastCard: React.FC<Props> = ({ monthlySales }) => {
                             <TrendIcon size={20} className={trendColor} />
                         </div>
                         <div>
-                            <p className="text-[9px] font-bold text-gray-400 uppercase">التوقع للشهر القادم</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase">التوقع للشهر القادم</p>
                             <p dir="ltr" className="text-xl font-bold font-mono text-gray-900 dark:text-white">{formatCurrency(forecast.forecast)}</p>
                         </div>
                         <span className={`mr-auto text-xs font-bold ${trendColor}`}>{forecast.trend} ↕</span>

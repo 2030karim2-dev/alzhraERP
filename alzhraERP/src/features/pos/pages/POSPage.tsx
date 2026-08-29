@@ -136,10 +136,10 @@ const POSPage: React.FC = () => {
             <div className="flex-1 flex overflow-hidden flex-row-reverse relative p-2 max-md:p-2 md:p-4 lg:p-6 md:gap-4 lg:gap-6 bg-gray-50/50 dark:bg-slate-950/50">
                 <aside className={`
           ${isDesktop ? 'w-[400px] lg:w-[450px] xl:w-[500px] 2xl:w-[550px] 3xl:w-[600px] rounded-3xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] border dark:border-slate-800' : (activeMobileTab === 'cart' ? 'w-full min-w-0' : 'hidden')}
-          flex flex-col h-full bg-white dark:bg-slate-900 relative z-20 transition-all duration-300 overflow-hidden
+          flex flex-col h-full bg-[var(--app-surface)] relative z-20 transition-all duration-300 overflow-hidden
         `}>
                     {!isDesktop && (
-                        <div className="shrink-0 p-3 max-md:p-3 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex items-center justify-between">
+                        <div className="shrink-0 p-3 max-md:p-3 bg-[var(--app-surface)] border-b dark:border-slate-800 flex items-center justify-between">
                             <button onClick={() => setActiveMobileTab('products')} className="flex items-center gap-2 max-md:gap-2 text-blue-600 font-bold text-xs">
                                 <ChevronLeft size={16} /> العودة للمنتجات
                             </button>
@@ -159,7 +159,7 @@ const POSPage: React.FC = () => {
 
                 <main className={`
           ${isDesktop ? 'flex-1 rounded-2xl border dark:border-slate-800' : (activeMobileTab === 'products' ? 'flex-1' : 'hidden')} 
-          overflow-hidden relative bg-white dark:bg-slate-900 shadow-sm
+          overflow-hidden relative bg-[var(--app-surface)] shadow-sm
         `}>
                     <ProductGrid
                         searchTerm={search.debouncedQuery}

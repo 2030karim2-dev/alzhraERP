@@ -132,7 +132,7 @@ export const QuotationsTab: React.FC<Props> = ({ onConvertToInvoice }) => {
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">ابدأ بإنشاء عرض سعر جديد</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

@@ -17,7 +17,7 @@ export const MobileCard: React.FC<MobileCardProps> = ({ children, className, pad
 
     return (
         <div className={cn(
-            "bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm",
+            "bg-[var(--app-surface)] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm",
             paddingClasses[padding],
             className
         )}>
@@ -39,7 +39,7 @@ export const MobileStatCard: React.FC<MobileStatCardProps> = ({
 }) => {
     return (
         <div className={cn(
-            "bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm  max-md:p-3 sm:p-4 flex items-center  max-md:gap-3",
+            "bg-[var(--app-surface)] rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm  max-md:p-3 sm:p-4 flex items-center  max-md:gap-3",
             className
         )}>
             {icon && (

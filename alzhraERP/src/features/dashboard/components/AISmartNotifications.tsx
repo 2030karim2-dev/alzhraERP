@@ -111,7 +111,7 @@ const AISmartNotifications: React.FC<AISmartNotificationsProps> = ({ stats, lowS
                     <button onClick={() => setCurrentIndex(i => i > 0 ? i - 1 : smartAlerts.length - 1)} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
                         <ChevronRight size={12} className="text-[var(--app-text-secondary)]" />
                     </button>
-                    <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">{currentIndex + 1}/{smartAlerts.length}</span>
+                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">{currentIndex + 1}/{smartAlerts.length}</span>
                     <button onClick={() => setCurrentIndex(i => i < smartAlerts.length - 1 ? i + 1 : 0)} className="p-1 rounded-lg hover:bg-[var(--app-surface-hover)] transition-colors">
                         <ChevronLeft size={12} className="text-[var(--app-text-secondary)]" />
                     </button>

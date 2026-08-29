@@ -62,7 +62,7 @@ const QuotationSummaryWidget: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl max-md:rounded-xl p-6 max-md:p-3 max-md:p-6 border border-gray-100 dark:border-slate-800 shadow-sm animate-pulse">
+            <div className="bg-[var(--app-surface)] rounded-3xl max-md:rounded-xl p-6 max-md:p-3 border border-gray-100 dark:border-slate-800 shadow-sm animate-pulse">
                 <div className="h-6 w-32 bg-gray-100 dark:bg-slate-800 rounded mb-4 max-md:mb-3"></div>
                 <div className="grid grid-cols-2 gap-4 max-md:gap-3">
                     <div className="h-20 bg-gray-50 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl"></div>
@@ -73,7 +73,7 @@ const QuotationSummaryWidget: React.FC = () => {
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl max-md:rounded-xl p-5 max-md:p-3 max-md:p-5 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group">
+        <div className="bg-[var(--app-surface)] rounded-3xl max-md:rounded-xl p-5 max-md:p-3 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center justify-between mb-5 max-md:mb-3">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -102,7 +102,7 @@ const QuotationSummaryWidget: React.FC = () => {
                                 {salesStats.pending + salesStats.accepted}
                             </span>
                             {salesStats.accepted > 0 && (
-                                <span className="flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full">
+                                <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full">
                                     <CheckCircle size={8} /> {salesStats.accepted} مقبول
                                 </span>
                             )}
@@ -121,7 +121,7 @@ const QuotationSummaryWidget: React.FC = () => {
                             <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">
                                 {purchaseStats.pending}
                             </span>
-                            <span className="text-[9px] font-bold text-gray-400 bg-gray-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
                                 قيد التفاوض
                             </span>
                         </div>

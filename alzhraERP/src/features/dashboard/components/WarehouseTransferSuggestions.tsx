@@ -63,7 +63,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
@@ -77,11 +77,11 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-[var(--app-text)]">اقتراحات المناقلات</h3>
-                        <p className="text-[9px] text-[var(--app-text-secondary)]">منتجات متوفرة بالفروع وغير موجودة بالمتجر</p>
+                        <p className="text-[10px] text-[var(--app-text-secondary)]">منتجات متوفرة بالفروع وغير موجودة بالمتجر</p>
                     </div>
                 </div>
                 {hasSuggestions && (
-                    <span className="text-[9px] font-bold bg-violet-500/20 text-violet-300 px-2 py-1 rounded-lg border border-violet-500/20">
+                    <span className="text-[10px] font-bold bg-violet-500/20 text-violet-300 px-2 py-1 rounded-lg border border-violet-500/20">
                         {suggestions.length} اقتراح
                     </span>
                 )}
@@ -108,7 +108,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-bold text-[var(--app-text)] truncate">{s.product.name}</p>
                                     {s.product.part_number && (
-                                        <p className="text-[9px] text-[var(--app-text-secondary)] font-mono">{s.product.part_number}</p>
+                                        <p className="text-[10px] text-[var(--app-text-secondary)] font-mono">{s.product.part_number}</p>
                                     )}
                                     <div className="flex items-center gap-2 mt-2 text-[10px]">
                                         <div className="flex items-center gap-1 text-emerald-400">
@@ -124,7 +124,7 @@ const WarehouseTransferSuggestions: React.FC<{ className?: string }> = ({ classN
                                 </div>
                                 <div className="text-left flex-shrink-0">
                                     <span className="text-sm font-bold text-[var(--app-text)] font-mono">{s.availableQty}</span>
-                                    <p className="text-[8px] text-[var(--app-text-secondary)] font-bold">متوفر</p>
+                                    <p className="text-[10px] text-[var(--app-text-secondary)] font-bold">متوفر</p>
                                 </div>
                             </div>
                         </div>

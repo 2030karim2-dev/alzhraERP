@@ -22,7 +22,7 @@ export const InvoiceSettings: React.FC = () => {
                             <h2 className="text-sm md:text-base font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tighter">
                                 إعدادات الفواتير
                             </h2>
-                            <p className="text-[8px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
+                            <p className="text-[10px] md:text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
                                 تخصيص نظام الفوترة والترقيم والطباعة
                             </p>
                         </div>
@@ -30,7 +30,7 @@ export const InvoiceSettings: React.FC = () => {
                     <div className="flex items-center gap-2 max-md:gap-2">
                         <button
                             onClick={handleReset}
-                            className="px-3 py-2 text-[9px] md:text-[10px] font-bold text-gray-400 hover:text-rose-500 uppercase tracking-widest transition-colors"
+                            className="px-3 py-2 text-[10px] md:text-[10px] font-bold text-gray-400 hover:text-rose-500 uppercase tracking-widest transition-colors"
                         >
                             إعادة ضبط
                         </button>
@@ -54,7 +54,7 @@ export const InvoiceSettings: React.FC = () => {
                     <div className="space-y-4">
                         {/* Preview */}
                         <div className="bg-gradient-to-l from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl p-4 max-md:p-4 border border-blue-100 dark:border-blue-900/20">
-                            <p className="text-[8px] font-bold text-blue-500 uppercase tracking-widest mb-1">معاينة رقم الفاتورة</p>
+                            <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">معاينة رقم الفاتورة</p>
                             <p className="text-lg md:text-xl font-bold text-blue-800 dark:text-blue-200 font-mono tracking-wider">{previewNumber}</p>
                         </div>
 
@@ -62,7 +62,7 @@ export const InvoiceSettings: React.FC = () => {
                             <SettingField label="بادئة فاتورة البيع" value={invoice.invoice_prefix} onChange={v => handleUpdate({ invoice_prefix: v })} dir="ltr" />
                             <SettingField label="رقم البداية" type="number" value={invoice.invoice_start_number} onChange={v => handleUpdate({ invoice_start_number: v })} />
                             <div>
-                                <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">تنسيق اللاحقة</label>
+                                <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">تنسيق اللاحقة</label>
                                 <select
                                     value={invoice.invoice_suffix_format}
                                     onChange={e => handleUpdate({ invoice_suffix_format: e.target.value })}
@@ -94,7 +94,7 @@ export const InvoiceSettings: React.FC = () => {
                         <SettingField label="أيام الاستحقاق الافتراضية" type="number" value={invoice.default_due_date_days} onChange={v => handleUpdate({ default_due_date_days: v })} />
                     </div>
                     <div className="mt-3 p-3 max-md:p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
-                        <p className="text-[8px] md:text-[9px] font-bold text-amber-700 dark:text-amber-400">
+                        <p className="text-[10px] md:text-[10px] font-bold text-amber-700 dark:text-amber-400">
                             ⏳ تاريخ الاستحقاق = تاريخ الفاتورة + مهلة الدفع. يمكن تعديله يدوياً لكل فاتورة.
                         </p>
                     </div>
@@ -105,7 +105,7 @@ export const InvoiceSettings: React.FC = () => {
                     <div className="space-y-5">
                         {/* Template Selection */}
                         <div>
-                            <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">اختر نوع القالب</label>
+                            <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">اختر نوع القالب</label>
                             <div className="grid grid-cols-3 gap-3 max-md:gap-3">
                                 {([
                                     { id: 'simple', label: 'بسيط', desc: 'عرض أساسي بدون تفاصيل إضافية', icon: <FileText size={20} /> },
@@ -135,7 +135,7 @@ export const InvoiceSettings: React.FC = () => {
                                             "text-[10px] md:text-xs font-bold uppercase",
                                             invoice.invoice_template === tmpl.id ? "text-purple-700 dark:text-purple-300" : "text-gray-500"
                                         )}>{tmpl.label}</p>
-                                        <p className="text-[7px] md:text-[8px] text-gray-400 mt-0.5 leading-tight">{tmpl.desc}</p>
+                                        <p className="text-[10px] md:text-[10px] text-gray-400 mt-0.5 leading-tight">{tmpl.desc}</p>
                                     </button>
                                 ))}
                             </div>
@@ -143,7 +143,7 @@ export const InvoiceSettings: React.FC = () => {
 
                         {/* Display Options */}
                         <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
-                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">عناصر العرض</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">عناصر العرض</p>
                             <div className="space-y-1 divide-y divide-gray-50 dark:divide-slate-800/50">
                                 <SettingToggle checked={invoice.show_logo} onChange={v => handleUpdate({ show_logo: v })} label="عرض شعار الشركة" description="يظهر في ترويسة الفاتورة المطبوعة" />
                                 <SettingToggle checked={invoice.show_bank_details} onChange={v => handleUpdate({ show_bank_details: v })} label="عرض البيانات البنكية" description="يعرض معلومات الحساب البنكي وال IBAN في التذييل" />
@@ -152,8 +152,8 @@ export const InvoiceSettings: React.FC = () => {
 
                         {/* Invoice Preview Mini */}
                         <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
-                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">معاينة مصغرة</p>
-                            <div className="bg-white dark:bg-slate-800 rounded-xl border-2 border-gray-200 dark:border-slate-700 p-4 max-md:p-4 text-[8px] md:text-[9px] space-y-2 font-mono max-w-sm">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">معاينة مصغرة</p>
+                            <div className="bg-white dark:bg-slate-800 rounded-xl border-2 border-gray-200 dark:border-slate-700 p-4 max-md:p-4 text-[10px] md:text-[10px] space-y-2 font-mono max-w-sm">
                                 {/* Mini invoice preview */}
                                 {invoice.show_logo && (
                                     <div className="flex items-center gap-2 max-md:gap-2 pb-2 border-b border-dashed border-gray-200 dark:border-slate-700">
@@ -214,7 +214,7 @@ export const InvoiceSettings: React.FC = () => {
                 <SettingSection icon={<MessageSquare size={16} />} title="الملاحظات والشروط" subtitle="نصوص افتراضية تُضاف تلقائياً للفواتير" color="bg-amber-500 shadow-amber-500/20" defaultOpen={false}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-md:gap-4">
                         <div>
-                            <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">ملاحظات الفاتورة (عربي)</label>
+                            <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">ملاحظات الفاتورة (عربي)</label>
                             <textarea
                                 value={invoice.default_notes_ar}
                                 onChange={e => handleUpdate({ default_notes_ar: e.target.value })}
@@ -223,7 +223,7 @@ export const InvoiceSettings: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">ملاحظات الفاتورة (EN)</label>
+                            <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">ملاحظات الفاتورة (EN)</label>
                             <textarea
                                 value={invoice.default_notes_en}
                                 onChange={e => handleUpdate({ default_notes_en: e.target.value })}
@@ -233,7 +233,7 @@ export const InvoiceSettings: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">الشروط والأحكام (عربي)</label>
+                            <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">الشروط والأحكام (عربي)</label>
                             <textarea
                                 value={invoice.default_terms_ar}
                                 onChange={e => handleUpdate({ default_terms_ar: e.target.value })}
@@ -242,7 +242,7 @@ export const InvoiceSettings: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">الشروط والأحكام (EN)</label>
+                            <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">الشروط والأحكام (EN)</label>
                             <textarea
                                 value={invoice.default_terms_en}
                                 onChange={e => handleUpdate({ default_terms_en: e.target.value })}
@@ -260,8 +260,8 @@ export const InvoiceSettings: React.FC = () => {
                         <Printer size={12} />
                     </div>
                     <div>
-                        <p className="text-[9px] md:text-[10px] font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-1">تلميح</p>
-                        <p className="text-[8px] md:text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-relaxed">
+                        <p className="text-[10px] md:text-[10px] font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-1">تلميح</p>
+                        <p className="text-[10px] md:text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-relaxed">
                             يمكنك معاينة القالب المختار عند طباعة أي فاتورة. الإعدادات هنا تنطبق على جميع الفواتير الجديدة كقيم افتراضية.
                         </p>
                     </div>

@@ -58,7 +58,7 @@ const CashFlowView: React.FC = () => {
                         <div className="relative z-10">
                             <div className="flex justify-between items-start mb-3 sm:mb-4">
                                 <div>
-                                    <p className="text-[9px] sm:text-[10px] font-bold uppercase text-blue-400 tracking-wider mb-1">السيولة النقدية الحالية</p>
+                                    <p className="text-[10px] sm:text-[10px] font-bold uppercase text-blue-400 tracking-wider mb-1">السيولة النقدية الحالية</p>
                                     <h2 dir="ltr" className="text-3xl max-md:text-xl sm:text-4xl md:text-5xl font-bold font-mono tracking-tighter drop-shadow-2xl">
                                         {formatCurrency(data?.currentLiquidity || 0)}
                                     </h2>
@@ -78,14 +78,14 @@ const CashFlowView: React.FC = () => {
                                 <div className="  max-md:p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg sm:rounded-xl w-fit mb-1.5 sm:mb-2 group-hover/item:scale-110 transition-transform">
                                     <ArrowUpRight size={14} className="text-emerald-400" />
                                 </div>
-                                <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider mb-0.5">وارد الشهر</span>
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-0.5">وارد الشهر</span>
                                 <span dir="ltr" className="text-xs sm:text-sm font-bold font-mono text-emerald-400">{formatCurrency(monthlyIn)}</span>
                             </div>
                             <div className="flex-1 bg-white/5 border border-white/5 backdrop-blur-xl transition-all duration-500 hover:bg-white/10 group/item rounded-xl sm:rounded-3xl   max-md:p-3 sm:p-4">
                                 <div className="  max-md:p-1.5 sm:p-2 bg-rose-500/20 rounded-lg sm:rounded-xl w-fit mb-1.5 sm:mb-2 group-hover/item:scale-110 transition-transform">
                                     <ArrowDownRight size={14} className="text-rose-400" />
                                 </div>
-                                <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider mb-0.5">صادر الشهر</span>
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-0.5">صادر الشهر</span>
                                 <span dir="ltr" className="text-xs sm:text-sm font-bold font-mono text-rose-400">{formatCurrency(monthlyOut)}</span>
                             </div>
                         </div>
@@ -93,7 +93,7 @@ const CashFlowView: React.FC = () => {
 
                     <MobileCard padding="none" className="overflow-hidden shadow-xl">
                         <div className="  max-md:p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-700/50 flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">ملخص التدفقات الشهرية</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ملخص التدفقات الشهرية</span>
                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                         </div>
                         <div className="overflow-x-auto">

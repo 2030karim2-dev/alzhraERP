@@ -28,7 +28,7 @@ export const getProductColumns = ({
                     </div>
                     <div className="min-w-0">
                         <span className="font-bold text-sm text-slate-900 dark:text-white block truncate">{p.name_ar || p.name}</span>
-                        {p.brand && <span className="text-[9px] font-bold text-blue-500 dark:text-blue-400">{p.brand}</span>}
+                        {p.brand && <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400">{p.brand}</span>}
                     </div>
                 </div>
             ),
@@ -138,7 +138,7 @@ export const getProductColumns = ({
                             title="تعديل بيانات المنتج"
                         >
                             <Edit size={12} />
-                            <span className="text-[9px] font-bold hidden group-hover:inline">تعديل</span>
+                            <span className="text-[10px] font-bold hidden group-hover:inline">تعديل</span>
                         </button>
                     )}
                     {onDeleteRequest && (
@@ -148,7 +148,7 @@ export const getProductColumns = ({
                             title="حذف المنتج نهائياً (لا يمكن التراجع)"
                         >
                             <Trash2 size={12} />
-                            <span className="text-[9px] font-bold hidden group-hover:inline">حذف</span>
+                            <span className="text-[10px] font-bold hidden group-hover:inline">حذف</span>
                         </button>
                     )}
                 </div>

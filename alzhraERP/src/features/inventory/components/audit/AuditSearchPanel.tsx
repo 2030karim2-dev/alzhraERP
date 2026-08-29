@@ -46,7 +46,7 @@ const AuditSearchPanel: React.FC<Props> = ({
     const hasResults = (searchResults?.length ?? 0) > 0;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 space-y-4">
+        <div className="bg-[var(--app-surface)] rounded-xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 space-y-4">
             {/* Warehouse Selector */}
             <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
@@ -125,7 +125,7 @@ const AuditSearchPanel: React.FC<Props> = ({
                                             onAddItem(p);
                                             setDropdownOpen(false);
                                         }}
-                                        className="hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer transition-colors group bg-white dark:bg-slate-900"
+                                        className="hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer transition-colors group bg-[var(--app-surface)]"
                                     >
                                         <td className="py-3 px-4 border-l border-slate-100 dark:border-slate-800 font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-600 transition-colors text-start">{p.name_ar}</td>
                                         <td className="py-3 px-4 border-l border-slate-100 dark:border-slate-800 font-mono text-slate-600 dark:text-slate-400">{p.part_number || p.sku}</td>

@@ -20,7 +20,7 @@ export const PurchaseProductCell: React.FC<ProductCellProps> = ({ item, index, o
                 onKeyDown={(event) => { onKeyDown(event, index, 'name'); }}
                 onClick={() => { onOpenSearch(index, item.name || ''); }}
                 readOnly
-                className="flex-1 p-2 max-md:p-0.5 bg-transparent outline-none text-right font-bold text-[11px] max-md:text-[8px] text-blue-900 dark:text-slate-100 cursor-pointer placeholder:text-blue-200"
+                className="flex-1 p-2 max-md:p-0.5 bg-transparent outline-none text-right font-bold text-[11px] max-md:text-[10px] text-blue-900 dark:text-slate-100 cursor-pointer placeholder:text-blue-200"
                 placeholder="اختر صنفاً..."
             />
             <Search size={12} className="w-3 h-3 max-md:w-2.5 max-md:h-2.5 text-blue-300 opacity-0 group-hover:opacity-100 max-md:opacity-100" />
@@ -47,7 +47,7 @@ export const PurchaseNumericCell: React.FC<NumericCellProps> = ({ value, field, 
             onKeyDown={(event) => { onKeyDown(event, index, field); }}
             data-row-index={index}
             data-col-field={field}
-            className={`w-full h-full min-h-7 max-md:min-h-6 p-2 max-md:p-0.5 bg-transparent outline-none text-center font-mono font-bold text-[11px] max-md:text-[8px] ${className}`}
+            className={`w-full h-full min-h-7 max-md:min-h-6 p-2 max-md:p-0.5 bg-transparent outline-none text-center font-mono font-bold text-[11px] max-md:text-[10px] ${className}`}
             placeholder={placeholder}
         />
     </td>
@@ -59,7 +59,7 @@ interface TotalCellProps {
 }
 
 export const PurchaseTotalCell: React.FC<TotalCellProps> = ({ item, showDiscount }) => (
-    <td dir="ltr" className="p-2 max-md:p-0.5 text-left font-mono font-bold text-[11px] max-md:text-[8px] text-blue-900 dark:text-white bg-blue-50/50 dark:bg-slate-950/30">
+    <td dir="ltr" className="p-2 max-md:p-0.5 text-left font-mono font-bold text-[11px] max-md:text-[10px] text-blue-900 dark:text-white bg-blue-50/50 dark:bg-slate-950/30">
         {((item.quantity * item.costPrice) - (showDiscount ? item.discount : 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
     </td>
 );

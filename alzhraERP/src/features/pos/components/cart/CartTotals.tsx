@@ -15,7 +15,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(({ onPay, canPay
     const { summary, currency } = useSalesStore();
 
     return (
-        <div className="shrink-0 bg-slate-950 dark:bg-slate-950 text-white border-t border-slate-800 px-4 pt-3 pb-4 space-y-2">
+        <div className="shrink-0 bg-slate-950 dark:bg-slate-950 text-white border-t border-slate-800 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2">
             {/* Subtotal row */}
             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 <span>{t('subtotal')}</span>

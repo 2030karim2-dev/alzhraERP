@@ -5,6 +5,33 @@ import Badge from '../../../../ui/base/Badge';
 
 import { UIJournalEntry, UIJournalLine } from '../../types/models';
 
+// خريطة أنواع القيود — مُصدَّرة لتُستخدم في بطاقات الموبايل (JournalTable)
+export const TRANSACTION_TYPE_LABELS: Record<string, string> = {
+    'manual': 'قيد يدوي',
+    'invoice': 'فاتورة مبيعات',
+    'sale': 'فاتورة مبيعات',
+    'bill': 'فاتورة مشتريات',
+    'purchase': 'فاتورة مشتريات',
+    'sale_return': 'مرتجع مبيعات',
+    'purchase_return': 'مرتجع مشتريات',
+    'payment': 'سند صرف (دفع)',
+    'payment_voucher': 'سند دفع',
+    'payment_bond': 'سند صرف',
+    'receipt': 'سند قبض',
+    'receipt_voucher': 'سند قبض',
+    'receipt_bond': 'سند قبض',
+    'transfer_bond': 'تحويل داخلي',
+    'expense': 'مصروفات',
+    'expenses': 'مصروفات',
+    'expense_void': 'إلغاء مصروف',
+    'transfer': 'تحويل داخلي',
+    'opening_balance': 'رصيد افتتاحي',
+    'correction': 'تصحيح قيد',
+    'automated_sync': 'مزامنة آلية',
+    'sub_ledger_sync': 'مزامنة أستاذ مساعد',
+    'journal': 'قيد يومية'
+};
+
 interface JournalEntryRowProps {
     entry: UIJournalEntry;
 }
@@ -42,32 +69,7 @@ const JournalEntryRow: React.FC<JournalEntryRowProps> = ({ entry }) => {
                 <td className="px-3 py-2 border-s border-[var(--app-border)] text-center text-xs font-bold text-[var(--app-text-secondary)]">
                     {(() => {
                         const type = entry.reference_type;
-                        const labels: Record<string, string> = {
-                            'manual': 'قيد يدوي',
-                            'invoice': 'فاتورة مبيعات',
-                            'sale': 'فاتورة مبيعات',
-                            'bill': 'فاتورة مشتريات',
-                            'purchase': 'فاتورة مشتريات',
-                            'sale_return': 'مرتجع مبيعات',
-                            'purchase_return': 'مرتجع مشتريات',
-                            'payment': 'سند صرف (دفع)',
-                            'payment_voucher': 'سند دفع',
-                            'payment_bond': 'سند صرف',
-                            'receipt': 'سند قبض',
-                            'receipt_voucher': 'سند قبض',
-                            'receipt_bond': 'سند قبض',
-                            'transfer_bond': 'تحويل داخلي',
-                            'expense': 'مصروفات',
-                            'expenses': 'مصروفات',
-                            'expense_void': 'إلغاء مصروف',
-                            'transfer': 'تحويل داخلي',
-                            'opening_balance': 'رصيد افتتاحي',
-                            'correction': 'تصحيح قيد',
-                            'automated_sync': 'مزامنة آلية',
-                            'sub_ledger_sync': 'مزامنة أستاذ مساعد',
-                            'journal': 'قيد يومية'
-                        };
-                        return <Badge variant="outline" className="w-full justify-center">{type ? (labels[type] || type) : 'يدوي'}</Badge>;
+                        return <Badge variant="outline" className="w-full justify-center">{type ? (TRANSACTION_TYPE_LABELS[type] || type) : 'يدوي'}</Badge>;
                     })()}
                 </td>
                 <td className="px-3 py-2 border-s border-[var(--app-border)] text-center text-xs text-[var(--app-text-secondary)] truncate max-w-[120px]" title={entry.created_by_profile?.full_name || 'System'}>

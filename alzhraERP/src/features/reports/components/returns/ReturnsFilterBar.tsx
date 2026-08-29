@@ -11,7 +11,7 @@ interface Props {
 
 const ReturnsFilterBar: React.FC<Props> = ({ filters, setFilters, handleExportExcel, handlePrint }) => {
     return (
-        <div className="bg-white dark:bg-slate-900/50 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm   max-md:p-4 sm:p-6 md:p-10 relative overflow-visible">
+        <div className="bg-[var(--app-surface)]/50 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm   max-md:p-4 sm:p-6 md:p-10 relative overflow-visible">
             <div className="flex flex-col   max-md:gap-4 sm:gap-6 mb-4 sm:mb-6 md:mb-10">
                 <div>
                     <div className="flex items-center   max-md:gap-2 sm:gap-3 mb-1 sm:mb-2">
@@ -126,7 +126,7 @@ const ReturnsFilterBar: React.FC<Props> = ({ filters, setFilters, handleExportEx
                             type="date"
                             value={filters.startDate || ''}
                             onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                            className="w-full px-5 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold dark:text-white outline-none focus:border-rose-500 transition-all"
+                            className="w-full px-5 py-3 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold dark:text-white outline-none focus:border-rose-500 transition-all"
                         />
                     </div>
                     <div className="space-y-2">
@@ -135,7 +135,7 @@ const ReturnsFilterBar: React.FC<Props> = ({ filters, setFilters, handleExportEx
                             type="date"
                             value={filters.endDate || ''}
                             onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                            className="w-full px-5 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold dark:text-white outline-none focus:border-rose-500 transition-all"
+                            className="w-full px-5 py-3 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold dark:text-white outline-none focus:border-rose-500 transition-all"
                         />
                     </div>
                 </div>

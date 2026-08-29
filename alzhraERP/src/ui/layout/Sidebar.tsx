@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-5 border-b border-[var(--app-border)] flex justify-between items-center bg-[var(--app-surface-hover)]/50">
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">AL-ZAHRA ERP</span>
-            <span className="text-[8px] font-semibold text-[var(--app-text-secondary)] uppercase">Main Menu</span>
+            <span className="text-[10px] font-semibold text-[var(--app-text-secondary)] uppercase">Main Menu</span>
           </div>
           <button
             onClick={onCloseMobile}

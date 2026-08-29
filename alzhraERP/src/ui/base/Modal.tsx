@@ -280,7 +280,7 @@ const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-2 md:p-4 border-t border-[var(--app-border)] bg-[var(--app-bg)] flex gap-1 md:gap-2 shrink-0">
+        <div className="p-2 md:p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-4 border-t border-[var(--app-border)] bg-[var(--app-bg)] flex gap-1 md:gap-2 shrink-0">
           {footer}
         </div>
       </div>

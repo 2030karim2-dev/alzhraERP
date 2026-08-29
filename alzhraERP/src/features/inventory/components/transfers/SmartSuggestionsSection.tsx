@@ -24,7 +24,7 @@ const SmartSuggestionsSection: React.FC<SmartSuggestionsSectionProps> = ({ sugge
                     <Sparkles size={12} className="text-indigo-600" />
                     <h3 className="text-[10px] font-black text-gray-800 dark:text-gray-100 uppercase tracking-tight">اقتراحات المناقلة</h3>
                 </div>
-                <span className="text-[8px] font-black bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 px-1.5 py-0.5 rounded uppercase">
+                <span className="text-[10px] font-black bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 px-1.5 py-0.5 rounded uppercase">
                     {suggestions.length} items
                 </span>
             </div>
@@ -33,21 +33,21 @@ const SmartSuggestionsSection: React.FC<SmartSuggestionsSectionProps> = ({ sugge
                 {suggestions.map((s, i) => (
                     <div key={i} className={cn("rounded-lg border p-2 bg-white/50 dark:bg-slate-900/50", priorityColors[s.priority])}>
                         <div className="flex items-start justify-between gap-1 mb-1.5">
-                            <p className="text-[9px] font-black text-gray-800 dark:text-gray-100 truncate">{s.productName}</p>
+                            <p className="text-[10px] font-black text-gray-800 dark:text-gray-100 truncate">{s.productName}</p>
                             <span className="text-[10px] font-black font-mono text-indigo-600 dark:text-indigo-400 leading-none">
                                 {s.suggestedQty}
                             </span>
                         </div>
 
                         <div className="flex items-center gap-1.5 mb-2">
-                            <div className="flex-1 flex items-center gap-1 text-[8px] font-bold">
+                            <div className="flex-1 flex items-center gap-1 text-[10px] font-bold">
                                 <span className="text-rose-500 truncate max-w-[40px]">{s.fromWarehouse}</span>
                                 <ArrowRight size={8} className="text-gray-300" />
                                 <span className="text-emerald-500 truncate max-w-[40px]">{s.toWarehouse}</span>
                             </div>
                             <button
                                 onClick={() => onTransfer(s)}
-                                className="px-2 py-0.5 bg-indigo-600 text-white text-[8px] font-bold rounded flex items-center gap-1 transition-all active:scale-95"
+                                className="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded flex items-center gap-1 transition-all active:scale-95"
                             >
                                 نقل
                             </button>

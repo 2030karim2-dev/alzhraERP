@@ -209,7 +209,7 @@ export const SupplierPortalPage: React.FC = () => {
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'products'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export const SupplierPortalPage: React.FC = () => {
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'rfqs'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Send className="w-3.5 h-3.5" />
@@ -235,7 +235,7 @@ export const SupplierPortalPage: React.FC = () => {
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === 'quotations'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <FileText className="w-3.5 h-3.5" />

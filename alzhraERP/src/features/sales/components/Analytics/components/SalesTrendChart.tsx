@@ -193,7 +193,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
     };
 
     return (
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
+        <div className="lg:col-span-2 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2">

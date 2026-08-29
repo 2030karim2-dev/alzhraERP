@@ -59,7 +59,7 @@ const BondKpiCards: React.FC<BondKpiCardsProps> = ({ totals, analytics }) => {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+            <div className="bg-[var(--app-surface)] border border-slate-100 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
                 <div className="absolute bottom-0 right-0 p-6 opacity-5 transform group-hover:-translate-y-2 transition-transform duration-500">
                     <Activity size={80} className="text-amber-500" />
                 </div>

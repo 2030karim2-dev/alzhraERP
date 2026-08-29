@@ -87,7 +87,7 @@ const AuditLogTable: React.FC<AuditLogTableProps> = ({ log }) => {
                                         <span className="text-[10px] font-black text-gray-700 dark:text-slate-200 truncate max-w-[100px]">
                                             {entry.source_user?.split('@')[0] || entry.created_by_name?.split(' ')[0] || 'النظام'}
                                         </span>
-                                        <span className="text-[8px] text-gray-400 font-bold uppercase">المسؤول</span>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">المسؤول</span>
                                     </div>
                                 </div>
                             </td>

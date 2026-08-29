@@ -95,7 +95,7 @@ const ProductExcelGrid: React.FC<Props> = ({
     if (isLoading) return <TableSkeleton rows={10} cols={6} />;
 
     return (
-        <div className="relative h-full flex-1 min-h-0 flex flex-col bg-white dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/80 p-1.5 transition-all duration-300 overflow-hidden">
+        <div className="relative h-full flex-1 min-h-0 flex flex-col bg-[var(--app-surface)]/60 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/80 p-1.5 transition-all duration-300 overflow-hidden">
             {!hideBulkActions && selectedRowIds.size > 0 && (
                 <BulkActionsBar
                     selectedCount={selectedRowIds.size}

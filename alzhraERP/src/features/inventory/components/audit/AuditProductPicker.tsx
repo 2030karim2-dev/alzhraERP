@@ -34,7 +34,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
     return (
         <div className={cn("relative p-2", isMaximized && "mt-10 max-w-4xl mx-auto w-full")} ref={dropdownRef}>
             <div className={cn(
-                "bg-white dark:bg-slate-900 rounded-3xl border transition-all duration-300 flex items-center gap-3 px-4 py-3 shadow-sm",
+                "bg-[var(--app-surface)] rounded-3xl border transition-all duration-300 flex items-center gap-3 px-4 py-3 shadow-sm",
                 isDropdownOpen ? "border-blue-500 ring-4 ring-blue-500/10 shadow-lg" : "border-gray-100 dark:border-slate-800"
             )}>
                 <div className="p-2 bg-blue-600/10 text-blue-600 rounded-2xl">
@@ -102,7 +102,7 @@ const AuditProductPicker: React.FC<AuditProductPickerProps> = ({
                             </div>
                             <div className="text-left">
                                 <p className="text-[10px] font-bold text-emerald-600">{p.stock_quantity ?? 0} في المخزن</p>
-                                <p className="text-[9px] text-gray-400 font-bold">{p.brand || 'ماركة غير محددة'}</p>
+                                <p className="text-[10px] text-gray-400 font-bold">{p.brand || 'ماركة غير محددة'}</p>
                             </div>
                         </button>
                     ))}

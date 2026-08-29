@@ -484,7 +484,7 @@ function ExcelTable<T>({
           <div
             ref={tableRef}
             tabIndex={0}
-            className="flex-1 min-h-0 overflow-auto custom-scrollbar outline-none overscroll-contain"
+            className="flex-1 min-h-0 overflow-auto custom-scrollbar scroll-x-hint-surface outline-none overscroll-contain"
             onMouseDown={() => setIsMouseDown(true)}
             onMouseUp={() => { setIsMouseDown(false); endSelection(); }}
             onMouseLeave={() => { setIsMouseDown(false); endSelection(); }}

@@ -11,7 +11,7 @@ const EffectsCustomizer: React.FC = () => {
   const { radius, shadowStrength, glassBlur, glassOpacity } = draftSettings;
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
+    <div className="bg-[var(--app-surface)] p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in fade-in duration-500">
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">استدارة الحواف (Border Radius)</h3>
@@ -122,7 +122,7 @@ const EffectsCustomizer: React.FC = () => {
                 <Sparkles className="text-white drop-shadow-lg" size={24} />
               </div>
               <p className="text-white font-black text-sm drop-shadow-md">باقة الزجاج الاحترافية</p>
-              <p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-2 px-3 py-1 bg-black/20 rounded-full">
+              <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mt-2 px-3 py-1 bg-black/20 rounded-full">
                 Alzhra Dynamic Glass
               </p>
             </div>
@@ -141,10 +141,10 @@ const EffectsCustomizer: React.FC = () => {
             <Sparkles size={16} className="text-amber-500" />
             <div>
               <p className="text-[10px] font-bold text-gray-700 dark:text-slate-200">نمط الحركة الذكي</p>
-              <p className="text-[8px] text-gray-400 font-bold uppercase">Soft UI Animations</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase">Soft UI Animations</p>
             </div>
             <div className="ms-auto">
-              <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-full text-[8px] font-bold uppercase">مفعل</span>
+              <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-bold uppercase">مفعل</span>
             </div>
           </div>
         </div>

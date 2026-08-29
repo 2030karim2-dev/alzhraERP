@@ -62,8 +62,8 @@ const InvoiceHealthBadge: React.FC<Props> = ({ invoice }) => {
             </button>
 
             {showAlerts && result.alerts.length > 0 && (
-                <div className="absolute top-full mt-2 left-0 right-0 min-w-[250px] z-50 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-xl shadow-xl p-3 space-y-1.5">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase mb-2">تنبيهات الفحص الذكي</p>
+                <div className="absolute top-full mt-2 left-0 right-0 min-w-[250px] z-50 bg-[var(--app-surface)] border dark:border-slate-800 rounded-xl shadow-xl p-3 space-y-1.5">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">تنبيهات الفحص الذكي</p>
                     {result.alerts.map((alert, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs text-gray-600 dark:text-slate-400">
                             <span className="text-amber-500 flex-shrink-0">⚡</span>

@@ -29,7 +29,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({ lowStockProducts,
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 max-md:p-4 relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] rounded-2xl max-md:rounded-xl p-4 max-md:p-3 relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
@@ -42,7 +42,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({ lowStockProducts,
                 </div>
                 <div>
                     <h3 className="text-sm font-bold text-[var(--app-text)]">نظرة عامة على المخزون</h3>
-                    <p className="text-[9px] text-[var(--app-text-secondary)]">Inventory Snapshot</p>
+                    <p className="text-[10px] text-[var(--app-text-secondary)]">Inventory Snapshot</p>
                 </div>
             </div>
 

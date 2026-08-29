@@ -30,7 +30,7 @@ function StatusBadge({ status }: { status: string }): React.ReactElement {
     Object.entries(statusColor).find(([k]) => k === status)?.[1] ?? statusColor.UNKNOWN;
   return (
     <span
-      className={`inline-block rounded-full border px-2 py-0.5 text-[9px] font-bold ${colorClass}`}
+      className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-bold ${colorClass}`}
     >
       {status}
     </span>

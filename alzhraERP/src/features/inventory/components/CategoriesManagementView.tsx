@@ -46,7 +46,7 @@ const CategoriesManagementView: React.FC<Props> = ({ onFilterProduct }) => {
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center p-20 gap-4">
             <Spinner size="lg" />
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">تحميل الأقسام...</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">تحميل الأقسام...</span>
         </div>
     );
 

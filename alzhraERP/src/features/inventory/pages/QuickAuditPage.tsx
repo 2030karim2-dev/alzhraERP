@@ -159,7 +159,7 @@ const QuickAuditPage: React.FC = () => {
                 <div className="max-w-[1600px] mx-auto space-y-4">
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
+                        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
                             <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg shrink-0">
                                 <Zap size={16} className="text-blue-600 dark:text-blue-400" />
                             </div>
@@ -168,7 +168,7 @@ const QuickAuditPage: React.FC = () => {
                                 <p className="text-xl font-black text-gray-900 dark:text-white leading-none mt-0.5">{stats.totalItems}</p>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
+                        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
                             <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg shrink-0">
                                 <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400" />
                             </div>
@@ -177,7 +177,7 @@ const QuickAuditPage: React.FC = () => {
                                 <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none mt-0.5">{stats.changedItems}</p>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
+                        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
                             <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg shrink-0">
                                 <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
                             </div>

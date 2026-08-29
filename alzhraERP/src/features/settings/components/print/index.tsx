@@ -22,7 +22,7 @@ const PrintSettings: React.FC = () => {
                         <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tighter">
                             {t.print_settings || 'إعدادات الطباعة'}
                         </h2>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             {t.print_settings_desc || 'تخصيص الطباعة والإيصالات'}
                         </p>
                     </div>

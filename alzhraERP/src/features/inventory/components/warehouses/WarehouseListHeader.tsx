@@ -10,14 +10,14 @@ interface Props {
 
 const WarehouseListHeader: React.FC<Props> = ({ isMaximized, onMaximize, onAddWarehouse }) => {
     return (
-        <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-3 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm shrink-0">
+        <div className="flex justify-between items-center bg-[var(--app-surface)] p-3 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm shrink-0">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-600/10 text-blue-600 rounded-lg">
                     <Warehouse size={18} />
                 </div>
                 <div>
                     <h2 className="text-sm font-bold text-gray-800 dark:text-white leading-none">إدارة المستودعات والفروع</h2>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">عرض جميع المستودعات وحالة المخزون بها</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">عرض جميع المستودعات وحالة المخزون بها</p>
                 </div>
             </div>
             <div className="flex items-center gap-2">

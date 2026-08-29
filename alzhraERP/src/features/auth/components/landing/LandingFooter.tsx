@@ -42,7 +42,7 @@ const LandingFooter: React.FC<LandingFooterProps> = ({
                 <span className="block text-base font-black leading-none text-white">
                   نظام الزهراء
                 </span>
-                <span className="mt-0.5 block text-[9px] font-bold text-blue-500">
+                <span className="mt-0.5 block text-[10px] font-bold text-blue-500">
                   Auto Parts ERP
                 </span>
               </div>

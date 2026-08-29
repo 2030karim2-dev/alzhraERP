@@ -19,11 +19,11 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
         <div className="relative">
           <input
             {...register('name', { required: t('name_required') })}
-            className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-800 dark:text-white placeholder:text-gray-300 focus:border-blue-500 outline-none transition-all pr-10 shadow-sm"
+            className="w-full px-4 py-2.5 bg-[var(--app-surface)] border-2 border-gray-100 dark:border-slate-800 rounded-xl text-sm font-bold text-gray-800 dark:text-white placeholder:text-gray-300 focus:border-blue-500 outline-none transition-all pr-10 shadow-sm"
           />
           <Tag className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500" size={18} />
         </div>
-        {errors.name && <p className="text-[9px] text-rose-500 font-bold mt-1 px-1">{errors.name.message}</p>}
+        {errors.name && <p className="text-[10px] text-rose-500 font-bold mt-1 px-1">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -54,7 +54,7 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors }) => {
             className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-mono text-gray-700 dark:text-gray-300 focus:border-blue-500 outline-none transition-all"
             dir="ltr"
           />
-          {errors.alternative_numbers && <p className="text-[9px] text-rose-500 font-bold mt-1 px-1">{errors.alternative_numbers.message}</p>}
+          {errors.alternative_numbers && <p className="text-[10px] text-rose-500 font-bold mt-1 px-1">{errors.alternative_numbers.message}</p>}
         </div>
 
         {/* Core charge option removed because is_core is not in the database schema yet */}

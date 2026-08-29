@@ -51,7 +51,7 @@ const ProductItem = React.memo(({ product, index, maxRevenue }: { product: TopPr
                         {product.name}
                     </p>
                     <p className="text-[10px] text-[var(--app-text-secondary)] font-mono mt-0.5">
-                        {product.quantity} <span className="font-sans text-[8px]">قطعة مباعة</span>
+                        {product.quantity} <span className="font-sans text-[10px]">قطعة مباعة</span>
                     </p>
                 </div>
             </div>
@@ -88,7 +88,7 @@ const CustomerItem = React.memo(({ customer, index, maxTotal }: { customer: TopC
                         {customer.name}
                     </p>
                     <p className="text-[10px] text-[var(--app-text-secondary)] font-mono mt-0.5">
-                        {customer.invoices} <span className="font-sans text-[8px]">فاتورة/طلبية</span>
+                        {customer.invoices} <span className="font-sans text-[10px]">فاتورة/طلبية</span>
                     </p>
                 </div>
             </div>
@@ -118,7 +118,7 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
     return (
         <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6 max-md:gap-3", className)}>
             {/* Top Auto Parts */}
-            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
+            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] group-hover:bg-amber-400/20 transition-all duration-700 pointer-events-none"></div>
 
                 <div className="flex items-center gap-3 mb-6 max-md:mb-3 relative z-10">
@@ -153,7 +153,7 @@ const TopPerformers: React.FC<TopPerformersProps> = React.memo(({
             </div>
 
             {/* Top Customers (Workshops/Individuals) */}
-            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
+            <div className="bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-3xl max-md:rounded-xl relative overflow-hidden group hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none"></div>
 
                 <div className="flex items-center gap-3 mb-6 max-md:mb-3 relative z-10">

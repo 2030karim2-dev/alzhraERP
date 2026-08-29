@@ -13,7 +13,7 @@ export const SuspendedOrdersModal: React.FC<SuspendedOrdersModalProps> = ({
 }) => {
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 animate-in zoom-in duration-200 rounded-2xl overflow-hidden max-h-[80vh]">
+            <div className="bg-[var(--app-surface)] w-full max-w-lg shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 animate-in zoom-in duration-200 rounded-2xl overflow-hidden max-h-[80vh]">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/30">
                     <h3 className="font-black text-sm md:text-base text-slate-800 dark:text-white">الطلبـات المعلقـة ({orders.length})</h3>
                     <button

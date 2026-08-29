@@ -68,7 +68,7 @@ const NotificationSettings: React.FC = () => {
         <Button onClick={handleSave} isLoading={isSaving} className="rounded-xl px-6" leftIcon={<Save size={16}/>}>حفظ</Button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border dark:border-slate-800 shadow-sm overflow-hidden divide-y dark:divide-slate-800">
+      <div className="bg-[var(--app-surface)] rounded-[2rem] border dark:border-slate-800 shadow-sm overflow-hidden divide-y dark:divide-slate-800">
          {settings.map((item) => (
            <MicroListItem
              key={item.id}

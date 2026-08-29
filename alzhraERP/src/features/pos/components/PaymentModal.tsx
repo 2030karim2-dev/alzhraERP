@@ -101,7 +101,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-3 font-cairo"
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[95dvh]">
+            <div className="bg-[var(--app-surface)] w-full max-w-lg shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[95dvh]">
                 <PaymentHeader
                     itemCount={validItems.length}
                     total={total}

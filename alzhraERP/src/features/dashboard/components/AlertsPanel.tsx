@@ -59,13 +59,13 @@ const AlertItem = React.memo(({ alert }: { alert: Alert }) => (
                 {alert.message}
             </p>
             {alert.time && (
-                <p className="text-[9px] text-[var(--app-text-secondary)] mt-0.5">{alert.time}</p>
+                <p className="text-[10px] text-[var(--app-text-secondary)] mt-0.5">{alert.time}</p>
             )}
         </div>
         {alert.action && (
             <button
                 onClick={alert.action.onClick}
-                className="flex-shrink-0 px-2 py-1 text-[9px] font-bold bg-[var(--app-surface-hover)] rounded-lg text-[var(--accent)] hover:bg-[var(--app-surface)] transition-colors"
+                className="flex-shrink-0 px-2 py-1 text-[10px] font-bold bg-[var(--app-surface-hover)] rounded-lg text-[var(--accent)] hover:bg-[var(--app-surface)] transition-colors"
             >
                 {alert.action.label}
             </button>
@@ -102,7 +102,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
         )}>
             {/* Header */}
             <div
-                className="flex items-center justify-between p-4 max-md:p-3 max-md:p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                className="flex items-center justify-between p-4 max-md:p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
                             <Bell size={14} className="text-rose-500" />
                         </div>
                         {urgentCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                 {urgentCount}
                             </span>
                         )}
@@ -132,7 +132,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = React.memo(({
                                     setFilter(f);
                                 }}
                                 className={cn(
-                                    "px-2 py-1 text-[9px] font-bold rounded-md transition-all",
+                                    "px-2 py-1 text-[10px] font-bold rounded-md transition-all",
                                     filter === f
                                         ? "bg-[var(--app-surface)] text-[var(--app-text)] shadow-sm"
                                         : "text-[var(--app-text-secondary)]"

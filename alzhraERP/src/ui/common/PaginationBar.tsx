@@ -16,14 +16,14 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
 }) => {
     const safePage = Math.max(1, Math.min(page, totalPages || 1));
     return (
-        <div className="px-3 py-1.5 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+        <div className="px-3 py-1.5 border-t dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             <span>{totalResults} نتيجة</span>
             {extraInfo}
             <div className="flex items-center gap-1 ml-4">
                 <span className="opacity-60">عرض:</span>
                 {[25, 50, 100].map(size => (
                     <button key={size} onClick={() => { onPageSizeChange(size); }}
-                        className={`px-1.5 py-0.5 rounded text-[8px] transition-colors ${pageSize === size ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'hover:bg-gray-200 dark:hover:bg-slate-800'}`}>
+                        className={`px-1.5 py-0.5 rounded text-[10px] transition-colors ${pageSize === size ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'hover:bg-gray-200 dark:hover:bg-slate-800'}`}>
                         {size}
                     </button>
                 ))}

@@ -68,7 +68,7 @@ const ThemePresetCard: React.FC<Props> = ({ preset, isActive, onSelect }) => {
         {preset.isDark && (
           <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
             <Moon size={8} className="text-white/80" />
-            <span className="text-[7px] md:text-[8px] font-bold text-white/80 uppercase">DARK</span>
+            <span className="text-[10px] md:text-[10px] font-bold text-white/80 uppercase">DARK</span>
           </div>
         )}
 
@@ -84,13 +84,13 @@ const ThemePresetCard: React.FC<Props> = ({ preset, isActive, onSelect }) => {
       </div>
 
       {/* Content Section */}
-      <div className="p-3 md:p-4 flex-1 bg-white dark:bg-slate-900 transition-colors text-right border-t border-gray-50 dark:border-slate-800">
+      <div className="p-3 md:p-4 flex-1 bg-[var(--app-surface)] transition-colors text-right border-t border-gray-50 dark:border-slate-800">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h4 className="text-[10px] md:text-sm font-bold text-gray-800 dark:text-slate-100 mb-1 truncate">
               {preset.name}
             </h4>
-            <p className="text-[8px] md:text-xs font-bold text-gray-400 dark:text-slate-500 leading-tight line-clamp-2">
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 dark:text-slate-500 leading-tight line-clamp-2">
               {preset.description}
             </p>
           </div>
@@ -106,7 +106,7 @@ const ThemePresetCard: React.FC<Props> = ({ preset, isActive, onSelect }) => {
             />
           ))}
           {isActive && (
-            <span className="mr-auto text-[7px] md:text-[9px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
+            <span className="mr-auto text-[10px] md:text-[10px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1">
               <Sparkles size={8} />
               مفعّل
             </span>

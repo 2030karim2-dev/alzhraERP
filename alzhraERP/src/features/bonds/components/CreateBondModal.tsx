@@ -182,10 +182,10 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
             </div>
           </div>
 
-          <div className="w-full md:w-auto flex flex-col md:flex-row items-center gap-6 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-xl">
+          <div className="w-full md:w-auto flex flex-col md:flex-row items-center gap-6 bg-[var(--app-surface)] p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-xl">
 
             <div className="w-full md:w-32">
-              <label className="block text-[9px] font-bold text-gray-400 uppercase mb-2 text-center">العملة</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">العملة</label>
               <div className="relative">
                 <select {...register('currency_code')} className="w-full bg-slate-50 dark:bg-slate-800 border-2 dark:border-slate-700 py-3 px-4 rounded-xl text-sm font-black outline-none appearance-none hover:border-blue-500 transition-colors cursor-pointer text-center">
                   <option value="SAR">SAR</option>
@@ -198,7 +198,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
             {selectedCurrency !== 'SAR' && (
               <>
                 <div className="w-full md:w-40">
-                  <label className="block text-[9px] font-bold text-gray-400 uppercase mb-2 text-center">سعر الصرف {isDivide ? '÷' : '×'}</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">سعر الصرف {isDivide ? '÷' : '×'}</label>
                   <div className="relative group">
                     <input
                       type="number"
@@ -210,7 +210,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
                 </div>
 
                 <div className="w-full md:w-44">
-                  <label className="block text-[9px] font-bold text-gray-400 uppercase mb-2 text-center">المقابل بالريال (SAR)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">المقابل بالريال (SAR)</label>
                   <div className="w-full px-4 py-3 bg-blue-50/50 dark:bg-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800/50 rounded-xl text-sm font-black text-blue-600 dark:text-blue-400 font-mono text-center">
                     {formatCurrency(watch('amount') || 0)}
                   </div>
@@ -224,7 +224,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Account/Party Section */}
           <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-5">
+            <div className="bg-[var(--app-surface)] p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-5">
               <div className="flex items-center gap-2 mb-2">
                 <div className="p-1 px-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-lg uppercase tracking-tighter">الحسابات والجهات</div>
               </div>
@@ -254,7 +254,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
                               <span className="text-[10px] text-gray-400 font-bold">{p.code || p.phone || p.id.split('-')[0]}</span>
                             </div>
                             <span className={cn(
-                              "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm",
+                              "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm",
                               p.type === 'customer' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
                             )}>{p.type === 'customer' ? 'عميل' : 'مورد'}</span>
                           </div>
@@ -287,7 +287,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({ isOpen, onClose, type
 
           {/* Reference & Info Section */}
           <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-6 flex-1 h-full">
+            <div className="bg-[var(--app-surface)] p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-6 flex-1 h-full">
               <div className="flex items-center gap-2 mb-2">
                 <div className="p-1 px-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] font-black rounded-lg uppercase tracking-tighter">بيانات إضافية</div>
               </div>

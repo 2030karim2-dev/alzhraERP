@@ -25,7 +25,7 @@ const ProductDetails: React.FC<Props> = ({ register }) => {
       </div>
 
       <div className="w-full">
-          <label className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 px-1 flex items-center gap-1.5">
+          <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 px-1 flex items-center gap-1.5">
              <AlignRight size={10} className="text-slate-400" /> {t('additional_specs')}
           </label>
           <textarea 

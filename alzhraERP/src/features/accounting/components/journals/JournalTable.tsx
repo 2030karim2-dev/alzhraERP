@@ -3,7 +3,8 @@ import { Filter, Search,  ArrowUpDown } from 'lucide-react';
 import { useJournals } from '../../hooks/useJournals';
 // import TableSkeleton from '../../../../ui/base/TableSkeleton';
 // import EmptyState from '../../../../ui/base/EmptyState';
-import JournalEntryRow from './JournalEntryRow';
+import JournalEntryRow, { TRANSACTION_TYPE_LABELS } from './JournalEntryRow';
+import { formatNumberDisplay } from '../../../../core/utils';
 // import Input from '../../../../ui/base/Input';
 import { UIJournalEntry, UIJournalLine } from '../../types/models';
 
@@ -95,7 +96,7 @@ const JournalTable: React.FC = () => {
 
             {/* Journals Table */}
             <div className="bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="hidden md:block overflow-x-auto scroll-x-hint-surface">
                     <table className="w-full text-sm border-collapse">
                         <thead className="bg-[var(--app-surface-hover)] text-[var(--app-text)] font-bold sticky top-0 z-10 shadow-sm">
                             <tr>
@@ -125,6 +126,64 @@ const JournalTable: React.FC = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Cards — بديل الجدول على الهاتف */}
+                <div className="md:hidden">
+                    {filteredJournals.length === 0 ? (
+                        <div className="p-6 m-2 text-center text-sm text-[var(--app-text-secondary)] border-2 border-dashed border-[var(--app-border)] rounded-2xl">
+                            <Filter className="mx-auto mb-2 opacity-40" size={28} />
+                            <p>لا توجد قيود تطابق البحث</p>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-[var(--app-border)]">
+                            {filteredJournals.map((journal: UIJournalEntry) => {
+                                const totalDebit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.debit_amount || 0), 0);
+                                const totalCredit = (journal.journal_entry_lines || []).reduce((s: number, l: UIJournalLine) => s + (l.credit_amount || 0), 0);
+                                const statusMeta = journal.status === 'posted'
+                                    ? { label: 'مرحل', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' }
+                                    : journal.status === 'void'
+                                        ? { label: 'ملغى', cls: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' }
+                                        : { label: 'مسودة', cls: 'bg-slate-500/10 text-[var(--app-text-secondary)]' };
+                                return (
+                                    <div key={journal.id} className="p-3 space-y-2">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-[var(--app-text)] line-clamp-2">{journal.description}</p>
+                                                {journal.party_name && (
+                                                    <p className="text-[11px] text-[var(--app-text-secondary)] mt-0.5">{journal.party_name}</p>
+                                                )}
+                                            </div>
+                                            <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${statusMeta.cls}`}>
+                                                {statusMeta.label}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--app-text-secondary)]">
+                                            <span className="font-mono font-bold text-blue-700 dark:text-blue-400" dir="ltr">#{journal.entry_number}</span>
+                                            <span>{journal.entry_date}</span>
+                                            <span className="font-bold text-[var(--app-text)]">
+                                                {journal.reference_type ? (TRANSACTION_TYPE_LABELS[journal.reference_type] || journal.reference_type) : 'يدوي'}
+                                            </span>
+                                            <span className="truncate max-w-[120px]" title={journal.created_by_profile?.full_name || 'System'}>
+                                                {journal.created_by_profile?.full_name || 'System'}
+                                            </span>
+                                            <span>{(journal.journal_entry_lines || []).length} سطور</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 pt-1.5 border-t border-[var(--app-border)]">
+                                            <div className="flex-1 rounded-lg bg-emerald-500/5 px-2 py-1.5">
+                                                <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">مدين</p>
+                                                <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400" dir="ltr">{formatNumberDisplay(totalDebit)}</p>
+                                            </div>
+                                            <div className="flex-1 rounded-lg bg-rose-500/5 px-2 py-1.5">
+                                                <p className="text-[10px] font-bold text-red-700 dark:text-red-400">دائن</p>
+                                                <p className="text-xs font-mono font-bold text-red-700 dark:text-red-400" dir="ltr">{formatNumberDisplay(totalCredit)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {hasNextPage && (

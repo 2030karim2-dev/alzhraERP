@@ -45,7 +45,7 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
           </div>
           <div className="min-w-0">
             <h3 className="text-[11px] font-bold text-[var(--app-text)] leading-none truncate uppercase tracking-tight">{title}</h3>
-            <p className="text-[9px] text-[var(--app-text-secondary)] font-medium mt-1 tracking-tighter truncate">{subtitle}</p>
+            <p className="text-[10px] text-[var(--app-text-secondary)] font-medium mt-1 tracking-tighter truncate">{subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -59,7 +59,7 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
           {tags && (
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               {tags.map((tag, i) => (
-                <span key={i} className={cn("px-2 py-0.5 rounded-lg text-[7px] font-semibold uppercase tracking-widest border", tagColors[tag.color])}>
+                <span key={i} className={cn("px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase tracking-widest border", tagColors[tag.color])}>
                   {tag.label}
                 </span>
               ))}
@@ -70,7 +70,7 @@ const MicroListItem: React.FC<Props> = ({ icon: Icon, iconColorClass, title, sub
               <div className="w-full bg-[var(--app-border)] h-1 rounded-full overflow-hidden">
                 <div className={cn("h-full transition-all", iconColorClass.replace('text-', 'bg-'))} style={{ width: `${progress}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-[var(--app-text-secondary)] font-mono">{progress}%</span>
+              <span className="text-[10px] font-bold text-[var(--app-text-secondary)] font-mono">{progress}%</span>
             </div>
           )}
         </div>

@@ -77,15 +77,15 @@ const ExchangeRateHistory: React.FC = () => {
 
     if (rates.isLoading) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 p-8 max-md:p-4 text-center">
+            <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 p-8 max-md:p-4 text-center">
                 <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-[9px] font-bold text-gray-400 mt-2">جاري تحميل السجل...</p>
+                <p className="text-[10px] font-bold text-gray-400 mt-2">جاري تحميل السجل...</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-[var(--app-surface)] rounded-2xl border-2 border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* Header */}
             <div className="p-4 max-md:p-4 md:p-5 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 max-md:gap-3">
                 <div className="flex items-center gap-2 max-md:gap-2.5">
@@ -96,7 +96,7 @@ const ExchangeRateHistory: React.FC = () => {
                         <h3 className="text-xs md:text-sm font-bold text-gray-800 dark:text-slate-100 uppercase tracking-tight">
                             سجل أسعار الصرف التاريخي
                         </h3>
-                        <p className="text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 mt-0.5">
+                        <p className="text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 mt-0.5">
                             {filteredRates.length} سجل — آخر تحديث {filteredRates[0] ? formatDate(filteredRates[0].effective_date) : '—'}
                         </p>
                     </div>
@@ -127,7 +127,7 @@ const ExchangeRateHistory: React.FC = () => {
                     <p className="text-xs font-bold text-gray-400 dark:text-slate-500">
                         لا يوجد سجل لأسعار الصرف بعد
                     </p>
-                    <p className="text-[9px] text-gray-300 dark:text-slate-600 mt-1">
+                    <p className="text-[10px] text-gray-300 dark:text-slate-600 mt-1">
                         قم بتحديث سعر صرف من تبويب "تعدد العملات" وسيظهر هنا تلقائياً
                     </p>
                 </div>
@@ -136,11 +136,11 @@ const ExchangeRateHistory: React.FC = () => {
                     <table className="w-full">
                         <thead>
                             <tr className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800">
-                                <th className="text-right px-4 py-2.5 text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">#</th>
-                                <th className="text-right px-4 py-2.5 text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">العملة</th>
-                                <th className="text-right px-4 py-2.5 text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">السعر</th>
-                                <th className="text-right px-4 py-2.5 text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">التغيير</th>
-                                <th className="text-right px-4 py-2.5 text-[8px] md:text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">التاريخ</th>
+                                <th className="text-right px-4 py-2.5 text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">#</th>
+                                <th className="text-right px-4 py-2.5 text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">العملة</th>
+                                <th className="text-right px-4 py-2.5 text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">السعر</th>
+                                <th className="text-right px-4 py-2.5 text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">التغيير</th>
+                                <th className="text-right px-4 py-2.5 text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">التاريخ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -155,13 +155,13 @@ const ExchangeRateHistory: React.FC = () => {
                                             index === 0 && "bg-blue-50/30 dark:bg-blue-900/10"
                                         )}
                                     >
-                                        <td className="px-4 py-3 text-[9px] md:text-[10px] font-bold text-gray-300 dark:text-slate-600">
+                                        <td className="px-4 py-3 text-[10px] md:text-[10px] font-bold text-gray-300 dark:text-slate-600">
                                             {filteredRates.length - index}
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className="inline-flex items-center gap-1 max-md:gap-1.5 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
                                                 <ArrowLeftRight size={10} className="text-gray-400" />
-                                                <span className="text-[9px] md:text-[10px] font-bold text-gray-700 dark:text-slate-200">
+                                                <span className="text-[10px] md:text-[10px] font-bold text-gray-700 dark:text-slate-200">
                                                     {rate.currency_code}
                                                 </span>
                                             </span>
@@ -178,14 +178,14 @@ const ExchangeRateHistory: React.FC = () => {
                                                 {trend === 'same' && <Minus size={12} className="text-gray-300" />}
                                                 {change && (
                                                     <span className={cn(
-                                                        "text-[9px] md:text-[10px] font-bold tabular-nums",
+                                                        "text-[10px] md:text-[10px] font-bold tabular-nums",
                                                         trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-red-600' : 'text-gray-400'
                                                     )}>
                                                         {trend === 'up' ? '+' : ''}{change}%
                                                     </span>
                                                 )}
                                                 {!change && (
-                                                    <span className="text-[9px] text-gray-300 dark:text-slate-600">—</span>
+                                                    <span className="text-[10px] text-gray-300 dark:text-slate-600">—</span>
                                                 )}
                                             </div>
                                         </td>
@@ -193,10 +193,10 @@ const ExchangeRateHistory: React.FC = () => {
                                             <div className="flex items-center gap-1 max-md:gap-1.5">
                                                 <Calendar size={10} className="text-gray-300 dark:text-slate-600" />
                                                 <div>
-                                                    <span className="text-[9px] md:text-[10px] font-bold text-gray-600 dark:text-slate-300 block">
+                                                    <span className="text-[10px] md:text-[10px] font-bold text-gray-600 dark:text-slate-300 block">
                                                         {formatDate(rate.effective_date)}
                                                     </span>
-                                                    <span className="text-[7px] md:text-[8px] text-gray-300 dark:text-slate-600">
+                                                    <span className="text-[10px] md:text-[10px] text-gray-300 dark:text-slate-600">
                                                         {formatTime(rate.effective_date)}
                                                     </span>
                                                 </div>

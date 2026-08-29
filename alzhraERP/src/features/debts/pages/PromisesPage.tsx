@@ -81,7 +81,7 @@ const PromisesPage: React.FC = () => {
           لا توجد وعود في هذا التصنيف
         </div>
       ) : (
-        <div className="overflow-x-auto bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
+        <div className="hidden md:block overflow-x-auto bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
           <table className="w-full text-right">
             <thead>
               <tr className="text-[10px] font-bold text-[var(--app-text-secondary)] border-b border-[var(--app-border)] bg-[var(--app-surface-hover)]/50">
@@ -169,6 +169,73 @@ const PromisesPage: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Mobile Cards — بديل الجدول على الهاتف */}
+      <div className="md:hidden space-y-2.5">
+        {filtered.map((p) => {
+          const meta = PROMISE_STATUS_META[p.status as PromiseStatus] ?? PROMISE_STATUS_META.pending;
+          return (
+            <div key={p.id} className="bg-[var(--app-surface)] rounded-xl border border-[var(--app-border)] shadow-sm p-3 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[var(--app-text)] truncate">{p.parties?.name ?? '—'}</p>
+                  <p className="text-[11px] font-mono text-[var(--app-text-secondary)]" dir="ltr">{p.promise_date}</p>
+                </div>
+                <StatusBadge {...meta} />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-bold font-mono text-[var(--app-text)]" dir="ltr">
+                  {formatCurrency(Number(p.amount), p.currency_code)}
+                </span>
+                {showManage && (
+                  <div className="flex items-center gap-1.5">
+                    {p.status === 'pending' && (
+                      <button
+                        onClick={() => {
+                          const confirmed = window.confirm(
+                            'سيتم إتمام الوعد بدون ربط سند قبض. هل المبلغ مسدَّد فعلياً؟'
+                          );
+                          if (confirmed) completePromise({ promiseId: p.id });
+                        }}
+                        title="إتمام الوعد (تم السداد)"
+                        className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all active:scale-90"
+                      >
+                        <CheckCircle2 size={16} />
+                      </button>
+                    )}
+                    {p.status === 'pending' && (
+                      <button
+                        onClick={() => {
+                          setEditingPromise(p);
+                          setIsModalOpen(true);
+                        }}
+                        title="تعديل"
+                        className="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white transition-all active:scale-90"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (window.confirm('هل تريد حذف هذا الوعد نهائياً؟')) deletePromise(p.id);
+                      }}
+                      title="حذف"
+                      className="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white transition-all active:scale-90"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
+              {p.notes && (
+                <p className="text-[11px] text-[var(--app-text-secondary)] line-clamp-2 pt-2 border-t border-[var(--app-border)]">
+                  {p.notes}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <PromiseFormModal
         isOpen={isModalOpen}

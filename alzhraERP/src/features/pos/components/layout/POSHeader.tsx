@@ -72,7 +72,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
             >
                 <PauseCircle size={18} />
                 {suspendedOrdersCount > 0 && (
-                    <span className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-rose-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg">
+                    <span className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-rose-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg">
                         {suspendedOrdersCount}
                     </span>
                 )}
@@ -168,7 +168,7 @@ export const POSHeader: React.FC<POSHeaderProps> = React.memo(({
                                             <div className="flex flex-col">
                                                 <span>{wh.name_ar}</span>
                                                 {wh.branches?.name && (
-                                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">{wh.branches.name}</span>
+                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">{wh.branches.name}</span>
                                                 )}
                                             </div>
                                             {selectedWarehouseId === wh.id && <Building2 size={14} className="text-indigo-500" />}

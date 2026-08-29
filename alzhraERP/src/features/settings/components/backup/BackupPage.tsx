@@ -52,17 +52,17 @@ const BackupPage: React.FC = () => {
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-md:gap-4 mt-8">
                             <div className="bg-white/5 backdrop-blur-md p-4 max-md:p-4 rounded-3xl border border-white/10 group hover:border-blue-500/30 transition-colors">
-                                <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">إجمالي السجلات</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">إجمالي السجلات</span>
                                 <span dir="ltr" className="text-2xl max-md:text-lg font-bold font-mono text-blue-400 leading-none">{stats.totalRecords.toLocaleString('en-US')}</span>
                             </div>
                             <div className="bg-white/5 backdrop-blur-md p-4 max-md:p-4 rounded-3xl border border-white/10 group hover:border-blue-500/30 transition-colors">
-                                <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">آخر فحص للنظام</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">آخر فحص للنظام</span>
                                 <span dir="ltr" className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 max-md:gap-1.5 mt-1">
                                     <CheckCircle2 size={12} /> SECURE
                                 </span>
                             </div>
                             <div className="hidden sm:block bg-white/5 backdrop-blur-md p-4 max-md:p-4 rounded-3xl border border-white/10 group hover:border-blue-500/30 transition-colors">
-                                <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">المساحة المستهلكة</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">المساحة المستهلكة</span>
                                 <span dir="ltr" className="text-[10px] font-bold text-white/80 mt-1 uppercase">{stats.spaceUsed} / {stats.spaceLimit}</span>
                             </div>
                         </div>
@@ -74,7 +74,7 @@ const BackupPage: React.FC = () => {
                 </div>
 
                 {/* Real-time Sync Status Card */}
-                <div className="lg:w-80 bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 rounded-[2.5rem] p-6 max-md:p-3 flex flex-col justify-between gap-6 max-md:gap-3 shadow-sm">
+                <div className="lg:w-80 bg-[var(--app-surface)] border-2 border-gray-100 dark:border-slate-800 rounded-[2.5rem] p-6 max-md:p-3 flex flex-col justify-between gap-6 max-md:gap-3 shadow-sm">
                     <div>
                         <div className="flex items-center gap-2 max-md:gap-2 mb-4">
                             <CloudSync size={18} className="text-blue-500 animate-spin-slow" />
@@ -98,7 +98,7 @@ const BackupPage: React.FC = () => {
                         <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">تكوين النسخ التلقائي (Automation)</h3>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 p-8 max-md:p-4 shadow-sm space-y-8">
+                    <div className="bg-[var(--app-surface)] rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 p-8 max-md:p-4 shadow-sm space-y-8">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4 max-md:gap-4">
                                 <div className={cn(
@@ -134,7 +134,7 @@ const BackupPage: React.FC = () => {
                                             key={freq}
                                             onClick={() => setAutoConfig({ ...autoConfig, frequency: freq })}
                                             className={cn(
-                                                "flex-1 py-2 rounded-xl text-[9px] font-bold uppercase transition-all",
+                                                "flex-1 py-2 rounded-xl text-[10px] font-bold uppercase transition-all",
                                                 autoConfig.frequency === freq
                                                     ? "bg-white dark:bg-slate-800 text-blue-600 shadow-sm border dark:border-slate-700"
                                                     : "text-gray-400 hover:text-gray-600"
@@ -186,47 +186,47 @@ const BackupPage: React.FC = () => {
                         <button
                             onClick={handleExport}
                             disabled={isExporting || isExportingToDrive}
-                            className="w-full group bg-white dark:bg-slate-900 p-6 max-md:p-3 rounded-[2rem] border-2 border-gray-100 dark:border-slate-800 hover:border-emerald-500/30 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
+                            className="w-full group bg-[var(--app-surface)] p-6 max-md:p-3 rounded-[2rem] border-2 border-gray-100 dark:border-slate-800 hover:border-emerald-500/30 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
                         >
                             <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 border border-emerald-100 dark:border-emerald-900/30">
                                 {isExporting ? <Zap size={24} className="animate-pulse" /> : <Download size={24} />}
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100">تنزيل نسخة للملفات</h4>
-                                <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase leading-none">Download JSON Archive</p>
+                                <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase leading-none">Download JSON Archive</p>
                             </div>
                         </button>
 
                         <button
                             onClick={handleDriveExport}
                             disabled={isExporting || isExportingToDrive}
-                            className="w-full group bg-white dark:bg-slate-900 p-6 max-md:p-3 rounded-[2rem] border-2 border-gray-100 dark:border-slate-800 hover:border-blue-500/30 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
+                            className="w-full group bg-[var(--app-surface)] p-6 max-md:p-3 rounded-[2rem] border-2 border-gray-100 dark:border-slate-800 hover:border-blue-500/30 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
                         >
                             <div className="w-14 h-14 bg-blue-50 dark:bg-blue-950/30 text-blue-600 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 border border-blue-100 dark:border-blue-900/30">
                                 {isExportingToDrive ? <CloudSync size={24} className="animate-pulse" /> : <CloudUpload size={24} />}
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100">رفع إلى Google Drive</h4>
-                                <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase leading-none">Upload Directly to Drive</p>
+                                <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase leading-none">Upload Directly to Drive</p>
                             </div>
                         </button>
 
                         <button
                             onClick={handleImportClick}
-                            className="w-full group bg-white dark:bg-slate-900 p-6 max-md:p-3 rounded-[2rem] border-2 border-dashed border-rose-200 dark:border-rose-900/30 hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
+                            className="w-full group bg-[var(--app-surface)] p-6 max-md:p-3 rounded-[2rem] border-2 border-dashed border-rose-200 dark:border-rose-900/30 hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-all flex items-center gap-5 max-md:gap-5 text-right shadow-sm active:scale-[0.98]"
                         >
                             <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/30 text-rose-500 rounded-3xl flex items-center justify-center group-hover:rotate-12 transition-transform shrink-0 border border-rose-100 dark:border-rose-900/30">
                                 <Upload size={24} />
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-rose-600 dark:text-rose-400">استعادة البيانات</h4>
-                                <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase leading-none">Restore System from File</p>
+                                <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase leading-none">Restore System from File</p>
                             </div>
                         </button>
 
                         <div className="bg-rose-50 dark:bg-rose-950/20 p-5 max-md:p-5 rounded-[2rem] border border-rose-100 dark:border-rose-900/30 flex gap-4 max-md:gap-4">
                             <AlertTriangle size={24} className="text-rose-500 shrink-0 mt-0.5" />
-                            <p className="text-[9px] font-bold text-rose-800 dark:text-rose-400 leading-relaxed uppercase tracking-tighter">
+                            <p className="text-[10px] font-bold text-rose-800 dark:text-rose-400 leading-relaxed uppercase tracking-tighter">
                                 تحذير: استعادة البيانات ستحل محل كافة السجلات الحالية. تأكد من أنك تملك أحدث نسخة احتياطية قبل البدء.
                             </p>
                         </div>
@@ -235,7 +235,7 @@ const BackupPage: React.FC = () => {
             </div>
 
             {/* Operation Log Footer */}
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+            <div className="bg-[var(--app-surface)] rounded-[2.5rem] border-2 border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
                 <div className="p-5 max-md:p-5 bg-gray-50/80 dark:bg-slate-800/80 border-b dark:border-slate-800 flex justify-between items-center px-8">
                     <div className="flex items-center gap-2 max-md:gap-2">
                         <History size={16} className="text-gray-400" />
@@ -243,7 +243,7 @@ const BackupPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 max-md:gap-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Logger Online</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Logger Online</span>
                     </div>
                 </div>
                 <div className="divide-y dark:divide-slate-800 min-h-[100px] flex flex-col">
@@ -257,7 +257,7 @@ const BackupPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-bold text-gray-700 dark:text-slate-200 uppercase tracking-tight">{log.action}</p>
-                                        <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase">{log.time}</p>
+                                        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">{log.time}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-8 max-md:gap-3">
@@ -270,7 +270,7 @@ const BackupPage: React.FC = () => {
                                     )}>
                                         {log.status === 'Success' ? <CheckCircle2 size={10} className="text-emerald-500" /> : <XCircle size={10} className="text-rose-500" />}
                                         <span className={cn(
-                                            "text-[8px] font-bold uppercase tracking-tighter",
+                                            "text-[10px] font-bold uppercase tracking-tighter",
                                             log.status === 'Success' ? "text-emerald-600" : "text-rose-600"
                                         )}>{log.status === 'Success' ? 'Success' : 'Failed'}</span>
                                     </div>
@@ -281,7 +281,7 @@ const BackupPage: React.FC = () => {
                         <div className="flex-1 flex flex-col items-center justify-center p-12 max-md:p-5 text-center opacity-40">
                             <Info size={32} className="mb-2" />
                             <p className="text-[10px] font-bold uppercase tracking-widest">لا توجد سجلات حالية</p>
-                            <p className="text-[8px] font-bold uppercase mt-1">No Activity Logged Yet</p>
+                            <p className="text-[10px] font-bold uppercase mt-1">No Activity Logged Yet</p>
                         </div>
                     )}
                 </div>

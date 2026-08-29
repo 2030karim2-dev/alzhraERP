@@ -17,7 +17,7 @@ const HistorySection: React.FC<Props> = ({ productId }) => {
                 <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
                     <List size={12} className="text-blue-500" /> سجل الحركة (Movement Log)
                 </h4>
-                <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 border border-blue-100 dark:border-blue-800">
+                <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 border border-blue-100 dark:border-blue-800">
                     آخر {movements?.length || 0} حركة
                 </div>
             </div>
@@ -62,7 +62,7 @@ const HistorySection: React.FC<Props> = ({ productId }) => {
                                                 <div className="text-[11px] font-bold text-slate-900 dark:text-white uppercase font-mono">
                                                     {mov.document_number}
                                                 </div>
-                                                <div className="text-[9px] text-slate-400 font-bold uppercase">
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase">
                                                     {mov.reference_type === 'transfer' ? 'تحويل مخزني' : mov.reference_type === 'audit' ? 'جرد سنوي' : mov.transaction_type === 'in' ? 'توريد / شراء' : 'صرف / بيع'}
                                                 </div>
                                             </div>
@@ -74,7 +74,7 @@ const HistorySection: React.FC<Props> = ({ productId }) => {
                                         <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300 capitalize">
                                             {mov.source_name || '---'}
                                         </div>
-                                        <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold mt-0.5">
+                                        <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold mt-0.5">
                                             <User size={8} /> {mov.source_user?.split('@')[0]}
                                         </div>
                                     </td>
@@ -84,7 +84,7 @@ const HistorySection: React.FC<Props> = ({ productId }) => {
                                         <div className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">
                                             {new Date(mov.date).toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                         </div>
-                                        <div className="text-[9px] font-mono text-slate-400">
+                                        <div className="text-[10px] font-mono text-slate-400">
                                             {new Date(mov.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                     </td>
@@ -115,7 +115,7 @@ const HistorySection: React.FC<Props> = ({ productId }) => {
             {/* Optional Small Notes Footer if movement has notes */}
             {movements?.some((m: any) => m.notes) && (
                 <div className="px-4 py-1.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
-                    <p className="text-[9px] text-slate-400 italic">ملاحظة: تظهر الملاحظات التفصيلية عند الوقوف على الصف في الأنظمة المتقدمة.</p>
+                    <p className="text-[10px] text-slate-400 italic">ملاحظة: تظهر الملاحظات التفصيلية عند الوقوف على الصف في الأنظمة المتقدمة.</p>
                 </div>
             )}
         </div>

@@ -179,10 +179,10 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
                                     <FileSpreadsheet className="text-blue-600" size={20} />
                                     <div>
                                         <h4 className="text-xs font-bold text-blue-800 dark:text-blue-300">نموذج الإدخال</h4>
-                                        <p className="text-[9px] font-bold text-blue-600/70 dark:text-blue-400/60">قم بتحميل القالب لتعبئة بياناتك بشكل صحيح</p>
+                                        <p className="text-[10px] font-bold text-blue-600/70 dark:text-blue-400/60">قم بتحميل القالب لتعبئة بياناتك بشكل صحيح</p>
                                     </div>
                                 </div>
-                                <button onClick={downloadTemplate} className="flex items-center gap-1 text-[9px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-blue-100 dark:border-blue-900 hover:text-blue-600 transition-colors">
+                                <button onClick={downloadTemplate} className="flex items-center gap-1 text-[10px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-blue-100 dark:border-blue-900 hover:text-blue-600 transition-colors">
                                     <Download size={12} /> تحميل
                                 </button>
                             </div>
@@ -246,7 +246,7 @@ const SmartImportModal: React.FC<Props> = ({ isOpen, onClose, onConfirm, mode })
                             </button>
                         </div>
 
-                        <div className="flex-1 border-2 border-gray-100 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900">
+                        <div className="flex-1 border-2 border-gray-100 dark:border-slate-800 rounded-2xl overflow-hidden bg-[var(--app-surface)]">
                             <ExcelTable
                                 columns={columns}
                                 data={extractedItems}

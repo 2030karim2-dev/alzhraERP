@@ -28,7 +28,7 @@ const StockDepletionAlert: React.FC<Props> = ({ products }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl border dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl border dark:border-slate-800 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
@@ -36,7 +36,7 @@ const StockDepletionAlert: React.FC<Props> = ({ products }) => {
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-gray-800 dark:text-white">التنبؤ بنفاد المخزون</h3>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Stock Depletion AI</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock Depletion AI</p>
                     </div>
                 </div>
                 <button

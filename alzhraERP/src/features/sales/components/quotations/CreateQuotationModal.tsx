@@ -112,7 +112,7 @@ const CreateQuotationModal: React.FC<Props> = ({ onClose, onSuccess, initialItem
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   
                   {isPartyDropdownOpen && partyQuery.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-indigo-500 shadow-2xl rounded-xl overflow-hidden overflow-y-auto max-h-48 custom-scrollbar">
+                    <div className="absolute z-50 w-full mt-1 bg-[var(--app-surface)] border border-indigo-500 shadow-2xl rounded-xl overflow-hidden overflow-y-auto max-h-48 custom-scrollbar">
                       {customersLoading ? (
                         <div className="p-3 text-center text-xs text-gray-400 animate-pulse">جاري التحميل...</div>
                       ) : filteredCustomers && filteredCustomers.length > 0 ? (

@@ -116,7 +116,7 @@ const AccountingPage: React.FC = () => {
         <div className="p-1.5 bg-blue-600 text-white rounded-md">
           <Calendar size={14} />
         </div>
-        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[9px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tight">
+        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[10px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tight">
           <div className="flex items-center gap-1.5">
             <span>{t('from_date')}:</span>
             <input
@@ -184,7 +184,7 @@ const AccountingPage: React.FC = () => {
 
       <div className={cn(
         "flex-1 overflow-hidden flex flex-col relative z-20",
-        isZenMode ? "bg-white dark:bg-slate-900" : ""
+        isZenMode ? "bg-[var(--app-surface)]" : ""
       )}>
         <Suspense fallback={<PageLoader />}>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 max-md:p-1 md:p-4 pt-3 max-md:pt-1.5 md:pt-6 print-area animate-in slide-in-from-bottom-4 duration-500">

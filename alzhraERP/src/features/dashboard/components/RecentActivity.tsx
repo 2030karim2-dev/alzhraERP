@@ -20,7 +20,7 @@ const RecentActivity: React.FC<Props> = ({ activities = [] }) => {
   };
 
   return (
-    <div className="bg-[var(--app-surface)] rounded-[2rem] border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 shadow-sm h-full">
+    <div className="bg-[var(--app-surface)] rounded-[2rem] border border-[var(--app-border)] p-5 max-md:p-3 shadow-sm h-full">
       <div className="flex items-center justify-between mb-6 max-md:mb-3">
         <h3 className="text-sm font-bold text-[var(--app-text)] flex items-center gap-2">
           <Clock size={16} className="text-[var(--app-text-secondary)]" />
@@ -46,7 +46,7 @@ const RecentActivity: React.FC<Props> = ({ activities = [] }) => {
                 <div className="flex justify-between items-start">
                   <h4 className="text-[11px] font-bold text-[var(--app-text)] group-hover:text-blue-600 transition-colors">{item.title}</h4>
                   {item.time && (
-                    <span className="text-[9px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA-u-nu-latn')}</span>
+                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)] font-mono" dir="ltr">{new Date(item.time).toLocaleDateString('ar-SA-u-nu-latn')}</span>
                   )}
                 </div>
                 {item.desc && (

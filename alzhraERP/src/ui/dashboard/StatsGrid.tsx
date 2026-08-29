@@ -184,7 +184,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
                 <div className={cn("absolute -left-10 -bottom-10 w-24 h-24 rounded-full blur-[30px]", item.colorClass.replace('text-', 'bg-'))}></div>
               </div>
 
-              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-3 max-md:gap-2">
+              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-2">
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col">
@@ -192,7 +192,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
                       {item.title}
                     </span>
                     {item.subtitle && (
-                      <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">
+                      <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
                         {item.subtitle}
                       </span>
                     )}
@@ -218,7 +218,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
                 <div className="flex items-center justify-between mt-2">
                   {trend ? (
                     <div className={cn(
-                      "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-semibold border backdrop-blur-md",
+                      "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold border backdrop-blur-md",
                       trend.isPositive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                     )}>
                       {trend.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}

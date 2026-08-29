@@ -153,7 +153,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     <>
       <div className="max-w-none mx-auto space-y-3 animate-in fade-in duration-500 pt-2 pb-24">
         {/* [FIX #4] printRef يستهدف محتوى الفاتورة فقط */}
-        <div className="bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
+        <div className="bg-[var(--app-surface)] border-2 border-gray-100 dark:border-slate-800 shadow-2xl rounded-none flex flex-col overflow-hidden">
           {comp && <InvoiceHeader company={comp} />}
           <InvoiceMeta invoiceNumber={nextInvoiceNumber as string} />
           <InteractiveInvoiceTable />

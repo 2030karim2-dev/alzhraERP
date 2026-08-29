@@ -17,7 +17,7 @@ interface TopProductRow {
 
 export const TopProductsTable: React.FC<TopProductsTableProps> = ({ data }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-2 overflow-hidden flex flex-col">
+        <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-2 overflow-hidden flex flex-col">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                 <div>
                     <h3 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">

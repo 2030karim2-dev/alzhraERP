@@ -25,7 +25,7 @@ export const RFQsTab: React.FC<RFQsTabProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm p-4 space-y-3">
+    <div className="bg-[var(--app-surface)] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm p-4 space-y-3">
       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
           طلبات التسعير الحالية (RFQs)

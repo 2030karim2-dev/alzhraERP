@@ -158,7 +158,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="bg-white dark:bg-slate-900 w-full max-w-xl max-h-[92vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-[var(--app-surface)] w-full max-w-xl max-h-[92vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         dir="rtl"
       >
         {/* Header */}
@@ -267,7 +267,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({
                       <span className="text-[11px] font-extrabold block text-gray-900 dark:text-slate-100">
                         {t.label}
                       </span>
-                      <span className="text-[9px] text-gray-400 dark:text-slate-500 block leading-tight mt-0.5">
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500 block leading-tight mt-0.5">
                         {t.desc}
                       </span>
                     </div>

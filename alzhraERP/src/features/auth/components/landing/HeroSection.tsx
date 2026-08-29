@@ -201,7 +201,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ scrollToRegister, scrollToFea
                     <span className="truncate text-[10px] font-bold">{label}</span>
                   </div>
                   <div className="mt-0.5 truncate text-[10px] font-black sm:text-xs">{value}</div>
-                  <div className="truncate text-[9px] opacity-75">{meta}</div>
+                  <div className="truncate text-[10px] opacity-75">{meta}</div>
                 </div>
               ))}
             </div>

@@ -142,7 +142,7 @@ const SalesAnalyticsView: React.FC = () => {
                         {t('track_sales_performance')}
                     </p>
                 </div>
-                <div className="flex flex-wrap gap-1 max-md:gap-1 sm:gap-2 bg-white dark:bg-slate-900 p-1 max-md:p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-wrap gap-1 max-md:gap-1 sm:gap-2 bg-[var(--app-surface)] p-1 max-md:p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                     {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(renderPeriodButton)}
                 </div>
             </div>

@@ -56,7 +56,7 @@ const AlternativePartSuggestion: React.FC<AlternativePartSuggestionProps> = ({
               <p className="text-xs font-bold text-[var(--app-text)] truncate">{alt.name}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[10px] font-mono text-[var(--app-text-secondary)]">{alt.partNumber}</span>
-                <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded', qualityColors[alt.quality])}>
+                <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', qualityColors[alt.quality])}>
                   {qualityLabels[alt.quality]}
                 </span>
               </div>

@@ -10,7 +10,7 @@ export const SettingField: React.FC<{
     half?: boolean;
 }> = ({ label, type = 'text', value, onChange, placeholder, dir }) => (
     <div>
-        <label className="block text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">{label}</label>
+        <label className="block text-[10px] md:text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">{label}</label>
         <input
             type={type}
             value={value}

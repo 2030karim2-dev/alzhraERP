@@ -9,7 +9,7 @@ const DiscountSettings: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Discount Toggle */}
-            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900/50 shadow-sm">
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700/50 bg-[var(--app-surface)]/50 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">

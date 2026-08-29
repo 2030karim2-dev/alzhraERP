@@ -48,7 +48,7 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
 
     if (filteredFields.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
+            <div className="flex flex-col items-center justify-center py-16 bg-[var(--app-surface)] rounded-xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
                 <Clock size={32} className="text-gray-300 dark:text-slate-600 mb-3" strokeWidth={1.5} />
                 <p className="text-sm font-bold text-gray-500 dark:text-slate-500">لا توجد أصناف مطابقة</p>
                 <p className="text-xs text-gray-400 dark:text-slate-600 mt-1">جرّب تغيير فلتر البحث أو الفئة</p>
@@ -57,20 +57,20 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden rounded-xl">
+        <div className="bg-[var(--app-surface)] border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden rounded-xl">
             <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-right text-xs border-collapse">
                     <thead className="bg-slate-800 dark:bg-slate-900 text-white font-bold border-b-2 border-slate-700 uppercase tracking-wider sticky top-0 z-10">
                         <tr>
-                            <th className="p-2 sm:p-3 w-8 sm:w-10 text-center border-l border-slate-700 text-[9px] sm:text-xs">#</th>
-                            <th className="p-2 sm:p-3 border-l border-slate-700 min-w-[120px] sm:min-w-[180px] text-[9px] sm:text-xs">الصنف</th>
+                            <th className="p-2 sm:p-3 w-8 sm:w-10 text-center border-l border-slate-700 text-[10px] sm:text-xs">#</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 min-w-[120px] sm:min-w-[180px] text-[10px] sm:text-xs">الصنف</th>
                             <th className="p-3 border-l border-slate-700 w-28 text-center hidden md:table-cell">رقم القطعة</th>
-                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[9px] sm:text-xs">المقاس</th>
-                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[9px] sm:text-xs">الفئة</th>
-                            <th className="p-2 sm:p-3 border-l border-slate-700 w-16 sm:w-28 text-center bg-blue-900/30 text-[9px] sm:text-xs">دفتر</th>
-                            <th className="p-2 sm:p-3 border-l border-slate-700 w-24 sm:w-36 text-center bg-emerald-900/30 text-emerald-300 text-[9px] sm:text-xs">فعل ✏️</th>
-                            <th className="p-2 sm:p-3 text-center w-16 sm:w-24 border-l border-slate-700 text-[9px] sm:text-xs">الفرق</th>
-                            {showActions && <th className="p-2 sm:p-3 text-center w-8 sm:w-12 text-[9px] sm:text-xs">X</th>}
+                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[10px] sm:text-xs">المقاس</th>
+                            <th className="p-3 border-l border-slate-700 w-20 text-center hidden lg:table-cell text-[10px] sm:text-xs">الفئة</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 w-16 sm:w-28 text-center bg-blue-900/30 text-[10px] sm:text-xs">دفتر</th>
+                            <th className="p-2 sm:p-3 border-l border-slate-700 w-24 sm:w-36 text-center bg-emerald-900/30 text-emerald-300 text-[10px] sm:text-xs">فعل ✏️</th>
+                            <th className="p-2 sm:p-3 text-center w-16 sm:w-24 border-l border-slate-700 text-[10px] sm:text-xs">الفرق</th>
+                            {showActions && <th className="p-2 sm:p-3 text-center w-8 sm:w-12 text-[10px] sm:text-xs">X</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y dark:divide-slate-800">
@@ -89,7 +89,7 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                         ? (diff > 0 ? "bg-emerald-50/40 dark:bg-emerald-900/10" : "bg-rose-50/40 dark:bg-rose-900/10")
                                         : (isCounted ? "hover:bg-gray-50/50 dark:hover:bg-slate-800/30" : "")
                                 )}>
-                                    <td className="p-2 sm:p-3 text-center font-mono text-gray-400 border-l dark:border-slate-800 text-[9px] sm:text-[10px]">{index + 1}</td>
+                                    <td className="p-2 sm:p-3 text-center font-mono text-gray-400 border-l dark:border-slate-800 text-[10px] sm:text-[10px]">{index + 1}</td>
                                     <td className="p-2 sm:p-3 border-l dark:border-slate-800 max-w-[140px] sm:max-w-none">
                                         <div className="flex items-center gap-1.5 sm:gap-2">
                                             {isCounted
@@ -100,19 +100,19 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                                 <p className="font-black text-gray-900 dark:text-slate-100 truncate text-[10px] sm:text-xs leading-tight">{product?.name_ar || product?.name}</p>
                                                 <div className="flex flex-wrap items-center gap-1 mt-0.5">
                                                     {product?.part_number && (
-                                                        <span className="text-[7px] sm:hidden font-mono font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 px-1 rounded uppercase tracking-tighter">
+                                                        <span className="text-[10px] sm:hidden font-mono font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 px-1 rounded uppercase tracking-tighter">
                                                             #{product.part_number}
                                                         </span>
                                                     )}
                                                     {product?.brand && (
-                                                        <span className="text-[7px] sm:text-[9px] font-bold text-blue-500 uppercase">{product.brand}</span>
+                                                        <span className="text-[10px] sm:text-[10px] font-bold text-blue-500 uppercase">{product.brand}</span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="p-3 text-center font-mono font-bold text-gray-600 dark:text-slate-400 border-l dark:border-slate-800 hidden md:table-cell">
-                                        <span className={cn(!product?.part_number && "text-gray-300 dark:text-slate-700 text-[9px] font-normal italic")}>
+                                        <span className={cn(!product?.part_number && "text-gray-300 dark:text-slate-700 text-[10px] font-normal italic")}>
                                             {product?.part_number || 'غير متوفر'}
                                         </span>
                                     </td>
@@ -120,7 +120,7 @@ const AuditItemsTable: React.FC<Props> = ({ items, register, filter, category, i
                                         {product?.size || '—'}
                                     </td>
                                     <td className="p-3 text-center border-l dark:border-slate-800 hidden lg:table-cell">
-                                        <span className="text-[9px] font-bold bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded-full">
+                                        <span className="text-[10px] font-bold bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded-full">
                                             {product?.category || 'عام'}
                                         </span>
                                     </td>

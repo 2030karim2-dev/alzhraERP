@@ -31,7 +31,7 @@ export const InvoiceCard: React.FC<Props> = ({ metadata }) => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs font-bold text-[var(--app-text)]">{invoiceNumber}</span>
-              <span className="rounded bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-600">
+              <span className="rounded bg-emerald-500/10 px-1.5 py-0.2 text-[10px] font-bold text-emerald-600">
                 {status}
               </span>
             </div>

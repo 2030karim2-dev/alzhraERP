@@ -22,12 +22,12 @@ const TransferStats: React.FC<TransferStatsProps> = ({ stats }) => {
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {statConfigs.map((s, i) => (
-                <div key={i} className="bg-white dark:bg-slate-900 rounded-lg border border-gray-50 dark:border-slate-800 p-2 flex items-center gap-2 shadow-sm">
+                <div key={i} className="bg-[var(--app-surface)] rounded-lg border border-gray-50 dark:border-slate-800 p-2 flex items-center gap-2 shadow-sm">
                     <div className={cn("p-1.5 rounded-md", s.color)}>
                         <s.icon size={14} />
                     </div>
                     <div>
-                        <span className="text-[7px] font-black text-gray-400 uppercase block tracking-tighter">{s.label}</span>
+                        <span className="text-[10px] font-black text-gray-400 uppercase block tracking-tighter">{s.label}</span>
                         <span className="text-sm font-black font-mono text-gray-800 dark:text-gray-100 leading-none">{s.value}</span>
                     </div>
                 </div>

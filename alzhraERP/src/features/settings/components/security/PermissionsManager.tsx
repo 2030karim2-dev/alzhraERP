@@ -31,7 +31,7 @@ const PermissionsManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
+    <div className="bg-[var(--app-surface)] rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
       {/* Header */}
       <div className="p-5 border-b dark:border-slate-800 flex flex-wrap justify-between items-center gap-4 bg-gray-50/50 dark:bg-slate-950/50">
         <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ const PermissionsManager: React.FC = () => {
                   >
                     <td className="p-3.5 font-bold text-gray-800 dark:text-slate-200">
                       <div>{perm.label}</div>
-                      <div className="text-[9px] font-mono text-gray-400 dark:text-slate-500 dir-ltr text-right mt-0.5">
+                      <div className="text-[10px] font-mono text-gray-400 dark:text-slate-500 dir-ltr text-right mt-0.5">
                         {perm.key}
                       </div>
                     </td>

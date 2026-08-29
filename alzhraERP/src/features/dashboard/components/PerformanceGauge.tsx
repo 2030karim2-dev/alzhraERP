@@ -81,7 +81,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
     if (value === 0 && target === 0) {
         return (
             <div className={cn(
-                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl flex items-center justify-center h-64",
+                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl flex items-center justify-center h-64",
                 className
             )}>
                 <div className="text-center">
@@ -94,7 +94,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
             className
         )}>
             {/* Header */}
@@ -178,13 +178,13 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
             {/* Stats */}
             <div className="grid grid-cols-2 gap-3 mt-4 max-md:mt-3">
                 <div className="text-center p-2 bg-white/5 border border-white/5 rounded-xl">
-                    <p className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase">المحقق</p>
+                    <p className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">المحقق</p>
                     <p className="text-sm font-bold text-[var(--app-text)] font-mono">
                         {displayValue}
                     </p>
                 </div>
                 <div className="text-center p-2 bg-white/5 border border-white/5 rounded-xl">
-                    <p className="text-[8px] font-bold text-[var(--app-text-secondary)] uppercase">الهدف</p>
+                    <p className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase">الهدف</p>
                     <p className="text-sm font-bold text-[var(--app-text)] font-mono">
                         {displayTarget}
                     </p>
@@ -199,7 +199,7 @@ const PerformanceGauge: React.FC<PerformanceGaugeProps> = ({
                         style={{ width: `${percentage}%`, backgroundColor: color }}
                     />
                 </div>
-                <p className="text-[9px] text-[var(--app-text-secondary)] text-center mt-1 font-medium">
+                <p className="text-[10px] text-[var(--app-text-secondary)] text-center mt-1 font-medium">
                     متبقي {displayRemaining} للوصول للهدف
                 </p>
             </div>

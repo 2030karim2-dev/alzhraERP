@@ -23,7 +23,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notif, onClick, onD
             className={`
         group relative p-4 md:p-5 cursor-pointer transition-all duration-300 ease-out
         hover:bg-gray-50 dark:hover:bg-slate-800/50
-        ${!notif.isRead ? 'bg-white dark:bg-slate-900' : 'bg-gray-50/50 dark:bg-slate-900/30'}
+        ${!notif.isRead ? 'bg-[var(--app-surface)]' : 'bg-gray-50/50 dark:bg-slate-900/30'}
       `}
             role="button"
             tabIndex={0}

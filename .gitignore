@@ -82,3 +82,7 @@ push-detached.ps1
 .pg/
 pg-test/
 
+# Playwright test artifacts (regenerated on every run)
+playwright-report/
+test-results/
+

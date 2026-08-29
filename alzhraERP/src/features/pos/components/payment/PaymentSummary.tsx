@@ -19,7 +19,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
         <div className="mx-4 mt-3 mb-1 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-1.5 mb-2">
                 <Info size={11} className="text-blue-500" />
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">ملخص الدفع</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ملخص الدفع</span>
             </div>
             <div className="space-y-1.5">
                 <div className="flex justify-between text-[10px]">

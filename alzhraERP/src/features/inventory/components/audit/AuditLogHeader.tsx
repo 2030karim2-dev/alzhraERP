@@ -60,14 +60,14 @@ const AuditLogHeader: React.FC<AuditLogHeaderProps> = ({
                         <p className={cn("font-black text-gray-900 dark:text-white font-mono leading-none", isMaximized ? "text-2xl" : "text-xs")}>
                             {formatNumberDisplay(selectedProduct.stock_quantity)}
                         </p>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">الرصيد الكلي الحالي</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">الرصيد الكلي الحالي</p>
                     </div>
                     <div className="h-8 w-px bg-gray-200 dark:bg-slate-800" />
                     <div className="text-right">
                         <p className={cn("font-black text-gray-900 dark:text-white font-mono leading-none", isMaximized ? "text-2xl" : "text-xs")}>
                             {log?.length || 0}
                         </p>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">إجمالي العمليات</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">إجمالي العمليات</p>
                     </div>
                 </div>
 

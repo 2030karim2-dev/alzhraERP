@@ -98,7 +98,7 @@ const VoiceInvoiceButton: React.FC = () => {
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleParse(textInput)}
-                        className="flex-1 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-slate-900 p-2 max-md:p-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500/30"
+                        className="flex-1 rounded-lg border border-violet-200 dark:border-violet-800 bg-[var(--app-surface)] p-2 max-md:p-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500/30"
                     />
                     <button onClick={() => handleParse(textInput)} className="p-2 max-md:p-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-500 transition-all">
                         <Send size={14} />
@@ -151,7 +151,7 @@ const VoiceInvoiceButton: React.FC = () => {
                     <span className="text-sm font-bold text-violet-700 dark:text-violet-400">الإجمالي: {formatCurrency(total)}</span>
                 </div>
 
-                <p className="text-[9px] text-gray-400 text-center">يمكنك استخدام هذه البيانات لإنشاء فاتورة جديدة</p>
+                <p className="text-[10px] text-gray-400 text-center">يمكنك استخدام هذه البيانات لإنشاء فاتورة جديدة</p>
             </div>
         );
     }

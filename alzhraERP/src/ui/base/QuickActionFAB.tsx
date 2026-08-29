@@ -32,7 +32,7 @@ const QuickActionFAB: React.FC = () => {
       )}
 
       {/* Action Buttons */}
-      <div className="fixed bottom-24 right-4 z-[95] flex flex-col-reverse items-end gap-2 md:hidden">
+      <div className="fixed bottom-[calc(6rem_+_env(safe-area-inset-bottom))] right-4 z-[95] flex flex-col-reverse items-end gap-2 md:hidden">
         {actions.map((action, idx) => (
           <button
             key={action.label}

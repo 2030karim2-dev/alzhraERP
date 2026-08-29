@@ -45,10 +45,10 @@ const InteractivePurchaseTable: React.FC = () => {
 
     // ── Render ─────────────────────────────────────────────────
     return (
-        <div className="flex flex-col border-y-2 max-md:border-y border-blue-600 bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="flex flex-col border-y-2 max-md:border-y border-blue-600 bg-[var(--app-surface)] overflow-hidden">
             <PurchaseTableToolbar discountEnabled={discountEnabled} showDiscount={showDiscount} onToggleDiscount={() => { toggleColumn('showDiscount'); }} />
 
-            <div className="overflow-x-auto custom-scrollbar max-md:-mx-0.5">
+            <div className="overflow-x-auto custom-scrollbar scroll-x-hint-solid max-md:-mx-0.5">
                 <table ref={tableRef} className="w-full border-collapse table-fixed min-w-[860px] max-md:min-w-[540px]">
                     <PurchaseTableHeader colWidths={colWidths} showDiscount={showDiscount} onResizeMouseDown={onResizeMouseDown} />
                     <PurchaseTableBody items={items} showDiscount={showDiscount} onOpenSearch={handleOpenSearch} onKeyDown={handleKeyDown} onUpdate={updateItem} onRemove={removeItem} />
@@ -56,7 +56,7 @@ const InteractivePurchaseTable: React.FC = () => {
             </div>
 
             <div className="flex bg-blue-600 border-t-2 max-md:border-t border-blue-700">
-                <button onClick={addItem} className="flex-1 py-2 max-md:py-1 text-[10px] max-md:text-[8px] font-bold text-white hover:bg-blue-700 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2 max-md:gap-1 active:scale-95">
+                <button onClick={addItem} className="flex-1 py-2 max-md:py-1 text-[10px] max-md:text-[10px] font-bold text-white hover:bg-blue-700 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2 max-md:gap-1 active:scale-95">
                     <Plus size={14} className="max-md:w-3 max-md:h-3" strokeWidth={4} /> إضافة سطر جديد
                 </button>
             </div>

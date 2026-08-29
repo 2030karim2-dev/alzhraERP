@@ -35,7 +35,7 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
     if (!hasData) {
         return (
             <div className={cn(
-                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl",
+                "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl",
                 className
             )}>
                 <div className="flex items-center gap-2 mb-5 max-md:mb-3">
@@ -55,7 +55,7 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
 
     return (
         <div className={cn(
-            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 max-md:p-5 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
+            "bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-5 max-md:p-3 rounded-2xl max-md:rounded-xl relative overflow-hidden group",
             className
         )}>
             {/* Ambient glow */}
@@ -83,7 +83,7 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
                             </span>
                             {inflowChange !== undefined && (
                                 <span className={cn(
-                                    "text-[9px] font-bold px-1.5 py-0.5 rounded-full",
+                                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
                                     inflowChange >= 0
                                         ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20"
                                         : "bg-rose-50 text-rose-600 dark:bg-rose-900/20"
@@ -114,7 +114,7 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
                             </span>
                             {outflowChange !== undefined && (
                                 <span className={cn(
-                                    "text-[9px] font-bold px-1.5 py-0.5 rounded-full",
+                                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
                                     outflowChange <= 0
                                         ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20"
                                         : "bg-rose-50 text-rose-600 dark:bg-rose-900/20"
@@ -157,13 +157,13 @@ const CashFlowWidget: React.FC<CashFlowWidgetProps> = ({
             {/* Summary */}
             <div className="mt-3 grid grid-cols-2 gap-2 relative z-10">
                 <div className="text-center p-2 bg-emerald-500/10 border border-emerald-500/10 rounded-lg">
-                    <p className="text-[9px] font-bold text-emerald-400 uppercase">نسبة القبض</p>
+                    <p className="text-[10px] font-bold text-emerald-400 uppercase">نسبة القبض</p>
                     <p className="text-sm font-bold text-emerald-300">
                         {inflow + outflow > 0 ? ((inflow / (inflow + outflow)) * 100).toFixed(0) : 0}%
                     </p>
                 </div>
                 <div className="text-center p-2 bg-rose-500/10 border border-rose-500/10 rounded-lg">
-                    <p className="text-[9px] font-bold text-rose-400 uppercase">نسبة الصرف</p>
+                    <p className="text-[10px] font-bold text-rose-400 uppercase">نسبة الصرف</p>
                     <p className="text-sm font-bold text-rose-300">
                         {inflow + outflow > 0 ? ((outflow / (inflow + outflow)) * 100).toFixed(0) : 0}%
                     </p>

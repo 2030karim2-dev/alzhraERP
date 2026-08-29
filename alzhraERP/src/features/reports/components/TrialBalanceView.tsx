@@ -74,7 +74,7 @@ const TrialBalanceView: React.FC = () => {
 
         <div className="flex items-center   max-md:gap-4 sm:gap-6 mt-4 sm:mt-0 relative z-10">
           <div className="text-right border-l border-slate-200 dark:border-slate-800 pl-4 sm:pl-6 h-10 flex flex-col justify-center">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">التباين الفعلي</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">التباين الفعلي</p>
             <p dir="ltr" className={cn("text-lg sm:text-xl font-bold font-mono tracking-tighter", isBalanced ? "text-emerald-500" : "text-rose-600")}>
               {formatCurrency(diff)}
             </p>
@@ -105,11 +105,11 @@ const TrialBalanceView: React.FC = () => {
 
           <div className="flex gap-6  max-md:gap-3 sm:gap-10 z-10">
             <div className="text-left">
-              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي المدين</span>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي المدين</span>
               <span dir="ltr" className="text-base sm:text-lg font-bold font-mono text-emerald-400 tracking-tighter">{formatCurrency(totalDr)}</span>
             </div>
             <div className="text-left border-r border-slate-700/50 pr-4 sm:pr-10">
-              <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي الدائن</span>
+              <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي الدائن</span>
               <span dir="ltr" className="text-base sm:text-lg font-bold font-mono text-rose-400 tracking-tighter">{formatCurrency(totalCr)}</span>
             </div>
           </div>

@@ -94,7 +94,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Net Sales */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <TrendingUp size={24} className="text-emerald-600" />
@@ -108,7 +108,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Invoice Count */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Receipt size={24} className="text-purple-600" />
@@ -122,7 +122,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Average Invoice */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-4 rounded-2xl hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <BarChart3 size={24} className="text-amber-600" />
@@ -154,7 +154,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Top Customer */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">
                         <Users size={16} className="text-blue-600" />
                         <span className="text-xs font-bold text-slate-500 uppercase">{t.top_customer}</span>
@@ -168,7 +168,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Top Product */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">
                         <Package size={16} className="text-emerald-600" />
                         <span className="text-xs font-bold text-slate-500 uppercase">{t.top_product}</span>
@@ -182,7 +182,7 @@ export const SalesKPIs: React.FC<SalesKPIsProps> = ({
                 </div>
 
                 {/* Cash Ratio */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">
                         <CreditCard size={16} className="text-purple-600" />
                         <span className="text-xs font-bold text-slate-500 uppercase">{t.cash_ratio}</span>

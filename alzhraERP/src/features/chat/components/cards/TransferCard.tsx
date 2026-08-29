@@ -80,11 +80,11 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
 
         <div className="grid grid-cols-2 gap-2 text-center text-[11px]">
           <div className="rounded-lg bg-[var(--app-bg)] p-1.5">
-            <span className="block text-[9px] text-[var(--app-text-secondary)]">من</span>
+            <span className="block text-[10px] text-[var(--app-text-secondary)]">من</span>
             <strong className="text-[var(--app-text)]">{fromBranch}</strong>
           </div>
           <div className="rounded-lg bg-[var(--app-bg)] p-1.5">
-            <span className="block text-[9px] text-[var(--app-text-secondary)]">إلى</span>
+            <span className="block text-[10px] text-[var(--app-text-secondary)]">إلى</span>
             <strong className="text-[var(--app-text)]">{toBranch}</strong>
           </div>
         </div>

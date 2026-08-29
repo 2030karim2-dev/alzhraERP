@@ -67,7 +67,7 @@ const TeamManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
+    <div className="bg-[var(--app-surface)] rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
       {/* Header */}
       <div className="p-5 max-md:p-4 border-b dark:border-slate-800 flex flex-wrap justify-between items-center gap-4 bg-gray-50/50 dark:bg-slate-950/50">
         <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ const TeamManager: React.FC = () => {
             className={cn(
               'px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5',
               activeTab === 'members'
-                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-sm'
+                ? 'bg-[var(--app-surface)] text-purple-600 dark:text-purple-400 shadow-sm'
                 : 'text-gray-600 dark:text-slate-400 hover:text-gray-900'
             )}
           >
@@ -105,7 +105,7 @@ const TeamManager: React.FC = () => {
             className={cn(
               'px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5',
               activeTab === 'invitations'
-                ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-sm'
+                ? 'bg-[var(--app-surface)] text-purple-600 dark:text-purple-400 shadow-sm'
                 : 'text-gray-600 dark:text-slate-400 hover:text-gray-900'
             )}
           >
@@ -148,7 +148,7 @@ const TeamManager: React.FC = () => {
                 return (
                   <div
                     key={member.id}
-                    className="p-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-200 dark:hover:border-purple-900/50 transition-all shadow-sm flex flex-col justify-between gap-3"
+                    className="p-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-[var(--app-surface)] hover:border-purple-200 dark:hover:border-purple-900/50 transition-all shadow-sm flex flex-col justify-between gap-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
@@ -248,7 +248,7 @@ const TeamManager: React.FC = () => {
                       </option>
                     ))}
                 </select>
-                <p className="text-[9px] text-gray-400 px-1">
+                <p className="text-[10px] text-gray-400 px-1">
                   إذا تركته فارغاً، سيرى الموظف بيانات جميع الفروع
                 </p>
               </div>

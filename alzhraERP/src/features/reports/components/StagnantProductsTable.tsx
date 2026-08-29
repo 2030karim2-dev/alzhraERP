@@ -16,7 +16,7 @@ interface StagnantProductRow {
 
 export const StagnantProductsTable: React.FC<StagnantProductsTableProps> = ({ data }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl max-md:rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/30 overflow-hidden flex flex-col relative">
+        <div className="bg-[var(--app-surface)] rounded-2xl max-md:rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/30 overflow-hidden flex flex-col relative">
             <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
             <div className="p-5 border-b border-amber-50 dark:border-amber-900/20 flex justify-between items-center bg-amber-50/30 dark:bg-slate-800/50">
                 <div>

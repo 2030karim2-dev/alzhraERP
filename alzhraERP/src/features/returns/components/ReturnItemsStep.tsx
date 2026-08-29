@@ -194,7 +194,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between md:justify-end gap-3 max-md:gap-3 w-full md:w-auto shrink-0 bg-white dark:bg-slate-900 p-2 max-md:p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800/60 shadow-sm">
+                                    <div className="flex items-center justify-between md:justify-end gap-3 max-md:gap-3 w-full md:w-auto shrink-0 bg-[var(--app-surface)] p-2 max-md:p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800/60 shadow-sm">
                                         <div className="text-right px-2">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">إجمالي المرتجع</p>
                                             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono">

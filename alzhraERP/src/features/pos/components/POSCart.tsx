@@ -26,7 +26,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend }) => {
     }, [updateQuantity]);
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white dark:bg-slate-900 select-none">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-[var(--app-surface)] select-none">
             <CartHeader itemCount={validItems.length} onSuspend={onSuspend} />
 
             <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
@@ -41,7 +41,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend }) => {
                     <div className="flex flex-col w-full h-full">
                         <table className="w-full text-right border-collapse table-fixed">
                             <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-                                <tr className="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase">
+                                <tr className="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase">
                                     <th className="p-2 max-md:p-2 md:p-3 w-4/12 text-right">اسم القطعة</th>
                                     <th className="p-2 max-md:p-2 md:p-3 w-3/12 text-right">رقم القطعة</th>
                                     <th className="p-2 max-md:p-2 md:p-3 w-3/12 text-center">الكمية</th>

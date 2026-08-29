@@ -16,7 +16,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = React.memo(({ categor
                     'px-5 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm whitespace-nowrap shadow-sm transition-all active:scale-95 border',
                     selectedCategory === null
                         ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20 shadow-lg'
-                        : 'bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-800'
+                        : 'bg-[var(--app-surface)] text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-800'
                 )}
             >
                 الكل
@@ -29,7 +29,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = React.memo(({ categor
                         'px-5 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm whitespace-nowrap shadow-sm transition-all active:scale-95 border',
                         selectedCategory === cat.id
                             ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20 shadow-lg'
-                            : 'bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-800'
+                            : 'bg-[var(--app-surface)] text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-800'
                     )}
                 >
                     {cat.name}

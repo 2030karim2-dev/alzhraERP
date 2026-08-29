@@ -157,7 +157,7 @@ export const CurrencyTable: React.FC<CurrencyTableProps> = ({
                                                         </span>
                                                         <span className="text-[10px] text-gray-400 font-mono">{baseCurrency?.code}</span>
                                                     </div>
-                                                    <span className="text-[9px] text-gray-400">
+                                                    <span className="text-[10px] text-gray-400">
                                                         المعادل = المبلغ {curr.exchange_operator === 'multiply' ? '×' : '÷'} {currentRate}
                                                     </span>
                                                 </div>

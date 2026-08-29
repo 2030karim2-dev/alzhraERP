@@ -97,7 +97,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
     if (displayMode === 'table') {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
                 <table className="w-full text-right border-collapse max-md:min-w-0 min-w-[800px]">
                     <thead>
                         <tr className="bg-gray-50 dark:bg-slate-800/50 border-b dark:border-slate-800 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
@@ -130,7 +130,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                     <div className="flex flex-col">
                                         <span className="text-[11px] font-bold text-gray-800 dark:text-slate-200">{bond.party_name || bond.account_name}</span>
                                         {bond.party_name && bond.account_name !== bond.party_name && (
-                                            <span className="text-[9px] text-gray-400">{bond.account_name}</span>
+                                            <span className="text-[10px] text-gray-400">{bond.account_name}</span>
                                         )}
                                     </div>
                                 </td>
@@ -138,7 +138,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                     {bond.description}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
                                         {bond.payment_method === 'cash' ? 'نقداً' : bond.payment_method === 'bank' ? 'بنك' : bond.payment_method}
                                     </span>
                                 </td>
@@ -148,7 +148,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                                             {bond.type === 'receipt' ? '+' : '-'}{formatCurrency(bond.amount, bond.currency_code)}
                                         </span>
                                         {bond.currency_code !== 'SAR' && bond.base_amount !== undefined && (
-                                            <span className="text-[9px] font-medium text-blue-500">
+                                            <span className="text-[10px] font-medium text-blue-500">
                                                 {formatCurrency(bond.base_amount)}
                                             </span>
                                         )}
@@ -178,7 +178,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {filteredBonds?.map((bond) => (
-                <div key={bond.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/30 transition-all group relative overflow-hidden">
+                <div key={bond.id} className="bg-[var(--app-surface)] rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/30 transition-all group relative overflow-hidden">
                     {/* Style decoration */}
                     <div className={cn("absolute top-0 right-0 w-24 h-24 -mt-8 -mr-8 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-20", bond.type === 'receipt' ? "bg-emerald-500" : "bg-rose-500")}></div>
 
@@ -187,7 +187,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                             {bond.type === 'receipt' ? <ArrowDownCircle size={20} /> : <ArrowUpCircle size={20} />}
                         </div>
                         <div className="text-left font-mono">
-                            <span className="text-[9px] font-bold text-gray-400 dark:text-slate-500 block uppercase mb-1">المبلغ</span>
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 block uppercase mb-1">المبلغ</span>
                             <span className={cn("text-lg font-black tracking-tighter", bond.type === 'receipt' ? "text-emerald-600" : "text-rose-600")}>
                                 {bond.type === 'receipt' ? '+' : '-'}{formatCurrency(bond.amount, bond.currency_code)}
                             </span>
@@ -196,7 +196,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
                     <div className="space-y-3 relative">
                         <div>
-                            <span className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase flex items-center gap-1 mb-1">
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase flex items-center gap-1 mb-1">
                                 <FileText size={10} /> {bond.payment_number}
                             </span>
                             <h4 className="font-bold text-gray-800 dark:text-slate-100 text-xs line-clamp-1">{bond.description || 'بدون بيان'}</h4>
@@ -213,11 +213,11 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
                         <div className="flex items-center justify-between pt-1">
                             <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 text-[9px] text-gray-400 dark:text-slate-500 font-bold">
+                                <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 font-bold">
                                     <Calendar size={10} />
                                     {bond.date}
                                 </div>
-                                <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
+                                <div className="flex items-center gap-1 text-[10px] text-blue-500 font-bold uppercase">
                                     <Wallet size={10} />
                                     {bond.payment_method === 'cash' ? 'نقداً' : bond.payment_method === 'bank' ? 'بنك' : bond.payment_method}
                                 </div>

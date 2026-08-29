@@ -52,7 +52,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           <div className="mb-1 flex items-center gap-1.5 px-1 text-[11px] font-semibold text-[var(--app-text-secondary)]">
             <span>{message.sender_name || 'موظف'}</span>
             {message.sender_branch && (
-              <span className="rounded bg-[var(--app-bg)] px-1.5 py-0.2 text-[9px] text-[var(--app-text-secondary)] border border-[var(--app-border)]">
+              <span className="rounded bg-[var(--app-bg)] px-1.5 py-0.2 text-[10px] text-[var(--app-text-secondary)] border border-[var(--app-border)]">
                 {message.sender_branch}
               </span>
             )}
@@ -106,7 +106,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
 
           {/* Timestamp & Status footer */}
           <div
-            className={`mt-1.5 flex items-center justify-end gap-1 text-[9px] ${
+            className={`mt-1.5 flex items-center justify-end gap-1 text-[10px] ${
               isOwn ? 'text-white/70' : 'text-[var(--app-text-secondary)]'
             }`}
           >

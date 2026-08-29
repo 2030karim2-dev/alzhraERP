@@ -39,7 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             onMouseEnter={() => setShowWarehousePopover(true)}
             onMouseLeave={() => setShowWarehousePopover(false)}
             className={cn(
-                'relative bg-white dark:bg-slate-900 p-2 rounded-2xl border transition-all text-right flex flex-col h-48 md:h-52 group select-none',
+                'relative bg-[var(--app-surface)] p-2 rounded-2xl border transition-all text-right flex flex-col h-48 md:h-52 group select-none',
                 hasStock
                     ? 'border-gray-100 dark:border-slate-800 hover:border-blue-500 shadow-xs hover:shadow-sm cursor-pointer active:scale-95'
                     : 'border-slate-200 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/60 cursor-not-allowed opacity-80'
@@ -92,7 +92,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                         نفذت الكمية
                     </span>
                 ) : isLowStock ? (
-                    <span className="absolute top-1.5 right-1.5 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs z-10">
+                    <span className="absolute top-1.5 right-1.5 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-xs z-10">
                         شحيح
                     </span>
                 ) : null}
@@ -111,24 +111,24 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
                     {/* Match badges */}
                     <div className="flex flex-wrap gap-1.5">
                         {isMatchedByAlternative && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] md:text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-bold">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] md:text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-bold">
                                 <Hash size={8} />
                                 بديل
                             </span>
                         )}
                         {isSearching && product.part_number && product.part_number !== '---' && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] md:text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full font-mono">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] md:text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full font-mono">
                                 {product.part_number}
                             </span>
                         )}
                         {isSearching && product.brand && (
-                            <span className="text-[9px] md:text-[10px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full font-bold truncate max-w-[90px]">
+                            <span className="text-[10px] md:text-[10px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full font-bold truncate max-w-[90px]">
                                 {product.brand}
                             </span>
                         )}
                         {/* Warehouse count badge */}
                         {warehouseCount > 1 && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] md:text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-bold">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] md:text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-bold">
                                 <Store size={8} />
                                 {warehouseCount} مستودع
                             </span>

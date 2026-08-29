@@ -44,7 +44,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
             {row.original.debit_amount > 0 ? formatCurrency(row.original.debit_amount) : '-'}
           </div>
           {row.original.foreign_amount && row.original.foreign_amount > 0 && Math.abs(row.original.debit_amount - row.original.foreign_amount) > 0.01 && (
-            <div dir="ltr" className="text-[9px] text-gray-400 font-mono">
+            <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
               ({formatCurrency(row.original.foreign_amount, row.original.currency_code)})
             </div>
           )}
@@ -62,7 +62,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
             {row.original.credit_amount > 0 ? formatCurrency(row.original.credit_amount) : '-'}
           </div>
           {row.original.foreign_amount && row.original.foreign_amount > 0 && Math.abs(row.original.credit_amount - row.original.foreign_amount) > 0.01 && (
-            <div dir="ltr" className="text-[9px] text-gray-400 font-mono">
+            <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
               ({formatCurrency(row.original.foreign_amount, row.original.currency_code)})
             </div>
           )}

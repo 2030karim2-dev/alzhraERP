@@ -72,7 +72,7 @@ const ExpensesPage: React.FC = () => {
           iconColor="text-rose-600"
           actions={
             <div className="flex items-center gap-2">
-              <div className="flex bg-white dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+              <div className="flex bg-[var(--app-surface)] p-1 rounded-lg border border-slate-200 dark:border-slate-800">
                 {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(p => (
                   <button
                     key={p}

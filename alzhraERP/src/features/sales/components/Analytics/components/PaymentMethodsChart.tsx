@@ -84,7 +84,7 @@ export const PaymentMethodsChart: React.FC<PaymentMethodsChartProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
+        <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
             <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2 mb-6">
                 <Wallet size={18} className="text-purple-600" />
                 {t.payment_methods}
