@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatCurrency, formatNumberDisplay } from '../../../../core/utils';
-import { Package, AlertCircle } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 interface Props {
   invoice: any;

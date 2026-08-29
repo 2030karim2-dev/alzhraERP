@@ -9,7 +9,6 @@ import {
   User,
   Calendar,
   CreditCard,
-  Building2,
   DollarSign,
 } from 'lucide-react';
 import Modal from '@/ui/base/Modal';
