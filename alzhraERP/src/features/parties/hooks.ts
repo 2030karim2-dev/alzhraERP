@@ -10,6 +10,7 @@ import { syncStore } from '../../core/lib/sync-store';
 import { partyCache } from './lib/party-cache';
 
 import { filterPartiesSmart } from '../../core/utils/partySearch';
+import { invalidateByPreset } from '../../lib/invalidation';
 
 export const useCustomers = (searchTerm: string = '') => useParties('customer', searchTerm);
 export const useSuppliers = (searchTerm: string = '') => useParties('supplier', searchTerm);
@@ -81,6 +82,7 @@ export const usePartyMutations = (type: PartyType) => {
       // logged out/in between render and callback, invalidate the right key.
       const currentUser = useAuthStore.getState().user;
       queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id, type] });
+      invalidateByPreset(queryClient, 'party');
       showToast('تم حفظ البيانات بنجاح', 'success');
     },
     onError: (err: Error & { status?: number }, variables: { data: PartyFormData; id?: string }) => {
@@ -107,6 +109,7 @@ export const usePartyMutations = (type: PartyType) => {
     onSuccess: () => {
       const currentUser = useAuthStore.getState().user;
       queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id, type] });
+      invalidateByPreset(queryClient, 'party');
       showToast('تم حذف السجل نهائياً', 'success');
     },
     onError: (err: Error) => showToast(err.message, 'error', err)

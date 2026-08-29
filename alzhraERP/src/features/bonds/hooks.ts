@@ -44,6 +44,7 @@ export const useBondMutation = () => {
     },
     onSuccess: (_, variables) => {
       invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
+      invalidateByPreset(queryClient, 'bond');
       const typeName = variables.type === 'receipt' ? 'قبض' : (variables.type === 'transfer' ? 'تحويل' : 'صرف');
       showToast(`تم إصدار سند ال${typeName} وترحيله آلياً`, 'success');
     },
@@ -69,6 +70,7 @@ export const useDeleteBond = () => {
     },
     onSuccess: () => {
       invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
+      invalidateByPreset(queryClient, 'bond');
       showToast("تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح", 'success');
     },
     onError: (error: Error) => {
