@@ -3,22 +3,22 @@
 # Gates: encoding guard -> TS error ratchet -> i18n key coverage -> UX guards -> production build
 # (Comments kept ASCII-only: this file once contained mojibake.)
 
-echo "[pre-push] 1/6 Encoding guard (Arabic mojibake check)..."
+echo "[pre-push] 1/7 Encoding guard (Arabic mojibake check)..."
 
 cd alzhraERP || exit 1
 
 npx tsx scripts/check-encoding.ts || exit 1
 
-echo "[pre-push] 2/6 TypeScript ratchet (no NEW errors beyond baseline)..."
+echo "[pre-push] 2/7 TypeScript ratchet (no NEW errors beyond baseline)..."
 npx tsx scripts/check-ts-baseline.ts || exit 1
 
-echo "[pre-push] 3/6 i18n key coverage (used t() keys must exist in ar/en)..."
+echo "[pre-push] 3/7 i18n key coverage (used t() keys must exist in ar/en)..."
 node scripts/check-i18n-keys.mjs || exit 1
 
-echo "[pre-push] 4/6 Tailwind contradicting classes guard..."
+echo "[pre-push] 4/7 Tailwind contradicting classes guard..."
 node scripts/check-contradicting-classes.mjs || exit 1
 
-echo "[pre-push] 5/6 Tiny font-sizes guard (no text-[1-9px])..."
+echo "[pre-push] 5/7 Tiny font-sizes guard (no text-[1-9px])..."
 node scripts/check-tiny-fonts.mjs || exit 1
 
 echo "[pre-push] 6/7 Lint ratchet (no NEW lint debt beyond baseline)..."
