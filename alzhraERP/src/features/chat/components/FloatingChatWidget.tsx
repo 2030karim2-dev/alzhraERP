@@ -50,13 +50,13 @@ export const FloatingChatWidget: React.FC = () => {
   // If chat is not opened, render floating launcher bubble
   if (!isFloatingOpen) {
     return (
-      <div className="fixed bottom-5 end-5 z-40">
+      <div className="fixed bottom-[calc(4.5rem_+_env(safe-area-inset-bottom))] md:bottom-5 end-4 md:end-5 z-40">
         <button
           onClick={() => { setFloatingOpen(true); }}
-          className="relative flex h-13 w-13 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-2xl"
+          className="relative flex h-12 w-12 md:h-13 md:w-13 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-2xl"
           title="محادثات الفروع والموظفين"
         >
-          <MessageSquare size={24} />
+          <MessageSquare size={22} className="md:w-6 md:h-6" />
           {totalUnread > 0 && (
             <span className="absolute -top-1.5 -end-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-md animate-pulse">
               {totalUnread > 99 ? '99+' : totalUnread}
@@ -70,7 +70,7 @@ export const FloatingChatWidget: React.FC = () => {
   // Minimized state
   if (isFloatingMinimized) {
     return (
-      <div className="fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-xl">
+      <div className="fixed bottom-[calc(4.5rem_+_env(safe-area-inset-bottom))] md:bottom-5 end-4 md:end-5 z-40 flex items-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-xl">
         <button
           onClick={toggleFloatingMinimized}
           className="flex items-center gap-2 px-2 text-xs font-bold text-[var(--app-text)] hover:text-[var(--accent)]"
@@ -96,10 +96,10 @@ export const FloatingChatWidget: React.FC = () => {
   // Expanded Floating Window
   return (
     <div
-      className={`fixed bottom-5 end-5 z-40 flex flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl transition-all duration-300 ${
+      className={`fixed bottom-[calc(4.5rem_+_env(safe-area-inset-bottom))] md:bottom-5 end-3 md:end-5 z-40 flex flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl transition-all duration-300 ${
         isExpanded
-          ? 'h-[85vh] w-[90vw] sm:w-[680px]'
-          : 'h-[520px] w-[92vw] sm:w-[390px]'
+          ? 'h-[75vh] md:h-[85vh] w-[92vw] sm:w-[680px]'
+          : 'h-[480px] md:h-[520px] w-[92vw] sm:w-[390px]'
       }`}
     >
       {/* Floating Header */}
