@@ -39,48 +39,58 @@ jobs:
           echo "::error::SUPABASE_STAGING_DB_URL is not set."
           exit 1
 
+      # Every psql step MUST use ON_ERROR_STOP=1: a SQL error aborts the run
+      # and fails the step. Output is accumulated with `tee -a` into
+      # sql_output.log so the final grep can catch logical CANARY FAIL lines
+      # that the test scripts print without raising a SQL error.
       - name: Run canary SQL
         run: |
           set -euo pipefail
-          DB_URL="${SUPABASE_DB_URL}"
-          echo "Running canary against $DB_URL ..."
-          psql "$DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_canary_all_audit_views.sql
+          rm -f sql_output.log
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_canary_all_audit_views.sql 2>&1 | tee -a sql_output.log
 
       - name: Run security authorization tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_security_authorization.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_security_authorization.sql 2>&1 | tee -a sql_output.log
 
       - name: Run RLS isolation tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_rls_isolation.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_rls_isolation.sql 2>&1 | tee -a sql_output.log
 
       - name: Run audit trail tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_audit_trail.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_audit_trail.sql 2>&1 | tee -a sql_output.log
 
       - name: Run injection / XSS tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_injection_xss.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_injection_xss.sql 2>&1 | tee -a sql_output.log
 
       - name: Run business logic tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_business_logic.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_business_logic.sql 2>&1 | tee -a sql_output.log
 
       - name: Run api_v1 cross-tenant tests
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=0 -X -q -f supabase/tests/test_api_v1_cross_tenant.sql
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -f supabase/tests/test_api_v1_cross_tenant.sql 2>&1 | tee -a sql_output.log
 
+      # Double gate: even if a psql step somehow exits 0, any printed
+      # "CANARY FAIL" line in the accumulated log fails the workflow.
       - name: Fail on any CANARY FAIL
         run: |
           set -euo pipefail
-          if grep -q "CANARY FAIL" sql_output.log 2>/dev/null; then
+          if [ ! -f sql_output.log ]; then
+            echo "::error::sql_output.log was never created — canary steps did not run."
+            exit 1
+          fi
+          if grep -q "CANARY FAIL" sql_output.log; then
             echo "::error::One or more security canaries failed."
             grep "CANARY FAIL" sql_output.log
             exit 1
           fi
+          echo "All canaries passed."

@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { OpenAI } from "https://esm.sh/openai@4.26.0"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { OpenAI } from 'https://esm.sh/openai@4.26.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 // ============================================================
 // Edge Function: vin-decode  (vPIC + DB + AI hybrid)
@@ -20,18 +20,25 @@ const ALLOWED_ORIGINS = [
 ];
 
 const corsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+  'Access-Control-Allow-Origin':
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-application-name',
   'Access-Control-Max-Age': '86400',
 });
 
 function json(data: unknown, status = 200, headers: Record<string, string>) {
-  return new Response(JSON.stringify(data), { status, headers: { ...headers, 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json' },
+  });
 }
 
 function normalizeVin(vin: unknown): string {
-  return String(vin ?? '').replace(/[\s-]/g, '').toUpperCase();
+  return String(vin ?? '')
+    .replace(/[\s-]/g, '')
+    .toUpperCase();
 }
 
 function isValidVin(vin: string): boolean {
@@ -110,13 +117,15 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
   try {
     const resp = await fetch(
       `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${encodeURIComponent(vin)}?format=json`,
-      { signal: controller.signal },
+      { signal: controller.signal }
     );
     if (!resp.ok) return null;
 
-    const data = await resp.json() as { Results?: Array<{ Variable: string; Value: string | null }> };
+    const data = (await resp.json()) as {
+      Results?: Array<{ Variable: string; Value: string | null }>;
+    };
     const get = (name: string): string | null => {
-      const row = data.Results?.find((r) => r.Variable === name);
+      const row = data.Results?.find(r => r.Variable === name);
       return row?.Value && String(row.Value).trim() !== '' ? String(row.Value).trim() : null;
     };
 
@@ -167,7 +176,7 @@ async function fetchVinFromVpic(vin: string): Promise<VpicVehicle | null> {
 
 async function ensureVehicleId(
   supabase: ReturnType<typeof createClient>,
-  v: Record<string, unknown>,
+  v: Record<string, unknown>
 ): Promise<string | null> {
   try {
     const { data, error } = await supabase.rpc('ensure_vehicle', {
@@ -188,7 +197,7 @@ async function ensureVehicleId(
   }
 }
 
-serve(async (req) => {
+serve(async req => {
   const origin = req.headers.get('Origin');
   const headers = corsHeaders(origin);
 
@@ -201,7 +210,11 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !supabaseServiceRoleKey) {
-      return json({ error: 'Server Error: Supabase configuration missing', code: 'CONFIG_ERROR' }, 500, headers);
+      return json(
+        { error: 'Server Error: Supabase configuration missing', code: 'CONFIG_ERROR' },
+        500,
+        headers
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
@@ -213,7 +226,10 @@ serve(async (req) => {
     if (!token) {
       return json({ error: 'Authentication required', code: 'UNAUTHORIZED' }, 401, headers);
     }
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return json({ error: 'Invalid or expired token', code: 'UNAUTHORIZED' }, 401, headers);
     }
@@ -221,7 +237,12 @@ serve(async (req) => {
     // Auth complete. Rate limiting is deferred to the AI fallback path below.
 
     // 3. Body
-    let body: { vin?: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: 'deepseek' | 'openrouter'; model?: string };
+    let body: {
+      vin?: string;
+      mode?: 'hybrid' | 'db' | 'ai';
+      provider?: 'deepseek' | 'openrouter';
+      model?: string;
+    };
     try {
       body = await req.json();
     } catch {
@@ -230,7 +251,14 @@ serve(async (req) => {
 
     const vin = normalizeVin(body.vin);
     if (!isValidVin(vin)) {
-      return json({ error: 'Invalid VIN: must be 11-17 chars, alphanumeric, excluding I/O/Q', code: 'INVALID_VIN' }, 400, headers);
+      return json(
+        {
+          error: 'Invalid VIN: must be 11-17 chars, alphanumeric, excluding I/O/Q',
+          code: 'INVALID_VIN',
+        },
+        400,
+        headers
+      );
     }
     const mode = body.mode ?? 'hybrid';
 
@@ -245,7 +273,9 @@ serve(async (req) => {
     if (useVpic) vpicVehicle = await fetchVinFromVpic(vin);
 
     if (useDb) {
-      const { data: resolved, error: rpcError } = await supabase.rpc('resolve_vehicle_from_vin', { p_vin: vin });
+      const { data: resolved, error: rpcError } = await supabase.rpc('resolve_vehicle_from_vin', {
+        p_vin: vin,
+      });
       dbVehicle = !rpcError && resolved && resolved.found === true ? resolved.vehicle : null;
     }
 
@@ -279,49 +309,104 @@ serve(async (req) => {
     }
 
     if (resultVehicle) {
-      return json({ found: true, source: resultSource, vin, vehicle: resultVehicle, confidence: resultConfidence, raw_ai: null }, 200, headers);
+      return json(
+        {
+          found: true,
+          source: resultSource,
+          vin,
+          vehicle: resultVehicle,
+          confidence: resultConfidence,
+          raw_ai: null,
+        },
+        200,
+        headers
+      );
     }
 
     if (!useAi) {
       // No AI fallback requested — report the correct source for the miss.
       const noResultSource: 'vpic' | 'db' | 'ai' = mode === 'db' ? 'db' : 'vpic';
-      return json({ found: false, source: noResultSource, vin, vehicle: null, confidence: null, raw_ai: null }, 200, headers);
+      return json(
+        {
+          found: false,
+          source: noResultSource,
+          vin,
+          vehicle: null,
+          confidence: null,
+          raw_ai: null,
+        },
+        200,
+        headers
+      );
     }
 
     // 4b. AI Rate limiting — prevent one user from draining the OpenRouter /
     // DeepSeek budget by flooding VIN decodes (30 requests / user / minute).
     //
-    // SECURITY (R-14): the previous version inserted FIRST then counted,
-    // which created a TOCTOU race: a burst of N requests could all see the
-    // pre-burst count and all pass. We now count FIRST, reject if over the
-    // limit, THEN insert. This still has a small race window between
-    // count and insert, but the worst case is one extra request slipping
-    // through — not the full burst. The ai_request_log table itself is the
-    // natural rate-limit ledger; row insert latency (~1-5ms) is the only
-    // window.
-    const rateLimit = { windowMs: 60_000, maxRequests: 30 };
+    // Atomic DB-backed check: single RPC `check_rate_limit` (SECURITY DEFINER,
+    // baseline_functions.sql) over api_rate_limits, which carries a UNIQUE
+    // index on (company_id, endpoint). A burst of N concurrent requests can
+    // never all pass — the unique constraint turns any race into a hard
+    // failure, i.e. fail-CLOSED by construction. This replaces the previous
+    // ai_request_log count-then-insert ledger which had a TOCTOU window.
+    //
+    // The RPC asserts company access via auth.uid(), so it MUST be called
+    // with the caller's JWT (user-scoped client), not the service-role key.
+    const rateLimit = { maxRequests: 30, windowSeconds: 60 };
     try {
-      const since = new Date(Date.now() - rateLimit.windowMs).toISOString();
-      const { count } = await supabase
-        .from('ai_request_log')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', since);
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+      if (!supabaseAnonKey) throw new Error('SUPABASE_ANON_KEY missing');
 
-      if ((count ?? 0) >= rateLimit.maxRequests) {
-        return json({ error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' }, 429, headers);
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      // Resolve the caller's company deterministically (RLS: users only see
+      // their own memberships). Ordered so multi-company users always hit
+      // the same bucket.
+      const { data: roles, error: rolesError } = await userClient
+        .from('user_company_roles')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .order('company_id')
+        .limit(1);
+      if (rolesError) throw rolesError;
+
+      const companyId: string | undefined = roles?.[0]?.company_id;
+      if (!companyId) {
+        // No company membership → nothing to bill against → reject.
+        return json(
+          { error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' },
+          429,
+          headers
+        );
       }
 
-      // Only AFTER the count check passes do we record this request. A
-      // duplicate insert is harmless (no UNIQUE constraint) and the next
-      // call will see it via the count.
-      await supabase.from('ai_request_log').insert({ user_id: user.id });
+      // Atomic allow/deny + increment in one round-trip.
+      const { data: allowed, error: rpcError } = await userClient.rpc('check_rate_limit', {
+        p_company_id: companyId,
+        p_endpoint: `vin_decode:user:${user.id}`,
+        p_max_requests: rateLimit.maxRequests,
+        p_window_seconds: rateLimit.windowSeconds,
+      });
+      if (rpcError) throw rpcError;
 
-      // Async cleanup (fire and forget) of old logs
-      supabase.from('ai_request_log').delete().lt('created_at', new Date(Date.now() - 3600_000).toISOString()).catch(() => {});
-    } catch {
-      // Infra failure must never break decoding — fail open and log.
-      console.error('[vin-decode] Rate-limit check failed (fail-open)');
+      if (allowed !== true) {
+        return json(
+          { error: 'Rate limit exceeded. Please wait and try again.', code: 'RATE_LIMIT' },
+          429,
+          headers
+        );
+      }
+    } catch (e) {
+      // Infra failure must NOT silently drain the AI budget — fail CLOSED.
+      console.error('[vin-decode] Rate-limit check failed (fail-CLOSED)', e);
+      return json(
+        { error: 'Rate limit unavailable, request rejected.', code: 'RATE_LIMIT' },
+        429,
+        headers
+      );
     }
 
     // 5. AI fallback (LAST resort — never authoritative)
@@ -329,8 +414,48 @@ serve(async (req) => {
 
     // Give AI results a stable vehicles.id too, so saved analyses can be
     // linked to inventory products like vPIC/DB results.
-    const KNOWN_MAKES = new Set(['TOYOTA', 'LEXUS', 'NISSAN', 'HONDA', 'HYUNDAI', 'KIA', 'FORD', 'CHEVROLET', 'GMC', 'MAZDA', 'MERCEDES-BENZ', 'BMW', 'AUDI', 'VOLKSWAGEN', 'PORSCHE', 'JEEP', 'DODGE', 'CHRYSLER', 'LAND ROVER', 'ISUZU', 'MITSUBISHI', 'SUZUKI', 'SUBARU', 'GENESIS', 'PEUGEOT', 'RENAULT', 'MG', 'CHANGAN', 'GEELY', 'HAVAL', 'BYD', 'CHERY', 'GREAT WALL', 'FAW', 'JAC', 'GAC', 'DONGFENG', 'JETOUR', 'EXEED']);
-    
+    const KNOWN_MAKES = new Set([
+      'TOYOTA',
+      'LEXUS',
+      'NISSAN',
+      'HONDA',
+      'HYUNDAI',
+      'KIA',
+      'FORD',
+      'CHEVROLET',
+      'GMC',
+      'MAZDA',
+      'MERCEDES-BENZ',
+      'BMW',
+      'AUDI',
+      'VOLKSWAGEN',
+      'PORSCHE',
+      'JEEP',
+      'DODGE',
+      'CHRYSLER',
+      'LAND ROVER',
+      'ISUZU',
+      'MITSUBISHI',
+      'SUZUKI',
+      'SUBARU',
+      'GENESIS',
+      'PEUGEOT',
+      'RENAULT',
+      'MG',
+      'CHANGAN',
+      'GEELY',
+      'HAVAL',
+      'BYD',
+      'CHERY',
+      'GREAT WALL',
+      'FAW',
+      'JAC',
+      'GAC',
+      'DONGFENG',
+      'JETOUR',
+      'EXEED',
+    ]);
+
     let aiVehicle = ai.vehicle as Record<string, unknown> | null;
     if (aiVehicle && aiVehicle.make) {
       const makeUpper = String(aiVehicle.make).toUpperCase();
@@ -349,18 +474,25 @@ serve(async (req) => {
       }
     }
 
-    return json({
-      found: !!aiVehicle,
-      source: 'ai',
-      vin,
-      vehicle: aiVehicle,
-      confidence: aiVehicle?.confidence ?? 'low',
-      raw_ai: ai.raw,
-    }, 200, headers);
-
+    return json(
+      {
+        found: !!aiVehicle,
+        source: 'ai',
+        vin,
+        vehicle: aiVehicle,
+        confidence: aiVehicle?.confidence ?? 'low',
+        raw_ai: ai.raw,
+      },
+      200,
+      headers
+    );
   } catch (err) {
     console.error('vin-decode error:', err);
-    return json({ error: (err as Error).message || 'Internal server error', code: 'INTERNAL_ERROR' }, 500, headers);
+    return json(
+      { error: (err as Error).message || 'Internal server error', code: 'INTERNAL_ERROR' },
+      500,
+      headers
+    );
   }
 });
 
@@ -397,22 +529,26 @@ async function decodeWithAI(vin: string, provider?: string, model?: string) {
   }
 
   const openai = new OpenAI({ apiKey, baseURL, defaultHeaders });
-  const modelId = model || (selectedProvider === 'deepseek' ? 'deepseek-chat' : 'google/gemini-2.5-flash');
+  const modelId =
+    model || (selectedProvider === 'deepseek' ? 'deepseek-chat' : 'google/gemini-2.5-flash');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: modelId,
-      messages: [
-        { role: 'system', content: VIN_SYSTEM_PROMPT },
-        { role: 'user', content: `Decode this VIN: ${vin}` },
-      ],
-      temperature: 0.1,
-      max_tokens: 800,
-      response_format: { type: 'json_object' },
-    }, { signal: controller.signal });
+    const completion = await openai.chat.completions.create(
+      {
+        model: modelId,
+        messages: [
+          { role: 'system', content: VIN_SYSTEM_PROMPT },
+          { role: 'user', content: `Decode this VIN: ${vin}` },
+        ],
+        temperature: 0.1,
+        max_tokens: 800,
+        response_format: { type: 'json_object' },
+      },
+      { signal: controller.signal }
+    );
 
     clearTimeout(timeoutId);
     const content = completion.choices?.[0]?.message?.content ?? '{}';

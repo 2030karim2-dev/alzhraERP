@@ -19,7 +19,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self' *.supabase.co *.netlify.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google.com *.googleapis.com *.gstatic.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com; manifest-src 'self' *.netlify.app; object-src 'none';"
+    Content-Security-Policy = "default-src 'self' *.supabase.co *.netlify.app; script-src 'self' 'unsafe-inline' *.google.com *.googleapis.com *.gstatic.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com; connect-src 'self' *.supabase.co wss://*.supabase.co *.openrouter.ai *.google.com *.googleapis.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com; manifest-src 'self' *.netlify.app; object-src 'none';"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"

@@ -5,8 +5,8 @@
   "type": "module",
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "prettier --write",
+      "node scripts/check-lint-ratchet.mjs --files={paths}"
     ],
     "*.{json,md}": [
       "prettier --write"
@@ -19,7 +19,6 @@
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
-    "clean": "chmod +x cleanup.sh && ./cleanup.sh",
     "scan:types": "tsx scripts/type-safety-scanner.ts",
     "check:encoding": "tsx scripts/check-encoding.ts",
     "check:classes": "node scripts/check-contradicting-classes.mjs",
@@ -37,7 +36,6 @@
     "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts && npm run check:classes && npm run check:fonts"
   },
   "dependencies": {
-    "@google/genai": "^1.38.0",
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.93.2",
     "@tanstack/query-async-storage-persister": "^5.90.22",
@@ -45,7 +43,6 @@
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-persist-client": "^5.90.20",
     "@tanstack/react-virtual": "^3.13.19",
-    "@types/decimal.js": "^0.0.32",
     "adhan": "^4.4.4",
     "clsx": "^2.1.1",
     "date-fns": "^3.3.1",

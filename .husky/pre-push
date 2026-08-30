@@ -21,7 +21,10 @@ node scripts/check-contradicting-classes.mjs || exit 1
 echo "[pre-push] 5/6 Tiny font-sizes guard (no text-[1-9px])..."
 node scripts/check-tiny-fonts.mjs || exit 1
 
-echo "[pre-push] 6/6 Production build..."
+echo "[pre-push] 6/7 Lint ratchet (no NEW lint debt beyond baseline)..."
+node scripts/check-lint-ratchet.mjs || exit 1
+
+echo "[pre-push] 7/7 Production build..."
 npx vite build --logLevel error 2>&1
 if [ $? -ne 0 ]; then
   echo ""

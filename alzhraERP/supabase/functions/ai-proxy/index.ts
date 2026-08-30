@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { OpenAI } from "https://esm.sh/openai@4.26.0"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { OpenAI } from 'https://esm.sh/openai@4.26.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const ALLOWED_ORIGINS = [
   'https://zzthamxjxnxzzpswllid.supabase.co',
@@ -12,11 +12,13 @@ const ALLOWED_ORIGINS = [
 ];
 
 const corsHeaders = (origin: string | null) => ({
-  'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+  'Access-Control-Allow-Origin':
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-application-name',
   'Access-Control-Max-Age': '86400',
-})
+});
 
 // Validate required fields
 function validateRequest(body: any) {
@@ -33,122 +35,142 @@ function validateRequest(body: any) {
   return { valid: true };
 }
 
-// ── Rate limiting (DB-backed) ───────────────────────────────────────────────
+// ── Rate limiting (DB-backed, atomic) ───────────────────────────────────────
 // Limits AI proxy usage per authenticated user so a compromised/abusive token
 // cannot drain the company's OpenRouter/DeepSeek balance.
-const RATE_LIMIT = { windowMs: 60_000, maxRequests: 10 }; // 10 req / user / minute
+//
+// Implementation: single atomic RPC `check_rate_limit` (SECURITY DEFINER,
+// baseline_functions.sql) over api_rate_limits, which carries a UNIQUE index
+// on (company_id, endpoint). Concurrency-safe: two simultaneous requests can
+// never both pass — a race on the first insert violates the unique constraint
+// and surfaces here as an error, i.e. it fails CLOSED by construction.
+//
+// Per-user bucketing: the endpoint key encodes the user id, so each user gets
+// an isolated counter under their company row.
+const RATE_LIMIT = { maxRequests: 10, windowSeconds: 60 }; // 10 req / user / minute
+
+type UserScopedClient = ReturnType<typeof createClient>;
 
 async function checkRateLimit(
   userId: string,
-  supabaseUrl: string
+  supabase: UserScopedClient
 ): Promise<{ allowed: boolean; retryAfterSec?: number }> {
   try {
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!serviceRoleKey) {
-      // No admin client available → fail OPEN (never block AI on infra gaps).
-      return { allowed: true };
-    }
-
-    const admin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    const since = new Date(Date.now() - RATE_LIMIT.windowMs).toISOString();
-
-    // 1. Record this attempt
-    await admin.from('ai_request_log').insert({ user_id: userId });
-
-    // 2. Count requests within the window
-    const { count, error } = await admin
-      .from('ai_request_log')
-      .select('id', { count: 'exact', head: true })
+    // Resolve the caller's company deterministically (RLS: users only see
+    // their own memberships). Ordered so multi-company users always hit the
+    // same bucket.
+    const { data: roles, error: rolesError } = await supabase
+      .from('user_company_roles')
+      .select('company_id')
       .eq('user_id', userId)
-      .gte('created_at', since);
+      .order('company_id')
+      .limit(1);
+    if (rolesError) throw rolesError;
 
-    if (error) throw error;
-
-    // The count above already includes the request just recorded above.
-    const used = count ?? 0;
-    if (used > RATE_LIMIT.maxRequests) {
-      return { allowed: false, retryAfterSec: Math.ceil(RATE_LIMIT.windowMs / 1000) };
+    const companyId: string | undefined = roles?.[0]?.company_id;
+    if (!companyId) {
+      // No company membership → nothing to bill against → deny (fail-closed).
+      return { allowed: false, retryAfterSec: RATE_LIMIT.windowSeconds };
     }
 
-    // 3. Probabilistic cleanup (keep the log table bounded)
-    if (Math.random() < 0.01) {
-      const cutoff = new Date(Date.now() - RATE_LIMIT.windowMs * 10).toISOString();
-      await admin.from('ai_request_log').delete().lt('created_at', cutoff);
-    }
+    // Atomic allow/deny + increment in one round-trip.
+    const { data: allowed, error: rpcError } = await supabase.rpc('check_rate_limit', {
+      p_company_id: companyId,
+      p_endpoint: `ai_proxy:user:${userId}`,
+      p_max_requests: RATE_LIMIT.maxRequests,
+      p_window_seconds: RATE_LIMIT.windowSeconds,
+    });
+    if (rpcError) throw rpcError;
 
+    if (allowed !== true) {
+      return { allowed: false, retryAfterSec: RATE_LIMIT.windowSeconds };
+    }
     return { allowed: true };
   } catch (e) {
-    // Infra failure must never break AI — fail open and log.
-    console.error('[RateLimit] check failed (fail-open)', e);
-    return { allowed: true };
+    // Any infra failure (RPC missing, DB down, RLS change) must NOT silently
+    // drain the AI balance — fail CLOSED and log for observability.
+    console.error('[RateLimit] atomic check failed (fail-CLOSED)', e);
+    return { allowed: false, retryAfterSec: RATE_LIMIT.windowSeconds };
   }
 }
 
-serve(async (req) => {
+serve(async req => {
   const origin = req.headers.get('Origin');
   const headers = corsHeaders(origin);
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers })
+    return new Response('ok', { headers });
   }
 
   try {
     // 1. Verify Authentication using Supabase Auth
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({
-        error: 'Unauthorized: Missing Authorization header',
-        code: 'AUTH_MISSING'
-      }), {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized: Missing Authorization header',
+          code: 'AUTH_MISSING',
+        }),
+        {
+          status: 401,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return new Response(JSON.stringify({
-        error: 'Server Error: Supabase configuration missing',
-        code: 'CONFIG_ERROR'
-      }), {
-        status: 500,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Server Error: Supabase configuration missing',
+          code: 'CONFIG_ERROR',
+        }),
+        {
+          status: 500,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
+      global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({
-        error: 'Unauthorized: Invalid token',
-        code: 'AUTH_INVALID'
-      }), {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized: Invalid token',
+          code: 'AUTH_INVALID',
+        }),
+        {
+          status: 401,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // 1b. Rate limit per user (10 req/min by default)
-    const rate = await checkRateLimit(user.id, supabaseUrl);
+    // 1b. Rate limit per user (atomic, DB-backed, fail-closed)
+    const rate = await checkRateLimit(user.id, supabase);
     if (!rate.allowed) {
-      return new Response(JSON.stringify({
-        error: 'Rate limit exceeded. Please wait and try again.',
-        code: 'RATE_LIMIT',
-        retry_after_sec: rate.retryAfterSec
-      }), {
-        status: 429,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded. Please wait and try again.',
+          code: 'RATE_LIMIT',
+          retry_after_sec: rate.retryAfterSec,
+        }),
+        {
+          status: 429,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // 2. Parse Request Body
@@ -156,28 +178,43 @@ serve(async (req) => {
     try {
       body = await req.json();
     } catch (e) {
-      return new Response(JSON.stringify({
-        error: 'Invalid JSON in request body',
-        code: 'INVALID_BODY'
-      }), {
-        status: 400,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid JSON in request body',
+          code: 'INVALID_BODY',
+        }),
+        {
+          status: 400,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // 3. Validate Request
     const validation = validateRequest(body);
     if (!validation.valid) {
-      return new Response(JSON.stringify({
-        error: validation.error,
-        code: 'VALIDATION_ERROR'
-      }), {
-        status: 400,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: validation.error,
+          code: 'VALIDATION_ERROR',
+        }),
+        {
+          status: 400,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    const { prompt, messages, model, systemInstruction, temperature, maxTokens, jsonMode, provider } = body;
+    const {
+      prompt,
+      messages,
+      model,
+      systemInstruction,
+      temperature,
+      maxTokens,
+      jsonMode,
+      provider,
+    } = body;
     const selectedProvider = provider || 'openrouter';
 
     // 4. Setup AI Client based on provider
@@ -186,27 +223,33 @@ serve(async (req) => {
     let defaultHeaders: Record<string, string> = {};
 
     if (selectedProvider === 'deepseek') {
-      apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+      apiKey = Deno.env.get('DEEPSEEK_API_KEY');
       if (!apiKey) {
-        return new Response(JSON.stringify({
-          error: 'Server Error: DEEPSEEK_API_KEY not configured',
-          code: 'CONFIG_ERROR'
-        }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
+        return new Response(
+          JSON.stringify({
+            error: 'Server Error: DEEPSEEK_API_KEY not configured',
+            code: 'CONFIG_ERROR',
+          }),
+          { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
+        );
       }
-      baseURL = "https://api.deepseek.com/v1";
+      baseURL = 'https://api.deepseek.com/v1';
     } else {
       // Default: OpenRouter
-      apiKey = Deno.env.get("OPENROUTER_API_KEY");
+      apiKey = Deno.env.get('OPENROUTER_API_KEY');
       if (!apiKey) {
-        return new Response(JSON.stringify({
-          error: 'Server Error: OPENROUTER_API_KEY not configured',
-          code: 'CONFIG_ERROR'
-        }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
+        return new Response(
+          JSON.stringify({
+            error: 'Server Error: OPENROUTER_API_KEY not configured',
+            code: 'CONFIG_ERROR',
+          }),
+          { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } }
+        );
       }
-      baseURL = "https://openrouter.ai/api/v1";
+      baseURL = 'https://openrouter.ai/api/v1';
       defaultHeaders = {
-        "HTTP-Referer": "https://alzhra-erp.vercel.app",
-        "X-Title": "Al Zhra ERP Secure Proxy",
+        'HTTP-Referer': 'https://alzhra-erp.vercel.app',
+        'X-Title': 'Al Zhra ERP Secure Proxy',
       };
     }
 
@@ -230,13 +273,18 @@ serve(async (req) => {
     const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     try {
-      const response = await openai.chat.completions.create({
-        model: model || (selectedProvider === 'deepseek' ? 'deepseek-chat' : "google/gemini-2.5-flash"),
-        messages: finalMessages,
-        temperature: temperature ?? 0.1,
-        max_tokens: maxTokens ?? 1500,
-        response_format: jsonMode ? { type: "json_object" } : undefined
-      }, { signal: controller.signal });
+      const response = await openai.chat.completions.create(
+        {
+          model:
+            model ||
+            (selectedProvider === 'deepseek' ? 'deepseek-chat' : 'google/gemini-2.5-flash'),
+          messages: finalMessages,
+          temperature: temperature ?? 0.1,
+          max_tokens: maxTokens ?? 1500,
+          response_format: jsonMode ? { type: 'json_object' } : undefined,
+        },
+        { signal: controller.signal }
+      );
 
       clearTimeout(timeoutId);
 
@@ -249,39 +297,47 @@ serve(async (req) => {
 
       // Handle specific OpenRouter errors
       if (error.status === 402) {
-        return new Response(JSON.stringify({
-          error: 'Insufficient funds in OpenRouter account',
-          code: 'INSUFFICIENT_FUNDS',
-          details: error.message
-        }), {
-          status: 402,
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({
+            error: 'Insufficient funds in OpenRouter account',
+            code: 'INSUFFICIENT_FUNDS',
+            details: error.message,
+          }),
+          {
+            status: 402,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       if (error.status === 429) {
-        return new Response(JSON.stringify({
-          error: 'Rate limit exceeded',
-          code: 'RATE_LIMIT',
-          details: error.message
-        }), {
-          status: 429,
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({
+            error: 'Rate limit exceeded',
+            code: 'RATE_LIMIT',
+            details: error.message,
+          }),
+          {
+            status: 429,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       throw error;
     }
-
   } catch (error: any) {
-    console.error("AI Proxy Error:", error);
-    return new Response(JSON.stringify({
-      error: error.message || 'Internal server error',
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    });
+    console.error('AI Proxy Error:', error);
+    return new Response(
+      JSON.stringify({
+        error: error.message || 'Internal server error',
+        code: 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 500,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      }
+    );
   }
-})
+});

@@ -31,7 +31,28 @@ jobs:
       - name: TypeScript ratchet (no NEW errors beyond baseline)
         run: npx tsx scripts/check-ts-baseline.ts
 
-      - name: Lint (non-blocking — make blocking once lint debt is paid)
+      - name: Detect changed TS files (vs base)
+        id: changed
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "::warning::No base SHA available - cannot compute changed files."
+            echo "files=__ERROR__" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch origin "$BASE" --depth=1 || { echo "files=__ERROR__" >> "$GITHUB_OUTPUT"; exit 0; }
+          FILES=$(git -C "$GITHUB_WORKSPACE" diff --name-only "$BASE" HEAD -- 'alzhraERP/src/**/*.ts' 'alzhraERP/src/**/*.tsx' | sed 's|^alzhraERP/||' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      # Ratchet: NEW/MODIFIED files must not ADD lint debt. Legacy debt is
+      # frozen in scripts/lint-baseline.json and paid down incrementally.
+      - name: Lint ratchet on changed files (no NEW lint debt)
+        if: steps.changed.outputs.files != '' && steps.changed.outputs.files != '__ERROR__'
+        run: |
+          echo "Changed files: ${{ steps.changed.outputs.files }}"
+          node scripts/check-lint-ratchet.mjs --files="${{ steps.changed.outputs.files }}"
+
+      - name: Full lint (non-blocking visibility on legacy debt)
         run: npm run lint
         continue-on-error: true
 
