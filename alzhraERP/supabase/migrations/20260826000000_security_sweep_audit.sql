@@ -76,12 +76,12 @@ FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
   AND p.prokind = 'f'
-  AND has_function_privilege('PUBLIC', p.oid, 'EXECUTE')
+  AND has_function_privilege('public', p.oid, 'EXECUTE')
 ORDER BY p.proname;
 
 GRANT SELECT ON public.v_functions_public_execute TO authenticated;
 REVOKE ALL ON public.v_functions_public_execute FROM anon;
-REVOKE ALL ON public.v_functions_public_execute FROM PUBLIC;
+REVOKE ALL ON public.v_functions_public_execute FROM public;
 
 
 -- ─────────────────────────────────────────────────────────────

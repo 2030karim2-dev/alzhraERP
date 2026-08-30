@@ -81,6 +81,13 @@ CREATE TABLE IF NOT EXISTS public.csp_reports_daily (
 COMMENT ON TABLE public.csp_reports_daily IS
   'Daily rollup of CSP reports. Populated by pg_cron from csp_reports.';
 
+ALTER TABLE public.csp_reports_daily ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS csp_reports_daily_super_admin ON public.csp_reports_daily;
+CREATE POLICY csp_reports_daily_super_admin ON public.csp_reports_daily
+  FOR ALL TO authenticated
+  USING (is_super_admin())
+  WITH CHECK (is_super_admin());
+
 
 -- ─────────────────────────────────────────────────────────────
 -- 3) pg_cron aggregator

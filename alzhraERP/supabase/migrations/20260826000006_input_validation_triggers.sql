@@ -38,6 +38,12 @@ CREATE TABLE IF NOT EXISTS public._text_length_limits (
   PRIMARY KEY (table_name, column_name)
 );
 
+ALTER TABLE public._text_length_limits ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS text_length_limits_read ON public._text_length_limits;
+CREATE POLICY text_length_limits_read ON public._text_length_limits
+  FOR SELECT TO authenticated, anon
+  USING (true);
+
 -- Seed the limits (conservative; supersede the existing application
 -- maxLength attributes with server-side truth).
 INSERT INTO public._text_length_limits (table_name, column_name, max_length) VALUES
