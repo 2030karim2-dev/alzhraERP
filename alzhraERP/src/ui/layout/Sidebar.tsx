@@ -90,34 +90,39 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar - Nimble, Sleek & Compact */}
       <aside
         className={cn(
-          'md:hidden fixed inset-y-0 w-72 bg-[var(--app-surface)] shadow-[0_0_40px_rgba(0,0,0,0.2)] z-50 transition-transform duration-300 ease-out flex flex-col',
-          dir === 'rtl' ? 'right-0' : 'left-0',
+          'md:hidden fixed inset-y-0 w-60 sm:w-64 max-w-[72vw] bg-[var(--app-surface)] shadow-2xl z-50 transition-transform duration-300 ease-out flex flex-col',
+          dir === 'rtl'
+            ? 'right-0 rounded-l-3xl border-l border-[var(--app-border)]'
+            : 'left-0 rounded-r-3xl border-r border-[var(--app-border)]',
           // Fix: Slide from Right (+100%) in RTL, Slide from Left (-100%) in LTR
           isMobileOpen ? 'translate-x-0' : (dir === 'rtl' ? 'translate-x-full' : '-translate-x-full'),
           className
         )}
       >
-        <div className="p-5 border-b border-[var(--app-border)] flex justify-between items-center bg-[var(--app-surface-hover)]/50">
+        <div className="px-4 py-3.5 border-b border-[var(--app-border)] flex justify-between items-center bg-[var(--app-surface-hover)]/40">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">AL-ZAHRA ERP</span>
-            <span className="text-[10px] font-semibold text-[var(--app-text-secondary)] uppercase">Main Menu</span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              النظاري ERP
+            </span>
+            <span className="text-[9px] font-bold text-[var(--app-text-secondary)]">القائمة الرئيسية</span>
           </div>
           <button
             onClick={onCloseMobile}
-            className="p-2 text-[var(--app-text-secondary)] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all active:scale-90"
+            aria-label="إغلاق القائمة"
+            className="w-7 h-7 flex items-center justify-center text-[var(--app-text-secondary)] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full transition-all active:scale-90"
           >
-            <X size={22} />
+            <X size={16} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 custom-scrollbar" onClick={() => onCloseMobile()}>
           <SidebarNav isCollapsed={false} />
         </div>
 
-        <div className="bg-[var(--app-surface-hover)]/30">
+        <div className="bg-[var(--app-surface-hover)]/30 border-t border-[var(--app-border)]/60">
           <SidebarFooter isCollapsed={false} />
         </div>
       </aside>
