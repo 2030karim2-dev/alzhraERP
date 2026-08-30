@@ -16,7 +16,7 @@ import {
     Coins,
     BookOpen
 } from 'lucide-react';
-import { useDhikrStore } from './dhikrStore';
+import { useDhikrStore, POPULAR_CITIES } from './dhikrStore';
 import { usePrayerTimes } from './usePrayerTimes';
 import { DHIKR_LIST } from './dhikrList';
 import { playAdhanSound } from './playAdhan';
@@ -32,6 +32,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
         city,
         soundEnabled,
         setSoundEnabled,
+        setPresetCity,
         detectGpsLocation,
         calculationMethod,
         setCalculationMethod
@@ -40,6 +41,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
     const { prayerTimes } = usePrayerTimes();
     const [isLocating, setIsLocating] = useState(false);
     const [gpsStatus, setGpsStatus] = useState<string | null>(null);
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
     const [activeTab, setActiveTab] = useState<'prayers' | 'debt_duas' | 'istighfar' | 'rizq' | 'tasbeeh'>('prayers');
     const [tasbeehCount, setTasbeehCount] = useState(0);
     const [selectedDhikr, setSelectedDhikr] = useState('سُبْحَانَ اللهِ وَبِحَمْدِهِ ، سُبْحَانَ اللهِ الْعَظِيمِ');
@@ -175,9 +177,51 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 {/* Tab 1: Prayer Times */}
                 {activeTab === 'prayers' && (
                     <div className="space-y-4">
-                        {/* GPS and Audio Controls Bar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/20 rounded-2xl">
-                            <div className="flex items-center gap-2">
+                        {/* City & GPS Selector Bar */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/20 rounded-2xl">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCityDropdown(!showCityDropdown)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-emerald-50 border border-emerald-500/40 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 shadow-sm transition-all"
+                                    >
+                                        <MapPin size={14} className="text-emerald-600" />
+                                        <span>المدينة: {city || 'شحن - المهرة (اليمن)'}</span>
+                                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.2 rounded text-emerald-700 dark:text-emerald-300">تغيير ▼</span>
+                                    </button>
+
+                                    {showCityDropdown && (
+                                        <div className="absolute top-full right-0 mt-2 w-72 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-emerald-500/30 rounded-2xl shadow-2xl z-50 p-2 custom-scrollbar animate-in zoom-in-95 duration-200">
+                                            <div className="p-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                                                اختر المدينة (اليمن والخليج)
+                                            </div>
+                                            <div className="py-1">
+                                                {POPULAR_CITIES.map((c) => (
+                                                    <button
+                                                        key={`${c.name}-${c.country}`}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPresetCity(c);
+                                                            setShowCityDropdown(false);
+                                                        }}
+                                                        className={`w-full text-right px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-colors ${
+                                                            city?.includes(c.name)
+                                                                ? 'bg-emerald-600 text-white'
+                                                                : 'hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
+                                                        }`}
+                                                    >
+                                                        <span>{c.name}</span>
+                                                        <span className={`text-[10px] ${city?.includes(c.name) ? 'text-emerald-100' : 'text-slate-400'}`}>
+                                                            {c.country}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <button
                                     onClick={handleGpsClick}
                                     disabled={isLocating}
@@ -186,7 +230,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                                     <MapPin size={14} className={isLocating ? 'animate-bounce text-emerald-500' : 'text-emerald-500'} />
                                     <span>{isLocating ? 'جاري تحديد GPS...' : 'تحديد الموقع تلقائياً بالـ GPS'}</span>
                                 </button>
+                            </div>
 
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setSoundEnabled(!soundEnabled)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-xs font-bold transition-all active:scale-95 ${
@@ -209,7 +255,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                             </div>
 
                             {gpsStatus && (
-                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 animate-pulse">
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 animate-pulse w-full text-center">
                                     {gpsStatus}
                                 </span>
                             )}
