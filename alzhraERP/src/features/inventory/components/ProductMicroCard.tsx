@@ -1,88 +1,118 @@
-
 import React from 'react';
 import type { Product } from '../types';
-import { formatCurrency, formatNumberDisplay } from '../../../core/utils';
-import { Hash, MapPin, Box, Activity } from 'lucide-react';
-import { cn } from '../../../core/utils';
+import { formatCurrency, formatNumberDisplay, cn } from '../../../core/utils';
+import { Hash, MapPin, Box, Tag, Factory, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   product: Product;
-  onClick: (id: string) => void;
+  onClick: (product: Product) => void;
 }
 
 const ProductMicroCard: React.FC<Props> = ({ product, onClick }) => {
+  const isLow = product.isLowStock || (product.stock_quantity <= (product.min_stock_level || 0));
+  const price = product.sale_price ?? product.selling_price ?? 0;
+  const partNumber = product.part_number && product.part_number !== '---' ? product.part_number : null;
+  const sku = product.sku && product.sku !== '---' ? product.sku : null;
+
   return (
     <div
-      onClick={() => { onClick(product.id); }}
+      onClick={() => onClick(product)}
       className={cn(
-        "group relative bg-[var(--app-surface)] border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col active:scale-[0.98] rounded-xl shadow-sm hover:shadow-md",
-        product.isLowStock
-          ? "border-rose-200 dark:border-rose-900/40 hover:border-rose-500"
-          : "border-gray-100 dark:border-slate-800 hover:border-blue-500"
+        "group relative bg-[var(--app-surface)] border transition-all duration-200 cursor-pointer overflow-hidden rounded-2xl p-3.5 shadow-xs hover:shadow-md active:scale-[0.99] flex flex-col justify-between",
+        isLow
+          ? "border-amber-200/80 dark:border-amber-900/40 hover:border-amber-500 bg-amber-50/20 dark:bg-amber-950/10"
+          : "border-[var(--app-border)] hover:border-blue-500/60 hover:bg-blue-50/10"
       )}
     >
-      {/* Visual Identity Strip */}
-      <div className="h-20 relative bg-gray-50 dark:bg-slate-800/30 flex items-center justify-center border-b dark:border-slate-800">
-        {product.image_url ? (
-          <img src={product.image_url} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-        ) : (
-          <Box size={24} className="text-gray-300 dark:text-slate-700" />
-        )}
+      {/* Top Header: Image + Name + Status */}
+      <div className="flex items-start gap-3 mb-2.5">
+        {/* Product Image / Icon */}
+        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center shrink-0 overflow-hidden">
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.name_ar || product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <Box size={22} className="text-slate-400 dark:text-slate-500" />
+          )}
+        </div>
 
-        {/* Status Overlay */}
-        <div className="absolute top-1 right-1">
-          <span className={cn(
-            "px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-tighter",
-            product.isLowStock ? "bg-rose-600 text-white" : "bg-blue-600 text-white"
-          )}>
-            {product.isLowStock ? 'تنبيه مخزون' : 'متوفر'}
+        {/* Title & Brand */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            {product.brand && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.2 rounded-md">
+                <Factory size={10} />
+                <span>{product.brand}</span>
+              </span>
+            )}
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.2 rounded-md shrink-0",
+                isLow
+                  ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+              )}
+            >
+              {isLow ? <AlertTriangle size={10} /> : <CheckCircle2 size={10} />}
+              <span>{isLow ? 'مخزون منخفض' : 'متوفر'}</span>
+            </span>
+          </div>
+
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2" title={product.name_ar || product.name}>
+            {product.name_ar || product.name}
+          </h3>
+        </div>
+      </div>
+
+      {/* Identifiers Row (Part Number / SKU) */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3 text-[11px] font-mono">
+        {partNumber && (
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md font-bold">
+            <Tag size={11} className="text-slate-400" />
+            <span>{partNumber}</span>
+          </span>
+        )}
+        {sku && (
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md">
+            <Hash size={11} className="text-slate-400" />
+            <span>{sku}</span>
+          </span>
+        )}
+        {product.location && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-sans mr-auto">
+            <MapPin size={10} />
+            <span>{product.location}</span>
+          </span>
+        )}
+      </div>
+
+      {/* Bottom Strip: Price & Stock */}
+      <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 -mx-3.5 -mb-3.5 px-3.5 py-2">
+        <div className="flex flex-col">
+          <span className="text-[9px] font-bold text-slate-400 uppercase">سعر البيع</span>
+          <span dir="ltr" className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 font-mono">
+            {formatCurrency(price)}
           </span>
         </div>
-      </div>
 
-      {/* Core Data Segment */}
-      <div className="p-2.5 space-y-1.5 flex-1">
-        <h3 className="text-[11px] font-bold text-gray-800 dark:text-slate-100 leading-tight line-clamp-2 min-h-[2.4em]">
-          {product.name_ar || product.name}
-        </h3>
-
-        <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 font-mono tracking-tighter bg-gray-50 dark:bg-slate-950 px-1.5 py-1 rounded">
-          <span className="flex items-center gap-1 uppercase"><Hash size={8} /> {product.sku}</span>
-          <span className="text-blue-600">{product.brand}</span>
+        <div className="flex flex-col items-end">
+          <span className="text-[9px] font-bold text-slate-400 uppercase">الكمية بالمخزن</span>
+          <span
+            dir="ltr"
+            className={cn(
+              "text-xs sm:text-sm font-black font-mono px-2 py-0.5 rounded-md",
+              isLow
+                ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+            )}
+          >
+            {formatNumberDisplay(product.stock_quantity)} {product.unit || 'حبة'}
+          </span>
         </div>
-
-        {/* Inventory Status Bar */}
-        <div className="h-1 bg-gray-100 dark:bg-slate-800 w-full overflow-hidden">
-          <div
-            className={cn("h-full transition-all", product.isLowStock ? "bg-rose-500" : "bg-emerald-500")}
-            style={{ width: `${Math.min(100, (product.stock_quantity / (product.min_stock_level || 5)) * 50)}%` }}
-          ></div>
-        </div>
-
-        {/* Pricing Segment */}
-        <div className="grid grid-cols-2 gap-1 mt-1.5 border-t dark:border-slate-800 pt-1.5">
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">السعر</p>
-            <p dir="ltr" className="text-[11px] font-bold text-blue-600 font-mono truncate">
-              {formatCurrency(product.sale_price ?? product.selling_price ?? 0)}
-            </p>
-          </div>
-          <div className="text-center border-r dark:border-slate-800">
-            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">المخزون</p>
-            <p dir="ltr" className={cn("text-[11px] font-bold font-mono", product.isLowStock ? "text-rose-600" : "text-gray-800 dark:text-white")}>
-              {formatNumberDisplay(product.stock_quantity)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Info Strip */}
-      <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-slate-950 border-t dark:border-slate-800 flex justify-between items-center opacity-60 rounded-b-xl">
-        <div className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase">
-          <MapPin size={8} />
-          <span>{product.location || 'غير متوفر'}</span>
-        </div>
-        <Activity size={10} className="text-blue-500" />
       </div>
     </div>
   );
