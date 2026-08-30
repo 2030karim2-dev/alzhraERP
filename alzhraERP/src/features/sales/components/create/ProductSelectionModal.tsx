@@ -75,7 +75,7 @@ const ProductSelectionModal: React.FC<Props> = ({
     handleKeyDown,
     handleTableKeyDown,
     handleRowClick,
-  } = useProductSelectionTable({ isOpen, initialQuery, effectiveBranchId, onSelect });
+  } = useProductSelectionTable({ isOpen, initialQuery, effectiveBranchId, mode, onSelect });
 
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -181,7 +181,7 @@ const ProductSelectionModal: React.FC<Props> = ({
                 value={localQuery}
                 onChange={e => setLocalQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="ابحث بالاسم، رقم القطعة... (اضغط Enter)"
+                placeholder="ابحث بالاسم، رقم القطعة، الماركة..."
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-3 pr-9 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
               />
             </div>
