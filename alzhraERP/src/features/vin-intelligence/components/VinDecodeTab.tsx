@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScanLine, History, AlertTriangle, Save, Edit3, PackagePlus } from 'lucide-react';
+import {
+  ScanLine,
+  History,
+  AlertTriangle,
+  Save,
+  Edit3,
+  PackagePlus,
+  PackageSearch,
+} from 'lucide-react';
 import Input from '../../../ui/base/Input';
 import Button from '../../../ui/base/Button';
 import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
 import { preDecodeVin } from '../utils/wmiDecoder';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
-import { MODES } from '../constants/vinPresetsData';
 import { VehicleCard, buildManualVehicleInput } from './decode/VehicleCard';
 import { VinManualVehicleForm } from './decode/VinManualVehicleForm';
 
@@ -19,6 +26,7 @@ interface VinDecodeTabProps {
   onSetManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<VinDecodeResult>;
   onSave: () => void;
   onNavigateToExtract?: () => void;
+  onNavigateToInventory?: () => void;
   isSaving: boolean;
 }
 
@@ -37,11 +45,11 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   onSetManualVehicle,
   onSave,
   onNavigateToExtract,
+  onNavigateToInventory,
   isSaving,
 }) => {
   const [entryMode, setEntryMode] = useState<'vin' | 'manual'>('vin');
   const [vin, setVin] = useState('');
-  const [mode, setMode] = useState<VinDecodeMode>('hybrid');
   const [aiSaveConfirmed, setAiSaveConfirmed] = useState(false);
 
   // Manual vehicle state (PartSouq / Catalog mode)
@@ -74,7 +82,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
 
   const handleDecode = async (): Promise<void> => {
     if (!canDecode) return;
-    await onDecode(vin, mode);
+    await onDecode(vin, 'hybrid');
   };
 
   const handleApplyManualVehicle = async (): Promise<void> => {
@@ -126,7 +134,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
           )}
         >
           <Edit3 size={15} />
-          إدخال يدوي (بارت سوق / كتالوج)
+          إدخال يدوي (اختيار السيارة بالموديل)
         </button>
       </div>
 
@@ -135,13 +143,14 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="space-y-3">
             <Input
-              label="رقم الشاصي (VIN)"
+              label="أدخل رقم الشاصي (VIN)"
+              placeholder="مثال: JTDBR32E100001234 أو كود الشاصي..."
               value={vin}
               onChange={e => setVin(e.target.value.toUpperCase())}
               onKeyDown={e => {
                 if (e.key === 'Enter') void handleDecode();
               }}
-              icon={<ScanLine />}
+              icon={<ScanLine className="text-blue-600" />}
             />
             {wmiPreview && (
               <div className="animate-in fade-in flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 p-2.5 text-xs text-blue-950 duration-200 dark:border-blue-800/60 dark:bg-blue-950/30 dark:text-blue-200">
@@ -171,26 +180,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
             )}
             {vin && validation.isValid && validation.checkDigitValid === false && (
               <p className="px-1 text-xs font-semibold text-amber-600">
-                تنبيه: خانة الفحص (Check Digit) غير صحيحة — تأكد من الرقم
+                تنبيه: خانة الفحص (Check Digit) غير صحيحة — تأكد من صحة الحروف والأرقام
               </p>
             )}
-
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {MODES.map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => setMode(m.id)}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all',
-                    mode === m.id
-                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
-                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800'
-                  )}
-                >
-                  <m.icon size={13} /> {m.label}
-                </button>
-              ))}
-            </div>
 
             <Button
               size="md"
@@ -198,9 +190,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               disabled={!canDecode}
               isLoading={isDecoding}
               fullWidth
-              className="rounded-lg font-bold shadow-md shadow-blue-500/10"
+              className="h-11 rounded-xl bg-blue-600 font-bold text-white shadow-md shadow-blue-500/15 transition-all hover:bg-blue-700"
             >
-              فك وتحليل رقم الشاصي 🔍
+              فك وتحليل بيانات المركبة 🔍
             </Button>
 
             {error != null && error !== '' && (
@@ -234,28 +226,57 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
         />
       )}
 
-      {/* Active Vehicle Card & Direct Actions */}
+      {/* Active Vehicle Card & Direct Guided Actions */}
       {result?.vehicle && (
-        <>
+        <div className="space-y-4">
           <VehicleCard
             vehicle={result.vehicle}
             source={result.source}
             confidence={result.confidence}
           />
 
-          {/* Quick shortcut to add parts in Excel table */}
-          {onNavigateToExtract && (
-            <Button
-              size="md"
-              variant="secondary"
-              onClick={onNavigateToExtract}
-              className="rounded-lg border-indigo-200 bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/40"
-              fullWidth
-            >
-              <PackagePlus size={16} className="ml-1.5 text-indigo-600 dark:text-indigo-400" />
-              إضافة قطع غيار لهذه السيارة في جدول إكسل ⚡
-            </Button>
-          )}
+          {/* Guided Next-Step Actions */}
+          <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 p-4 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-800">
+            <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-slate-200">
+              الخطوة التالية الموصى بها لهذه المركبة:
+            </h4>
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              {onNavigateToInventory && (
+                <Button
+                  size="md"
+                  onClick={onNavigateToInventory}
+                  className="rounded-xl border border-blue-200 bg-white font-bold text-blue-700 shadow-sm transition-all hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700"
+                >
+                  <PackageSearch size={16} className="ml-1.5 text-blue-600 dark:text-blue-400" />
+                  قطع المخزون المتطابقة 📦
+                </Button>
+              )}
+
+              {onNavigateToExtract && (
+                <Button
+                  size="md"
+                  onClick={onNavigateToExtract}
+                  className="rounded-xl bg-indigo-600 font-bold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-700"
+                >
+                  <PackagePlus size={16} className="ml-1.5 text-white" />
+                  تسعير واستخراج قطع جديدة ➕
+                </Button>
+              )}
+
+              {!uncertain && (
+                <Button
+                  size="md"
+                  variant="success"
+                  onClick={onSave}
+                  isLoading={isSaving}
+                  className="rounded-xl font-bold shadow-sm shadow-emerald-500/20"
+                >
+                  <Save size={16} className="ml-1.5" />
+                  حفظ السيارة في السجل ⭐
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* AI uncertainty warning */}
           {uncertain && (
@@ -295,21 +316,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
               </div>
             </div>
           )}
-
-          {/* Normal save button (vPIC / DB / Manual results) */}
-          {!uncertain && (
-            <Button
-              size="md"
-              variant="success"
-              onClick={onSave}
-              isLoading={isSaving}
-              fullWidth
-              className="rounded-lg font-bold shadow-md shadow-emerald-500/10"
-            >
-              <Save size={16} className="ml-1.5" /> حفظ بيانات الشاصي والسيارة
-            </Button>
-          )}
-        </>
+        </div>
       )}
 
       {history.length > 0 && (
@@ -317,7 +324,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
           <div className="mb-3 flex items-center gap-2">
             <History size={16} className="text-slate-400" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-              آخر الشواصي التي تم تحليلها
+              آخر الشواصي التي تم تحليلها مؤخراً
             </h3>
           </div>
           <div className="flex flex-wrap gap-1.5">

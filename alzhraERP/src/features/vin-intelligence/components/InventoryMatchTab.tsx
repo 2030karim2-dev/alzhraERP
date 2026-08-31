@@ -1,5 +1,6 @@
 import React from 'react';
-import { PackageSearch, Link2, Unlink2 } from 'lucide-react';
+import { PackageSearch, Link2, Unlink2, PackagePlus, ScanLine } from 'lucide-react';
+import Button from '../../../ui/base/Button';
 import ExcelTable, { type Column } from '../../../ui/common/ExcelTable';
 import type { MatchingInventoryProduct, VehicleProductLink } from '../types';
 
@@ -12,6 +13,8 @@ interface InventoryMatchTabProps {
   isLinking: boolean;
   onLink: (productId: string) => void;
   onUnlink: (id: string) => void;
+  onNavigateToExtract?: () => void;
+  onNavigateToDecode?: () => void;
 }
 
 const statusColor: Record<string, string> = {
@@ -47,14 +50,32 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
   isLinking,
   onLink,
   onUnlink,
+  onNavigateToExtract,
+  onNavigateToDecode,
 }) => {
   if (!hasVehicle) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 py-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <PackageSearch size={32} className="mx-auto mb-3 text-slate-400 dark:text-slate-500" />
-        <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-          أدخل رقم الشاصي (VIN) في تبويب «فك الشاصي» أولاً لعرض المنتجات المطابقة
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 py-16 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+          <ScanLine size={28} />
+        </div>
+        <h3 className="mb-2 text-base font-bold text-slate-800 dark:text-slate-100">
+          لم يتم تحديد سيارة بعد
+        </h3>
+        <p className="mx-auto mb-6 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+          قم بفك رقم الشاصي (VIN) أو اختيار موديل السيارة يدوياً لعرض كافة قطع الغيار المتطابقة في
+          مخزونك تلقائياً.
         </p>
+        {onNavigateToDecode && (
+          <Button
+            size="md"
+            onClick={onNavigateToDecode}
+            className="rounded-xl bg-blue-600 font-bold text-white shadow-md shadow-blue-500/20"
+          >
+            <ScanLine size={16} className="ml-1.5" />
+            الانتقال لفك الشاصي وتحديد السيارة
+          </Button>
+        )}
       </div>
     );
   }
@@ -133,6 +154,26 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Quick Action Header Bar */}
+      {onNavigateToExtract && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2">
+            <PackageSearch size={18} className="text-indigo-600 dark:text-indigo-400" />
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              تبحث عن قطع أخرى غير متوفرة في مخزونك؟
+            </span>
+          </div>
+          <Button
+            size="sm"
+            onClick={onNavigateToExtract}
+            className="rounded-xl bg-indigo-600 font-bold text-white shadow-xs hover:bg-indigo-700"
+          >
+            <PackagePlus size={14} className="ml-1.5" />
+            تسعير واستخراج قطع جديدة لهذه السيارة
+          </Button>
+        </div>
+      )}
+
       <ExcelTable
         columns={columns}
         data={matchingProducts}
@@ -140,7 +181,7 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
         enablePagination={false}
         showSearch={false}
         isLoading={isMatching}
-        emptyMessage="لا توجد منتجات مطابقة لهذه المركبة في المخزون"
+        emptyMessage="لا توجد منتجات مطابقة لهذه المركبة في المخزون حالياً"
         colorTheme="blue"
         isRTL
       />
@@ -150,7 +191,7 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
           <div className="mb-3 flex items-center gap-2">
             <Link2 size={16} className="text-emerald-600" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
-              المنتجات المرتبطة ({linkedProducts.length})
+              المنتجات المرتبطة يدوياً ({linkedProducts.length})
             </h3>
           </div>
           {isLinkedLoading ? (
