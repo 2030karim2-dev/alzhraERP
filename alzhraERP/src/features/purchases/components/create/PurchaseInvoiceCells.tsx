@@ -3,75 +3,155 @@ import { Search, Trash2 } from 'lucide-react';
 import type { PurchaseInvoiceItem } from '../../store';
 
 interface ProductCellProps {
-    item: PurchaseInvoiceItem;
-    index: number;
-    onOpenSearch: (index: number, query?: string) => void;
-    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>, index: number, field: keyof PurchaseInvoiceItem) => void;
+  item: PurchaseInvoiceItem;
+  index: number;
+  onOpenSearch: (index: number, query?: string) => void;
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    field: keyof PurchaseInvoiceItem
+  ) => void;
 }
 
-export const PurchaseProductCell: React.FC<ProductCellProps> = ({ item, index, onOpenSearch, onKeyDown }) => (
-    <td className="p-0 border-l dark:border-slate-800">
-        <div className="flex items-center px-2 max-md:px-0.5">
-            <input
-                type="text"
-                value={item.name}
-                data-row-index={index}
-                data-col-field="name"
-                onKeyDown={(event) => { onKeyDown(event, index, 'name'); }}
-                onClick={() => { onOpenSearch(index, item.name || ''); }}
-                readOnly
-                className="flex-1 p-2 max-md:p-0.5 bg-transparent outline-none text-right font-bold text-[11px] max-md:text-[10px] text-blue-900 dark:text-slate-100 cursor-pointer placeholder:text-blue-200"
-                placeholder="اختر صنفاً..."
-            />
-            <Search size={12} className="w-3 h-3 max-md:w-2.5 max-md:h-2.5 text-blue-300 opacity-0 group-hover:opacity-100 max-md:opacity-100" />
-        </div>
-    </td>
+export const PurchaseProductCell: React.FC<ProductCellProps> = ({
+  item,
+  index,
+  onOpenSearch,
+  onKeyDown,
+}) => (
+  <td className="border-l p-0 dark:border-slate-800">
+    <div className="group/cell flex items-center px-2.5 max-md:px-1">
+      <input
+        type="text"
+        value={item.name}
+        data-row-index={index}
+        data-col-field="name"
+        onKeyDown={event => {
+          onKeyDown(event, index, 'name');
+        }}
+        onClick={() => {
+          onOpenSearch(index, item.name || '');
+        }}
+        readOnly
+        className="flex-1 cursor-pointer bg-transparent py-2.5 text-right text-sm font-bold text-blue-900 outline-none placeholder:text-blue-300 dark:text-slate-100 dark:placeholder:text-slate-600 max-md:py-1.5"
+        placeholder="اختر صنفاً..."
+      />
+      <Search
+        size={14}
+        className="text-blue-400 opacity-0 transition-opacity group-hover/cell:opacity-100 max-md:opacity-100"
+      />
+    </div>
+  </td>
 );
 
 interface NumericCellProps {
-    value: number;
-    field: keyof PurchaseInvoiceItem;
-    index: number;
-    placeholder?: string;
-    className?: string;
-    onChange: (index: number, field: keyof PurchaseInvoiceItem, value: number) => void;
-    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>, index: number, field: keyof PurchaseInvoiceItem) => void;
+  value: number;
+  field: keyof PurchaseInvoiceItem;
+  index: number;
+  placeholder?: string;
+  className?: string;
+  onChange: (index: number, field: keyof PurchaseInvoiceItem, value: number) => void;
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    field: keyof PurchaseInvoiceItem
+  ) => void;
 }
 
-export const PurchaseNumericCell: React.FC<NumericCellProps> = ({ value, field, index, placeholder, className = '', onChange, onKeyDown }) => (
-    <td className="p-0 border-l dark:border-slate-800">
-        <input
-            type="number"
-            value={value || ''}
-            onChange={(event) => { onChange(index, field, parseFloat(event.target.value) || 0); }}
-            onKeyDown={(event) => { onKeyDown(event, index, field); }}
-            data-row-index={index}
-            data-col-field={field}
-            className={`w-full h-full min-h-7 max-md:min-h-6 p-2 max-md:p-0.5 bg-transparent outline-none text-center font-mono font-bold text-[11px] max-md:text-[10px] ${className}`}
-            placeholder={placeholder}
-        />
-    </td>
+export const PurchaseNumericCell: React.FC<NumericCellProps> = ({
+  value,
+  field,
+  index,
+  placeholder,
+  className = '',
+  onChange,
+  onKeyDown,
+}) => (
+  <td className="border-l p-0 dark:border-slate-800">
+    <input
+      type="number"
+      value={value || ''}
+      onChange={event => {
+        onChange(index, field, parseFloat(event.target.value) || 0);
+      }}
+      onKeyDown={event => {
+        onKeyDown(event, index, field);
+      }}
+      data-row-index={index}
+      data-col-field={field}
+      className={`h-full min-h-8 w-full bg-transparent p-2 text-center font-mono text-sm font-bold outline-none max-md:min-h-7 max-md:p-1 md:text-base ${className}`}
+      placeholder={placeholder}
+    />
+  </td>
 );
 
 interface TotalCellProps {
-    item: PurchaseInvoiceItem;
-    showDiscount: boolean;
+  item: PurchaseInvoiceItem;
+  index: number;
+  showDiscount: boolean;
+  onChange: (index: number, field: keyof PurchaseInvoiceItem, value: number) => void;
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    field: keyof PurchaseInvoiceItem
+  ) => void;
 }
 
-export const PurchaseTotalCell: React.FC<TotalCellProps> = ({ item, showDiscount }) => (
-    <td dir="ltr" className="p-2 max-md:p-0.5 text-left font-mono font-bold text-[11px] max-md:text-[10px] text-blue-900 dark:text-white bg-blue-50/50 dark:bg-slate-950/30">
-        {((item.quantity * item.costPrice) - (showDiscount ? item.discount : 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+export const PurchaseTotalCell: React.FC<TotalCellProps> = ({
+  item,
+  index,
+  showDiscount,
+  onChange,
+  onKeyDown,
+}) => {
+  const total = item.quantity * item.costPrice - (showDiscount ? item.discount : 0);
+
+  const handleTotalChange = (newTotal: number) => {
+    const currentQty = item.quantity || 1;
+    const discount = showDiscount ? item.discount || 0 : 0;
+    if (item.quantity === 0) {
+      onChange(index, 'quantity', 1);
+      onChange(index, 'costPrice', newTotal + discount);
+    } else {
+      const newCost = Math.max(0, (newTotal + discount) / currentQty);
+      onChange(index, 'costPrice', Number(newCost.toFixed(4)));
+    }
+  };
+
+  return (
+    <td className="border-l bg-blue-50/50 p-0 dark:border-slate-800 dark:bg-slate-950/30">
+      <input
+        type="number"
+        value={total !== 0 ? Number(total.toFixed(2)) : ''}
+        onChange={event => {
+          handleTotalChange(parseFloat(event.target.value) || 0);
+        }}
+        onKeyDown={event => {
+          onKeyDown(event, index, 'costPrice');
+        }}
+        data-row-index={index}
+        data-col-field="total"
+        className="h-full min-h-8 w-full bg-transparent p-2 text-left font-mono text-sm font-bold text-blue-900 outline-none transition-colors focus:bg-blue-100/70 dark:text-white dark:focus:bg-slate-800 max-md:min-h-7 max-md:p-1 md:text-base"
+        placeholder="0.00"
+        dir="ltr"
+        title="يمكنك تعديل إجمالي الصنف مباشرة وسيتم تعديل سعر التكلفة تلقائياً"
+      />
     </td>
-);
+  );
+};
 
 interface RemoveCellProps {
-    onRemove: () => void;
+  onRemove: () => void;
 }
 
 export const PurchaseRemoveCell: React.FC<RemoveCellProps> = ({ onRemove }) => (
-    <td className="p-0 bg-blue-50/30">
-        <button onClick={onRemove} aria-label="حذف السطر" className="w-full h-full min-h-7 max-md:min-h-6 flex items-center justify-center text-rose-300 hover:text-rose-600 transition-colors">
-            <Trash2 size={12} className="max-md:w-2.5 max-md:h-2.5" />
-        </button>
-    </td>
+  <td className="bg-blue-50/30 p-0 dark:bg-slate-900/30">
+    <button
+      onClick={onRemove}
+      aria-label="حذف السطر"
+      className="flex h-full min-h-8 w-full items-center justify-center text-rose-300 transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 max-md:min-h-7"
+    >
+      <Trash2 size={15} />
+    </button>
+  </td>
 );
