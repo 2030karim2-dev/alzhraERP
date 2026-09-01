@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
   onSelect: (product: Product) => void;
   initialQuery?: string;
-  mode?: 'sale' | 'purchase';
+  mode?: 'sale' | 'purchase' | 'quotation';
 }
 
 const FONT_SIZE_CLASSES = { small: 'text-[10px]', medium: 'text-[11px]', large: 'text-[13px]' };

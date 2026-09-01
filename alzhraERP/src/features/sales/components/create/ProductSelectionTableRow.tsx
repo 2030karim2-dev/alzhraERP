@@ -8,7 +8,7 @@ interface ProductSelectionTableRowProps {
   index: number;
   visibleColumns: ColumnConfig[];
   effectiveBranchId: string | null;
-  mode: 'sale' | 'purchase';
+  mode: 'sale' | 'purchase' | 'quotation';
   fontSizeClass: string;
   isFocused: boolean;
   onSelect: (product: Product) => void;
@@ -55,14 +55,12 @@ export const ProductSelectionTableRow: React.FC<ProductSelectionTableRowProps> =
           product.warehouse_distribution?.[0];
         return (
           <span className="block truncate text-xs opacity-80">
-            {branchStock?.warehouse_name || 'الرئيسي'}
+            {branchStock?.warehouse_name || 'المستودع الرئيسي'}
           </span>
         );
       }
       case 'stock': {
-        const qty =
-          product.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)
-            ?.quantity ?? product.stock_quantity;
+        const qty = product.stock_quantity;
         const isLow = qty <= product.min_stock_level;
         return (
           <span className={`font-mono text-sm font-black ${isLow ? 'text-red-500' : ''}`}>
@@ -73,7 +71,7 @@ export const ProductSelectionTableRow: React.FC<ProductSelectionTableRowProps> =
       case 'price':
         return (
           <span className="font-mono text-sm font-black text-emerald-600 group-hover:text-white">
-            {mode === 'sale' ? product.selling_price || product.sale_price : product.cost_price}
+            {mode === 'purchase' ? product.cost_price : product.selling_price || product.sale_price}
           </span>
         );
       case 'size':

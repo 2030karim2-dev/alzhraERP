@@ -1,22 +1,24 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { useProducts } from '../../inventory/hooks/index';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../../../lib/supabaseClient';
+import { useAuthStore } from '../../auth/store';
+import { productService } from '../../inventory/service';
 import type { Product } from '../../inventory/types';
 import { useFeedbackStore } from '../../feedback/store';
+import { logger } from '../../../core/utils/logger';
 
 /**
  * useProductSelectionTable
  * ----------------------------------------
  * Encapsulates the product-table data logic of ProductSelectionModal:
- * query state, in-stock filter, column sorting, pagination, keyboard
- * navigation and double-click selection (with warehouse-aware stock checks).
- *
- * Extracted so the modal component stays focused on UI/rendering.
+ * server-side normalized search across full catalog, warehouse-aware stock checks,
+ * in-stock filter, column sorting, client pagination, and keyboard navigation.
  */
 interface UseProductSelectionTableOptions {
   isOpen: boolean;
   initialQuery: string;
   effectiveBranchId: string | null;
-  mode?: 'sale' | 'purchase';
+  mode?: 'sale' | 'purchase' | 'quotation';
   onSelect: (product: Product) => void;
 }
 
@@ -28,6 +30,8 @@ export function useProductSelectionTable({
   onSelect,
 }: UseProductSelectionTableOptions) {
   const { showToast } = useFeedbackStore();
+  const { user } = useAuthStore();
+  const companyId = user?.company_id ?? '';
 
   // Query / filter state
   const [localQuery, setLocalQuery] = useState(initialQuery);
@@ -42,32 +46,82 @@ export function useProductSelectionTable({
     null
   );
 
-  // Client-side pagination state
+  // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
 
-  const { products: allProducts, isLoading } = useProducts(submittedQuery, {
-    limitNum: 5000,
-    ...(effectiveBranchId ? { warehouseId: effectiveBranchId } : {}),
+  // Map sort config to SQL sort keys
+  const sqlSortKey = useMemo(() => {
+    if (!sortConfig) return 'updated_at';
+    switch (sortConfig.key) {
+      case 'name':
+        return 'name_ar';
+      case 'part_number':
+      case 'sku':
+        return 'sku';
+      default:
+        return 'updated_at';
+    }
+  }, [sortConfig]);
+
+  const sqlSortDir = sortConfig?.direction || 'desc';
+
+  // Server-side search & fetch via high-performance RPC
+  const { data: rawProducts = [], isLoading } = useQuery<Product[]>({
+    queryKey: [
+      'product_selection_table',
+      companyId,
+      submittedQuery.trim(),
+      effectiveBranchId,
+      sqlSortKey,
+      sqlSortDir,
+    ],
+    queryFn: async () => {
+      if (!companyId) return [];
+
+      try {
+        const { data, error } = await supabase.rpc('search_inventory_paginated', {
+          p_company_id: companyId,
+          p_term: submittedQuery.trim(),
+          p_limit: 1000,
+          p_offset: 0,
+          p_sort_key: sqlSortKey,
+          p_sort_dir: sqlSortDir,
+          ...(effectiveBranchId ? { p_branch_id: effectiveBranchId } : {}),
+        });
+
+        if (error) {
+          logger.warn('useProductSelectionTable', 'RPC search error, falling back:', error.message);
+          return await productService.getProducts(companyId, 1, 500);
+        }
+
+        return productService.mapRawProducts(data ?? []);
+      } catch (err) {
+        logger.error('useProductSelectionTable', 'Failed to fetch products:', err);
+        return [];
+      }
+    },
+    enabled: isOpen && !!companyId,
+    staleTime: 1000 * 15,
   });
 
-  // Filter products
-  const filteredProducts = allProducts.filter(p => {
-    if (showInStockOnly && p.stock_quantity <= 0) return false;
-    return true;
-  });
+  // In-stock filter
+  const filteredProducts = useMemo(() => {
+    if (!showInStockOnly) return rawProducts;
+    return rawProducts.filter(p => (p.stock_quantity ?? 0) > 0);
+  }, [rawProducts, showInStockOnly]);
 
-  // Sort products based on sortConfig
+  // Client-side Sort products for fields not handled directly by SQL RPC (e.g. stock, price, brand)
   const products = useMemo(() => {
     if (!sortConfig) return filteredProducts;
     const { key, direction } = sortConfig;
-    const sorted = [...filteredProducts].sort((a, b) => {
+
+    return [...filteredProducts].sort((a, b) => {
       let aVal: string | number = '';
       let bVal: string | number = '';
 
-      // Map column key to product field
       switch (key) {
         case 'name':
           aVal = a.name || '';
@@ -81,20 +135,13 @@ export function useProductSelectionTable({
           aVal = a.brand || '';
           bVal = b.brand || '';
           break;
-        case 'stock': {
-          const aQty =
-            a.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ??
-            a.stock_quantity;
-          const bQty =
-            b.warehouse_distribution?.find(w => w.warehouse_id === effectiveBranchId)?.quantity ??
-            b.stock_quantity;
-          aVal = aQty;
-          bVal = bQty;
+        case 'stock':
+          aVal = a.stock_quantity ?? 0;
+          bVal = b.stock_quantity ?? 0;
           break;
-        }
         case 'price':
-          aVal = (a.selling_price || a.sale_price) ?? 0;
-          bVal = (b.selling_price || b.sale_price) ?? 0;
+          aVal = mode === 'purchase' ? a.cost_price || 0 : ((a.selling_price || a.sale_price) ?? 0);
+          bVal = mode === 'purchase' ? b.cost_price || 0 : ((b.selling_price || b.sale_price) ?? 0);
           break;
         case 'size':
           aVal = a.size || '';
@@ -113,12 +160,10 @@ export function useProductSelectionTable({
       if (strA > strB) return direction === 'asc' ? 1 : -1;
       return 0;
     });
-    return sorted;
-  }, [filteredProducts, sortConfig, effectiveBranchId]);
+  }, [filteredProducts, sortConfig, mode]);
 
   // Handle column header click for sorting
   const handleSort = (colId: string) => {
-    // Don't sort index or actions columns
     if (colId === 'index' || colId === 'actions' || colId === 'branch' || colId === 'specs') return;
     setSortConfig(prev => {
       if (prev?.key === colId) {
@@ -144,7 +189,7 @@ export function useProductSelectionTable({
 
   const handlePageChange = (newPage: number) => {
     setPage(Math.max(1, Math.min(totalPages, newPage)));
-    setFocusedIndex(-1); // Reset keyboard focus
+    setFocusedIndex(-1);
   };
 
   // Reset local query when modal opens
@@ -189,15 +234,11 @@ export function useProductSelectionTable({
       clickCountRef.current[id] = 0;
       if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
 
-      // التحقق من توفر المخزون فقط في وضع البيع
-      if (mode !== 'purchase') {
-        const branchQty = p.warehouse_distribution?.find(
-          w => w.warehouse_id === effectiveBranchId
-        )?.quantity;
-        const effectiveQty = branchQty ?? p.stock_quantity;
+      // التحقق من توفر المخزون فقط في وضع البيع الفعلي (وليس عروض الأسعار أو المشتريات)
+      if (mode === 'sale') {
+        const effectiveQty = p.stock_quantity ?? 0;
         if (effectiveQty <= 0) {
-          showToast(`المنتج "${p.name}" غير متوفر في المخزون حالياً`, 'warning');
-          return;
+          showToast(`تنبيه: المنتج "${p.name}" رصيده 0 في هذا الفرع`, 'warning');
         }
       }
 
@@ -225,21 +266,17 @@ export function useProductSelectionTable({
         e.preventDefault();
         const product = paginatedProducts[focusedIndex];
         if (product) {
-          if (mode !== 'purchase') {
-            const branchQty = product.warehouse_distribution?.find(
-              w => w.warehouse_id === effectiveBranchId
-            )?.quantity;
-            const effectiveQty = branchQty ?? product.stock_quantity;
+          if (mode === 'sale') {
+            const effectiveQty = product.stock_quantity ?? 0;
             if (effectiveQty <= 0) {
-              showToast(`المنتج "${product.name}" غير متوفر في المخزون حالياً`, 'warning');
-              return;
+              showToast(`تنبيه: المنتج "${product.name}" رصيده 0 في هذا الفرع`, 'warning');
             }
           }
           onSelect(product);
         }
       }
     },
-    [paginatedProducts, focusedIndex, effectiveBranchId, mode, showToast, onSelect]
+    [paginatedProducts, focusedIndex, mode, showToast, onSelect]
   );
 
   // Scroll focused row into view when focusedIndex changes

@@ -201,8 +201,36 @@ export const productsApi = {
   },
 
   searchProduct: async (companyId: string, term: string) => {
-    const searchPattern = `%${term.trim()}%`;
+    try {
+      const { data, error } = await supabase.rpc('search_inventory_paginated', {
+        p_company_id: companyId,
+        p_term: term.trim(),
+        p_limit: 30,
+        p_offset: 0,
+        p_sort_key: 'name_ar',
+        p_sort_dir: 'asc',
+      });
+      if (!error && Array.isArray(data)) {
+        return {
+          data: data.map(item => ({
+            id: item.id,
+            name_ar: item.name_ar,
+            sku: item.sku,
+            sale_price: Number(item.sale_price) || 0,
+            purchase_price: Number(item.purchase_price) || 0,
+            part_number: item.part_number,
+            alternative_numbers: item.alternative_numbers,
+            brand: item.brand,
+            quantity: Array.isArray(item.stock) ? item.stock : [],
+          })),
+          error: null,
+        };
+      }
+    } catch {
+      // Fall back to direct query on network or RPC errors
+    }
 
+    const searchPattern = `%${term.trim()}%`;
     return await supabase
       .from('products')
       .select(
@@ -214,7 +242,7 @@ export const productsApi = {
         `name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern},alternative_numbers.ilike.${searchPattern},brand.ilike.${searchPattern}`
       )
       .order('name_ar')
-      .limit(15);
+      .limit(30);
   },
 
   getSupplier: async (id: string) => {
