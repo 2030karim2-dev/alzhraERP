@@ -20,10 +20,11 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company, documentTypeTitl
   const [logoError, setLogoError] = useState(false);
 
   const nameAr = settings.company_name_ar || company?.name_ar || 'اسم المنشأة';
-  const nameEn = settings.company_name_en || company?.name_en || 'Enterprise ERP';
-  const address = settings.company_address || company?.address || 'المملكة العربية السعودية';
+  const nameEn = settings.company_name_en || company?.name_en || '';
+  const address = settings.company_address || company?.address || '';
   const specialization = settings.company_specialization || '';
   const taxNumber = company?.tax_number || '';
+  const companyPhone = company?.phone || '';
   const logoSrc = !logoError ? company?.logo_url || null : null;
 
   return (
@@ -62,18 +63,28 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company, documentTypeTitl
               )}
             </div>
 
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-400">
-              <span>{address}</span>
-              {taxNumber && (
-                <>
-                  <span className="text-slate-600">•</span>
-                  <div className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 font-mono font-bold text-slate-300">
-                    <QrCode size={11} className="text-emerald-400" />
-                    <span>الرقم الضريبي: {taxNumber}</span>
-                  </div>
-                </>
-              )}
-            </div>
+            {(address || companyPhone || taxNumber) && (
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-400">
+                {address && <span>{address}</span>}
+                {companyPhone && (
+                  <>
+                    {address && <span className="text-slate-600">•</span>}
+                    <span dir="ltr" className="font-mono text-slate-300">
+                      {companyPhone}
+                    </span>
+                  </>
+                )}
+                {taxNumber && (
+                  <>
+                    {(address || companyPhone) && <span className="text-slate-600">•</span>}
+                    <div className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 font-mono font-bold text-slate-300">
+                      <QrCode size={11} className="text-emerald-400" />
+                      <span>الرقم الضريبي: {taxNumber}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
