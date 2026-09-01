@@ -3,7 +3,7 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DhikrSettings } from './types';
+import type { DhikrSettings, AdhanReciterId } from './types';
 
 export interface PresetCity {
   name: string;
@@ -47,6 +47,10 @@ interface DhikrState extends DhikrSettings {
   setEnabled: (enabled: boolean) => void;
   /** Toggle adhan sound on/off */
   setSoundEnabled: (enabled: boolean) => void;
+  /** Adjust adhan volume (0 to 1) */
+  setVolume: (volume: number) => void;
+  /** Set selected adhan reciter voice */
+  setAdhanReciter: (adhanReciter: AdhanReciterId) => void;
   /** Save the prayer location */
   setLocation: (latitude: number | null, longitude: number | null, city: string) => void;
   /** Set city from preset list */
@@ -63,6 +67,8 @@ interface DhikrState extends DhikrSettings {
 const defaultSettings: DhikrSettings = {
   enabled: true,
   soundEnabled: true,
+  volume: 0.9,
+  adhanReciter: 'makkah',
   latitude: 17.535, // Shahan, Al-Mahrah, Yemen
   longitude: 52.247,
   city: 'شحن - المهرة (اليمن)',
@@ -77,6 +83,8 @@ export const useDhikrStore = create<DhikrState>()(
 
       setEnabled: enabled => set({ enabled }),
       setSoundEnabled: soundEnabled => set({ soundEnabled }),
+      setVolume: volume => set({ volume: Math.max(0, Math.min(1, volume)) }),
+      setAdhanReciter: adhanReciter => set({ adhanReciter }),
       setLocation: (latitude, longitude, city) => set({ latitude, longitude, city }),
       setPresetCity: cityObj =>
         set({

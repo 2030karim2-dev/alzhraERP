@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Moon,
   Sun,
@@ -11,11 +11,21 @@ import {
   RotateCcw,
   HeartHandshake,
   Coins,
+  Square,
+  Radio,
+  Bell,
+  CheckCircle2,
 } from 'lucide-react';
 import { useDhikrStore, POPULAR_CITIES } from './dhikrStore';
 import { usePrayerTimes } from './usePrayerTimes';
 import { DHIKR_LIST } from './dhikrList';
-import { playAdhanSound } from './playAdhan';
+import {
+  ADHAN_RECITERS,
+  playAdhanSound,
+  stopAdhanSound,
+  isAdhanPlaying,
+  subscribeAdhanState,
+} from './playAdhan';
 import Modal from '../../ui/base/Modal';
 
 interface Props {
@@ -24,17 +34,35 @@ interface Props {
 }
 
 export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { city, soundEnabled, setSoundEnabled, setPresetCity, detectGpsLocation } = useDhikrStore();
+  const {
+    city,
+    soundEnabled,
+    setSoundEnabled,
+    volume = 0.9,
+    setVolume,
+    adhanReciter = 'makkah',
+    setAdhanReciter,
+    setPresetCity,
+    detectGpsLocation,
+  } = useDhikrStore();
 
   const { prayerTimes } = usePrayerTimes();
   const [isLocating, setIsLocating] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<string | null>(null);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [playingAdhan, setPlayingAdhan] = useState(isAdhanPlaying());
+  const [notifPermission, setNotifPermission] = useState<string>(() =>
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
+  );
   const [activeTab, setActiveTab] = useState<
     'prayers' | 'debt_duas' | 'istighfar' | 'rizq' | 'tasbeeh'
   >('prayers');
   const [tasbeehCount, setTasbeehCount] = useState(0);
   const [selectedDhikr] = useState('سُبْحَانَ اللهِ وَبِحَمْدِهِ ، سُبْحَانَ اللهِ الْعَظِيمِ');
+
+  useEffect(() => {
+    return subscribeAdhanState(setPlayingAdhan);
+  }, []);
 
   const handleGpsClick = async () => {
     setIsLocating(true);
@@ -54,8 +82,19 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleTestAdhan = () => {
-    void playAdhanSound(true);
+  const handleToggleAdhanAudio = () => {
+    if (playingAdhan) {
+      stopAdhanSound();
+    } else {
+      void playAdhanSound({ previewMode: true, reciterId: adhanReciter, volume });
+    }
+  };
+
+  const handleRequestNotification = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const res = await Notification.requestPermission();
+      setNotifPermission(res);
+    }
   };
 
   // Filter adhkar by category
@@ -106,9 +145,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Tabs Navigation */}
         <div className="mb-5 flex flex-wrap gap-2">
           <button
-            onClick={() => {
-              setActiveTab('prayers');
-            }}
+            onClick={() => setActiveTab('prayers')}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               activeTab === 'prayers'
                 ? 'scale-102 bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
@@ -120,9 +157,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('debt_duas');
-            }}
+            onClick={() => setActiveTab('debt_duas')}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               activeTab === 'debt_duas'
                 ? 'scale-102 bg-amber-600 text-white shadow-md shadow-amber-600/30'
@@ -134,9 +169,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('rizq');
-            }}
+            onClick={() => setActiveTab('rizq')}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               activeTab === 'rizq'
                 ? 'scale-102 bg-teal-600 text-white shadow-md shadow-teal-600/30'
@@ -148,9 +181,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('istighfar');
-            }}
+            onClick={() => setActiveTab('istighfar')}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               activeTab === 'istighfar'
                 ? 'scale-102 bg-blue-600 text-white shadow-md shadow-blue-600/30'
@@ -162,9 +193,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('tasbeeh');
-            }}
+            onClick={() => setActiveTab('tasbeeh')}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               activeTab === 'tasbeeh'
                 ? 'scale-102 bg-purple-600 text-white shadow-md shadow-purple-600/30'
@@ -176,7 +205,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Tab 1: Prayer Times */}
+        {/* Tab 1: Prayer Times & Adhan System */}
         {activeTab === 'prayers' && (
           <div className="space-y-4">
             {/* City & GPS Selector Bar */}
@@ -185,9 +214,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowCityDropdown(!showCityDropdown);
-                    }}
+                    onClick={() => setShowCityDropdown(!showCityDropdown)}
                     className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 dark:bg-slate-800 dark:text-emerald-300"
                   >
                     <MapPin size={14} className="text-emerald-600" />
@@ -245,9 +272,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setSoundEnabled(!soundEnabled);
-                  }}
+                  onClick={() => setSoundEnabled(!soundEnabled)}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                     soundEnabled
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
@@ -256,14 +281,6 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 >
                   {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
                   <span>{soundEnabled ? 'صوت الأذان مفعل' : 'صوت الأذان مكتوم'}</span>
-                </button>
-
-                <button
-                  onClick={handleTestAdhan}
-                  title="تشغيل نغمة أذان تجريبية"
-                  className="rounded-xl bg-emerald-100 px-2.5 py-1.5 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-200"
-                >
-                  تجربة الأذان 🔊
                 </button>
               </div>
 
@@ -340,6 +357,129 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             )}
+
+            {/* Advanced Adhan Audio Center (تحكم الأذان المطور) */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Radio size={16} className="text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    مركز التحكم بصوت الأذان والمؤذن
+                  </span>
+                </div>
+                {notifPermission !== 'granted' && (
+                  <button
+                    type="button"
+                    onClick={handleRequestNotification}
+                    className="shadow-2xs inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-800 dark:text-indigo-300"
+                  >
+                    <Bell size={12} />
+                    تفعيل إشعارات سطح المكتب
+                  </button>
+                )}
+              </div>
+
+              {/* Reciters Selector Grid */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-400">
+                  اختر صوت الأذان المفضل:
+                </label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {ADHAN_RECITERS.map(rec => {
+                    const isSelected = (adhanReciter || 'makkah') === rec.id;
+                    return (
+                      <button
+                        key={rec.id}
+                        type="button"
+                        onClick={() => {
+                          setAdhanReciter(rec.id);
+                          if (playingAdhan) {
+                            void playAdhanSound({
+                              previewMode: true,
+                              reciterId: rec.id,
+                              volume,
+                            });
+                          }
+                        }}
+                        className={`flex flex-col items-start rounded-xl border p-2.5 text-right transition-all ${
+                          isSelected
+                            ? 'border-emerald-600 bg-emerald-50/80 text-emerald-950 shadow-sm ring-1 ring-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-100'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <span className="text-xs font-bold">{rec.name}</span>
+                          {isSelected && <CheckCircle2 size={14} className="text-emerald-600" />}
+                        </div>
+                        <span className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                          {rec.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Volume Slider & Play/Stop Action */}
+              <div className="flex flex-col items-stretch justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3 dark:border-slate-800 dark:bg-slate-800/80 sm:flex-row sm:items-center">
+                {/* Volume Slider */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setVolume(volume > 0 ? 0 : 0.9)}
+                    className="text-slate-500 hover:text-emerald-600 dark:text-slate-400"
+                    title={volume > 0 ? 'كتم الصوت' : 'إعادة تشغيل الصوت'}
+                  >
+                    {volume > 0 ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={e => setVolume(parseFloat(e.target.value))}
+                      className="h-2 w-28 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-emerald-600 dark:bg-slate-700"
+                    />
+                    <span className="w-10 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {Math.round(volume * 100)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Big Test / Stop Audio Button */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleAdhanAudio}
+                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all active:scale-95 ${
+                      playingAdhan
+                        ? 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700'
+                        : 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
+                    }`}
+                  >
+                    {playingAdhan ? (
+                      <>
+                        <Square size={14} className="fill-current" />
+                        <span>إيقاف صوت الأذان</span>
+                        {/* Audio Waveform animation */}
+                        <div className="flex items-end gap-0.5">
+                          <span className="h-3 w-1 animate-pulse rounded-full bg-white"></span>
+                          <span className="h-4 w-1 animate-bounce rounded-full bg-white"></span>
+                          <span className="h-2 w-1 animate-pulse rounded-full bg-white"></span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 size={14} />
+                        <span>تجربة وسماع صوت الأذان 🔊</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

@@ -1,59 +1,73 @@
 /**
  * Dhikr & Prayer Ticker — prayer times hook.
- * Recomputes the schedule every minute and fires the adhan sound exactly
- * once when a prayer time is reached (respecting browser autoplay rules).
+ * Recomputes the schedule every minute and fires the authentic adhan sound
+ * once when a prayer time is reached.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useDhikrStore } from './dhikrStore';
-import { useSoundStore } from '../notifications/store';
 import { computePrayerTimes, prayerPlaybackKey } from './prayerTimes';
 import { playAdhanSound } from './playAdhan';
 import type { PrayerTimesResult } from './types';
 
 export function usePrayerTimes(): { prayerTimes: PrayerTimesResult | null } {
-    const latitude = useDhikrStore((s) => s.latitude);
-    const longitude = useDhikrStore((s) => s.longitude);
-    const method = useDhikrStore((s) => s.calculationMethod);
-    const soundEnabled = useDhikrStore((s) => s.soundEnabled);
+  const latitude = useDhikrStore(s => s.latitude);
+  const longitude = useDhikrStore(s => s.longitude);
+  const method = useDhikrStore(s => s.calculationMethod);
+  const soundEnabled = useDhikrStore(s => s.soundEnabled);
+  const volume = useDhikrStore(s => s.volume);
+  const adhanReciter = useDhikrStore(s => s.adhanReciter);
 
-    const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
-    // Refresh the clock once per minute (light, no per-second ticking).
-    useEffect(() => {
-        const interval = setInterval(() => setNow(Date.now()), 60_000);
-        return () => clearInterval(interval);
-    }, []);
+  // Refresh the clock once per minute (lightweight).
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
-    const prayerTimes = useMemo(
-        () => computePrayerTimes(latitude, longitude, method, new Date(now)),
-        [latitude, longitude, method, now]
-    );
+  const prayerTimes = useMemo(
+    () => computePrayerTimes(latitude, longitude, method, new Date(now)),
+    [latitude, longitude, method, now]
+  );
 
-    // Adhan firing — runs every minute together with the clock refresh.
-    useEffect(() => {
-        if (!prayerTimes) return;
-        if (!soundEnabled) return;
+  // Adhan firing — checks every minute when prayer time arrives.
+  useEffect(() => {
+    if (!prayerTimes) return;
+    if (!soundEnabled) return;
 
-        const justHit = prayerTimes.today.find((entry) => {
-            const diff = now - entry.time;
-            return diff >= 0 && diff < 60_000;
-        });
+    const justHit = prayerTimes.today.find(entry => {
+      const diff = now - entry.time;
+      return diff >= 0 && diff < 60_000;
+    });
 
-        if (!justHit) return;
+    if (!justHit) return;
 
-        const key = prayerPlaybackKey(justHit.name, new Date(now));
-        const current = useDhikrStore.getState().lastPrayerPlayed;
+    const key = prayerPlaybackKey(justHit.name, new Date(now));
+    const current = useDhikrStore.getState().lastPrayerPlayed;
 
-        // Deduplicate: never re-play the same adhan twice in one day.
-        if (current === key) return;
+    // Deduplicate: never re-play the same adhan twice in one day.
+    if (current === key) return;
 
-        useDhikrStore.getState().markPrayerPlayed(key);
+    useDhikrStore.getState().markPrayerPlayed(key);
 
-        const sound = useSoundStore.getState();
-        if (sound.isSoundEnabled && sound.hasUserInteracted) {
-            void playAdhanSound();
+    // Play the audible adhan
+    void playAdhanSound({ reciterId: adhanReciter, volume });
+
+    // Show native browser notification if granted
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        try {
+          const currentCity = useDhikrStore.getState().city || '';
+          new Notification(`حان الآن موعد أذان ${justHit.label}`, {
+            body: `الله أكبر الله أكبر — تقبل الله منا ومنكم صالح الأعمال (${currentCity})`,
+            icon: '/pwa-icon-192.png',
+          });
+        } catch {
+          // Ignore notification error
         }
-    }, [prayerTimes, now, soundEnabled]);
+      }
+    }
+  }, [prayerTimes, now, soundEnabled, adhanReciter, volume]);
 
-    return { prayerTimes };
+  return { prayerTimes };
 }

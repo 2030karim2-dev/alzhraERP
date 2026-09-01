@@ -165,7 +165,7 @@ const DhikrTicker: React.FC = () => {
             onClick={() => {
               const next = !soundEnabled;
               setSoundEnabled(next);
-              if (next) void playAdhanSound(true);
+              if (next) void playAdhanSound({ previewMode: true });
             }}
             aria-label={soundEnabled ? 'كتم صوت الأذان' : 'تفعيل صوت الأذان'}
             title={
