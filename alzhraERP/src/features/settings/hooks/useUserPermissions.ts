@@ -53,7 +53,7 @@ const toCompanyMember = (
   created_at: item.created_at,
   updated_at: item.updated_at,
   branch: item.branches,
-  profile: profilesMap[item.user_id ?? ''] ?? null,
+  profile: profilesMap[item.user_id] ?? null,
 });
 
 /**
@@ -77,7 +77,7 @@ export function useCompanyMembers(): UseQueryResult<CompanyMember[]> {
       if (userIds.length > 0) {
         const profiles = await permissionsApi.fetchProfiles(userIds);
         profiles.forEach(p => {
-          if (p.id) {
+          if (p.id != null) {
             profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
           }
         });
@@ -107,7 +107,7 @@ export function useMemberPermissions(
         targetUserId
       );
 
-      return data as unknown as MemberEffectivePermissions;
+      return data as MemberEffectivePermissions;
     },
     enabled: Boolean(user?.company_id) && Boolean(targetUserId),
   });

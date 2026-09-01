@@ -8,12 +8,15 @@ const looseRpc = async (
   name: string,
   args: Record<string, unknown>
 ): Promise<{ data: unknown; error: unknown }> => {
-  const rpcFn = supabase.rpc as unknown as (
+  const rpcFn = supabase.rpc.bind(supabase) as unknown as (
     fn: string,
     params: Record<string, unknown>
   ) => Promise<{ data: unknown; error: unknown }>;
   return await rpcFn(name, args);
 };
+
+const toError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'عملية RPC فشلت');
 
 /** طبقة api لصلاحيات/أعضاء المنشأة — تستدعيها الهوكات (Hook → API). */
 export const permissionsApi = {
@@ -57,7 +60,7 @@ export const permissionsApi = {
       p_target_user_id: targetUserId,
       p_company_id: companyId,
     });
-    if (error) throw error;
+    if (error != null) throw toError(error);
     return data;
   },
 
@@ -73,7 +76,7 @@ export const permissionsApi = {
       p_granted_permissions: grantedPermissions,
       p_revoked_permissions: revokedPermissions,
     });
-    if (error) throw error;
+    if (error != null) throw toError(error);
     return data;
   },
 
