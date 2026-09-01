@@ -7,9 +7,8 @@ import SalesReturnsView from '@/features/sales/components/Returns/SalesReturnsVi
 import SalesAnalyticsView from '@/features/sales/components/Analytics/SalesAnalyticsView';
 import QuotationsTab from '@/features/sales/components/quotations/QuotationsTab';
 import InvoiceDetailsModal from '@/features/sales/components/details/InvoiceDetailsModal';
-import { useCreateInvoice, useInvoices } from '@/features/sales/hooks/index';
+import { useInvoices, useCreateSalesReturn } from '@/features/sales/hooks/index';
 import { useTranslation } from '@/lib/hooks/useTranslation';
-import { CreateInvoiceDTO } from '@/features/sales/types';
 import { logger } from '@/core/utils/logger';
 import { useAIPrefillStore } from '@/features/ai/store';
 import { useSalesStore } from '@/features/sales/store';
@@ -21,7 +20,7 @@ const SalesPage: React.FC = () => {
   const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
-  const createInvoice = useCreateInvoice();
+  const createSalesReturn = useCreateSalesReturn();
   const { refetch: refetchInvoices } = useInvoices();
 
   const TABS = [
@@ -72,31 +71,30 @@ const SalesPage: React.FC = () => {
   const handleReturnAction = async (invoice: any, items: any[]) => {
     if (!invoice || items.length === 0) return;
 
-    logger.debug('SalesPage', 'Processing return', { invoiceId: invoice.id, itemCount: items.length });
-
-    const returnPayload: CreateInvoiceDTO = {
-      partyId: invoice.party_id || null,
-      items: items.map(item => ({
-        productId: item.product_id || item.id,
-        name: item.description || item.product?.name_ar || '---',
-        sku: item.product?.sku || '',
-        quantity: item.quantity,
-        unitPrice: item.unit_price || item.unitPrice,
-        costPrice: 0,
-        taxRate: 0,
-        maxStock: item.quantity,
-      })),
-      type: 'sale_return',
-      paymentMethod: (invoice.payment_method === 'credit' ? 'credit' : 'cash'),
-      currency: invoice.currency_code || 'SAR',
-      referenceInvoiceId: invoice.id,
-      discount: 0,
-      status: 'paid',
-      notes: `مرتجع للفاتورة #${invoice.invoice_number}`,
-    };
+    logger.debug('SalesPage', 'Processing return', {
+      invoiceId: invoice.id,
+      itemCount: items.length,
+    });
 
     try {
-      await createInvoice.mutateAsync(returnPayload);
+      await createSalesReturn.mutateAsync({
+        invoiceId: invoice.id,
+        partyId: invoice.party?.id || invoice.party_id || '',
+        paymentMethod: invoice.payment_method || 'cash',
+        items: items.map(item => ({
+          productId: item.product_id || item.productId || item.id,
+          name: item.description || item.name || item.product?.name_ar || 'صنف مرتجع',
+          quantity: Number(item.quantity ?? item.returnQuantity ?? 1),
+          unitPrice: Number(item.unit_price ?? item.unitPrice ?? 0),
+          costPrice: Number(item.cost_price ?? item.costPrice ?? 0),
+        })),
+        returnReason: 'مرتجع مبيعات',
+        status: 'posted',
+        issueDate: new Date().toISOString().split('T')[0],
+        currency: invoice.currency_code || invoice.currency || 'SAR',
+        exchangeRate: invoice.exchange_rate ?? 1,
+        notes: `مرتجع للفاتورة #${invoice.invoice_number || ''}`,
+      });
       setViewInvoiceId(null);
       refetchInvoices();
     } catch (error) {
@@ -117,12 +115,7 @@ const SalesPage: React.FC = () => {
           />
         );
       case 'returns':
-        return (
-          <SalesReturnsView
-            searchTerm={searchTerm}
-            onViewDetails={setViewInvoiceId}
-          />
-        );
+        return <SalesReturnsView searchTerm={searchTerm} onViewDetails={setViewInvoiceId} />;
       case 'quotations':
         return <QuotationsTab onConvertToInvoice={() => setActiveTab('create')} />;
       case 'analytics':
@@ -133,22 +126,20 @@ const SalesPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950">
+    <div className="flex h-full flex-col bg-gray-50 dark:bg-slate-950">
       <MicroHeader
         title={t('sales_management')}
         icon={ShoppingBag}
         iconColor="text-emerald-600"
         tabs={TABS}
         activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id as SalesViewTab)}
+        onTabChange={id => setActiveTab(id as SalesViewTab)}
         searchPlaceholder={t('search_in_sales_or_customers')}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
       />
-      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-16 custom-scrollbar">
-        <div className="max-w-none mx-auto">
-          {renderContent()}
-        </div>
+      <div className="custom-scrollbar flex-1 overflow-y-auto px-2 pb-16 pt-2">
+        <div className="mx-auto max-w-none">{renderContent()}</div>
       </div>
       <InvoiceDetailsModal
         invoiceId={viewInvoiceId}

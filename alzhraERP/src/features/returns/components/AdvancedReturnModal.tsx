@@ -14,6 +14,8 @@ import {
   useCreatePurchaseReturn,
 } from '../../purchases/hooks/usePurchaseReturns';
 import type { PurchaseItem } from '../../purchases/types';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateByPreset } from '../../../lib/invalidation';
 import { mapReturnStatus } from '../utils/returnHelpers';
 import type { Invoice } from '../types';
 import { logger } from '../../../core/utils/logger';
@@ -80,6 +82,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const modalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useFeedbackStore();
+  const queryClient = useQueryClient();
 
   // Need to fetch invoices based on type
   const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn(
@@ -352,6 +355,12 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                     returnReason: data.returnReason,
                   });
                 }
+
+                invalidateByPreset(queryClient, returnType === 'sale' ? 'saleReturn' : 'purchase');
+                void queryClient.invalidateQueries({ queryKey: ['sales-returns'] });
+                void queryClient.invalidateQueries({ queryKey: ['purchase_returns'] });
+                void queryClient.invalidateQueries({ queryKey: ['purchases'] });
+                void queryClient.invalidateQueries({ queryKey: ['invoices'] });
 
                 onSuccess();
                 onClose();

@@ -121,7 +121,8 @@ export const purchasesApi = {
       .select(
         `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
-      currency_code, exchange_rate, party:party_id(name), invoice_items(id, cost_price)
+      currency_code, exchange_rate, notes, return_reason, reference_invoice_id, created_at,
+      party:party_id(name), invoice_items(id, cost_price, quantity, unit_price, total, description)
     `
       )
       .eq('company_id', companyId)

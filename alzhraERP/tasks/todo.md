@@ -33,6 +33,13 @@
 - [x] **التحقق النهائي:** **lint الكلي = 9,394 خطأ + 179 تحذير** (التراكمي **−1,249** من 10,643) • baseline حدّث (useWarehouseStock=0، warehouseApi=0) • `check-lint-ratchet` = OK (الملفان = **0 أخطاء** بعد جولة الضبط النهائية) • tsc=0 • vitest 567/567.
 - [x] **إصلاح `useUserPermissions.ts` (طبقة الصلاحيات):** نُقلت استدعاءات supabase الأربعة (members/profiles/RPCs/update role) إلى `settings/api/permissionsApi.ts` الجديد — الهوك أصبح Hook→API خالصاً. أُعيدت كتابته بأنواع UseQueryResult/UseMutationResult صريحة + onSuccess async/await + onError مكتوبة (أزيلت `any`). **lint: →0 لكليهما** • tsc=0 • ratchet=OK.
 - [ ] **متبقي (آخر تحديث):** الهوكات المخالفة المتبقية (useSalesReturns، useProductsPaginated، dashboard/hooks، usePermission/useAuthSession (مبرران جزئياً)، chat hooks) • خفض دَين lint (hooks=82، useStockAudit=23، statement=36، excelEngine=14) • **المرحلة 0 الأمنية** (أولوية قصوى — تحتاج موافقتك و`SUPABASE_ACCESS_TOKEN`).
+- [x] **المرحلة 0 الأمنية — نفّذت على الإنتاج (2026-09-01):**
+  - **الهجرات B-1 العشر (20260826000000→010) وجدتها مطبقة بالفعل** — تحقق: `v_api_v1_missing_tenant_guard=0`، `v_tables_without_rls=0`، `v_security_definer_no_search_path=0`، `v_security_alerts_unresolved=0`، `fn_assert_company_access` موجودة.
+  - **طُبقت هجرتان جديدتان على الإنتاج (0 فشل):** `20260901000004_fix_update_stock_atomic` (RPC ذري TOCTOU) و`20260901000005_harden_fn_get_default_cash_account` (اكتشاف أمني: دالة كانت منفذة من anon بلا بوابة — revoke anon/public + authenticated فقط) — انخفض `v_functions_public_execute` من 8 إلى 7 (المتبقي حُراس/triggers مقصودة).
+  - **التحقق الخصمي (B-3) حي:** `anon` يرى صفر شركات (RLS) ✅ • `fn_assert_company_access` يرفض مستدعيًا بلا عضوية ✅.
+  - ⚠️ **بند متبقٍ (مُحدَّث):** `v_rpcs_missing_audit` انخفض من 51 → **44** (هجرة `20260901000006`: استُبعدت 10 دوال بنية/triggers لا تمثل أحداثاً تجارية + توصيل `audit_write` فعلياً في `adjust_stock_atomic` كإثبات للنمط — والاختبار أكد أن الدالة الموصّلة تعمل (ترفض بلا مصادقة) ). الـ44 المتبقية RPCs كتابية حقيقية تحتاج توصيلاً يدوياً (كما أوصت R-28 — كل دالة لها entity/company مختلف). + `test_rls_isolation.sql` يحتاج إصلاحاً بنيوياً (قيد FK يتطلب users حقيقيين).
+  - ⚠️ **تنبيه أمني للمستخدم:** أُرسلت مفاتيح إنتاج في المحادثة (service_role) — يُنصح بتدويرها (Supabase → Settings → API keys → Rotate).
+- [ ] **متبقي (آخر تحديث):** الهوكات المخالفة المتبقية (useSalesReturns، useProductsPaginated، dashboard/hooks، chat hooks) • خفض دَين lint • توصيل تدقيق 51 RPC • إصلاح اختبار RLS البنيوي.
 
 ## Checkpoint (2026-08-26 evening) — جولة المراجعة العميقة: إغلاق البنود 1/2/3/4/5 ✅
 
