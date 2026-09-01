@@ -1,7 +1,16 @@
 import React, { useMemo } from 'react';
-import { Car, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
-import Input from '../../../../ui/base/Input';
-import Button from '../../../../ui/base/Button';
+import {
+  Car,
+  Sparkles,
+  CheckCircle2,
+  RotateCcw,
+  Gauge,
+  Globe,
+  Sliders,
+  Calendar,
+  ArrowRight,
+  Layers,
+} from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import {
   POPULAR_MAKE_OPTIONS,
@@ -97,7 +106,10 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
     if (!manualMake.trim()) return null;
     const effMake = canonicalizeMake(manualMake) || manualMake.trim();
     const effModel = canonicalizeModel(manualModel.trim(), effMake) || manualModel.trim();
-    const arabicNames = getArabicVehicleName({ make: effMake, model: effModel });
+    const arabicNames = getArabicVehicleName({
+      make: effMake,
+      model: effModel,
+    });
 
     const yStart = parseInt(normalizeToEnglishNumbers(manualYearStart).replace(/\D/g, ''), 10);
     const yEnd = parseInt(normalizeToEnglishNumbers(manualYearEnd).replace(/\D/g, ''), 10);
@@ -105,18 +117,19 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
     let yearsLabel = '';
     if (!isNaN(yStart) && !isNaN(yEnd) && yStart > 0 && yEnd > 0) {
       yearsLabel =
-        yStart === yEnd ? `${yStart}` : `${Math.min(yStart, yEnd)}-${Math.max(yStart, yEnd)}`;
+        yStart === yEnd ? `${yStart}` : `${Math.min(yStart, yEnd)} - ${Math.max(yStart, yEnd)}`;
     } else if (!isNaN(yStart) && yStart > 0) {
       yearsLabel = `${yStart}`;
     }
 
     return {
       titleAr: `${arabicNames.makeAr} ${arabicNames.modelAr}`.trim(),
+      titleEn: `${effMake} ${effModel}`.trim(),
       yearsLabel,
       engine: manualEngine ? `${manualEngine}L` : '',
-      market: manualMarket || 'عام',
-      trans: manualTransmission || '',
-      drive: manualDrive || '',
+      market: manualMarket || 'خليجي',
+      trans: manualTransmission || 'تماتيك',
+      drive: manualDrive || 'سنجل',
     };
   }, [
     manualMake,
@@ -130,313 +143,484 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
   ]);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-5">
-      {/* Header Info */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
-        <div>
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
-            إدخال مواصفات السيارة (كتالوج / PartSouq)
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            تحديد السيارة بالموديل يربط القطع بالمركبة ويولد الأسماء تلقائياً باللغتين
-          </p>
+    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-800 dark:bg-slate-900/90 md:p-6">
+      {/* 1. Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 dark:border-slate-800/80">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-500/20">
+            <Car size={22} />
+          </div>
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-slate-100 md:text-base">
+              <span>إدخال مواصفات السيارة والكتالوج (PartSouq Specs)</span>
+              <span className="rounded-md border border-indigo-200 bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+                كتالوج معتمد
+              </span>
+            </h3>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              تحديد السيارة بالموديل يربط القطع بالمركبة ويولد أرقام القطع والأسماء ثنائية اللغة
+              تلقائياً
+            </p>
+          </div>
         </div>
+
         {manualMake && (
           <button
             type="button"
             onClick={handleResetForm}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="dark:hover:bg-slate-750 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs transition-all hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           >
-            <RotateCcw size={12} />
-            تفريغ الحقول
+            <RotateCcw size={13} className="text-slate-400" />
+            <span>تفريغ الحقول</span>
           </button>
         )}
       </div>
 
-      {/* 1. Quick Presets Bar */}
-      <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 dark:border-indigo-950/60 dark:bg-indigo-950/20">
-        <div className="mb-2 flex items-center gap-1.5">
-          <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" />
-          <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">
-            تعبئة سريعة لأشهر السيارات في السوق:
+      {/* 2. Quick Presets Section */}
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-blue-50/40 to-slate-50/60 p-3.5 shadow-xs dark:border-indigo-950/70 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
+        <div className="mb-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">
+            <Sparkles size={15} className="animate-pulse text-indigo-500" />
+            <span className="text-xs font-black">
+              تعبئة سريعة لأشهر السيارات في السوق اليمني والخليجي:
+            </span>
+          </div>
+          <span className="hidden text-[10px] font-bold text-slate-400 sm:inline">
+            نقرة واحدة لملء كافة المواصفات
           </span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {QUICK_VEHICLE_PRESETS.map(p => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => applyPreset(p)}
-              className="shadow-2xs rounded-lg border border-indigo-200/80 bg-white px-2.5 py-1 text-xs font-bold text-indigo-900 transition-all hover:border-indigo-400 hover:bg-indigo-50 active:scale-95 dark:border-indigo-800/60 dark:bg-slate-800 dark:text-indigo-200 dark:hover:bg-indigo-900/50"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* 2. Manufacturer (الشركة المصنعة) */}
-      <div>
-        <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-          1. الشركة المصنعة (الماركة) <span className="text-rose-500">*</span>
-        </label>
-        <div className="mb-2.5 flex flex-wrap gap-1.5">
-          {POPULAR_MAKE_OPTIONS.map(mk => {
-            const isSelected =
-              canonicalCurrentMake.toLowerCase() === mk.id.toLowerCase() ||
-              manualMake.trim().toLowerCase() === mk.label.toLowerCase();
+        <div className="flex flex-wrap gap-2">
+          {QUICK_VEHICLE_PRESETS.map(p => {
+            const isPresetActive =
+              manualMake.toLowerCase() === p.make.toLowerCase() &&
+              manualModel.toLowerCase() === p.model.toLowerCase();
             return (
               <button
-                key={mk.id}
+                key={p.label}
                 type="button"
-                onClick={() => {
-                  setManualMake(mk.id);
-                  // If switching make, clear current model if not matching
-                  setManualModel('');
-                }}
+                onClick={() => applyPreset(p)}
                 className={cn(
-                  'rounded-lg border px-3 py-1.5 text-xs font-bold transition-all',
-                  isSelected
-                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800'
+                  'rounded-xl border px-3 py-1.5 text-xs font-bold shadow-xs transition-all active:scale-95',
+                  isPresetActive
+                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                    : 'dark:bg-slate-850 border-indigo-200/90 bg-white text-indigo-950 hover:border-indigo-400 hover:bg-indigo-50/60 dark:border-indigo-900/60 dark:text-indigo-200 dark:hover:bg-indigo-950/40'
                 )}
               >
-                {mk.label}
+                {p.label}
               </button>
             );
           })}
         </div>
-        <Input
-          placeholder="أو اكتب اسم الماركة هنا..."
-          value={manualMake}
-          onChange={e => setManualMake(e.target.value)}
-        />
       </div>
 
-      {/* 3. Model & Contextual Model Suggestions */}
-      <div>
-        <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-          2. الموديل / الطراز <span className="text-rose-500">*</span>
-        </label>
+      {/* 3. Make & Model Grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {/* Make Card (Span 6) */}
+        <div className="dark:bg-slate-850/60 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 dark:border-slate-800 lg:col-span-6">
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-black text-slate-800 dark:text-slate-200">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 font-mono text-[10px] text-white">
+                  1
+                </span>
+                <span>الشركة المصنعة (الماركة)</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              <span className="text-[10px] font-bold text-slate-400">اختر أو اكتب بالأسفل</span>
+            </div>
 
-        {availableModelPresets.length > 0 && (
-          <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200/70 bg-slate-50/70 p-2 dark:border-slate-800 dark:bg-slate-800/40">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              موديلات شائعة لـ {manualMake}:
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {POPULAR_MAKE_OPTIONS.map(mk => {
+                const isSelected =
+                  canonicalCurrentMake.toLowerCase() === mk.id.toLowerCase() ||
+                  manualMake.trim().toLowerCase() === mk.label.toLowerCase();
+                return (
+                  <button
+                    key={mk.id}
+                    type="button"
+                    onClick={() => {
+                      setManualMake(mk.id);
+                      setManualModel('');
+                    }}
+                    className={cn(
+                      'rounded-xl border px-3 py-1.5 text-xs font-bold transition-all',
+                      isSelected
+                        ? 'scale-[1.02] border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                        : 'dark:hover:bg-slate-750 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-300'
+                    )}
+                  >
+                    {mk.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <input
+              type="text"
+              placeholder="أو اكتب اسم الماركة يدوياً..."
+              value={manualMake}
+              onChange={e => setManualMake(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
+
+        {/* Model Card (Span 6) */}
+        <div className="dark:bg-slate-850/60 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 dark:border-slate-800 lg:col-span-6">
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-black text-slate-800 dark:text-slate-200">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 font-mono text-[10px] text-white">
+                  2
+                </span>
+                <span>الموديل / الطراز</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              {manualMake && (
+                <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                  طرازات {manualMake}
+                </span>
+              )}
+            </div>
+
+            {availableModelPresets.length > 0 ? (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {availableModelPresets.map(m => {
+                  const isSelected =
+                    manualModel.trim().toLowerCase() === m.id.toLowerCase() ||
+                    manualModel.trim().toLowerCase() === m.label.toLowerCase();
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setManualModel(m.id)}
+                      className={cn(
+                        'rounded-xl border px-3 py-1.5 text-xs font-bold transition-all',
+                        isSelected
+                          ? 'scale-[1.02] border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-500/30'
+                          : 'dark:hover:bg-slate-750 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-300'
+                      )}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mb-3 rounded-xl border border-dashed border-slate-300 bg-white/50 p-3 text-center text-xs font-medium text-slate-400 dark:border-slate-700 dark:bg-slate-900/40">
+                اختر الماركة لتظهر لك أشهر الموديلات الخاصة بها
+              </div>
+            )}
+          </div>
+
+          <div>
+            <input
+              type="text"
+              placeholder="مثال: Corolla أو كورولا..."
+              value={manualModel}
+              onChange={e => setManualModel(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Years & Technical Parameters Grid */}
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Years Span Card */}
+        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs dark:border-slate-800">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+            <Calendar size={14} className="text-blue-500" />
+            <span className="text-xs font-black">نطاق سنوات الصنع</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">من سنة</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
+                placeholder="2001"
+                value={manualYearStart}
+                onChange={e => {
+                  const val = normalizeToEnglishNumbers(e.target.value)
+                    .replace(/\D/g, '')
+                    .slice(0, 4);
+                  setManualYearStart(val);
+                }}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-center font-mono text-xs font-black text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">إلى سنة</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
+                placeholder="2007"
+                value={manualYearEnd}
+                onChange={e => {
+                  const val = normalizeToEnglishNumbers(e.target.value)
+                    .replace(/\D/g, '')
+                    .slice(0, 4);
+                  setManualYearEnd(val);
+                }}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-center font-mono text-xs font-black text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Engine Specs Card */}
+        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs dark:border-slate-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <Gauge size={14} className="text-amber-500" />
+              <span className="text-xs font-black">المكينة / السعة (L)</span>
+            </div>
+            <span className="font-mono text-[10px] font-bold text-amber-600 dark:text-amber-400">
+              {manualEngine ? `${manualEngine}L` : 'سعة اللتر'}
             </span>
-            {availableModelPresets.map(m => {
-              const isSelected =
-                manualModel.trim().toLowerCase() === m.id.toLowerCase() ||
-                manualModel.trim().toLowerCase() === m.label.toLowerCase();
-              return (
+          </div>
+
+          <div>
+            <input
+              type="text"
+              dir="ltr"
+              placeholder="مثال: 1.8"
+              value={manualEngine}
+              onChange={e => {
+                const val = normalizeToEnglishNumbers(e.target.value)
+                  .replace(/[^\d.]/g, '')
+                  .slice(0, 5);
+                setManualEngine(val);
+              }}
+              className="mb-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-center font-mono text-xs font-black text-slate-800 outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+
+            <div className="flex flex-wrap gap-1">
+              {POPULAR_ENGINES.slice(0, 6).map(eng => (
                 <button
-                  key={m.id}
+                  key={eng}
                   type="button"
-                  onClick={() => setManualModel(m.id)}
+                  onClick={() => setManualEngine(eng)}
                   className={cn(
-                    'rounded-md border px-2 py-0.5 text-xs font-bold transition-colors',
-                    isSelected
-                      ? 'border-indigo-600 bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                    'rounded-lg border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors',
+                    manualEngine === eng
+                      ? 'border-amber-500 bg-amber-500 text-white'
+                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                   )}
                 >
-                  {m.label}
+                  {eng}L
                 </button>
-              );
-            })}
-          </div>
-        )}
-
-        <Input
-          placeholder="مثال: Corolla أو كورولا..."
-          value={manualModel}
-          onChange={e => setManualModel(e.target.value)}
-        />
-      </div>
-
-      {/* 4. Model Years Range (All English Digits) */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            من سنة (سنة البداية)
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            dir="ltr"
-            placeholder="2001"
-            value={manualYearStart}
-            onChange={e => {
-              const val = normalizeToEnglishNumbers(e.target.value).replace(/\D/g, '').slice(0, 4);
-              setManualYearStart(val);
-            }}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-center font-mono text-sm font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            إلى سنة (سنة النهاية)
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            dir="ltr"
-            placeholder="2007"
-            value={manualYearEnd}
-            onChange={e => {
-              const val = normalizeToEnglishNumbers(e.target.value).replace(/\D/g, '').slice(0, 4);
-              setManualYearEnd(val);
-            }}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-center font-mono text-sm font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-      </div>
-
-      {/* 5. Market / Specs & Engine & Transmission & Drive */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            الوارد / المواصفات
-          </label>
-          <select
-            value={manualMarket}
-            onChange={e => setManualMarket(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            {POPULAR_MARKETS.map(m => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-            <option value="">أخرى / عام</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            المكينة / السعة (L)
-          </label>
-          <input
-            type="text"
-            dir="ltr"
-            placeholder="مثال: 1.8"
-            value={manualEngine}
-            onChange={e => {
-              const val = normalizeToEnglishNumbers(e.target.value)
-                .replace(/[^\d.]/g, '')
-                .slice(0, 5);
-              setManualEngine(val);
-            }}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-center font-mono text-sm font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          />
-          <div className="mt-1 flex flex-wrap gap-1">
-            {POPULAR_ENGINES.slice(0, 6).map(eng => (
-              <button
-                key={eng}
-                type="button"
-                onClick={() => setManualEngine(eng)}
-                className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-              >
-                {eng}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            الجير / الناقل
-          </label>
-          <select
-            value={manualTransmission}
-            onChange={e => setManualTransmission(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            <option value="تماتيك">تماتيك (أوتوماتيك)</option>
-            <option value="عادي">عادي (مانيوال)</option>
-            <option value="">غير محدد</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-            نظام الدفع
-          </label>
-          <select
-            value={manualDrive}
-            onChange={e => setManualDrive(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            <option value="سنجل">سنجل (أمامي / خلفي)</option>
-            <option value="دبل">دبل (4x4 / AWD)</option>
-            <option value="">غير محدد</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 6. Optional VIN */}
-      <div>
-        <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-400">
-          رقم الشاصي VIN (اختياري)
-        </label>
-        <input
-          type="text"
-          dir="ltr"
-          placeholder="اختياري — 17 حرفاً ورقم"
-          value={manualVinOptional}
-          onChange={e => setManualVinOptional(e.target.value.toUpperCase().trim())}
-          maxLength={17}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-        />
-      </div>
-
-      {/* 7. Live Preview Card */}
-      {previewData && (
-        <div className="flex items-center justify-between rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
-          <div className="flex items-center gap-2.5">
-            <div className="shadow-2xs flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-              <Car size={16} />
+              ))}
             </div>
+          </div>
+        </div>
+
+        {/* Transmission & Drivetrain Card */}
+        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs dark:border-slate-800">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+            <Sliders size={14} className="text-indigo-500" />
+            <span className="text-xs font-black">الجير ونظام الدفع</span>
+          </div>
+
+          <div className="space-y-2">
             <div>
-              <span className="block text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                معاينة السيارة المختارة:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5 font-bold text-emerald-950 dark:text-emerald-100">
-                <span>{previewData.titleAr}</span>
-                {previewData.yearsLabel && (
-                  <span className="font-mono text-xs text-emerald-700 dark:text-emerald-300">
-                    ({previewData.yearsLabel})
-                  </span>
-                )}
-                {previewData.market && (
-                  <span className="py-0.2 rounded bg-emerald-100 px-1.5 text-[10px] text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200">
-                    {previewData.market}
-                  </span>
-                )}
-                {previewData.engine && (
-                  <span className="py-0.2 rounded bg-emerald-200/70 px-1.5 font-mono text-[10px] text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100">
-                    {previewData.engine}
-                  </span>
-                )}
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">ناقل الحركة</span>
+              <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200/60 bg-slate-100 p-0.5 dark:border-slate-800 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={() => setManualTransmission('تماتيك')}
+                  className={cn(
+                    'rounded-md py-1 text-[10px] font-black transition-all',
+                    manualTransmission === 'تماتيك'
+                      ? 'bg-white text-indigo-600 shadow-xs dark:bg-slate-800 dark:text-indigo-300'
+                      : 'text-slate-500'
+                  )}
+                >
+                  تماتيك (Auto)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setManualTransmission('عادي')}
+                  className={cn(
+                    'rounded-md py-1 text-[10px] font-black transition-all',
+                    manualTransmission === 'عادي'
+                      ? 'bg-white text-indigo-600 shadow-xs dark:bg-slate-800 dark:text-indigo-300'
+                      : 'text-slate-500'
+                  )}
+                >
+                  عادي (Manual)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">نظام الدفع</span>
+              <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200/60 bg-slate-100 p-0.5 dark:border-slate-800 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={() => setManualDrive('سنجل')}
+                  className={cn(
+                    'rounded-md py-1 text-[10px] font-black transition-all',
+                    manualDrive === 'سنجل'
+                      ? 'bg-white text-blue-600 shadow-xs dark:bg-slate-800 dark:text-blue-300'
+                      : 'text-slate-500'
+                  )}
+                >
+                  سنجل (2WD)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setManualDrive('دبل')}
+                  className={cn(
+                    'rounded-md py-1 text-[10px] font-black transition-all',
+                    manualDrive === 'دبل'
+                      ? 'bg-white text-emerald-600 shadow-xs dark:bg-slate-800 dark:text-emerald-300'
+                      : 'text-slate-500'
+                  )}
+                >
+                  دبل (4x4)
+                </button>
               </div>
             </div>
           </div>
-          <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+        </div>
+
+        {/* Market Specs & Optional VIN */}
+        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs dark:border-slate-800">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+            <Globe size={14} className="text-emerald-500" />
+            <span className="text-xs font-black">الوارد ورقم الشاصي</span>
+          </div>
+
+          <div className="space-y-2">
+            <div>
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">
+                المواصفات الإقليمية
+              </span>
+              <select
+                value={manualMarket}
+                onChange={e => setManualMarket(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                {POPULAR_MARKETS.map(m => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+                <option value="">أخرى / عام</option>
+              </select>
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[10px] font-bold text-slate-400">
+                رقم الشاصي (اختياري)
+              </span>
+              <input
+                type="text"
+                dir="ltr"
+                placeholder="17 خانة (اختياري)"
+                value={manualVinOptional}
+                onChange={e => setManualVinOptional(e.target.value.toUpperCase().trim())}
+                maxLength={17}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Live Interactive Vehicle Preview Card */}
+      {previewData && (
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-300/80 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-blue-50/60 p-4 shadow-md transition-all dark:border-emerald-800/80 dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30">
+                <Car size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+                    هوية السيارة المستهدفة
+                  </span>
+                  <span className="flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                    <CheckCircle2 size={12} />
+                    <span>جاهزة للتثبيت</span>
+                  </span>
+                </div>
+
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <h4 className="text-base font-black text-slate-900 dark:text-slate-100">
+                    {previewData.titleAr}
+                  </h4>
+                  <span className="font-mono text-xs font-bold text-slate-400" dir="ltr">
+                    ({previewData.titleEn})
+                  </span>
+                  {previewData.yearsLabel && (
+                    <span className="rounded-lg border border-emerald-200 bg-white px-2.5 py-0.5 font-mono text-xs font-black text-emerald-800 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-200">
+                      {previewData.yearsLabel}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                  <span className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-0.5 dark:border-slate-700 dark:bg-slate-800">
+                    المواصفات: {previewData.market}
+                  </span>
+                  {previewData.engine && (
+                    <span className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-0.5 font-mono dark:border-slate-700 dark:bg-slate-800">
+                      المحرك: {previewData.engine}
+                    </span>
+                  )}
+                  <span className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-0.5 dark:border-slate-700 dark:bg-slate-800">
+                    الجير: {previewData.trans}
+                  </span>
+                  <span className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-0.5 dark:border-slate-700 dark:bg-slate-800">
+                    الدفع: {previewData.drive}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="hidden items-center gap-2 rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 lg:flex">
+              <Layers size={16} className="text-emerald-500" />
+              <span>توليد تلقائي للأسماء باللغتين</span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 8. Action Button */}
-      <Button
-        size="md"
-        variant="primary"
+      {/* 6. Primary Action Button */}
+      <button
+        type="button"
         onClick={() => void onApplyManualVehicle()}
-        isLoading={isDecoding}
-        disabled={!manualMake.trim()}
-        fullWidth
-        className="active:scale-98 h-11 rounded-xl bg-indigo-600 font-bold text-white shadow-md shadow-indigo-500/15 transition-all hover:bg-indigo-700"
+        disabled={isDecoding || !manualMake.trim()}
+        className={cn(
+          'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl text-sm font-black text-white shadow-lg transition-all',
+          !manualMake.trim()
+            ? 'cursor-not-allowed bg-slate-300 opacity-60 dark:bg-slate-800'
+            : 'bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 shadow-indigo-500/25 hover:from-indigo-700 hover:to-blue-700 active:scale-[0.99]'
+        )}
       >
-        تثبيت بيانات السيارة والبدء بإضافة القطع 🚀
-      </Button>
+        {isDecoding ? (
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+            <span>جاري تحليل وتثبيت بيانات المركبة...</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span>تثبيت مواصفات السيارة والبدء باستخراج وإضافة القطع</span>
+            <ArrowRight size={16} className="rotate-180" />
+          </div>
+        )}
+      </button>
     </div>
   );
 };
