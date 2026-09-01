@@ -1,9 +1,10 @@
 import { useRef } from 'react';
 import { useSoundStore } from '../../notifications/store';
+import { showDesktopNotification } from '../../notifications/desktopNotificationService';
 import { logger } from '../../../core/utils/logger';
 
 /**
- * Hook for playing subtle web audio sound alerts when incoming messages arrive
+ * Hook for playing audio chime and triggering native desktop notifications for incoming chat messages.
  */
 export const useChatNotifications = () => {
   const { isSoundEnabled } = useSoundStore();
@@ -12,7 +13,9 @@ export const useChatNotifications = () => {
   const playIncomingBeep = async () => {
     if (!isSoundEnabled) return;
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtx) return;
 
       if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
@@ -55,5 +58,23 @@ export const useChatNotifications = () => {
     }
   };
 
-  return { playIncomingBeep };
+  const notifyIncomingMessage = (
+    senderName: string,
+    messageText: string,
+    conversationId?: string
+  ) => {
+    void playIncomingBeep();
+
+    // If tab is in background or document hidden, dispatch OS desktop notification
+    if (typeof document !== 'undefined' && document.hidden) {
+      showDesktopNotification({
+        title: `💬 رسالة جديدة من: ${senderName}`,
+        body: messageText,
+        link: conversationId ? `#/chat/${conversationId}` : '#/chat',
+        requireInteraction: true,
+      });
+    }
+  };
+
+  return { playIncomingBeep, notifyIncomingMessage };
 };

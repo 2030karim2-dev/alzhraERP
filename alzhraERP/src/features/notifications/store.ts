@@ -1,7 +1,7 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { logger } from '../../core/utils/logger';
+import { showDesktopNotification } from './desktopNotificationService';
 
 export interface AppNotification {
   id: string;
@@ -16,6 +16,8 @@ export interface AppNotification {
 
 interface NotificationState {
   notifications: AppNotification[];
+  desktopEnabled: boolean;
+  setDesktopEnabled: (enabled: boolean) => void;
   addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: (companyId?: string) => void;
@@ -75,14 +77,16 @@ const ensureAudioContext = async (): Promise<AudioContext | null> => {
   return sharedAudioContext.state === 'running' ? sharedAudioContext : null;
 };
 
-
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
       notifications: [],
+      desktopEnabled: true,
       unreadCount: 0,
 
-      addNotification: (notification) => {
+      setDesktopEnabled: desktopEnabled => set({ desktopEnabled }),
+
+      addNotification: notification => {
         if (!notification.companyId) {
           logger.warn('Notifications', 'addNotification called without companyId — skipping');
           return;
@@ -91,16 +95,26 @@ export const useNotificationStore = create<NotificationState>()(
           ...notification,
           id: Math.random().toString(36).substring(2, 9),
           timestamp: Date.now(),
-          isRead: false
+          isRead: false,
         };
         set(state => ({
           notifications: [newNotif, ...state.notifications].slice(0, 100), // Keep last 100
-          unreadCount: state.notifications.filter(n => !n.isRead).length + 1
+          unreadCount: state.notifications.filter(n => !n.isRead).length + 1,
         }));
+
+        // Show native Desktop / Windows Toast Notification above all apps
+        if (get().desktopEnabled !== false) {
+          showDesktopNotification({
+            title: notification.title,
+            body: notification.message,
+            link: notification.link,
+            requireInteraction: true,
+          });
+        }
 
         // Play sound if enabled and user has interacted
         const soundStore = useSoundStore.getState();
-        if (soundStore.isSoundEnabled && soundStore.hasUserInteracted) {
+        if (soundStore.isSoundEnabled) {
           soundStore.playNotificationSound();
         }
       },
@@ -113,14 +127,14 @@ export const useNotificationStore = create<NotificationState>()(
         return get().notifications.filter(n => n.companyId === companyId && !n.isRead).length;
       },
 
-      markAsRead: (id) => {
+      markAsRead: id => {
         set(state => {
           const newNotifs = state.notifications.map(n =>
             n.id === id ? { ...n, isRead: true } : n
           );
           return {
             notifications: newNotifs,
-            unreadCount: newNotifs.filter(n => !n.isRead).length
+            unreadCount: newNotifs.filter(n => !n.isRead).length,
           };
         });
       },
@@ -128,32 +142,33 @@ export const useNotificationStore = create<NotificationState>()(
       markAllAsRead: (companyId?: string) => {
         set(state => ({
           notifications: state.notifications.map(n =>
-            (!companyId || n.companyId === companyId) ? { ...n, isRead: true } : n
+            !companyId || n.companyId === companyId ? { ...n, isRead: true } : n
           ),
           unreadCount: companyId
             ? state.notifications.filter(n => n.companyId !== companyId && !n.isRead).length
-            : 0
+            : 0,
         }));
       },
 
-      deleteNotification: (id) => {
+      deleteNotification: id => {
         set(state => {
           const newNotifs = state.notifications.filter(n => n.id !== id);
           return {
             notifications: newNotifs,
-            unreadCount: newNotifs.filter(n => !n.isRead).length
+            unreadCount: newNotifs.filter(n => !n.isRead).length,
           };
         });
       },
 
-      clearAll: (companyId?: string) => set(state => ({
-        notifications: companyId
-          ? state.notifications.filter(n => n.companyId !== companyId)
-          : [],
-        unreadCount: companyId
-          ? state.notifications.filter(n => n.companyId !== companyId && !n.isRead).length
-          : 0
-      })),
+      clearAll: (companyId?: string) =>
+        set(state => ({
+          notifications: companyId
+            ? state.notifications.filter(n => n.companyId !== companyId)
+            : [],
+          unreadCount: companyId
+            ? state.notifications.filter(n => n.companyId !== companyId && !n.isRead).length
+            : 0,
+        })),
     }),
     { name: 'al-zahra-notifications' }
   )
@@ -254,7 +269,6 @@ export const useSoundStore = create<SoundState>()(
               // Ignore — the primary tone already played.
             }
           }, 60);
-
         } catch (error) {
           // Silently fail if audio can't be played
           logger.warn('Notifications', 'Audio playback prevented by browser policy');
