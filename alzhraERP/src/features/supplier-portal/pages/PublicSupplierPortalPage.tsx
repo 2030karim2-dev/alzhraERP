@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { supplierPortalService } from '../services/supplierPortalService';
+import { calculatePortalLineTotal } from '../services/quotationCalculator';
 import PageLoader from '../../../ui/base/PageLoader';
 import { formatCurrency, cn } from '../../../core/utils';
 import type { PublicPortalContext } from '../types';
@@ -142,13 +143,13 @@ export const PublicSupplierPortalPage: React.FC = () => {
     setIsDrawerOpen(true);
   };
 
-  // Calculate Draft Totals
+  // Calculate Draft Totals — Decimal pipeline shared with quotationCalculator
   const draftTotal = useMemo(() => {
-    return draftItems.reduce((sum, item) => {
-      const sub = item.quantity * item.unit_price;
-      const discount = (sub * (item.discount_percent || 0)) / 100;
-      return sum + (sub - discount);
-    }, 0);
+    return draftItems.reduce(
+      (sum, item) =>
+        sum + calculatePortalLineTotal(item.quantity, item.unit_price, item.discount_percent),
+      0
+    );
   }, [draftItems]);
 
   // Submit Quotation

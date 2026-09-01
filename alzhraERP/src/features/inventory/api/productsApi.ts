@@ -1,16 +1,11 @@
 import { supabase } from '../../../lib/supabaseClient';
-import { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
+import type { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
 import type { Json } from '../../../core/database.types';
 import type { ProductUOM } from '../types';
 
 /** Products CRUD and search */
 export const productsApi = {
-  getProducts: async (
-    companyId: string,
-    page: number = 1,
-    limitNum: number = 10000,
-    signal?: AbortSignal
-  ) => {
+  getProducts: async (companyId: string, page = 1, limitNum = 10000, signal?: AbortSignal) => {
     const from = (page - 1) * limitNum;
     const to = from + limitNum - 1;
 
@@ -215,8 +210,8 @@ export const productsApi = {
             id: item.id,
             name_ar: item.name_ar,
             sku: item.sku,
-            sale_price: Number(item.sale_price) || 0,
-            purchase_price: Number(item.purchase_price) || 0,
+            sale_price: item.sale_price,
+            purchase_price: item.purchase_price,
             part_number: item.part_number,
             alternative_numbers: item.alternative_numbers,
             brand: item.brand,

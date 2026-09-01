@@ -34,7 +34,10 @@ export const sanitizeFinancialNumber = (
  * Calculates a single quotation line item with exact Decimal precision and strict validation
  */
 export const calculateQuotationItem = (
-  item: Omit<QuotationItemDraft, 'net_unit_price' | 'total_price' | 'discount_amount' | 'tax_amount'> & {
+  item: Omit<
+    QuotationItemDraft,
+    'net_unit_price' | 'total_price' | 'discount_amount' | 'tax_amount'
+  > & {
     discount_amount?: number;
     tax_amount?: number;
   }
@@ -52,9 +55,10 @@ export const calculateQuotationItem = (
   const lineSubtotal = qty.times(unitPrice);
 
   // Discount Amount: either specified or derived from discount percentage
-  const discountAmount = item.discount_amount !== undefined && item.discount_amount > 0
-    ? Decimal.min(lineSubtotal, safeDecimal(item.discount_amount))
-    : lineSubtotal.times(discountPct.dividedBy(100));
+  const discountAmount =
+    item.discount_amount !== undefined && item.discount_amount > 0
+      ? Decimal.min(lineSubtotal, safeDecimal(item.discount_amount))
+      : lineSubtotal.times(discountPct.dividedBy(100));
 
   // Net line amount (0% VAT in Yemen)
   const netAmount = Decimal.max(0, lineSubtotal.minus(discountAmount));
@@ -110,4 +114,23 @@ export const calculateQuotationTotals = (
     grandTotal: finalTotal.toDecimalPlaces(CURRENCY_PRECISION).toNumber(),
     itemsCount: items.length,
   };
+};
+
+/**
+ * Public-portal draft line total (qty × price − %discount) using the same
+ * sanitize + Decimal pipeline as `calculateQuotationItem`. Keeps the supplier
+ * portal's displayed totals consistent with the internal quotation engine
+ * instead of ad-hoc floating-point math at the call site.
+ */
+export const calculatePortalLineTotal = (
+  quantity: number,
+  unitPrice: number,
+  discountPercent: number
+): number => {
+  const qty = safeDecimal(sanitizeFinancialNumber(quantity, 0, 0, 1000000));
+  const price = safeDecimal(sanitizeFinancialNumber(unitPrice, 0, 0, 1000000000));
+  const discPct = safeDecimal(sanitizeFinancialNumber(discountPercent, 0, 0, 100));
+  const lineSubtotal = qty.times(price);
+  const net = lineSubtotal.times(Decimal.max(0, new Decimal(1).minus(discPct.dividedBy(100))));
+  return Decimal.max(0, net).toDecimalPlaces(CURRENCY_PRECISION).toNumber();
 };
