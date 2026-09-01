@@ -169,6 +169,8 @@ export const PublicSupplierPortalPage: React.FC = () => {
         items: draftItems.map(item => ({
           product_id: item.product_id || null,
           description: item.description,
+          oem_number: item.oem_number || null,
+          brand: item.brand || null,
           quantity: item.quantity,
           unit_price: item.unit_price,
           discount_percent: item.discount_percent,

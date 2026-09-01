@@ -1,16 +1,16 @@
 /**
  * Inventory Service - Main entry point
- * 
+ *
  * This file provides backward compatibility by delegating to specialized services.
  * The service has been split into modular components for better maintainability:
- * 
+ *
  * - productService: Product CRUD operations
  * - warehouseService: Warehouse management
  * - transferService: Stock transfers
  * - auditService: Inventory audits
  * - categoryService: Category management
  * - analyticsService: Inventory analytics
- * 
+ *
  * @see ./services/ for individual service modules
  */
 
@@ -36,7 +36,13 @@ export const inventoryService = {
   // Product Operations (delegated to productService)
   // ==========================================
 
-  getProducts: async (companyId: string, page?: number, limitNum?: number, warehouseId?: string, signal?: AbortSignal): Promise<Product[]> => {
+  getProducts: async (
+    companyId: string,
+    page?: number,
+    limitNum?: number,
+    warehouseId?: string,
+    signal?: AbortSignal
+  ): Promise<Product[]> => {
     return productService.getProducts(companyId, page, limitNum, warehouseId, signal);
   },
 
@@ -72,10 +78,6 @@ export const inventoryService = {
     return productService.getItemMovement(productId, companyId);
   },
 
-  processImportFile: async (file: File, companyId: string, userId: string) => {
-    return productService.processImportFile(file, companyId, userId);
-  },
-
   // ==========================================
   // Warehouse Operations (delegated to warehouseService)
   // ==========================================
@@ -104,15 +106,30 @@ export const inventoryService = {
   // Audit Operations (delegated to auditService)
   // ==========================================
 
-  startAudit: async (data: { warehouse_id: string; title: string }, companyId: string, userId: string) => {
+  startAudit: async (
+    data: { warehouse_id: string; title: string },
+    companyId: string,
+    userId: string
+  ) => {
     return auditService.startAudit(data, companyId, userId);
   },
 
-  addAuditItem: async (sessionId: string, productId: string, expectedQuantity: number = 0, companyId: string, userId: string) => {
+  addAuditItem: async (
+    sessionId: string,
+    productId: string,
+    expectedQuantity: number = 0,
+    companyId: string,
+    userId: string
+  ) => {
     return auditService.addAuditItem(sessionId, productId, expectedQuantity, companyId, userId);
   },
 
-  finalizeAudit: async (sessionId: string, items: { id?: string; product_id: string; counted_quantity: number }[], companyId: string, userId: string) => {
+  finalizeAudit: async (
+    sessionId: string,
+    items: { id?: string; product_id: string; counted_quantity: number }[],
+    companyId: string,
+    userId: string
+  ) => {
     return auditService.finalizeAudit(sessionId, items, userId, companyId);
   },
 
@@ -124,7 +141,9 @@ export const inventoryService = {
     return auditService.getAuditSessionDetails(sessionId);
   },
 
-  saveAuditProgress: async (items: { id?: string; product_id: string; counted_quantity: number }[]) => {
+  saveAuditProgress: async (
+    items: { id?: string; product_id: string; counted_quantity: number }[]
+  ) => {
     return auditService.saveAuditProgress(items);
   },
 
@@ -164,18 +183,22 @@ export const inventoryService = {
   // Quick Adjustments (Server-Authoritative & Atomic Batch)
   // ==========================================
 
-  quickAdjustStock: async (companyId: string, items: { product_id: string; warehouse_id: string; quantity: number }[], _userId?: string) => {
+  quickAdjustStock: async (
+    companyId: string,
+    items: { product_id: string; warehouse_id: string; quantity: number }[],
+    _userId?: string
+  ) => {
     if (!items || items.length === 0) return true;
 
     const { data, error } = await supabase.rpc('quick_adjust_stock_batch', {
       p_company_id: companyId,
       p_items: items as unknown as Json,
-      p_notes: 'تسوية يدوية سريعة للمخزون'
+      p_notes: 'تسوية يدوية سريعة للمخزون',
     });
 
     if (error) throw parseError(error);
     return data;
-  }
+  },
 };
 
 // Export specialized services for direct access if needed
@@ -185,7 +208,7 @@ export {
   transferService,
   auditService,
   categoryService,
-  analyticsService
+  analyticsService,
 };
 
 export default inventoryService;

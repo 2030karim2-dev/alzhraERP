@@ -551,14 +551,6 @@ export const productService = {
   },
 
   /**
-   * Process import file (placeholder for future implementation)
-   */
-  processImportFile: async (_file: File, _companyId: string, _userId: string) => {
-    // Simplified import logic placeholder - in production would use XLSX parsing
-    return Promise.resolve();
-  },
-
-  /**
    * Get products with similar names to detect potential duplicates
    */
   getSimilarProducts: async (name: string, companyId: string) => {
