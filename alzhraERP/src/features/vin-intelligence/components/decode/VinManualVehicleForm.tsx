@@ -9,7 +9,7 @@ import {
   Sliders,
   Calendar,
   ArrowRight,
-  Layers,
+  Zap,
 } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import {
@@ -48,6 +48,13 @@ interface VinManualVehicleFormProps {
   onApplyManualVehicle: () => Promise<void>;
   isDecoding: boolean;
 }
+
+const YEAR_RANGE_PRESETS = [
+  { label: '2001-2007', start: '2001', end: '2007' },
+  { label: '2008-2015', start: '2008', end: '2015' },
+  { label: '2016-2022', start: '2016', end: '2022' },
+  { label: '2023-2026', start: '2023', end: '2026' },
+];
 
 export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
   manualMake,
@@ -227,8 +234,8 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <span>الشركة المصنعة (الماركة)</span>
                 <span className="text-rose-500">*</span>
               </label>
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                اختر أو اكتب بالأسفل
+              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                ماركات شائعة
               </span>
             </div>
 
@@ -334,50 +341,85 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Years Span Card */}
         <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800">
-          <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
-            <Calendar size={14} className="text-blue-500 dark:text-blue-400" />
-            <span className="text-xs font-black">نطاق سنوات الصنع</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
+              <Calendar size={14} className="text-blue-500 dark:text-blue-400" />
+              <span className="text-xs font-black">نطاق سنوات الصنع</span>
+            </div>
+            {manualYearStart && (
+              <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                {manualYearStart}
+                {manualYearEnd && manualYearEnd !== manualYearStart ? ` - ${manualYearEnd}` : ''}
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                من سنة
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                dir="ltr"
-                placeholder="2001"
-                value={manualYearStart}
-                onChange={e => {
-                  const val = normalizeToEnglishNumbers(e.target.value)
-                    .replace(/\D/g, '')
-                    .slice(0, 4);
-                  setManualYearStart(val);
-                }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
-              />
+          <div>
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <div>
+                <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  من سنة
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
+                  placeholder="2001"
+                  value={manualYearStart}
+                  onChange={e => {
+                    const val = normalizeToEnglishNumbers(e.target.value)
+                      .replace(/\D/g, '')
+                      .slice(0, 4);
+                    setManualYearStart(val);
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
+                />
+              </div>
+
+              <div>
+                <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  إلى سنة
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
+                  placeholder="2007"
+                  value={manualYearEnd}
+                  onChange={e => {
+                    const val = normalizeToEnglishNumbers(e.target.value)
+                      .replace(/\D/g, '')
+                      .slice(0, 4);
+                    setManualYearEnd(val);
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
+                />
+              </div>
             </div>
 
-            <div>
-              <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                إلى سنة
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                dir="ltr"
-                placeholder="2007"
-                value={manualYearEnd}
-                onChange={e => {
-                  const val = normalizeToEnglishNumbers(e.target.value)
-                    .replace(/\D/g, '')
-                    .slice(0, 4);
-                  setManualYearEnd(val);
-                }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
-              />
+            {/* Quick Year Range Chips */}
+            <div className="flex flex-wrap gap-1">
+              {YEAR_RANGE_PRESETS.map(yr => {
+                const isSelected = manualYearStart === yr.start && manualYearEnd === yr.end;
+                return (
+                  <button
+                    key={yr.label}
+                    type="button"
+                    onClick={() => {
+                      setManualYearStart(yr.start);
+                      setManualYearEnd(yr.end);
+                    }}
+                    className={cn(
+                      'rounded-lg border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors',
+                      isSelected
+                        ? 'border-blue-500 bg-blue-500 text-white shadow-xs'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white'
+                    )}
+                  >
+                    {yr.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -545,7 +587,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <input
                 type="text"
                 dir="ltr"
-                placeholder="17 خانة (اختياري)"
+                placeholder="JT3HN87R... (17 Chars)"
                 value={manualVinOptional}
                 onChange={e => setManualVinOptional(e.target.value.toUpperCase().trim())}
                 maxLength={17}
@@ -556,12 +598,12 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         </div>
       </div>
 
-      {/* 5. Live Interactive Vehicle Preview Card */}
+      {/* 5. Live Interactive Vehicle Preview & Instant Action Card */}
       {previewData && (
         <div className="relative overflow-hidden rounded-2xl border border-emerald-300 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-blue-50/60 p-4 shadow-lg shadow-black/10 transition-all dark:border-emerald-700/60 dark:from-emerald-950/70 dark:via-slate-900 dark:to-slate-900">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-[280px] flex-1 items-center gap-3.5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30">
                 <Car size={24} />
               </div>
               <div>
@@ -611,38 +653,36 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               </div>
             </div>
 
-            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-3.5 py-2 text-xs font-bold text-slate-800 shadow-xs dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 lg:flex">
-              <Layers size={16} className="text-emerald-500 dark:text-emerald-400" />
-              <span>توليد تلقائي للأسماء باللغتين</span>
+            {/* Embedded Action Button right inside the card */}
+            <div className="flex w-full items-center gap-2 lg:w-auto">
+              <button
+                type="button"
+                onClick={() => void onApplyManualVehicle()}
+                disabled={isDecoding || !manualMake.trim()}
+                className={cn(
+                  'flex h-12 w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-2xl px-6 text-sm font-black text-white shadow-xl transition-all lg:w-auto',
+                  !manualMake.trim()
+                    ? 'cursor-not-allowed bg-slate-300 opacity-60 dark:bg-slate-800'
+                    : 'border border-emerald-400/30 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-emerald-500/25 hover:from-emerald-500 hover:to-teal-600 active:scale-[0.99]'
+                )}
+              >
+                {isDecoding ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                    <span>جاري التثبيت...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Zap size={16} className="animate-bounce text-amber-300" />
+                    <span>تثبيت مواصفات المركبة والبدء باستخراج القطع</span>
+                    <ArrowRight size={16} className="rotate-180" />
+                  </div>
+                )}
+              </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* 6. Primary Action Button */}
-      <button
-        type="button"
-        onClick={() => void onApplyManualVehicle()}
-        disabled={isDecoding || !manualMake.trim()}
-        className={cn(
-          'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl text-sm font-black text-white shadow-xl transition-all',
-          !manualMake.trim()
-            ? 'cursor-not-allowed bg-slate-300 opacity-60 dark:bg-slate-800'
-            : 'border border-blue-400/30 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 shadow-blue-500/25 hover:from-blue-500 hover:to-indigo-600 active:scale-[0.99]'
-        )}
-      >
-        {isDecoding ? (
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-            <span>جاري تحليل وتثبيت بيانات المركبة...</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span>تثبيت مواصفات السيارة والبدء باستخراج وإضافة القطع</span>
-            <ArrowRight size={16} className="rotate-180" />
-          </div>
-        )}
-      </button>
     </div>
   );
 };
