@@ -1,7 +1,7 @@
 import type { VinDecodeMode } from '../types';
-import { ScanLine, Sparkles, Database } from 'lucide-react';
+import { Sparkles, Database, type LucideIcon } from 'lucide-react';
 
-export const MODES: Array<{ id: VinDecodeMode; label: string; icon: typeof ScanLine }> = [
+export const MODES: Array<{ id: VinDecodeMode; label: string; icon: LucideIcon }> = [
   { id: 'hybrid', label: 'تلقائي (vPIC + داخلي + AI)', icon: Sparkles },
   { id: 'db', label: 'بنيوي (قاعدة البيانات)', icon: Database },
   { id: 'ai', label: 'ذكاء اصطناعي فقط', icon: Sparkles },
@@ -20,8 +20,22 @@ export const POPULAR_MAKE_OPTIONS: Array<{ id: string; label: string }> = [
   { id: 'Isuzu', label: 'إيسوزو' },
   { id: 'Mitsubishi', label: 'ميتسوبيشي' },
   { id: 'Mazda', label: 'مازدا' },
+  { id: 'Suzuki', label: 'سوزوكي' },
   { id: 'Lexus', label: 'لكزس' },
 ];
+
+/** Lookup helper: get Arabic label for a canonical make id ('' when unknown). */
+export const getMakeArabicLabel = (makeId: string): string =>
+  POPULAR_MAKE_OPTIONS.find(m => m.id.toLowerCase() === makeId.toLowerCase())?.label ?? '';
+
+/**
+ * Lookup helper: get popular models for a canonical make id.
+ * Returns [] when the make is unknown so callers can fall back to manual input.
+ */
+export const getPopularModelsForMake = (makeId: string): Array<{ id: string; label: string }> =>
+  Object.entries(POPULAR_MODELS_BY_MAKE).find(
+    ([key]) => key.toLowerCase() === makeId.toLowerCase()
+  )?.[1] ?? [];
 
 /** Popular markets/specs */
 export const POPULAR_MARKETS = ['خليجي', 'وارد أمريكي', 'وارد ياباني', 'سعودي', 'كوري', 'أوروبي'];
@@ -126,6 +140,8 @@ export const POPULAR_ENGINES = [
 /** Popular models mapped by canonical make for quick contextual picking */
 export const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ id: string; label: string }>> = {
   Toyota: [
+    { id: 'Vitz', label: 'فيتز' },
+    { id: 'Passo', label: 'باسو' },
     { id: 'Corolla', label: 'كورولا' },
     { id: 'Camry', label: 'كامري' },
     { id: 'Hilux', label: 'هايلوكس' },
@@ -137,6 +153,7 @@ export const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ id: string; label: s
     { id: 'Fortuner', label: 'فورتشنر' },
     { id: 'Hiace', label: 'هايس' },
     { id: 'Rush', label: 'راش' },
+    { id: 'Prius', label: 'بريوس' },
     { id: 'Avalon', label: 'أفالون' },
   ],
   Nissan: [
@@ -218,6 +235,13 @@ export const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ id: string; label: s
     { id: 'CX-5', label: 'سي اكس 5' },
     { id: 'BT-50', label: 'بي تي 50' },
   ],
+  Suzuki: [
+    { id: 'Grand Vitara', label: 'جراند فيتارا' },
+    { id: 'Vitara', label: 'فيتارا' },
+    { id: 'Swift', label: 'سويفت' },
+    { id: 'Jimny', label: 'جيمني' },
+    { id: 'Baleno', label: 'بالينو' },
+  ],
   Lexus: [
     { id: 'LX570', label: 'ال اكس 570' },
     { id: 'LX600', label: 'ال اكس 600' },
@@ -225,6 +249,8 @@ export const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ id: string; label: s
     { id: 'LS460', label: 'ال اس 460' },
     { id: 'RX350', label: 'ار اكس 350' },
     { id: 'GX460', label: 'جي اكس 460' },
+    { id: 'GS', label: 'جي اس' },
+    { id: 'IS', label: 'اي اس' },
   ],
 };
 

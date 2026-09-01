@@ -19,7 +19,15 @@ import {
   saveDraftRows,
   saveVehicleTemplate,
 } from '../utils/draftStorage';
-import { partIntelligenceService } from '../services/partIntelligenceService';
+import { usePartInspection } from '../hooks/usePartInspection';
+import {
+  pickBaseName,
+  pickManufacturer,
+  pickPrice,
+  pickPartName,
+  pickAltManufacturer,
+  buildFinalDescription,
+} from '../utils/vinRowHelpers';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { PartsGridTable } from './PartsGridTable';
 import { PartsSearchControls } from './PartsSearchControls';
@@ -32,13 +40,7 @@ import { VehicleContextBanner } from './VehicleContextBanner';
 import { useFeedbackStore } from '../../feedback/store';
 import CreateQuotationModal from '../../sales/components/quotations/CreateQuotationModal';
 import type { ItemRow } from '../../sales/hooks/useQuotationForm';
-import type {
-  ExcelGridPart,
-  ExtractedPart,
-  VehicleInfo,
-  PartIntelligenceResult,
-  PartAlternative,
-} from '../types';
+import type { ExcelGridPart, ExtractedPart, VehicleInfo, PartAlternative } from '../types';
 
 /* ──────────────────────────────────────────────────────────────────
    Pure row-normalization helpers — module scope keeps them stable for
@@ -83,43 +85,6 @@ function templateRowArgs(
   return [t.base, t.oem, t.mfr || (vehicle?.make ?? 'GENUINE'), t.spec];
 }
 
-function pickBaseName(part: Partial<ExcelGridPart>): string {
-  return (part.baseName ?? '') || (part.description ?? '');
-}
-
-function pickManufacturer(part: { manufacturer?: string }, vehicle: VehicleInfo | null): string {
-  return (part.manufacturer ?? '') || (vehicle?.make ?? '');
-}
-
-function pickPrice(value: number | undefined): number {
-  return value ?? 0;
-}
-
-function pickPartName(p: { description?: string; partNumber: string }): string {
-  return (p.description ?? '') || p.partNumber;
-}
-
-function pickAltManufacturer(
-  alt: PartAlternative,
-  intel: PartIntelligenceResult | null,
-  vehicle: VehicleInfo | null
-): string {
-  return (alt.brand ?? '') || (intel?.manufacturer ?? '') || (vehicle?.make ?? '');
-}
-
-function buildFinalDescription(r: {
-  description?: string;
-  baseName: string;
-  sizeSpec?: string;
-}): string {
-  let desc = (r.description ?? '').trim() || r.baseName.trim() || 'قطعة غيار';
-  const sizeSpec = r.sizeSpec?.trim() ?? '';
-  if (sizeSpec.length > 0 && !desc.includes(sizeSpec)) {
-    desc = `${desc} - ${sizeSpec}`;
-  }
-  return desc;
-}
-
 interface PartsExtractTabProps {
   hasVehicle: boolean;
   /** Active tenant context — scopes localStorage drafts/templates per company */
@@ -149,6 +114,13 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   canAdd,
 }) => {
   const { showToast } = useFeedbackStore();
+  const {
+    isIntelligenceOpen,
+    setIsIntelligenceOpen,
+    isIntelligenceLoading,
+    activeIntelligence,
+    handleDeepInspectPart,
+  } = usePartInspection();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize rows from the tenant-scoped localStorage draft or empty array
@@ -165,9 +137,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
-  const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(false);
-  const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
-  const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
 
   // Update default custom template when vehicle changes if empty
   useEffect(() => {
@@ -339,21 +308,6 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     setRows(prev => prev.map(r => ({ ...r, selected: checked })));
   };
 
-  const handleDeepInspectPart = async (partNum: string): Promise<void> => {
-    const q = partNum.trim().toUpperCase();
-    if (!q || q.length < 3) return;
-    setIsIntelligenceOpen(true);
-    setIsIntelligenceLoading(true);
-    try {
-      const intel = await partIntelligenceService.inspectPart(q, vehicle, selectedCatalogId);
-      setActiveIntelligence(intel);
-    } catch (err) {
-      showToast('تعذر فحص تفاصيل القطعة، يرجى المحاولة لاحقاً', 'error', err);
-    } finally {
-      setIsIntelligenceLoading(false);
-    }
-  };
-
   const handleAddAlternativeToGrid = (part: Partial<ExcelGridPart>): void => {
     const smartName = generateSmartPartName(pickBaseName(part) || 'قطعة غيار', vehicle, {
       customVehicleTemplate: customVehicleTemplate.trim() || undefined,
@@ -404,7 +358,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
     if (q.length < 3) return;
 
     // 1. Perform deep inspection
-    void handleDeepInspectPart(q);
+    void handleDeepInspectPart(q, vehicle, selectedCatalogId);
 
     // 2. Perform catalog extraction & populate grid
     try {
@@ -711,7 +665,7 @@ export const PartsExtractTab: React.FC<PartsExtractTabProps> = ({
         onDuplicateRow={duplicateRow}
         onDeleteRow={deleteRow}
         onInspectPart={q => {
-          void handleDeepInspectPart(q);
+          void handleDeepInspectPart(q, vehicle, selectedCatalogId);
         }}
         selectedRows={selectedRows}
         onAddRow={() => {

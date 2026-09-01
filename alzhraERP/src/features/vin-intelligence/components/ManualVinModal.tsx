@@ -4,6 +4,7 @@ import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
 import { cn } from '../../../core/utils';
 import type { VehicleInfo } from '../types';
+import { POPULAR_MAKE_OPTIONS, getPopularModelsForMake } from '../constants/vinPresetsData';
 
 interface ManualVinModalProps {
   isOpen: boolean;
@@ -12,125 +13,10 @@ interface ManualVinModalProps {
   onSaveAndExtract?: (vehicle: VehicleInfo, vinNumber: string) => Promise<void>;
 }
 
-const COMMON_MAKES = [
-  { id: 'Toyota', nameAr: 'تويوتا' },
-  { id: 'Nissan', nameAr: 'نيسان' },
-  { id: 'Hyundai', nameAr: 'هيونداي' },
-  { id: 'Kia', nameAr: 'كيا' },
-  { id: 'Honda', nameAr: 'هوندا' },
-  { id: 'Isuzu', nameAr: 'إيسوزو' },
-  { id: 'Mitsubishi', nameAr: 'ميتسوبيشي' },
-  { id: 'Mazda', nameAr: 'مازدا' },
-  { id: 'Ford', nameAr: 'فورد' },
-  { id: 'Chevrolet', nameAr: 'شفروليه' },
-  { id: 'GMC', nameAr: 'جمس' },
-  { id: 'Suzuki', nameAr: 'سوزوكي' },
-  { id: 'Lexus', nameAr: 'لكزس' },
-];
+const COMMON_MAKES = POPULAR_MAKE_OPTIONS;
 
-const POPULAR_MODELS_BY_MAKE: Record<string, Array<{ model: string; modelAr: string }>> = {
-  Toyota: [
-    { model: 'Vitz', modelAr: 'فيتز' },
-    { model: 'Passo', modelAr: 'باسو' },
-    { model: 'Yaris', modelAr: 'يارس' },
-    { model: 'Corolla', modelAr: 'كورولا' },
-    { model: 'Camry', modelAr: 'كامري' },
-    { model: 'Hilux', modelAr: 'هايلوكس' },
-    { model: 'Land Cruiser 70', modelAr: 'شاص' },
-    { model: 'Land Cruiser', modelAr: 'لاندكروزر' },
-    { model: 'Prado', modelAr: 'برادو' },
-    { model: 'Rush', modelAr: 'راش' },
-    { model: 'Prius', modelAr: 'بريوس' },
-    { model: 'RAV4', modelAr: 'راف فور' },
-    { model: 'Hiace', modelAr: 'هايس' },
-  ],
-  Nissan: [
-    { model: 'Patrol', modelAr: 'باترول' },
-    { model: 'Sunny', modelAr: 'صني' },
-    { model: 'Altima', modelAr: 'ألتيما' },
-    { model: 'Maxima', modelAr: 'مكسيما' },
-    { model: 'Navara', modelAr: 'نافارا' },
-    { model: 'Pathfinder', modelAr: 'باثفايندر' },
-  ],
-  Hyundai: [
-    { model: 'Accent', modelAr: 'أكسنت' },
-    { model: 'Elantra', modelAr: 'إلنترا' },
-    { model: 'Sonata', modelAr: 'سوناتا' },
-    { model: 'Tucson', modelAr: 'توسان' },
-    { model: 'Santa Fe', modelAr: 'سنتافي' },
-    { model: 'Azera', modelAr: 'أزيرا' },
-  ],
-  Kia: [
-    { model: 'Cerato', modelAr: 'سيراتو' },
-    { model: 'Optima', modelAr: 'أوبتيما' },
-    { model: 'Sportage', modelAr: 'سبورتاج' },
-    { model: 'Sorento', modelAr: 'سورينتو' },
-    { model: 'Pegas', modelAr: 'بيجاس' },
-  ],
-  Honda: [
-    { model: 'Civic', modelAr: 'سيفيك' },
-    { model: 'Accord', modelAr: 'أكورد' },
-    { model: 'CR-V', modelAr: 'سي آر في' },
-    { model: 'City', modelAr: 'سيتي' },
-  ],
-  Isuzu: [
-    { model: 'D-Max', modelAr: 'ديماكس' },
-    { model: 'NPR', modelAr: 'دينا' },
-    { model: 'MUX', modelAr: 'إم يو إكس' },
-  ],
-  Mitsubishi: [
-    { model: 'Pajero', modelAr: 'باجيرو' },
-    { model: 'Lancer', modelAr: 'لانسر' },
-    { model: 'L200', modelAr: 'إل 200' },
-    { model: 'Canter', modelAr: 'كانتر' },
-  ],
-  Lexus: [
-    { model: 'LS', modelAr: 'LS' },
-    { model: 'ES', modelAr: 'ES' },
-    { model: 'GS', modelAr: 'GS' },
-    { model: 'LX', modelAr: 'LX' },
-    { model: 'RX', modelAr: 'RX' },
-    { model: 'GX', modelAr: 'GX' },
-    { model: 'IS', modelAr: 'IS' },
-  ],
-  Suzuki: [
-    { model: 'Grand Vitara', modelAr: 'جراند فيتارا' },
-    { model: 'Vitara', modelAr: 'فيتارا' },
-    { model: 'Swift', modelAr: 'سويفت' },
-    { model: 'Jimny', modelAr: 'جيمني' },
-    { model: 'Baleno', modelAr: 'بالينو' },
-  ],
-  Chevrolet: [
-    { model: 'Tahoe', modelAr: 'تاهو' },
-    { model: 'Suburban', modelAr: 'سوبربان' },
-    { model: 'Silverado', modelAr: 'سلفرادو' },
-    { model: 'Cruze', modelAr: 'كروز' },
-    { model: 'Malibu', modelAr: 'ماليبو' },
-    { model: 'Traverse', modelAr: 'ترافيرس' },
-  ],
-  GMC: [
-    { model: 'Yukon', modelAr: 'يوكن' },
-    { model: 'Sierra', modelAr: 'سييرا' },
-    { model: 'Acadia', modelAr: 'أكاديا' },
-    { model: 'Terrain', modelAr: 'تيرين' },
-  ],
-  Ford: [
-    { model: 'F-150', modelAr: 'إف 150' },
-    { model: 'Explorer', modelAr: 'إكسبلورر' },
-    { model: 'Expedition', modelAr: 'إكسبيديشن' },
-    { model: 'Taurus', modelAr: 'تورس' },
-    { model: 'Ranger', modelAr: 'رينجر' },
-  ],
-  Mazda: [
-    { model: 'CX-9', modelAr: 'سي إكس 9' },
-    { model: 'CX-5', modelAr: 'سي إكس 5' },
-    { model: 'Mazda 6', modelAr: 'مازدا 6' },
-    { model: 'Mazda 3', modelAr: 'مازدا 3' },
-  ],
-};
-
-const getMakeModels = (makeKey: string): Array<{ model: string; modelAr: string }> =>
-  Object.entries(POPULAR_MODELS_BY_MAKE).find(([k]) => k === makeKey)?.[1] ?? [];
+const getMakeModels = (makeKey: string): Array<{ id: string; label: string }> =>
+  getPopularModelsForMake(makeKey);
 
 /* eslint-disable max-lines-per-function -- React modal with multiple form groups; the 50-line ceiling is not applicable to a component boundary. */
 export const ManualVinModal: React.FC<ManualVinModalProps> = ({
@@ -286,7 +172,7 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
                 type="button"
                 onClick={() => {
                   setMake(m.id);
-                  const firstModel = getMakeModels(m.id)[0]?.model ?? '';
+                  const firstModel = getMakeModels(m.id)[0]?.id ?? '';
                   setModel(firstModel || '');
                 }}
                 className={cn(
@@ -296,7 +182,7 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
                     : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                 )}
               >
-                {m.nameAr} ({m.id})
+                {m.label} ({m.id})
               </button>
             ))}
             <button
@@ -337,19 +223,19 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
             <div className="flex flex-wrap gap-1.5 pb-1">
               {makeModels.map(md => (
                 <button
-                  key={md.model}
+                  key={md.id}
                   type="button"
                   onClick={() => {
-                    setModel(md.model);
+                    setModel(md.id);
                   }}
                   className={cn(
                     'rounded-lg border px-2.5 py-1 text-xs font-bold transition-all',
-                    model === md.model
+                    model === md.id
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
                       : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                   )}
                 >
-                  {md.modelAr} ({md.model})
+                  {md.label} ({md.id})
                 </button>
               ))}
             </div>

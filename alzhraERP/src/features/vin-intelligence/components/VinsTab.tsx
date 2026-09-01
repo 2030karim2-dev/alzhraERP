@@ -15,7 +15,8 @@ import {
   openCatalogSearch,
   openCatalogVinSearch,
 } from '../constants/catalogs';
-import { partIntelligenceService } from '../services/partIntelligenceService';
+import { usePartInspection } from '../hooks/usePartInspection';
+import { pickBaseName, pickManufacturer } from '../utils/vinRowHelpers';
 import { PartIntelligenceModal } from './PartIntelligenceModal';
 import { safeParseVehicleInfo } from '../utils/vehicleGuard';
 import type {
@@ -23,18 +24,11 @@ import type {
   VehicleInfo,
   VehicleProductLink,
   VinAnalysisRecord,
-  PartIntelligenceResult,
   PartAlternative,
   ExcelGridPart,
 } from '../types';
 
 /* ── Pure row-normalization helpers (module scope; each ≤ complexity-10) ── */
-
-const pickBaseName = (part: Partial<ExcelGridPart>): string =>
-  (part.baseName ?? '') || (part.description ?? '');
-
-const pickManufacturer = (part: { manufacturer?: string }, vehicle: VehicleInfo | null): string =>
-  (part.manufacturer ?? '') || (vehicle?.make ?? '');
 
 interface PreparedVinSearch {
   vinStr: string;
@@ -88,6 +82,13 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   canAdd,
 }) => {
   const { showToast } = useFeedbackStore();
+  const {
+    isIntelligenceOpen,
+    setIsIntelligenceOpen,
+    isIntelligenceLoading,
+    activeIntelligence,
+    handleDeepInspectPart,
+  } = usePartInspection();
 
   const [selected, setSelected] = useState<VinAnalysisRecord | null>(null);
   const [linkedParts, setLinkedParts] = useState<VehicleProductLink[]>([]);
@@ -100,9 +101,6 @@ export const VinsTab: React.FC<VinsTabProps> = ({
   const [filterText, setFilterText] = useState('');
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [copiedVin, setCopiedVin] = useState(false);
-  const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(false);
-  const [activeIntelligence, setActiveIntelligence] = useState<PartIntelligenceResult | null>(null);
-  const [isIntelligenceLoading, setIsIntelligenceLoading] = useState(false);
   const [deleteConfirmVin, setDeleteConfirmVin] = useState<VinAnalysisRecord | null>(null);
   const [isDeletingVin, setIsDeletingVin] = useState(false);
 
@@ -185,21 +183,6 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     }
   };
 
-  const handleDeepInspectPart = async (partNum: string): Promise<void> => {
-    const q = partNum.trim().toUpperCase();
-    if (!q || q.length < 3) return;
-    setIsIntelligenceOpen(true);
-    setIsIntelligenceLoading(true);
-    try {
-      const intel = await partIntelligenceService.inspectPart(q, vehicle, selectedCatalogId);
-      setActiveIntelligence(intel);
-    } catch (err) {
-      showToast('تعذر فحص تفاصيل القطعة، يرجى المحاولة لاحقاً', 'error', err);
-    } finally {
-      setIsIntelligenceLoading(false);
-    }
-  };
-
   const handleAddAlternativeToParts = (part: Partial<ExcelGridPart>): void => {
     const newPart: UiPart = {
       partNumber: part.partNumber ?? '',
@@ -232,7 +215,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
     if (q.length < 3) return;
 
     // Trigger deep intelligence modal
-    void handleDeepInspectPart(q);
+    void handleDeepInspectPart(q, vehicle, selectedCatalogId);
 
     try {
       const res = await onSearchPart(q);
@@ -651,7 +634,7 @@ export const VinsTab: React.FC<VinsTabProps> = ({
                                 catalogId={selectedCatalogId}
                                 onToggle={togglePart}
                                 onInspect={pn => {
-                                  void handleDeepInspectPart(pn);
+                                  void handleDeepInspectPart(pn, vehicle, selectedCatalogId);
                                 }}
                                 onOpenCatalog={pn => {
                                   openCatalogSearch(selectedCatalogId, pn);

@@ -5,25 +5,25 @@
 
 // Currency utilities (formatting, conversion, parsing)
 export {
-    formatCurrency,
-    formatNumber,
-    convertToBaseCurrency,
-    convertFromBaseCurrency,
-    toBaseCurrency,
-    sumInBaseCurrency,
-    parseCurrency,
-    calculateExchangeRate,
-    CURRENCY_SYMBOLS,
+  formatCurrency,
+  formatNumber,
+  convertToBaseCurrency,
+  convertFromBaseCurrency,
+  toBaseCurrency,
+  sumInBaseCurrency,
+  parseCurrency,
+  calculateExchangeRate,
+  CURRENCY_SYMBOLS,
 } from './currencyUtils';
 
 export type { CurrencyCode, CurrencyConversionParams } from './currencyUtils';
 
 // Validation utilities
 export {
-    validateInvoiceItems,
-    validateSalePayload,
-    validatePurchasePayload,
-    assertValid,
+  validateInvoiceItems,
+  validateSalePayload,
+  validatePurchasePayload,
+  assertValid,
 } from './validationUtils';
 
 export type { ValidationError } from './validationUtils';
@@ -44,11 +44,16 @@ export type { AppError } from './errorUtils';
 export { exportToPDF } from './pdfExporter';
 export { exportInvoiceToExcel, generateInvoiceExcelBlob } from './invoiceExcelExporter';
 export { exportReturnsToExcel, exportSingleReturnToExcel } from './returnsExcelExporter';
-export { exportSingleBondToExcel, exportBondsListToExcel, generateSingleBondExcelBlob } from './bondExcelExporter';
+export {
+  exportSingleBondToExcel,
+  exportBondsListToExcel,
+  generateSingleBondExcelBlob,
+} from './bondExcelExporter';
 export { exportQuotationToExcel, generateQuotationExcelBlob } from './quotationExcelExporter';
 
 // Sharing utilities
-export { shareExcelFile } from './shareUtils';
+export { shareExcelFile, shareSpreadsheet } from './shareUtils';
+export type { ShareSpreadsheetOptions } from './shareUtils';
 
 // ZATCA compliance
 export { generateZatcaBase64 } from './zatca';

@@ -1,4 +1,3 @@
-
 import { partiesApi } from './api';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../auth/store';
@@ -32,13 +31,17 @@ export const partiesService = {
         category: (p.party_categories as Record<string, unknown>)?.name || 'عام',
         balance,
         balances_by_currency: (p.balances_by_currency as Party['balances_by_currency']) ?? [],
-        status: p.status || 'active'
+        status: p.status || 'active',
       };
     }) as Party[];
   },
 
   // ⚡ Server-side party statement via RPC — no frontend aggregation
-  getStatement: async (partyId: string, _type: PartyType, options?: { startDate?: string; endDate?: string }): Promise<StatementMovement[]> => {
+  getStatement: async (
+    partyId: string,
+    _type: PartyType,
+    options?: { startDate?: string; endDate?: string }
+  ): Promise<StatementMovement[]> => {
     // 1. Get companyId from active unified session
     let companyId = useAuthStore.getState().user?.company_id;
 
@@ -47,7 +50,8 @@ export const partiesService = {
       const { data: authData } = await supabase.auth.getUser();
       const userId = authData?.user?.id;
       if (userId) {
-        const { data: roles } = await supabase.from('user_company_roles')
+        const { data: roles } = await supabase
+          .from('user_company_roles')
           .select('company_id')
           .eq('user_id', userId)
           .limit(1);
@@ -59,7 +63,7 @@ export const partiesService = {
 
     const { data, error } = await supabase.rpc('get_party_statement', {
       p_company_id: companyId,
-      p_party_id: partyId
+      p_party_id: partyId,
     });
     if (error) throw error;
 
@@ -87,11 +91,11 @@ export const partiesService = {
       debit: Number(m.debit) || 0,
       credit: Number(m.credit) || 0,
       currency: m.currency,
-      balance: Number(m.balance) || 0
+      balance: Number(m.balance) || 0,
     }));
 
     if (options?.startDate || options?.endDate) {
-      mapped = mapped.filter((row) => {
+      mapped = mapped.filter(row => {
         const rowDate = new Date(row.date);
         const start = options.startDate ? new Date(options.startDate) : null;
         const end = options.endDate ? new Date(options.endDate) : null;
@@ -105,7 +109,8 @@ export const partiesService = {
   },
 
   getCategoriesWithStats: async (companyId: string, type: PartyType): Promise<PartyCategory[]> => {
-    const { data: categories, error: catError } = await supabase.from('party_categories')
+    const { data: categories, error: catError } = await supabase
+      .from('party_categories')
       .select('*')
       .eq('company_id', companyId)
       .eq('type', type)
@@ -117,12 +122,14 @@ export const partiesService = {
     // partiesApi.getParties returns {data, error} but we use it here
     const partyList = Array.isArray(parties) ? parties : [];
 
-    const result = (Array.isArray(categories) ? categories : []).map((cat: Record<string, unknown>) => ({
-      id: cat.id as string,
-      name: cat.name as string,
-      type: cat.type as PartyType,
-      count: partyList.filter((p: Record<string, unknown>) => p.category_id === cat.id).length
-    }));
+    const result = (Array.isArray(categories) ? categories : []).map(
+      (cat: Record<string, unknown>) => ({
+        id: cat.id as string,
+        name: cat.name as string,
+        type: cat.type as PartyType,
+        count: partyList.filter((p: Record<string, unknown>) => p.category_id === cat.id).length,
+      })
+    );
 
     return result;
   },
@@ -166,13 +173,105 @@ export const partiesService = {
   },
 
   saveParty: async (companyId: string, data: PartyFormData, id?: string) => {
-    if (!data.name) throw new Error("الاسم مطلوب");
+    const trimmedName = (data.name || '').trim();
+    if (!trimmedName) throw new Error('الاسم مطلوب');
+
+    const trimmedPhone = (data.phone || '').trim();
+    const trimmedTaxNumber = (data.tax_number || '').trim();
+    const partyType = data.type || 'customer';
+    const typeLabel = partyType === 'customer' ? 'العميل' : 'المورد';
+
+    // 1. Check duplicate name for same type & company
+    let nameQuery = supabase
+      .from('parties')
+      .select('id, name')
+      .eq('company_id', companyId)
+      .eq('type', partyType)
+      .ilike('name', trimmedName)
+      .limit(1);
+
     if (id) {
-      const { error } = await partiesApi.updateParty(id, data);
-      if (error) throw error;
-    } else {
-      const { error } = await partiesApi.createParty(data, companyId);
-      if (error) throw error;
+      nameQuery = nameQuery.neq('id', id);
+    }
+
+    const { data: duplicateName } = await nameQuery;
+    if (duplicateName && duplicateName.length > 0) {
+      throw new Error(`يوجد ${typeLabel} مسجل مسبقاً بنفس الاسم: "${trimmedName}"`);
+    }
+
+    // 2. Check duplicate phone for same type & company (if phone provided)
+    if (trimmedPhone) {
+      let phoneQuery = supabase
+        .from('parties')
+        .select('id, name, phone')
+        .eq('company_id', companyId)
+        .eq('type', partyType)
+        .eq('phone', trimmedPhone)
+        .limit(1);
+
+      if (id) {
+        phoneQuery = phoneQuery.neq('id', id);
+      }
+
+      const { data: duplicatePhone } = await phoneQuery;
+      if (duplicatePhone && duplicatePhone.length > 0) {
+        throw new Error(
+          `رقم الهاتف (${trimmedPhone}) مسجل مسبقاً لـ ${typeLabel}: "${duplicatePhone[0].name}"`
+        );
+      }
+    }
+
+    // 3. Check duplicate tax number (if tax number provided)
+    if (trimmedTaxNumber) {
+      let taxQuery = supabase
+        .from('parties')
+        .select('id, name, tax_number')
+        .eq('company_id', companyId)
+        .eq('tax_number', trimmedTaxNumber)
+        .limit(1);
+
+      if (id) {
+        taxQuery = taxQuery.neq('id', id);
+      }
+
+      const { data: duplicateTax } = await taxQuery;
+      if (duplicateTax && duplicateTax.length > 0) {
+        throw new Error(
+          `الرقم الضريبي (${trimmedTaxNumber}) مسجل مسبقاً للطرف: "${duplicateTax[0].name}"`
+        );
+      }
+    }
+
+    try {
+      const sanitizedData: PartyFormData = {
+        name: trimmedName,
+        type: partyType,
+        status: data.status || 'active',
+      };
+      if (trimmedPhone) sanitizedData.phone = trimmedPhone;
+      if (trimmedTaxNumber) sanitizedData.tax_number = trimmedTaxNumber;
+      if (data.email?.trim()) sanitizedData.email = data.email.trim();
+      if (data.address?.trim()) sanitizedData.address = data.address.trim();
+      if (data.category_id) sanitizedData.category_id = data.category_id;
+      if (data.category) sanitizedData.category = data.category;
+
+      if (id) {
+        const { error } = await partiesApi.updateParty(id, sanitizedData);
+        if (error) throw error;
+      } else {
+        const { error } = await partiesApi.createParty(sanitizedData, companyId);
+        if (error) throw error;
+      }
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new Error('عذراً، البيانات المدخلة مكررة ومسجلة مسبقاً في النظام');
+      }
+      throw error;
     }
   },
 
@@ -181,10 +280,11 @@ export const partiesService = {
     if (error) throw error;
   },
 
-  saveCategory: async (companyId: string, data: { name: string, type: PartyType }, id?: string) => {
+  saveCategory: async (companyId: string, data: { name: string; type: PartyType }, id?: string) => {
     try {
       if (id) {
-        const { data: result, error } = await supabase.from('party_categories')
+        const { data: result, error } = await supabase
+          .from('party_categories')
           .update({ name: data.name })
           .eq('id', id)
           .select()
@@ -192,15 +292,21 @@ export const partiesService = {
         if (error) throw error;
         return result;
       }
-      const { data: result, error } = await supabase.from('party_categories')
+      const { data: result, error } = await supabase
+        .from('party_categories')
         .insert({ company_id: companyId, name: data.name, type: data.type })
         .select()
         .single();
       if (error) throw error;
       return result;
     } catch (error: unknown) {
-      if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23505') {
-        throw new Error("عذراً، هذا الاسم موجود مسبقاً في قائمة الفئات");
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new Error('عذراً، هذا الاسم موجود مسبقاً في قائمة الفئات');
       }
       throw error;
     }
@@ -230,19 +336,26 @@ export const partiesService = {
 
   getOrCreateGeneralParty: async (companyId: string, type: PartyType): Promise<Party> => {
     const name = type === 'customer' ? 'الزبون العام' : 'المورد العام';
-    const { data: searchResults, error: searchError } = await partiesApi.search(companyId, type, name);
+    const { data: searchResults, error: searchError } = await partiesApi.search(
+      companyId,
+      type,
+      name
+    );
     if (searchError) throw searchError;
 
     const existing = (searchResults || []).find((p: Record<string, unknown>) => p.name === name);
     if (existing) return existing as unknown as Party;
 
-    const { data: created, error: createError } = await partiesApi.createParty({
-      name,
-      type,
-      status: 'active'
-    }, companyId);
+    const { data: created, error: createError } = await partiesApi.createParty(
+      {
+        name,
+        type,
+        status: 'active',
+      },
+      companyId
+    );
 
     if (createError) throw createError;
-    return (created as unknown) as Party;
-  }
+    return created as unknown as Party;
+  },
 };

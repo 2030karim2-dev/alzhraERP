@@ -237,91 +237,240 @@ export const productService = {
    * Create a new product
    */
   createProduct: async (data: ProductFormData, companyId: string, _userId: string) => {
-    // Prevent duplicate names
-    const { data: existing } = await supabase
+    const trimmedName = (data.name || data.name_ar || '').trim();
+    if (!trimmedName) throw new Error('اسم المنتج مطلوب');
+
+    const trimmedSku = (data.sku || '').trim();
+    const trimmedPartNo = (data.part_number || '').trim();
+    const trimmedBarcode = (data.barcode || '').trim();
+    const trimmedBrand = (data.brand || '').trim();
+
+    // 1. Prevent duplicate product name in company
+    const { data: existingName } = await supabase
       .from('products')
-      .select('id')
+      .select('id, name_ar')
       .eq('company_id', companyId)
-      .eq('name_ar', data.name)
+      .ilike('name_ar', trimmedName)
       .limit(1);
 
-    if (existing && existing.length > 0) {
-      throw new Error(`يوجد منتج بنفس الاسم بالفعل: ${data.name}`);
+    if (existingName && existingName.length > 0) {
+      throw new Error(`يوجد منتج مسجل مسبقاً بنفس الاسم: "${trimmedName}"`);
+    }
+
+    // 2. Prevent duplicate SKU in company (if provided)
+    if (trimmedSku) {
+      const { data: existingSku } = await supabase
+        .from('products')
+        .select('id, name_ar, sku')
+        .eq('company_id', companyId)
+        .eq('sku', trimmedSku)
+        .limit(1);
+
+      if (existingSku && existingSku.length > 0) {
+        throw new Error(
+          `رمز الصنف (SKU: ${trimmedSku}) مسجل مسبقاً للمنتج: "${existingSku[0].name_ar}"`
+        );
+      }
+    }
+
+    // 3. Prevent duplicate Barcode in company (if provided)
+    if (trimmedBarcode) {
+      const { data: existingBarcode } = await supabase
+        .from('products')
+        .select('id, name_ar, barcode')
+        .eq('company_id', companyId)
+        .eq('barcode', trimmedBarcode)
+        .limit(1);
+
+      if (existingBarcode && existingBarcode.length > 0) {
+        throw new Error(
+          `الباركود (${trimmedBarcode}) مسجل مسبقاً للمنتج: "${existingBarcode[0].name_ar}"`
+        );
+      }
+    }
+
+    // 4. Prevent duplicate Part Number + Brand in company (if provided)
+    if (trimmedPartNo) {
+      let partQuery = supabase
+        .from('products')
+        .select('id, name_ar, part_number, brand')
+        .eq('company_id', companyId)
+        .eq('part_number', trimmedPartNo);
+
+      if (trimmedBrand) {
+        partQuery = partQuery.eq('brand', trimmedBrand);
+      }
+
+      const { data: existingPart } = await partQuery.limit(1);
+      if (existingPart && existingPart.length > 0) {
+        throw new Error(
+          `رقم القطعة (${trimmedPartNo}${trimmedBrand ? ` - ${trimmedBrand}` : ''}) مسجل مسبقاً للمنتج: "${existingPart[0].name_ar}"`
+        );
+      }
     }
 
     const payload: InsertDto<'products'> = {
       company_id: companyId,
-      name_ar: data.name,
-      sku: data.sku || `SKU-${Date.now()}`,
+      name_ar: trimmedName,
+      sku: trimmedSku || `SKU-${Date.now()}`,
       sale_price: Number(data.selling_price) || 0,
       purchase_price: Number(data.cost_price) || 0,
       min_stock_level: Number(data.min_stock_level) || 5,
       unit: data.unit || 'piece',
-      part_number: data.part_number || null,
-      brand: data.brand || null,
+      part_number: trimmedPartNo || null,
+      brand: trimmedBrand || null,
       status: 'active',
       description: data.specifications || null,
       size: data.size || null,
       image_url: data.image_url || null,
       alternative_numbers: data.alternative_numbers || null,
-      barcode: data.barcode || null,
+      barcode: trimmedBarcode || null,
       category_id: data.category && data.category.length === 36 ? data.category : null,
     };
 
-    const { data: product, error } = await inventoryApi.createProduct(payload);
-    if (error) throw error;
+    try {
+      const { data: product, error } = await inventoryApi.createProduct(payload);
+      if (error) throw error;
 
-    // Save UOMs
-    if (product && data.uoms && data.uoms.length > 0) {
-      // using type assertion since api aggregation might not have exact types
-      await inventoryApi.saveProductUoMs(product.id, data.uoms);
-    }
-
-    // Initialize stock in default warehouse
-    if (product) {
-      const { data: warehouses } = await supabase
-        .from('warehouses')
-        .select('id')
-        .eq('company_id', companyId)
-        .limit(1);
-
-      if (warehouses && warehouses.length > 0) {
-        const warehouse = warehouses[0];
-        await inventoryApi.initializeStock(companyId, _userId, {
-          product_id: product.id,
-          warehouse_id: warehouse.id,
-          quantity: Number(data.stock_quantity) || 0,
-        });
+      // Save UOMs
+      if (product && data.uoms && data.uoms.length > 0) {
+        await inventoryApi.saveProductUoMs(product.id, data.uoms);
       }
-    }
 
-    return product;
+      // Initialize stock in default warehouse
+      if (product) {
+        const { data: warehouses } = await supabase
+          .from('warehouses')
+          .select('id')
+          .eq('company_id', companyId)
+          .limit(1);
+
+        if (warehouses && warehouses.length > 0) {
+          const warehouse = warehouses[0];
+          await inventoryApi.initializeStock(companyId, _userId, {
+            product_id: product.id,
+            warehouse_id: warehouse.id,
+            quantity: Number(data.stock_quantity) || 0,
+          });
+        }
+      }
+
+      return product;
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === '23505'
+      ) {
+        throw new Error('عذراً، بيانات الصنف (SKU أو الاسم أو الباركود) مكررة ومسجلة مسبقاً');
+      }
+      throw error;
+    }
   },
 
   /**
    * Update an existing product
    */
-  updateProduct: async (id: string, data: ProductFormData, _companyId: string) => {
+  updateProduct: async (id: string, data: ProductFormData, companyId?: string) => {
     logger.debug('ProductService', `Updating product ${id}`, data);
+
+    const trimmedName = (data.name || data.name_ar || '').trim();
+    const trimmedSku = (data.sku || '').trim();
+    const trimmedBarcode = (data.barcode || '').trim();
+    const trimmedPartNo = (data.part_number || '').trim();
+    const trimmedBrand = (data.brand || '').trim();
+
+    if (companyId) {
+      // 1. Check duplicate name if name provided
+      if (trimmedName) {
+        const { data: existingName } = await supabase
+          .from('products')
+          .select('id, name_ar')
+          .eq('company_id', companyId)
+          .ilike('name_ar', trimmedName)
+          .neq('id', id)
+          .limit(1);
+
+        if (existingName && existingName.length > 0) {
+          throw new Error(`يوجد منتج آخر مسجل بنفس الاسم: "${trimmedName}"`);
+        }
+      }
+
+      // 2. Check duplicate SKU
+      if (trimmedSku) {
+        const { data: existingSku } = await supabase
+          .from('products')
+          .select('id, name_ar, sku')
+          .eq('company_id', companyId)
+          .eq('sku', trimmedSku)
+          .neq('id', id)
+          .limit(1);
+
+        if (existingSku && existingSku.length > 0) {
+          throw new Error(
+            `رمز الصنف (SKU: ${trimmedSku}) مسجل مسبقاً لمنتج آخر: "${existingSku[0].name_ar}"`
+          );
+        }
+      }
+
+      // 3. Check duplicate Barcode
+      if (trimmedBarcode) {
+        const { data: existingBarcode } = await supabase
+          .from('products')
+          .select('id, name_ar, barcode')
+          .eq('company_id', companyId)
+          .eq('barcode', trimmedBarcode)
+          .neq('id', id)
+          .limit(1);
+
+        if (existingBarcode && existingBarcode.length > 0) {
+          throw new Error(
+            `الباركود (${trimmedBarcode}) مسجل مسبقاً لمنتج آخر: "${existingBarcode[0].name_ar}"`
+          );
+        }
+      }
+
+      // 4. Check duplicate Part Number + Brand
+      if (trimmedPartNo) {
+        let partQuery = supabase
+          .from('products')
+          .select('id, name_ar, part_number, brand')
+          .eq('company_id', companyId)
+          .eq('part_number', trimmedPartNo)
+          .neq('id', id);
+
+        if (trimmedBrand) {
+          partQuery = partQuery.eq('brand', trimmedBrand);
+        }
+
+        const { data: existingPart } = await partQuery.limit(1);
+        if (existingPart && existingPart.length > 0) {
+          throw new Error(
+            `رقم القطعة (${trimmedPartNo}${trimmedBrand ? ` - ${trimmedBrand}` : ''}) مسجل مسبقاً لمنتج آخر: "${existingPart[0].name_ar}"`
+          );
+        }
+      }
+    }
 
     try {
       const payload: TableUpdate<'products'> = {
-        name_ar: data.name || data.name_ar || 'صنف',
+        name_ar: trimmedName || 'صنف',
         sale_price: Number(data.selling_price) || 0,
         purchase_price: Number(data.cost_price) || 0,
         min_stock_level: Number(data.min_stock_level) || 0,
         unit: data.unit || 'piece',
       };
 
-      if (data.sku) payload.sku = data.sku;
-      if (data.part_number !== undefined) payload.part_number = data.part_number || null;
-      if (data.brand !== undefined) payload.brand = data.brand || null;
+      if (trimmedSku) payload.sku = trimmedSku;
+      if (data.part_number !== undefined) payload.part_number = trimmedPartNo || null;
+      if (data.brand !== undefined) payload.brand = trimmedBrand || null;
       if (data.specifications !== undefined) payload.description = data.specifications || null;
       if (data.size !== undefined) payload.size = data.size || null;
       if (data.image_url !== undefined) payload.image_url = data.image_url || null;
       if (data.alternative_numbers !== undefined)
         payload.alternative_numbers = data.alternative_numbers || null;
-      if (data.barcode !== undefined) payload.barcode = data.barcode || null;
+      if (data.barcode !== undefined) payload.barcode = trimmedBarcode || null;
       if (data.location !== undefined) payload.location = data.location || null;
       payload.category_id = data.category && data.category.length === 36 ? data.category : null;
 

@@ -36,6 +36,7 @@ import {
   exportInvoiceToExcel,
   generateInvoiceExcelBlob,
 } from '../../../core/utils/invoiceExcelExporter';
+import { shareSpreadsheet } from '../../../core/utils/shareUtils';
 import { AdvancedReturnModal } from '../../returns/components/AdvancedReturnModal';
 import { logger } from '../../../core/utils/logger';
 
@@ -174,35 +175,27 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
         totalAmount: invoice.total_amount,
       });
 
-      const file = new File([blob], `فاتورة_شراء_${invoiceNumber}.xlsx`, {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      await shareSpreadsheet({
+        blob,
+        fileName: `فاتورة_شراء_${invoiceNumber}.xlsx`,
+        shareTitle: `فاتورة مشتريات #${invoiceNumber}`,
+        shareText: `مرفق فاتورة مشتريات رقم #${invoiceNumber} من ${companyName}`,
+        fallbackText: `فاتورة مشتريات #${invoiceNumber} من ${companyName}\nالمورد: ${invoice.party?.name ?? 'مورد عام'}\nالإجمالي: ${formatCurrency(invoice.total_amount, invoice.currency_code ?? 'SAR')}`,
+        onDownloadFallback: () =>
+          exportInvoiceToExcel({
+            companyName,
+            companyAddress,
+            taxNumber,
+            invoiceNumber,
+            issueDate: invoice.issue_date,
+            customerName: invoice.party?.name ?? 'مورد عام',
+            issuedBy: issuedByName,
+            items,
+            subtotal: invoice.subtotal ?? invoice.total_amount,
+            totalAmount: invoice.total_amount,
+          }),
       });
-
-      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `فاتورة مشتريات #${invoiceNumber}`,
-          text: `مرفق فاتورة مشتريات رقم #${invoiceNumber} من ${companyName}`,
-        });
-        showToast('تمت مشاركة الفاتورة بنجاح', 'success');
-      } else {
-        await exportInvoiceToExcel({
-          companyName,
-          companyAddress,
-          taxNumber,
-          invoiceNumber,
-          issueDate: invoice.issue_date,
-          customerName: invoice.party?.name ?? 'مورد عام',
-          issuedBy: issuedByName,
-          items,
-          subtotal: invoice.subtotal ?? invoice.total_amount,
-          totalAmount: invoice.total_amount,
-        });
-        const text = encodeURIComponent(
-          `فاتورة مشتريات #${invoiceNumber} من ${companyName}\nالمورد: ${invoice.party?.name ?? 'مورد عام'}\nالإجمالي: ${formatCurrency(invoice.total_amount, invoice.currency_code ?? 'SAR')}`
-        );
-        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
-      }
+      showToast('تمت مشاركة الفاتورة بنجاح', 'success');
     } catch (error) {
       logger.error('PurchaseDetailsModal', 'Share WhatsApp failed', error);
       showToast('فشل في مشاركة الفاتورة عبر واتساب', 'error');
@@ -597,7 +590,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
 
                         {/* Column Names Row */}
                         <tr className="border-b-2 border-slate-300 bg-slate-100 text-[11px] font-black text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                          <th className="dark:bg-slate-850 w-10 border-l border-slate-300 bg-slate-200/50 px-2 py-2.5 text-center dark:border-slate-700">
+                          <th className="w-10 border-l border-slate-300 bg-slate-200/50 px-2 py-2.5 text-center dark:border-slate-700 dark:bg-slate-850">
                             #
                           </th>
                           <th className="border-l border-slate-300 px-3 py-2.5 dark:border-slate-700">
@@ -638,7 +631,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
                               )}
                             >
                               {/* Row Index */}
-                              <td className="dark:bg-slate-850 select-none border-l border-slate-200 bg-slate-100/50 px-2 py-2 text-center font-mono text-[11px] font-bold text-slate-400 group-hover:bg-emerald-100/50 group-hover:text-emerald-700 dark:border-slate-700 dark:text-slate-500 dark:group-hover:bg-emerald-900/40 dark:group-hover:text-emerald-300">
+                              <td className="select-none border-l border-slate-200 bg-slate-100/50 px-2 py-2 text-center font-mono text-[11px] font-bold text-slate-400 group-hover:bg-emerald-100/50 group-hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-500 dark:group-hover:bg-emerald-900/40 dark:group-hover:text-emerald-300">
                                 {idx + 1}
                               </td>
 
