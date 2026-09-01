@@ -45,6 +45,9 @@ export const ROUTES = {
     SUPPLIER_PORTAL: '/supplier-portal',
     CHAT: '/chat',
   },
+  PUBLIC: {
+    SUPPLIER_PORTAL: '/portal/supplier/:token',
+  },
 } as const;
 
 export type AppRoute = string;

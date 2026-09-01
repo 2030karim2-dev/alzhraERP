@@ -12,6 +12,7 @@ export type Party = Database['public']['Tables']['parties']['Row'] & {
   address?: string;
   balance?: number;
   balances_by_currency?: Array<{ currency: string; balance: number; transaction_count?: number }>;
+  portal_token?: string | null;
 };
 
 export interface PartyFormData {

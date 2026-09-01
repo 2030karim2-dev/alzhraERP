@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Users, UserPlus, FileText, LayoutGrid, Edit, Trash2, History } from 'lucide-react';
+import { Users, UserPlus, FileText, LayoutGrid, Edit, Trash2, History, Globe } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useParties, usePartyMutations, usePartiesView } from './hooks';
@@ -13,6 +13,7 @@ import PartyModal from './components/PartyModal';
 import StatementView from './components/StatementView';
 import CategoriesView from './components/CategoriesView';
 import CustomerTimelineModal from './components/customers/CustomerTimelineModal';
+import SupplierPortalShareModal from './components/SupplierPortalShareModal';
 import Button from '../../ui/base/Button';
 import Avatar from '../../ui/base/Avatar';
 import { formatCurrency, cn } from '../../core/utils';
@@ -88,6 +89,11 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   // Timeline modal state
   const [selectedCustomer, setSelectedCustomer] = useState<Party | null>(null);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+
+  // Supplier Portal Share Modal State
+  const [selectedSupplierForPortal, setSelectedSupplierForPortal] = useState<Party | null>(null);
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
+
   // AI Prefill Logic
   const consumePrefill = useAIPrefillStore(s => s.consumePrefill);
   const [prefillData, setPrefillData] = useState<Partial<PartyFormData> | null>(null);
@@ -217,6 +223,19 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
         header: t('actions'),
         accessor: (row: Party) => (
           <div className="flex items-center justify-center gap-1">
+            {partyType === 'supplier' && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedSupplierForPortal(row);
+                  setIsPortalModalOpen(true);
+                }}
+                className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                title="رابط بوابة المورد"
+              >
+                <Globe size={14} />
+              </button>
+            )}
             {partyType === 'customer' && (
               <button
                 onClick={e => {
@@ -250,7 +269,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
             </button>
           </div>
         ),
-        width: partyType === 'customer' ? '120px' : '100px',
+        width: partyType === 'customer' ? '120px' : '120px',
         align: 'center',
       },
     ],
@@ -390,6 +409,19 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
             setSelectedCustomer(null);
           }}
           customer={selectedCustomer}
+        />
+
+        {/* Supplier Portal Share Modal */}
+        <SupplierPortalShareModal
+          isOpen={isPortalModalOpen}
+          onClose={() => {
+            setIsPortalModalOpen(false);
+            setSelectedSupplierForPortal(null);
+          }}
+          party={selectedSupplierForPortal}
+          onTokenUpdated={updated => {
+            setSelectedSupplierForPortal(updated);
+          }}
         />
       </div>
     </FullscreenContainer>

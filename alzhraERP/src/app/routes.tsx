@@ -58,6 +58,9 @@ const DebtSettingsPage = lazy(() => import('../features/debts/pages/SettingsPage
 const SupplierPortalPage = lazy(
   () => import('../features/supplier-portal/pages/SupplierPortalPage')
 );
+const PublicSupplierPortalPage = lazy(
+  () => import('../features/supplier-portal/pages/PublicSupplierPortalPage')
+);
 const ChatHubPage = lazy(() => import('../features/chat').then(m => ({ default: m.ChatHubPage })));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
@@ -113,6 +116,40 @@ export const AppRoutes: React.FC = () => {
           <GuestGuard>
             <UpdatePasswordPage />
           </GuestGuard>
+        }
+      />
+
+      {/* Public Dedicated Supplier Portal (Token-Based Access) */}
+      <Route
+        path={ROUTES.PUBLIC.SUPPLIER_PORTAL}
+        element={
+          <FeatureBoundary name="public-supplier-portal">
+            <PublicSupplierPortalPage />
+          </FeatureBoundary>
+        }
+      />
+      <Route
+        path="/portal/supplier"
+        element={
+          <FeatureBoundary name="public-supplier-portal">
+            <PublicSupplierPortalPage />
+          </FeatureBoundary>
+        }
+      />
+      <Route
+        path="/portal/:token"
+        element={
+          <FeatureBoundary name="public-supplier-portal">
+            <PublicSupplierPortalPage />
+          </FeatureBoundary>
+        }
+      />
+      <Route
+        path="/supplier-portal/:token"
+        element={
+          <FeatureBoundary name="public-supplier-portal">
+            <PublicSupplierPortalPage />
+          </FeatureBoundary>
         }
       />
 
