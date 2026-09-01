@@ -224,7 +224,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
       {/* 3. Make & Model Grid */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Make Card (Span 6) */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs dark:border-slate-800 lg:col-span-6">
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs dark:border-slate-750 dark:bg-slate-850 lg:col-span-6">
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-slate-100">
@@ -278,7 +278,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         </div>
 
         {/* Model Card (Span 6) */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs dark:border-slate-800 lg:col-span-6">
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs dark:border-slate-750 dark:bg-slate-850 lg:col-span-6">
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-slate-100">
@@ -340,7 +340,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
       {/* 4. Years & Technical Parameters Grid */}
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Years Span Card */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800">
+        <div className="flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-750 dark:bg-slate-850">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
               <Calendar size={14} className="text-blue-500 dark:text-blue-400" />
@@ -425,7 +425,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         </div>
 
         {/* Engine Specs Card */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800">
+        <div className="flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-750 dark:bg-slate-850">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
               <Gauge size={14} className="text-amber-500 dark:text-amber-400" />
@@ -472,7 +472,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         </div>
 
         {/* Transmission & Drivetrain Card */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800">
+        <div className="flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-750 dark:bg-slate-850">
           <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
             <Sliders size={14} className="text-indigo-500 dark:text-indigo-400" />
             <span className="text-xs font-black">الجير ونظام الدفع</span>
@@ -483,7 +483,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 ناقل الحركة
               </span>
-              <div className="dark:border-slate-750 grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:bg-slate-950">
+              <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-750 dark:bg-slate-950">
                 <button
                   type="button"
                   onClick={() => setManualTransmission('تماتيك')}
@@ -515,7 +515,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <span className="mb-1 block text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 نظام الدفع
               </span>
-              <div className="dark:border-slate-750 grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:bg-slate-950">
+              <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-750 dark:bg-slate-950">
                 <button
                   type="button"
                   onClick={() => setManualDrive('سنجل')}
@@ -546,7 +546,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         </div>
 
         {/* Market Specs & Optional VIN */}
-        <div className="dark:bg-slate-850 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800">
+        <div className="flex flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-750 dark:bg-slate-850">
           <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
             <Globe size={14} className="text-emerald-500 dark:text-emerald-400" />
             <span className="text-xs font-black">الوارد ورقم الشاصي</span>

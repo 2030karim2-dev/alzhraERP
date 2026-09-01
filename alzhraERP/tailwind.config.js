@@ -37,6 +37,10 @@ export default {
       },
       colors: {
         accent: 'var(--accent, #10b981)',
+        slate: {
+          750: '#293548',
+          850: '#172033',
+        },
         // Theme-aware colors using CSS variables with better fallbacks for day mode
         'app-text': 'var(--app-text, #1f2937)',
         'app-text-secondary': 'var(--app-text-secondary, #6b7280)',
