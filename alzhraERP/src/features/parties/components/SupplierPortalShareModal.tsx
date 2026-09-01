@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
-import { supabase } from '../../../lib/supabaseClient';
+import { supplierPortalService } from '../../supplier-portal/services/supplierPortalService';
 import { useFeedbackStore } from '../../feedback/store';
 import { useCompany } from '../../settings/hooks';
 import type { Party } from '../types';
@@ -92,11 +92,7 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
     }
     setIsRegenerating(true);
     try {
-      const { data, error } = await (supabase as any).rpc('regenerate_supplier_portal_token', {
-        p_party_id: party.id,
-      });
-      if (error) throw error;
-      const newToken = String(data);
+      const newToken = await supplierPortalService.regeneratePortalToken(party.id);
       setCurrentToken(newToken);
       showToast('تم تجديد رابط بوابة المورد بنجاح', 'success');
       if (onTokenUpdated) {

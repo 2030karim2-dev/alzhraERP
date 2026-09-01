@@ -2,8 +2,10 @@
  * Supplier Portal & Smart Procurement Domain Types
  */
 
-export type RFQStatus = 'draft' | 'sent' | 'partially_responded' | 'fully_responded' | 'closed' | 'cancelled';
-export type QuotationStatus = 'draft' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'expired' | 'converted';
+export type RFQStatus =
+  'draft' | 'sent' | 'partially_responded' | 'fully_responded' | 'closed' | 'cancelled';
+export type QuotationStatus =
+  'draft' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'expired' | 'converted';
 export type ItemAvailability = 'in_stock' | 'on_order' | 'unavailable' | 'partial';
 
 export interface VendorProductItem {
@@ -188,4 +190,121 @@ export interface ExcelImportRow {
     sku: string;
   };
   validationError?: string;
+}
+
+/* ── Public (token-based) Supplier Portal — unauthenticated context ── */
+
+export interface PublicPortalSupplier {
+  id: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  tax_number?: string | null;
+  address?: string | null;
+  commercial_registration?: string | null;
+  payment_terms_days?: number | null;
+}
+
+export interface PublicPortalCompany {
+  id: string;
+  name_ar?: string | null;
+  logo_url?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  tax_number?: string | null;
+}
+
+export interface PublicPortalReorderProduct {
+  id: string;
+  name_ar: string;
+  sku: string;
+  part_number?: string | null;
+  brand?: string | null;
+  size?: string | null;
+  unit?: string | null;
+  cost_price: number;
+  sale_price: number;
+  min_stock_level: number;
+  current_stock: number;
+  needs_reorder: boolean;
+}
+
+export interface PublicPortalRfqItem {
+  id: string;
+  product_id?: string | null;
+  description: string;
+  quantity: number;
+  unit_of_measure?: string | null;
+  target_unit_price?: number | null;
+  oem_number?: string | null;
+  notes?: string | null;
+}
+
+export interface PublicPortalRfq {
+  id: string;
+  rfq_number: string;
+  title: string;
+  status: string;
+  submission_deadline?: string | null;
+  delivery_date?: string | null;
+  terms_and_conditions?: string | null;
+  created_at: string;
+  items?: PublicPortalRfqItem[];
+}
+
+export interface PublicPortalQuotationItem {
+  id: string;
+  product_id?: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+export interface PublicPortalQuotation {
+  id: string;
+  quotation_number: string;
+  status: string;
+  issue_date: string;
+  valid_until?: string | null;
+  total_amount: number;
+  currency_code: string;
+  notes?: string | null;
+  delivery_terms?: string | null;
+  payment_terms?: string | null;
+  created_at: string;
+  items?: PublicPortalQuotationItem[];
+}
+
+export interface PublicPortalContext {
+  supplier: PublicPortalSupplier;
+  company: PublicPortalCompany;
+  reorder_products: PublicPortalReorderProduct[];
+  rfqs: PublicPortalRfq[];
+  quotations: PublicPortalQuotation[];
+}
+
+/** Draft line as submitted by the supplier through the public portal RPC. */
+export interface PublicPortalQuotationDraftItem {
+  product_id: string | null;
+  description: string;
+  oem_number: string | null;
+  brand: string | null;
+  quantity: number;
+  unit_price: number;
+  discount_percent: number;
+  notes: string | null;
+}
+
+export interface SubmitPortalQuotationPayload {
+  items: PublicPortalQuotationDraftItem[];
+  notes: string;
+  delivery_terms: string;
+  payment_terms: string;
+  currency_code: string;
+}
+
+export interface SubmitPortalQuotationResult {
+  quotation_number: string;
+  total_amount: number;
 }

@@ -14,85 +14,12 @@ import {
   ShoppingBag,
   X,
 } from 'lucide-react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supplierPortalService } from '../services/supplierPortalService';
 import PageLoader from '../../../ui/base/PageLoader';
 import { formatCurrency, cn } from '../../../core/utils';
+import type { PublicPortalContext } from '../types';
 
-interface SupplierContext {
-  supplier: {
-    id: string;
-    name: string;
-    phone?: string | null;
-    email?: string | null;
-    tax_number?: string | null;
-    address?: string | null;
-    commercial_registration?: string | null;
-    payment_terms_days?: number | null;
-  };
-  company: {
-    id: string;
-    name_ar?: string | null;
-    logo_url?: string | null;
-    phone?: string | null;
-    address?: string | null;
-    tax_number?: string | null;
-  };
-  reorder_products: Array<{
-    id: string;
-    name_ar: string;
-    sku: string;
-    part_number?: string | null;
-    brand?: string | null;
-    size?: string | null;
-    unit?: string | null;
-    cost_price: number;
-    sale_price: number;
-    min_stock_level: number;
-    current_stock: number;
-    needs_reorder: boolean;
-  }>;
-  rfqs: Array<{
-    id: string;
-    rfq_number: string;
-    title: string;
-    status: string;
-    submission_deadline?: string | null;
-    delivery_date?: string | null;
-    terms_and_conditions?: string | null;
-    created_at: string;
-    items?: Array<{
-      id: string;
-      product_id?: string | null;
-      description: string;
-      quantity: number;
-      unit_of_measure?: string | null;
-      target_unit_price?: number | null;
-      oem_number?: string | null;
-      notes?: string | null;
-    }>;
-  }>;
-  quotations: Array<{
-    id: string;
-    quotation_number: string;
-    status: string;
-    issue_date: string;
-    valid_until?: string | null;
-    total_amount: number;
-    currency_code: string;
-    notes?: string | null;
-    delivery_terms?: string | null;
-    payment_terms?: string | null;
-    created_at: string;
-    items?: Array<{
-      id: string;
-      product_id?: string | null;
-      description: string;
-      quantity: number;
-      unit_price: number;
-      total: number;
-    }>;
-  }>;
-}
+type SupplierContext = PublicPortalContext;
 
 interface DraftItem {
   product_id?: string | null;
@@ -143,12 +70,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const { data, error } = await (supabase as any).rpc('get_supplier_portal_context', {
-        p_token: token.trim(),
-      });
-
-      if (error) throw error;
-      setContext(data as unknown as SupplierContext);
+      setContext(await supplierPortalService.getPublicPortalContext(token.trim()));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'رابط البوابة غير صالح أو منتهي الصلاحية';
       setErrorMessage(msg);
@@ -258,14 +180,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
         currency_code: 'SAR',
       };
 
-      const { data, error } = await (supabase as any).rpc('submit_supplier_portal_quotation', {
-        p_token: token.trim(),
-        p_payload: payload,
-      });
-
-      if (error) throw error;
-
-      const result = data as { quotation_number: string; total_amount: number };
+      const result = await supplierPortalService.submitPublicQuotation(token.trim(), payload);
       setSuccessResult({
         number: result.quotation_number,
         total: result.total_amount,

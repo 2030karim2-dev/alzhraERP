@@ -11,6 +11,9 @@ import type {
   ItemAvailability,
   QuotationItemDraft,
   ComparisonVendorScore,
+  PublicPortalContext,
+  SubmitPortalQuotationPayload,
+  SubmitPortalQuotationResult,
 } from '../types';
 
 /**
@@ -18,8 +21,7 @@ import type {
  * Characters like `.`, `(`, `)`, `,`, `%` have special meaning in PostgREST
  * filter strings and must be escaped or the query may break/return unexpected results.
  */
-const sanitizeSearchInput = (input: string): string =>
-  input.replace(/[.(),\\%]/g, '');
+const sanitizeSearchInput = (input: string): string => input.replace(/[.(),\\%]/g, '');
 
 /**
  * In-flight mutation guard — prevents double-submission of quotation revisions
@@ -133,6 +135,28 @@ interface RawQuotationRow {
   prc_quotation_items?: RawQuotationItemRow[] | null;
 }
 
+/**
+ * Typed RPC wrappers. The public portal RPCs exist on the server but are
+ * not yet part of the generated `database.types.ts` (Functions section),
+ * so we declare the exact argument/return shapes here (mirrors the
+ * chatService pattern) instead of scattering `(supabase as any)` casts.
+ */
+type RpcGetContextArgs = { p_token: string };
+type RpcSubmitQuotationArgs = { p_token: string; p_payload: SubmitPortalQuotationPayload };
+type RpcRegenerateTokenArgs = { p_party_id: string };
+
+/** Call a named portal RPC with typed args; returns the raw result payload. */
+async function callPortalRpc<Args, Result>(fn: string, args: Args): Promise<Result> {
+  const { data, error } = await (
+    supabase.rpc as unknown as (
+      name: string,
+      args: Args
+    ) => Promise<{ data: Result | null; error: { message: string } | null }>
+  )(fn, args);
+  if (error) throw error;
+  return data as Result;
+}
+
 export const supplierPortalService = {
   /**
    * Fetches assigned products for a vendor with live stock, OEM, and car compatibility
@@ -145,7 +169,8 @@ export const supplierPortalService = {
     try {
       let query = supabase
         .from('products')
-        .select(`
+        .select(
+          `
           id,
           company_id,
           name_ar,
@@ -164,14 +189,17 @@ export const supplierPortalService = {
             preferred_supplier,
             supplier_id
           )
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .is('deleted_at', null);
 
       if (search && search.trim() !== '') {
         const safe = sanitizeSearchInput(search.trim());
         if (safe.length > 0) {
-          query = query.or(`name_ar.ilike.%${safe}%,sku.ilike.%${safe}%,part_number.ilike.%${safe}%`);
+          query = query.or(
+            `name_ar.ilike.%${safe}%,sku.ilike.%${safe}%,part_number.ilike.%${safe}%`
+          );
         }
       }
 
@@ -219,7 +247,8 @@ export const supplierPortalService = {
     try {
       let query = supabase
         .from('prc_rfqs')
-        .select(`
+        .select(
+          `
           rfq_id,
           company_id,
           rfq_number,
@@ -243,7 +272,8 @@ export const supplierPortalService = {
             vin_number,
             notes
           )
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
@@ -263,7 +293,7 @@ export const supplierPortalService = {
         terms_and_conditions: row.terms_and_conditions || null,
         items_count: Array.isArray(row.prc_rfq_items) ? row.prc_rfq_items.length : 0,
         created_at: row.created_at,
-        items: (row.prc_rfq_items || []).map((item) => ({
+        items: (row.prc_rfq_items || []).map(item => ({
           rfq_item_id: item.rfq_item_id,
           rfq_id: row.rfq_id,
           product_id: item.product_id || null,
@@ -288,11 +318,15 @@ export const supplierPortalService = {
   /**
    * Fetches Vendor Quotations
    */
-  getVendorQuotations: async (companyId: string, supplierId?: string): Promise<VendorQuotation[]> => {
+  getVendorQuotations: async (
+    companyId: string,
+    supplierId?: string
+  ): Promise<VendorQuotation[]> => {
     try {
       let query = supabase
         .from('prc_quotations')
-        .select(`
+        .select(
+          `
           quotation_id,
           company_id,
           quotation_number,
@@ -343,7 +377,8 @@ export const supplierPortalService = {
               part_number
             )
           )
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
@@ -363,7 +398,8 @@ export const supplierPortalService = {
         rfq_id: row.rfq_id || null,
         rfq_number: row.rfq?.rfq_number || null,
         supplier_id: row.supplier_id,
-        supplier_name: row.prc_suppliers?.trade_name || row.prc_suppliers?.legal_name || 'مورد معتمد',
+        supplier_name:
+          row.prc_suppliers?.trade_name || row.prc_suppliers?.legal_name || 'مورد معتمد',
         status: row.status as QuotationStatus,
         current_revision_number: row.current_revision_number || 1,
         valid_until: row.valid_until || null,
@@ -433,21 +469,24 @@ export const supplierPortalService = {
     }
     inflightMutations.add(mutationKey);
     try {
-      const { data, error } = await supabase.rpc('submit_vendor_quotation_revision' as never, {
-        p_company_id: payload.companyId,
-        p_quotation_id: payload.quotationId,
-        p_items: JSON.stringify(payload.items),
-        p_subtotal: payload.subtotal,
-        p_discount: payload.discount,
-        p_tax: payload.tax,
-        p_total: payload.total,
-        p_currency: payload.currency,
-        p_lead_time_days: payload.leadTimeDays || 0,
-        p_warranty_days: payload.warrantyDays || 0,
-        p_validity_date: payload.validityDate || null,
-        p_terms: payload.terms || null,
-        p_notes: payload.notes || null,
-      } as never);
+      const { data, error } = await supabase.rpc(
+        'submit_vendor_quotation_revision' as never,
+        {
+          p_company_id: payload.companyId,
+          p_quotation_id: payload.quotationId,
+          p_items: JSON.stringify(payload.items),
+          p_subtotal: payload.subtotal,
+          p_discount: payload.discount,
+          p_tax: payload.tax,
+          p_total: payload.total,
+          p_currency: payload.currency,
+          p_lead_time_days: payload.leadTimeDays || 0,
+          p_warranty_days: payload.warrantyDays || 0,
+          p_validity_date: payload.validityDate || null,
+          p_terms: payload.terms || null,
+          p_notes: payload.notes || null,
+        } as never
+      );
 
       if (error) throw error;
       return data as unknown as { success: boolean; revision_number: number; total_amount: number };
@@ -475,15 +514,23 @@ export const supplierPortalService = {
     }
     inflightMutations.add(mutationKey);
     try {
-      const { data, error } = await supabase.rpc('convert_quotation_to_po_transactional' as never, {
-        p_company_id: payload.companyId,
-        p_quotation_id: payload.quotationId,
-        p_expected_delivery_date: payload.expectedDeliveryDate || null,
-        p_notes: payload.notes || null,
-      } as never);
+      const { data, error } = await supabase.rpc(
+        'convert_quotation_to_po_transactional' as never,
+        {
+          p_company_id: payload.companyId,
+          p_quotation_id: payload.quotationId,
+          p_expected_delivery_date: payload.expectedDeliveryDate || null,
+          p_notes: payload.notes || null,
+        } as never
+      );
 
       if (error) throw error;
-      return data as unknown as { success: boolean; po_id: string; po_number: string; quotation_id: string };
+      return data as unknown as {
+        success: boolean;
+        po_id: string;
+        po_number: string;
+        quotation_id: string;
+      };
     } catch (err) {
       logger.error('supplierPortalService.convertQuotationToPO', 'PO conversion failed', err);
       throw parseError(err);
@@ -499,14 +546,17 @@ export const supplierPortalService = {
     if (quotations.length === 0) return [];
 
     const minPrice = Math.min(...quotations.map(q => q.total_amount).filter(p => p > 0)) || 1;
-    const minDelivery = Math.min(...quotations.map(q => q.delivery_lead_time_days).filter(d => d > 0)) || 1;
-    const maxWarranty = Math.max(...quotations.map(q => q.items.reduce((max, i) => Math.max(max, i.warranty_days), 0))) || 1;
+    const minDelivery =
+      Math.min(...quotations.map(q => q.delivery_lead_time_days).filter(d => d > 0)) || 1;
+    const maxWarranty =
+      Math.max(
+        ...quotations.map(q => q.items.reduce((max, i) => Math.max(max, i.warranty_days), 0))
+      ) || 1;
 
     const scored: ComparisonVendorScore[] = quotations.map(quote => {
       // 1. Price Score (40% weight): Lower price gets higher score
-      const priceScore = quote.total_amount > 0
-        ? Math.round((minPrice / quote.total_amount) * 100)
-        : 0;
+      const priceScore =
+        quote.total_amount > 0 ? Math.round((minPrice / quote.total_amount) * 100) : 0;
 
       // 2. Delivery Speed Score (25% weight): Faster delivery gets higher score
       const leadDays = quote.delivery_lead_time_days > 0 ? quote.delivery_lead_time_days : 7;
@@ -514,22 +564,16 @@ export const supplierPortalService = {
 
       // 3. Stock Availability Score (20% weight)
       const inStockCount = quote.items.filter(i => i.availability === 'in_stock').length;
-      const availabilityRate = quote.items.length > 0
-        ? Math.round((inStockCount / quote.items.length) * 100)
-        : 100;
+      const availabilityRate =
+        quote.items.length > 0 ? Math.round((inStockCount / quote.items.length) * 100) : 100;
 
       // 4. Warranty Score (15% weight)
       const quoteWarranty = quote.items.reduce((max, i) => Math.max(max, i.warranty_days), 0);
-      const warrantyScore = maxWarranty > 0
-        ? Math.round((quoteWarranty / maxWarranty) * 100)
-        : 50;
+      const warrantyScore = maxWarranty > 0 ? Math.round((quoteWarranty / maxWarranty) * 100) : 50;
 
       // Total Weighted Composite Score
       const totalScore = Math.round(
-        priceScore * 0.40 +
-        deliveryScore * 0.25 +
-        availabilityRate * 0.20 +
-        warrantyScore * 0.15
+        priceScore * 0.4 + deliveryScore * 0.25 + availabilityRate * 0.2 + warrantyScore * 0.15
       );
 
       return {
@@ -604,7 +648,71 @@ export const supplierPortalService = {
         created_at: r.created_at,
       }));
     } catch (err) {
-      logger.error('supplierPortalService.getQuotationRevisions', 'Failed to load quotation revisions', err);
+      logger.error(
+        'supplierPortalService.getQuotationRevisions',
+        'Failed to load quotation revisions',
+        err
+      );
+      throw parseError(err);
+    }
+  },
+
+  /* ── Public (token-based) supplier portal — typed RPC wrappers ─────
+   * The public portal RPCs are not yet part of the generated
+   * `database.types.ts`, so we declare the exact argument/return shapes
+   * here (same pattern as chatService) instead of scattering
+   * `(supabase as any)` casts across components. Access is authorized
+   * server-side by the token itself; RLS/SECURITY DEFINER scope applies.
+   */
+
+  getPublicPortalContext: async (token: string): Promise<PublicPortalContext> => {
+    try {
+      return await callPortalRpc<RpcGetContextArgs, PublicPortalContext>(
+        'get_supplier_portal_context',
+        { p_token: token }
+      );
+    } catch (err) {
+      logger.error(
+        'supplierPortalService.getPublicPortalContext',
+        'Failed to load public portal context',
+        err
+      );
+      throw parseError(err);
+    }
+  },
+
+  submitPublicQuotation: async (
+    token: string,
+    payload: SubmitPortalQuotationPayload
+  ): Promise<SubmitPortalQuotationResult> => {
+    try {
+      return await callPortalRpc<RpcSubmitQuotationArgs, SubmitPortalQuotationResult>(
+        'submit_supplier_portal_quotation',
+        { p_token: token, p_payload: payload }
+      );
+    } catch (err) {
+      logger.error(
+        'supplierPortalService.submitPublicQuotation',
+        'Failed to submit public portal quotation',
+        err
+      );
+      throw parseError(err);
+    }
+  },
+
+  regeneratePortalToken: async (partyId: string): Promise<string> => {
+    try {
+      const newToken = await callPortalRpc<RpcRegenerateTokenArgs, unknown>(
+        'regenerate_supplier_portal_token',
+        { p_party_id: partyId }
+      );
+      return String(newToken);
+    } catch (err) {
+      logger.error(
+        'supplierPortalService.regeneratePortalToken',
+        'Failed to regenerate supplier portal token',
+        err
+      );
       throw parseError(err);
     }
   },

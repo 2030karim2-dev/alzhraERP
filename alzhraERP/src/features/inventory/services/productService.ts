@@ -1,4 +1,3 @@
-/* eslint-disable */
 import type { Product, ProductFormData } from '../types';
 import { inventoryApi } from '../api';
 import { supabase } from '../../../lib/supabaseClient';
@@ -575,8 +574,8 @@ export const productService = {
         }
 
         if (error) {
-          const errCode = (error as any).code || '';
-          const errMsg = (error as any).message || '';
+          const errCode = error.code ?? '';
+          const errMsg = error.message ?? '';
           if (
             errCode === 'PGRST202' ||
             errCode === '404' ||

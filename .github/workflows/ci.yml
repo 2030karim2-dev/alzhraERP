@@ -28,6 +28,9 @@ jobs:
       - name: Encoding guard (Arabic mojibake check)
         run: npm run check:encoding
 
+      - name: Layer boundaries (no Supabase runtime client in .tsx components)
+        run: npm run check:layers
+
       - name: TypeScript ratchet (no NEW errors beyond baseline)
         run: npx tsx scripts/check-ts-baseline.ts
 

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { supabase } from '../../../lib/supabaseClient';
 import { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
 import type { Json } from '../../../core/database.types';

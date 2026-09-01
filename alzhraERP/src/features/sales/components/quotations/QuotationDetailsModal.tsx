@@ -89,6 +89,14 @@ const STATUS_LABELS: Record<QuotationStatus, { label: string; color: string }> =
     label: 'منتهي',
     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   },
+  pending: {
+    label: 'قيد المراجعة',
+    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  },
+  submitted: {
+    label: 'مُقدم من المورد',
+    color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  },
   converted: {
     label: 'تم التحويل',
     color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',

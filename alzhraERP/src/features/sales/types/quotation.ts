@@ -2,7 +2,8 @@
  * Sales Quotation Types
  */
 
-export type QuotationStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted';
+export type QuotationStatus =
+  'draft' | 'sent' | 'pending' | 'submitted' | 'accepted' | 'rejected' | 'expired' | 'converted';
 
 export interface QuotationItem {
   id?: string;

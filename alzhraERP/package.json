@@ -23,6 +23,7 @@
     "check:encoding": "tsx scripts/check-encoding.ts",
     "check:classes": "node scripts/check-contradicting-classes.mjs",
     "check:fonts": "node scripts/check-tiny-fonts.mjs",
+    "check:layers": "node scripts/check-layer-boundaries.mjs",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --noEmit --strict",
     "test": "vitest",
@@ -33,7 +34,7 @@
     "coverage": "vitest run --coverage",
     "quality:report": "tsx scripts/quality-report.ts",
     "validate:barrels": "tsx scripts/validate-barrels.ts",
-    "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts && npm run check:classes && npm run check:fonts"
+    "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts && npm run check:classes && npm run check:fonts && npm run check:layers"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
