@@ -8,7 +8,11 @@ import {
   bodyTypeLabel,
   regionLabel,
 } from '../../utils/vehicleLabels';
-import { canonicalizeMake, canonicalizeModel } from '../../utils/vehicleCanonicalizer';
+import {
+  canonicalizeMake,
+  canonicalizeModel,
+  normalizeToEnglishNumbers,
+} from '../../utils/vehicleCanonicalizer';
 import { SOURCE_LABELS, CONFIDENCE_LABELS } from '../../constants/vinPresetsData';
 
 export interface ManualVehicleInput {
@@ -28,17 +32,35 @@ const trimOrNull = (s: string): string | null => {
 };
 
 export function buildManualVehicleInput(input: ManualVehicleInput): VehicleInfo {
-  const yStart = parseInt(input.yearStart, 10);
-  const yEnd = parseInt(input.yearEnd, 10);
+  const rawStart = normalizeToEnglishNumbers(input.yearStart).replace(/\D/g, '');
+  const rawEnd = normalizeToEnglishNumbers(input.yearEnd).replace(/\D/g, '');
+  const rawEngine = normalizeToEnglishNumbers(input.engine).replace(/[^\d.]/g, '');
+
+  let yStart = parseInt(rawStart, 10);
+  let yEnd = parseInt(rawEnd, 10);
+
+  if (isNaN(yStart)) yStart = 0;
+  if (isNaN(yEnd)) yEnd = 0;
+
+  // Auto-correct inverted year bounds (e.g. 2020 - 2012 -> 2012 - 2020)
+  if (yStart > 0 && yEnd > 0 && yStart > yEnd) {
+    const temp = yStart;
+    yStart = yEnd;
+    yEnd = temp;
+  }
+
+  const effectiveMake = canonicalizeMake(input.make) || input.make.trim();
+  const effectiveModel = canonicalizeModel(input.model.trim(), effectiveMake) || null;
+
   return {
-    make: canonicalizeMake(input.make) || input.make.trim(),
-    model: canonicalizeModel(input.model.trim()) || null,
+    make: effectiveMake,
+    model: effectiveModel,
     year: yStart || null,
     yearStart: yStart || null,
     yearEnd: yEnd || yStart || null,
     market: trimOrNull(input.market),
-    displacement: trimOrNull(input.engine),
-    engine: trimOrNull(input.engine),
+    displacement: trimOrNull(rawEngine),
+    engine: trimOrNull(rawEngine),
     transmission: trimOrNull(input.transmission),
     driveType: trimOrNull(input.drive),
   };
