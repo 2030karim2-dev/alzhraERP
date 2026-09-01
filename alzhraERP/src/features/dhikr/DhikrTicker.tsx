@@ -141,16 +141,12 @@ const DhikrTicker: React.FC = () => {
                 willChange: 'transform',
               }}
             >
-              <span className="inline-flex items-center gap-2 px-10">
-                <Sparkles size={13} className="animate-spin-slow text-amber-500" />
-                <span>{item.text}</span>
-              </span>
-              <span aria-hidden="true" className="inline-flex items-center gap-2 px-10">
-                <Sparkles size={13} className="text-emerald-500" />
-                <span>{item.text}</span>
-              </span>
-              <span aria-hidden="true" className="inline-flex items-center gap-2 px-10">
+              <span className="inline-flex items-center gap-2 px-8">
                 <Sparkles size={13} className="text-amber-500" />
+                <span>{item.text}</span>
+              </span>
+              <span aria-hidden="true" className="inline-flex items-center gap-2 px-8">
+                <Sparkles size={13} className="text-emerald-500" />
                 <span>{item.text}</span>
               </span>
             </div>

@@ -20,35 +20,41 @@ interface ConnectionState {
   reportRealtimeEvent: () => void;
 }
 
-export const useConnectionStore = create<ConnectionState>((set) => ({
+export const useConnectionStore = create<ConnectionState>(set => ({
   isUnstable: false,
   lastTimeoutAt: null,
   consecutiveFailures: 0,
   realtimeStatus: 'connecting',
   realtimeLastEventAt: null,
 
-  reportTimeout: () => set((state) => {
-    const now = Date.now();
-    return {
-      isUnstable: true,
-      lastTimeoutAt: now,
+  reportTimeout: () =>
+    set(state => {
+      const now = Date.now();
+      return {
+        isUnstable: true,
+        lastTimeoutAt: now,
+        consecutiveFailures: state.consecutiveFailures + 1,
+      };
+    }),
+
+  reportSuccess: () =>
+    set(state => {
+      if (!state.isUnstable && state.consecutiveFailures === 0) return state;
+      return {
+        isUnstable: false,
+        consecutiveFailures: 0,
+      };
+    }),
+
+  reportFailure: () =>
+    set(state => ({
       consecutiveFailures: state.consecutiveFailures + 1,
-    };
-  }),
+      isUnstable: state.consecutiveFailures + 1 >= 3,
+    })),
 
-  reportSuccess: () => set({
-    isUnstable: false,
-    consecutiveFailures: 0,
-  }),
+  setUnstable: isUnstable => set({ isUnstable }),
 
-  reportFailure: () => set((state) => ({
-    consecutiveFailures: state.consecutiveFailures + 1,
-    isUnstable: state.consecutiveFailures + 1 >= 3,
-  })),
-
-  setUnstable: (isUnstable) => set({ isUnstable }),
-
-  setRealtimeStatus: (realtimeStatus) => set({ realtimeStatus }),
+  setRealtimeStatus: realtimeStatus => set({ realtimeStatus }),
 
   reportRealtimeEvent: () => set({ realtimeLastEventAt: Date.now() }),
 }));

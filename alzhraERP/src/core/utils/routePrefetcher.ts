@@ -61,15 +61,29 @@ export function prefetchRoute(path: string): void {
 }
 
 /**
- * Prefetch all critical routes immediately after app load.
- * Call this once the app is interactive (after first paint).
+ * Prefetch commonly visited routes after the app is completely loaded and idle.
  */
 export function prefetchCriticalRoutes(): void {
-  // Prefetch the most commonly visited pages first
-  const criticalRoutes = ['/pos', '/sales', '/inventory', '/accounting'];
+  // Only prefetch when browser is completely idle to preserve typing & rendering performance
+  const startPrefetch = () => {
+    const criticalRoutes = ['/pos', '/sales', '/inventory'];
+    criticalRoutes.forEach((path, index) => {
+      setTimeout(
+        () => {
+          if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+            window.requestIdleCallback(() => prefetchRoute(path), { timeout: 4000 });
+          } else {
+            prefetchRoute(path);
+          }
+        },
+        (index + 1) * 1500
+      );
+    });
+  };
 
-  // Stagger prefetching to avoid network congestion
-  criticalRoutes.forEach((path, index) => {
-    setTimeout(() => prefetchRoute(path), index * 300);
-  });
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    window.requestIdleCallback(startPrefetch, { timeout: 5000 });
+  } else {
+    setTimeout(startPrefetch, 3000);
+  }
 }

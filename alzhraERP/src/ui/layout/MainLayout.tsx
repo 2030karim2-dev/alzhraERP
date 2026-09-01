@@ -58,7 +58,7 @@ const MainLayout: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const { isOnline } = useNetworkStatus();
-  const { isUnstable } = useConnectionStore();
+  const isUnstable = useConnectionStore(s => s.isUnstable);
   const { deviceCategory, isIPad } = useDevice();
   const { isTabletLandscape, isTabletPortrait } = useOrientation();
 
@@ -128,8 +128,16 @@ const MainLayout: React.FC = () => {
       label: t('commission_config'),
       path: ROUTES.DASHBOARD.COMMISSIONS_CONFIG,
     },
-    { icon: Link2, label: t('commission_assignments'), path: ROUTES.DASHBOARD.COMMISSIONS_ASSIGNMENTS },
-    { icon: CalendarDays, label: t('commission_periods'), path: ROUTES.DASHBOARD.COMMISSIONS_PERIODS },
+    {
+      icon: Link2,
+      label: t('commission_assignments'),
+      path: ROUTES.DASHBOARD.COMMISSIONS_ASSIGNMENTS,
+    },
+    {
+      icon: CalendarDays,
+      label: t('commission_periods'),
+      path: ROUTES.DASHBOARD.COMMISSIONS_PERIODS,
+    },
     { icon: BarChart3, label: t('commission_reports'), path: ROUTES.DASHBOARD.COMMISSIONS_REPORTS },
     { icon: PackageOpen, label: t('inventory'), path: '/inventory' },
     { icon: Settings, label: t('settings'), path: '/settings' },
@@ -158,16 +166,22 @@ const MainLayout: React.FC = () => {
       {isMobileSidebarOpen && (
         <div
           className="bg-[var(--app-text)]/60 animate-in fade-in fixed inset-0 z-50 backdrop-blur-sm duration-300 md:hidden"
-          onClick={() => { setIsMobileSidebarOpen(false); }}
+          onClick={() => {
+            setIsMobileSidebarOpen(false);
+          }}
         ></div>
       )}
 
       <Sidebar
         className="no-print"
         isCollapsed={isSidebarCollapsed}
-        toggleSidebar={() => { setIsSidebarCollapsed(!isSidebarCollapsed); }}
+        toggleSidebar={() => {
+          setIsSidebarCollapsed(!isSidebarCollapsed);
+        }}
         isMobileOpen={isMobileSidebarOpen}
-        onCloseMobile={() => { setIsMobileSidebarOpen(false); }}
+        onCloseMobile={() => {
+          setIsMobileSidebarOpen(false);
+        }}
         sidebarWidth={sidebarWidth}
       />
 
@@ -186,7 +200,11 @@ const MainLayout: React.FC = () => {
         )}
       >
         <div className="no-print">
-          <Header onMenuClick={() => { setIsMobileSidebarOpen(true); }} />
+          <Header
+            onMenuClick={() => {
+              setIsMobileSidebarOpen(true);
+            }}
+          />
         </div>
 
         {isOnline && isUnstable && (
@@ -206,7 +224,7 @@ const MainLayout: React.FC = () => {
         <main
           id="main-content"
           className={cn(
-            'custom-scrollbar relative flex-1 flex flex-col min-h-0 overflow-y-auto print:!m-0 print:!block print:!w-full print:!overflow-visible print:!p-0',
+            'custom-scrollbar relative flex min-h-0 flex-1 flex-col overflow-y-auto print:!m-0 print:!block print:!w-full print:!overflow-visible print:!p-0',
             mainPaddingBottom
           )}
         >
@@ -237,7 +255,7 @@ const MainLayout: React.FC = () => {
               >
                 <div
                   className={cn(
-                    'rounded-xl p-1.5 max-md:p-1 transition-all duration-500',
+                    'rounded-xl p-1.5 transition-all duration-500 max-md:p-1',
                     isActive
                       ? 'bg-[var(--accent)] text-white shadow-lg'
                       : 'hover:bg-[var(--app-surface-hover)]'
@@ -253,7 +271,9 @@ const MainLayout: React.FC = () => {
           })}
           {/* More Button */}
           <button
-            onClick={() => { setIsMoreSheetOpen(true); }}
+            onClick={() => {
+              setIsMoreSheetOpen(true);
+            }}
             aria-label={t('more') || 'المزيد'}
             className={cn(
               'flex h-full flex-1 flex-col items-center justify-center transition-all duration-300 active:scale-90',
@@ -262,7 +282,7 @@ const MainLayout: React.FC = () => {
           >
             <div
               className={cn(
-                'rounded-xl p-1.5 max-md:p-1 transition-all duration-500',
+                'rounded-xl p-1.5 transition-all duration-500 max-md:p-1',
                 isMoreSheetOpen
                   ? 'bg-[var(--accent)] text-white shadow-lg'
                   : 'hover:bg-[var(--app-surface-hover)]'
@@ -279,7 +299,9 @@ const MainLayout: React.FC = () => {
         {/* More Actions BottomSheet */}
         <BottomSheet
           isOpen={isMoreSheetOpen}
-          onClose={() => { setIsMoreSheetOpen(false); }}
+          onClose={() => {
+            setIsMoreSheetOpen(false);
+          }}
           title={t('quick_actions') || 'إجراءات سريعة'}
         >
           <div className="grid grid-cols-3 gap-3 max-md:gap-2">
@@ -294,7 +316,7 @@ const MainLayout: React.FC = () => {
                   }}
                   aria-label={item.label}
                   className={cn(
-                    'flex flex-col items-center gap-2 max-md:gap-1.5 rounded-2xl p-4 max-md:p-2.5 transition-all duration-200 active:scale-95',
+                    'flex flex-col items-center gap-2 rounded-2xl p-4 transition-all duration-200 active:scale-95 max-md:gap-1.5 max-md:p-2.5',
                     isActive
                       ? 'bg-[var(--accent)]/10 ring-[var(--accent)]/30 text-[var(--accent)] ring-2'
                       : 'bg-[var(--app-bg)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
@@ -302,7 +324,7 @@ const MainLayout: React.FC = () => {
                 >
                   <div
                     className={cn(
-                      'rounded-xl p-3 max-md:p-2 transition-all',
+                      'rounded-xl p-3 transition-all max-md:p-2',
                       isActive ? 'bg-[var(--accent)] text-white' : 'bg-[var(--app-surface)]'
                     )}
                   >

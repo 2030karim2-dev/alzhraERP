@@ -1,14 +1,14 @@
 /**
  * useGlobalShortcuts — Keyboard shortcut system for Alzhra ERP.
- * 
+ *
  * Registers global keyboard shortcuts:
  * - Ctrl+K / Cmd+K: Open omni-search
  * - Ctrl+N: New record (context-aware)
  * - Ctrl+S: Save current form
  * - Ctrl+D: Duplicate current record
  * - Escape: Close modal/dropdown
- * - ?: Show shortcut cheat sheet
- * 
+ * - ?: Show shortcut cheat sheet (when NOT focused in input)
+ *
  * @module core/hooks/useGlobalShortcuts
  */
 
@@ -20,7 +20,7 @@ export interface ShortcutBinding {
   alt?: boolean;
   shift?: boolean;
   handler: (e: KeyboardEvent) => void;
-  /** Only fire when no input/textarea is focused */
+  /** Only fire when no input/textarea/editable is focused (default: true for safety) */
   globalOnly?: boolean;
   /** Description for the cheat sheet */
   description: string;
@@ -31,9 +31,16 @@ export interface UseGlobalShortcutsOptions {
   shortcuts: ShortcutBinding[];
 }
 
-const isInputFocused = (): boolean => {
-  const tag = (document.activeElement?.tagName || '').toLowerCase();
-  return tag === 'input' || tag === 'textarea' || tag === 'select' || tag === '[contenteditable="true"]';
+export const isInputFocused = (): boolean => {
+  if (typeof document === 'undefined') return false;
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+  if ((el as HTMLElement).isContentEditable) return true;
+  if (el.getAttribute('contenteditable') === 'true') return true;
+  if (el.closest('input, textarea, select, [contenteditable="true"]')) return true;
+  return false;
 };
 
 export const useGlobalShortcuts = ({ shortcuts }: UseGlobalShortcutsOptions): void => {
@@ -41,21 +48,33 @@ export const useGlobalShortcuts = ({ shortcuts }: UseGlobalShortcutsOptions): vo
   shortcutsRef.current = shortcuts;
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // If an input is focused, never intercept regular keys unless explicitly allowed
+    const inputActive = isInputFocused();
+
     for (const binding of shortcutsRef.current) {
-      const ctrlOk = binding.ctrl ? (e.ctrlKey || e.metaKey) : true;
-      const altOk = binding.alt ? e.altKey : true;
-      const shiftOk = binding.shift ? e.shiftKey : true;
+      const needCtrl = !!binding.ctrl;
+      const hasCtrl = e.ctrlKey || e.metaKey;
+      if (needCtrl !== hasCtrl) continue;
+
+      const needAlt = !!binding.alt;
+      const hasAlt = e.altKey;
+      if (needAlt !== hasAlt) continue;
+
+      const needShift = !!binding.shift;
+      const hasShift = e.shiftKey;
+      if (needShift !== hasShift) continue;
+
       const keyMatch = e.key.toLowerCase() === binding.key.toLowerCase();
+      if (!keyMatch) continue;
 
-      if (keyMatch && ctrlOk && altOk && shiftOk) {
-        // Skip if input is focused and shortcut is global-only
-        if (binding.globalOnly && isInputFocused()) continue;
+      // Default globalOnly to true if not explicitly false to protect typing
+      const isGlobalOnly = binding.globalOnly !== false;
+      if (isGlobalOnly && inputActive) continue;
 
-        e.preventDefault();
-        e.stopPropagation();
-        binding.handler(e);
-        return;
-      }
+      e.preventDefault();
+      e.stopPropagation();
+      binding.handler(e);
+      return;
     }
   }, []);
 
@@ -78,32 +97,43 @@ export const COMMON_SHORTCUTS = (handlers: {
   onHelp?: () => void;
 }): ShortcutBinding[] => [
   {
-    key: 'k', ctrl: true, globalOnly: true,
+    key: 'k',
+    ctrl: true,
+    globalOnly: true,
     handler: handlers.onSearch,
     description: 'فتح البحث الشامل',
   },
   {
-    key: 's', ctrl: true, globalOnly: true,
+    key: 's',
+    ctrl: true,
+    globalOnly: true,
     handler: () => handlers.onSave?.(),
     description: 'حفظ',
   },
   {
-    key: 'n', ctrl: true, globalOnly: true,
+    key: 'n',
+    ctrl: true,
+    globalOnly: true,
     handler: () => handlers.onNew?.(),
     description: 'جديد',
   },
   {
-    key: 'd', ctrl: true, globalOnly: true,
+    key: 'd',
+    ctrl: true,
+    globalOnly: true,
     handler: () => handlers.onDuplicate?.(),
     description: 'تكرار',
   },
   {
-    key: 'Escape', globalOnly: true,
+    key: 'Escape',
+    globalOnly: true,
     handler: () => handlers.onEscape?.(),
     description: 'إغلاق',
   },
   {
-    key: '?', shift: true,
+    key: '?',
+    shift: true,
+    globalOnly: true,
     handler: () => handlers.onHelp?.(),
     description: 'إظهار الاختصارات',
   },

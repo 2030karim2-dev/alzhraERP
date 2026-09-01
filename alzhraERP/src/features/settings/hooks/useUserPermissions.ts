@@ -1,14 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabaseClient';
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
-import { logger } from '../../../core/utils/logger';
-
-// The generated `database.types.ts` narrows supabase.rpc to the RPCs known at
-// generation time. The granular-permission RPCs are newer than that snapshot,
-// so widen the signature deliberately (same pattern as dashboard/api).
-type LooseRpc = (name: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
-const looseRpc = supabase.rpc as unknown as LooseRpc;
+import { permissionsApi } from '../api/permissionsApi';
 
 export interface CompanyMember {
   id: string;
@@ -38,102 +32,95 @@ export interface MemberEffectivePermissions {
   revoked_permissions: string[];
 }
 
+const toCompanyMember = (
+  item: {
+    id: string;
+    user_id: string;
+    company_id: string;
+    role: string;
+    branch_id: string | null;
+    created_at: string;
+    updated_at: string;
+    branches: { id: string; name: string } | null;
+  },
+  profilesMap: Record<string, { full_name: string | null; avatar_url: string | null }>
+): CompanyMember => ({
+  id: item.id,
+  user_id: item.user_id,
+  company_id: item.company_id,
+  role: item.role,
+  branch_id: item.branch_id,
+  created_at: item.created_at,
+  updated_at: item.updated_at,
+  branch: item.branches,
+  profile: profilesMap[item.user_id ?? ''] ?? null,
+});
+
 /**
  * Fetch all active members in the current company with their roles & branches
  */
-export function useCompanyMembers() {
+export function useCompanyMembers(): UseQueryResult<CompanyMember[]> {
   const { user } = useAuthStore();
 
   return useQuery({
     queryKey: ['company_members', user?.company_id],
     queryFn: async (): Promise<CompanyMember[]> => {
-      if (!user?.company_id) return [];
+      if (user?.company_id == null) return [];
 
-      const { data, error } = await supabase
-        .from('user_company_roles')
-        .select(`
-          id,
-          user_id,
-          company_id,
-          role,
-          branch_id,
-          created_at,
-          updated_at,
-          branches(id, name)
-        `)
-        .eq('company_id', user.company_id)
-        .order('created_at', { ascending: false });
+      const members = await permissionsApi.fetchCompanyMembers(user.company_id);
+      if (members.length === 0) return [];
 
-      if (error) {
-        logger.error('useCompanyMembers', 'Error fetching members', error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) return [];
-
-      const userIds = data.map((d: any) => d.user_id).filter(Boolean);
-      let profilesMap: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+      const userIds = members.map(m => m.user_id).filter(id => id !== '');
+      const profilesMap: Record<string, { full_name: string | null; avatar_url: string | null }> =
+        {};
 
       if (userIds.length > 0) {
-        const { data: profiles, error: profError } = await supabase
-          .from('user_profiles')
-          .select('id, full_name, avatar_url')
-          .in('id', userIds);
-
-        if (!profError && profiles) {
-          profiles.forEach((p: any) => {
+        const profiles = await permissionsApi.fetchProfiles(userIds);
+        profiles.forEach(p => {
+          if (p.id) {
             profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
-          });
-        }
+          }
+        });
       }
 
-      return data.map((item: any) => ({
-        id: item.id,
-        user_id: item.user_id,
-        company_id: item.company_id,
-        role: item.role,
-        branch_id: item.branch_id,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        branch: item.branches,
-        profile: profilesMap[item.user_id] || null,
-      }));
+      return members.map(item => toCompanyMember(item, profilesMap));
     },
-    enabled: !!user?.company_id,
+    enabled: Boolean(user?.company_id),
   });
 }
 
 /**
  * Hook to get a target member's effective permissions (role default + custom grants)
  */
-export function useMemberPermissions(targetUserId: string | null) {
+export function useMemberPermissions(
+  targetUserId: string | null
+): UseQueryResult<MemberEffectivePermissions | null> {
   const { user } = useAuthStore();
 
   return useQuery({
     queryKey: ['member_permissions', user?.company_id, targetUserId],
     queryFn: async (): Promise<MemberEffectivePermissions | null> => {
-      if (!user?.company_id || !targetUserId) return null;
+      if (user?.company_id == null || targetUserId == null) return null;
 
-      const { data, error } = await looseRpc('get_member_effective_permissions', {
-        p_target_user_id: targetUserId,
-        p_company_id: user.company_id,
-      });
+      const data = await permissionsApi.getMemberEffectivePermissions(
+        user.company_id,
+        targetUserId
+      );
 
-      if (error) {
-        logger.error('useMemberPermissions', 'RPC error', error);
-        throw error;
-      }
-
-      return (data as unknown) as MemberEffectivePermissions;
+      return data as unknown as MemberEffectivePermissions;
     },
-    enabled: !!user?.company_id && !!targetUserId,
+    enabled: Boolean(user?.company_id) && Boolean(targetUserId),
   });
 }
 
 /**
  * Hook to update member custom permissions
  */
-export function useUpdateMemberPermissions() {
+export function useUpdateMemberPermissions(): UseMutationResult<
+  unknown,
+  Error,
+  { targetUserId: string; grantedPermissions: string[]; revokedPermissions?: string[] }
+> {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
@@ -147,26 +134,25 @@ export function useUpdateMemberPermissions() {
       targetUserId: string;
       grantedPermissions: string[];
       revokedPermissions?: string[];
-    }) => {
-      if (!user?.company_id) throw new Error('لا توجد منشأة نشطة');
+    }): Promise<unknown> => {
+      if (user?.company_id == null) throw new Error('لا توجد منشأة نشطة');
 
-      const { data, error } = await looseRpc('set_member_permissions', {
-        p_target_user_id: targetUserId,
-        p_company_id: user.company_id,
-        p_granted_permissions: grantedPermissions,
-        p_revoked_permissions: revokedPermissions,
-      });
-
-      if (error) throw error;
-      return data;
+      return await permissionsApi.setMemberPermissions(
+        user.company_id,
+        targetUserId,
+        grantedPermissions,
+        revokedPermissions
+      );
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['member_permissions', user?.company_id, variables.targetUserId] });
-      queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      queryClient.invalidateQueries({ queryKey: ['permission'] });
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ['member_permissions', user?.company_id, variables.targetUserId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      await queryClient.invalidateQueries({ queryKey: ['permission'] });
       showToast('تم حفظ وتحديث صلاحيات الموظف بنجاح', 'success');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast(err.message || 'خطأ في حفظ صلاحيات الموظف', 'error');
     },
   });
@@ -175,7 +161,11 @@ export function useUpdateMemberPermissions() {
 /**
  * Hook to update a member's role and assigned branch
  */
-export function useUpdateMemberRoleAndBranch() {
+export function useUpdateMemberRoleAndBranch(): UseMutationResult<
+  unknown,
+  Error,
+  { userId: string; role: string; branchId: string | null }
+> {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
@@ -189,32 +179,24 @@ export function useUpdateMemberRoleAndBranch() {
       userId: string;
       role: string;
       branchId: string | null;
-    }) => {
-      if (!user?.company_id) throw new Error('لا توجد منشأة نشطة');
+    }): Promise<unknown> => {
+      if (user?.company_id == null) throw new Error('لا توجد منشأة نشطة');
 
-      const { data, error } = await supabase
-        .from('user_company_roles')
-        .update({
-          role,
-          branch_id: branchId || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', userId)
-        .eq('company_id', user.company_id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await permissionsApi.updateMemberRoleAndBranch(
+        user.company_id,
+        userId,
+        role,
+        branchId
+      );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company_members'] });
-      queryClient.invalidateQueries({ queryKey: ['member_permissions'] });
-      queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      queryClient.invalidateQueries({ queryKey: ['permission'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['company_members'] });
+      await queryClient.invalidateQueries({ queryKey: ['member_permissions'] });
+      await queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      await queryClient.invalidateQueries({ queryKey: ['permission'] });
       showToast('تم تحديث دور وفرع الموظف بنجاح', 'success');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast(err.message || 'خطأ في تحديث بيانات الموظف', 'error');
     },
   });

@@ -77,10 +77,24 @@ const groupByBranch = (items: WarehouseStockInfo[]): BranchStockGroup[] => {
   return Array.from(branchMap.values());
 };
 
+interface UseWarehouseStockResult {
+  stockData: WarehouseStockInfo[];
+  branchGroups: BranchStockGroup[];
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+interface UseWarehousesWithBranchesResult {
+  warehouses: WarehouseBranchRow[];
+  isLoading: boolean;
+  error: string | null;
+}
+
 /**
  * Hook to fetch stock availability for a product across all warehouses/branches.
  */
-export function useWarehouseStock(productId: string | null) {
+export function useWarehouseStock(productId: string | null): UseWarehouseStockResult {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
 
@@ -122,7 +136,7 @@ export function useWarehouseStock(productId: string | null) {
 /**
  * Hook to fetch all warehouses with their branch info for the POS filter.
  */
-export function useWarehousesWithBranches() {
+export function useWarehousesWithBranches(): UseWarehousesWithBranchesResult {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
 
@@ -132,7 +146,7 @@ export function useWarehousesWithBranches() {
       if (companyId == null) return [];
       const { data, error } = await warehouseApi.getWarehousesWithBranchesData(companyId);
       if (error) throw error;
-      return data as WarehouseBranchRow[];
+      return data;
     },
     enabled: Boolean(companyId),
   });

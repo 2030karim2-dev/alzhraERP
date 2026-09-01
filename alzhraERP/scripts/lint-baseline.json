@@ -809,5 +809,7 @@
   "src/core/utils/bondExcelExporter.ts": 0,
   "src/features/supplier-portal/services/excelEngine.ts": 14,
   "src/core/utils/excelExporterBase.ts": 0,
-  "src/features/settings/hooks.ts": 82
+  "src/features/settings/hooks.ts": 82,
+  "src/features/settings/hooks/useUserPermissions.ts": 0,
+  "src/features/settings/api/permissionsApi.ts": 0
 }
