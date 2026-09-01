@@ -28,7 +28,7 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company, documentTypeTitl
   const logoSrc = !logoError ? company?.logo_url || null : null;
 
   return (
-    <div className="relative overflow-hidden border-b border-slate-700/80 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-3.5 text-white shadow-lg">
+    <div className="relative overflow-hidden rounded-t-2xl border-b border-slate-700/80 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-3.5 text-white shadow-lg">
       {/* Decorative top ambient bar */}
       <div className="absolute left-0 right-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-500 via-emerald-400 to-indigo-500 shadow-sm shadow-emerald-500/50"></div>
 
@@ -89,7 +89,7 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company, documentTypeTitl
         </div>
 
         {/* Center: Transaction Type & ERP Trust Badges */}
-        <div className="bg-slate-850/90 hidden items-center gap-2.5 rounded-2xl border border-slate-700/80 px-3.5 py-1.5 text-xs shadow-inner md:flex">
+        <div className="hidden items-center gap-2.5 rounded-2xl border border-slate-700/80 bg-slate-850/90 px-3.5 py-1.5 text-xs shadow-inner md:flex">
           <div className="flex items-center gap-1.5 font-black text-emerald-400">
             <FileCheck size={16} />
             <span>{documentTypeTitle || 'فاتورة مبيعات ضريبية'}</span>

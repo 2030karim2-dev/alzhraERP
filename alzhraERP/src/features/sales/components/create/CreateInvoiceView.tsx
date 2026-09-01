@@ -174,7 +174,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     <>
       <div className="animate-in fade-in mx-auto max-w-none space-y-3 pb-24 pt-2 duration-500">
         {/* Modern Enterprise Invoice Workspace Container */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[var(--app-surface)] shadow-xl dark:border-slate-800">
+        <div className="flex flex-col rounded-2xl border border-slate-200 bg-[var(--app-surface)] shadow-xl dark:border-slate-800">
           <InvoiceHeader company={comp} />
           <InvoiceMeta invoiceNumber={nextInvoiceNumber!} />
           <InteractiveInvoiceTable />

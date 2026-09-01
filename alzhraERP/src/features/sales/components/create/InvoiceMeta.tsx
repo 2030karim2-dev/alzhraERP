@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Calendar,
   Hash,
@@ -9,6 +9,10 @@ import {
   Coins,
   ArrowRightLeft,
   User,
+  ChevronDown,
+  Search,
+  Check,
+  Building2,
 } from 'lucide-react';
 import { useSalesStore } from '../../store';
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
@@ -35,10 +39,26 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
   const { data: paymentAccounts } = usePaymentAccounts();
   const { data: warehouses } = useWarehouses();
   const { currencies, rates } = useCurrencies();
-  const prevCurrency = React.useRef(currency);
-  const ratesLoaded = React.useRef(false);
+  const prevCurrency = useRef(currency);
+  const ratesLoaded = useRef(false);
 
-  React.useEffect(() => {
+  // Treasury dropdown state
+  const [isTreasuryOpen, setIsTreasuryOpen] = useState(false);
+  const [treasurySearch, setTreasurySearch] = useState('');
+  const treasuryRef = useRef<HTMLDivElement>(null);
+
+  // Close treasury dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (treasuryRef.current && !treasuryRef.current.contains(event.target as Node)) {
+        setIsTreasuryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     const currencyChanged = prevCurrency.current !== currency;
     const ratesJustLoaded = !ratesLoaded.current && Boolean(rates.data);
 
@@ -66,7 +86,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
       ratesLoaded.current = true;
     }
 
-    // 2. Handle Auto-Treasury (Cashbox) Selection (Only on currency change)
+    // Auto-Treasury (Cashbox) Selection on currency change
     if (currencyChanged && paymentAccounts && paymentAccounts.length > 0) {
       const searchTerms =
         currency === 'SAR' ? ['SAR', 'سعودي', 'ريال سعودي'] : ['YER', 'يمني', 'ريال يمني'];
@@ -104,11 +124,29 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
   const date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 
+  // Find currently selected treasury account
+  const selectedAccount = useMemo(() => {
+    return paymentAccounts?.find(a => a.id === cashboxId);
+  }, [paymentAccounts, cashboxId]);
+
+  // Filter treasury accounts
+  const filteredAccounts = useMemo(() => {
+    if (!paymentAccounts) return [];
+    if (!treasurySearch.trim()) return paymentAccounts;
+    const term = treasurySearch.toLowerCase().trim();
+    return paymentAccounts.filter(
+      a =>
+        a.name_ar.toLowerCase().includes(term) ||
+        (a.code && a.code.toLowerCase().includes(term)) ||
+        (a.currency_code && a.currency_code.toLowerCase().includes(term))
+    );
+  }, [paymentAccounts, treasurySearch]);
+
   return (
-    <div className="border-b border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+    <div className="relative z-30 border-b border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/60">
       <div className="grid grid-cols-1 gap-3 text-xs lg:grid-cols-12">
         {/* 1. Customer Selection Card (Span 4 cols) */}
-        <div className="dark:bg-slate-850 dark:border-slate-750 flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs lg:col-span-4">
+        <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-750 dark:bg-slate-850 lg:col-span-4">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
               <User size={14} />
@@ -123,7 +161,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
         </div>
 
         {/* 2. Payment Terms & Invoice Meta Card (Span 4 cols) */}
-        <div className="dark:bg-slate-850 dark:border-slate-750 flex flex-col justify-between gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs lg:col-span-4">
+        <div className="flex flex-col justify-between gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-750 dark:bg-slate-850 lg:col-span-4">
           {/* Top row: Invoice # and Issue Date */}
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-slate-200/60 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/60">
@@ -190,7 +228,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
         </div>
 
         {/* 3. Currency, Cashbox & Warehouse Control (Span 4 cols) */}
-        <div className="dark:bg-slate-850 dark:border-slate-750 flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs lg:col-span-4">
+        <div className="flex flex-col justify-between gap-2 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-750 dark:bg-slate-850 lg:col-span-4">
           {/* Row 1: Currency and FX */}
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -243,22 +281,113 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
           {/* Row 2: Treasury Account & Warehouse */}
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            {/* Custom High-Z Treasury Account Dropdown */}
+            <div className="relative" ref={treasuryRef}>
               <div className="mb-1 flex items-center gap-1 text-slate-400">
                 <Wallet size={12} className="text-emerald-500" />
                 <span className="text-[10px] font-bold">حساب الصندوق</span>
               </div>
-              <select
-                value={cashboxId || ''}
-                onChange={e => setMetadata('cashboxId', e.target.value)}
-                className="w-full truncate rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+
+              <button
+                type="button"
+                onClick={() => setIsTreasuryOpen(prev => !prev)}
+                className="flex w-full items-center justify-between gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
               >
-                {paymentAccounts?.map(a => (
-                  <option key={a.id} value={a.id}>
-                    {a.name_ar}
-                  </option>
-                ))}
-              </select>
+                <span className="truncate">
+                  {selectedAccount ? selectedAccount.name_ar : 'اختر الصندوق...'}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={cn(
+                    'shrink-0 text-slate-400 transition-transform duration-200',
+                    isTreasuryOpen && 'rotate-180 text-blue-500'
+                  )}
+                />
+              </button>
+
+              {/* Popover Menu with high z-index */}
+              {isTreasuryOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-850">
+                  {paymentAccounts && paymentAccounts.length > 5 && (
+                    <div className="relative mb-2">
+                      <Search
+                        size={13}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+                      <input
+                        type="text"
+                        value={treasurySearch}
+                        onChange={e => setTreasurySearch(e.target.value)}
+                        placeholder="بحث عن صندوق..."
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-1 pl-2 pr-7 text-xs font-bold outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  <div className="custom-scrollbar max-h-56 space-y-1 overflow-y-auto">
+                    {filteredAccounts.length === 0 ? (
+                      <div className="p-3 text-center text-xs font-bold text-slate-400">
+                        لا توجد صناديق متاحة
+                      </div>
+                    ) : (
+                      filteredAccounts.map(account => {
+                        const isSelected = account.id === cashboxId;
+                        const isCash = Boolean(account.cashbox_id);
+                        return (
+                          <button
+                            key={account.id}
+                            type="button"
+                            onClick={() => {
+                              setMetadata('cashboxId', account.id);
+                              setIsTreasuryOpen(false);
+                            }}
+                            className={cn(
+                              'flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-right transition-all',
+                              isSelected
+                                ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                            )}
+                          >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <div
+                                className={cn(
+                                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
+                                  isCash
+                                    ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                    : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400'
+                                )}
+                              >
+                                {isCash ? <Wallet size={14} /> : <Building2 size={14} />}
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="truncate text-xs font-black">{account.name_ar}</p>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                  {isCash ? 'صندوق نقدي' : 'شركة صرافة'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <span
+                                className={cn(
+                                  'rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                                  account.currency_code === 'SAR'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                                )}
+                              >
+                                {account.currency_code}
+                              </span>
+                              {isSelected && <Check size={14} className="text-emerald-600" />}
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
