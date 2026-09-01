@@ -108,7 +108,11 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return date.toLocaleTimeString('ar-SA-u-nu-latn', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
 
   return (

@@ -347,7 +347,7 @@ export const DhikrSettings: React.FC = () => {
                   {PRAYER_LABELS[entry.name] ?? entry.name}
                 </p>
                 <p className="mt-1 text-sm font-black text-slate-800 dark:text-white" dir="ltr">
-                  {new Date(entry.time).toLocaleTimeString('ar-SA', {
+                  {new Date(entry.time).toLocaleTimeString('ar-SA-u-nu-latn', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}

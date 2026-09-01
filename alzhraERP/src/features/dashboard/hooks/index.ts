@@ -94,33 +94,33 @@ const INVOICE_ACTIVITY_META: Record<string, { title: string; color: string }> = 
 
 const buildRecentActivities = (
   invoices: RawDashboardData['recentInvoices'],
-  expenses: RawDashboardData['recentExpenses'],
+  expenses: RawDashboardData['recentExpenses']
 ): RecentActivityItem[] => {
   const items: RecentActivityItem[] = [
-    ...(invoices || []).map((inv) => {
+    ...(invoices || []).map(inv => {
       const meta = INVOICE_ACTIVITY_META[inv.type ?? ''] ?? { title: 'فاتورة', color: 'gray' };
       return {
         id: inv.id,
         type: inv.type ?? 'invoice',
         title: meta.title,
-        desc: `${toNumber(inv.total_amount).toLocaleString('ar-EG')} ر.س — ${inv.parties?.name ?? 'غير محدد'}`,
+        desc: `${toNumber(inv.total_amount).toLocaleString('en-US')} ر.س — ${inv.parties?.name ?? 'غير محدد'}`,
         date: inv.issue_date,
         time: inv.issue_date,
         color: meta.color,
       };
     }),
-    ...(expenses || []).map((exp) => ({
+    ...(expenses || []).map(exp => ({
       id: exp.id,
       type: 'expense',
       title: `مصروف: ${exp.description || exp.expense_categories?.name || 'غير محدد'}`,
-      desc: `${toNumber(exp.amount).toLocaleString('ar-EG')} ر.س`,
+      desc: `${toNumber(exp.amount).toLocaleString('en-US')} ر.س`,
       date: exp.expense_date,
       time: exp.expense_date,
       color: 'rose',
     })),
   ];
   return items
-    .filter((item) => !!item.time)
+    .filter(item => !!item.time)
     .sort((a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime())
     .slice(0, 6);
 };
@@ -144,8 +144,6 @@ const toNumber = (value: number | string | undefined | null): number => {
  * (دالة نقية قابلة للاختبار) ويُستورد منها أعلاه.
  */
 
-
-
 // ------------------------------------------
 // Main Hook
 // ------------------------------------------
@@ -158,7 +156,9 @@ interface UseDashboardDataResult extends DashboardDataPayload {
   data: DashboardDataPayload | null;
 }
 
-export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDashboardDataResult => {
+export const useDashboardData = (
+  period: DashboardPeriod = 'this_month'
+): UseDashboardDataResult => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
@@ -190,7 +190,12 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
         .channel(channelKey)
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'invoices', filter: `company_id=eq.${companyId}` },
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'invoices',
+            filter: `company_id=eq.${companyId}`,
+          },
           (payload: any) => {
             if (payload.new.type === 'sale') {
               showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
@@ -201,7 +206,9 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
         .subscribe();
       registry.set(channelKey, ch);
     }
-    return () => { /* no-op */ };
+    return () => {
+      /* no-op */
+    };
   }, [companyId, queryClient, showToast]);
 
   // 1. Fetch Raw Data using React Query
@@ -220,7 +227,7 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
           signal,
           branchId,
           dateFrom,
-          dateTo,
+          dateTo
         );
         return result as unknown as RawDashboardData;
       } catch (error) {
@@ -231,7 +238,9 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
         // (network timeouts, auth 401, circuit breaker, signal aborts, etc.).
         const err = error instanceof Error ? error : new Error(String(error));
         if (err.name !== 'AbortError' && !signal.aborted) {
-          logger.warn('hooks', 'Dashboard data fetch failed, using fallback', { message: err.message });
+          logger.warn('hooks', 'Dashboard data fetch failed, using fallback', {
+            message: err.message,
+          });
         }
         return null;
       }
@@ -294,8 +303,7 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
       ? (salesChart as ChartDataPoint[])
       : [];
 
-    const safeTopData: RawTopData =
-      topData && typeof topData === 'object' ? topData : {};
+    const safeTopData: RawTopData = topData && typeof topData === 'object' ? topData : {};
 
     // Call external service transformer for insights
     const insightsResult = calculateDashboardInsights({
@@ -329,9 +337,7 @@ export const useDashboardData = (period: DashboardPeriod = 'this_month'): UseDas
         expensesTrend: Math.round(insightsResult.expensesTrend * 10) / 10,
         profitTrend: 0,
       },
-      salesData: safeSalesChart.length
-        ? safeSalesChart
-        : [{ name: 'اليوم', value: 0 }],
+      salesData: safeSalesChart.length ? safeSalesChart : [{ name: 'اليوم', value: 0 }],
       categoryData: productCategoryData.length
         ? productCategoryData
         : [{ name: 'لا توجد بيانات', value: 0, color: '#94a3b8' }],

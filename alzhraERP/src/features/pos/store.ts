@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { SalesCartItem } from '../sales/store';
@@ -33,12 +32,12 @@ export const usePOSStore = create<POSState>()(
           id: `SUS-${Date.now()}`,
           items,
           customer,
-          time: new Date().toLocaleTimeString('ar-SA')
+          time: new Date().toLocaleTimeString('ar-SA-u-nu-latn'),
         };
         set({ suspendedOrders: [...get().suspendedOrders, newOrder] });
       },
 
-      resumeOrder: (id) => {
+      resumeOrder: id => {
         const order = get().suspendedOrders.find(o => o.id === id);
         if (order) {
           set({ suspendedOrders: get().suspendedOrders.filter(o => o.id !== id) });
@@ -46,7 +45,8 @@ export const usePOSStore = create<POSState>()(
         return order;
       },
 
-      removeSuspended: (id) => set({ suspendedOrders: get().suspendedOrders.filter(o => o.id !== id) })
+      removeSuspended: id =>
+        set({ suspendedOrders: get().suspendedOrders.filter(o => o.id !== id) }),
     }),
     { name: 'al-zahra-pos-cache' }
   )

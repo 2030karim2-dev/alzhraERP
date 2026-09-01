@@ -18,7 +18,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
   const { toggleReaction } = useChatStore();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const formattedTime = new Date(message.created_at).toLocaleTimeString('ar-SA', {
+  const formattedTime = new Date(message.created_at).toLocaleTimeString('ar-SA-u-nu-latn', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -29,17 +29,17 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
   };
 
   return (
-    <div className={`group flex gap-2.5 my-3.5 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`group my-3.5 flex gap-2.5 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Avatar */}
       <div className="flex-shrink-0">
         {message.sender_avatar ? (
           <img
             src={message.sender_avatar}
             alt={message.sender_name || 'موظف'}
-            className="h-8 w-8 rounded-full object-cover border border-[var(--app-border)]"
+            className="h-8 w-8 rounded-full border border-[var(--app-border)] object-cover"
           />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-surface-hover)] text-xs font-bold text-[var(--app-text)] border border-[var(--app-border)]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-xs font-bold text-[var(--app-text)]">
             {message.sender_name ? message.sender_name.charAt(0).toUpperCase() : <User size={14} />}
           </div>
         )}
@@ -52,7 +52,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           <div className="mb-1 flex items-center gap-1.5 px-1 text-[11px] font-semibold text-[var(--app-text-secondary)]">
             <span>{message.sender_name || 'موظف'}</span>
             {message.sender_branch && (
-              <span className="rounded bg-[var(--app-bg)] px-1.5 py-0.2 text-[10px] text-[var(--app-text-secondary)] border border-[var(--app-border)]">
+              <span className="py-0.2 rounded border border-[var(--app-border)] bg-[var(--app-bg)] px-1.5 text-[10px] text-[var(--app-text-secondary)]">
                 {message.sender_branch}
               </span>
             )}
@@ -63,14 +63,14 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
         <div
           className={`relative rounded-2xl p-3 shadow-sm transition-all ${
             isOwn
-              ? 'bg-[var(--accent)] text-white rounded-tr-xs'
-              : 'bg-[var(--app-surface)] text-[var(--app-text)] border border-[var(--app-border)] rounded-tl-xs'
+              ? 'rounded-tr-xs bg-[var(--accent)] text-white'
+              : 'rounded-tl-xs border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)]'
           }`}
         >
           {/* Reply Context Bar */}
           {message.reply_to_message && (
             <div
-              className={`mb-2 rounded-lg border-s-3 p-2 text-xs opacity-90 ${
+              className={`border-s-3 mb-2 rounded-lg p-2 text-xs opacity-90 ${
                 isOwn
                   ? 'border-white/60 bg-black/15 text-white/90'
                   : 'border-[var(--accent)] bg-[var(--app-bg)] text-[var(--app-text-secondary)]'
@@ -85,7 +85,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
 
           {/* Text Message Content */}
           {message.content && (
-            <p className="whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed">
+            <p className="whitespace-pre-wrap break-words text-xs leading-relaxed sm:text-sm">
               {message.content}
             </p>
           )}
@@ -98,7 +98,7 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           {/* Attachments */}
           {message.attachments && message.attachments.length > 0 && (
             <div className="mt-2 space-y-1.5">
-              {message.attachments.map((att) => (
+              {message.attachments.map(att => (
                 <ChatAttachmentItem key={att.id} attachment={att} isOwn={isOwn} />
               ))}
             </div>
@@ -111,26 +111,27 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
             }`}
           >
             <span>{formattedTime}</span>
-            {isOwn && (
-              message.is_optimistic ? (
+            {isOwn &&
+              (message.is_optimistic ? (
                 <Clock size={10} className="animate-spin" />
               ) : (
                 <Check size={11} className="text-white" />
-              )
-            )}
+              ))}
           </div>
         </div>
 
         {/* Reactions List */}
         {message.reactions && message.reactions.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {message.reactions.map((reaction) => (
+            {message.reactions.map(reaction => (
               <button
                 key={reaction.id}
-                onClick={() => { handleToggleEmoji(reaction.emoji); }}
+                onClick={() => {
+                  handleToggleEmoji(reaction.emoji);
+                }}
                 className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-all ${
                   reaction.user_id === currentUserId
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                    ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'
                     : 'border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
                 }`}
               >
@@ -147,7 +148,9 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
           }`}
         >
           <button
-            onClick={() => { onReply(message); }}
+            onClick={() => {
+              onReply(message);
+            }}
             title="رد"
             className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
           >
@@ -156,7 +159,9 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
 
           <div className="relative">
             <button
-              onClick={() => { setShowEmojiPicker(!showEmojiPicker); }}
+              onClick={() => {
+                setShowEmojiPicker(!showEmojiPicker);
+              }}
               title="تفاعل"
               className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
             >
@@ -165,10 +170,12 @@ export const MessageItem: React.FC<Props> = ({ message, isOwn, currentUserId, on
 
             {showEmojiPicker && (
               <div className="absolute top-7 z-10 flex gap-1 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] p-1 shadow-lg">
-                {QUICK_EMOJIS.map((emoji) => (
+                {QUICK_EMOJIS.map(emoji => (
                   <button
                     key={emoji}
-                    onClick={() => { handleToggleEmoji(emoji); }}
+                    onClick={() => {
+                      handleToggleEmoji(emoji);
+                    }}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-xs hover:bg-[var(--app-surface-hover)] active:scale-125"
                   >
                     {emoji}
@@ -194,7 +201,7 @@ const ChatAttachmentItem: React.FC<{
     if (signedUrl || !attachment.storage_path) return;
 
     let isMounted = true;
-    chatService.getAttachmentSignedUrl(attachment.storage_path).then((url) => {
+    chatService.getAttachmentSignedUrl(attachment.storage_path).then(url => {
       if (isMounted && url) {
         setSignedUrl(url);
       }
@@ -212,7 +219,7 @@ const ChatAttachmentItem: React.FC<{
           <img
             src={signedUrl}
             alt={attachment.file_name}
-            className="max-h-60 max-w-full rounded-xl object-contain cursor-pointer transition-transform hover:scale-[1.02]"
+            className="max-h-60 max-w-full cursor-pointer rounded-xl object-contain transition-transform hover:scale-[1.02]"
             onClick={() => window.open(signedUrl, '_blank')}
           />
         ) : (

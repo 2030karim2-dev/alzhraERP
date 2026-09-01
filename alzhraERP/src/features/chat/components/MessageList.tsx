@@ -87,7 +87,7 @@ export const MessageList: React.FC<Props> = ({
     if (date.toDateString() === yesterday.toDateString()) {
       return 'أمس';
     }
-    return date.toLocaleDateString('ar-SA', {
+    return date.toLocaleDateString('ar-SA-u-nu-latn', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -98,7 +98,7 @@ export const MessageList: React.FC<Props> = ({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-[var(--app-border)]"
+      className="scrollbar-thin scrollbar-thumb-[var(--app-border)] flex-1 overflow-y-auto p-4"
     >
       {/* Loading older messages indicator */}
       {isLoadingMore && (
@@ -134,11 +134,20 @@ export const MessageList: React.FC<Props> = ({
 
       {/* Typing Indicator */}
       {typingUserNames.length > 0 && (
-        <div className="flex items-center gap-2 text-xs text-[var(--app-text-secondary)] italic my-2 ps-2">
+        <div className="my-2 flex items-center gap-2 ps-2 text-xs italic text-[var(--app-text-secondary)]">
           <div className="flex gap-1">
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]" style={{ animationDelay: '0ms' }} />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]" style={{ animationDelay: '150ms' }} />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]" style={{ animationDelay: '300ms' }} />
+            <span
+              className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]"
+              style={{ animationDelay: '0ms' }}
+            />
+            <span
+              className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]"
+              style={{ animationDelay: '150ms' }}
+            />
+            <span
+              className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]"
+              style={{ animationDelay: '300ms' }}
+            />
           </div>
           <span>{typingUserNames.join(', ')} يكتب الآن...</span>
         </div>

@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Search,
-  Plus,
-  Building2,
-  User,
-  Hash,
-  Layers,
-  MessageSquare,
-} from 'lucide-react';
+import { Search, Plus, Building2, User, Hash, Layers, MessageSquare } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { NewChatModal } from './NewChatModal';
 import type { ChannelType } from '../types';
@@ -32,7 +24,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
   // Filter channels according to tab and search query
-  const filteredChannels = channels.filter((ch) => {
+  const filteredChannels = channels.filter(ch => {
     // Tab filter
     if (activeFilter === 'branch' && ch.type !== 'branch') return false;
     if (activeFilter === 'direct' && ch.type !== 'direct') return false;
@@ -67,14 +59,16 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
   return (
     <div className="flex h-full flex-col border-e border-[var(--app-border)] bg-[var(--app-surface)]">
       {/* Header & Search */}
-      <div className="border-b border-[var(--app-border)] p-3 space-y-2.5">
+      <div className="space-y-2.5 border-b border-[var(--app-border)] p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare size={20} className="text-[var(--accent)]" />
             <h2 className="text-base font-bold text-[var(--app-text)]">المحادثات والتواصل</h2>
           </div>
           <button
-            onClick={() => { setIsNewChatOpen(true); }}
+            onClick={() => {
+              setIsNewChatOpen(true);
+            }}
             title="محادثة جديدة"
             className="flex h-8 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 active:scale-95"
           >
@@ -85,29 +79,36 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
 
         {/* Search Bar */}
         <div className="relative">
-          <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]" />
+          <Search
+            size={14}
+            className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]"
+          />
           <input
             type="text"
             placeholder="بحث في القنوات والرسائل..."
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); }}
+            onChange={e => {
+              setSearchQuery(e.target.value);
+            }}
             className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] py-1.5 pe-3 ps-8 text-xs text-[var(--app-text)] outline-none focus:border-[var(--accent)]"
           />
         </div>
 
         {/* Filter Pills */}
-        <div className="flex gap-1 overflow-x-auto pb-1 text-[11px] font-semibold scrollbar-none">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto pb-1 text-[11px] font-semibold">
           {[
             { id: 'all', label: 'الكل' },
             { id: 'branch', label: 'الفروع' },
             { id: 'direct', label: 'الخاص' },
             { id: 'topic', label: 'المواضيع' },
             { id: 'contextual', label: 'العمليات' },
-          ].map((tab) => (
+          ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => { setActiveFilter(tab.id as any); }}
-              className={`rounded-lg px-2.5 py-1 whitespace-nowrap transition-all ${
+              onClick={() => {
+                setActiveFilter(tab.id as any);
+              }}
+              className={`whitespace-nowrap rounded-lg px-2.5 py-1 transition-all ${
                 activeFilter === tab.id
                   ? 'bg-[var(--accent)] text-white shadow-xs'
                   : 'bg-[var(--app-bg)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
@@ -120,7 +121,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
       </div>
 
       {/* Channel list */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin">
+      <div className="scrollbar-thin flex-1 space-y-1 overflow-y-auto p-2">
         {isLoadingChannels && channels.length === 0 && (
           <div className="py-10 text-center text-xs text-[var(--app-text-secondary)]">
             جاري تحميل المحادثات...
@@ -133,14 +134,14 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
           </div>
         )}
 
-        {filteredChannels.map((channel) => {
+        {filteredChannels.map(channel => {
           const isSelected = activeChannelId === channel.id;
           const directUserId = channel.direct_user?.id;
           const presence = directUserId ? presences[directUserId] : null;
           const isOnline = presence?.status === 'online';
 
           const formattedTime = channel.last_message
-            ? new Date(channel.last_message.created_at).toLocaleTimeString('ar-SA', {
+            ? new Date(channel.last_message.created_at).toLocaleTimeString('ar-SA-u-nu-latn', {
                 hour: '2-digit',
                 minute: '2-digit',
               })
@@ -156,7 +157,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
               className={`group flex w-full items-center gap-3 rounded-xl p-2.5 text-start transition-all ${
                 isSelected
                   ? 'bg-[var(--accent)] text-white shadow-sm'
-                  : 'hover:bg-[var(--app-surface-hover)] text-[var(--app-text)]'
+                  : 'text-[var(--app-text)] hover:bg-[var(--app-surface-hover)]'
               }`}
             >
               {/* Channel / User Avatar */}
@@ -165,14 +166,14 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
                   <img
                     src={channel.direct_user.avatar_url}
                     alt={channel.name}
-                    className="h-10 w-10 rounded-full object-cover border border-[var(--app-border)]"
+                    className="h-10 w-10 rounded-full border border-[var(--app-border)] object-cover"
                   />
                 ) : (
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
                       isSelected
-                        ? 'bg-white/20 border-white/30 text-white'
-                        : 'bg-[var(--app-bg)] border-[var(--app-border)]'
+                        ? 'border-white/30 bg-white/20 text-white'
+                        : 'border-[var(--app-border)] bg-[var(--app-bg)]'
                     }`}
                   >
                     {getChannelIcon(channel.type)}
@@ -226,7 +227,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
                 {/* Branch tag */}
                 {channel.branch_name && channel.type !== 'direct' && (
                   <span
-                    className={`mt-1 inline-block rounded px-1.5 py-0.2 text-[10px] font-medium ${
+                    className={`py-0.2 mt-1 inline-block rounded px-1.5 text-[10px] font-medium ${
                       isSelected
                         ? 'bg-white/20 text-white'
                         : 'bg-[var(--app-bg)] text-[var(--app-text-secondary)]'
@@ -242,7 +243,12 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
       </div>
 
       {/* New Chat Modal */}
-      <NewChatModal isOpen={isNewChatOpen} onClose={() => { setIsNewChatOpen(false); }} />
+      <NewChatModal
+        isOpen={isNewChatOpen}
+        onClose={() => {
+          setIsNewChatOpen(false);
+        }}
+      />
     </div>
   );
 };

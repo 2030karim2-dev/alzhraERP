@@ -1,5 +1,10 @@
 import { normalizeOem } from '../../../core/utils/oemNormalization';
-import type { VendorProductItem, QuotationItemDraft, ExcelImportRow, ItemAvailability } from '../types';
+import type {
+  VendorProductItem,
+  QuotationItemDraft,
+  ExcelImportRow,
+  ItemAvailability,
+} from '../types';
 
 let xlsxPromise: Promise<any> | null = null;
 const loadXLSX = (): Promise<any> => {
@@ -47,7 +52,9 @@ export interface ExportQuotationExcelOptions {
 /**
  * Generates and downloads a professional, styled Excel Workbook (SEC-04 Sanitized)
  */
-export const exportQuotationToExcel = async (options: ExportQuotationExcelOptions): Promise<void> => {
+export const exportQuotationToExcel = async (
+  options: ExportQuotationExcelOptions
+): Promise<void> => {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
 
@@ -105,7 +112,9 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
   const wsData: any[][] = [];
 
   // Row 1: Title Header
-  wsData.push([{ v: sanitizeExcelValue(`عرض أسعار وتوريد - ${options.companyName}`), s: titleStyle }]);
+  wsData.push([
+    { v: sanitizeExcelValue(`عرض أسعار وتوريد - ${options.companyName}`), s: titleStyle },
+  ]);
   wsData.push([]); // Empty row
 
   // Metadata block
@@ -125,7 +134,7 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
     { v: 'مدة التوريد (أيام):', s: metaLabelStyle },
     { v: `${Math.max(0, options.deliveryDays || 0)} يوم`, s: metaValueStyle },
     { v: 'تاريخ المستند:', s: metaLabelStyle },
-    { v: new Date().toLocaleDateString('ar-SA'), s: metaValueStyle },
+    { v: new Date().toLocaleDateString('ar-SA-u-nu-latn'), s: metaValueStyle },
   ]);
   wsData.push([]); // Empty row
 
@@ -153,30 +162,59 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
     wsData.push([
       { v: index + 1, s: cellStyle },
       { v: sanitizeExcelValue(item.product_id), s: cellStyle },
-      { v: sanitizeExcelValue(item.product_name), s: { ...cellStyle, alignment: { horizontal: 'right' } } },
-      { v: sanitizeExcelValue(item.oem_number || '---'), s: { ...cellStyle, font: { name: 'Consolas', sz: 10 } } },
+      {
+        v: sanitizeExcelValue(item.product_name),
+        s: { ...cellStyle, alignment: { horizontal: 'right' } },
+      },
+      {
+        v: sanitizeExcelValue(item.oem_number || '---'),
+        s: { ...cellStyle, font: { name: 'Consolas', sz: 10 } },
+      },
       { v: sanitizeExcelValue(item.vendor_sku || '---'), s: cellStyle },
       { v: Math.max(0, Number(item.quantity) || 1), s: cellStyle },
       { v: sanitizeExcelValue(item.unit_of_measure), s: cellStyle },
       { v: Math.max(0, Number(item.unit_price) || 0), s: moneyStyle },
       { v: Math.min(100, Math.max(0, Number(item.discount_percentage) || 0)), s: cellStyle },
       { v: Math.max(0, Number(item.total_price) || 0), s: moneyStyle },
-      { v: item.availability === 'in_stock' ? 'متوفر' : item.availability === 'on_order' ? 'تحت الطلب' : 'غير متوفر', s: cellStyle },
+      {
+        v:
+          item.availability === 'in_stock'
+            ? 'متوفر'
+            : item.availability === 'on_order'
+              ? 'تحت الطلب'
+              : 'غير متوفر',
+        s: cellStyle,
+      },
       { v: Math.max(0, Number(item.warranty_days) || 0), s: cellStyle },
-      { v: sanitizeExcelValue(item.vendor_notes || ''), s: { ...cellStyle, alignment: { horizontal: 'right' } } },
+      {
+        v: sanitizeExcelValue(item.vendor_notes || ''),
+        s: { ...cellStyle, alignment: { horizontal: 'right' } },
+      },
     ]);
   });
 
   // Summary Rows
   wsData.push([]);
   wsData.push([
-    {}, {}, {}, {}, {}, {}, {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
     { v: 'المجموع الفرعي:', s: metaLabelStyle },
     {},
     { v: Math.max(0, options.subtotal), s: moneyStyle },
   ]);
   wsData.push([
-    {}, {}, {}, {}, {}, {}, {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
     { v: 'الإجمالي النهائي:', s: totalStyle },
     {},
     { v: Math.max(0, options.totalAmount), s: totalStyle },
@@ -185,19 +223,17 @@ export const exportQuotationToExcel = async (options: ExportQuotationExcelOption
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
   // Merge headers
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: columns.length - 1 } },
-  ];
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: columns.length - 1 } }];
 
   // Column Widths
   ws['!cols'] = [
-    { wch: 5 },  // #
+    { wch: 5 }, // #
     { wch: 15 }, // ID
     { wch: 30 }, // Product Name
     { wch: 18 }, // OEM
     { wch: 15 }, // Vendor SKU
-    { wch: 8 },  // Qty
-    { wch: 8 },  // Unit
+    { wch: 8 }, // Qty
+    { wch: 8 }, // Unit
     { wch: 14 }, // Unit Price
     { wch: 12 }, // Discount %
     { wch: 16 }, // Total
@@ -221,7 +257,9 @@ export interface ExportCatalogExcelOptions {
 /**
  * Generates and downloads the Product Catalog Excel Workbook
  */
-export const exportProductCatalogToExcel = async (options: ExportCatalogExcelOptions): Promise<void> => {
+export const exportProductCatalogToExcel = async (
+  options: ExportCatalogExcelOptions
+): Promise<void> => {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
 
@@ -249,7 +287,9 @@ export const exportProductCatalogToExcel = async (options: ExportCatalogExcelOpt
   };
 
   const wsData: any[][] = [];
-  wsData.push([{ v: sanitizeExcelValue(`كتالوج الأصناف المعتمدة - ${options.companyName}`), s: titleStyle }]);
+  wsData.push([
+    { v: sanitizeExcelValue(`كتالوج الأصناف المعتمدة - ${options.companyName}`), s: titleStyle },
+  ]);
   wsData.push([]);
 
   const columns = [
@@ -272,8 +312,14 @@ export const exportProductCatalogToExcel = async (options: ExportCatalogExcelOpt
     wsData.push([
       { v: idx + 1, s: cellStyle },
       { v: sanitizeExcelValue(p.product_id), s: cellStyle },
-      { v: sanitizeExcelValue(p.product_name), s: { ...cellStyle, alignment: { horizontal: 'right' } } },
-      { v: sanitizeExcelValue(p.oem_number || '---'), s: { ...cellStyle, font: { name: 'Consolas', sz: 10 } } },
+      {
+        v: sanitizeExcelValue(p.product_name),
+        s: { ...cellStyle, alignment: { horizontal: 'right' } },
+      },
+      {
+        v: sanitizeExcelValue(p.oem_number || '---'),
+        s: { ...cellStyle, font: { name: 'Consolas', sz: 10 } },
+      },
       { v: sanitizeExcelValue(p.vendor_sku || '---'), s: cellStyle },
       { v: sanitizeExcelValue(p.category || 'عام'), s: cellStyle },
       { v: sanitizeExcelValue(p.brand || '---'), s: cellStyle },
@@ -406,17 +452,30 @@ export const parseQuotationExcel = async (
     // 2. Match by Normalized OEM Number
     if (!matchedProduct && rowOem) {
       const normalizedRowOem = normalizeOem(rowOem);
-      matchedProduct = existingProducts.find(p => p.oem_number && normalizeOem(p.oem_number) === normalizedRowOem);
+      matchedProduct = existingProducts.find(
+        p => p.oem_number && normalizeOem(p.oem_number) === normalizedRowOem
+      );
     }
 
     // 3. Match by Vendor SKU
     if (!matchedProduct && rowSku) {
-      matchedProduct = existingProducts.find(p => (p.vendor_sku && p.vendor_sku.toLowerCase() === rowSku.toLowerCase()) || (p.sku && p.sku.toLowerCase() === rowSku.toLowerCase()));
+      matchedProduct = existingProducts.find(
+        p =>
+          (p.vendor_sku && p.vendor_sku.toLowerCase() === rowSku.toLowerCase()) ||
+          (p.sku && p.sku.toLowerCase() === rowSku.toLowerCase())
+      );
     }
 
-    const availabilityRaw = availCol >= 0 ? String(r[availCol] || '').trim().toLowerCase() : '';
+    const availabilityRaw =
+      availCol >= 0
+        ? String(r[availCol] || '')
+            .trim()
+            .toLowerCase()
+        : '';
     const validAvailability: ItemAvailability =
-      availabilityRaw === 'on_order' || availabilityRaw === 'unavailable' || availabilityRaw === 'partial'
+      availabilityRaw === 'on_order' ||
+      availabilityRaw === 'unavailable' ||
+      availabilityRaw === 'partial'
         ? (availabilityRaw as ItemAvailability)
         : 'in_stock';
 
@@ -431,7 +490,7 @@ export const parseQuotationExcel = async (
       availability: validAvailability,
       leadTimeDays: leadCol >= 0 ? Number(r[leadCol]) || 0 : 0,
       warrantyDays: warrantyCol >= 0 ? Number(r[warrantyCol]) || 0 : 0,
-      matchStatus: matchedProduct ? 'matched' : (parsedPrice <= 0 ? 'invalid_price' : 'unmatched'),
+      matchStatus: matchedProduct ? 'matched' : parsedPrice <= 0 ? 'invalid_price' : 'unmatched',
     };
     if (rowOem) rowObj.rawPartNumber = rowOem;
     if (rowSku) rowObj.rawVendorSku = rowSku;
