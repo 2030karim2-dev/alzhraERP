@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
-import { TableInsert } from '@/core/types/supabase-helpers';
+import type { TableInsert } from '@/core/types/supabase-helpers';
 
 /** Warehouse and stock management */
 export const warehouseApi = {
@@ -10,7 +10,9 @@ export const warehouseApi = {
     });
   },
 
-  createInventoryTransactions: async (transactions: TableInsert<'inventory_transactions'>[]) => {
+  createInventoryTransactions: async (
+    transactions: Array<TableInsert<'inventory_transactions'>>
+  ) => {
     return await supabase.from('inventory_transactions').insert(transactions);
   },
 
@@ -42,7 +44,7 @@ export const warehouseApi = {
       ...tx,
       company_id: companyId,
       created_by: userId,
-    } as TableInsert<'inventory_transactions'>);
+    });
   },
 
   initializeStock: async (
@@ -64,9 +66,7 @@ export const warehouseApi = {
   },
 
   updateStock: async (
-    companyId: string,
-    productId: string,
-    warehouseId: string,
+    target: { companyId: string; productId: string; warehouseId: string },
     quantity: number,
     userId?: string
   ) => {
@@ -74,7 +74,8 @@ export const warehouseApi = {
     // الهجرة: supabase/migrations/20260901000004_fix_update_stock_atomic.sql
     // ملاحظة: الاسم غير مُدرج بعد في database.types.ts (يُزامَن عند توليد الأنواع) —
     // نمرر عبر cast ضيّق بدل تعديل ملف الأنواع المولّد يدوياً.
-    const rpc = supabase.rpc as unknown as (
+    const { companyId, productId, warehouseId } = target;
+    const rpc = supabase.rpc.bind(supabase) as unknown as (
       name: string,
       args: Record<string, unknown>
     ) => Promise<{

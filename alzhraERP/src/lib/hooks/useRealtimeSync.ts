@@ -188,6 +188,9 @@ const setupCompanyRealtimeChannel = (companyId: string, queryClient: QueryClient
       logger.debug('Realtime', '✅ Realtime Connection Active');
       setRealtimeStatus('connected');
       stopFallbackPolling(channelId);
+    } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
+      logger.debug('Realtime', `ℹ️ Realtime channel closed: ${status}`);
+      setRealtimeStatus('disconnected');
     } else {
       logger.warn('Realtime', `⚠️ Realtime channel status: ${status}`);
       setRealtimeStatus('disconnected');

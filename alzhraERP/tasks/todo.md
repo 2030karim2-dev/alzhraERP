@@ -29,6 +29,8 @@
   - **درس معالجة الترميز:** تعديل ملفات عربية عبر PowerShell `Set-Content` بدون `-Encoding UTF8` صريح يُفسد UTF-8 → استرجاع الملفات الثلاثة من git وإعادة التعديلات عبر المحرر فقط (تحقق بصري: النصوص سليمة).
 - [x] **التحقق (المرحلة 3):** `tsc`=0 ✅ • `vitest` 567/567 ✅ • **lint الكلي = 9,421 خطأ + 179 تحذير** (التراكمي **−1,222** من 10,643) • baseline حدّث (hooks=82، useStockAudit=23، warehouseApi=5) • `check-lint-ratchet` = OK.
 - [ ] **متبقي بعد هذه الجولة:** الهوكات المخالفة للطبقات (استبدال استدعاء supabase المباشر في 11 هوكاً — الأهم useWarehouseStock/useProductsPaginated) • خفض دَين lint (hooks=82، useStockAudit=23، statement=36، excelEngine=14) • المرحلة 0 الأمنية (تطبيق هجرات B-1 + اختبارات SQL + التحقق الخصمي) تحتاج موافقتك و`SUPABASE_ACCESS_TOKEN`.
+- [x] **إصلاح أخطر هوك مخالف للطبقات — `useWarehouseStock.ts` (أُعيد كتابته بالكامل):** عبر `warehouseApi` بدل `supabase` المباشر (Layer: Hook→API) + `useQuery` بدل `useState/useEffect` + **فلتر `company_id` صريح في كل استعلام** (كان غائباً في `product_stock`!) + أنواع مكتوبة (كان `any[]`) + error state حقيقي في `useWarehousesWithBranches` (كان يبتلع الأخطاء). أُضيفت دالتا `getProductStockByCompany`/`getWarehousesWithBranchesData` إلى `warehouseApi`. الواجهة العامة محفوظة (POSPage دون تغيير). **lint: 46→0 وwarehouseApi 5→0** • tsc=0 • vitest 567/567.
+- [x] **التحقق النهائي:** **lint الكلي = 9,394 خطأ + 179 تحذير** (التراكمي **−1,249** من 10,643) • baseline حدّث (useWarehouseStock=0، warehouseApi=0) • `check-lint-ratchet` = OK.
 
 ## Checkpoint (2026-08-26 evening) — جولة المراجعة العميقة: إغلاق البنود 1/2/3/4/5 ✅
 

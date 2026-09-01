@@ -42,6 +42,11 @@ interface WarehouseBranchRow {
   branches: { name: string } | null;
 }
 
+interface ProductStockResult {
+  stock: WarehouseStockInfo[];
+  branches: BranchStockGroup[];
+}
+
 const NO_BRANCH = '__no_branch__';
 
 const groupByBranch = (items: WarehouseStockInfo[]): BranchStockGroup[] => {
@@ -58,7 +63,7 @@ const groupByBranch = (items: WarehouseStockInfo[]): BranchStockGroup[] => {
     if (!branchMap.has(key)) {
       branchMap.set(key, {
         branch_id: key,
-        branch_name: item.branch_name || 'فرع',
+        branch_name: item.branch_name ?? 'فرع',
         warehouses: [],
         total_quantity: 0,
       });
@@ -81,38 +86,33 @@ export function useWarehouseStock(productId: string | null) {
 
   const query = useQuery({
     queryKey: ['product_stock', companyId, productId],
-    queryFn: async () => {
-      if (!companyId || !productId) {
-        return { stock: [] as WarehouseStockInfo[], branches: [] as BranchStockGroup[] };
+    queryFn: async (): Promise<ProductStockResult> => {
+      if (companyId == null || productId == null) {
+        return { stock: [], branches: [] };
       }
 
       const { data, error } = await warehouseApi.getProductStockByCompany(companyId, productId);
       if (error) throw error;
 
-      const rows = (data ?? []) as unknown as StockRow[];
+      const rows = data as StockRow[];
       const mapped: WarehouseStockInfo[] = rows.map(item => ({
         warehouse_id: item.warehouse_id,
         warehouse_name: item.warehouses?.name_ar ?? 'مستودع',
-        quantity: Number(item.quantity) || 0,
+        quantity: item.quantity || 0,
         branch_id: item.warehouses?.branch_id ?? null,
         branch_name: item.warehouses?.branches?.name ?? '',
       }));
 
       return { stock: mapped, branches: groupByBranch(mapped) };
     },
-    enabled: Boolean(companyId && productId),
+    enabled: Boolean(companyId) && Boolean(productId),
   });
 
   return {
     stockData: query.data?.stock ?? [],
     branchGroups: query.data?.branches ?? [],
     isLoading: query.isLoading,
-    error:
-      query.error instanceof Error
-        ? query.error.message
-        : query.error !== null
-          ? 'فشل في تحميل بيانات المخزون'
-          : null,
+    error: query.error?.message ?? null,
     refetch: () => {
       void query.refetch();
     },
@@ -128,11 +128,11 @@ export function useWarehousesWithBranches() {
 
   const query = useQuery({
     queryKey: ['warehouses_with_branches', companyId],
-    queryFn: async () => {
-      if (!companyId) return [] as WarehouseBranchRow[];
+    queryFn: async (): Promise<WarehouseBranchRow[]> => {
+      if (companyId == null) return [];
       const { data, error } = await warehouseApi.getWarehousesWithBranchesData(companyId);
       if (error) throw error;
-      return (data ?? []) as unknown as WarehouseBranchRow[];
+      return data as WarehouseBranchRow[];
     },
     enabled: Boolean(companyId),
   });
@@ -140,11 +140,6 @@ export function useWarehousesWithBranches() {
   return {
     warehouses: query.data ?? [],
     isLoading: query.isLoading,
-    error:
-      query.error instanceof Error
-        ? query.error.message
-        : query.error !== null
-          ? 'فشل في تحميل المستودعات'
-          : null,
+    error: query.error?.message ?? null,
   };
 }
