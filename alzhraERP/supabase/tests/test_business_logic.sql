@@ -38,7 +38,7 @@ BEGIN
   END IF;
 
   -- Set up.
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_IDEM', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_IDEM', 'اختبار');
   IF EXISTS (SELECT 1 FROM information_schema.tables
              WHERE table_schema = 'public' AND table_name = 'parties') THEN
     INSERT INTO public.parties (id, company_id, name, type, created_by)
@@ -131,7 +131,7 @@ BEGIN
     RETURN;
   END IF;
 
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_RACE', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_RACE', 'اختبار');
   INSERT INTO public.user_company_roles (user_id, company_id, role) VALUES (v_user, v_company, 'admin');
 
   -- Create a product and warehouse.
@@ -247,7 +247,7 @@ BEGIN
   END IF;
 
   -- Set up two companies, two users.
-  INSERT INTO public.companies (id, name, name_ar)
+  INSERT INTO public.companies (id, name_en, name_ar)
   VALUES (v_company_a, 'TEST_XA', 'أ'), (v_company_b, 'TEST_XB', 'ب');
   INSERT INTO public.user_company_roles (user_id, company_id, role)
   VALUES (v_user_a, v_company_a, 'admin');
@@ -315,7 +315,7 @@ BEGIN
     RETURN;
   END IF;
 
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_FIN', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_FIN', 'اختبار');
   INSERT INTO public.user_company_roles (user_id, company_id, role) VALUES (v_user, v_company, 'admin');
   IF EXISTS (SELECT 1 FROM information_schema.tables
              WHERE table_schema = 'public' AND table_name = 'parties') THEN

@@ -116,10 +116,8 @@ BEGIN
   END IF;
 
   -- Create the two test companies.
-  INSERT INTO public.companies (id, name, name_ar)
-  VALUES
-    (v_company_a, 'TEST_COMPANY_A', 'شركة اختبار أ'),
-    (v_company_b, 'TEST_COMPANY_B', 'شركة اختبار ب');
+  INSERT INTO public.companies (id, name_en, name_ar)
+  VALUES (v_company_a, 'TENANT_A', 'شركة أ'), (v_company_b, 'TENANT_B', 'شركة ب');
 
   -- Create the two test users (as auth.users if accessible, else skip).
   BEGIN
@@ -357,7 +355,7 @@ BEGIN
     RETURN;
   END IF;
 
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_RACE', 'سباق اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_RACE', 'سباق اختبار');
 
   INSERT INTO public.invoices (company_id, type, total_amount, idempotency_key)
   VALUES (v_company, 'sale', 100, v_key)

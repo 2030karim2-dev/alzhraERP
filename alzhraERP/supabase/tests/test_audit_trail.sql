@@ -53,7 +53,7 @@ DECLARE
   v_inserted_count int;
   v_action_in_db text;
 BEGIN
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_AUDIT', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_AUDIT', 'اختبار');
 
   BEGIN
     v_id := public.audit_write(

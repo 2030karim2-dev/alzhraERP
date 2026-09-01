@@ -55,7 +55,9 @@ const DebtPromisesPage = lazy(() => import('../features/debts/pages/PromisesPage
 const DebtOutboxPage = lazy(() => import('../features/debts/pages/OutboxPage'));
 const DebtStatementsPage = lazy(() => import('../features/debts/pages/StatementsPage'));
 const DebtSettingsPage = lazy(() => import('../features/debts/pages/SettingsPage'));
-const SupplierPortalPage = lazy(() => import('../features/supplier-portal/pages/SupplierPortalPage'));
+const SupplierPortalPage = lazy(
+  () => import('../features/supplier-portal/pages/SupplierPortalPage')
+);
 const ChatHubPage = lazy(() => import('../features/chat').then(m => ({ default: m.ChatHubPage })));
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
@@ -70,7 +72,9 @@ const NotFoundPage: React.FC = () => {
       <h2 className="text-2xl font-bold text-[var(--app-text)]">{t('page_not_found_title')}</h2>
       <p className="mt-2 text-sm text-[var(--app-text-secondary)]">{t('page_not_found_desc')}</p>
       <button
-        onClick={() => navigate(ROUTES.DASHBOARD.ROOT)}
+        onClick={() => {
+          void navigate(ROUTES.DASHBOARD.ROOT);
+        }}
         className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
       >
         {t('back_to_home')}
@@ -275,29 +279,18 @@ export const AppRoutes: React.FC = () => {
             </FeatureBoundary>
           }
         />
+        {/* Legacy /parties/* routes → redirect to the unified /clients & /suppliers */}
         <Route
-          path={ROUTES.DASHBOARD.PARTIES}
-          element={
-            <FeatureBoundary name="parties">
-              <PartiesPage partyType="customer" />
-            </FeatureBoundary>
-          }
+          path={ROUTES.DASHBOARD.LEGACY.PARTIES}
+          element={<Navigate to={ROUTES.DASHBOARD.CLIENTS} replace />}
         />
         <Route
-          path={ROUTES.DASHBOARD.PARTIES_CUSTOMERS}
-          element={
-            <FeatureBoundary name="parties-customers">
-              <PartiesPage partyType="customer" />
-            </FeatureBoundary>
-          }
+          path={ROUTES.DASHBOARD.LEGACY.PARTIES_CUSTOMERS}
+          element={<Navigate to={ROUTES.DASHBOARD.CLIENTS} replace />}
         />
         <Route
-          path={ROUTES.DASHBOARD.PARTIES_SUPPLIERS}
-          element={
-            <FeatureBoundary name="parties-suppliers">
-              <PartiesPage partyType="supplier" />
-            </FeatureBoundary>
-          }
+          path={ROUTES.DASHBOARD.LEGACY.PARTIES_SUPPLIERS}
+          element={<Navigate to={ROUTES.DASHBOARD.SUPPLIERS} replace />}
         />
 
         {/* Settings & Appearance */}

@@ -1,158 +1,150 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+// ============================================
+// useWarehouseStock — مخزون منتج عبر المستودعات/الفروع
+// أُعيدت كتابته فوق طبقة warehouseApi (Component → Hook → API):
+//   * useQuery بدل useState/useEffect (اصطلاح TanStack Query)
+//   * فلتر company_id صريح في كل استعلام (عزل المستأجرين)
+//   * أنواع مكتوبة (صفر any) + error state حقيقي في الهوك الثاني
+// ============================================
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
-import { logger } from '../../../core/utils/logger';
+import { warehouseApi } from '../api/warehouseApi';
 
 export interface WarehouseStockInfo {
-    warehouse_id: string;
-    warehouse_name: string;
-    quantity: number;
-    branch_id?: string | null;
-    branch_name?: string;
+  warehouse_id: string;
+  warehouse_name: string;
+  quantity: number;
+  branch_id?: string | null;
+  branch_name?: string;
 }
 
 export interface BranchStockGroup {
-    branch_id: string;
-    branch_name: string;
-    warehouses: WarehouseStockInfo[];
-    total_quantity: number;
+  branch_id: string;
+  branch_name: string;
+  warehouses: WarehouseStockInfo[];
+  total_quantity: number;
 }
 
+interface StockRow {
+  quantity: number;
+  warehouse_id: string;
+  warehouses: {
+    name_ar: string;
+    branch_id: string | null;
+    branches: { name: string } | null;
+  } | null;
+}
+
+interface WarehouseBranchRow {
+  id: string;
+  name_ar: string;
+  location: string | null;
+  branch_id: string | null;
+  branches: { name: string } | null;
+}
+
+const NO_BRANCH = '__no_branch__';
+
+const groupByBranch = (items: WarehouseStockInfo[]): BranchStockGroup[] => {
+  const branchMap = new Map<string, BranchStockGroup>();
+  branchMap.set(NO_BRANCH, {
+    branch_id: NO_BRANCH,
+    branch_name: 'بدون فرع',
+    warehouses: [],
+    total_quantity: 0,
+  });
+
+  for (const item of items) {
+    const key = item.branch_id ?? NO_BRANCH;
+    if (!branchMap.has(key)) {
+      branchMap.set(key, {
+        branch_id: key,
+        branch_name: item.branch_name || 'فرع',
+        warehouses: [],
+        total_quantity: 0,
+      });
+    }
+    const group = branchMap.get(key);
+    if (group === undefined) continue;
+    group.warehouses.push(item);
+    group.total_quantity += item.quantity;
+  }
+
+  return Array.from(branchMap.values());
+};
+
 /**
- * Hook to fetch stock availability for a product across all warehouses/branches
+ * Hook to fetch stock availability for a product across all warehouses/branches.
  */
 export function useWarehouseStock(productId: string | null) {
-    const [stockData, setStockData] = useState<WarehouseStockInfo[]>([]);
-    const [branchGroups, setBranchGroups] = useState<BranchStockGroup[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { user } = useAuthStore();
+  const { user } = useAuthStore();
+  const companyId = user?.company_id;
 
-    const fetchStock = useCallback(async () => {
-        if (!productId || !user?.company_id) {
-            setStockData([]);
-            setBranchGroups([]);
-            return;
-        }
+  const query = useQuery({
+    queryKey: ['product_stock', companyId, productId],
+    queryFn: async () => {
+      if (!companyId || !productId) {
+        return { stock: [] as WarehouseStockInfo[], branches: [] as BranchStockGroup[] };
+      }
 
-        setIsLoading(true);
-        setError(null);
+      const { data, error } = await warehouseApi.getProductStockByCompany(companyId, productId);
+      if (error) throw error;
 
-        try {
-            // Fetch product stock with warehouse and branch info
-            const { data, error: stockError } = await supabase
-                .from('product_stock')
-                .select(`
-          quantity,
-          warehouse_id,
-          warehouses!inner(
-            id,
-            name_ar,
-            branch_id,
-            branches:branch_id(
-              id,
-              name
-            )
-          )
-        `)
-                .eq('product_id', productId)
-                .gt('quantity', 0);
+      const rows = (data ?? []) as unknown as StockRow[];
+      const mapped: WarehouseStockInfo[] = rows.map(item => ({
+        warehouse_id: item.warehouse_id,
+        warehouse_name: item.warehouses?.name_ar ?? 'مستودع',
+        quantity: Number(item.quantity) || 0,
+        branch_id: item.warehouses?.branch_id ?? null,
+        branch_name: item.warehouses?.branches?.name ?? '',
+      }));
 
-            if (stockError) throw stockError;
+      return { stock: mapped, branches: groupByBranch(mapped) };
+    },
+    enabled: Boolean(companyId && productId),
+  });
 
-            const mapped: WarehouseStockInfo[] = (data || []).map((item: any) => ({
-                warehouse_id: item.warehouse_id,
-                warehouse_name: item.warehouses?.name_ar || 'مستودع',
-                quantity: Number(item.quantity) || 0,
-                branch_id: item.warehouses?.branch_id || null,
-                branch_name: item.warehouses?.branches?.name || '',
-            }));
-
-            setStockData(mapped);
-
-            // Group by branch
-            const branchMap = new Map<string, BranchStockGroup>();
-
-            // Add "No Branch" group for warehouses without branches
-            branchMap.set('__no_branch__', {
-                branch_id: '__no_branch__',
-                branch_name: 'بدون فرع',
-                warehouses: [],
-                total_quantity: 0,
-            });
-
-            for (const wh of mapped) {
-                const key = wh.branch_id || '__no_branch__';
-                if (!branchMap.has(key)) {
-                    branchMap.set(key, {
-                        branch_id: key,
-                        branch_name: wh.branch_name || 'فرع',
-                        warehouses: [],
-                        total_quantity: 0,
-                    });
-                }
-                const group = branchMap.get(key)!;
-                group.warehouses.push(wh);
-                group.total_quantity += wh.quantity;
-            }
-
-            setBranchGroups(Array.from(branchMap.values()));
-        } catch (err: any) {
-            logger.error("useWarehouseStock", 'useWarehouseStock error:', err);
-            setError(err.message || 'فشل في تحميل بيانات المخزون');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [productId, user?.company_id]);
-
-    useEffect(() => {
-        fetchStock();
-    }, [fetchStock]);
-
-    return {
-        stockData,
-        branchGroups,
-        isLoading,
-        error,
-        refetch: fetchStock,
-    };
+  return {
+    stockData: query.data?.stock ?? [],
+    branchGroups: query.data?.branches ?? [],
+    isLoading: query.isLoading,
+    error:
+      query.error instanceof Error
+        ? query.error.message
+        : query.error !== null
+          ? 'فشل في تحميل بيانات المخزون'
+          : null,
+    refetch: () => {
+      void query.refetch();
+    },
+  };
 }
 
 /**
- * Hook to fetch all warehouses with their branch info for the POS filter
+ * Hook to fetch all warehouses with their branch info for the POS filter.
  */
 export function useWarehousesWithBranches() {
-    const [warehouses, setWarehouses] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const { user } = useAuthStore();
+  const { user } = useAuthStore();
+  const companyId = user?.company_id;
 
-    useEffect(() => {
-        if (!user?.company_id) return;
+  const query = useQuery({
+    queryKey: ['warehouses_with_branches', companyId],
+    queryFn: async () => {
+      if (!companyId) return [] as WarehouseBranchRow[];
+      const { data, error } = await warehouseApi.getWarehousesWithBranchesData(companyId);
+      if (error) throw error;
+      return (data ?? []) as unknown as WarehouseBranchRow[];
+    },
+    enabled: Boolean(companyId),
+  });
 
-        setIsLoading(true);
-        Promise.resolve(supabase
-            .from('warehouses')
-            .select(`
-        id,
-        name_ar,
-        location,
-        branch_id,
-        branches:branch_id(
-          id,
-          name
-        )
-      `)
-            .eq('company_id', user.company_id)
-            .is('deleted_at', null)
-            .then((result: { data: any; error: any }) => {
-                if (result.error) {
-                    logger.error("useWarehouseStock", 'useWarehousesWithBranches error:', result.error);
-                    return;
-                }
-                setWarehouses(result.data || []);
-            })
-        ).finally(() => setIsLoading(false));
-    }, [user?.company_id]);
-
-    return { warehouses, isLoading };
+  return {
+    warehouses: query.data ?? [],
+    isLoading: query.isLoading,
+    error:
+      query.error instanceof Error
+        ? query.error.message
+        : query.error !== null
+          ? 'فشل في تحميل المستودعات'
+          : null,
+  };
 }

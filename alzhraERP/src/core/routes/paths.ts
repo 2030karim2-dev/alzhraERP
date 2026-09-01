@@ -21,9 +21,13 @@ export const ROUTES = {
     BONDS: '/bonds',
     SUPPLIERS: '/suppliers',
     CLIENTS: '/clients',
-    PARTIES: '/parties',
-    PARTIES_CUSTOMERS: '/parties/customers',
-    PARTIES_SUPPLIERS: '/parties/suppliers',
+    LEGACY: {
+      // Old party routes — kept ONLY as redirect targets to /clients & /suppliers
+      // (see plans/party-routes-tabs-cleanup.md). Do not link to these.
+      PARTIES: '/parties',
+      PARTIES_CUSTOMERS: '/parties/customers',
+      PARTIES_SUPPLIERS: '/parties/suppliers',
+    },
     REPORTS: '/reports',
     COMMISSIONS: '/commissions',
     COMMISSIONS_CONFIG: '/commissions/configuration',

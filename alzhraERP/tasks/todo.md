@@ -1,5 +1,35 @@
 # TODO — الإصلاح والتحسين الشامل
 
+## Checkpoint (2026-09-01) — تدقيق عميق صارم + تنفيذ المرحلتين 1 و2 من خطة الإصلاح 🔄
+
+**نتائج التدقيق (قياسات حية):** tsc=0 ✅ • vitest 567/567 ✅ • i18n 0 مفقودة ✅ • لا أسرار مكشوفة ✅ • **lint = 10,643 خطأ + 182 تحذير** (أسوأها سلوكياً: 172 `no-floating-promises` في 76 ملفاً — الأسوأ useStockAudit=16/settings-hooks=15؛ 414 object-injection؛ 132 misused-promises) • **396 `any` + 144 `as unknown as` + 33 console.log** • TOCTOU موثق في `inventory/api/warehouseApi.updateStock` • 11 هوكاً يستدعي supabase مباشرة (خرق الطبقات) • الهجرات الأمنية B-1 (20260826000000→010) لا تزال بانتظار التطبيق على الإنتاج + اختبارات SQL الـ56 + التحقق الخصمي B-3.
+
+- [x] **المرحلة 1 — حذف الكود الميت (4 كتل، grep شامل قبل الحذف):**
+  - `src/ui/cards/` كاملة (5 ملفات — Card Design System v2.0، 0 مستوردات، علمها الوحيد featureFlags الميت).
+  - `src/config/featureFlags.ts` (0 مستوردات) → حُذف مجلد config كاملاً.
+  - `src/core/adapters/index.ts` (~600 سطر، 0 مستوردات، كان أكبر ملف مخالف للـlint بـ388 خطأ).
+  - `src/features/customers/` (shim إعادة تصدير يتيم — النسخة الفعالة `parties/components/CustomerSegmentation.tsx` يستخدمها DashboardPage ولم تُمس).
+  - تنظيف `scripts/lint-baseline.json` من 8 مفاتيح ميتة (منع فشل زائف في الـratchet).
+- [x] **المرحلة 2أ — توحيد `warehouseApi`:** حذف `settings/api/warehouseApi.ts` (النسخة المكررة، كان `deleteWarehouse` مكرراً حرفياً)؛ دمج `fetchWarehouses`/`upsertWarehouse` في الكانوني `inventory/api/warehouseApi.ts`؛ `settings/services/warehouseService.ts` يستهلك الكانوني. ملاحظة: `inventory/services/warehouseService.ts` ما زالت وحدة مستقلة دالة مختلفة (follow-up).
+- [x] **المرحلة 2ب — توحيد مسارات الأطراف** (تنفيذ `plans/party-routes-tabs-cleanup.md`): المسارات الحية الآن `/clients` و`/suppliers` فقط؛ `/parties` و`/parties/customers` → redirect إلى `/clients`، و`/parties/suppliers` → `/suppliers` (انحراف مقصود عن نص الخطة حفاظاً على قصد المستخدم)؛ حذف الثوابت الحية وإبقاؤها تحت `ROUTES.DASHBOARD.LEGACY` كأهداف redirect فقط؛ **مبدّل نوع (عميل/مورد)** في `PartiesPage` فوق تبويبات العرض بمصدر حقيقة URL (`role="tablist"`؛ aria-selected)؛ `routePrefetcher` صار يطابق `/clients`+`/suppliers`.
+- [x] **إصلاحات صغيرة:** `LoginForm` — رابط `#/forgot-password` الثابت → `Link` + `ROUTES.AUTH.FORGOT_PASSWORD`؛ `PartiesPage` — `navigate('/pos')` → `ROUTES.DASHBOARD.POS`؛ اختبار `CTASection` غُلّف بـ`MemoryRouter` (لأن `LoginForm` صار يستخدم `<Link>`).
+- [x] **التحقق النهائي (كل القياسات على النسخة النهائية):** `tsc --noEmit` = صفر أخطاء ✅ • `vitest run` = **567/567 (72 ملف)** ✅ • **lint الكلي = 10,226 خطأ + 179 تحذير** (انخفاض −417 خطأ/−3 تحذير من خط الأساس 10,643/182) • `check-lint-ratchet` على الملفات المعدّلة الثمانية = **OK (صفر دين جديد)** — أخطاء `complexity` و`no-floating-promises` و`no-misused-promises` الجديدة من مبدّل النوع عولجت؛ سُجّل دَين `routes.tsx` القديم (max-lines-per-function=1) في baseline كديون موثقة.
+- [ ] **ملاحظات مسجلة لمتابعة لاحقة:** `PartiesPage:186` ما زالت تستخدم `window.confirm` (المفترض ConfirmModal حسب checkpoint 2026-08-20)؛ Debts الفرعية بلا FeatureBoundary؛ `isValidSupabaseUrl` يفرض `.supabase.co` (يكسر الاستضافة الذاتية)؛ `inventory/services/warehouseService.ts` مستقلة عن settings-warehouseService (توحيد محتمل).
+- [x] **المرحلة 2ج — توحيد عائلة مُصدِّرات Excel:** قاعدة جديدة `src/core/utils/excelExporterBase.ts` (0 أخطاء lint) توحّد: اللودر `loadXLSX` (مع إعادة محاولة)، `sanitizeFileName`، `buildStyledSheet` (أعمدة+دمج+تنسيق قياسي RTL)، `saveWorkbookToFile`/`workbookToBlob`. أُعيدت كتابة فوقها:
+  - `invoiceExcelExporter.ts` 109→**0**، `quotationExcelExporter.ts` 119→**0**، `bondExcelExporter.ts` 196→**0**، `returnsExcelExporter.ts` 213→**0**.
+  - تحسين مقصود موثق: في «سند واحد» كانت الـmerges وتنسيق رأس الجدول تشير لصفوف فارغة (R10/R12) — صُحّحت إلى الصفوف الفعلية (R11/R13/R14).
+  - استُبدل اللودر المحلي باستيراد القاعدة في `statementExcelExporter.ts` (187→**36** — الوصول المطبع الآمن عبر `getCell` أزال no-unsafe المتسلسلة) — مع تصدير `XlsxCell`/`XlsxSheet` من القاعدة.
+  - `excelEngine.ts` أُعيد إليه لودره المحلي (نمط قراءة مستقل بـ`read`/`sheet_to_json` — لم يشارك بنية التنسيق) وأخطاؤه المتبقية 14 مسجلة في baseline.
+  - ملاحظة: بقي لودران مكرران خارج النطاق (ديون موثقة): `inventory/hooks/useExcelImport.ts` و`smart-import/components/SmartImportModal.tsx`.
+- [x] **التحقق (المرحلة 2ج):** `tsc`=0 ✅ • `vitest` 567/567 ✅ • eslint: الخمسة + القاعدة = **0 أخطاء**، statement=36، excelEngine=14 (ديون قديمة) ✅ • `lint-baseline.json` حدّث (invoice/quotation/bond/returns/base=0، statement=36، excelEngine=14) • `check-lint-ratchet` = **OK** ✅ • **lint الكلي = 9,434 خطأ + 179 تحذير** (−792 من 10,226، و−1,209 تراكميًا منذ بداية الجلسة من 10,643).
+- [x] **المرحلة 3 — الإصلاحات السلوكية (جولة سريعة مركزة):**
+  - **إصلاح TOCTOU في `inventory/api/warehouseApi.updateStock`:** RPC ذري جديد `adjust_stock_atomic` (هجرة `20260901000004_fix_update_stock_atomic.sql` — auth.uid + fn_assert_company_access + search_path + قراءة وإدراج داخل معاملة واحدة) مع fallback للكود القديم عند غياب RPC من الخادم (42883/PGRST202). ⚠️ التطبيق على قاعدة الإنتاج يتطلب SUPABASE_ACCESS_TOKEN.
+  - **إصلاح 15 no-floating-promises في `settings/hooks.ts`** (كل onSuccess صار async مع await على invalidateQueries) و**16 في `useStockAudit.ts`** (async onSuccess + await + void على syncStore.enqueue) — انخفاض الملف: 39→**23**.
+  - **إصلاح tsc:** `PrayerTimesModal.tsx` — إزالة استيراد `Heart` غير المستخدم (TS6133). ملاحظة: baseline الملف كان قديماً (13) والديون الفعلية 38 (سابقة، غير مسجلة) — حُدّث baseline إلى 38 وتوثيق.
+  - **درس معالجة الترميز:** تعديل ملفات عربية عبر PowerShell `Set-Content` بدون `-Encoding UTF8` صريح يُفسد UTF-8 → استرجاع الملفات الثلاثة من git وإعادة التعديلات عبر المحرر فقط (تحقق بصري: النصوص سليمة).
+- [x] **التحقق (المرحلة 3):** `tsc`=0 ✅ • `vitest` 567/567 ✅ • **lint الكلي = 9,421 خطأ + 179 تحذير** (التراكمي **−1,222** من 10,643) • baseline حدّث (hooks=82، useStockAudit=23، warehouseApi=5) • `check-lint-ratchet` = OK.
+- [ ] **متبقي بعد هذه الجولة:** الهوكات المخالفة للطبقات (استبدال استدعاء supabase المباشر في 11 هوكاً — الأهم useWarehouseStock/useProductsPaginated) • خفض دَين lint (hooks=82، useStockAudit=23، statement=36، excelEngine=14) • المرحلة 0 الأمنية (تطبيق هجرات B-1 + اختبارات SQL + التحقق الخصمي) تحتاج موافقتك و`SUPABASE_ACCESS_TOKEN`.
+
 ## Checkpoint (2026-08-26 evening) — جولة المراجعة العميقة: إغلاق البنود 1/2/3/4/5 ✅
 
 - [x] **فصل الطبقات (auth):** `SecuritySettings` لم يعد يستدعي supabase مباشرة — `authApi.terminateOtherSessions()` + `useTerminateSessions`.

@@ -15,10 +15,16 @@ import {
   Radio,
   Bell,
   CheckCircle2,
+  Copy,
+  Check,
+  BookOpen,
+  ShieldCheck,
+  Repeat,
 } from 'lucide-react';
 import { useDhikrStore, POPULAR_CITIES } from './dhikrStore';
 import { usePrayerTimes } from './usePrayerTimes';
 import { DHIKR_LIST } from './dhikrList';
+import type { DhikrItem } from './types';
 import {
   ADHAN_RECITERS,
   playAdhanSound,
@@ -32,6 +38,15 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
+
+type TabType =
+  | 'prayers'
+  | 'tasbeeh_tahleel'
+  | 'quran_prophet'
+  | 'istighfar'
+  | 'debt_rizq'
+  | 'protection_salawat'
+  | 'counter';
 
 export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const {
@@ -51,18 +66,33 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [gpsStatus, setGpsStatus] = useState<string | null>(null);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [playingAdhan, setPlayingAdhan] = useState(isAdhanPlaying());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [notifPermission, setNotifPermission] = useState<string>(() =>
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
   );
-  const [activeTab, setActiveTab] = useState<
-    'prayers' | 'debt_duas' | 'istighfar' | 'rizq' | 'tasbeeh'
-  >('prayers');
+
+  const [activeTab, setActiveTab] = useState<TabType>('prayers');
+
+  // Interactive Tasbeeh State
   const [tasbeehCount, setTasbeehCount] = useState(0);
-  const [selectedDhikr] = useState('سُبْحَانَ اللهِ وَبِحَمْدِهِ ، سُبْحَانَ اللهِ الْعَظِيمِ');
+  const [tasbeehGoal, setTasbeehGoal] = useState<33 | 100 | 0>(33);
+  const [selectedDhikr, setSelectedDhikr] = useState(
+    'سُبْحَانَ اللهِ وَبِحَمْدِهِ ، سُبْحَانَ اللهِ الْعَظِيمِ'
+  );
 
   useEffect(() => {
     return subscribeAdhanState(setPlayingAdhan);
   }, []);
+
+  const handleCopyText = (item: DhikrItem) => {
+    if (navigator?.clipboard) {
+      void navigator.clipboard.writeText(item.text);
+      setCopiedId(item.id);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    }
+  };
 
   const handleGpsClick = async () => {
     setIsLocating(true);
@@ -97,13 +127,19 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Filter adhkar by category
-  const debtDuas = DHIKR_LIST.filter(d => d.id.startsWith('dua-debt'));
-  const istighfarDuas = DHIKR_LIST.filter(
-    d => d.id.includes('astaghfirullah') || d.id.includes('sayyid')
+  // Categorized Dhikr Collections
+  const tasbeehAndTakbeer = DHIKR_LIST.filter(
+    d => d.category === 'tasbeeh' || d.category === 'tahleel' || d.category === 'takbeer'
   );
-  const rizqDuas = DHIKR_LIST.filter(
-    d => d.id.startsWith('rizq') || d.id.includes('market') || d.id.includes('tawakkul')
+  const quranAndProphetDuas = DHIKR_LIST.filter(
+    d => d.category === 'quran_duas' || d.category === 'prophet_duas'
+  );
+  const istighfarDuas = DHIKR_LIST.filter(d => d.category === 'istighfar');
+  const debtAndRizqDuas = DHIKR_LIST.filter(
+    d => d.category === 'debt_relief' || d.category === 'rizq_work'
+  );
+  const protectionAndSalawat = DHIKR_LIST.filter(
+    d => d.category === 'morning_evening' || d.category === 'salawat'
   );
 
   const formatTime = (timestamp: number) => {
@@ -115,42 +151,104 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
     });
   };
 
+  const renderDhikrCard = (item: DhikrItem, idx: number, themeColor: string) => (
+    <div
+      key={item.id}
+      className="group relative rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs transition-all hover:border-emerald-300 hover:shadow-md dark:border-slate-700/80 dark:bg-slate-800"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <span
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${themeColor}`}
+          >
+            {idx + 1}
+          </span>
+          <div className="space-y-1.5">
+            <p className="text-sm font-bold leading-relaxed text-slate-900 dark:text-slate-100">
+              «{item.text}»
+            </p>
+            {item.source && (
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                {item.source}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1">
+          {item.repeatCount && (
+            <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <Repeat size={11} />
+              <span>{item.repeatCount} مرات</span>
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => handleCopyText(item)}
+            title="نسخ الذكر"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-700"
+          >
+            {copiedId === item.id ? (
+              <Check size={14} className="text-emerald-600" />
+            ) : (
+              <Copy size={14} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDhikr(item.text);
+              setTasbeehCount(0);
+              setActiveTab('counter');
+            }}
+            title="نقل إلى السبحة الإلكترونية"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="" size="2xl" hideHeader>
       <div className="font-cairo relative overflow-hidden p-4 text-slate-800 dark:text-slate-100 md:p-6">
         {/* Header Strip with Islamic Gradient */}
         <div className="relative z-10 mb-4 flex items-center justify-between border-b border-emerald-500/20 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-500/30">
-              <Moon size={20} className="text-amber-200" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-500/30">
+              <Moon size={22} className="text-amber-200" />
             </div>
             <div>
-              <h2 className="bg-gradient-to-l from-emerald-600 to-teal-700 bg-clip-text text-lg font-bold text-transparent dark:from-emerald-400 dark:to-teal-300 md:text-xl">
-                الواحة الإيمانية ومواقيت الصلاة
+              <h2 className="bg-gradient-to-l from-emerald-600 via-teal-600 to-teal-700 bg-clip-text text-lg font-black text-transparent dark:from-emerald-400 dark:via-teal-300 dark:to-teal-200 md:text-xl">
+                الواحة الإيمانية ومواقيت الصلاة والأذكار
               </h2>
-              <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                 <span>{city || 'الرياض (تلقائي)'}</span>
                 <span className="text-emerald-500">•</span>
                 <span>تقويم أم القرى</span>
+                <span className="text-emerald-500">•</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  {DHIKR_LIST.length} ذكر ودعاء مأثور
+                </span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Tabs Navigation */}
-        <div className="mb-5 flex flex-wrap gap-2">
+        <div className="mb-5 flex flex-wrap gap-1.5">
           <button
             onClick={() => setActiveTab('prayers')}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'prayers'
                 ? 'scale-102 bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                 : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
@@ -161,45 +259,69 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('debt_duas')}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-              activeTab === 'debt_duas'
-                ? 'scale-102 bg-amber-600 text-white shadow-md shadow-amber-600/30'
-                : 'bg-slate-100 text-slate-600 hover:bg-amber-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Coins size={14} />
-            <span>أدعية قضاء الدين</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('rizq')}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-              activeTab === 'rizq'
+            onClick={() => setActiveTab('tasbeeh_tahleel')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+              activeTab === 'tasbeeh_tahleel'
                 ? 'scale-102 bg-teal-600 text-white shadow-md shadow-teal-600/30'
                 : 'bg-slate-100 text-slate-600 hover:bg-teal-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
           >
             <Sparkles size={14} />
-            <span>البركة في الرزق والتجارة</span>
+            <span>التسابيح والتهليل والتكبير</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('quran_prophet')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+              activeTab === 'quran_prophet'
+                ? 'scale-102 bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'bg-slate-100 text-slate-600 hover:bg-indigo-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            }`}
+          >
+            <BookOpen size={14} />
+            <span>أدعية القرآن والسنة</span>
           </button>
 
           <button
             onClick={() => setActiveTab('istighfar')}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'istighfar'
                 ? 'scale-102 bg-blue-600 text-white shadow-md shadow-blue-600/30'
                 : 'bg-slate-100 text-slate-600 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
           >
             <HeartHandshake size={14} />
-            <span>سيد الاستغفار والتوبة</span>
+            <span>الاستغفار وسيد الاستغفار</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('tasbeeh')}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-              activeTab === 'tasbeeh'
+            onClick={() => setActiveTab('debt_rizq')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+              activeTab === 'debt_rizq'
+                ? 'scale-102 bg-amber-600 text-white shadow-md shadow-amber-600/30'
+                : 'bg-slate-100 text-slate-600 hover:bg-amber-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            }`}
+          >
+            <Coins size={14} />
+            <span>الرزق وقضاء الدين</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('protection_salawat')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+              activeTab === 'protection_salawat'
+                ? 'scale-102 bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                : 'bg-slate-100 text-slate-600 hover:bg-rose-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            }`}
+          >
+            <ShieldCheck size={14} />
+            <span>الحفظ والصلاة على النبي ﷺ</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('counter')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+              activeTab === 'counter'
                 ? 'scale-102 bg-purple-600 text-white shadow-md shadow-purple-600/30'
                 : 'bg-slate-100 text-slate-600 hover:bg-purple-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
@@ -209,7 +331,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Tab 1: Prayer Times & Adhan System */}
+        {/* ── TAB 1: PRAYER TIMES & ADHAN ─────────────────────────────────── */}
         {activeTab === 'prayers' && (
           <div className="space-y-4">
             {/* City & GPS Selector Bar */}
@@ -219,10 +341,10 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => setShowCityDropdown(!showCityDropdown)}
-                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 dark:bg-slate-800 dark:text-emerald-300"
+                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition-all hover:bg-emerald-50 dark:bg-slate-800 dark:text-emerald-300"
                   >
                     <MapPin size={14} className="text-emerald-600" />
-                    <span>المدينة: {city || 'شحن - المهرة (اليمن)'}</span>
+                    <span>المدينة: {city || 'الرياض'}</span>
                     <span className="py-0.2 rounded bg-emerald-100 px-1.5 text-[10px] text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
                       تغيير ▼
                     </span>
@@ -264,7 +386,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <button
                   onClick={handleGpsClick}
                   disabled={isLocating}
-                  className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50 active:scale-95 disabled:opacity-50 dark:bg-slate-800 dark:text-emerald-300"
+                  className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-xs transition-all hover:bg-emerald-50 active:scale-95 disabled:opacity-50 dark:bg-slate-800 dark:text-emerald-300"
                 >
                   <MapPin
                     size={14}
@@ -279,7 +401,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   onClick={() => setSoundEnabled(!soundEnabled)}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                     soundEnabled
-                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
+                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
                       : 'border-slate-300 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-800'
                   }`}
                 >
@@ -362,7 +484,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            {/* Advanced Adhan Audio Center (تحكم الأذان المطور) */}
+            {/* Advanced Adhan Audio Center */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5 dark:border-slate-800">
                 <div className="flex items-center gap-2">
@@ -375,7 +497,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={handleRequestNotification}
-                    className="shadow-2xs inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-800 dark:text-indigo-300"
+                    className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-800 dark:text-indigo-300"
                   >
                     <Bell size={12} />
                     تفعيل إشعارات سطح المكتب
@@ -407,7 +529,7 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         }}
                         className={`flex flex-col items-start rounded-xl border p-2.5 text-right transition-all ${
                           isSelected
-                            ? 'border-emerald-600 bg-emerald-50/80 text-emerald-950 shadow-sm ring-1 ring-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-100'
+                            ? 'border-emerald-600 bg-emerald-50/80 text-emerald-950 shadow-xs ring-1 ring-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-100'
                             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300'
                         }`}
                       >
@@ -426,7 +548,6 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
               {/* Volume Slider & Play/Stop Action */}
               <div className="flex flex-col items-stretch justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3 dark:border-slate-800 dark:bg-slate-800/80 sm:flex-row sm:items-center">
-                {/* Volume Slider */}
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -452,149 +573,208 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Big Test / Stop Audio Button */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleToggleAdhanAudio}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all active:scale-95 ${
-                      playingAdhan
-                        ? 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700'
-                        : 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
-                    }`}
-                  >
-                    {playingAdhan ? (
-                      <>
-                        <Square size={14} className="fill-current" />
-                        <span>إيقاف صوت الأذان</span>
-                        {/* Audio Waveform animation */}
-                        <div className="flex items-end gap-0.5">
-                          <span className="h-3 w-1 animate-pulse rounded-full bg-white"></span>
-                          <span className="h-4 w-1 animate-bounce rounded-full bg-white"></span>
-                          <span className="h-2 w-1 animate-pulse rounded-full bg-white"></span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 size={14} />
-                        <span>تجربة وسماع صوت الأذان 🔊</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleAdhanAudio}
+                  className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all active:scale-95 ${
+                    playingAdhan
+                      ? 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700'
+                      : 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
+                  }`}
+                >
+                  {playingAdhan ? (
+                    <>
+                      <Square size={14} className="fill-current" />
+                      <span>إيقاف صوت الأذان</span>
+                      <div className="flex items-end gap-0.5">
+                        <span className="h-3 w-1 animate-pulse rounded-full bg-white"></span>
+                        <span className="h-4 w-1 animate-bounce rounded-full bg-white"></span>
+                        <span className="h-2 w-1 animate-pulse rounded-full bg-white"></span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 size={14} />
+                      <span>تجربة وسماع صوت الأذان 🔊</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Debt Relief Duas */}
-        {activeTab === 'debt_duas' && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold text-amber-800 dark:text-amber-300">
-              <Coins size={16} className="shrink-0 text-amber-600" />
-              <span>أدعية نبوية مأثورة لقضاء الديون وتفريج الكروب وتيسير الأمور بإذن الله</span>
-            </div>
-            <div className="custom-scrollbar grid max-h-[380px] grid-cols-1 gap-3 overflow-y-auto p-1">
-              {debtDuas.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className="group relative rounded-2xl border border-amber-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold text-amber-700 dark:text-amber-300">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100">
-                      «{item.text}»
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Rizq & Commerce Blessings */}
-        {activeTab === 'rizq' && (
+        {/* ── TAB 2: TASBEEH, TAHLEEL & TAKBEER ────────────────────────────── */}
+        {activeTab === 'tasbeeh_tahleel' && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 rounded-2xl border border-teal-500/20 bg-teal-500/10 p-3 text-xs font-bold text-teal-800 dark:text-teal-300">
               <Sparkles size={16} className="shrink-0 text-teal-600" />
-              <span>أدعية استجلاب الرزق والبركة في البيع والشراء والعمل والتجارة</span>
+              <span>
+                أعظم التسابيح والتهليلات والتكبيرات المأثورة — أحب الكلام إلى الله وغراس الجنة
+              </span>
             </div>
-            <div className="custom-scrollbar grid max-h-[380px] grid-cols-1 gap-3 overflow-y-auto p-1">
-              {rizqDuas.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className="group relative rounded-2xl border border-teal-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-500/20 text-xs font-bold text-teal-700 dark:text-teal-300">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100">
-                      «{item.text}»
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="custom-scrollbar grid max-h-[400px] grid-cols-1 gap-2.5 overflow-y-auto p-1">
+              {tasbeehAndTakbeer.map((item, idx) =>
+                renderDhikrCard(item, idx, 'bg-teal-500/20 text-teal-700 dark:text-teal-300')
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 4: Istighfar & Repentance */}
+        {/* ── TAB 3: QURANIC & PROPHETIC DUAS ──────────────────────────────── */}
+        {activeTab === 'quran_prophet' && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs font-bold text-indigo-800 dark:text-indigo-300">
+              <BookOpen size={16} className="shrink-0 text-indigo-600" />
+              <span>أدعية القرآن الكريم العظيمة وجوامع دعاء النبي ﷺ للخير في الدنيا والآخرة</span>
+            </div>
+            <div className="custom-scrollbar grid max-h-[400px] grid-cols-1 gap-2.5 overflow-y-auto p-1">
+              {quranAndProphetDuas.map((item, idx) =>
+                renderDhikrCard(item, idx, 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300')
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 4: ISTIGHFAR & SAYYID AL-ISTIGHFAR ───────────────────────── */}
         {activeTab === 'istighfar' && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-xs font-bold text-blue-800 dark:text-blue-300">
               <HeartHandshake size={16} className="shrink-0 text-blue-600" />
-              <span>سيد الاستغفار وأعظم صيغ التوبة ومحو الذنوب وفتح أبواب الفرج</span>
+              <span>سيد الاستغفار وأعظم صيغ التوبة ومحو الذنوب وفتح أبواب الفرج والرحمة</span>
             </div>
-            <div className="custom-scrollbar grid max-h-[380px] grid-cols-1 gap-3 overflow-y-auto p-1">
-              {istighfarDuas.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className="group relative rounded-2xl border border-blue-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-xs font-bold text-blue-700 dark:text-blue-300">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100">
-                      «{item.text}»
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="custom-scrollbar grid max-h-[400px] grid-cols-1 gap-2.5 overflow-y-auto p-1">
+              {istighfarDuas.map((item, idx) =>
+                renderDhikrCard(item, idx, 'bg-blue-500/20 text-blue-700 dark:text-blue-300')
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 5: Electronic Tasbeeh Counter */}
-        {activeTab === 'tasbeeh' && (
-          <div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
-            <div className="w-full max-w-md rounded-2xl border border-purple-500/20 bg-purple-500/10 p-4">
+        {/* ── TAB 5: DEBT RELIEF & RIZQ / WORK ────────────────────────────── */}
+        {activeTab === 'debt_rizq' && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold text-amber-800 dark:text-amber-300">
+              <Coins size={16} className="shrink-0 text-amber-600" />
+              <span>أدعية قضاء الديون وتفريج الكروب واستجلاب البركة في البيع والعمل والتجارة</span>
+            </div>
+            <div className="custom-scrollbar grid max-h-[400px] grid-cols-1 gap-2.5 overflow-y-auto p-1">
+              {debtAndRizqDuas.map((item, idx) =>
+                renderDhikrCard(item, idx, 'bg-amber-500/20 text-amber-700 dark:text-amber-300')
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 6: PROTECTION & SALAWAT ─────────────────────────────────── */}
+        {activeTab === 'protection_salawat' && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-800 dark:text-rose-300">
+              <ShieldCheck size={16} className="shrink-0 text-rose-600" />
+              <span>أذكار الحفظ والتحصين اليومي والصلاة والسلام على نبينا محمد ﷺ</span>
+            </div>
+            <div className="custom-scrollbar grid max-h-[400px] grid-cols-1 gap-2.5 overflow-y-auto p-1">
+              {protectionAndSalawat.map((item, idx) =>
+                renderDhikrCard(item, idx, 'bg-rose-500/20 text-rose-700 dark:text-rose-300')
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 7: INTERACTIVE ELECTRONIC TASBEEH COUNTER ───────────────── */}
+        {activeTab === 'counter' && (
+          <div className="flex flex-col items-center justify-center space-y-4 py-2 text-center">
+            {/* Quick Dhikr Selector Chips */}
+            <div className="w-full">
+              <span className="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
+                اختر صيغة الذكر للتسبيح:
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                {[
+                  'سُبْحَانَ اللهِ وَبِحَمْدِهِ ، سُبْحَانَ اللهِ الْعَظِيمِ',
+                  'سُبْحَانَ اللهِ ، وَالْحَمْدُ لِلَّهِ ، وَلَا إِلَهَ إِلَّا اللهُ ، وَاللهُ أَكْبَرُ',
+                  'أَسْتَغْفِرُ اللهَ وَأَتُوبُ إِلَيْهِ',
+                  'لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ',
+                  'اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ',
+                  'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ الْعَلِيِّ الْعَظِيمِ',
+                ].map(dhikrText => (
+                  <button
+                    key={dhikrText}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDhikr(dhikrText);
+                      setTasbeehCount(0);
+                    }}
+                    className={`rounded-xl px-2.5 py-1 text-[11px] font-bold transition-all ${
+                      selectedDhikr === dhikrText
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-purple-50 dark:bg-slate-800 dark:text-slate-300'
+                    }`}
+                  >
+                    {dhikrText.split('،')[0]}...
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Current Dhikr Display Box */}
+            <div className="w-full max-w-lg rounded-2xl border border-purple-500/20 bg-purple-500/10 p-4 shadow-xs">
               <span className="mb-1 block text-xs font-bold text-purple-700 dark:text-purple-300">
                 الذكر الحالي:
               </span>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                {selectedDhikr}
+              <p className="text-sm font-black leading-relaxed text-slate-900 dark:text-slate-100">
+                «{selectedDhikr}»
               </p>
             </div>
 
+            {/* Goal selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500">الهدف:</span>
+              {[
+                { val: 33, label: '٣٣ مرة' },
+                { val: 100, label: '١٠٠ مرة' },
+                { val: 0, label: 'مفتوح' },
+              ].map(g => (
+                <button
+                  key={g.val}
+                  type="button"
+                  onClick={() => setTasbeehGoal(g.val as 33 | 100 | 0)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
+                    tasbeehGoal === g.val
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+
             {/* Interactive Circle Counter Button */}
-            <div className="relative">
+            <div className="relative my-2">
               <button
+                type="button"
                 onClick={() => {
                   setTasbeehCount(c => c + 1);
                 }}
                 className="flex h-36 w-36 cursor-pointer select-none flex-col items-center justify-center rounded-full border-4 border-purple-300/30 bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white shadow-2xl shadow-purple-600/40 transition-all hover:scale-105 active:scale-95 md:h-44 md:w-44"
               >
-                <span className="font-mono text-3xl font-black md:text-4xl">{tasbeehCount}</span>
+                <span className="font-mono text-4xl font-black md:text-5xl">{tasbeehCount}</span>
                 <span className="mt-1 text-xs font-bold text-purple-200">اضغط للتسبيح 📿</span>
               </button>
             </div>
 
+            {/* Goal Achieved Indicator */}
+            {tasbeehGoal > 0 && tasbeehCount >= tasbeehGoal && (
+              <div className="animate-bounce rounded-xl border border-emerald-500/40 bg-emerald-500/20 px-4 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                🎉 ما شاء الله! اكتمل الهدف ({tasbeehGoal} مرة) تقبل الله طاعتكم
+              </div>
+            )}
+
+            {/* Reset Counter Button */}
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={() => {
                   setTasbeehCount(0);
                 }}

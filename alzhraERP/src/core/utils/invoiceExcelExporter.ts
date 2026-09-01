@@ -1,169 +1,105 @@
 // ============================================
 // Invoice Excel Exporter
 // Professional styled Excel export for invoices
+// — Rebuilt on the shared excelExporterBase (no duplicated styling loop).
 // ============================================
 
-// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
-// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
-// declarations, so the resolved value is typed as `any` (same as original code).
-let xlsxPromise: Promise<any> | null = null;
-const loadXLSX = (): Promise<any> => {
-  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
-  return xlsxPromise;
-};
+import {
+  loadXLSX,
+  buildStyledSheet,
+  appendSheetToWorkbook,
+  saveWorkbookToFile,
+  workbookToBlob,
+} from './excelExporterBase';
+import type { ExcelMergeRange, XlsxWorkbook } from './excelExporterBase';
 
 interface InvoiceExcelData {
-    companyName: string;
-    companyAddress?: string;
-    taxNumber?: string;
-    invoiceNumber: string;
-    issueDate: string;
-    customerName: string;
-    issuedBy: string;
-    items: {
-        name: string;
-        quantity: number;
-        unitPrice: number;
-        total: number;
-    }[];
-    subtotal: number;
-    totalAmount: number;
+  companyName: string;
+  companyAddress?: string;
+  taxNumber?: string;
+  invoiceNumber: string;
+  issueDate: string;
+  customerName: string;
+  issuedBy: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  subtotal: number;
+  totalAmount: number;
 }
 
-export const generateInvoiceWorkbook = async (data: InvoiceExcelData) => {
-    const XLSX = await loadXLSX();
-    const wb = XLSX.utils.book_new();
-    const rows: any[][] = [];
+const buildInvoiceRows = (data: InvoiceExcelData): unknown[][] => {
+  const rows: unknown[][] = [];
 
-    // --- Header Section ---
-    rows.push([data.companyName]);
-    rows.push([data.companyAddress || '']);
-    rows.push([`الرقم الضريبي: ${data.taxNumber || '---'}`]);
-    rows.push([]);
-    rows.push([`فاتورة بيع رقم: ${data.invoiceNumber}`]);
-    rows.push([]);
+  // --- Header Section ---
+  rows.push([data.companyName]);
+  rows.push([data.companyAddress ?? '']);
+  rows.push([`الرقم الضريبي: ${data.taxNumber ?? '---'}`]);
+  rows.push([]);
+  rows.push([`فاتورة بيع رقم: ${data.invoiceNumber}`]);
+  rows.push([]);
 
-    // --- Meta Info Section ---
-    rows.push(['العميل:', data.customerName, '', 'رقم الفاتورة:', data.invoiceNumber]);
-    rows.push(['التاريخ:', data.issueDate, '', 'صدرت بواسطة:', data.issuedBy]);
-    rows.push([]);
+  // --- Meta Info Section ---
+  rows.push(['العميل:', data.customerName, '', 'رقم الفاتورة:', data.invoiceNumber]);
+  rows.push(['التاريخ:', data.issueDate, '', 'صدرت بواسطة:', data.issuedBy]);
+  rows.push([]);
 
-    // --- Table Header ---
-    const tableHeader = ['#', 'وصف السلعة / الخدمة', 'الكمية', 'سعر الوحدة', 'الإجمالي'];
-    rows.push(tableHeader);
+  // --- Table Header ---
+  rows.push(['#', 'وصف السلعة / الخدمة', 'الكمية', 'سعر الوحدة', 'الإجمالي']);
 
-    // --- Data Rows ---
-    data.items.forEach((item, i) => {
-        rows.push([
-            i + 1,
-            item.name,
-            Number(item.quantity) || 0,
-            Number(item.unitPrice) || 0,
-            Number(item.total) || 0
-        ]);
-    });
+  // --- Data Rows ---
+  data.items.forEach((item, i) => {
+    rows.push([i + 1, item.name, item.quantity || 0, item.unitPrice || 0, item.total || 0]);
+  });
 
-    // --- Footer Summary ---
-    rows.push([]);
-    rows.push(['', '', '', 'المجموع الفرعي:', Number(data.subtotal) || 0]);
-    rows.push(['', '', '', 'الإجمالي المستحق:', Number(data.totalAmount) || 0]);
+  // --- Footer Summary ---
+  rows.push([]);
+  rows.push(['', '', '', 'المجموع الفرعي:', data.subtotal || 0]);
+  rows.push(['', '', '', 'الإجمالي المستحق:', data.totalAmount || 0]);
 
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // --- Styling ---
-    ws['!cols'] = [
-        { wch: 8 },   // #
-        { wch: 45 },  // Description
-        { wch: 15 },  // Quantity
-        { wch: 20 },  // Unit Price
-        { wch: 20 },  // Total
-    ];
-
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Company Name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Address
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // Tax
-        { s: { r: 4, c: 0 }, e: { r: 4, c: 4 } }, // Title
-    ];
-
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:E1');
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellRef]) continue;
-
-            // Default border and alignment
-            ws[cellRef].s = {
-                border: {
-                    top: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    bottom: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    left: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    right: { style: 'thin', color: { rgb: 'D3D3D3' } }
-                },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                font: { name: 'Arial', sz: 11, color: { rgb: '000000' } }
-            };
-
-            // Set numbers format explicitly to avoid Arabic numerals in some locales
-            if (typeof ws[cellRef].v === 'number') {
-                ws[cellRef].z = '#,##0.00';
-            }
-
-            // Header (Company Name)
-            if (R === 0) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 16, bold: true, color: { rgb: '1F4E78' } };
-            }
-            // Sub-headers
-            if (R >= 1 && R <= 4) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-            }
-            // Meta info bold keys
-            if ((R === 6 || R === 7) && (C === 0 || C === 3)) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 11, bold: true };
-                ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-            }
-            // Table Header styling
-            if (R === 9) {
-                ws[cellRef].s.fill = { fgColor: { rgb: '1F4E78' } };
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
-            }
-            // Footer summary
-            if (R >= rows.length - 2) {
-                if (C === 3) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-                }
-                if (C === 4) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: '1F4E78' } };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'EBF1DE' } };
-                }
-            }
-            
-            // Alternating row colors for table data
-            if (R > 9 && R < rows.length - 3) {
-                if (R % 2 === 1) {
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
-                }
-            }
-        }
-    }
-
-    if (!ws['!props']) ws['!props'] = {};
-    ws['!view'] = [{ RTL: true }];
-
-    XLSX.utils.book_append_sheet(wb, ws, 'فاتورة');
-    return wb;
+  return rows;
 };
 
-export const exportInvoiceToExcel = async (data: InvoiceExcelData) => {
-    const XLSX = await loadXLSX();
-    const wb = await generateInvoiceWorkbook(data);
-    XLSX.writeFile(wb, `فاتورة_${data.invoiceNumber}.xlsx`);
+export const generateInvoiceWorkbook = async (data: InvoiceExcelData): Promise<XlsxWorkbook> => {
+  const XLSX = await loadXLSX();
+  const wb = XLSX.utils.book_new();
+  const rows = buildInvoiceRows(data);
+
+  const merges: ExcelMergeRange[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Company Name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Address
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // Tax
+    { s: { r: 4, c: 0 }, e: { r: 4, c: 4 } }, // Title
+  ];
+
+  const ws = buildStyledSheet(XLSX, rows, {
+    colWidths: [8, 45, 15, 20, 20],
+    merges,
+    styling: {
+      companyRow: 0,
+      subHeaderRows: [1, 4],
+      metaKeyColumns: [0, 3],
+      metaRows: [6, 7],
+      tableHeaderRow: 9,
+      summaryRows: [rows.length - 2, rows.length - 1],
+      alternate: { startRow: 9, parity: 'odd' },
+      columnCount: 5,
+    },
+  });
+
+  appendSheetToWorkbook(XLSX, wb, ws, 'فاتورة');
+  return wb;
+};
+
+export const exportInvoiceToExcel = async (data: InvoiceExcelData): Promise<void> => {
+  const wb = await generateInvoiceWorkbook(data);
+  await saveWorkbookToFile(wb, `فاتورة_${data.invoiceNumber}.xlsx`);
 };
 
 export const generateInvoiceExcelBlob = async (data: InvoiceExcelData): Promise<Blob> => {
-    const XLSX = await loadXLSX();
-    const wb = await generateInvoiceWorkbook(data);
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const wb = await generateInvoiceWorkbook(data);
+  return workbookToBlob(wb);
 };

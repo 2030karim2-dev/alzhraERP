@@ -1,377 +1,274 @@
 // ============================================
 // Returns Excel Exporter
 // Export returns data to Excel with professional styling
+// — Rebuilt on the shared excelExporterBase (no duplicated styling loop).
 // ============================================
 
-// 🔒 Lazy-load the heavy xlsx library only when an export is actually requested
-// (keeps ~930KB out of the initial bundle). xlsx-js-style ships minimal type
-// declarations, so the resolved value is typed as `any` (same as original code).
-let xlsxPromise: Promise<any> | null = null;
-const loadXLSX = (): Promise<any> => {
-  xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
-  return xlsxPromise;
-};
+import {
+  loadXLSX,
+  buildStyledSheet,
+  appendSheetToWorkbook,
+  saveWorkbookToFile,
+} from './excelExporterBase';
+import type { ExcelMergeRange } from './excelExporterBase';
 
 interface ReturnExcelData {
-    companyName: string;
-    returns: {
-        invoiceNumber: string;
-        issueDate: string;
-        customerName: string;
-        supplierName?: string;
-        referenceInvoice?: string;
-        returnReason?: string;
-        items: number;
-        totalAmount: number;
-        status: string;
-        notes?: string;
-    }[];
-    summary: {
-        totalReturns: number;
-        totalAmount: number;
-        averageAmount: number;
-        count: number;
-    };
-    type: 'sales' | 'purchase';
-}
-
-// Helper to get Arabic status
-const getStatusText = (status: string): string => {
-    const statusMap: Record<string, string> = {
-        'draft': 'مسودة',
-        'posted': 'معتمد',
-        'paid': 'مدفوع',
-        'cancelled': 'ملغي'
-    };
-    return statusMap[status] || status;
-};
-
-// Helper to get Arabic return reason
-const getReturnReasonText = (reason: string): string => {
-    const reasonMap: Record<string, string> = {
-        'defective': 'منتج تالف',
-        'not_as_described': 'غير مطابق للمواصفات',
-        'wrong_item': 'صنف خاطئ',
-        'quality_issue': 'مشكلة في الجودة',
-        'changed_mind': 'تغيير رأي العميل',
-        'expired': 'منتج منتهي الصلاحية',
-        'other': 'أخرى'
-    };
-    return reasonMap[reason] || reason || '-';
-};
-
-export const exportReturnsToExcel = async (data: ReturnExcelData) => {
-    const XLSX = await loadXLSX();
-    const wb = XLSX.utils.book_new();
-
-    const isSales = data.type === 'sales';
-    const title = isSales ? 'مرتجعات المبيعات' : 'مرتجعات المشتريات';
-    const partyTitle = isSales ? 'العميل' : 'المورد';
-
-    const rows: any[][] = [];
-
-    // Header section
-    rows.push([data.companyName]);
-    rows.push([title]);
-    rows.push([]);
-    rows.push(['تاريخ التقرير:', new Date().toLocaleDateString('en-GB')]);
-    rows.push([]);
-
-    // Table headers
-    const tableHeader = [
-        '#',
-        'رقم المرتجع',
-        'التاريخ',
-        partyTitle,
-        'فاتورة مرجعية',
-        'سبب الإرجاع',
-        'عدد الأصناف',
-        'المبلغ',
-        'الحالة',
-        'ملاحظات'
-    ];
-    rows.push(tableHeader);
-
-    // Data rows
-    data.returns.forEach((item, i) => {
-        rows.push([
-            i + 1,
-            item.invoiceNumber,
-            item.issueDate,
-            item.customerName || item.supplierName || '-',
-            item.referenceInvoice || '-',
-            getReturnReasonText(item.returnReason || ''),
-            Number(item.items) || 0,
-            Number(item.totalAmount) || 0,
-            getStatusText(item.status),
-            item.notes || '-'
-        ]);
-    });
-
-    rows.push([]);
-
-    // Summary section
-    const summaryStartRow = rows.length;
-    rows.push(['ملخص الإحصائيات']);
-    rows.push(['إجمالي عدد المرتجعات:', Number(data.summary.count) || 0]);
-    rows.push(['إجمالي المبالغ المرتجعة:', Number(data.summary.totalAmount) || 0]);
-    rows.push(['متوسط قيمة المرتجع:', Number(data.summary.averageAmount) || 0]);
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 6 },   // #
-        { wch: 18 },  // Invoice Number
-        { wch: 15 },  // Date
-        { wch: 30 },  // Customer/Supplier
-        { wch: 18 },  // Reference Invoice
-        { wch: 20 },  // Reason
-        { wch: 12 },  // Items count
-        { wch: 18 },  // Amount
-        { wch: 15 },  // Status
-        { wch: 35 },  // Notes
-    ];
-
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, // Company name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }, // Title
-        { s: { r: summaryStartRow, c: 0 }, e: { r: summaryStartRow, c: 9 } } // Summary title
-    ];
-
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:J1');
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellRef]) continue;
-
-            // Default border and alignment
-            ws[cellRef].s = {
-                border: {
-                    top: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    bottom: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    left: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    right: { style: 'thin', color: { rgb: 'D3D3D3' } }
-                },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                font: { name: 'Arial', sz: 11, color: { rgb: '000000' } }
-            };
-
-            // English numerals
-            if (typeof ws[cellRef].v === 'number') {
-                if (C === 0 || C === 6 || R >= summaryStartRow + 1) {
-                    ws[cellRef].z = '#,##0'; // Integers
-                } else if (C === 7) {
-                    ws[cellRef].z = '#,##0.00'; // Decimals for amounts
-                }
-            }
-
-            // Headers
-            if (R === 0) ws[cellRef].s.font = { name: 'Arial', sz: 16, bold: true, color: { rgb: '1F4E78' } };
-            if (R === 1) ws[cellRef].s.font = { name: 'Arial', sz: 14, bold: true };
-            
-            // Meta info
-            if (R === 3 && C === 0) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 11, bold: true };
-                ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-            }
-
-            // Table Header styling
-            if (R === 5) {
-                ws[cellRef].s.fill = { fgColor: { rgb: '1F4E78' } };
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
-            }
-
-            // Alternating row colors for table data
-            if (R > 5 && R < summaryStartRow - 1) {
-                if (R % 2 === 0) {
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
-                }
-            }
-
-            // Summary Title
-            if (R === summaryStartRow) {
-                ws[cellRef].s.fill = { fgColor: { rgb: 'EBF1DE' } };
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: '1F4E78' } };
-            }
-            // Summary keys
-            if (R > summaryStartRow && C === 0) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 11, bold: true };
-                ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-            }
-        }
-    }
-
-    const sheetName = isSales ? 'مرتجعات المبيعات' : 'مرتجعات المشتريات';
-    if (!ws['!props']) ws['!props'] = {};
-    ws['!view'] = [{ RTL: true }];
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    const fileName = `${title}_${new Date().toISOString().split('T')[0]}`;
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
-};
-
-// Export single return to Excel (detailed)
-export const exportSingleReturnToExcel = async (data: {
-    companyName: string;
-    companyAddress?: string;
+  companyName: string;
+  returns: Array<{
     invoiceNumber: string;
     issueDate: string;
     customerName: string;
     supplierName?: string;
     referenceInvoice?: string;
     returnReason?: string;
-    issuedBy: string;
+    items: number;
+    totalAmount: number;
     status: string;
-    items: {
-        name: string;
-        quantity: number;
-        unitPrice: number;
-        total: number;
-    }[];
-    subtotal: number;
     notes?: string;
-    type: 'sales' | 'purchase';
-}) => {
-    const XLSX = await loadXLSX();
-    const wb = XLSX.utils.book_new();
+  }>;
+  summary: {
+    totalReturns: number;
+    totalAmount: number;
+    averageAmount: number;
+    count: number;
+  };
+  type: 'sales' | 'purchase';
+}
 
-    const isSales = data.type === 'sales';
-    const title = isSales ? 'مرتجع مبيعات' : 'مرتجع مشتريات';
-    const partyTitle = isSales ? 'العميل' : 'المورد';
-    const partyName = isSales ? data.customerName : data.supplierName || '';
+interface SingleReturnExcelData {
+  companyName: string;
+  companyAddress?: string;
+  invoiceNumber: string;
+  issueDate: string;
+  customerName: string;
+  supplierName?: string;
+  referenceInvoice?: string;
+  returnReason?: string;
+  issuedBy: string;
+  status: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  subtotal: number;
+  notes?: string;
+  type: 'sales' | 'purchase';
+}
 
-    const rows: any[][] = [];
+const hasText = (value: string | undefined): boolean => value !== undefined && value !== '';
 
-    // Header section
-    rows.push([data.companyName]);
-    rows.push([data.companyAddress || '']);
-    rows.push([]);
-    rows.push([`${title} رقم: ${data.invoiceNumber}`]);
-    rows.push([]);
+// Helper to get Arabic status
+const getStatusText = (status: string): string => {
+  if (status === 'draft') return 'مسودة';
+  if (status === 'posted') return 'معتمد';
+  if (status === 'paid') return 'مدفوع';
+  if (status === 'cancelled') return 'ملغي';
+  return status;
+};
 
-    // Meta info
-    rows.push([`${partyTitle}:`, partyName, '', 'رقم المرتجع:', data.invoiceNumber]);
-    rows.push(['التاريخ:', data.issueDate, '', 'الحالة:', getStatusText(data.status)]);
-    if (data.referenceInvoice) {
-        rows.push(['الفاتورة المرجعية:', data.referenceInvoice, '', 'سبب الإرجاع:', getReturnReasonText(data.returnReason || '')]);
-    } else if (data.returnReason) {
-        rows.push(['', '', '', 'سبب الإرجاع:', getReturnReasonText(data.returnReason)]);
-    }
-    rows.push(['صدرت بواسطة:', data.issuedBy]);
-    rows.push([]);
+// Helper to get Arabic return reason
+const getReturnReasonText = (reason: string): string => {
+  if (reason === 'defective') return 'منتج تالف';
+  if (reason === 'not_as_described') return 'غير مطابق للمواصفات';
+  if (reason === 'wrong_item') return 'صنف خاطئ';
+  if (reason === 'quality_issue') return 'مشكلة في الجودة';
+  if (reason === 'changed_mind') return 'تغيير رأي العميل';
+  if (reason === 'expired') return 'منتج منتهي الصلاحية';
+  if (reason === 'other') return 'أخرى';
+  return reason || '-';
+};
 
-    // Table header
-    rows.push(['#', 'وصف الصنف', 'الكمية', 'سعر الوحدة', 'الإجمالي']);
+const buildReturnsListFullRows = (
+  data: ReturnExcelData,
+  title: string,
+  partyTitle: string
+): { rows: unknown[][]; summaryStartRow: number } => {
+  const rows: unknown[][] = [];
 
-    // Items
-    data.items.forEach((item, i) => {
-        rows.push([
-            i + 1,
-            item.name,
-            Number(item.quantity) || 0,
-            Number(item.unitPrice) || 0,
-            Number(item.total) || 0
-        ]);
-    });
+  // Header section
+  rows.push([data.companyName]);
+  rows.push([title]);
+  rows.push([]);
+  rows.push(['تاريخ التقرير:', new Date().toLocaleDateString('en-GB')]);
+  rows.push([]);
 
-    rows.push([]);
+  // Table headers
+  rows.push([
+    '#',
+    'رقم المرتجع',
+    'التاريخ',
+    partyTitle,
+    'فاتورة مرجعية',
+    'سبب الإرجاع',
+    'عدد الأصناف',
+    'المبلغ',
+    'الحالة',
+    'ملاحظات',
+  ]);
 
-    // Totals
-    const notesStartRow = rows.length + 1;
-    rows.push(['', '', '', 'المجموع:', Number(data.subtotal) || 0]);
+  // Data rows
+  data.returns.forEach((item, i) => {
+    const partyLabel = item.customerName !== '' ? item.customerName : (item.supplierName ?? '-');
+    rows.push([
+      i + 1,
+      item.invoiceNumber,
+      item.issueDate,
+      partyLabel,
+      item.referenceInvoice ?? '-',
+      getReturnReasonText(item.returnReason ?? ''),
+      item.items || 0,
+      item.totalAmount || 0,
+      getStatusText(item.status),
+      item.notes ?? '-',
+    ]);
+  });
 
-    if (data.notes) {
-        rows.push(['ملاحظات:', data.notes]);
-    }
+  rows.push([]);
 
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+  // Summary section
+  const summaryStartRow = rows.length;
+  rows.push(['ملخص الإحصائيات']);
+  rows.push(['إجمالي عدد المرتجعات:', data.summary.count || 0]);
+  rows.push(['إجمالي المبالغ المرتجعة:', data.summary.totalAmount || 0]);
+  rows.push(['متوسط قيمة المرتجع:', data.summary.averageAmount || 0]);
 
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 8 },   // #
-        { wch: 45 },  // Description
-        { wch: 15 },  // Quantity
-        { wch: 20 },  // Unit Price
-        { wch: 20 },  // Total
-    ];
+  return { rows, summaryStartRow };
+};
 
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Company name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Address
-        { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } }, // Title
-    ];
+export const exportReturnsToExcel = async (data: ReturnExcelData): Promise<void> => {
+  const XLSX = await loadXLSX();
+  const wb = XLSX.utils.book_new();
 
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:E1');
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellRef]) continue;
+  const isSales = data.type === 'sales';
+  const title = isSales ? 'مرتجعات المبيعات' : 'مرتجعات المشتريات';
+  const partyTitle = isSales ? 'العميل' : 'المورد';
+  const { rows, summaryStartRow } = buildReturnsListFullRows(data, title, partyTitle);
 
-            // Default border and alignment
-            ws[cellRef].s = {
-                border: {
-                    top: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    bottom: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    left: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                    right: { style: 'thin', color: { rgb: 'D3D3D3' } }
-                },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                font: { name: 'Arial', sz: 11, color: { rgb: '000000' } }
-            };
+  const merges: ExcelMergeRange[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, // Company name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }, // Title
+    { s: { r: summaryStartRow, c: 0 }, e: { r: summaryStartRow, c: 9 } }, // Summary title
+  ];
 
-            // English numerals
-            if (typeof ws[cellRef].v === 'number') {
-                ws[cellRef].z = '#,##0.00';
-            }
+  const ws = buildStyledSheet(XLSX, rows, {
+    colWidths: [6, 18, 15, 30, 18, 20, 12, 18, 15, 35],
+    merges,
+    styling: {
+      companyRow: 0,
+      listTitleRow: 1,
+      metaKeyColumns: [0],
+      metaRows: [3, 3],
+      tableHeaderRow: 5,
+      alternate: { startRow: 5, endRow: summaryStartRow - 1, parity: 'even' },
+      summaryTitleRow: summaryStartRow,
+      summaryKeys: { fromRow: summaryStartRow, col: 0 },
+      integerColumns: [0, 6],
+      integerFromRow: summaryStartRow + 1,
+      columnCount: 10,
+    },
+  });
 
-            // Header
-            if (R === 0) ws[cellRef].s.font = { name: 'Arial', sz: 16, bold: true, color: { rgb: '1F4E78' } };
-            // Sub-headers
-            if (R >= 1 && R <= 3) ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-            
-            // Meta info keys
-            if (R >= 5 && R <= 8 && (C === 0 || C === 3)) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 11, bold: true };
-                ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-            }
+  const sheetName = isSales ? 'مرتجعات المبيعات' : 'مرتجعات المشتريات';
+  appendSheetToWorkbook(XLSX, wb, ws, sheetName);
+  await saveWorkbookToFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
 
-            // Table Header styling
-            if (R === 10) {
-                ws[cellRef].s.fill = { fgColor: { rgb: '1F4E78' } };
-                ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
-            }
+const buildSingleReturnRows = (
+  data: SingleReturnExcelData,
+  title: string,
+  partyTitle: string,
+  partyName: string
+): unknown[][] => {
+  const rows: unknown[][] = [];
 
-            // Alternating rows
-            if (R > 10 && R < rows.length - (data.notes ? 3 : 2)) {
-                if (R % 2 === 1) {
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
-                }
-            }
+  // Header section
+  rows.push([data.companyName]);
+  rows.push([data.companyAddress ?? '']);
+  rows.push([]);
+  rows.push([`${title} رقم: ${data.invoiceNumber}`]);
+  rows.push([]);
 
-            // Totals
-            if (R === notesStartRow - 1) {
-                if (C === 3) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'F2F2F2' } };
-                }
-                if (C === 4) {
-                    ws[cellRef].s.font = { name: 'Arial', sz: 12, bold: true, color: { rgb: '1F4E78' } };
-                    ws[cellRef].s.fill = { fgColor: { rgb: 'EBF1DE' } };
-                }
-            }
+  // Meta info
+  rows.push([`${partyTitle}:`, partyName, '', 'رقم المرتجع:', data.invoiceNumber]);
+  rows.push(['التاريخ:', data.issueDate, '', 'الحالة:', getStatusText(data.status)]);
+  if (hasText(data.referenceInvoice)) {
+    rows.push([
+      'الفاتورة المرجعية:',
+      data.referenceInvoice,
+      '',
+      'سبب الإرجاع:',
+      getReturnReasonText(data.returnReason ?? ''),
+    ]);
+  } else if (hasText(data.returnReason)) {
+    rows.push(['', '', '', 'سبب الإرجاع:', getReturnReasonText(data.returnReason ?? '')]);
+  }
+  rows.push(['صدرت بواسطة:', data.issuedBy]);
+  rows.push([]);
 
-            // Notes
-            if (data.notes && R === rows.length - 1 && C === 0) {
-                ws[cellRef].s.font = { name: 'Arial', sz: 11, bold: true };
-            }
-        }
-    }
+  // Table header
+  rows.push(['#', 'وصف الصنف', 'الكمية', 'سعر الوحدة', 'الإجمالي']);
 
-    const sheetName = isSales ? 'مرتجع مبيعات' : 'مرتجع مشتريات';
-    if (!ws['!props']) ws['!props'] = {};
-    ws['!view'] = [{ RTL: true }];
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  // Items
+  data.items.forEach((item, i) => {
+    rows.push([i + 1, item.name, item.quantity || 0, item.unitPrice || 0, item.total || 0]);
+  });
 
-    XLSX.writeFile(wb, `${title}_${data.invoiceNumber}.xlsx`);
+  rows.push([]);
+
+  // Totals
+  rows.push(['', '', '', 'المجموع:', data.subtotal || 0]);
+
+  if (hasText(data.notes)) {
+    rows.push(['ملاحظات:', data.notes]);
+  }
+
+  return rows;
+};
+
+// Export single return to Excel (detailed)
+export const exportSingleReturnToExcel = async (data: SingleReturnExcelData): Promise<void> => {
+  const XLSX = await loadXLSX();
+  const wb = XLSX.utils.book_new();
+
+  const isSales = data.type === 'sales';
+  const title = isSales ? 'مرتجع مبيعات' : 'مرتجع مشتريات';
+  const partyTitle = isSales ? 'العميل' : 'المورد';
+  const partyName = isSales ? data.customerName : (data.supplierName ?? '');
+
+  const rows = buildSingleReturnRows(data, title, partyTitle, partyName);
+  const notesStartRow = rows.length + 1;
+
+  const merges: ExcelMergeRange[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Company name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Address
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } }, // Title
+  ];
+
+  const ws = buildStyledSheet(XLSX, rows, {
+    colWidths: [8, 45, 15, 20, 20],
+    merges,
+    styling: {
+      companyRow: 0,
+      subHeaderRows: [1, 3],
+      metaKeyColumns: [0, 3],
+      metaRows: [5, 8],
+      tableHeaderRow: 10,
+      summaryRows: [notesStartRow - 1, notesStartRow - 1],
+      summaryKeyCol: 3,
+      summaryValueCol: 4,
+      alternate: {
+        startRow: 10,
+        endRow: rows.length - (hasText(data.notes) ? 3 : 2),
+        parity: 'odd',
+      },
+      ...(hasText(data.notes) ? { notesRow: rows.length - 1 } : {}),
+      columnCount: 5,
+    },
+  });
+
+  const sheetName = isSales ? 'مرتجع مبيعات' : 'مرتجع مشتريات';
+  appendSheetToWorkbook(XLSX, wb, ws, sheetName);
+  await saveWorkbookToFile(wb, `${title}_${data.invoiceNumber}.xlsx`);
 };

@@ -1,6 +1,6 @@
 /**
  * routePrefetcher.ts
- * 
+ *
  * Professional route prefetching strategy:
  * - Preloads route code chunks BEFORE the user clicks
  * - Maps each route path to its dynamic import function
@@ -21,9 +21,8 @@ const ROUTE_PREFETCH_MAP: Record<string, PrefetchFn> = {
   '/expenses': () => import('../../features/expenses/pages/ExpensesPage'),
   '/settings': () => import('../../features/settings/SettingsPage'),
   '/bonds': () => import('../../features/bonds/BondsPage'),
-  '/parties': () => import('../../features/parties/PartiesPage'),
-  '/parties/customers': () => import('../../features/parties/PartiesPage'),
-  '/parties/suppliers': () => import('../../features/parties/PartiesPage'),
+  '/clients': () => import('../../features/parties/PartiesPage'),
+  '/suppliers': () => import('../../features/parties/PartiesPage'),
   '/reports': () => import('../../features/reports/ReportsPage'),
 };
 
@@ -44,12 +43,15 @@ export function prefetchRoute(path: string): void {
 
   // Use requestIdleCallback to avoid competing with user interactions
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      prefetchFn().catch(() => {
-        // If prefetch fails, remove from set so it can be retried
-        prefetched.delete(path);
-      });
-    }, { timeout: 2000 });
+    requestIdleCallback(
+      () => {
+        prefetchFn().catch(() => {
+          // If prefetch fails, remove from set so it can be retried
+          prefetched.delete(path);
+        });
+      },
+      { timeout: 2000 }
+    );
   } else {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {

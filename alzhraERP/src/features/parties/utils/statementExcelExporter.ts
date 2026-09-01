@@ -1,31 +1,16 @@
 // ============================================
 // Statement Excel Exporter - Professional Modern Edition
 // Clean corporate design, styled cells, Arabic typography & English numerals
+// — Uses the shared excelExporterBase lazy-loader + file-name sanitizer.
 // ============================================
 
-let xlsxPromise: Promise<any> | null = null;
-const loadXLSX = (): Promise<any> => {
-  xlsxPromise ??= import('xlsx-js-style')
-    .then((m: any) => m.default ?? m)
-    .catch((err: unknown) => {
-      xlsxPromise = null;
-      throw err;
-    });
-  return xlsxPromise;
-};
+import { loadXLSX, sanitizeFileName } from '../../../core/utils/excelExporterBase';
+import type { XlsxCell, XlsxSheet } from '../../../core/utils/excelExporterBase';
 
-/** Strip characters that are invalid in Windows file names */
-const sanitizeFileName = (value: string): string => {
-  const sanitized = Array.from(value)
-    .filter((ch) => ch.charCodeAt(0) >= 32)
-    .join('');
-  return (
-    sanitized
-      .replace(/[\\/:*?"<>|]/g, '_')
-      .trim()
-      .replace(/\s+/g, '_')
-      .slice(0, 80) || 'party'
-  );
+const getCell = (sheet: XlsxSheet, ref: string): XlsxCell | undefined => {
+  // ref متغير ديناميكي وفق مواصفات xlsx — الوصول المقصود هنا غير قابل للفهرسة الثابتة.
+  // eslint-disable-next-line security/detect-object-injection
+  return sheet[ref] as XlsxCell | undefined;
 };
 
 export interface CompanyInfo {
@@ -69,27 +54,37 @@ export const generateStatementExcelWorkbook = async (
 
   const currency = options.currencyCode || 'SAR';
   const todayFormatted = new Date().toLocaleDateString('en-GB');
-  const dateRangeText = options.dateFrom && options.dateTo
-    ? `الفترة من: ${options.dateFrom} إلى: ${options.dateTo}`
-    : `حتى تاريخ: ${todayFormatted}`;
+  const dateRangeText =
+    options.dateFrom && options.dateTo
+      ? `الفترة من: ${options.dateFrom} إلى: ${options.dateTo}`
+      : `حتى تاريخ: ${todayFormatted}`;
 
   // 1. Corporate Brand Header
   rows.push([company.name_ar || 'منظومة الزهراء المحاسبية']); // Row 0
   rows.push(['كشف حساب مالي تفصيلي | STATEMENT OF ACCOUNT']); // Row 1
   rows.push([
-    `${company.address ? `📍 ${company.address}  |  ` : ''}${company.phone ? `📞 هاتف: ${company.phone}  |  ` : ''}${company.tax_number ? `الرقم الضريبي: ${company.tax_number}` : ''}`
+    `${company.address ? `📍 ${company.address}  |  ` : ''}${company.phone ? `📞 هاتف: ${company.phone}  |  ` : ''}${company.tax_number ? `الرقم الضريبي: ${company.tax_number}` : ''}`,
   ]); // Row 2
   rows.push([]); // Row 3 (Spacer)
 
   // 2. Client & Statement Metadata Card
-  rows.push([`العميل / الجهة: ${partyName}`, '', '', `العملة: ${currency}`, '', `تاريخ التقرير: ${todayFormatted}`]); // Row 4
   rows.push([
-    options.partyPhone ? `رقم الهاتف: ${options.partyPhone}` : `التصنيف: ${options.partyCategory || 'عميل'}`,
+    `العميل / الجهة: ${partyName}`,
+    '',
+    '',
+    `العملة: ${currency}`,
+    '',
+    `تاريخ التقرير: ${todayFormatted}`,
+  ]); // Row 4
+  rows.push([
+    options.partyPhone
+      ? `رقم الهاتف: ${options.partyPhone}`
+      : `التصنيف: ${options.partyCategory || 'عميل'}`,
     '',
     '',
     dateRangeText,
     '',
-    `عدد الحركات: ${entries.length}`
+    `عدد الحركات: ${entries.length}`,
   ]); // Row 5
   rows.push([]); // Row 6 (Spacer)
 
@@ -103,7 +98,7 @@ export const generateStatementExcelWorkbook = async (
     'البيان والتفاصيل',
     'مدين (+)',
     'دائن (-)',
-    `الرصيد (${currency})`
+    `الرصيد (${currency})`,
   ];
   rows.push(tableHeader);
 
@@ -126,12 +121,12 @@ export const generateStatementExcelWorkbook = async (
       entry.desc || '—',
       debit,
       credit,
-      balance
+      balance,
     ]);
   });
 
   // 5. Total & Summary Footer
-  const finalBalance = entries.length > 0 ? (Number(entries[entries.length - 1].balance) || 0) : 0;
+  const finalBalance = entries.length > 0 ? Number(entries[entries.length - 1].balance) || 0 : 0;
   const summaryRowIndex = rows.length; // Summary Row
   rows.push([
     'الإجمالي العام',
@@ -141,14 +136,14 @@ export const generateStatementExcelWorkbook = async (
     `صافي الرصيد المستحق: ${finalBalance >= 0 ? 'متبقي على العميل (مدين)' : 'متبقي للعميل (دائن)'}`,
     totalDebit,
     totalCredit,
-    finalBalance
+    finalBalance,
   ]);
 
   rows.push([]); // Spacer
   // 6. Bank & Payment Notes Footer
   if (company.bank_name || company.bank_account_iban) {
     rows.push([
-      `📌 تعليمات السداد البنكي: البنك: ${company.bank_name || '—'} | الآيبان (IBAN): ${company.bank_account_iban || '—'}`
+      `📌 تعليمات السداد البنكي: البنك: ${company.bank_name || '—'} | الآيبان (IBAN): ${company.bank_account_iban || '—'}`,
     ]);
   }
   rows.push(['تم استخراج هذا الكشف آلياً من منظومة الزهراء لإدارة المبيعات والمحاسبة.']);
@@ -157,7 +152,7 @@ export const generateStatementExcelWorkbook = async (
 
   // Column Widths
   ws['!cols'] = [
-    { wch: 6 },  // #
+    { wch: 6 }, // #
     { wch: 14 }, // Date
     { wch: 18 }, // Operation Type
     { wch: 16 }, // Reference
@@ -182,10 +177,19 @@ export const generateStatementExcelWorkbook = async (
   ];
 
   if (company.bank_name || company.bank_account_iban) {
-    ws['!merges'].push({ s: { r: summaryRowIndex + 2, c: 0 }, e: { r: summaryRowIndex + 2, c: 7 } });
-    ws['!merges'].push({ s: { r: summaryRowIndex + 3, c: 0 }, e: { r: summaryRowIndex + 3, c: 7 } });
+    ws['!merges'].push({
+      s: { r: summaryRowIndex + 2, c: 0 },
+      e: { r: summaryRowIndex + 2, c: 7 },
+    });
+    ws['!merges'].push({
+      s: { r: summaryRowIndex + 3, c: 0 },
+      e: { r: summaryRowIndex + 3, c: 7 },
+    });
   } else {
-    ws['!merges'].push({ s: { r: summaryRowIndex + 2, c: 0 }, e: { r: summaryRowIndex + 2, c: 7 } });
+    ws['!merges'].push({
+      s: { r: summaryRowIndex + 2, c: 0 },
+      e: { r: summaryRowIndex + 2, c: 7 },
+    });
   }
 
   // Cell Styles
@@ -193,10 +197,11 @@ export const generateStatementExcelWorkbook = async (
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!ws[cellRef]) continue;
+      const cell = getCell(ws, cellRef);
+      if (cell === undefined) continue;
 
       // Base style
-      ws[cellRef].s = {
+      cell.s = {
         border: {
           top: { style: 'thin', color: { rgb: 'E2E8F0' } },
           bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
@@ -208,83 +213,83 @@ export const generateStatementExcelWorkbook = async (
       };
 
       // Number formatting in English numerals
-      if (typeof ws[cellRef].v === 'number') {
+      if (typeof cell.v === 'number') {
         if (C === 0) {
-          ws[cellRef].z = '0';
+          cell.z = '0';
         } else {
-          ws[cellRef].z = '#,##0.00';
-          ws[cellRef].s.alignment = { horizontal: 'right', vertical: 'center' };
-          ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: false, color: { rgb: '0F172A' } };
+          cell.z = '#,##0.00';
+          cell.s.alignment = { horizontal: 'right', vertical: 'center' };
+          cell.s.font = { name: 'Calibri', sz: 10.5, bold: false, color: { rgb: '0F172A' } };
         }
       }
 
       // 1. Company Main Header
       if (R === 0) {
-        ws[cellRef].s.font = { name: 'Calibri', sz: 16, bold: true, color: { rgb: 'FFFFFF' } };
-        ws[cellRef].s.fill = { fgColor: { rgb: '1E3A8A' } }; // Corporate Dark Blue
-        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+        cell.s.font = { name: 'Calibri', sz: 16, bold: true, color: { rgb: 'FFFFFF' } };
+        cell.s.fill = { fgColor: { rgb: '1E3A8A' } }; // Corporate Dark Blue
+        cell.s.alignment = { horizontal: 'center', vertical: 'center' };
       }
 
       // 2. Subtitle Header
       if (R === 1) {
-        ws[cellRef].s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
-        ws[cellRef].s.fill = { fgColor: { rgb: '2563EB' } }; // Blue
-        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+        cell.s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
+        cell.s.fill = { fgColor: { rgb: '2563EB' } }; // Blue
+        cell.s.alignment = { horizontal: 'center', vertical: 'center' };
       }
 
       // 3. Company Contact Info
       if (R === 2) {
-        ws[cellRef].s.font = { name: 'Calibri', sz: 9.5, color: { rgb: '334155' } };
-        ws[cellRef].s.fill = { fgColor: { rgb: 'F1F5F9' } };
-        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+        cell.s.font = { name: 'Calibri', sz: 9.5, color: { rgb: '334155' } };
+        cell.s.fill = { fgColor: { rgb: 'F1F5F9' } };
+        cell.s.alignment = { horizontal: 'center', vertical: 'center' };
       }
 
       // 4. Client Metadata Card
       if (R === 4 || R === 5) {
-        ws[cellRef].s.font = { name: 'Calibri', sz: 10, bold: true, color: { rgb: '1E293B' } };
-        ws[cellRef].s.fill = { fgColor: { rgb: 'F8FAFC' } };
-        ws[cellRef].s.alignment = { horizontal: C === 0 ? 'right' : 'center', vertical: 'center' };
+        cell.s.font = { name: 'Calibri', sz: 10, bold: true, color: { rgb: '1E293B' } };
+        cell.s.fill = { fgColor: { rgb: 'F8FAFC' } };
+        cell.s.alignment = { horizontal: C === 0 ? 'right' : 'center', vertical: 'center' };
       }
 
       // 5. Table Header Styling
       if (R === tableHeaderIndex) {
-        ws[cellRef].s.fill = { fgColor: { rgb: '0F172A' } }; // Slate 900
-        ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } };
-        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+        cell.s.fill = { fgColor: { rgb: '0F172A' } }; // Slate 900
+        cell.s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } };
+        cell.s.alignment = { horizontal: 'center', vertical: 'center' };
       }
 
       // 6. Data Rows
       if (R > tableHeaderIndex && R < summaryRowIndex) {
         if (C === 4) {
           // Description align right
-          ws[cellRef].s.alignment = { horizontal: 'right', vertical: 'center' };
+          cell.s.alignment = { horizontal: 'right', vertical: 'center' };
         }
         // Balance column highlight
         if (C === 7) {
-          ws[cellRef].s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: '1E3A8A' } };
-          ws[cellRef].s.fill = { fgColor: { rgb: 'EFF6FF' } }; // Light blue
+          cell.s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: '1E3A8A' } };
+          cell.s.fill = { fgColor: { rgb: 'EFF6FF' } }; // Light blue
         }
         // Zebra striping
         if (R % 2 === 0 && C !== 7) {
-          ws[cellRef].s.fill = { fgColor: { rgb: 'FAFAFA' } };
+          cell.s.fill = { fgColor: { rgb: 'FAFAFA' } };
         }
       }
 
       // 7. Summary Footer Row
       if (R === summaryRowIndex) {
-        ws[cellRef].s.fill = { fgColor: { rgb: 'E2E8F0' } };
-        ws[cellRef].s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: '0F172A' } };
+        cell.s.fill = { fgColor: { rgb: 'E2E8F0' } };
+        cell.s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: '0F172A' } };
         if (C === 7) {
-          ws[cellRef].s.fill = { fgColor: { rgb: 'DCFCE7' } }; // Light Green for final balance
-          ws[cellRef].s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: '166534' } };
+          cell.s.fill = { fgColor: { rgb: 'DCFCE7' } }; // Light Green for final balance
+          cell.s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: '166534' } };
         }
       }
 
       // 8. Bank Notes & Bottom Footer
       if (R > summaryRowIndex) {
-        ws[cellRef].s.font = { name: 'Calibri', sz: 9, italic: true, color: { rgb: '64748B' } };
-        ws[cellRef].s.fill = { fgColor: { rgb: 'F8FAFC' } };
-        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+        cell.s.font = { name: 'Calibri', sz: 9, italic: true, color: { rgb: '64748B' } };
+        cell.s.fill = { fgColor: { rgb: 'F8FAFC' } };
+        cell.s.alignment = { horizontal: 'center', vertical: 'center' };
       }
     }
   }
@@ -324,7 +329,7 @@ export const generateStatementExcelBlob = async (
     const XLSX = await loadXLSX();
     const wb = await generateStatementExcelWorkbook(company, partyName, data, options);
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    return new Blob([excelBuffer], {
+    return new Blob([excelBuffer as BlobPart], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
   } catch {

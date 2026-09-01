@@ -50,7 +50,7 @@ DECLARE
   v_invoice_count int;
 BEGIN
   -- Create two companies and one user in A.
-  INSERT INTO public.companies (id, name, name_ar)
+  INSERT INTO public.companies (id, name_en, name_ar)
   VALUES (v_company_a, 'TEST_RLS_A', 'أ'), (v_company_b, 'TEST_RLS_B', 'ب');
 
   INSERT INTO public.user_company_roles (user_id, company_id, role)

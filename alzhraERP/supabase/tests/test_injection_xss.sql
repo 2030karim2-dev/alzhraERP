@@ -22,7 +22,7 @@ DECLARE
   v_err text;
   v_pwned boolean := false;
 BEGIN
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_SQLI', 'اختبار SQLi');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_SQLI', 'اختبار SQLi');
   INSERT INTO public.user_company_roles (user_id, company_id, role) VALUES (v_user, v_company, 'admin');
 
   PERFORM set_config('request.jwt.claims',
@@ -78,7 +78,7 @@ DECLARE
   v_result jsonb;
   v_err text;
 BEGIN
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_SQLI2', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_SQLI2', 'اختبار');
   INSERT INTO public.user_company_roles (user_id, company_id, role) VALUES (v_user, v_company, 'admin');
 
   PERFORM set_config('request.jwt.claims',
@@ -126,7 +126,7 @@ BEGIN
     RETURN;
   END IF;
 
-  INSERT INTO public.companies (id, name, name_ar) VALUES (v_company, 'TEST_XSS', 'اختبار');
+  INSERT INTO public.companies (id, name_en, name_ar) VALUES (v_company, 'TEST_XSS', 'اختبار');
   INSERT INTO public.user_company_roles (user_id, company_id, role) VALUES (v_user, v_company, 'admin');
 
   PERFORM set_config('request.jwt.claims',

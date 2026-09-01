@@ -1,5 +1,6 @@
-
-import { warehouseApi } from '../api/warehouseApi';
+// Warehouse Service — unified onto the canonical inventory warehouseApi
+// (the duplicate settings/api/warehouseApi.ts was removed; one source of truth).
+import { warehouseApi } from '../../inventory/api/warehouseApi';
 
 export const warehouseService = {
   getWarehouses: async (companyId: string) => {
@@ -11,7 +12,7 @@ export const warehouseService = {
   saveWarehouse: async (companyId: string, data: Record<string, unknown>) => {
     const { error } = await warehouseApi.upsertWarehouse({
       ...data,
-      company_id: companyId
+      company_id: companyId,
     });
     if (error) throw error;
   },
@@ -19,5 +20,5 @@ export const warehouseService = {
   removeWarehouse: async (id: string) => {
     const { error } = await warehouseApi.deleteWarehouse(id);
     if (error) throw error;
-  }
+  },
 };

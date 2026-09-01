@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingsService } from './service';
 import { settingsApi } from './api';
@@ -8,7 +7,13 @@ import type { AuthUser } from '../auth/types';
 import { useFeedbackStore } from '../feedback/store';
 import { assertOwner } from '../../core/hooks/usePermission';
 import { logger } from '../../core/utils/logger';
-import type { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
+import type {
+  CompanyFormData,
+  WarehouseFormData,
+  FiscalYearFormData,
+  ExchangeRateFormData,
+  BranchFormData,
+} from './types';
 
 /**
  * ⚡ Self-heal: when the stored company_id no longer resolves to a visible
@@ -22,10 +27,14 @@ const healStaleCompanyId = async (user: AuthUser): Promise<void> => {
     const profile = await authApi.getProfile(user.id);
     const freshUser = profile.data as AuthUser | null;
     if (freshUser !== null && freshUser.company_id !== user.company_id) {
-      logger.warn('Settings', 'useCompany: stored company not found — refreshing profile to heal stale company_id', {
-        stored: user.company_id,
-        fresh: freshUser.company_id ?? null,
-      });
+      logger.warn(
+        'Settings',
+        'useCompany: stored company not found — refreshing profile to heal stale company_id',
+        {
+          stored: user.company_id,
+          fresh: freshUser.company_id ?? null,
+        }
+      );
       useAuthStore.setState({
         user: { ...user, ...freshUser },
         isAuthenticated: true,
@@ -54,7 +63,7 @@ export const useCompany = () => {
 
       return company;
     },
-    enabled: Boolean(user?.company_id)
+    enabled: Boolean(user?.company_id),
   });
 };
 
@@ -65,13 +74,13 @@ export const useCompanyMutation = () => {
 
   return useMutation({
     mutationFn: (data: CompanyFormData) => {
-      if (!user?.company_id) throw new Error("No Company ID");
+      if (!user?.company_id) throw new Error('No Company ID');
       return settingsService.updateCompanyProfile(user.company_id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company'] });
-      showToast("تم تحديث بيانات المنشأة بنجاح", 'success');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['company'] });
+      showToast('تم تحديث بيانات المنشأة بنجاح', 'success');
+    },
   });
 };
 
@@ -79,8 +88,9 @@ export const useWarehouses = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['warehouses', user?.company_id],
-    queryFn: () => user?.company_id ? settingsService.fetchWarehouses(user.company_id) : Promise.resolve([]),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id ? settingsService.fetchWarehouses(user.company_id) : Promise.resolve([]),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -91,43 +101,49 @@ export const useWarehouseMutations = () => {
 
   const addWarehouse = useMutation({
     mutationFn: (data: WarehouseFormData) => {
-      if (!user?.company_id) throw new Error("No Company ID");
+      if (!user?.company_id) throw new Error('No Company ID');
       return settingsService.addWarehouse(user.company_id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
-      showToast("تمت إضافة المستودع الجديد", 'success');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      showToast('تمت إضافة المستودع الجديد', 'success');
+    },
   });
 
   const deleteWarehouse = useMutation({
     mutationFn: (id: string) => settingsService.removeWarehouse(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
-      showToast("تم حذف المستودع", 'info');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      showToast('تم حذف المستودع', 'info');
+    },
   });
 
   const setPrimary = useMutation({
     mutationFn: (id: string) => {
-      if (!user?.company_id) throw new Error("No Company ID");
+      if (!user?.company_id) throw new Error('No Company ID');
       return settingsApi.setPrimaryWarehouse(user.company_id, id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
-      showToast("تم تعيين المستودع الرئيسي بنجاح", 'success');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      showToast('تم تعيين المستودع الرئيسي بنجاح', 'success');
+    },
   });
 
-  return { addWarehouse: addWarehouse.mutate, deleteWarehouse: deleteWarehouse.mutate, setPrimary: setPrimary.mutate, isAdding: addWarehouse.isPending };
+  return {
+    addWarehouse: addWarehouse.mutate,
+    deleteWarehouse: deleteWarehouse.mutate,
+    setPrimary: setPrimary.mutate,
+    isAdding: addWarehouse.isPending,
+  };
 };
 
 export const useFiscalYears = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['fiscal_years', user?.company_id],
-    queryFn: () => user?.company_id ? settingsService.fetchFiscalYears(user.company_id) : Promise.resolve([]),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id ? settingsService.fetchFiscalYears(user.company_id) : Promise.resolve([]),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -138,30 +154,42 @@ export const useFiscalYearMutations = () => {
 
   const addFiscalYear = useMutation({
     mutationFn: (data: FiscalYearFormData) => {
-      if (!user?.company_id) throw new Error("No Company ID");
+      if (!user?.company_id) throw new Error('No Company ID');
       return settingsService.addFiscalYear(user.company_id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      showToast("تم إنشاء السنة المالية بنجاح", 'success');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      showToast('تم إنشاء السنة المالية بنجاح', 'success');
+    },
   });
 
   const closeFiscalYear = useMutation({
     mutationFn: (id: string) => settingsService.closeFiscalYear(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      showToast("تم إغلاق السنة المالية بنجاح", 'warning');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      showToast('تم إغلاق السنة المالية بنجاح', 'warning');
+    },
   });
 
-  return { addFiscalYear: addFiscalYear.mutate, closeFiscalYear: closeFiscalYear.mutate, isAdding: addFiscalYear.isPending };
+  return {
+    addFiscalYear: addFiscalYear.mutate,
+    closeFiscalYear: closeFiscalYear.mutate,
+    isAdding: addFiscalYear.isPending,
+  };
 };
 
 export const useCurrencies = () => {
   const { user } = useAuthStore();
-  const currencies = useQuery({ queryKey: ['supported_currencies'], queryFn: settingsService.fetchCurrencies });
-  const rates = useQuery({ queryKey: ['exchange_rates', user?.company_id], queryFn: () => user?.company_id ? settingsService.fetchExchangeRates(user.company_id) : Promise.resolve([]), enabled: !!user?.company_id });
+  const currencies = useQuery({
+    queryKey: ['supported_currencies'],
+    queryFn: settingsService.fetchCurrencies,
+  });
+  const rates = useQuery({
+    queryKey: ['exchange_rates', user?.company_id],
+    queryFn: () =>
+      user?.company_id ? settingsService.fetchExchangeRates(user.company_id) : Promise.resolve([]),
+    enabled: !!user?.company_id,
+  });
   return { currencies, rates };
 };
 
@@ -172,47 +200,52 @@ export const useCurrencyMutation = () => {
 
   const setRate = useMutation({
     mutationFn: (data: ExchangeRateFormData) => {
-      if (!user?.company_id || !user?.id) throw new Error("Missing Auth");
+      if (!user?.company_id || !user?.id) throw new Error('Missing Auth');
       // Reject zero/negative/non-finite rates — they would corrupt every
       // future conversion for this currency (server-side validation stays the
       // source of truth, this is a client-side guard).
       if (!Number.isFinite(data.rate_to_base) || data.rate_to_base <= 0) {
-        throw new Error("سعر الصرف يجب أن يكون رقماً موجباً أكبر من صفر");
+        throw new Error('سعر الصرف يجب أن يكون رقماً موجباً أكبر من صفر');
       }
       return settingsService.setExchangeRate(user.company_id, data, user.id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
-      showToast("تم تحديث سعر الصرف بنجاح", 'success');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
+      showToast('تم تحديث سعر الصرف بنجاح', 'success');
     },
-    onError: (error: any) => showToast(error?.message || "فشل تحديث سعر الصرف", 'error')
+    onError: (error: any) => showToast(error?.message || 'فشل تحديث سعر الصرف', 'error'),
   });
 
   const addCurrency = useMutation({
-    mutationFn: (data: { code: string, name_ar: string, symbol: string, exchange_operator: 'multiply' | 'divide' }) => settingsApi.createCurrency(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['supported_currencies'] });
-      showToast("تمت إضافة العملة الجديدة", 'success');
-    }
+    mutationFn: (data: {
+      code: string;
+      name_ar: string;
+      symbol: string;
+      exchange_operator: 'multiply' | 'divide';
+    }) => settingsApi.createCurrency(data),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['supported_currencies'] });
+      showToast('تمت إضافة العملة الجديدة', 'success');
+    },
   });
 
   const deleteCurrency = useMutation({
     mutationFn: (code: string) => settingsApi.deleteCurrency(code),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['supported_currencies'] });
-      showToast("تم حذف العملة من النظام", 'info');
-    }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['supported_currencies'] });
+      showToast('تم حذف العملة من النظام', 'info');
+    },
   });
 
   const refreshRates = useMutation({
     mutationFn: () => settingsService.refreshMarketRates(user?.company_id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
-      showToast("تم تحديث أسعار الصرف من السوق بنجاح", 'success');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
+      showToast('تم تحديث أسعار الصرف من السوق بنجاح', 'success');
     },
     onError: (error: any) => {
-      showToast(error.message || "فشل تحديث الأسعار من السوق", 'error');
-    }
+      showToast(error.message || 'فشل تحديث الأسعار من السوق', 'error');
+    },
   });
 
   return {
@@ -220,7 +253,7 @@ export const useCurrencyMutation = () => {
     addCurrency: addCurrency.mutate,
     deleteCurrency: deleteCurrency.mutate,
     refreshRates: refreshRates.mutate,
-    isSaving: setRate.isPending || addCurrency.isPending || refreshRates.isPending
+    isSaving: setRate.isPending || addCurrency.isPending || refreshRates.isPending,
   };
 };
 
@@ -230,22 +263,22 @@ export const useBackupActions = () => {
 
   const exportData = async () => {
     try {
-      showToast("جاري تجهيز النسخة الاحتياطية...", 'info');
+      showToast('جاري تجهيز النسخة الاحتياطية...', 'info');
       const data = await settingsService.exportSystemData();
 
       const fileName = `AlZahra_Backup_${new Date().toISOString().split('T')[0]}`;
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = `${fileName}.json`;
       link.click();
       URL.revokeObjectURL(url);
 
-      showToast("تم تحميل النسخة الاحتياطية بنجاح", 'success');
+      showToast('تم تحميل النسخة الاحتياطية بنجاح', 'success');
       return data;
     } catch (err) {
-      showToast("فشل تصدير البيانات", 'error');
+      showToast('فشل تصدير البيانات', 'error');
       throw err;
     }
   };
@@ -258,7 +291,7 @@ export const useBackupActions = () => {
       assertOwner(user);
       if (!user?.company_id) throw new Error('لا يوجد شركة نشطة لهذا الحساب');
       await settingsService.importSystemData(file, user.company_id);
-      showToast("تم استيراد البيانات بنجاح، سيتم إعادة التحميل", 'success');
+      showToast('تم استيراد البيانات بنجاح، سيتم إعادة التحميل', 'success');
       setTimeout(() => window.location.reload(), 1500);
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -272,8 +305,9 @@ export const useBranches = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['branches', user?.company_id],
-    queryFn: () => user?.company_id ? settingsService.fetchBranches(user.company_id) : Promise.resolve([]),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id ? settingsService.fetchBranches(user.company_id) : Promise.resolve([]),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -287,30 +321,30 @@ export const useBranchMutations = () => {
       if (!user?.company_id) throw new Error('No Company ID');
       return settingsService.addBranch(user.company_id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['branches'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تمت إضافة الفرع الجديد بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في إضافة الفرع', 'error')
+    onError: (err: any) => showToast(err.message || 'خطأ في إضافة الفرع', 'error'),
   });
 
   const editBranch = useMutation({
     mutationFn: ({ id, data }: { id: string; data: BranchFormData }) =>
       settingsService.updateBranch(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['branches'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تم تحديث بيانات الفرع بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في تحديث الفرع', 'error')
+    onError: (err: any) => showToast(err.message || 'خطأ في تحديث الفرع', 'error'),
   });
 
   const deleteBranch = useMutation({
     mutationFn: (id: string) => settingsService.removeBranch(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['branches'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تم حذف الفرع', 'info');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في حذف الفرع', 'error')
+    onError: (err: any) => showToast(err.message || 'خطأ في حذف الفرع', 'error'),
   });
 
   return {
@@ -327,8 +361,11 @@ export const useInvitations = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['invitations', user?.company_id],
-    queryFn: () => user?.company_id ? settingsApi.getInvitations(user.company_id).then(res => res.data || []) : Promise.resolve([]),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id
+        ? settingsApi.getInvitations(user.company_id).then(res => res.data || [])
+        : Promise.resolve([]),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -338,31 +375,30 @@ export const useInvitationMutations = () => {
   const { showToast } = useFeedbackStore();
 
   const inviteUser = useMutation({
-    mutationFn: (data: { email: string, role: string, branchId?: string | null }) => {
-      if (!user?.company_id || !user?.id) throw new Error("Missing Auth");
+    mutationFn: (data: { email: string; role: string; branchId?: string | null }) => {
+      if (!user?.company_id || !user?.id) throw new Error('Missing Auth');
       return settingsApi.inviteUser(data.email, data.role, user.company_id, user.id, data.branchId);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invitations'] });
-      showToast("تم إرسال الدعوة بنجاح", 'success');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['invitations'] });
+      showToast('تم إرسال الدعوة بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'فشل إرسال الدعوة', 'error')
+    onError: (err: any) => showToast(err.message || 'فشل إرسال الدعوة', 'error'),
   });
 
   const revokeInvitation = useMutation({
     mutationFn: (id: string) => settingsApi.revokeInvitation(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invitations'] });
-      showToast("تم إلغاء الدعوة", 'info');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['invitations'] });
+      showToast('تم إلغاء الدعوة', 'info');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في إلغاء الدعوة', 'error')
+    onError: (err: any) => showToast(err.message || 'خطأ في إلغاء الدعوة', 'error'),
   });
 
   return {
     inviteUser: inviteUser.mutateAsync,
     revokeInvitation: revokeInvitation.mutate,
     isInviting: inviteUser.isPending,
-    isRevoking: revokeInvitation.isPending
+    isRevoking: revokeInvitation.isPending,
   };
 };
-

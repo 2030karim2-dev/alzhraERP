@@ -1,7 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*\\.html|/|^$)",
@@ -26,7 +24,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' *.supabase.co *.vercel.app https://vercel.com; script-src 'self' 'unsafe-inline' *.google.com *.googleapis.com *.gstatic.com *.vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com *.vercel.com; connect-src 'self' https://zzthamxjxnxzzpswllid.supabase.co wss://zzthamxjxnxzzpswllid.supabase.co https://api.deepseek.com https://openrouter.ai https://*.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com https://vercel.com; frame-ancestors 'self'; manifest-src 'self' *.vercel.com *.vercel.app https://vercel.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+          "value": "default-src 'self' *.supabase.co *.vercel.app https://vercel.com; script-src 'self' 'unsafe-inline' *.google.com *.googleapis.com *.gstatic.com *.vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com *.vercel.com; media-src 'self' data: blob: https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org *.supabase.co; connect-src 'self' https://zzthamxjxnxzzpswllid.supabase.co wss://zzthamxjxnxzzpswllid.supabase.co *.supabase.co wss://*.supabase.co https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org https://api.deepseek.com https://openrouter.ai https://*.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com https://vercel.com; frame-ancestors 'self'; manifest-src 'self' *.vercel.com *.vercel.app https://vercel.com; object-src 'none'; base-uri 'self'; form-action 'self';"
         },
         {
           "key": "Content-Security-Policy-Report-Only",

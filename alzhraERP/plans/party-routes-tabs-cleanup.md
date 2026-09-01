@@ -1,19 +1,21 @@
 # خطة: توحيد مسارات الأطراف (PartiesPage) بتبويبات داخلية
 
-**الحالة:** قيد الانتظار — تتطلب بيئة تحقق كاملة (`tsc`/`build`/تشغيل يدوي) لأنها تعديل
-تنقّل وواجهة، ولا يجب تنفيذها "عمياء" من أداة لا تستطيع بناء المشروع.
+**الحالة:** ✅ **مُنفذة (2026-09-01)** — تباينان مقصودان عن النص الأصلي:
+
+1. `/parties/suppliers` تُحوَّل إلى `/suppliers` (وليس `/clients`) حفاظاً على قصد المستخدم.
+2. المسارات القديمة بقيت كثوابت تحت `ROUTES.DASHBOARD.LEGACY` (وليس حذفاً كاملاً) لأنها أهداف الـredirect، مع منع ربط جديد بها.
 
 ## المشكلة الحالية
 
 5 مسارات تعرض نفس `PartiesPage` بنوع مختلف (`partyType`):
 
-| الثابت | المسار | النوع |
-|---|---|---|
-| `SUPPLIERS` | `/suppliers` | supplier — **مستخدم من القائمة الجانبية** |
-| `CLIENTS` | `/clients` | customer — **مستخدم من القائمة الجانبية وQuickActions** |
-| `PARTIES` | `/parties` | customer — بلا مستخدم خارج routes |
-| `PARTIES_CUSTOMERS` | `/parties/customers` | customer — مستخدم حرفياً في routePrefetcher فقط |
-| `PARTIES_SUPPLIERS` | `/parties/suppliers` | supplier — مستخدم حرفياً في routePrefetcher فقط |
+| الثابت              | المسار               | النوع                                                   |
+| ------------------- | -------------------- | ------------------------------------------------------- |
+| `SUPPLIERS`         | `/suppliers`         | supplier — **مستخدم من القائمة الجانبية**               |
+| `CLIENTS`           | `/clients`           | customer — **مستخدم من القائمة الجانبية وQuickActions** |
+| `PARTIES`           | `/parties`           | customer — بلا مستخدم خارج routes                       |
+| `PARTIES_CUSTOMERS` | `/parties/customers` | customer — مستخدم حرفياً في routePrefetcher فقط         |
+| `PARTIES_SUPPLIERS` | `/parties/suppliers` | supplier — مستخدم حرفياً في routePrefetcher فقط         |
 
 ## الخطوات المقترحة (بعد الحصول على بيئة تحقق)
 

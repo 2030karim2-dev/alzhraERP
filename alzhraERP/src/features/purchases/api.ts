@@ -44,7 +44,8 @@ interface PurchaseReturnRpcParams {
   p_branch_id?: string;
 }
 
-const hasText = (value: string | null | undefined): value is string => value !== null && value !== undefined && value !== '';
+const hasText = (value: string | null | undefined): value is string =>
+  value !== null && value !== undefined && value !== '';
 const requireText = (value: string | null | undefined, field: string): string => {
   if (!hasText(value)) throw new Error(`${field} is required`);
   return value;
@@ -56,7 +57,10 @@ const asError = (error: unknown): Error => {
   }
   return new Error(String(error));
 };
-const warehousePayload = (warehouseId: string | null | undefined): Pick<PurchaseItemPayload, 'warehouse_id'> => hasText(warehouseId) ? { warehouse_id: warehouseId } : {};
+const warehousePayload = (
+  warehouseId: string | null | undefined
+): Pick<PurchaseItemPayload, 'warehouse_id'> =>
+  hasText(warehouseId) ? { warehouse_id: warehouseId } : {};
 
 const itemPayload = (item: PurchaseItem): PurchaseItemPayload => {
   const discount = item.discount ?? 0;
@@ -71,7 +75,11 @@ const itemPayload = (item: PurchaseItem): PurchaseItemPayload => {
   };
 };
 
-const buildPurchaseParams = (companyId: string, userId: string, data: CreatePurchaseDTO): PurchaseRpcParams => {
+const buildPurchaseParams = (
+  companyId: string,
+  userId: string,
+  data: CreatePurchaseDTO
+): PurchaseRpcParams => {
   const paymentAccountId = data.paymentMethod === 'cash' ? data.cashAccountId : data.bankAccountId;
   return {
     p_company_id: companyId,
@@ -90,7 +98,11 @@ const buildPurchaseParams = (companyId: string, userId: string, data: CreatePurc
   };
 };
 
-const buildReturnParams = (companyId: string, userId: string, data: CreatePurchaseDTO): PurchaseReturnRpcParams => ({
+const buildReturnParams = (
+  companyId: string,
+  userId: string,
+  data: CreatePurchaseDTO
+): PurchaseReturnRpcParams => ({
   p_company_id: companyId,
   p_user_id: userId,
   p_supplier_id: requireText(data.supplierId, 'Supplier'),
@@ -104,29 +116,48 @@ const buildReturnParams = (companyId: string, userId: string, data: CreatePurcha
 
 export const purchasesApi = {
   getPurchases: async (companyId: string, branchId?: string | null) => {
-    let query = supabase.from('invoices').select(`
+    let query = supabase
+      .from('invoices')
+      .select(
+        `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(name), invoice_items(id, cost_price)
-    `).eq('company_id', companyId).in('type', ['purchase', 'purchase_return']).is('deleted_at', null);
+    `
+      )
+      .eq('company_id', companyId)
+      .in('type', ['purchase', 'purchase_return'])
+      .is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     return query.order('issue_date', { ascending: false });
   },
 
   getPurchaseDetails: async (purchaseId: string) => {
-    const { data, error } = await supabase.from('invoices').select(`
+    const { data, error } = await supabase
+      .from('invoices')
+      .select(
+        `
       *, party:party_id(*), invoice_items(*, product:product_id(name_ar, sku))
-    `).eq('id', purchaseId).single();
+    `
+      )
+      .eq('id', purchaseId)
+      .single();
     return { data, error };
   },
 
   createPurchaseRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
-    const { data: result, error } = await supabase.rpc('commit_purchase_invoice', buildPurchaseParams(companyId, userId, data));
+    const { data: result, error } = await supabase.rpc(
+      'commit_purchase_invoice',
+      buildPurchaseParams(companyId, userId, data)
+    );
     if (error) throw asError(parseError(error));
     return result;
   },
 
   createPurchaseReturnRPC: async (companyId: string, userId: string, data: CreatePurchaseDTO) => {
-    const { data: result, error } = await supabase.rpc('commit_purchase_return', buildReturnParams(companyId, userId, data));
+    const { data: result, error } = await supabase.rpc(
+      'commit_purchase_return',
+      buildReturnParams(companyId, userId, data)
+    );
     if (error) throw asError(parseError(error));
     return result;
   },
@@ -141,8 +172,14 @@ export const purchasesApi = {
    * [FIX] سابقاً كان البحث ثابتاً على رمز الحساب '1010' برسالة خطأ إنجليزية،
    * ما كان يفشل عند غيابه ويمنع الدفع البنكي أو من عملات أخرى.
    */
-  createSupplierPayment: async (paymentData: SupplierPaymentData, companyId: string, userId: string) => {
-    let treasuryAccountId = hasText(paymentData.treasuryAccountId) ? paymentData.treasuryAccountId : null;
+  createSupplierPayment: async (
+    paymentData: SupplierPaymentData,
+    companyId: string,
+    userId: string
+  ) => {
+    let treasuryAccountId = hasText(paymentData.treasuryAccountId)
+      ? paymentData.treasuryAccountId
+      : null;
 
     if (treasuryAccountId === null) {
       const { data: cashboxes, error: cashboxError } = await treasuryApi.getCashboxes(companyId);
@@ -151,7 +188,9 @@ export const purchasesApi = {
         .map(cb => cb.account_id)
         .find((id): id is string => id !== null && id !== '');
       if (linkedAccountId === undefined) {
-        throw new Error('لا يوجد صندوق نشط مرتبط بحساب مالي — أنشئ خزينة من صفحة المحاسبة أو اختر الحساب يدوياً');
+        throw new Error(
+          'لا يوجد صندوق نشط مرتبط بحساب مالي — أنشئ خزينة من صفحة المحاسبة أو اختر الحساب يدوياً'
+        );
       }
       treasuryAccountId = linkedAccountId;
     }
@@ -175,15 +214,28 @@ export const purchasesApi = {
     return { data, error: null };
   },
 
-  getPurchaseInvoicesForReturn: async (companyId: string, supplierId: string | null, branchId?: string | null) => {
-    let query = supabase.from('invoices').select(`
+  getPurchaseInvoicesForReturn: async (
+    companyId: string,
+    supplierId: string | null,
+    branchId?: string | null
+  ) => {
+    let query = supabase
+      .from('invoices')
+      .select(
+        `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(id, name),
       invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
-    `).eq('company_id', companyId).eq('type', 'purchase').eq('status', 'posted').is('deleted_at', null);
+    `
+      )
+      .eq('company_id', companyId)
+      .eq('type', 'purchase')
+      .neq('status', 'void')
+      .neq('status', 'cancelled')
+      .is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     if (hasText(supplierId)) query = query.eq('party_id', supplierId);
-    return query.order('issue_date', { ascending: false });
+    return query.order('issue_date', { ascending: false }).limit(1000);
   },
 
   deletePurchase: async (id: string) => {

@@ -8,9 +8,24 @@ export type CalculationMethodKey = 'qatar' | 'ummAlQura' | 'muslimWorldLeague';
 
 export type AdhanReciterId = 'makkah' | 'madinah' | 'abdulbasit' | 'quds' | 'takbeerat' | 'synth';
 
+export type DhikrCategory =
+  | 'tasbeeh'
+  | 'istighfar'
+  | 'tahleel'
+  | 'takbeer'
+  | 'quran_duas'
+  | 'prophet_duas'
+  | 'debt_relief'
+  | 'rizq_work'
+  | 'morning_evening'
+  | 'salawat';
+
 export interface DhikrItem {
   id: string;
   text: string;
+  category?: DhikrCategory;
+  source?: string;
+  repeatCount?: number;
 }
 
 export interface PrayerTimeEntry {

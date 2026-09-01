@@ -6,6 +6,8 @@ import type {
   ItemAvailability,
 } from '../types';
 
+// 🔒 lazy-loader محلي (مستقل): excelEngine يقرأ ويكتب بأنماط خاصة (sheet_to_json/read)
+// ولا يشارك بنية التنسيق مع excelExporterBase — تُرك هنا حتى لا يخلط أنظمتها.
 let xlsxPromise: Promise<any> | null = null;
 const loadXLSX = (): Promise<any> => {
   xlsxPromise ??= import('xlsx-js-style').then((m: any) => m.default ?? m);
