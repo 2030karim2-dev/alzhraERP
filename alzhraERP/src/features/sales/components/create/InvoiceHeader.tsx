@@ -1,56 +1,91 @@
-// import React from 'react';
-import { Car } from 'lucide-react';
+import React from 'react';
+import { Building2, FileCheck, ShieldCheck, Sparkles } from 'lucide-react';
 import { useInvoiceSettings } from '../../../settings/settingsStore';
 
-const InvoiceHeader = ({ company }: { company: any }) => {
-    const settings = useInvoiceSettings();
+interface InvoiceHeaderProps {
+  company: {
+    name_ar?: string | null;
+    name_en?: string | null;
+    address?: string | null;
+    tax_number?: string | null;
+    [key: string]: unknown;
+  } | null;
+}
 
-    const nameAr = settings.company_name_ar || company?.name_ar || 'اسم المنشأة';
-    const nameEn = settings.company_name_en || company?.name_en || 'Company Name';
-    const address = settings.company_address || company?.address || 'المملكة العربية السعودية';
-    const specialization = settings.company_specialization || '';
+const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company }) => {
+  const settings = useInvoiceSettings();
 
-    return (
-        <div className="relative p-3 max-md:p-1.5 md:p-4 border-b-2 max-md:border-b border-blue-100 dark:border-slate-800 bg-gradient-to-l from-white to-blue-50 dark:from-slate-900 dark:to-slate-950 overflow-hidden">
-            {/* Top Accent Line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+  const nameAr = settings.company_name_ar || company?.name_ar || 'اسم المنشأة';
+  const nameEn = settings.company_name_en || company?.name_en || 'Enterprise ERP';
+  const address = settings.company_address || company?.address || 'المملكة العربية السعودية';
+  const specialization = settings.company_specialization || '';
+  const taxNumber = company?.tax_number || '';
 
-            <div className="flex justify-between items-center gap-2 max-md:gap-1">
-                {/* Right Info */}
-                <div className="flex-1 text-right">
-                    <h1 className="text-sm max-md:text-[10px] font-bold text-blue-900 dark:text-blue-400 leading-none mb-1 max-md:mb-0.5 uppercase tracking-tight">
-                        {nameAr}
-                    </h1>
-                    {specialization && (
-                        <p className="text-[10px] max-md:text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-0.5 max-md:mb-0">{specialization}</p>
-                    )}
-                    <div className="text-[10px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0">
-                        <p>{address}</p>
-                    </div>
-                </div>
+  return (
+    <div className="via-slate-850 relative border-b border-slate-700/80 bg-gradient-to-r from-slate-900 to-slate-900 px-4 py-3 text-white shadow-md">
+      {/* Decorative top ambient bar */}
+      <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-blue-500 via-emerald-400 to-indigo-500"></div>
 
-                {/* Center: The Core Block */}
-                <div className="shrink-0 flex flex-col items-center">
-                    <div className="w-12 h-12 max-md:w-8 max-md:h-8 bg-blue-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/20 transform rotate-45 group-hover:rotate-0 transition-transform duration-500">
-                        <div className="-rotate-45 group-hover:rotate-0 transition-transform duration-500">
-                            <Car size={24} className="max-md:w-4 max-md:h-4" strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.4em] mt-2 max-md:mt-1">SMART ERP</span>
-                </div>
-
-                {/* Left Info */}
-                <div className="flex-1 text-left" dir="ltr">
-                    <h1 className="text-[11px] max-md:text-[10px] font-bold text-blue-900 dark:text-blue-400 leading-none mb-1 max-md:mb-0.5 uppercase tracking-tight">
-                        {nameEn}
-                    </h1>
-                    <div className="text-[10px] font-bold text-slate-500 space-y-0.5 max-md:space-y-0 uppercase tracking-tighter">
-                        <p>{settings.invoice_header_text || 'SALES INVOICE'}</p>
-                    </div>
-                </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Right: Company Identity */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+            <Building2 size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-black tracking-tight text-white">{nameAr}</h1>
+              {specialization && (
+                <span className="rounded-md border border-blue-400/30 bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                  {specialization}
+                </span>
+              )}
             </div>
+            <div className="mt-0.5 flex items-center gap-2 text-[11px] font-medium text-slate-400">
+              <span>{address}</span>
+              {taxNumber && (
+                <>
+                  <span className="text-slate-600">•</span>
+                  <span className="font-mono font-bold text-slate-300">
+                    الرقم الضريبي: {taxNumber}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-    );
+
+        {/* Center: Transaction Type & ERP Badge */}
+        <div className="hidden items-center gap-2.5 rounded-xl border border-slate-700/80 bg-slate-800/80 px-3 py-1.5 text-xs md:flex">
+          <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+            <FileCheck size={15} />
+            <span>فاتورة مبيعات ضريبية</span>
+          </div>
+          <span className="text-slate-600">|</span>
+          <div className="flex items-center gap-1 text-[11px] text-slate-300">
+            <ShieldCheck size={13} className="text-blue-400" />
+            <span>نظام إلكتروني معتمد</span>
+          </div>
+        </div>
+
+        {/* Left: English Branding & Shortcuts hint */}
+        <div className="flex items-center gap-3 text-left" dir="ltr">
+          <div className="hidden sm:block">
+            <p className="font-mono text-xs font-bold uppercase tracking-wide text-slate-200">
+              {nameEn}
+            </p>
+            <p className="font-mono text-[10px] tracking-tighter text-slate-400">
+              {settings.invoice_header_text || 'TAX SALES INVOICE'}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-bold text-emerald-300">
+            <Sparkles size={12} className="text-emerald-400" />
+            <span>POS Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default InvoiceHeader;
