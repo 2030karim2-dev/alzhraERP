@@ -40,7 +40,9 @@ describe('smartPartNamer', () => {
       transmission: 'manual',
       displacement: '2.7',
     };
-    expect(generateSmartPartName('brake pad', hilux)).toBe('فحمات فرامل هايلوكس 2006-2015 خليجي عادي مكينة 2.7');
+    expect(generateSmartPartName('brake pad', hilux)).toBe(
+      'فحمات فرامل هايلوكس 2006-2015 خليجي عادي مكينة 2.7'
+    );
 
     const shas: VehicleInfo = {
       make: 'Toyota',
@@ -51,7 +53,9 @@ describe('smartPartNamer', () => {
       transmission: 'manual',
       displacement: '4.0',
     };
-    expect(generateSmartPartName('shock absorber', shas)).toBe('مساعدات شاص 2010-2022 خليجي عادي مكينة 4');
+    expect(generateSmartPartName('shock absorber', shas)).toBe(
+      'مساعدات شاص 2010-2022 خليجي عادي مكينة 4'
+    );
   });
 
   it('handles manual Arabic part input like بواجي or بلاكات', () => {
@@ -79,16 +83,21 @@ describe('smartPartNamer', () => {
     expect(generateSmartPartName('spark plug', vitz)).toBe('بلاكات فيتز 2005 ياباني مكينة 1.3');
   });
 
-  it('supports explicit custom template generalization override', () => {
-    const vitz: VehicleInfo = {
+  it('generates full Arabic product name for Noah Voxy (باص نوها)', () => {
+    const noah: VehicleInfo = {
       make: 'Toyota',
-      model: 'Vitz',
-      year: 2005,
+      model: 'NOAH VOXY',
+      year: 2011,
+      driveType: '4WD',
+      engine: '3ZRFA',
     };
-    const name = generateSmartPartName('spark plug', vitz, {
-      customVehicleTemplate: 'فيتز 2005 مكينة 1.3',
-    });
-    expect(name).toBe('بلاكات فيتز 2005 مكينة 1.3');
+
+    expect(generateSmartPartName('باكن راس', noah)).toBe('باكن راس باص نوها 2011 دبل مكينة 3ZRFA');
+    expect(generateSmartPartName('كرسي مكينه يمين', noah)).toBe(
+      'كرسي مكينه يمين باص نوها 2011 دبل مكينة 3ZRFA'
+    );
+    expect(generateSmartPartName('باكن غطاء', noah)).toBe(
+      'باكن غطاء باص نوها 2011 دبل مكينة 3ZRFA'
+    );
   });
 });
-

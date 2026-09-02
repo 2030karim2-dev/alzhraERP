@@ -109,6 +109,33 @@ if (filesFlag) {
 }
 
 files = files.filter(f => /\.(ts|tsx)$/.test(f));
+
+// `--seed-all`: rebuild the ENTIRE baseline from the current src/ state.
+// Documented in the header but was never implemented — add it so the ratchet
+// can be re-seeded after large autofix passes (fixes "guard doesn't cover
+// every file" gap). Collects every .ts/.tsx under src/ and takes the --update
+// write path.
+if (process.argv.includes('--seed-all')) {
+  const srcRoot = path.join(ROOT, 'src');
+  try {
+    const all = [];
+    const walk = (dir) => {
+      for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, ent.name);
+        if (ent.isDirectory()) walk(p);
+        else if (/\.tsx?$/.test(ent.name)) all.push(p);
+      }
+    };
+    walk(srcRoot);
+    files = all;
+    console.log(`[lint-ratchet] --seed-all: rebuilding baseline for ${files.length} source files...`);
+    process.argv.push('--update');
+  } catch (e) {
+    console.error('[lint-ratchet] --seed-all failed to walk src/:', e.message);
+    process.exit(1);
+  }
+}
+
 if (files.length === 0) {
   console.log('[lint-ratchet] No changed TS/TSX files.');
   process.exit(0);

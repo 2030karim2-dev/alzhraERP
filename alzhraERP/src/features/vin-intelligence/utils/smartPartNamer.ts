@@ -83,7 +83,7 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   'belt, v-ribbed': { primary: 'سير مكينة', synonyms: ['سير محرك'] },
   tensioner: { primary: 'شداد سير', synonyms: ['بكرة شداد'] },
 
-  // Engine & Transmission
+  // Engine, Gaskets & Mounts
   'fuel pump': { primary: 'طرمبة بنزين', synonyms: ['طرمبة وقود', 'فيول بمب'] },
   'pump assy, fuel': { primary: 'طرمبة بنزين', synonyms: ['فيول بمب'] },
   'fuel injector': { primary: 'بخاخات', synonyms: ['رشاشات وقود', 'بخاخ بنزين'] },
@@ -93,12 +93,43 @@ export const AUTO_PARTS_DICTIONARY: Record<string, { primary: string; synonyms: 
   'clutch cover': { primary: 'دسك كلتش', synonyms: ['دزك كلتش', 'طاقية دبرياج'] },
   'clutch kit': { primary: 'طقم كلتش كامل', synonyms: ['صحن ودسك وفحمة'] },
   'gasket, cylinder head': {
-    primary: 'قازقيت رأس مكينة',
-    synonyms: ['وجه رأس', 'كاسكيت', 'طقم وجوه'],
+    primary: 'باكن راس',
+    synonyms: ['قازقيت رأس مكينة', 'وجه رأس', 'كاسكيت', 'طقم وجوه', 'باكن راس'],
   },
-  'head gasket': { primary: 'قازقيت رأس', synonyms: ['وجه رأس سلندر'] },
+  'head gasket': { primary: 'باكن راس', synonyms: ['قازقيت رأس', 'وجه رأس سلندر', 'باكن راس'] },
+  'gasket, cylinder head cover': {
+    primary: 'باكن غطاء',
+    synonyms: ['وجه غطاء بلوف', 'باكن غطاء صبابات', 'قازقيت غطاء', 'باكن غطاء'],
+  },
+  'valve cover gasket': { primary: 'باكن غطاء', synonyms: ['وجه غطاء بلوف', 'باكن غطاء'] },
+  'gasket, oil pan': {
+    primary: 'باكن كرتير',
+    synonyms: ['وجه كرتير زيت', 'قازقيت كرتير', 'باكن كرتير'],
+  },
+  'oil pan gasket': { primary: 'باكن كرتير', synonyms: ['وجه كرتير', 'باكن كرتير'] },
   'engine mount': { primary: 'كراسي مكينة', synonyms: ['كرسي محرك', 'قواعد مكينة', 'كرسي مكينة'] },
-  'insulator, engine': { primary: 'كرسي مكينة', synonyms: ['قاعدة محرك'] },
+  'insulator, engine': { primary: 'كرسي مكينة', synonyms: ['قاعدة محرك', 'كرسي مكينة'] },
+  'engine mount rh': {
+    primary: 'كرسي مكينة يمين',
+    synonyms: ['كرسي مكينة أيمن', 'قاعدة محرك يمين'],
+  },
+  'insulator, engine mounting, rh': {
+    primary: 'كرسي مكينة يمين',
+    synonyms: ['كرسي مكينة يمين', 'قاعدة محرك يمين'],
+  },
+  'engine mount lh': {
+    primary: 'كرسي مكينة يسار',
+    synonyms: ['كرسي مكينة أيسر', 'قاعدة محرك يسار'],
+  },
+  'insulator, engine mounting, lh': {
+    primary: 'كرسي مكينة يسار',
+    synonyms: ['كرسي مكينة يسار', 'قاعدة محرك يسار'],
+  },
+  'engine mount rear': {
+    primary: 'كرسي مكينة خلفي',
+    synonyms: ['قاعدة محرك خلفي', 'كرسي مكينة خلفي'],
+  },
+  'insulator, engine mounting, rear': { primary: 'كرسي مكينة خلفي', synonyms: ['كرسي مكينة خلفي'] },
   'transmission mount': { primary: 'كرسي جير', synonyms: ['كرسي قير', 'قاعدة قير'] },
 
   // Sensors & Exhaust
@@ -130,14 +161,27 @@ const ARABIC_MODELS: Record<string, string> = {
   prado: 'برادو',
   'land cruiser prado': 'برادو',
   'fj cruiser': 'اف جي',
+  noah: 'باص نوها',
+  'noah voxy': 'باص نوها',
+  'noah-voxy': 'باص نوها',
+  'noah/voxy': 'باص نوها',
+  voxy: 'فوكسي',
+  esquire: 'إسكواير',
+  alphard: 'ألفارد',
+  vellfire: 'فيلفاير',
+  sienna: 'سيينا',
+  townace: 'تاون آيس',
+  liteace: 'لايت آيس',
+  probox: 'بروبوكس',
+  succeed: 'سكسيد',
+  hiace: 'هايس',
+  coaster: 'كوستر',
   echo: 'إيكو',
   avalon: 'أفالون',
   aurion: 'أوريون',
   rav4: 'راف فور',
   fortuner: 'فورتشنر',
   innova: 'إنوفا',
-  hiace: 'هايس',
-  coaster: 'كوستر',
   accent: 'أكسنت',
   elantra: 'إلنترا',
   sonata: 'سوناتا',
@@ -251,20 +295,6 @@ const lookupArabic = (record: Record<string, string>, key: string): string | und
 
 const orUndefined = (s: string): string | undefined => (s === '' ? undefined : s);
 
-const isValidNumeric = (s: string): boolean => {
-  if (s.length === 0) return false;
-  let seenDot = false;
-  for (const ch of s) {
-    if (ch === '.') {
-      if (seenDot) return false;
-      seenDot = true;
-    } else if (ch < '0' || ch > '9') {
-      return false;
-    }
-  }
-  return true;
-};
-
 const arabicTransmission = (transmission?: string | null): string => {
   if (transmission == null || transmission === '') return '';
   const t = transmission.toLowerCase();
@@ -290,6 +320,17 @@ const safeSubmodel = (submodel: string | null | undefined, modelAr: string): str
 };
 
 const ARABIC_KEYWORD_MATCHES: Array<[RegExp, string]> = [
+  [/باكن.*راس|قازقيت.*راس|وجه.*راس/i, 'باكن راس'],
+  [/باكن.*غطاء|وجه.*غطاء|باكن.*صباب/i, 'باكن غطاء'],
+  [/باكن.*كرتير|وجه.*كرتير/i, 'باكن كرتير'],
+  [/كرسي.*مكين.*يمين|كرسي.*محرك.*يمين/i, 'كرسي مكينه يمين'],
+  [/كرسي.*مكين.*يسار|كرسي.*محرك.*يسار/i, 'كرسي مكينه يسار'],
+  [/كرسي.*مكين.*خلف|كرسي.*محرك.*خلف/i, 'كرسي مكينه خلفي'],
+  [/كرسي.*مكين.*أمام|كرسي.*مكين.*امام|كرسي.*محرك.*أمام/i, 'كرسي مكينه أمامي'],
+  [/كرسي.*مكين|كرسي.*محرك|قواعد.*مكين/i, 'كرسي مكينه'],
+  [/كرسي.*جير|كرسي.*قير/i, 'كرسي جير'],
+  [/صوف.*مكين.*خلف/i, 'صوفة مكينة خلفية'],
+  [/صوف.*مكين.*أمام|صوف.*مكين.*امام/i, 'صوفة مكينة أمامية'],
   [/بلاك|بوج|شمع/i, 'بلاكات'],
   [/فحم|سفايف|قماش/i, 'فحمات فرامل'],
   [/فلتر.*زيت|سيفون/i, 'فلتر زيت'],
@@ -298,8 +339,10 @@ const ARABIC_KEYWORD_MATCHES: Array<[RegExp, string]> = [
   [/مساعد|جامبين/i, 'مساعدات'],
   [/طرمب.*بنزين|فيول/i, 'طرمبة بنزين'],
   [/طرمب.*ماء|طلمب/i, 'طرمبة ماء'],
+  [/بلف.*حرار/i, 'بلف حرارة'],
   [/سير.*تايمن|كاتين/i, 'سير تايمن'],
   [/سير.*مكين/i, 'سير مكينة'],
+  [/جنزير.*مكين/i, 'جنزير مكينة'],
   [/سلف|مارش/i, 'سلف'],
   [/دينمو/i, 'دينمو'],
   [/رديتر|راديات/i, 'رديتر'],
@@ -369,7 +412,7 @@ export function formatVehicleYears(vehicle?: VehicleInfo | null): string {
 }
 
 /**
- * Builds smart engine specification label (e.g., "مكينة 1.8" or "1800cc").
+ * Builds smart engine specification label (e.g., "مكينة 1.8" or "مكينة 3ZRFA").
  */
 export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
   if (vehicle == null) return '';
@@ -380,10 +423,10 @@ export function formatEngineSpec(vehicle?: VehicleInfo | null): string {
   }
   if (vehicle.engine != null && vehicle.engine !== '') {
     const e = vehicle.engine.replace(/L$/i, '').trim();
-    if (isValidNumeric(e)) {
-      return `مكينة ${e}`;
+    if (/^مكينة|محرك/i.test(e)) {
+      return e;
     }
-    return e;
+    return `مكينة ${e}`;
   }
   return '';
 }

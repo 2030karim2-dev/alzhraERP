@@ -235,3 +235,134 @@ export function formatPartsForWhatsApp(vehicle: VehicleInfo, parts: ExcelGridPar
 
   return lines.join('\n');
 }
+
+/**
+ * Smart Bulk Parts Text Parser:
+ * Parses multi-line raw text of parts (such as alternating name and OEM number,
+ * or single lines with name & OEM, or tab-separated catalog items) and
+ * immediately formats the smart Arabic product name with vehicle specs.
+ */
+export function parseBulkPartsText(
+  rawText: string,
+  vehicle: VehicleInfo | null,
+  customTemplate?: string
+): ExcelGridPart[] {
+  if (!rawText || !rawText.trim()) return [];
+
+  const lines = rawText
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  const parts: ExcelGridPart[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const currentLine = lines[i];
+
+    // Pattern A: Single line with Name and OEM part number (e.g. "باكن راس 11115-37051" or "11115-37051 باكن راس")
+    const oemMatch = currentLine.match(/\b([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\b/i);
+
+    if (oemMatch) {
+      const oem = oemMatch[1].toUpperCase();
+      const textWithoutOem = currentLine.replace(oemMatch[0], '').trim();
+
+      if (textWithoutOem.length > 0) {
+        const baseName = textWithoutOem.replace(/^[-–—:,.\t#|]+|[-–—:,.\t#|]+$/g, '').trim();
+        const smartName = generateSmartPartName(baseName, vehicle, {
+          customVehicleTemplate: customTemplate,
+        });
+
+        parts.push({
+          _id: `bulk-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+          partNumber: oem,
+          baseName,
+          description: smartName,
+          manufacturer: (vehicle?.make ?? '') || 'GENUINE',
+          sizeSpec: '',
+          source: 'manual',
+          purchasePrice: 0,
+          salePrice: 0,
+          selected: true,
+        });
+        i++;
+        continue;
+      }
+    }
+
+    // Pattern B: Alternating lines: Line 1 = Name ("باكن راس"), Line 2 = OEM ("11115-37051")
+    if (i + 1 < lines.length) {
+      const nextLine = lines[i + 1];
+      const nextOemMatch = nextLine.match(/^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i);
+
+      if (nextOemMatch) {
+        const baseName = currentLine;
+        const oem = nextOemMatch[1].toUpperCase();
+        const smartName = generateSmartPartName(baseName, vehicle, {
+          customVehicleTemplate: customTemplate,
+        });
+
+        parts.push({
+          _id: `bulk-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+          partNumber: oem,
+          baseName,
+          description: smartName,
+          manufacturer: (vehicle?.make ?? '') || 'GENUINE',
+          sizeSpec: '',
+          source: 'manual',
+          purchasePrice: 0,
+          salePrice: 0,
+          selected: true,
+        });
+        i += 2;
+        continue;
+      }
+    }
+
+    // Pattern C: Reverse alternating: Line 1 = OEM ("11115-37051"), Line 2 = Name ("باكن راس")
+    const isCurrentOem = currentLine.match(/^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i);
+    if (isCurrentOem && i + 1 < lines.length) {
+      const oem = isCurrentOem[1].toUpperCase();
+      const baseName = lines[i + 1];
+      const smartName = generateSmartPartName(baseName, vehicle, {
+        customVehicleTemplate: customTemplate,
+      });
+
+      parts.push({
+        _id: `bulk-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+        partNumber: oem,
+        baseName,
+        description: smartName,
+        manufacturer: (vehicle?.make ?? '') || 'GENUINE',
+        sizeSpec: '',
+        source: 'manual',
+        purchasePrice: 0,
+        salePrice: 0,
+        selected: true,
+      });
+      i += 2;
+      continue;
+    }
+
+    // Pattern D: Standalone line
+    const baseName = currentLine;
+    const smartName = generateSmartPartName(baseName, vehicle, {
+      customVehicleTemplate: customTemplate,
+    });
+    parts.push({
+      _id: `bulk-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+      partNumber: '',
+      baseName,
+      description: smartName,
+      manufacturer: (vehicle?.make ?? '') || 'GENUINE',
+      sizeSpec: '',
+      source: 'manual',
+      purchasePrice: 0,
+      salePrice: 0,
+      selected: true,
+    });
+    i++;
+  }
+
+  return parts;
+}

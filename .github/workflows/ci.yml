@@ -59,8 +59,8 @@ jobs:
         run: npm run lint
         continue-on-error: true
 
-      - name: Unit tests
-        run: npm test -- --reporter=verbose
+      - name: Unit tests (with coverage gates — thresholds enforced from vitest.config.ts)
+        run: npm test -- --reporter=verbose --run --coverage
 
       - name: Build
         run: npm run build
