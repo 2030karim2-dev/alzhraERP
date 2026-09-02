@@ -8,17 +8,25 @@ import {
   CheckCircle2,
   AlertTriangle,
   Send,
-  Search,
   Plus,
   Trash2,
   ShoppingBag,
   X,
+  Printer,
+  Copy,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { supplierPortalService } from '../services/supplierPortalService';
 import { calculatePortalLineTotal } from '../services/quotationCalculator';
 import PageLoader from '../../../ui/base/PageLoader';
 import { formatCurrency, cn } from '../../../core/utils';
-import type { PublicPortalContext } from '../types';
+import ExcelTable, { type Column } from '../../../ui/common/ExcelTable';
+import {
+  SupplierQuotationPrintModal,
+  type SupplierPrintQuotation,
+} from '../components/SupplierQuotationPrintModal';
+import type { PublicPortalContext, PublicPortalQuotation } from '../types';
 
 type SupplierContext = PublicPortalContext;
 
@@ -33,6 +41,8 @@ interface DraftItem {
   notes?: string | null;
 }
 
+type ReorderProductItem = SupplierContext['reorder_products'][0];
+
 export const PublicSupplierPortalPage: React.FC = () => {
   const { token: urlToken } = useParams<{ token?: string }>();
   const [searchParams] = useSearchParams();
@@ -45,9 +55,12 @@ export const PublicSupplierPortalPage: React.FC = () => {
   // Tabs: 'reorder' | 'rfqs' | 'quotations'
   const [activeTab, setActiveTab] = useState<'reorder' | 'rfqs' | 'quotations'>('reorder');
 
-  // Search & Filter
+  // Search & Filter for Products
   const [productSearch, setProductSearch] = useState('');
   const [onlyNeedsReorder, setOnlyNeedsReorder] = useState(true);
+
+  // Bulk Selection
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
 
   // Quotation Submission Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -60,6 +73,14 @@ export const PublicSupplierPortalPage: React.FC = () => {
     null
   );
 
+  // Print Modal State
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [selectedPrintQuotation, setSelectedPrintQuotation] =
+    useState<SupplierPrintQuotation | null>(null);
+
+  // Copy OEM feedback
+  const [copiedOem, setCopiedOem] = useState<string | null>(null);
+
   const fetchContext = useCallback(async () => {
     if (!token) {
       setErrorMessage('رمز الوصول مفقود. يرجى استخدام الرابط الخاص بكم.');
@@ -71,7 +92,8 @@ export const PublicSupplierPortalPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      setContext(await supplierPortalService.getPublicPortalContext(token.trim()));
+      const data = await supplierPortalService.getPublicPortalContext(token.trim());
+      setContext(data);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'رابط البوابة غير صالح أو منتهي الصلاحية';
       setErrorMessage(msg);
@@ -100,8 +122,8 @@ export const PublicSupplierPortalPage: React.FC = () => {
     });
   }, [context?.reorder_products, onlyNeedsReorder, productSearch]);
 
-  // Add Product to Draft
-  const handleAddProductToDraft = (product: SupplierContext['reorder_products'][0]) => {
+  // Add Single Product to Draft
+  const handleAddProductToDraft = useCallback((product: ReorderProductItem) => {
     setDraftItems(prev => {
       const exists = prev.find(i => i.product_id === product.id);
       if (exists) {
@@ -109,6 +131,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
           i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
+      const suggestedQty = Math.max(1, product.min_stock_level * 2 - product.current_stock);
       return [
         ...prev,
         {
@@ -116,7 +139,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
           description: product.name_ar,
           oem_number: product.part_number || null,
           brand: product.brand || null,
-          quantity: 1,
+          quantity: suggestedQty,
           unit_price: product.cost_price || 0,
           discount_percent: 0,
           notes: null,
@@ -124,7 +147,38 @@ export const PublicSupplierPortalPage: React.FC = () => {
       ];
     });
     setIsDrawerOpen(true);
-  };
+  }, []);
+
+  // Bulk Add Selected Products to Draft
+  const handleBulkAddSelectedToDraft = useCallback(() => {
+    if (!context?.reorder_products || selectedProductIds.size === 0) return;
+
+    const selectedProds = context.reorder_products.filter(p => selectedProductIds.has(p.id));
+    setDraftItems(prev => {
+      const draftMap = new Map(prev.map(item => [item.product_id || item.description, item]));
+
+      selectedProds.forEach(p => {
+        if (!draftMap.has(p.id)) {
+          const suggestedQty = Math.max(1, p.min_stock_level * 2 - p.current_stock);
+          draftMap.set(p.id, {
+            product_id: p.id,
+            description: p.name_ar,
+            oem_number: p.part_number || null,
+            brand: p.brand || null,
+            quantity: suggestedQty,
+            unit_price: p.cost_price || 0,
+            discount_percent: 0,
+            notes: null,
+          });
+        }
+      });
+
+      return Array.from(draftMap.values());
+    });
+
+    setSelectedProductIds(new Set());
+    setIsDrawerOpen(true);
+  }, [context?.reorder_products, selectedProductIds]);
 
   // Add all RFQ items to Draft
   const handleLoadRFQIntoDraft = (rfq: SupplierContext['rfqs'][0]) => {
@@ -143,13 +197,61 @@ export const PublicSupplierPortalPage: React.FC = () => {
     setIsDrawerOpen(true);
   };
 
-  // Calculate Draft Totals — Decimal pipeline shared with quotationCalculator
+  // Re-quote from previous quotation
+  const handleReQuoteFromHistory = (q: PublicPortalQuotation) => {
+    const newItems: DraftItem[] = (q.items || []).map(item => ({
+      product_id: item.product_id || null,
+      description: item.description,
+      oem_number: null,
+      brand: null,
+      quantity: Number(item.quantity) || 1,
+      unit_price: Number(item.unit_price) || 0,
+      discount_percent: 0,
+      notes: `تحديث/إعادة تسعير العرض السابق: ${q.quotation_number}`,
+    }));
+    setDraftItems(newItems);
+    setNotes(`إعادة تقديم وتحديث للعرض رقم: ${q.quotation_number}`);
+    setDeliveryTerms(q.delivery_terms || 'التسليم خلال 3 أيام عمل');
+    setPaymentTerms(q.payment_terms || 'نقداً عند الاستلام');
+    setIsDrawerOpen(true);
+  };
+
+  // Open Print Modal for Quotation
+  const handleOpenPrintModal = (q: PublicPortalQuotation) => {
+    setSelectedPrintQuotation({
+      id: q.id,
+      quotation_number: q.quotation_number,
+      issue_date: q.issue_date,
+      valid_until: q.valid_until,
+      total_amount: q.total_amount,
+      currency_code: q.currency_code || 'SAR',
+      status: q.status,
+      notes: q.notes,
+      delivery_terms: q.delivery_terms,
+      items: q.items
+        ? q.items.map(it => ({
+            id: it.id,
+            product_id: it.product_id ?? null,
+            description: it.description,
+            oem_number: null,
+            brand: null,
+            quantity: it.quantity,
+            unit_price: it.unit_price,
+            discount_percent: 0,
+            total: it.total,
+            notes: null,
+          }))
+        : undefined,
+    });
+    setIsPrintModalOpen(true);
+  };
+
+  // Calculate Draft Totals
   const draftTotal = useMemo(() => {
-    return draftItems.reduce(
-      (sum, item) =>
-        sum + calculatePortalLineTotal(item.quantity, item.unit_price, item.discount_percent),
-      0
-    );
+    return draftItems.reduce((sum, item) => {
+      const line = calculatePortalLineTotal(item.quantity, item.unit_price, item.discount_percent);
+      return sum + line;
+    }, 0);
   }, [draftItems]);
 
   // Submit Quotation
@@ -197,6 +299,247 @@ export const PublicSupplierPortalPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Copy OEM Number to clipboard
+  const handleCopyOEM = (oem: string) => {
+    void navigator.clipboard.writeText(oem);
+    setCopiedOem(oem);
+    setTimeout(() => setCopiedOem(null), 2000);
+  };
+
+  // ExcelTable Columns for Reorder Products
+  const productColumns: Column<ReorderProductItem>[] = useMemo(
+    () => [
+      {
+        header: 'الصنف / الوصف',
+        accessorKey: 'name_ar',
+        sortKey: 'name_ar',
+        width: '260px',
+        accessor: row => (
+          <div className="flex items-center gap-2 text-right">
+            {row.needs_reorder && (
+              <span
+                className="flex h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
+                title="مطلوب إعادة طلب عاجل"
+              />
+            )}
+            <div>
+              <p className="text-xs font-bold text-white">{row.name_ar}</p>
+              <span className="font-mono text-[10px] text-slate-400">SKU: {row.sku}</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        header: 'رقم القطعة (OEM)',
+        accessorKey: 'part_number',
+        sortKey: 'part_number',
+        width: '160px',
+        align: 'center',
+        accessor: row =>
+          row.part_number ? (
+            <button
+              type="button"
+              onClick={() => handleCopyOEM(row.part_number!)}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-200 transition-all hover:border-emerald-500 hover:text-emerald-400"
+              title="انقر لنسخ رقم القطعة"
+            >
+              <span>{row.part_number}</span>
+              {copiedOem === row.part_number ? (
+                <CheckCircle2 size={11} className="text-emerald-400" />
+              ) : (
+                <Copy size={11} className="opacity-60" />
+              )}
+            </button>
+          ) : (
+            <span className="font-mono text-slate-600">---</span>
+          ),
+      },
+      {
+        header: 'الماركة',
+        accessorKey: 'brand',
+        sortKey: 'brand',
+        width: '120px',
+        align: 'center',
+        accessor: row =>
+          row.brand ? (
+            <span className="rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+              {row.brand}
+            </span>
+          ) : (
+            <span className="text-slate-600">---</span>
+          ),
+      },
+      {
+        header: 'حالة المخزون',
+        width: '140px',
+        align: 'center',
+        accessor: row => {
+          const isCritical = row.current_stock <= 0;
+          const isLow = row.current_stock <= row.min_stock_level;
+
+          return (
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                  isCritical
+                    ? 'border border-rose-800/50 bg-rose-950/60 text-rose-400'
+                    : isLow
+                      ? 'border border-amber-800/50 bg-amber-950/60 text-amber-400'
+                      : 'border border-emerald-800/50 bg-emerald-950/60 text-emerald-400'
+                )}
+              >
+                {isCritical ? 'نفد المخزون 🔴' : isLow ? 'منخفض جداً 🟡' : 'متوفر 🟢'}
+              </span>
+              <span className="font-mono text-[10px] text-slate-400">
+                {row.current_stock} / حد: {row.min_stock_level}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        header: 'الكمية المقترحة',
+        width: '110px',
+        align: 'center',
+        accessor: row => {
+          const suggested = Math.max(1, row.min_stock_level * 2 - row.current_stock);
+          return (
+            <span className="rounded-lg border border-amber-900/40 bg-amber-950/30 px-2 py-0.5 font-mono text-xs font-black text-amber-400">
+              +{suggested} {row.unit || ''}
+            </span>
+          );
+        },
+      },
+      {
+        header: 'آخر تكلفة مرجعية',
+        accessorKey: 'cost_price',
+        sortKey: 'cost_price',
+        width: '120px',
+        align: 'center',
+        accessor: row => (
+          <span className="font-mono text-xs font-bold text-emerald-400">
+            {formatCurrency(row.cost_price, 'SAR')}
+          </span>
+        ),
+      },
+      {
+        header: 'إجراء',
+        width: '110px',
+        align: 'center',
+        accessor: row => (
+          <button
+            type="button"
+            onClick={() => handleAddProductToDraft(row)}
+            className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/40 bg-emerald-600/20 px-3 py-1.5 text-[11px] font-bold text-emerald-300 transition-all hover:bg-emerald-600 hover:text-white"
+          >
+            <Plus size={13} />
+            <span>تسعير</span>
+          </button>
+        ),
+      },
+    ],
+    [copiedOem, handleAddProductToDraft]
+  );
+
+  // ExcelTable Columns for Quotation History
+  const quotationColumns: Column<PublicPortalQuotation>[] = useMemo(
+    () => [
+      {
+        header: 'رقم العرض',
+        accessorKey: 'quotation_number',
+        sortKey: 'quotation_number',
+        width: '150px',
+        accessor: row => (
+          <span className="font-mono text-xs font-black text-purple-400">
+            {row.quotation_number}
+          </span>
+        ),
+      },
+      {
+        header: 'تاريخ التقديم',
+        accessorKey: 'issue_date',
+        sortKey: 'issue_date',
+        width: '120px',
+        align: 'center',
+        accessor: row => <span className="font-mono text-xs text-slate-300">{row.issue_date}</span>,
+      },
+      {
+        header: 'عدد الأصناف',
+        width: '100px',
+        align: 'center',
+        accessor: row => (
+          <span className="text-xs font-bold text-white">{row.items?.length || 0} بنود</span>
+        ),
+      },
+      {
+        header: 'إجمالي القيمة',
+        accessorKey: 'total_amount',
+        sortKey: 'total_amount',
+        width: '140px',
+        align: 'center',
+        accessor: row => (
+          <span className="font-mono text-xs font-black text-emerald-400">
+            {formatCurrency(row.total_amount, row.currency_code || 'SAR')}
+          </span>
+        ),
+      },
+      {
+        header: 'الحالة',
+        accessorKey: 'status',
+        sortKey: 'status',
+        width: '120px',
+        align: 'center',
+        accessor: row => (
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-1 text-[10px] font-bold',
+              row.status === 'accepted' || row.status === 'approved'
+                ? 'border border-emerald-700/50 bg-emerald-900/40 text-emerald-300'
+                : row.status === 'rejected'
+                  ? 'border border-rose-700/50 bg-rose-900/40 text-rose-300'
+                  : 'border border-amber-700/50 bg-amber-900/40 text-amber-300'
+            )}
+          >
+            {row.status === 'accepted' || row.status === 'approved'
+              ? 'معتمد ✅'
+              : row.status === 'rejected'
+                ? 'مرفوض ❌'
+                : 'قيد المراجعة ⏳'}
+          </span>
+        ),
+      },
+      {
+        header: 'الإجراءات',
+        width: '180px',
+        align: 'center',
+        accessor: row => (
+          <div className="flex items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleOpenPrintModal(row)}
+              className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-slate-200 transition-all hover:border-purple-500 hover:text-purple-300"
+              title="طباعة وتصدير PDF"
+            >
+              <Printer size={12} />
+              <span>طباعة PDF</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleReQuoteFromHistory(row)}
+              className="flex items-center gap-1 rounded-lg border border-emerald-800/40 bg-emerald-950/40 px-2.5 py-1 text-[10px] font-bold text-emerald-400 transition-all hover:bg-emerald-600 hover:text-white"
+              title="إعادة تسعير العرض"
+            >
+              <RotateCcw size={12} />
+              <span>إعادة تسعير</span>
+            </button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
   if (isLoading) {
     return (
@@ -254,7 +597,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
                     {company.name_ar || 'بوابة الموردين'}
                   </h1>
                   <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300">
-                    بوابة الموردين
+                    بوابة الموردين الذكية
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-slate-400">
@@ -348,7 +691,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
             )}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">عروض الأسعار السابقة</span>
+              <span className="text-xs font-bold text-slate-400">عروض الأسعار الموثقة</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400">
                 <Clock size={16} />
               </div>
@@ -407,25 +750,11 @@ export const PublicSupplierPortalPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab 1: Reorder Products List */}
+        {/* Tab 1: Reorder Products List with ExcelTable */}
         {activeTab === 'reorder' && (
           <div className="space-y-3">
-            {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
-              <div className="relative min-w-[260px] flex-1">
-                <Search
-                  size={15}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="text"
-                  value={productSearch}
-                  onChange={e => setProductSearch(e.target.value)}
-                  placeholder="ابحث باسم الصنف، رقم القطعة (OEM)، أو الماركة..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 pl-3 pr-9 text-xs font-bold text-white outline-none placeholder:text-slate-500 focus:border-emerald-500"
-                />
-              </div>
-
+            {/* Filter and Bulk Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-3 shadow-md">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -441,92 +770,41 @@ export const PublicSupplierPortalPage: React.FC = () => {
                   <span>أصناف إعادة الطلب فقط ({reorderCount})</span>
                 </button>
               </div>
+
+              {/* Bulk Add Button */}
+              {selectedProductIds.size > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBulkAddSelectedToDraft}
+                  className="flex animate-pulse items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-emerald-600/30 transition-all hover:from-emerald-500 hover:to-teal-500"
+                >
+                  <Sparkles size={15} />
+                  <span>تسعير الأصناف المحددة ({selectedProductIds.size}) دفعة واحدة</span>
+                </button>
+              )}
             </div>
 
-            {/* Products Table */}
-            <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/60 font-bold text-slate-400">
-                      <th className="p-3">الصنف / الوصف</th>
-                      <th className="p-3 text-center">رقم القطعة (OEM)</th>
-                      <th className="p-3 text-center">الماركة</th>
-                      <th className="p-3 text-center">المخزون الحالي</th>
-                      <th className="p-3 text-center">حد الطلب</th>
-                      <th className="p-3 text-center">آخر تكلفة</th>
-                      <th className="p-3 text-center">إجراء</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
-                    {filteredProducts.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="p-8 text-center text-slate-500">
-                          لا توجد أصناف مطابقة لخيارات البحث
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredProducts.map(prod => (
-                        <tr key={prod.id} className="transition-colors hover:bg-slate-800/40">
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              {prod.needs_reorder && (
-                                <span className="flex h-2 w-2 animate-pulse rounded-full bg-rose-500" />
-                              )}
-                              <div>
-                                <p className="font-bold text-white">{prod.name_ar}</p>
-                                <span className="font-mono text-[10px] text-slate-400">
-                                  SKU: {prod.sku}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3 text-center font-mono font-bold text-slate-300">
-                            {prod.part_number || '---'}
-                          </td>
-                          <td className="p-3 text-center">
-                            {prod.brand ? (
-                              <span className="rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300">
-                                {prod.brand}
-                              </span>
-                            ) : (
-                              '---'
-                            )}
-                          </td>
-                          <td className="p-3 text-center">
-                            <span
-                              className={cn(
-                                'font-mono font-bold',
-                                prod.current_stock <= prod.min_stock_level
-                                  ? 'text-rose-400'
-                                  : 'text-emerald-400'
-                              )}
-                            >
-                              {prod.current_stock} {prod.unit || ''}
-                            </span>
-                          </td>
-                          <td className="p-3 text-center font-mono text-slate-400">
-                            {prod.min_stock_level}
-                          </td>
-                          <td className="p-3 text-center font-mono font-bold text-emerald-400">
-                            {formatCurrency(prod.cost_price, 'SAR')}
-                          </td>
-                          <td className="p-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleAddProductToDraft(prod)}
-                              className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/40 bg-emerald-600/20 px-3 py-1.5 text-[11px] font-bold text-emerald-300 transition-all hover:bg-emerald-600 hover:text-white"
-                            >
-                              <Plus size={13} />
-                              <span>تسعير الصنف</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            {/* Modern ExcelTable for Products */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-1 shadow-2xl">
+              <ExcelTable<ReorderProductItem>
+                columns={productColumns}
+                data={filteredProducts}
+                title="جدول الأصناف المطلوب توريدها"
+                subtitle="حدد الأصناف لتسعيرها جماعياً أو انقر تسعير لأي صنف مباشرة"
+                colorTheme="green"
+                showSearch={true}
+                searchValue={productSearch}
+                onSearchChange={setProductSearch}
+                enableSelection={true}
+                selectedRowIds={selectedProductIds}
+                onSelectionChange={setSelectedProductIds}
+                getRowId={p => p.id}
+                enablePagination={true}
+                pageSize={20}
+                enableResize={true}
+                resizeStorageKey="supplier_portal_reorder_table"
+                emptyMessage="لا توجد أصناف مطابقة لخيارات البحث"
+              />
             </div>
           </div>
         )}
@@ -584,64 +862,22 @@ export const PublicSupplierPortalPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 3: Previous Quotations Archive */}
+        {/* Tab 3: Previous Quotations Archive with ExcelTable */}
         {activeTab === 'quotations' && (
-          <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/60 font-bold text-slate-400">
-                    <th className="p-3">رقم العرض</th>
-                    <th className="p-3 text-center">تاريخ التقديم</th>
-                    <th className="p-3 text-center">عدد الأصناف</th>
-                    <th className="p-3 text-center">إجمالي القيمة</th>
-                    <th className="p-3 text-center">الحالة</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium">
-                  {quotations.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-500">
-                        لم يتم تقديم عروض أسعار سابقة بعد
-                      </td>
-                    </tr>
-                  ) : (
-                    quotations.map(q => (
-                      <tr key={q.id} className="transition-colors hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-purple-400">
-                          {q.quotation_number}
-                        </td>
-                        <td className="p-3 text-center font-mono text-slate-400">{q.issue_date}</td>
-                        <td className="p-3 text-center font-bold text-white">
-                          {q.items?.length || 0} صنف
-                        </td>
-                        <td className="p-3 text-center font-mono font-bold text-emerald-400">
-                          {formatCurrency(q.total_amount, q.currency_code || 'SAR')}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span
-                            className={cn(
-                              'rounded-md px-2.5 py-1 text-[10px] font-bold',
-                              q.status === 'accepted' || q.status === 'approved'
-                                ? 'bg-emerald-900/40 text-emerald-300'
-                                : q.status === 'rejected'
-                                  ? 'bg-rose-900/40 text-rose-300'
-                                  : 'bg-amber-900/40 text-amber-300'
-                            )}
-                          >
-                            {q.status === 'accepted' || q.status === 'approved'
-                              ? 'معتمد ✅'
-                              : q.status === 'rejected'
-                                ? 'مرفوض'
-                                : 'قيد المراجعة ⏳'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-1 shadow-2xl">
+            <ExcelTable<PublicPortalQuotation>
+              columns={quotationColumns}
+              data={quotations}
+              title="أرشيف عروض الأسعار السابقة"
+              subtitle="استعراض وطباعة أو إعادة تسعير عروض الأسعار الموثقة"
+              colorTheme="indigo"
+              showSearch={true}
+              enablePagination={true}
+              pageSize={15}
+              enableResize={true}
+              resizeStorageKey="supplier_portal_quotations_table"
+              emptyMessage="لم يتم تقديم عروض أسعار سابقة بعد"
+            />
           </div>
         )}
       </main>
@@ -675,76 +911,84 @@ export const PublicSupplierPortalPage: React.FC = () => {
                   </span>
                 </div>
               ) : (
-                draftItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black text-white">{item.description}</h4>
-                        {item.oem_number && (
-                          <span className="font-mono text-[10px] text-slate-400">
-                            OEM: {item.oem_number}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setDraftItems(prev => prev.filter((_, i) => i !== idx))}
-                        className="text-slate-500 hover:text-rose-400"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                draftItems.map((item, idx) => {
+                  const lineCalc = calculatePortalLineTotal(
+                    item.quantity,
+                    item.unit_price,
+                    item.discount_percent
+                  );
 
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400">
-                          الكمية المتاحة
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={e => {
-                            const val = Math.max(1, parseInt(e.target.value) || 1);
-                            setDraftItems(prev =>
-                              prev.map((it, i) => (i === idx ? { ...it, quantity: val } : it))
-                            );
-                          }}
-                          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-white outline-none focus:border-emerald-500"
-                        />
+                  return (
+                    <div
+                      key={idx}
+                      className="space-y-2.5 rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-black text-white">{item.description}</h4>
+                          {item.oem_number && (
+                            <span className="font-mono text-[10px] text-slate-400">
+                              OEM: {item.oem_number}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDraftItems(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-slate-500 hover:text-rose-400"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400">
-                          سعر الوحدة (ر.س)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.unit_price}
-                          onChange={e => {
-                            const val = parseFloat(e.target.value) || 0;
-                            setDraftItems(prev =>
-                              prev.map((it, i) => (i === idx ? { ...it, unit_price: val } : it))
-                            );
-                          }}
-                          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-emerald-400 outline-none focus:border-emerald-500"
-                        />
-                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400">
+                            الكمية المتاحة
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={e => {
+                              const val = Math.max(1, parseInt(e.target.value) || 1);
+                              setDraftItems(prev =>
+                                prev.map((it, i) => (i === idx ? { ...it, quantity: val } : it))
+                              );
+                            }}
+                            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-white outline-none focus:border-emerald-500"
+                          />
+                        </div>
 
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400">الإجمالي</label>
-                        <div className="flex h-[30px] items-center rounded-xl border border-slate-800 bg-slate-950 px-2.5 font-mono text-xs font-black text-emerald-400">
-                          {formatCurrency(item.quantity * item.unit_price, 'SAR')}
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400">
+                            سعر الوحدة (ر.س)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.unit_price}
+                            onChange={e => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setDraftItems(prev =>
+                                prev.map((it, i) => (i === idx ? { ...it, unit_price: val } : it))
+                              );
+                            }}
+                            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-emerald-400 outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400">الإجمالي</label>
+                          <div className="flex h-[30px] items-center rounded-xl border border-slate-800 bg-slate-950 px-2.5 font-mono text-xs font-black text-emerald-400">
+                            {formatCurrency(lineCalc, 'SAR')}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
 
               {/* Terms & Conditions */}
@@ -847,6 +1091,17 @@ export const PublicSupplierPortalPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 5. Printable Quotation Modal */}
+      <SupplierQuotationPrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => {
+          setIsPrintModalOpen(false);
+          setSelectedPrintQuotation(null);
+        }}
+        quotation={selectedPrintQuotation}
+        context={context}
+      />
     </div>
   );
 };
