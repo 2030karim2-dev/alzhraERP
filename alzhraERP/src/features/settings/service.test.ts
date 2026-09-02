@@ -12,7 +12,7 @@ vi.mock('../../lib/supabaseClient', () => ({ supabase: { rpc: mockRpc } }));
 // jsdom's File here lacks .text(); the service only reads file.text()/file.size,
 // so a minimal stand-in typed as File keeps the test environment-agnostic.
 const buildBackupFile = (payload: Record<string, unknown>): File =>
-  ({ text: async (): Promise<string> => JSON.stringify(payload), size: 1024 } as unknown as File);
+  ({ text: async (): Promise<string> => JSON.stringify(payload), size: 1024 }) as unknown as File;
 
 const VALID_PAYLOAD = {
   version: '2.0',
@@ -37,7 +37,9 @@ describe('settingsService.importSystemData — single atomic restore RPC', () =>
   it('rejects structurally invalid files before any network call', async () => {
     const file = buildBackupFile({ version: '2.0' }); // missing `data`
 
-    await expect(settingsService.importSystemData(file, 'comp-1')).rejects.toThrow(/ملف غير صالح أو تالف/);
+    await expect(settingsService.importSystemData(file, 'comp-1')).rejects.toThrow(
+      /ملف غير صالح أو تالف/
+    );
     expect(mockRpc).not.toHaveBeenCalled();
   });
 
@@ -49,7 +51,9 @@ describe('settingsService.importSystemData — single atomic restore RPC', () =>
       },
     };
 
-    await expect(settingsService.importSystemData(buildBackupFile(payload), 'comp-1')).rejects.toThrow(/عزل البيانات/);
+    await expect(
+      settingsService.importSystemData(buildBackupFile(payload), 'comp-1')
+    ).rejects.toThrow(/عزل البيانات/);
     expect(mockRpc).not.toHaveBeenCalled();
   });
 
@@ -69,13 +73,14 @@ describe('settingsService.importSystemData — single atomic restore RPC', () =>
     expect(mockRpc).toHaveBeenCalledTimes(1);
     const [fnName, params] = mockRpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
     expect(fnName).toBe('restore_company_data');
-    expect(params['p_company_id']).toBe('comp-1');
-    expect(params['p_payload']).toEqual(VALID_PAYLOAD.data);
+    expect(params.p_company_id).toBe('comp-1');
+    expect(params.p_payload).toEqual(VALID_PAYLOAD.data);
 
     // Success logged for the audit trail UI
-    const logsRaw = localStorage.getItem('alzahra_backup_logs')
-      ?? localStorage.getItem('alzahra_erp_backup_logs')
-      ?? Object.keys(localStorage).find((k) => k.toLowerCase().includes('backup'));
+    const logsRaw =
+      localStorage.getItem('alzahra_backup_logs') ??
+      localStorage.getItem('alzahra_erp_backup_logs') ??
+      Object.keys(localStorage).find(k => k.toLowerCase().includes('backup'));
     expect(logsRaw !== null || true).toBe(true); // log presence is best-effort; key naming owned by constants
   });
 
@@ -85,7 +90,8 @@ describe('settingsService.importSystemData — single atomic restore RPC', () =>
       error: { message: 'ملف الاستيراد يحتوي على بيانات لشركة أخرى (جدول invoices)' },
     });
 
-    await expect(settingsService.importSystemData(buildBackupFile(VALID_PAYLOAD), 'comp-1'))
-      .rejects.toThrow(/فشل استيراد البيانات/);
+    await expect(
+      settingsService.importSystemData(buildBackupFile(VALID_PAYLOAD), 'comp-1')
+    ).rejects.toThrow(/فشل استيراد البيانات/);
   });
 });

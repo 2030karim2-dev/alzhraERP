@@ -1,25 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Shield,
-  Check,
-  RotateCcw,
-  CheckCheck,
-  X,
-  Lock,
-  GitBranch,
-} from 'lucide-react';
+import { Shield, Check, RotateCcw, CheckCheck, X, Lock, GitBranch } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
 import { cn } from '../../../../core/utils';
 import { PERMISSION_CATEGORIES } from '../../../../core/permissions/permissionTaxonomy';
 import {
-  CompanyMember,
+  type CompanyMember,
   useMemberPermissions,
   useUpdateMemberPermissions,
   useUpdateMemberRoleAndBranch,
 } from '../../hooks/useUserPermissions';
 import { useBranches } from '../../hooks';
 import { OFFLINE_ROLE_PERMISSIONS } from '../../../../core/permissions/offlineRolePermissions';
-import { Role } from '../../../../core/types/common';
+import type { Role } from '../../../../core/types/common';
 
 interface Props {
   isOpen: boolean;
@@ -27,11 +19,7 @@ interface Props {
   member: CompanyMember | null;
 }
 
-export const EmployeePermissionsModal: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  member,
-}) => {
+export const EmployeePermissionsModal: React.FC<Props> = ({ isOpen, onClose, member }) => {
   const { data: memberPerms, isLoading } = useMemberPermissions(member?.user_id || null);
   const { data: branches = [] } = useBranches();
   const updatePermissions = useUpdateMemberPermissions();
@@ -53,17 +41,17 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
     if (memberPerms) {
       // Merge role default permissions + explicitly granted permissions
       const initial = new Set<string>();
-      
+
       // Default role permissions
       const normalizedRole = (memberPerms.role === 'owner' ? 'admin' : memberPerms.role) as Role;
       const defaultList = OFFLINE_ROLE_PERMISSIONS[normalizedRole] || [];
-      defaultList.forEach((p) => initial.add(p));
-      
+      defaultList.forEach(p => initial.add(p));
+
       // Granted permissions from DB
-      (memberPerms.granted_permissions || []).forEach((p) => initial.add(p));
+      (memberPerms.granted_permissions || []).forEach(p => initial.add(p));
 
       // Remove revoked permissions
-      (memberPerms.revoked_permissions || []).forEach((p) => initial.delete(p));
+      (memberPerms.revoked_permissions || []).forEach(p => initial.delete(p));
 
       setGrantedPerms(initial);
     }
@@ -75,7 +63,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
 
   const togglePermission = (key: string) => {
     if (isOwner) return; // Owners always have all permissions
-    setGrantedPerms((prev) => {
+    setGrantedPerms(prev => {
       const next = new Set(prev);
       if (next.has(key)) {
         next.delete(key);
@@ -89,8 +77,8 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
   const handleSelectAll = () => {
     if (isOwner) return;
     const all = new Set<string>();
-    PERMISSION_CATEGORIES.forEach((cat) => {
-      cat.permissions.forEach((p) => all.add(p.key));
+    PERMISSION_CATEGORIES.forEach(cat => {
+      cat.permissions.forEach(p => all.add(p.key));
     });
     setGrantedPerms(all);
   };
@@ -122,7 +110,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
       if (!isOwner) {
         const normalized = (selectedRole === 'owner' ? 'admin' : selectedRole) as Role;
         const defaultList = OFFLINE_ROLE_PERMISSIONS[normalized] || [];
-        const revokedList = defaultList.filter((p) => !grantedPerms.has(p));
+        const revokedList = defaultList.filter(p => !grantedPerms.has(p));
 
         await updatePermissions.mutateAsync({
           targetUserId: member.user_id,
@@ -140,15 +128,15 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
   const isSaving = updatePermissions.isPending || updateRoleAndBranch.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm duration-200">
       <div
-        className="bg-[var(--app-surface)] w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="animate-in zoom-in-95 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-gray-100 bg-[var(--app-surface)] shadow-2xl duration-200 dark:border-slate-800"
         dir="rtl"
       >
         {/* Header */}
-        <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-950/50">
+        <div className="flex items-center justify-between border-b bg-gray-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/50">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
+            <div className="rounded-2xl bg-blue-600 p-2.5 text-white shadow-lg shadow-blue-500/20">
               <Shield size={22} />
             </div>
             <div>
@@ -157,33 +145,33 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
                   تخصيص صلاحيات الموظف: {member.profile?.full_name || 'موظف'}
                 </h3>
                 {isOwner && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                     👑 مالك النظام (كامل الصلاحيات)
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+              <p className="mt-0.5 text-[11px] text-gray-500 dark:text-slate-400">
                 تحديد الدور الوظيفي، الفرع التابع له، والتحكم الفردي في كل صلاحية
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Role & Branch Selector Bar */}
-        <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 border-b border-blue-100/50 dark:border-blue-900/30 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 border-b border-blue-100/50 bg-blue-50/50 p-4 dark:border-blue-900/30 dark:bg-blue-950/20 md:grid-cols-2">
           <div>
-            <label className="text-[11px] font-bold text-gray-700 dark:text-slate-300 block mb-1">
+            <label className="mb-1 block text-[11px] font-bold text-gray-700 dark:text-slate-300">
               الدور الأساسي (Role):
             </label>
             <select
               value={selectedRole}
-              onChange={(e) => {
+              onChange={e => {
                 const newRole = e.target.value;
                 setSelectedRole(newRole);
                 const normalized = (newRole === 'owner' ? 'admin' : newRole) as Role;
@@ -191,7 +179,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
                 setGrantedPerms(new Set(defaultList));
               }}
               disabled={isOwner}
-              className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-gray-200 bg-white p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
             >
               <option value="admin">مسؤول نظام (Admin) - كامل الصلاحيات</option>
               <option value="manager">مدير فرع / مدير عام (Manager)</option>
@@ -203,14 +191,16 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1 mb-1">
+            <label className="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700 dark:text-slate-300">
               <GitBranch size={13} className="text-blue-500" />
               الفرع المخصص للعمل:
             </label>
             <select
               value={selectedBranchId}
-              onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={e => {
+                setSelectedBranchId(e.target.value);
+              }}
+              className="w-full rounded-xl border border-gray-200 bg-white p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
             >
               <option value="">-- جميع الفروع (إدارة عامة) --</option>
               {branches
@@ -226,7 +216,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
 
         {/* Action quick buttons */}
         {!isOwner && (
-          <div className="px-5 py-2.5 bg-gray-50 dark:bg-slate-950/30 border-b dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-gray-50 px-5 py-2.5 dark:border-slate-800 dark:bg-slate-950/30">
             <span className="text-[11px] font-bold text-gray-500 dark:text-slate-400">
               تم تحديد ({grantedPerms.size}) صلاحية نشطة
             </span>
@@ -234,7 +224,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="px-2.5 py-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
               >
                 <CheckCheck size={12} />
                 تحديد الكل
@@ -242,7 +232,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="px-2.5 py-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[10px] font-bold text-rose-600 transition-colors hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400"
               >
                 <X size={12} />
                 إلغاء الكل
@@ -250,7 +240,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={handleResetToRoleDefaults}
-                className="px-2.5 py-1 text-[10px] font-bold text-gray-700 dark:text-slate-300 bg-gray-200/70 dark:bg-slate-800 hover:bg-gray-300 rounded-lg transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg bg-gray-200/70 px-2.5 py-1 text-[10px] font-bold text-gray-700 transition-colors hover:bg-gray-300 dark:bg-slate-800 dark:text-slate-300"
               >
                 <RotateCcw size={12} />
                 استعادة الصلاحيات الافتراضية للدور
@@ -260,78 +250,80 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
         )}
 
         {/* Permissions Categories Grid */}
-        <div className="p-5 overflow-y-auto flex-1 space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto p-5">
           {isLoading ? (
             <div className="py-12 text-center text-xs font-bold text-gray-400">
               جاري تحميل بيانات الصلاحيات...
             </div>
           ) : isOwner ? (
-            <div className="p-8 text-center bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-800/40">
-              <Lock className="mx-auto text-amber-500 mb-2" size={32} />
-              <h4 className="font-extrabold text-sm text-gray-800 dark:text-slate-100">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center dark:border-amber-800/40 dark:bg-amber-950/20">
+              <Lock className="mx-auto mb-2 text-amber-500" size={32} />
+              <h4 className="text-sm font-extrabold text-gray-800 dark:text-slate-100">
                 حساب مالك المنشأة (Owner)
               </h4>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                يمتلك مالك المنشأة كافة الصلاحيات بشكل تلقائي ولا يمكن تقييد صلاحياته لضمان عدم قفل النظام.
+              <p className="mx-auto mt-1 max-w-md text-xs text-gray-500 dark:text-slate-400">
+                يمتلك مالك المنشأة كافة الصلاحيات بشكل تلقائي ولا يمكن تقييد صلاحياته لضمان عدم قفل
+                النظام.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PERMISSION_CATEGORIES.map((cat) => {
-                const categoryActiveCount = cat.permissions.filter((p) =>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {PERMISSION_CATEGORIES.map(cat => {
+                const categoryActiveCount = cat.permissions.filter(p =>
                   grantedPerms.has(p.key)
                 ).length;
-                const isAllCategorySelected =
-                  categoryActiveCount === cat.permissions.length;
+                const isAllCategorySelected = categoryActiveCount === cat.permissions.length;
 
                 return (
                   <div
                     key={cat.id}
-                    className="p-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50/40 dark:bg-slate-950/40 flex flex-col justify-between"
+                    className="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/40 p-4 dark:border-slate-800 dark:bg-slate-950/40"
                   >
                     <div>
-                      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-200/60 dark:border-slate-800">
+                      <div className="mb-2.5 flex items-center justify-between border-b border-gray-200/60 pb-2.5 dark:border-slate-800">
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs text-gray-900 dark:text-slate-100">
+                          <span className="text-xs font-extrabold text-gray-900 dark:text-slate-100">
                             {cat.title}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => {
-                            setGrantedPerms((prev) => {
+                            setGrantedPerms(prev => {
                               const next = new Set(prev);
                               if (isAllCategorySelected) {
-                                cat.permissions.forEach((p) => next.delete(p.key));
+                                cat.permissions.forEach(p => next.delete(p.key));
                               } else {
-                                cat.permissions.forEach((p) => next.add(p.key));
+                                cat.permissions.forEach(p => next.add(p.key));
                               }
                               return next;
                             });
                           }}
-                          className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                          className="text-[10px] font-bold text-blue-600 hover:underline dark:text-blue-400"
                         >
                           {isAllCategorySelected ? 'إلغاء القسم' : 'تحديد القسم'}
                         </button>
                       </div>
 
                       <div className="space-y-2">
-                        {cat.permissions.map((perm) => {
+                        {cat.permissions.map(perm => {
                           const isGranted = grantedPerms.has(perm.key);
                           return (
                             <label
                               key={perm.key}
                               className={cn(
-                                'flex items-start gap-2.5 p-2 rounded-xl border transition-all cursor-pointer select-none text-right',
+                                'flex cursor-pointer select-none items-start gap-2.5 rounded-xl border p-2 text-right transition-all',
                                 isGranted
-                                  ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50'
-                                  : 'bg-[var(--app-surface)] border-gray-100 dark:border-slate-800/80 opacity-70 hover:opacity-100'
+                                  ? 'border-blue-200 bg-blue-50/70 dark:border-blue-800/50 dark:bg-blue-950/30'
+                                  : 'border-gray-100 bg-[var(--app-surface)] opacity-70 hover:opacity-100 dark:border-slate-800/80'
                               )}
                             >
                               <input
                                 type="checkbox"
                                 checked={isGranted}
-                                onChange={() => togglePermission(perm.key)}
+                                onChange={() => {
+                                  togglePermission(perm.key);
+                                }}
                                 className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
                               <div className="flex-1">
@@ -347,12 +339,12 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
                                     {perm.label}
                                   </span>
                                   {perm.dangerous && (
-                                    <span className="text-[10px] px-1 py-0.2 rounded bg-rose-100 dark:bg-rose-900/30 text-rose-600 font-bold">
+                                    <span className="py-0.2 rounded bg-rose-100 px-1 text-[10px] font-bold text-rose-600 dark:bg-rose-900/30">
                                       حساس
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[10px] font-mono text-gray-400 dark:text-slate-500 block dir-ltr text-right mt-0.5">
+                                <span className="dir-ltr mt-0.5 block text-right font-mono text-[10px] text-gray-400 dark:text-slate-500">
                                   {perm.key}
                                 </span>
                               </div>
@@ -369,13 +361,8 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t dark:border-slate-800 bg-gray-50/50 dark:bg-slate-950/50 flex justify-between items-center">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            className="text-xs font-bold"
-          >
+        <div className="flex items-center justify-between border-t bg-gray-50/50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
+          <Button type="button" variant="ghost" onClick={onClose} className="text-xs font-bold">
             إلغاء
           </Button>
 
@@ -383,7 +370,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({
             type="button"
             isLoading={isSaving}
             onClick={handleSave}
-            className="px-6 rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20"
+            className="rounded-xl px-6 text-xs font-bold shadow-lg shadow-blue-600/20"
             leftIcon={<Check size={16} />}
           >
             حفظ الصلاحيات المخصصة

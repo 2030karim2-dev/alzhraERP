@@ -28,8 +28,14 @@ export interface PostJournalEntryInput {
  * exchange rate to use in the RPC payload.
  */
 const validateJournalInput = (data: PostJournalEntryInput): number => {
-  const totalDebit = data.lines.reduce((sum: number, l) => sum + safeDecimal(l.debit).toNumber(), 0);
-  const totalCredit = data.lines.reduce((sum: number, l) => sum + safeDecimal(l.credit).toNumber(), 0);
+  const totalDebit = data.lines.reduce(
+    (sum: number, l) => sum + safeDecimal(l.debit).toNumber(),
+    0
+  );
+  const totalCredit = data.lines.reduce(
+    (sum: number, l) => sum + safeDecimal(l.credit).toNumber(),
+    0
+  );
 
   // R2: never send a zero-amount journal.
   if (totalDebit <= 0) {
@@ -43,21 +49,24 @@ const validateJournalInput = (data: PostJournalEntryInput): number => {
   }
 
   if (Math.abs(totalDebit - totalCredit) > SOX_BALANCE_TOLERANCE.toNumber()) {
-    throw parseError(`القيد غير متوازن: مدين ${totalDebit.toFixed(2)} ≠ دائن ${totalCredit.toFixed(2)}`);
+    throw parseError(
+      `القيد غير متوازن: مدين ${totalDebit.toFixed(2)} ≠ دائن ${totalCredit.toFixed(2)}`
+    );
   }
 
   return exchangeRate;
 };
 
 export const journalsApi = {
-  fetchJournals: async (companyId: string, branchId?: string | null, pageParam: number = 0) => {
+  fetchJournals: async (companyId: string, branchId?: string | null, pageParam = 0) => {
     const limit = 50;
     const from = pageParam * limit;
     const to = from + limit - 1;
 
     let query = supabase
       .from('journal_entries')
-      .select(`
+      .select(
+        `
         *,
         journal_entry_lines (
           id,
@@ -72,7 +81,8 @@ export const journalsApi = {
           )
         ),
         created_by_profile:profiles(id, full_name)
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .is('deleted_at', null)
       .order('entry_date', { ascending: false })
@@ -81,7 +91,7 @@ export const journalsApi = {
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
-    
+
     return await query.range(from, to);
   },
 
@@ -104,8 +114,8 @@ export const journalsApi = {
         party_id: l.party_id || null,
         debit: safeDecimal(l.debit).toNumber(),
         credit: safeDecimal(l.credit).toNumber(),
-        description: l.description || null
-      }))
+        description: l.description || null,
+      })),
     });
 
     if (error) {
@@ -114,5 +124,5 @@ export const journalsApi = {
     }
 
     return journalId;
-  }
+  },
 };

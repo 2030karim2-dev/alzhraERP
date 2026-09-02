@@ -123,12 +123,12 @@ self.onmessage = (e: MessageEvent<WorkerTaskMessage>) => {
         throw new Error(`Unknown task type: ${type}`);
     }
 
-    self.postMessage({ id, success: true, result } as WorkerResponseMessage);
+    self.postMessage({ id, success: true, result });
   } catch (err: any) {
     self.postMessage({
       id,
       success: false,
       error: err?.message || 'Worker processing error',
-    } as WorkerResponseMessage);
+    });
   }
 };

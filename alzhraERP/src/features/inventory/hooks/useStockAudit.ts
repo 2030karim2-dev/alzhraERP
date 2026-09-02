@@ -196,7 +196,7 @@ export const useInventoryMutations = () => {
   });
 
   const quickAdjust = useMutation({
-    mutationFn: (items: { product_id: string; warehouse_id: string; quantity: number }[]) => {
+    mutationFn: (items: Array<{ product_id: string; warehouse_id: string; quantity: number }>) => {
       if (!user?.company_id || !user.id) throw new Error('Auth error');
       return inventoryService.quickAdjustStock(user.company_id, items, user.id);
     },

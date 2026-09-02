@@ -16,6 +16,7 @@ import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 import { useReactToPrint } from 'react-to-print';
 import { logger } from '../../../../core/utils/logger';
+import { createIdempotencyKey } from '../../../../core/utils/idempotency';
 
 interface CreateInvoiceViewProps {
   onSuccess: () => void;
@@ -98,6 +99,10 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     }
   }, [comp?.id, invoiceSettings, selectedCustomer, setMetadata, setCustomer]);
 
+  // مفتاح منع التكرار: يُولَّد مرة واحدة لكل نية فاتورة (جلسة النموذج) ويُعاد
+  // توليده فقط بعد نجاح الاعتماد — فيُرفض التكرار عند النقر المزدوج/إعادة المحاولة.
+  const invoiceIdempotencyKeyRef = useRef(createIdempotencyKey('sale'));
+
   const handleSave = (status: InvoiceStatus) => {
     // [FIX #2] تحقق من وجود عميل محدد
     if (!selectedCustomer) {
@@ -145,11 +150,15 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         treasuryAccountId: cashboxId,
         currency: currency || 'SAR',
         exchangeRate: currency === 'SAR' ? 1 : exchangeRate || 1,
+        idempotencyKey: invoiceIdempotencyKeyRef.current,
       },
       {
         onSuccess: () => {
           resetCart();
           onSuccess();
+          // نية جديدة = مفتاح جديد (الإبقاء على المفتاح عند الفشل يسمح بإعادة
+          // المحاولة بأمان دون إنشاء فاتورة مكررة).
+          invoiceIdempotencyKeyRef.current = createIdempotencyKey('sale');
         },
       }
     );

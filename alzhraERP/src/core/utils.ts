@@ -1,6 +1,6 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { ensureLatinDigits } from "./utils/currencyUtils";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { ensureLatinDigits } from './utils/currencyUtils';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,7 +17,7 @@ export {
   toBaseCurrency,
   sumInBaseCurrency,
   convertToBaseCurrency,
-  convertFromBaseCurrency
+  convertFromBaseCurrency,
 } from './utils/currencyUtils';
 
 export function formatNumberDisplay(value: number): string {

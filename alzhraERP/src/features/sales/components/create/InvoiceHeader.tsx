@@ -40,7 +40,9 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({ company, documentTypeTitl
               <img
                 src={logoSrc}
                 alt={nameAr}
-                onError={() => setLogoError(true)}
+                onError={() => {
+                  setLogoError(true);
+                }}
                 className="h-full w-full object-contain"
               />
             </div>

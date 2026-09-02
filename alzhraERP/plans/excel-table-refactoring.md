@@ -3,6 +3,7 @@
 ## 📊 تحليل الوضع الحالي
 
 ### المشاكل الرئيسية:
+
 1. **حجم كبير جداً** - 564 سطر في ملف واحد
 2. **Complexity عالية** - أكثر من 20 حالة (state)
 3. **Event Listeners متعددة** - إضافة وإزالة مستمعين يدوياً
@@ -11,6 +12,7 @@
 6. **Responsibilities كثيرة** - المكون يفعل كل شيء
 
 ### المسؤوليات الحالية:
+
 - ✅ عرض الجدول
 - ✅ التحجيم (Resize)
 - ✅ السحب (Drag)
@@ -28,6 +30,7 @@
 ### المرحلة 1: إنشاء Custom Hooks
 
 #### 1.1 useTableResize.ts
+
 ```typescript
 // المسؤوليات:
 // - تحجيم الأعمدة
@@ -52,6 +55,7 @@ export interface UseTableResizeReturn {
 ```
 
 #### 1.2 useTableDrag.ts
+
 ```typescript
 // المسؤوليات:
 // - سحب الجدول
@@ -72,6 +76,7 @@ export interface UseTableDragReturn {
 ```
 
 #### 1.3 useTableSelection.ts (موجود بالفعل)
+
 ```typescript
 // المسؤوليات:
 // - تحديد الصفوف
@@ -83,6 +88,7 @@ export interface UseTableDragReturn {
 ```
 
 #### 1.4 useTableEditing.ts
+
 ```typescript
 // المسؤوليات:
 // - تحرير الخلايا
@@ -105,6 +111,7 @@ export interface UseTableEditingReturn {
 ```
 
 #### 1.5 useTablePagination.ts
+
 ```typescript
 // المسؤوليات:
 // - الترقيم
@@ -128,6 +135,7 @@ export interface UseTablePaginationReturn {
 ```
 
 #### 1.6 useTableSort.ts
+
 ```typescript
 // المسؤوليات:
 // - الفرز
@@ -141,6 +149,7 @@ export interface UseTableSortReturn {
 ```
 
 #### 1.7 useTableSearch.ts
+
 ```typescript
 // المسؤوليات:
 // - البحث
@@ -162,6 +171,7 @@ export interface UseTableSearchReturn {
 ### المرحلة 2: إنشاء مكونات فرعية
 
 #### 2.1 ExcelTableCore.tsx
+
 ```typescript
 // المسؤوليات:
 // - عرض الجدول الأساسي
@@ -187,6 +197,7 @@ const ExcelTableCore = <T,>({ columns, data, ...props }: ExcelTableCoreProps<T>)
 ```
 
 #### 2.2 ExcelTableResizeHandles.tsx
+
 ```typescript
 // المسؤوليات:
 // - عرض مقابض التحجيم
@@ -215,6 +226,7 @@ const ExcelTableResizeHandles: React.FC<ExcelTableResizeHandlesProps> = ({
 ```
 
 #### 2.3 ExcelTableDragHandle.tsx
+
 ```typescript
 // المسؤوليات:
 // - عرض مقبض السحب
@@ -244,6 +256,7 @@ const ExcelTableDragHandle: React.FC<ExcelTableDragHandleProps> = ({
 ### المرحلة 3: تحسين Type Safety
 
 #### 3.1 إزالة استخدام `any`
+
 ```typescript
 // قبل
 const handleMouseMove = (e: MouseEvent) => { ... }
@@ -253,6 +266,7 @@ const handleMouseMove = (e: MouseEvent) => { ... }
 ```
 
 #### 3.2 إضافة أنواع صارمة
+
 ```typescript
 // قبل
 onCellUpdate?: ((rowIndex: number, accessorKey: string, value: any) => void | Promise<void>) | undefined;
@@ -266,17 +280,21 @@ onCellUpdate?: ((rowIndex: number, accessorKey: string, value: unknown) => void 
 ### المرحلة 4: تحسين الأداء
 
 #### 4.1 استخدام React.memo
+
 ```typescript
-const ExcelTableCore = React.memo(<T,>({ columns, data, ...props }: ExcelTableCoreProps<T>) => {
+const ExcelTableCore = React.memo(<T>({ columns, data, ...props }: ExcelTableCoreProps<T>) => {
   // ...
 });
 
-const ExcelTableResizeHandles = React.memo(({ enableResize, isZoomed, onResizeStart }: ExcelTableResizeHandlesProps) => {
-  // ...
-});
+const ExcelTableResizeHandles = React.memo(
+  ({ enableResize, isZoomed, onResizeStart }: ExcelTableResizeHandlesProps) => {
+    // ...
+  }
+);
 ```
 
 #### 4.2 تحسين useMemo
+
 ```typescript
 // قبل
 const processedData = useMemo(() => {
@@ -292,6 +310,7 @@ const processedData = useMemo(() => {
 ```
 
 #### 4.3 تحسين useCallback
+
 ```typescript
 // قبل
 const handleMouseDown = useCallback((e: React.MouseEvent, colIndex: number) => {
@@ -305,6 +324,7 @@ const handleMouseDown = useCallback((e: React.MouseEvent, colIndex: number) => {
 ```
 
 #### 4.4 استخدام AbortController
+
 ```typescript
 // قبل
 document.addEventListener('mousemove', handleMouseMove);
@@ -343,6 +363,7 @@ src/ui/common/
 ## 📊 المقاييس المتوقعة
 
 ### قبل التحسين:
+
 - **حجم الملف:** 564 سطر
 - **Complexity:** عالية جداً
 - **State Count:** 20+ حالة
@@ -350,6 +371,7 @@ src/ui/common/
 - **Memory Usage:** عالي
 
 ### بعد التحسين:
+
 - **حجم الملف الرئيسي:** 200 سطر (-65%)
 - **Complexity:** منخفضة
 - **State Count:** 5 حالات فقط (-75%)
@@ -362,6 +384,7 @@ src/ui/common/
 ## 🔄 خطة التنفيذ
 
 ### الخطوة 1: إنشاء Custom Hooks (1-2 يوم)
+
 1. ✅ إنشاء useTableResize.ts
 2. ✅ إنشاء useTableDrag.ts
 3. ✅ إنشاء useTableEditing.ts
@@ -370,21 +393,25 @@ src/ui/common/
 6. ✅ إنشاء useTableSearch.ts
 
 ### الخطوة 2: إنشاء مكونات فرعية (1 يوم)
+
 1. ✅ إنشاء ExcelTableCore.tsx
 2. ✅ إنشاء ExcelTableResizeHandles.tsx
 3. ✅ إنشاء ExcelTableDragHandle.tsx
 
 ### الخطوة 3: تحسين Type Safety (1 يوم)
+
 1. ✅ إزالة جميع استخدامات `any`
 2. ✅ إضافة أنواع صارمة
 
 ### الخطوة 4: تحسين الأداء (1 يوم)
+
 1. ✅ إضافة React.memo
 2. ✅ تحسين useMemo
 3. ✅ تحسين useCallback
 4. ✅ استخدام AbortController
 
 ### الخطوة 5: اختبار (1 يوم)
+
 1. ✅ اختبار جميع الوظائف
 2. ✅ اختبار الأداء
 3. ✅ اختبار Memory Usage
@@ -394,16 +421,19 @@ src/ui/common/
 ## 🎯 النتائج المتوقعة
 
 ### الجودة:
+
 - ✅ Type Safety: 100% (بدون `any`)
 - ✅ Code Coverage: 80%+
 - ✅ Code Complexity: منخفضة
 
 ### الأداء:
+
 - ✅ Bundle Size: -20%
 - ✅ Render Time: -30%
 - ✅ Memory Usage: -40%
 
 ### الصيانة:
+
 - ✅ File Size: 200 سطر (بدلاً من 564)
 - ✅ Function Size: 30 سطر متوسط
 - ✅ Component Size: 100 سطر متوسط
@@ -422,6 +452,7 @@ src/ui/common/
 ## 🏆 الخلاصة
 
 هذا التحسين سيجعل ExcelTable.tsx:
+
 - ✅ أسهل في الصيانة
 - ✅ أسرع في الأداء
 - ✅ أكثر أماناً من ناحية Type Safety

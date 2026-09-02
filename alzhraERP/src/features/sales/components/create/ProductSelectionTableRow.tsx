@@ -86,7 +86,9 @@ export const ProductSelectionTableRow: React.FC<ProductSelectionTableRowProps> =
         return (
           <div
             className="flex items-center justify-center gap-1 max-md:gap-1"
-            onClick={e => e.stopPropagation()}
+            onClick={e => {
+              e.stopPropagation();
+            }}
           >
             <button
               type="button"
@@ -119,7 +121,9 @@ export const ProductSelectionTableRow: React.FC<ProductSelectionTableRowProps> =
 
   return (
     <tr
-      onClick={() => onRowClick(product)}
+      onClick={() => {
+        onRowClick(product);
+      }}
       onMouseEnter={onMouseEnter}
       title="انقر مرتين أو اضغط Enter لإضافة المنتج للفاتورة"
       className={`group cursor-pointer outline-none transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 ${fontSizeClass} ${

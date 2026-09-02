@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, GitBranch, Loader2, Phone, MapPin } from 'lucide-react';
-import { Branch, BranchFormData } from '../../types';
+import type { Branch, BranchFormData } from '../../types';
 
 interface BranchFormModalProps {
   isOpen: boolean;
@@ -49,12 +49,14 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-200 max-md:p-4"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <div className="bg-[var(--app-surface)] rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="animate-in zoom-in-95 w-full max-w-md overflow-hidden rounded-2xl bg-[var(--app-surface)] shadow-2xl duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
+        <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] p-5">
           <div className="flex items-center gap-3">
             <GitBranch size={20} className="text-blue-600 dark:text-blue-400" />
             <div>
@@ -68,24 +70,26 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-[var(--app-text-secondary)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-hover)] rounded-lg transition-colors"
+            className="rounded-lg p-1.5 text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 max-md:p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6 max-md:p-4">
           {/* Branch Name */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
               اسم الفرع <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
+              onChange={e => {
+                setForm({ ...form, name: e.target.value });
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               required
               autoFocus
             />
@@ -93,42 +97,48 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
-              <MapPin size={13} className="inline ml-1 text-gray-400" />
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+              <MapPin size={13} className="ml-1 inline text-gray-400" />
               العنوان
             </label>
             <input
               type="text"
               value={form.address ?? ''}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
+              onChange={e => {
+                setForm({ ...form, address: e.target.value });
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
-              <Phone size={13} className="inline ml-1 text-gray-400" />
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+              <Phone size={13} className="ml-1 inline text-gray-400" />
               رقم الهاتف
             </label>
             <input
               type="tel"
               value={form.phone ?? ''}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
+              onChange={e => {
+                setForm({ ...form, phone: e.target.value });
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               dir="ltr"
             />
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
               الحالة
             </label>
             <select
               value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 dark:text-white transition-all"
+              onChange={e => {
+                setForm({ ...form, status: e.target.value });
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
               <option value="active">نشط</option>
               <option value="inactive">غير نشط</option>
@@ -136,26 +146,28 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t dark:border-slate-800">
+          <div className="flex gap-3 border-t pt-4 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium"
+              className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={isLoading || !form.name.trim()}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-xs"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
                   جاري الحفظ...
                 </>
+              ) : isEditMode ? (
+                'حفظ التغييرات'
               ) : (
-                isEditMode ? 'حفظ التغييرات' : 'إضافة الفرع'
+                'إضافة الفرع'
               )}
             </button>
           </div>

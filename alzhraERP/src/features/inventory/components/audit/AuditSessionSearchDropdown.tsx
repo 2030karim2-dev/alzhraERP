@@ -43,7 +43,9 @@ export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProp
             variant="default"
             size="md"
             className="h-11 flex-1 text-sm font-bold sm:h-12 sm:text-base"
-            onEscape={() => setShowResults(false)}
+            onEscape={() => {
+              setShowResults(false);
+            }}
           />
           <button
             onClick={onOpenScanner}
@@ -57,7 +59,9 @@ export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProp
         {/* Search Results Dropdown */}
         <SearchDropdown
           open={showResults && !!filter.trim()}
-          onClose={() => setShowResults(false)}
+          onClose={() => {
+            setShowResults(false);
+          }}
           loading={isLoadingSearch || isAddingItem}
           hasResults={(searchResults?.length ?? 0) > 0}
           emptyMessage="لا توجد نتائج مطابقة"

@@ -1,7 +1,6 @@
-
 import { useAuthStore } from './store';
 import { authApi } from './api';
-import { AuthUser } from './types';
+import type { AuthUser } from './types';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../core/routes/paths';
@@ -60,180 +59,180 @@ function validateRegistrationInputs(
 }
 
 export const useAuth = () => {
-    const { user, isAuthenticated, isLoading, isReady, initialize, logout } = useAuthStore();
+  const { user, isAuthenticated, isLoading, isReady, initialize, logout } = useAuthStore();
 
-    return {
-        user,
-        isAuthenticated,
-        isLoading,
-        isReady,
-        initialize,
-        logout
-    };
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    isReady,
+    initialize,
+    logout,
+  };
 };
 
 export const useLogout = () => {
-    const { logout } = useAuthStore();
-    const navigate = useNavigate();
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogout = async () => {
-        setIsLoggingOut(true);
-        try {
-            await logout();
-            navigate(ROUTES.AUTH.LOGIN);
-        } catch (error) {
-            logger.error('Auth', 'Logout error', error as Error);
-        } finally {
-            setIsLoggingOut(false);
-        }
-    };
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate(ROUTES.AUTH.LOGIN);
+    } catch (error) {
+      logger.error('Auth', 'Logout error', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
-    return { logout: handleLogout, isLoggingOut };
+  return { logout: handleLogout, isLoggingOut };
 };
 
 export const useLogin = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { login: setStoreUser } = useAuthStore();
-    const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { login: setStoreUser } = useAuthStore();
+  const navigate = useNavigate();
 
-    const login = async (email: string, pass: string) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const { data, error: loginError } = await authApi.signInWithPassword(email, pass);
+  const login = async (email: string, pass: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error: loginError } = await authApi.signInWithPassword(email, pass);
 
-            if (loginError) throw loginError;
+      if (loginError) throw loginError;
 
-            if (data.user) {
-                const { data: profile, isAborted } = await authApi.getProfile(data.user.id);
+      if (data.user) {
+        const { data: profile, isAborted } = await authApi.getProfile(data.user.id);
 
-                if (isAborted) {
-                    // Profile fetch was cancelled/timed out (rare, concurrent
-                    // auth checks). Surface a clear message instead of silently
-                    // returning to a frozen login screen with no feedback.
-                    setError('تعذر تحميل ملف التعريف. حاول مرة أخرى.');
-                    return;
-                }
-
-                if (profile) {
-                    setStoreUser(profile as AuthUser);
-                    navigate(ROUTES.DASHBOARD.ROOT, { replace: true });
-                } else {
-                    throw new Error("حسابك موجود ولكن ملف التعريف غير مكتمل. يرجى التواصل مع الدعم.");
-                }
-            }
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-        } finally {
-            setIsLoading(false);
+        if (isAborted) {
+          // Profile fetch was cancelled/timed out (rare, concurrent
+          // auth checks). Surface a clear message instead of silently
+          // returning to a frozen login screen with no feedback.
+          setError('تعذر تحميل ملف التعريف. حاول مرة أخرى.');
+          return;
         }
-    };
 
-    return { login, isLoading, error };
+        if (profile) {
+          setStoreUser(profile as AuthUser);
+          navigate(ROUTES.DASHBOARD.ROOT, { replace: true });
+        } else {
+          throw new Error('حسابك موجود ولكن ملف التعريف غير مكتمل. يرجى التواصل مع الدعم.');
+        }
+      }
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { login, isLoading, error };
 };
 
 export const useRegister = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
 
-    const register = async (email: string, pass: string, companyName: string, fullName: string) => {
-        setIsLoading(true);
-        setError(null);
+  const register = async (email: string, pass: string, companyName: string, fullName: string) => {
+    setIsLoading(true);
+    setError(null);
 
-        try {
-            validateRegistrationInputs(email, pass, companyName, fullName);
+    try {
+      validateRegistrationInputs(email, pass, companyName, fullName);
 
-            // 2. Call Supabase API
-            const { data, error } = await authApi.signUp(email, pass, companyName, fullName);
+      // 2. Call Supabase API
+      const { data, error } = await authApi.signUp(email, pass, companyName, fullName);
 
-            if (error) {
-                throw error;
-            }
+      if (error) {
+        throw error;
+      }
 
-            if (data.user) {
-                // Check if session exists (Auto login vs Email Confirmation)
-                if (data.session) {
-                    navigate(ROUTES.DASHBOARD.ROOT, { replace: true });
-                } else {
-                    setIsSuccess(true);
-                }
-            }
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-        } finally {
-            setIsLoading(false);
+      if (data.user) {
+        // Check if session exists (Auto login vs Email Confirmation)
+        if (data.session) {
+          navigate(ROUTES.DASHBOARD.ROOT, { replace: true });
+        } else {
+          setIsSuccess(true);
         }
-    };
+      }
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return { register, isLoading, error, isSuccess };
+  return { register, isLoading, error, isSuccess };
 };
 
 export const usePasswordReset = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
-    const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
-    const requestReset = async (email: string) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const { error } = await authApi.resetPasswordForEmail(email);
-            if (error) throw error;
-            setSuccess(true);
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const requestReset = async (email: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await authApi.resetPasswordForEmail(email);
+      if (error) throw error;
+      setSuccess(true);
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const confirmUpdate = async (newPassword: string) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const { error } = await authApi.updateUserPassword(newPassword);
-            if (error) throw error;
-            navigate(ROUTES.AUTH.LOGIN);
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const confirmUpdate = async (newPassword: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await authApi.updateUserPassword(newPassword);
+      if (error) throw error;
+      navigate(ROUTES.AUTH.LOGIN);
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return { requestReset, confirmUpdate, isLoading, error, success };
+  return { requestReset, confirmUpdate, isLoading, error, success };
 };
 
 export const usePasswordChange = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const changePassword = async (newPassword: string) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const { error } = await authApi.updateUserPassword(newPassword);
-            if (error) throw error;
-            return true;
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const changePassword = async (newPassword: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await authApi.updateUserPassword(newPassword);
+      if (error) throw error;
+      return true;
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return { changePassword, isLoading, error };
+  return { changePassword, isLoading, error };
 };
 
 /**
@@ -242,44 +241,44 @@ export const usePasswordChange = () => {
  * layer stays free of any direct supabase calls (Layer rule).
  */
 export const useTerminateSessions = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const terminateOthers = async (): Promise<boolean> => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            await authApi.terminateOtherSessions();
-            return true;
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const terminateOthers = async (): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await authApi.terminateOtherSessions();
+      return true;
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return { terminateOthers, isLoading, error };
+  return { terminateOthers, isLoading, error };
 };
 
 export const useGoogleLogin = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { loginWithGoogle } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { loginWithGoogle } = useAuthStore();
 
-    const login = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            await loginWithGoogle();
-            // Redirect is handled by the browser
-        } catch (err: unknown) {
-            const parsed = parseError(err);
-            setError(parsed.message);
-            setIsLoading(false);
-        }
-    };
+  const login = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await loginWithGoogle();
+      // Redirect is handled by the browser
+    } catch (err: unknown) {
+      const parsed = parseError(err);
+      setError(parsed.message);
+      setIsLoading(false);
+    }
+  };
 
-    return { login, isLoading, error };
+  return { login, isLoading, error };
 };

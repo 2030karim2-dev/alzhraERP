@@ -1,6 +1,7 @@
 # 🔍 تقرير التدقيق الشامل للواجهة الأمامية - alzhraERP
 
 ## 📅 التاريخ: 31 يوليو 2026
+
 ## 📊 الحالة: مكتمل (مع إصلاحات حرجة مطبقة)
 
 ---
@@ -9,14 +10,14 @@
 
 ### ✅ الإصلاحات المكتملة
 
-| # | الملف | المشكلة | الإصلاح | الحالة |
-|---|------|---------|---------|--------|
-| 1 | `core/hooks/useSystemInitialization.ts` | متغير عام `hasBootstrappedSystem` يسبب مشاكل في HMR والاختبارات | تغيير إلى `useRef` | ✅ مكتمل |
-| 2 | `core/hooks/useSystemInitialization.ts` | `queryClient.invalidateQueries()` يبطل جميع الاستعلامات | استهداف استعلامات محددة | ✅ مكتمل |
-| 3 | `ui/layout/MainLayout.tsx` | div ميت يحتوي على تعليق فقط بدون كود فعلي | إزالة الـ div الميت | ✅ مكتمل |
-| 4 | `features/settings/SettingsPage.tsx` | 5 imports غير مستخدمة (Palette, Database, Bell, Printer, Globe) | إزالة الـ imports غير المستخدمة | ✅ مكتمل |
-| 5 | `features/inventory/types.ts` | معرف مكرر `warehouse_distribution` (TS2300) | دمج التعريفين في تعريف واحد | ✅ مكتمل |
-| 6 | `features/sales/store.ts` | عدم توافق مع `exactOptionalPropertyTypes` (TS2375) | إضافة `| undefined` للنوع | ✅ مكتمل |
+| #   | الملف                                   | المشكلة                                                         | الإصلاح                         | الحالة           |
+| --- | --------------------------------------- | --------------------------------------------------------------- | ------------------------------- | ---------------- |
+| 1   | `core/hooks/useSystemInitialization.ts` | متغير عام `hasBootstrappedSystem` يسبب مشاكل في HMR والاختبارات | تغيير إلى `useRef`              | ✅ مكتمل         |
+| 2   | `core/hooks/useSystemInitialization.ts` | `queryClient.invalidateQueries()` يبطل جميع الاستعلامات         | استهداف استعلامات محددة         | ✅ مكتمل         |
+| 3   | `ui/layout/MainLayout.tsx`              | div ميت يحتوي على تعليق فقط بدون كود فعلي                       | إزالة الـ div الميت             | ✅ مكتمل         |
+| 4   | `features/settings/SettingsPage.tsx`    | 5 imports غير مستخدمة (Palette, Database, Bell, Printer, Globe) | إزالة الـ imports غير المستخدمة | ✅ مكتمل         |
+| 5   | `features/inventory/types.ts`           | معرف مكرر `warehouse_distribution` (TS2300)                     | دمج التعريفين في تعريف واحد     | ✅ مكتمل         |
+| 6   | `features/sales/store.ts`               | عدم توافق مع `exactOptionalPropertyTypes` (TS2375)              | إضافة `                         | undefined` للنوع | ✅ مكتمل |
 
 ---
 
@@ -27,7 +28,9 @@
 تم تشغيل `tsc --noEmit` ووجد الأخطاء التالية:
 
 #### 1. Unused Imports (TS6133) - 30+ حالة
+
 **الملفات المتأثرة:**
+
 - `KeepAliveRoute.tsx` - `useLocation`, `KeepAliveEntry`
 - `decimalUtils.ts` - `data`
 - `reportService.ts` - `reportsApi`, `branchId`
@@ -53,8 +56,10 @@
 - `kitService.ts` - `errors`
 
 #### 2. Type Mismatch (TS2345) - 15+ حالة
+
 **السبب:** تمرير `string` حيث يُتوقع `CurrencyCode`
 **الملفات المتأثرة:**
+
 - `JournalEntryTotals.tsx` - 3 أخطاء
 - `LedgerView.tsx` - 2 خطأ
 - `BondsList.tsx` - 2 خطأ
@@ -64,6 +69,7 @@
 - `InvoiceSelector.tsx` - 1 خطأ
 
 #### 3. أخطاء أخرى
+
 - `CreateBondModal.tsx` - Type 'string' not assignable to 'CurrencyCode' (TS2322)
 - `bonds/hooks.ts` - 'branch_id' not in BondFormData (TS2353)
 - `AuditSessionPage.tsx` - Property '_isRestoring' doesn't exist (TS2339)
@@ -81,16 +87,17 @@
 تم العثور على **286 حالة** من `as any`, `@ts-expect-error`, `@ts-ignore`, `eslint-disable` في الكود.
 
 **أكثر الملفات تأثراً:**
-| الملف | العدد التقريبي |
-|------|---------------|
-| `pos/services/searchService.ts` | 15+ |
-| `inventory/api/productsApi.ts` | 10+ |
-| `dashboard/api/index.ts` | 8+ |
-| `pos/pages/POSPage.tsx` | 6+ |
-| `sales/hooks/useInvoices.ts` | 10+ |
-| `parties/api/customerApi.ts` | 10+ |
-| `purchases/services/maintenance/purchaseFixes.ts` | 8+ |
-| `inventory/pages/AuditSessionPage.tsx` | 5+ |
+
+| الملف                                             | العدد التقريبي |
+| ------------------------------------------------- | -------------- |
+| `pos/services/searchService.ts`                   | 15+            |
+| `inventory/api/productsApi.ts`                    | 10+            |
+| `dashboard/api/index.ts`                          | 8+             |
+| `pos/pages/POSPage.tsx`                           | 6+             |
+| `sales/hooks/useInvoices.ts`                      | 10+            |
+| `parties/api/customerApi.ts`                      | 10+            |
+| `purchases/services/maintenance/purchaseFixes.ts` | 8+             |
+| `inventory/pages/AuditSessionPage.tsx`            | 5+             |
 
 ---
 
@@ -112,16 +119,19 @@
 ## 🎯 التوصيات للتحسين
 
 ### أولوية عالية:
+
 1. إصلاح جميع أخطاء TypeScript المتبقية
 2. تقليل `as any` casts في الملفات الحرجة
 3. إضافة اختبارات للصفحات الرئيسية (POS, Dashboard, Sales)
 
 ### أولوية متوسطة:
+
 4. إضافة فحص صلاحيات في FeatureBoundary
 5. تحسين رسائل الأخطاء للمستخدم
 6. إضافة سمات ARIA لإمكانية الوصول
 
 ### أولوية منخفضة:
+
 7. توثيق المكونات المعقدة
 8. تحسين أداء Dashboard بتجميع الاستعلامات
 9. إضافة PWA features إضافية
@@ -130,11 +140,11 @@
 
 ## 📊 الإحصائيات
 
-| المؤشر | القيمة |
-|--------|--------|
-| إجمالي الأخطاء المكتشفة | 80+ |
-| الإصلاحات المكتملة | 6 |
-| تجاوزات أمان الأنواع | 286 |
-| ملفات الاختبار الموجودة | 7 |
-| الميزات الرئيسية | 15+ |
-| نقاط القوة | 10 |
+| المؤشر                  | القيمة |
+| ----------------------- | ------ |
+| إجمالي الأخطاء المكتشفة | 80+    |
+| الإصلاحات المكتملة      | 6      |
+| تجاوزات أمان الأنواع    | 286    |
+| ملفات الاختبار الموجودة | 7      |
+| الميزات الرئيسية        | 15+    |
+| نقاط القوة              | 10     |

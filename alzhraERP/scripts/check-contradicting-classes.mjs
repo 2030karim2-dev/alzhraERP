@@ -11,7 +11,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', 'src');
 
 // الترتيب مهم: الأطول أولاً حتى لا يلتهم p البادئة px
-const TOKEN_RE = /(?:max-md|md|sm|lg|xl|2xl):(px|py|pt|pb|ps|pe|p|mx|my|mt|mb|ms|me|m|gap-x|gap-y|gap)-([^\s"'`]+)/g;
+const TOKEN_RE =
+  /(?:max-md|md|sm|lg|xl|2xl):(px|py|pt|pb|ps|pe|p|mx|my|mt|mb|ms|me|m|gap-x|gap-y|gap)-([^\s"'`]+)/g;
 const conflicts = new Set();
 
 function checkLiteral(lit, loc) {
@@ -29,7 +30,10 @@ function checkLiteral(lit, loc) {
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) { walk(p); continue; }
+    if (entry.isDirectory()) {
+      walk(p);
+      continue;
+    }
     if (!/\.(tsx|ts)$/.test(entry.name)) continue;
     const rel = path.relative(path.join(HERE, '..'), p);
     const src = fs.readFileSync(p, 'utf8');

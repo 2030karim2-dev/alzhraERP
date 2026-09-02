@@ -35,7 +35,9 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
     <div className="relative" ref={settingsRef}>
       <button
         type="button"
-        onClick={() => setShowSettings(!showSettings)}
+        onClick={() => {
+          setShowSettings(!showSettings);
+        }}
         className={`rounded-lg border p-2 transition-colors max-md:p-2 ${
           showSettings
             ? 'border-blue-400 bg-blue-100 text-blue-700 dark:border-blue-500 dark:bg-blue-900/40'
@@ -49,15 +51,23 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
       {showSettings && (
         <div
           className="absolute left-0 top-full z-[200] mt-2 w-72 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-800 max-md:p-4"
-          onClick={e => e.stopPropagation()}
-          onMouseDown={e => e.stopPropagation()}
+          onClick={e => {
+            e.stopPropagation();
+          }}
+          onMouseDown={e => {
+            e.stopPropagation();
+          }}
         >
           <div className="mb-4 flex items-center justify-between border-b pb-2 dark:border-slate-700">
             <h3 className="text-sm font-bold">إعدادات الجدول</h3>
             <button
               type="button"
-              onMouseDown={e => e.stopPropagation()}
-              onClick={() => resetConfig()}
+              onMouseDown={e => {
+                e.stopPropagation();
+              }}
+              onClick={() => {
+                resetConfig();
+              }}
               className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 max-md:gap-1"
             >
               <RotateCcw size={10} /> استعادة الافتراضي
@@ -72,8 +82,12 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
                 <button
                   key={sz}
                   type="button"
-                  onMouseDown={e => e.stopPropagation()}
-                  onClick={() => setFontSize(sz)}
+                  onMouseDown={e => {
+                    e.stopPropagation();
+                  }}
+                  onClick={() => {
+                    setFontSize(sz);
+                  }}
                   className={`flex-1 rounded-lg py-1.5 text-xs transition-all ${
                     config.fontSize === sz
                       ? 'bg-white font-bold text-blue-600 shadow dark:bg-slate-700'
@@ -98,8 +112,12 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
                   <div className="flex items-center gap-2 max-md:gap-2">
                     <button
                       type="button"
-                      onMouseDown={e => e.stopPropagation()}
-                      onClick={() => toggleColumnVisibility(col.id)}
+                      onMouseDown={e => {
+                        e.stopPropagation();
+                      }}
+                      onClick={() => {
+                        toggleColumnVisibility(col.id);
+                      }}
                       className="rounded p-1 text-gray-400 transition-colors hover:text-blue-500 max-md:p-1"
                     >
                       {col.visible ? (
@@ -115,8 +133,12 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
                   <div className="flex items-center gap-0 max-md:gap-0.5">
                     <button
                       type="button"
-                      onMouseDown={e => e.stopPropagation()}
-                      onClick={() => moveColumnUp(index)}
+                      onMouseDown={e => {
+                        e.stopPropagation();
+                      }}
+                      onClick={() => {
+                        moveColumnUp(index);
+                      }}
                       disabled={index === 0}
                       className="rounded p-1 text-gray-400 transition-colors hover:text-gray-700 disabled:opacity-20 dark:hover:text-slate-300 max-md:p-1"
                     >
@@ -124,8 +146,12 @@ export const ProductColumnSettingsMenu: React.FC<ProductColumnSettingsMenuProps>
                     </button>
                     <button
                       type="button"
-                      onMouseDown={e => e.stopPropagation()}
-                      onClick={() => moveColumnDown(index)}
+                      onMouseDown={e => {
+                        e.stopPropagation();
+                      }}
+                      onClick={() => {
+                        moveColumnDown(index);
+                      }}
                       disabled={index === config.columns.length - 1}
                       className="rounded p-1 text-gray-400 transition-colors hover:text-gray-700 disabled:opacity-20 dark:hover:text-slate-300 max-md:p-1"
                     >

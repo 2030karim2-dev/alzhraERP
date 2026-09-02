@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Calculator,
@@ -14,30 +13,115 @@ import {
   Car,
   HandCoins,
   Building2,
-  MessageSquare
+  MessageSquare,
 } from 'lucide-react';
-import { MenuItem } from './types';
+import type { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
 
 export const MENU_ITEMS: MenuItem[] = [
-  { id: 'dashboard', labelKey: 'overview', icon: LayoutDashboard, path: ROUTES.DASHBOARD.ROOT, color: 'purple' },
-  { id: 'chat', labelKey: 'internal_chat', icon: MessageSquare, path: ROUTES.DASHBOARD.CHAT, color: 'blue' },
-  { id: 'sales', labelKey: 'invoices', icon: ShoppingBag, path: ROUTES.DASHBOARD.SALES, color: 'green' },
-  { id: 'bonds', labelKey: 'receipts', icon: FileText, path: ROUTES.DASHBOARD.BONDS, color: 'yellow' },
+  {
+    id: 'dashboard',
+    labelKey: 'overview',
+    icon: LayoutDashboard,
+    path: ROUTES.DASHBOARD.ROOT,
+    color: 'purple',
+  },
+  {
+    id: 'chat',
+    labelKey: 'internal_chat',
+    icon: MessageSquare,
+    path: ROUTES.DASHBOARD.CHAT,
+    color: 'blue',
+  },
+  {
+    id: 'sales',
+    labelKey: 'invoices',
+    icon: ShoppingBag,
+    path: ROUTES.DASHBOARD.SALES,
+    color: 'green',
+  },
+  {
+    id: 'bonds',
+    labelKey: 'receipts',
+    icon: FileText,
+    path: ROUTES.DASHBOARD.BONDS,
+    color: 'yellow',
+  },
   { id: 'debts', labelKey: 'debts', icon: HandCoins, path: ROUTES.DASHBOARD.DEBTS, color: 'red' },
-  { id: 'clients', labelKey: 'customers', icon: Users, path: ROUTES.DASHBOARD.CLIENTS, color: 'emerald' },
-  { id: 'suppliers', labelKey: 'suppliers', icon: Users, path: ROUTES.DASHBOARD.SUPPLIERS, color: 'blue' },
-  { id: 'supplier_portal', labelKey: 'supplier_portal', icon: Building2, path: ROUTES.DASHBOARD.SUPPLIER_PORTAL, color: 'indigo' },
-  { id: 'inventory', labelKey: 'products', icon: Wrench, path: ROUTES.DASHBOARD.INVENTORY, color: 'orange' },
-  { id: 'expenses', labelKey: 'expenses', icon: Receipt, path: ROUTES.DASHBOARD.EXPENSES, color: 'red' },
-  { id: 'accounting', labelKey: 'accounting', icon: Calculator, path: ROUTES.DASHBOARD.ACCOUNTING, color: 'indigo' },
-  { id: 'commissions', labelKey: 'commission_dashboard', icon: Calculator, path: ROUTES.DASHBOARD.COMMISSIONS, color: 'teal' },
+  {
+    id: 'clients',
+    labelKey: 'customers',
+    icon: Users,
+    path: ROUTES.DASHBOARD.CLIENTS,
+    color: 'emerald',
+  },
+  {
+    id: 'suppliers',
+    labelKey: 'suppliers',
+    icon: Users,
+    path: ROUTES.DASHBOARD.SUPPLIERS,
+    color: 'blue',
+  },
+  {
+    id: 'supplier_portal',
+    labelKey: 'supplier_portal',
+    icon: Building2,
+    path: ROUTES.DASHBOARD.SUPPLIER_PORTAL,
+    color: 'indigo',
+  },
+  {
+    id: 'inventory',
+    labelKey: 'products',
+    icon: Wrench,
+    path: ROUTES.DASHBOARD.INVENTORY,
+    color: 'orange',
+  },
+  {
+    id: 'expenses',
+    labelKey: 'expenses',
+    icon: Receipt,
+    path: ROUTES.DASHBOARD.EXPENSES,
+    color: 'red',
+  },
+  {
+    id: 'accounting',
+    labelKey: 'accounting',
+    icon: Calculator,
+    path: ROUTES.DASHBOARD.ACCOUNTING,
+    color: 'indigo',
+  },
+  {
+    id: 'commissions',
+    labelKey: 'commission_dashboard',
+    icon: Calculator,
+    path: ROUTES.DASHBOARD.COMMISSIONS,
+    color: 'teal',
+  },
   { id: 'pos', labelKey: 'pos', icon: Package, path: ROUTES.DASHBOARD.POS, color: 'pink' },
   { id: 'vin', labelKey: 'vin_intelligence', icon: Car, path: ROUTES.DASHBOARD.VIN, color: 'blue' },
 
-  { id: 'purchases', labelKey: 'purchases', icon: ShoppingCart, path: ROUTES.DASHBOARD.PURCHASES, color: 'teal' },
-  { id: 'reports', labelKey: 'reports', icon: BarChart3, path: ROUTES.DASHBOARD.REPORTS, color: 'slate' },
-  { id: 'settings', labelKey: 'settings', icon: Settings, path: ROUTES.DASHBOARD.SETTINGS, requiredPermission: 'settings:manage', color: 'slate' },
+  {
+    id: 'purchases',
+    labelKey: 'purchases',
+    icon: ShoppingCart,
+    path: ROUTES.DASHBOARD.PURCHASES,
+    color: 'teal',
+  },
+  {
+    id: 'reports',
+    labelKey: 'reports',
+    icon: BarChart3,
+    path: ROUTES.DASHBOARD.REPORTS,
+    color: 'slate',
+  },
+  {
+    id: 'settings',
+    labelKey: 'settings',
+    icon: Settings,
+    path: ROUTES.DASHBOARD.SETTINGS,
+    requiredPermission: 'settings:manage',
+    color: 'slate',
+  },
 ];
 
 export const APP_NAME = 'Alzhra Smart';

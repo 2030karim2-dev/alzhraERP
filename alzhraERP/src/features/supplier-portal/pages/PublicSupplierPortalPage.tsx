@@ -116,8 +116,8 @@ export const PublicSupplierPortalPage: React.FC = () => {
       return (
         p.name_ar.toLowerCase().includes(term) ||
         (p.sku && p.sku.toLowerCase().includes(term)) ||
-        (p.part_number && p.part_number.toLowerCase().includes(term)) ||
-        (p.brand && p.brand.toLowerCase().includes(term))
+        p.part_number?.toLowerCase().includes(term) ||
+        p.brand?.toLowerCase().includes(term)
       );
     });
   }, [context?.reorder_products, onlyNeedsReorder, productSearch]);
@@ -304,11 +304,13 @@ export const PublicSupplierPortalPage: React.FC = () => {
   const handleCopyOEM = (oem: string) => {
     void navigator.clipboard.writeText(oem);
     setCopiedOem(oem);
-    setTimeout(() => setCopiedOem(null), 2000);
+    setTimeout(() => {
+      setCopiedOem(null);
+    }, 2000);
   };
 
   // ExcelTable Columns for Reorder Products
-  const productColumns: Column<ReorderProductItem>[] = useMemo(
+  const productColumns: Array<Column<ReorderProductItem>> = useMemo(
     () => [
       {
         header: 'الصنف / الوصف',
@@ -340,7 +342,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
           row.part_number ? (
             <button
               type="button"
-              onClick={() => handleCopyOEM(row.part_number!)}
+              onClick={() => {
+                handleCopyOEM(row.part_number!);
+              }}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-200 transition-all hover:border-emerald-500 hover:text-emerald-400"
               title="انقر لنسخ رقم القطعة"
             >
@@ -431,7 +435,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
         accessor: row => (
           <button
             type="button"
-            onClick={() => handleAddProductToDraft(row)}
+            onClick={() => {
+              handleAddProductToDraft(row);
+            }}
             className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/40 bg-emerald-600/20 px-3 py-1.5 text-[11px] font-bold text-emerald-300 transition-all hover:bg-emerald-600 hover:text-white"
           >
             <Plus size={13} />
@@ -444,7 +450,7 @@ export const PublicSupplierPortalPage: React.FC = () => {
   );
 
   // ExcelTable Columns for Quotation History
-  const quotationColumns: Column<PublicPortalQuotation>[] = useMemo(
+  const quotationColumns: Array<Column<PublicPortalQuotation>> = useMemo(
     () => [
       {
         header: 'رقم العرض',
@@ -518,7 +524,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
           <div className="flex items-center justify-center gap-1.5">
             <button
               type="button"
-              onClick={() => handleOpenPrintModal(row)}
+              onClick={() => {
+                handleOpenPrintModal(row);
+              }}
               className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-slate-200 transition-all hover:border-purple-500 hover:text-purple-300"
               title="طباعة وتصدير PDF"
             >
@@ -527,7 +535,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => handleReQuoteFromHistory(row)}
+              onClick={() => {
+                handleReQuoteFromHistory(row);
+              }}
               className="flex items-center gap-1 rounded-lg border border-emerald-800/40 bg-emerald-950/40 px-2.5 py-1 text-[10px] font-bold text-emerald-400 transition-all hover:bg-emerald-600 hover:text-white"
               title="إعادة تسعير العرض"
             >
@@ -616,7 +626,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => setIsDrawerOpen(true)}
+                onClick={() => {
+                  setIsDrawerOpen(true);
+                }}
                 className="relative flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-emerald-600/30 transition-all hover:bg-emerald-500"
               >
                 <ShoppingBag size={16} />
@@ -661,7 +673,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
           </div>
 
           <div
-            onClick={() => setActiveTab('rfqs')}
+            onClick={() => {
+              setActiveTab('rfqs');
+            }}
             className={cn(
               'cursor-pointer rounded-2xl border p-4 transition-all',
               activeTab === 'rfqs'
@@ -682,7 +696,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
           </div>
 
           <div
-            onClick={() => setActiveTab('quotations')}
+            onClick={() => {
+              setActiveTab('quotations');
+            }}
             className={cn(
               'cursor-pointer rounded-2xl border p-4 transition-all',
               activeTab === 'quotations'
@@ -709,7 +725,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
         <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
           <button
             type="button"
-            onClick={() => setActiveTab('reorder')}
+            onClick={() => {
+              setActiveTab('reorder');
+            }}
             className={cn(
               'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all',
               activeTab === 'reorder'
@@ -723,7 +741,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('rfqs')}
+            onClick={() => {
+              setActiveTab('rfqs');
+            }}
             className={cn(
               'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all',
               activeTab === 'rfqs'
@@ -737,7 +757,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('quotations')}
+            onClick={() => {
+              setActiveTab('quotations');
+            }}
             className={cn(
               'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all',
               activeTab === 'quotations'
@@ -758,7 +780,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setOnlyNeedsReorder(prev => !prev)}
+                  onClick={() => {
+                    setOnlyNeedsReorder(prev => !prev);
+                  }}
                   className={cn(
                     'flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all',
                     onlyNeedsReorder
@@ -850,7 +874,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => handleLoadRFQIntoDraft(rfq)}
+                    onClick={() => {
+                      handleLoadRFQIntoDraft(rfq);
+                    }}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-black text-white shadow-md transition-all hover:bg-blue-500"
                   >
                     <Send size={14} />
@@ -893,7 +919,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setIsDrawerOpen(false)}
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                }}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
               >
                 <X size={18} />
@@ -934,7 +962,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setDraftItems(prev => prev.filter((_, i) => i !== idx))}
+                          onClick={() => {
+                            setDraftItems(prev => prev.filter((_, i) => i !== idx));
+                          }}
                           className="text-slate-500 hover:text-rose-400"
                         >
                           <Trash2 size={14} />
@@ -1001,7 +1031,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
                     <input
                       type="text"
                       value={deliveryTerms}
-                      onChange={e => setDeliveryTerms(e.target.value)}
+                      onChange={e => {
+                        setDeliveryTerms(e.target.value);
+                      }}
                       className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -1011,7 +1043,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
                     <input
                       type="text"
                       value={paymentTerms}
-                      onChange={e => setPaymentTerms(e.target.value)}
+                      onChange={e => {
+                        setPaymentTerms(e.target.value);
+                      }}
                       className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -1022,7 +1056,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
                     </label>
                     <textarea
                       value={notes}
-                      onChange={e => setNotes(e.target.value)}
+                      onChange={e => {
+                        setNotes(e.target.value);
+                      }}
                       rows={2}
                       placeholder="أي ملاحظات حول الضمان، المنشأ، أو جودة القطع..."
                       className="mt-1 w-full resize-none rounded-xl border border-slate-700 bg-slate-900 p-2 text-xs text-white outline-none focus:border-emerald-500"

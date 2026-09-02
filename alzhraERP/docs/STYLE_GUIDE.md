@@ -139,9 +139,13 @@
 
 ```tsx
 <MobileCardList isEmpty={!rows.length} emptyMessage="لا توجد بيانات">
-  <MobileCardRow title={item.name} subtitle={item.phone}
+  <MobileCardRow
+    title={item.name}
+    subtitle={item.phone}
     badge={<StatusBadge {...meta} />}
-    meta={<>مبالغ/تفاصيل</>} actions={<>أزرار</>} />
+    meta={<>مبالغ/تفاصيل</>}
+    actions={<>أزرار</>}
+  />
 </MobileCardList>
 ```
 

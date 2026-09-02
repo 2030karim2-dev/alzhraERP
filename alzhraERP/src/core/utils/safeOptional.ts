@@ -10,7 +10,7 @@ export function safeAccess<T, K extends keyof NonNullable<T>>(
   fallback: NonNullable<T>[K]
 ): NonNullable<T>[K] {
   if (obj == null) return fallback;
-  const val = (obj as NonNullable<T>)[key];
+  const val = obj[key];
   return val != null ? val : fallback;
 }
 

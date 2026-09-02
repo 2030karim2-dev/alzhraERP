@@ -114,9 +114,7 @@ describe('partIntelligenceService.inspectPart — known patterns', () => {
 
   it('includes the active vehicle in compatible list with direct fit note', async () => {
     const result = await partIntelligenceService.inspectPart('90919-01253', toyotaActive);
-    const direct = result.compatibleVehicles.find(
-      v => v.notes && v.notes.includes('مطابقة مباشرة')
-    );
+    const direct = result.compatibleVehicles.find(v => v.notes?.includes('مطابقة مباشرة'));
     expect(direct).toBeDefined();
     expect(direct?.make).toBe('Toyota');
   });

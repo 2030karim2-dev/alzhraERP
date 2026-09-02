@@ -46,7 +46,7 @@ const normalizePurchaseReturns = (
         typeof record.created_at === 'string'
           ? record.created_at
           : (row.issue_date ?? new Date().toISOString()),
-      invoice_items: row.invoice_items as unknown[] | null,
+      invoice_items: row.invoice_items,
       exchange_rate: row.exchange_rate,
       party: row.party === null ? null : { name: row.party.name },
     };

@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { logger } from '../../core/utils/logger';
 
 /** مفتاح localStorage لتخزين سجل الأخطاء */
@@ -18,7 +18,9 @@ function logErrorToStorage(error: Error, errorInfo: ErrorInfo): void {
     existing.unshift(entry);
     if (existing.length > MAX_ERROR_LOG) existing.pop();
     localStorage.setItem(ERROR_LOG_KEY, JSON.stringify(existing));
-  } catch { /* noop - localStorage قد يكون ممتلئاً */ }
+  } catch {
+    /* noop - localStorage قد يكون ممتلئاً */
+  }
 }
 
 interface ErrorBoundaryProps {
@@ -55,7 +57,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    logger.error("ErrorBoundary", "Uncaught error:", [error, errorInfo]);
+    logger.error('ErrorBoundary', 'Uncaught error:', [error, errorInfo]);
     logErrorToStorage(error, errorInfo);
     this.setState({ error, errorInfo, autoReloadSeconds: 8 });
 
@@ -66,7 +68,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           const next = prev.autoReloadSeconds - 1;
           if (next <= 0) {
             clearInterval(countdownInterval);
-            try { window.location.reload(); } catch { /* noop */ }
+            try {
+              window.location.reload();
+            } catch {
+              /* noop */
+            }
             return { autoReloadSeconds: 0 };
           }
           return { autoReloadSeconds: next };
@@ -83,12 +89,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       `Component Stack: ${errorInfo?.componentStack ?? 'N/A'}`,
       `Time: ${new Date().toISOString()}`,
     ].join('\n\n');
-    navigator.clipboard.writeText(details).then(() => {
-      this.setState({ copied: true });
-      setTimeout(() => this.setState({ copied: false }), 2000);
-    }).catch(() => {
-      // Fallback: select text for manual copy
-    });
+    navigator.clipboard
+      .writeText(details)
+      .then(() => {
+        this.setState({ copied: true });
+        setTimeout(() => {
+          this.setState({ copied: false });
+        }, 2000);
+      })
+      .catch(() => {
+        // Fallback: select text for manual copy
+      });
   }
 
   public render(): ReactNode {
@@ -96,60 +107,63 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
       const texts = {
         ar: {
-          title: "عذراً، حدث خطأ غير متوقع.",
-          message: "واجه التطبيق مشكلة تمنعه من العمل بشكل صحيح. يرجى محاولة تحديث الصفحة.",
-          button: "تحديث الصفحة",
-          copy: "نسخ تفاصيل الخطأ",
-          copied: "✓ تم النسخ!",
-          details: "التفاصيل التقنية",
+          title: 'عذراً، حدث خطأ غير متوقع.',
+          message: 'واجه التطبيق مشكلة تمنعه من العمل بشكل صحيح. يرجى محاولة تحديث الصفحة.',
+          button: 'تحديث الصفحة',
+          copy: 'نسخ تفاصيل الخطأ',
+          copied: '✓ تم النسخ!',
+          details: 'التفاصيل التقنية',
         },
         en: {
-          title: "Sorry, an unexpected error occurred.",
-          message: "The application encountered a problem that prevents it from working correctly. Please try refreshing the page.",
-          button: "Refresh Page",
-          copy: "Copy Error Details",
-          copied: "✓ Copied!",
-          details: "Technical Details",
-        }
+          title: 'Sorry, an unexpected error occurred.',
+          message:
+            'The application encountered a problem that prevents it from working correctly. Please try refreshing the page.',
+          button: 'Refresh Page',
+          copy: 'Copy Error Details',
+          copied: '✓ Copied!',
+          details: 'Technical Details',
+        },
       };
 
       const errorMessage = this.state.error?.message ?? 'Unknown error';
       const componentStack = this.state.errorInfo?.componentStack ?? '';
 
       return (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          padding: '2rem',
-          textAlign: 'center',
-          backgroundColor: '#FFFBEB',
-          color: '#92400E',
-          fontFamily: 'Cairo, sans-serif'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            padding: '2rem',
+            textAlign: 'center',
+            backgroundColor: '#FFFBEB',
+            color: '#92400E',
+            fontFamily: 'Cairo, sans-serif',
+          }}
+        >
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{texts[lang].title}</h2>
-          <p style={{ marginTop: '0.5rem', maxWidth: '400px' }}>
-            {texts[lang].message}
-          </p>
+          <p style={{ marginTop: '0.5rem', maxWidth: '400px' }}>{texts[lang].message}</p>
 
-          <div style={{
-            marginTop: '1rem',
-            maxWidth: '600px',
-            width: '100%',
-            backgroundColor: '#FEF3C7',
-            borderRadius: '0.75rem',
-            padding: '1rem',
-            textAlign: 'left',
-            direction: 'ltr',
-            fontSize: '0.75rem',
-            fontFamily: 'monospace',
-            color: '#78350F',
-            overflowX: 'auto',
-            maxHeight: '200px',
-            overflowY: 'auto',
-          }}>
+          <div
+            style={{
+              marginTop: '1rem',
+              maxWidth: '600px',
+              width: '100%',
+              backgroundColor: '#FEF3C7',
+              borderRadius: '0.75rem',
+              padding: '1rem',
+              textAlign: 'left',
+              direction: 'ltr',
+              fontSize: '0.75rem',
+              fontFamily: 'monospace',
+              color: '#78350F',
+              overflowX: 'auto',
+              maxHeight: '200px',
+              overflowY: 'auto',
+            }}
+          >
             <strong>{texts[lang].details}:</strong>
             <pre style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
               {errorMessage}
@@ -157,9 +171,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </pre>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              marginTop: '1.5rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}
+          >
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                window.location.reload();
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -170,13 +194,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 border: 'none',
                 borderRadius: '0.75rem',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               {texts[lang].button} ({this.state.autoReloadSeconds}s)
             </button>
             <button
-              onClick={() => this.copyErrorDetails()}
+              onClick={() => {
+                this.copyErrorDetails();
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',

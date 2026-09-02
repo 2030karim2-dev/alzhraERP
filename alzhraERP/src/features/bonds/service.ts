@@ -1,6 +1,5 @@
-
 import { bondsApi } from './api';
-import { Bond, BondType, BondFormData } from './types';
+import type { Bond, BondType, BondFormData } from './types';
 import { messagingService } from '../notifications/messagingService';
 
 // Raw shape returned by the Supabase join query in bondsApi.getBonds
@@ -21,7 +20,11 @@ interface RawPaymentRow {
 }
 
 export const bondsService = {
-  fetchBonds: async (companyId: string, branchId?: string | null, type?: BondType): Promise<Bond[]> => {
+  fetchBonds: async (
+    companyId: string,
+    branchId?: string | null,
+    type?: BondType
+  ): Promise<Bond[]> => {
     const { data, error } = await bondsApi.getBonds(companyId, branchId, type);
     if (error) throw error;
 
@@ -32,7 +35,7 @@ export const bondsService = {
       const isBaseCurrency = !p.currency_code || p.currency_code === 'SAR';
       const foreignAmount = isBaseCurrency
         ? p.amount
-        : (p.foreign_amount || (p.amount / (p.exchange_rate || 1)));
+        : p.foreign_amount || p.amount / (p.exchange_rate || 1);
 
       return {
         id: p.id,
@@ -59,14 +62,19 @@ export const bondsService = {
     if (result) {
       const eventType = data.type === 'receipt' ? 'bond_receipt' : 'bond_payment';
       const resultObj = result as Record<string, unknown>;
-      messagingService.notify(companyId, eventType, {
-        entryNumber: (resultObj.payment_number as string) || '',
-        amount: data.amount || 0,
-        currency: data.currency_code || 'SAR',
-        description: data.description || '',
-        accountName: '',
-        date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
-      }, resultObj.id as string);
+      messagingService.notify(
+        companyId,
+        eventType,
+        {
+          entryNumber: (resultObj.payment_number as string) || '',
+          amount: data.amount || 0,
+          currency: data.currency_code || 'SAR',
+          description: data.description || '',
+          accountName: '',
+          date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
+        },
+        resultObj.id as string
+      );
     }
 
     return result;
@@ -81,5 +89,5 @@ export const bondsService = {
     const { data, error } = await bondsApi.getBondsStats(companyId, branchId);
     if (error) throw error;
     return data;
-  }
+  },
 };

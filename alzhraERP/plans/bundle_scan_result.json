@@ -1,5 +1,5 @@
 ﻿{
-    "status":  "PASS",
-    "findings":  "Only Supabase anon key (role: anon) present. No service_role, no AI keys, no DB credentials. No .map files.",
-    "test":  "R-16 Bundle secret scan"
+  "status": "PASS",
+  "findings": "Only Supabase anon key (role: anon) present. No service_role, no AI keys, no DB credentials. No .map files.",
+  "test": "R-16 Bundle secret scan"
 }

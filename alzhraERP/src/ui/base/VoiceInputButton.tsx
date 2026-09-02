@@ -7,7 +7,7 @@ interface SpeechRecognitionResultLike {
   transcript: string;
 }
 interface SpeechRecognitionEventLike {
-  results: { [index: number]: { [index: number]: SpeechRecognitionResultLike } };
+  results: Record<number, Record<number, SpeechRecognitionResultLike>>;
 }
 interface SpeechRecognitionLike {
   lang: string;
@@ -30,7 +30,10 @@ interface VoiceInputButtonProps {
 }
 
 const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
-  onResult, lang = 'ar-SA', className, disabled = false,
+  onResult,
+  lang = 'ar-SA',
+  className,
+  disabled = false,
 }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
@@ -38,8 +41,12 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
 
   const startListening = useCallback((): void => {
     const windowWithSpeech = window as unknown as Record<string, SpeechRecognitionCtor | undefined>;
-    const SpeechRecognitionAPI = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) { setIsSupported(false); return; }
+    const SpeechRecognitionAPI =
+      windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) {
+      setIsSupported(false);
+      return;
+    }
 
     const recognition = new SpeechRecognitionAPI();
     recognition.lang = lang;
@@ -86,18 +93,18 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
       disabled={disabled}
       aria-label={isListening ? 'إيقاف التسجيل الصوتي' : 'بدء التسجيل الصوتي'}
       className={cn(
-        'relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-90',
+        'relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 active:scale-90',
         isListening
-          ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 animate-pulse'
-          : 'bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] border border-[var(--app-border)]',
-        disabled && 'opacity-50 cursor-not-allowed',
-        className,
+          ? 'animate-pulse bg-rose-600 text-white shadow-lg shadow-rose-500/30'
+          : 'border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)]',
+        disabled && 'cursor-not-allowed opacity-50',
+        className
       )}
     >
       {isListening ? (
         <>
           <MicOff size={18} />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full animate-ping" />
+          <span className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-rose-500" />
         </>
       ) : (
         <Mic size={18} />

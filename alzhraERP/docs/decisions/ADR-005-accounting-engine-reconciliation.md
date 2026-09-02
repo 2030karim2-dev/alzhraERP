@@ -1,12 +1,15 @@
 # ADR-005: Reconciliation of the Accounting Engine with the Live Database
 
 ## Status
+
 Accepted (2026-08-18) — requires follow-up for full migration-history reconciliation
 
 ## Date
+
 2026-08-18
 
 ## Context
+
 A deep audit of the accounting module (features/accounting, core/usecases/accounting,
 bonds, expenses, treasury) revealed **structural divergence between the repository
 and the production Supabase project** (`zzthamxjxnxzzpswllid`):
@@ -39,6 +42,7 @@ and the production Supabase project** (`zzthamxjxnxzzpswllid`):
    include period net profit in equity.
 
 ## Decision
+
 1. **Fix production directly** with surgical `CREATE OR REPLACE` statements that
    preserve the production signatures and behavior, changing only what is broken:
    - `post_manual_journal` → `draft → lines → posted` (end-to-end verified with a
@@ -57,7 +61,7 @@ and the production Supabase project** (`zzthamxjxnxzzpswllid`):
    deployment reproduces the same engine.
 3. **Frontend balance-sheet fix**: `reportService.getFinancials` now adds the period
    net profit to total equity for the balance check (`assets = liabilities + equity +
-   net profit`), while keeping the equity line item separate so the UI display stays
+net profit`), while keeping the equity line item separate so the UI display stays
    consistent with production's SQL output.
 4. **`migrateCashboxBalances` redesign**: replaces the destructive
    `UPDATE journal_entry_lines SET account_id=…` (blocked by immutability triggers and
@@ -67,17 +71,22 @@ and the production Supabase project** (`zzthamxjxnxzzpswllid`):
    and the user was advised to rotate them.
 
 ## Alternatives Considered
+
 ### Apply the full local migration to production
+
 Rejected — would create duplicate overloads (`post_manual_journal`, `create_cashbox`,
 `create_exchange_company`) with mismatched parameter orders and overwrite working
 production functions, breaking the frontend.
 
 ### Rebuild the 593-migration history first
+
 Rejected as a prerequisite — large multi-day effort; the surgical fixes were required
 immediately. Documented as follow-up work.
 
 ## Consequences
+
 ### Positive
+
 - Manual journal posting works in production (verified live).
 - Discounted invoices no longer fail and produce balanced journals (verified live).
 - Sales/purchase returns now post journals; purchase returns post for the first time.
@@ -91,6 +100,7 @@ immediately. Documented as follow-up work.
   `supabase/migrations/README.md`.
 
 ### Negative / Follow-up
+
 - The baseline is a **snapshot of the final schema state**, not the incremental
   593-migration history. A fresh deployment can build from the baselines + new
   migrations, but existing environments cannot be "replayed" from the repo alone.
@@ -102,4 +112,3 @@ immediately. Documented as follow-up work.
   tolerance (0.01) — amounts are rounded to 4 dp before balance checks, but the
   mismatch should be revisited.
 - Production functions still contain legacy mojibake messages in non-accounting areas.
-

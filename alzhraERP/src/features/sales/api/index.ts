@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabaseClient';
 import { parseError } from '@/core/utils/errorUtils';
 import type { CreateInvoicePayload, InvoiceResponse } from '../types';
@@ -24,12 +23,20 @@ export interface InvoiceDetailItem {
   returned_at: string | null;
   name?: string;
   price?: number;
-  product: { name_ar: string; sku: string; cost_price?: number; part_number?: string; brand?: string };
+  product: {
+    name_ar: string;
+    sku: string;
+    cost_price?: number;
+    part_number?: string;
+    brand?: string;
+  };
 }
 
 export type InvoiceWithDetails = Invoice & {
   parties: Party;
-  payment_allocations: Array<{ payments: { amount: number; created_at: string; payment_method: string } }>;
+  payment_allocations: Array<{
+    payments: { amount: number; created_at: string; payment_method: string };
+  }>;
   invoice_items: InvoiceDetailItem[];
 };
 
@@ -40,7 +47,8 @@ export const salesApi = {
 
     let query = supabase
       .from('invoices')
-      .select(`
+      .select(
+        `
         id,
         invoice_number,
         issue_date,
@@ -53,14 +61,15 @@ export const salesApi = {
         party:party_id(name),
         invoice_items(id),
         reference_invoice_id
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .eq('type', 'sale')
       .neq('status', 'void')
       .is('deleted_at', null)
       .order('issue_date', { ascending: false })
       .range(from, to);
-      
+
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
@@ -70,13 +79,23 @@ export const salesApi = {
     return data as unknown as InvoiceWithParty[];
   },
 
-  commitInvoiceRPC: async (companyId: string, _userId: string, payload: CreateInvoicePayload): Promise<InvoiceResponse> => {
+  commitInvoiceRPC: async (
+    companyId: string,
+    _userId: string,
+    payload: CreateInvoicePayload
+  ): Promise<InvoiceResponse> => {
     if (!payload.partyId) {
       throw new Error('يجب اختيار العميل قبل إنشاء الفاتورة');
     }
 
-    // Generate idempotency key to prevent duplicate invoices on retry
-    const idempotencyKey = `${companyId}_${Date.now()}_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+    // Idempotency: prefer the caller-provided key, which is stable per user
+    // intent (form session). Double-clicks, network retries and offline-queue
+    // replays all reuse the SAME key, so the DB UNIQUE(company_id, idempotency_key)
+    // constraint rejects duplicates. The fallback only covers legacy callers
+    // that do not pass a key.
+    const idempotencyKey =
+      payload.idempotencyKey ??
+      `${companyId}_${Date.now()}_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
 
     const rpcParams = {
       p_party_id: payload.partyId,
@@ -103,7 +122,11 @@ export const salesApi = {
     return result as unknown as InvoiceResponse;
   },
 
-  commitReturnRPC: async (companyId: string, userId: string, payload: CreateInvoicePayload): Promise<InvoiceResponse> => {
+  commitReturnRPC: async (
+    companyId: string,
+    userId: string,
+    payload: CreateInvoicePayload
+  ): Promise<InvoiceResponse> => {
     if (!payload.partyId) {
       throw new Error('يجب اختيار العميل قبل إنشاء مرتجع المبيعات');
     }
@@ -112,13 +135,17 @@ export const salesApi = {
       p_company_id: companyId,
       p_user_id: userId,
       p_party_id: payload.partyId,
-      p_items: payload.items.map(i => ({ product_id: i.productId, quantity: i.quantity, unit_price: i.unitPrice })),
+      p_items: payload.items.map(i => ({
+        product_id: i.productId,
+        quantity: i.quantity,
+        unit_price: i.unitPrice,
+      })),
       ...(payload.notes ? { p_notes: payload.notes } : {}),
       ...(payload.currency ? { p_currency: payload.currency } : {}),
       ...(payload.exchangeRate ? { p_exchange_rate: Number(payload.exchangeRate) } : {}),
       ...(payload.referenceInvoiceId ? { p_reference_invoice_id: payload.referenceInvoiceId } : {}),
       ...(payload.returnReason ? { p_return_reason: payload.returnReason } : {}),
-      ...(payload.branchId ? { p_branch_id: payload.branchId } : {})
+      ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
     };
 
     const { data: result, error } = await supabase.rpc('commit_sale_return', rpcParams);
@@ -129,7 +156,8 @@ export const salesApi = {
   getInvoiceDetails: async (invoiceId: string) => {
     const { data, error } = await supabase
       .from('invoices')
-      .select(`
+      .select(
+        `
         *,
         parties:party_id(*),
         payment_allocations(
@@ -139,10 +167,11 @@ export const salesApi = {
           *,
           product:product_id(name_ar, sku, cost_price, part_number, brand)
         )
-      `)
+      `
+      )
       .eq('id', invoiceId)
       .single();
-    
+
     if (error) throw parseError(error);
     return data as unknown as InvoiceWithDetails;
   },
@@ -150,7 +179,7 @@ export const salesApi = {
   getNextInvoiceNumber: async (companyId: string) => {
     const { data, error } = await supabase.rpc('get_next_invoice_number', {
       p_company_id: companyId,
-      p_type: 'INV'
+      p_type: 'INV',
     });
 
     if (error) return { data: null, error };
@@ -160,7 +189,7 @@ export const salesApi = {
   getNextSequence: async (companyId: string, type: string) => {
     const { data, error } = await supabase.rpc('get_next_sequence', {
       p_company_id: companyId,
-      p_sequence_name: type
+      p_sequence_name: type,
     });
     if (error) {
       logger.error('Sales', 'Error fetching next sequence', error);
@@ -169,11 +198,15 @@ export const salesApi = {
     return { data, error: null };
   },
 
-  getSalesAnalytics: async (params: { company_id: string; start_date?: string; end_date?: string }) => {
+  getSalesAnalytics: async (params: {
+    company_id: string;
+    start_date?: string;
+    end_date?: string;
+  }) => {
     const rpcParams = {
       p_company_id: params.company_id,
       ...(params.start_date ? { p_start_date: params.start_date } : {}),
-      ...(params.end_date ? { p_end_date: params.end_date } : {})
+      ...(params.end_date ? { p_end_date: params.end_date } : {}),
     };
     const { data, error } = await supabase.rpc('get_sales_analytics', rpcParams);
 
@@ -191,5 +224,5 @@ export const salesApi = {
     const { data, error } = await supabase.rpc('void_invoice', { p_invoice_id: id });
     if (error) throw parseError(error);
     return { data, error: null };
-  }
+  },
 };

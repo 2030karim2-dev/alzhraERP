@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNotificationStore, AppNotification } from '../store';
+import { useNotificationStore, type AppNotification } from '../store';
 import { useAuthStore } from '../../auth/store';
 import { useI18nStore } from '../../../lib/i18nStore';
 import { cn } from '../../../core/utils';
@@ -55,7 +55,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [handleKeyDown]);
 
   // Focus trap and initial focus
@@ -232,8 +234,12 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
                     <NotificationItem
                       key={notif.id}
                       notif={notif}
-                      onClick={() => handleNotificationClick(notif)}
-                      onDelete={e => handleDeleteNotification(e, notif.id)}
+                      onClick={() => {
+                        handleNotificationClick(notif);
+                      }}
+                      onDelete={e => {
+                        handleDeleteNotification(e, notif.id);
+                      }}
                     />
                   ))}
                 </div>
@@ -251,8 +257,12 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
                     <NotificationItem
                       key={notif.id}
                       notif={notif}
-                      onClick={() => handleNotificationClick(notif)}
-                      onDelete={e => handleDeleteNotification(e, notif.id)}
+                      onClick={() => {
+                        handleNotificationClick(notif);
+                      }}
+                      onDelete={e => {
+                        handleDeleteNotification(e, notif.id);
+                      }}
                     />
                   ))}
                 </div>

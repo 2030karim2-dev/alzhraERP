@@ -1,6 +1,5 @@
-
 import { salesService } from '../../../features/sales/service';
-import { CreateInvoiceDTO } from '../../../features/sales/types';
+import type { CreateInvoiceDTO } from '../../../features/sales/types';
 
 /**
  * Usecase: معالجة عملية البيع الكاملة من نقطة البيع
@@ -8,8 +7,6 @@ import { CreateInvoiceDTO } from '../../../features/sales/types';
  */
 export class ProcessPOSCheckoutUsecase {
   static async execute(data: CreateInvoiceDTO, companyId: string, userId: string) {
-
-
     // يتم إرسال الفاتورة للخدمة، والتي بدورها تستدعي RPC
     // الـ RPC في قاعدة البيانات يقوم بـ:
     // 1. إنشاء الفاتورة
@@ -17,7 +14,6 @@ export class ProcessPOSCheckoutUsecase {
     // 3. إنشاء القيد المحاسبي
     // 4. تحديث رصيد العميل
     const invoice = await salesService.processNewSale(companyId, userId, data);
-
 
     return invoice;
   }

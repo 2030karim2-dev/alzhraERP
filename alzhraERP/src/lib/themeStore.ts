@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { THEME_PRESETS } from '../features/appearance/constants';
@@ -53,20 +52,36 @@ const applyTheme = (mode: ThemeMode): 'light' | 'dark' => {
     return mode === 'dark' ? 'dark' : 'light';
   }
 
-  const themeToApply = mode === 'system'
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : mode;
+  const themeToApply =
+    mode === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      : mode;
   document.documentElement.classList.toggle('dark', themeToApply === 'dark');
   return themeToApply;
 };
 
-const applyAccent = (color: string) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--accent', color);
-const applyFont = (font: string) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--font-sans', font);
-const applyRadius = (radius: number) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--radius', `${radius}rem`);
-const applyFontSize = (size: number) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--app-font-size', `${size}px`);
-const applyShadowStrength = (strength: number) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--shadow-strength', strength.toString());
-const applyGlassBlur = (blur: number) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--glass-blur', `${blur}px`);
-const applyGlassOpacity = (opacity: number) => typeof document !== 'undefined' && document.documentElement.style.setProperty('--glass-opacity', opacity.toString());
+const applyAccent = (color: string) =>
+  typeof document !== 'undefined' && document.documentElement.style.setProperty('--accent', color);
+const applyFont = (font: string) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--font-sans', font);
+const applyRadius = (radius: number) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--radius', `${radius}rem`);
+const applyFontSize = (size: number) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--app-font-size', `${size}px`);
+const applyShadowStrength = (strength: number) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--shadow-strength', strength.toString());
+const applyGlassBlur = (blur: number) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--glass-blur', `${blur}px`);
+const applyGlassOpacity = (opacity: number) =>
+  typeof document !== 'undefined' &&
+  document.documentElement.style.setProperty('--glass-opacity', opacity.toString());
 
 let themeMediaQueryCleanup: (() => void) | null = null;
 
@@ -147,7 +162,7 @@ const applyPresetCSSVars = (presetId: string, currentTheme: 'light' | 'dark') =>
   if (!preset) return;
 
   const root = document.documentElement;
-  
+
   if (preset.light && preset.dark) {
     // اختيار المتغيرات بناءً على الوضع الحالي للباقات التي تدعم كلا الوضعين
     const vars = currentTheme === 'dark' ? preset.dark : preset.light;
@@ -211,7 +226,17 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       initializeTheme: () => {
-        const { mode, accentColor, font, radius, fontSize, shadowStrength, glassBlur, glassOpacity, activePresetId } = get();
+        const {
+          mode,
+          accentColor,
+          font,
+          radius,
+          fontSize,
+          shadowStrength,
+          glassBlur,
+          glassOpacity,
+          activePresetId,
+        } = get();
 
         const initialTheme = applyTheme(mode);
         // تطبيق CSS variables الثيم المحفوظ مع مراعاة الوضع الحالي
@@ -227,7 +252,15 @@ export const useThemeStore = create<ThemeState>()(
 
         set({
           theme: initialTheme,
-          draftSettings: { accentColor, font, radius, fontSize, shadowStrength, glassBlur, glassOpacity }
+          draftSettings: {
+            accentColor,
+            font,
+            radius,
+            fontSize,
+            shadowStrength,
+            glassBlur,
+            glassOpacity,
+          },
         });
 
         themeMediaQueryCleanup?.();
@@ -247,7 +280,7 @@ export const useThemeStore = create<ThemeState>()(
         themeMediaQueryCleanup = () => mediaQuery.removeEventListener('change', handleThemeChange);
       },
 
-      setMode: (mode) => {
+      setMode: mode => {
         const newTheme = applyTheme(mode);
         applyPresetCSSVars(get().activePresetId, newTheme);
         applyAccent(get().accentColor);
@@ -255,61 +288,63 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       // تطبيق الثيم فعلياً مع جميع CSS variables
-      setPreset: (id) => {
+      setPreset: id => {
         const preset = THEME_PRESETS.find(p => p.id === id);
         if (!preset) return;
 
         // تطبيق الوضع (نهاري/ليلي) تلقائياً للباقات القديمة، أو الحفاظ على الوضع الحالي للجديدة
         const isProTheme = !!(preset.light || preset.dark);
 
-        const newTheme = applyTheme(isProTheme ? get().mode : (preset.isDark ? 'dark' : 'light'));
+        const newTheme = applyTheme(isProTheme ? get().mode : preset.isDark ? 'dark' : 'light');
 
         // تطبيق CSS variables
         applyPresetCSSVars(id, newTheme);
 
         // استخراج وتطبيق لون accent المناسب للوضع الحالي
         const resolvedAccent = isProTheme
-          ? (newTheme === 'dark' ? preset.dark?.['--accent'] : preset.light?.['--accent']) || preset.accent || '#10b981'
+          ? (newTheme === 'dark' ? preset.dark?.['--accent'] : preset.light?.['--accent']) ||
+            preset.accent ||
+            '#10b981'
           : preset.accent || '#10b981';
 
         applyAccent(resolvedAccent);
 
-        const nextMode = isProTheme ? get().mode : (preset.isDark ? 'dark' : 'light');
+        const nextMode = isProTheme ? get().mode : preset.isDark ? 'dark' : 'light';
 
         set({
           activePresetId: id,
           mode: nextMode,
           theme: newTheme,
           accentColor: resolvedAccent,
-          draftSettings: { ...get().draftSettings, accentColor: resolvedAccent }
+          draftSettings: { ...get().draftSettings, accentColor: resolvedAccent },
         });
       },
 
-      setDraftAccentColor: (color) => {
+      setDraftAccentColor: color => {
         applyAccent(color);
         set(state => ({ draftSettings: { ...state.draftSettings, accentColor: color } }));
       },
-      setDraftFont: (font) => {
+      setDraftFont: font => {
         applyFont(font);
         set(state => ({ draftSettings: { ...state.draftSettings, font } }));
       },
-      setDraftRadius: (radius) => {
+      setDraftRadius: radius => {
         applyRadius(radius);
         set(state => ({ draftSettings: { ...state.draftSettings, radius } }));
       },
-      setDraftFontSize: (size) => {
+      setDraftFontSize: size => {
         applyFontSize(size);
         set(state => ({ draftSettings: { ...state.draftSettings, fontSize: size } }));
       },
-      setDraftShadowStrength: (strength) => {
+      setDraftShadowStrength: strength => {
         applyShadowStrength(strength);
         set(state => ({ draftSettings: { ...state.draftSettings, shadowStrength: strength } }));
       },
-      setDraftGlassBlur: (blur) => {
+      setDraftGlassBlur: blur => {
         applyGlassBlur(blur);
         set(state => ({ draftSettings: { ...state.draftSettings, glassBlur: blur } }));
       },
-      setDraftGlassOpacity: (opacity) => {
+      setDraftGlassOpacity: opacity => {
         applyGlassOpacity(opacity);
         set(state => ({ draftSettings: { ...state.draftSettings, glassOpacity: opacity } }));
       },
@@ -328,7 +363,8 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       revertAppearanceSettings: () => {
-        const { accentColor, font, radius, fontSize, shadowStrength, glassBlur, glassOpacity } = get();
+        const { accentColor, font, radius, fontSize, shadowStrength, glassBlur, glassOpacity } =
+          get();
         applyAccent(accentColor);
         applyFont(font);
         applyRadius(radius);
@@ -337,14 +373,22 @@ export const useThemeStore = create<ThemeState>()(
         applyGlassBlur(glassBlur);
         applyGlassOpacity(glassOpacity);
         set({
-          draftSettings: { accentColor, font, radius, fontSize, shadowStrength, glassBlur, glassOpacity }
+          draftSettings: {
+            accentColor,
+            font,
+            radius,
+            fontSize,
+            shadowStrength,
+            glassBlur,
+            glassOpacity,
+          },
         });
       },
 
       toggleTheme: () => {
         const { theme, accentColor } = get();
         const newMode = theme === 'light' ? 'dark' : 'light';
-        const newTheme = applyTheme(newMode as ThemeMode);
+        const newTheme = applyTheme(newMode);
         applyPresetCSSVars(get().activePresetId, newTheme);
         applyAccent(accentColor);
         set({ mode: newMode, theme: newTheme });
@@ -352,7 +396,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'al-zahra-appearance-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         mode: state.mode,
         activePresetId: state.activePresetId,
         accentColor: state.accentColor,
@@ -363,7 +407,7 @@ export const useThemeStore = create<ThemeState>()(
         glassBlur: state.glassBlur,
         glassOpacity: state.glassOpacity,
       }),
-      onRehydrateStorage: (persistedState) => {
+      onRehydrateStorage: persistedState => {
         if (persistedState) {
           const theme = applyTheme(persistedState.mode);
           applyAccent(persistedState.accentColor);

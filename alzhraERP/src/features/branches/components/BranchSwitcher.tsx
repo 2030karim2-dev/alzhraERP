@@ -24,8 +24,7 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
   placement = 'top',
 }) => {
   const { user } = useAuthStore();
-  const { activeBranchId, activeBranchName, setActiveBranch, resetToAll } =
-    useBranchFilterStore();
+  const { activeBranchId, activeBranchName, setActiveBranch, resetToAll } = useBranchFilterStore();
   const branchesQuery = useBranches();
   const branches = (branchesQuery as any)?.data ?? (branchesQuery as any);
   const isLoading = branchesQuery?.isLoading ?? false;
@@ -60,12 +59,14 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
       {isCollapsed ? (
         <button
           type="button"
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            setOpen(!open);
+          }}
           className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold transition-all border shadow-sm mx-auto',
+            'mx-auto flex h-10 w-10 items-center justify-center rounded-xl border text-xs font-bold shadow-sm transition-all',
             activeBranchId
-              ? 'bg-indigo-600 text-white border-indigo-700 shadow-indigo-200/50 dark:shadow-none'
-              : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-indigo-300'
+              ? 'border-indigo-700 bg-indigo-600 text-white shadow-indigo-200/50 dark:shadow-none'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
           )}
           title={`الفرع الحالي: ${label}`}
         >
@@ -74,15 +75,17 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
       ) : (
         <button
           type="button"
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            setOpen(!open);
+          }}
           className={cn(
-            'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm',
+            'flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs font-bold shadow-sm transition-all',
             activeBranchId
-              ? 'bg-indigo-600 text-white border-indigo-700 shadow-indigo-200/50 dark:shadow-none'
-              : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-indigo-300'
+              ? 'border-indigo-700 bg-indigo-600 text-white shadow-indigo-200/50 dark:shadow-none'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
           )}
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
             {activeBranchId ? (
               <GitBranch size={14} className="shrink-0 text-white" />
             ) : (
@@ -92,10 +95,7 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
           </div>
           <ChevronUp
             size={13}
-            className={cn(
-              'transition-transform shrink-0',
-              open ? 'rotate-180' : ''
-            )}
+            className={cn('shrink-0 transition-transform', open ? 'rotate-180' : '')}
           />
         </button>
       )}
@@ -104,18 +104,18 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
       {open && (
         <div
           className={cn(
-            'absolute z-[999] w-64 bg-[var(--app-surface)] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-150',
+            'animate-in fade-in absolute z-[999] w-64 overflow-hidden rounded-2xl border border-gray-200 bg-[var(--app-surface)] shadow-2xl duration-150 dark:border-slate-700',
             placement === 'top'
-              ? 'bottom-full mb-2 right-0 slide-in-from-bottom-2'
-              : 'top-full mt-2 right-0 slide-in-from-top-2'
+              ? 'slide-in-from-bottom-2 bottom-full right-0 mb-2'
+              : 'slide-in-from-top-2 right-0 top-full mt-2'
           )}
         >
           {/* Header */}
-          <div className="px-3 py-2.5 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/60 flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/60">
             <p className="text-[11px] font-bold text-gray-600 dark:text-slate-300">
               تبديل نطاق الفرع
             </p>
-            <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded">
+            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
               إدارة الفروع
             </span>
           </div>
@@ -128,45 +128,42 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
               setOpen(false);
             }}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold transition-colors text-right border-b border-gray-100 dark:border-slate-800/60',
+              'flex w-full items-center gap-3 border-b border-gray-100 px-3 py-2.5 text-right text-xs font-bold transition-colors dark:border-slate-800/60',
               !activeBranchId
-                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
-                : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                : 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/50'
             )}
           >
             <div
               className={cn(
-                'p-1.5 rounded-lg shrink-0',
+                'shrink-0 rounded-lg p-1.5',
                 !activeBranchId
-                  ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500'
+                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300'
+                  : 'bg-gray-100 text-gray-500 dark:bg-slate-700'
               )}
             >
               <Globe size={14} />
             </div>
             <div className="flex-1 text-right">
               <p>جميع الفروع (الرئيسي والفرعية)</p>
-              <p className="text-[10px] text-gray-400 font-normal">عرض كل العمليات</p>
+              <p className="text-[10px] font-normal text-gray-400">عرض كل العمليات</p>
             </div>
             {!activeBranchId && (
-              <Check
-                size={15}
-                className="text-indigo-600 dark:text-indigo-400 shrink-0"
-              />
+              <Check size={15} className="shrink-0 text-indigo-600 dark:text-indigo-400" />
             )}
           </button>
 
           {/* Branch List */}
           {isLoading ? (
-            <div className="px-3 py-4 text-center text-xs text-gray-400 font-bold">
+            <div className="px-3 py-4 text-center text-xs font-bold text-gray-400">
               جاري التحميل...
             </div>
           ) : activeBranches.length === 0 ? (
-            <div className="px-3 py-4 text-center text-xs text-gray-400 font-bold">
+            <div className="px-3 py-4 text-center text-xs font-bold text-gray-400">
               لا توجد فروع نشطة
             </div>
           ) : (
-            <div className="py-1 max-h-56 overflow-y-auto custom-scrollbar divide-y divide-gray-50 dark:divide-slate-800/40">
+            <div className="custom-scrollbar max-h-56 divide-y divide-gray-50 overflow-y-auto py-1 dark:divide-slate-800/40">
               {activeBranches.map((branch: any) => {
                 const isActive = activeBranchId === branch.id;
                 const isMain = branch.is_main === true;
@@ -180,44 +177,41 @@ const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
                       setOpen(false);
                     }}
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold transition-colors text-right',
+                      'flex w-full items-center gap-3 px-3 py-2.5 text-right text-xs font-bold transition-colors',
                       isActive
-                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
-                        : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                        : 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/50'
                     )}
                   >
                     <div
                       className={cn(
-                        'p-1.5 rounded-lg shrink-0',
+                        'shrink-0 rounded-lg p-1.5',
                         isActive
-                          ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300'
+                          ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300'
                           : isMain
-                          ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'
-                          : 'bg-gray-100 dark:bg-slate-700 text-gray-500'
+                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400'
+                            : 'bg-gray-100 text-gray-500 dark:bg-slate-700'
                       )}
                     >
                       <Building2 size={14} />
                     </div>
-                    <div className="flex-1 min-w-0 text-right">
+                    <div className="min-w-0 flex-1 text-right">
                       <div className="flex items-center gap-1.5">
                         <p className="truncate">{branch.name}</p>
                         {isMain && (
-                          <span className="text-[10px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-black">
+                          <span className="py-0.2 rounded bg-amber-100 px-1 text-[10px] font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
                             الرئيسي
                           </span>
                         )}
                       </div>
                       {branch.address && (
-                        <p className="text-[10px] text-gray-400 font-normal truncate mt-0.5">
+                        <p className="mt-0.5 truncate text-[10px] font-normal text-gray-400">
                           {branch.address}
                         </p>
                       )}
                     </div>
                     {isActive && (
-                      <Check
-                        size={15}
-                        className="text-indigo-600 dark:text-indigo-400 shrink-0"
-                      />
+                      <Check size={15} className="shrink-0 text-indigo-600 dark:text-indigo-400" />
                     )}
                   </button>
                 );

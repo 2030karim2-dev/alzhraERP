@@ -174,7 +174,9 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                           onClick={() => {
                             handleSelect(customer);
                           }}
-                          onMouseEnter={() => setHighlightedIndex(idx)}
+                          onMouseEnter={() => {
+                            setHighlightedIndex(idx);
+                          }}
                           className={cn(
                             'group flex cursor-pointer items-center justify-between border-b border-slate-100 px-3.5 py-2.5 transition-colors last:border-none dark:border-slate-800/80',
                             isHighlighted

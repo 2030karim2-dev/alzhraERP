@@ -4,7 +4,7 @@
 // Al-Zahra Smart ERP
 // ============================================
 
-import { Database } from '../database.types';
+import type { Database } from '../database.types';
 
 // ============================================
 // Table Types
@@ -15,21 +15,21 @@ import { Database } from '../database.types';
  * @example type Invoice = TableRow<'invoices'>;
  */
 export type TableRow<T extends keyof Database['public']['Tables']> =
-    Database['public']['Tables'][T]['Row'];
+  Database['public']['Tables'][T]['Row'];
 
 /**
  * استخراج نوع الإدراج لجدول
  * @example type InvoiceInsert = TableInsert<'invoices'>;
  */
 export type TableInsert<T extends keyof Database['public']['Tables']> =
-    Database['public']['Tables'][T]['Insert'];
+  Database['public']['Tables'][T]['Insert'];
 
 /**
  * استخراج نوع التحديث لجدول
  * @example type InvoiceUpdate = TableUpdate<'invoices'>;
  */
 export type TableUpdate<T extends keyof Database['public']['Tables']> =
-    Database['public']['Tables'][T]['Update'];
+  Database['public']['Tables'][T]['Update'];
 
 // ============================================
 // View Types
@@ -40,7 +40,7 @@ export type TableUpdate<T extends keyof Database['public']['Tables']> =
  * @example type InvoiceView = ViewRow<'invoice_details'>;
  */
 export type ViewRow<T extends keyof Database['public']['Views']> =
-    Database['public']['Views'][T]['Row'];
+  Database['public']['Views'][T]['Row'];
 
 // ============================================
 // Function Types
@@ -51,21 +51,21 @@ export type ViewRow<T extends keyof Database['public']['Views']> =
  * @example type CreateInvoiceFn = RpcFunction<'create_invoice'>;
  */
 export type RpcFunction<T extends keyof Database['public']['Functions']> =
-    Database['public']['Functions'][T];
+  Database['public']['Functions'][T];
 
 /**
  * استخراج نوع مدخلات دالة RPC
  * @example type CreateInvoiceArgs = RpcArgs<'create_invoice'>;
  */
 export type RpcArgs<T extends keyof Database['public']['Functions']> =
-    Database['public']['Functions'][T]['Args'];
+  Database['public']['Functions'][T]['Args'];
 
 /**
  * استخراج نوع ناتج دالة RPC
  * @example type CreateInvoiceReturns = RpcReturns<'create_invoice'>;
  */
 export type RpcReturns<T extends keyof Database['public']['Functions']> =
-    Database['public']['Functions'][T]['Returns'];
+  Database['public']['Functions'][T]['Returns'];
 
 // ============================================
 // Enum Types
@@ -75,8 +75,7 @@ export type RpcReturns<T extends keyof Database['public']['Functions']> =
  * استخراج قيم Enum
  * @example type InvoiceStatus = EnumValue<'invoice_status'>;
  */
-export type EnumValue<T extends keyof Database['public']['Enums']> =
-    Database['public']['Enums'][T];
+export type EnumValue<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 
 // ============================================
 // Composite Types (للـ Composite Types المعقدة)
@@ -87,7 +86,7 @@ export type EnumValue<T extends keyof Database['public']['Enums']> =
  * @example type AddressComposite = CompositeType<'address_type'>;
  */
 export type CompositeType<T extends keyof Database['public']['CompositeTypes']> =
-    Database['public']['CompositeTypes'][T];
+  Database['public']['CompositeTypes'][T];
 
 // ============================================
 // Common Table Types - للاستخدام المباشر
@@ -126,27 +125,27 @@ export type WithRelations<T, R extends Record<string, unknown>> = T & R;
  * يُستخدم للتحديثات الجزئية
  */
 export type StrictPartial<T> = {
-    [P in keyof T]?: T[P] extends object ? StrictPartial<T[P]> : T[P];
+  [P in keyof T]?: T[P] extends object ? StrictPartial<T[P]> : T[P];
 };
 
 /**
  * إنشاء نوع للـ Pagination Response
  */
 export interface PaginatedResult<T> {
-    data: T[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 /**
  * إنشاء نوع للـ API Response الموحد
  */
 export interface ApiResult<T> {
-    data: T | null;
-    error: Error | null;
-    success: boolean;
+  data: T | null;
+  error: Error | null;
+  success: boolean;
 }
 
 // ============================================
@@ -157,22 +156,26 @@ export interface ApiResult<T> {
  * التحقق من أن القيمة هي صف من جدول معين
  */
 export function isTableRow<T extends keyof Database['public']['Tables']>(
-    _table: T,
-    value: unknown
+  _table: T,
+  value: unknown
 ): value is TableRow<T> {
-    return value !== null && typeof value === 'object' && 'id' in value;
+  return value !== null && typeof value === 'object' && 'id' in value;
 }
 
 /**
  * التحقق من أن القيمة هي نتيجة ناجحة
  */
-export function isSuccessResult<T>(result: ApiResult<T>): result is ApiResult<T> & { data: T; success: true } {
-    return result.success && result.data !== null;
+export function isSuccessResult<T>(
+  result: ApiResult<T>
+): result is ApiResult<T> & { data: T; success: true } {
+  return result.success && result.data !== null;
 }
 
 /**
  * التحقق من أن القيمة هي نتيجة فاشلة
  */
-export function isErrorResult<T>(result: ApiResult<T>): result is ApiResult<T> & { error: Error; success: false } {
-    return !result.success && result.error !== null;
+export function isErrorResult<T>(
+  result: ApiResult<T>
+): result is ApiResult<T> & { error: Error; success: false } {
+  return !result.success && result.error !== null;
 }

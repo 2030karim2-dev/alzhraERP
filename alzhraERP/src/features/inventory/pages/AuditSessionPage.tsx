@@ -412,7 +412,9 @@ const AuditSessionPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowBulkConfirm(true)}
+                onClick={() => {
+                  setShowBulkConfirm(true);
+                }}
                 isLoading={isBulkAdding}
                 leftIcon={
                   isBulkAdding ? (
@@ -467,13 +469,17 @@ const AuditSessionPage: React.FC = () => {
           isAddingItem={isAddingItem}
           searchResults={searchResults}
           onAddItem={handleAddItem}
-          onOpenScanner={() => setIsScannerOpen(true)}
+          onOpenScanner={() => {
+            setIsScannerOpen(true);
+          }}
         />
       )}
 
       <div
         className="custom-scrollbar flex-1 overflow-y-auto p-4 pb-16"
-        onClick={() => setShowResults(false)}
+        onClick={() => {
+          setShowResults(false);
+        }}
       >
         <div className="mx-auto max-w-[1600px] space-y-4">
           <AuditStats stats={stats} session={session} />
@@ -498,12 +504,19 @@ const AuditSessionPage: React.FC = () => {
       </div>
 
       {isScannerOpen && (
-        <ScannerOverlay onScan={handleScan} onClose={() => setIsScannerOpen(false)} />
+        <ScannerOverlay
+          onScan={handleScan}
+          onClose={() => {
+            setIsScannerOpen(false);
+          }}
+        />
       )}
 
       <ConfirmModal
         isOpen={!!itemToDelete}
-        onClose={() => setItemToDelete(null)}
+        onClose={() => {
+          setItemToDelete(null);
+        }}
         onConfirm={confirmRemoveItem}
         title="إزالة الصنف من الجرد"
         message="هل أنت متأكد من رغبتك في إزالة هذا الصنف من جلسة الجرد الميدانية الحالية؟"
@@ -514,7 +527,9 @@ const AuditSessionPage: React.FC = () => {
 
       <ConfirmModal
         isOpen={showBulkConfirm}
-        onClose={() => setShowBulkConfirm(false)}
+        onClose={() => {
+          setShowBulkConfirm(false);
+        }}
         onConfirm={handleBulkAddWarehouseProducts}
         title="جرد كامل المستودع"
         message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً. هذه العملية قد تستغرق بعض الوقت. هل تريد المتابعة؟"

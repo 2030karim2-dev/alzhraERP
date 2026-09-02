@@ -48,6 +48,8 @@ describe('ProcessPOSCheckoutUsecase', () => {
   it('propagates service failures to the caller', async () => {
     mockProcessNewSale.mockRejectedValue(new Error('RPC failed'));
 
-    await expect(ProcessPOSCheckoutUsecase.execute(basePayload, 'company-1', 'user-1')).rejects.toThrow('RPC failed');
+    await expect(
+      ProcessPOSCheckoutUsecase.execute(basePayload, 'company-1', 'user-1')
+    ).rejects.toThrow('RPC failed');
   });
 });

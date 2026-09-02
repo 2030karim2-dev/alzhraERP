@@ -26,4 +26,5 @@ The app is configured for dual deployment on **Vercel** and **Netlify** with pro
 ---
 
 ## Run Locally
+
 ...

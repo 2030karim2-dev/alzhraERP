@@ -206,7 +206,9 @@ export function useProductSelectionTable({
     const timer = setTimeout(() => {
       setSubmittedQuery(localQuery);
     }, 150);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [localQuery, isOpen]);
 
   // Submit query on Enter

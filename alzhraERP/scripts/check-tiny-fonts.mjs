@@ -14,7 +14,10 @@ const hits = new Set();
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) { walk(p); continue; }
+    if (entry.isDirectory()) {
+      walk(p);
+      continue;
+    }
     if (!/\.(tsx|ts)$/.test(entry.name)) continue;
     const src = fs.readFileSync(p, 'utf8');
     src.split('\n').forEach((line, i) => {

@@ -118,8 +118,12 @@ const NumericInput: React.FC<NumericInputProps> = ({
     }
   };
 
-  const increment = (): void => onChange(clamp(value + step));
-  const decrement = (): void => onChange(clamp(value - step));
+  const increment = (): void => {
+    onChange(clamp(value + step));
+  };
+  const decrement = (): void => {
+    onChange(clamp(value - step));
+  };
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>

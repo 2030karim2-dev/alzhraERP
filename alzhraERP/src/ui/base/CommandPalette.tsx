@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useCommandPalette, GlobalCommandRegistrar } from '../../features/command/hooks';
-import { CommandAction } from '../../features/command/store';
+import type { CommandAction } from '../../features/command/store';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { cn } from '../../core/utils';
 
@@ -33,13 +33,13 @@ const CommandPalette: React.FC = () => {
 
   const groupedActions: Record<string, CommandAction[]> = useMemo(() => {
     // Fix: Added a type assertion to the reduce accumulator to ensure TypeScript correctly infers the shape of the grouped actions object.
-    return filteredActions.reduce((acc, action) => {
+    return filteredActions.reduce<Record<string, CommandAction[]>>((acc, action) => {
       if (!acc[action.section]) {
         acc[action.section] = [];
       }
       acc[action.section].push(action);
       return acc;
-    }, {} as Record<string, CommandAction[]>);
+    }, {});
   }, [filteredActions]);
 
   useEffect(() => {
@@ -76,31 +76,37 @@ const CommandPalette: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-start justify-center pt-20 bg-slate-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-start justify-center bg-slate-900/50 pt-20 backdrop-blur-sm"
       onClick={closePalette}
     >
       <GlobalCommandRegistrar />
       <div
-        className="bg-[var(--app-surface)] w-full max-w-2xl rounded-2xl shadow-2xl border border-[var(--app-border)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
-        onClick={e => e.stopPropagation()}
+        className="animate-in fade-in zoom-in-95 flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl duration-200"
+        onClick={e => {
+          e.stopPropagation();
+        }}
         onKeyDown={handleKeyDown}
       >
-        <div className="flex items-center gap-3 p-4 border-b border-[var(--app-border)]">
+        <div className="flex items-center gap-3 border-b border-[var(--app-border)] p-4">
           <Search size={20} className="text-[var(--app-text-secondary)]" />
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={e => {
+              setQuery(e.target.value);
+            }}
             placeholder="ابحث عن صفحة أو إجراء..."
-            className="w-full bg-transparent outline-none text-base font-medium text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] placeholder:opacity-60"
+            className="w-full bg-transparent text-base font-medium text-[var(--app-text)] outline-none placeholder:text-[var(--app-text-secondary)] placeholder:opacity-60"
           />
         </div>
 
-        <div ref={resultsRef} className="max-h-[400px] overflow-y-auto custom-scrollbar p-2">
+        <div ref={resultsRef} className="custom-scrollbar max-h-[400px] overflow-y-auto p-2">
           {Object.entries(groupedActions).map(([section, sectionActions]) => (
             <div key={section} className="mb-2">
-              <h3 className="text-xs font-semibold text-[var(--app-text-secondary)] tracking-wide px-3 py-1.5">{section}</h3>
+              <h3 className="px-3 py-1.5 text-xs font-semibold tracking-wide text-[var(--app-text-secondary)]">
+                {section}
+              </h3>
               {sectionActions.map(action => {
                 currentIndex++;
                 const isSelected = currentIndex === selectedIndex;
@@ -110,13 +116,23 @@ const CommandPalette: React.FC = () => {
                     data-index={currentIndex}
                     onClick={action.onSelect}
                     className={cn(
-                      "w-full flex items-center justify-between p-3 rounded-lg text-right transition-colors",
-                      isSelected ? "bg-blue-600 text-white" : "hover:bg-[var(--app-surface-hover)]"
+                      'flex w-full items-center justify-between rounded-lg p-3 text-right transition-colors',
+                      isSelected ? 'bg-blue-600 text-white' : 'hover:bg-[var(--app-surface-hover)]'
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <action.icon size={16} className={isSelected ? 'text-white' : 'text-[var(--app-text-secondary)]'} />
-                      <span className={cn("font-medium text-sm", isSelected ? 'text-white' : 'text-[var(--app-text)]')}>{action.title}</span>
+                      <action.icon
+                        size={16}
+                        className={isSelected ? 'text-white' : 'text-[var(--app-text-secondary)]'}
+                      />
+                      <span
+                        className={cn(
+                          'text-sm font-medium',
+                          isSelected ? 'text-white' : 'text-[var(--app-text)]'
+                        )}
+                      >
+                        {action.title}
+                      </span>
                     </div>
                     {isSelected && <CornerDownLeft size={16} className="text-blue-200" />}
                   </button>
@@ -125,7 +141,9 @@ const CommandPalette: React.FC = () => {
             </div>
           ))}
           {filteredActions.length === 0 && (
-            <p className="text-center text-sm font-medium text-[var(--app-text-secondary)] py-10">لا توجد نتائج مطابقة</p>
+            <p className="py-10 text-center text-sm font-medium text-[var(--app-text-secondary)]">
+              لا توجد نتائج مطابقة
+            </p>
           )}
         </div>
       </div>

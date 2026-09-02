@@ -14,7 +14,7 @@
  *   </FeatureBoundary>
  */
 
-import React, { Suspense, ReactNode } from 'react';
+import React, { Suspense, type ReactNode } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import PageLoader from '../../ui/base/PageLoader';
 import { useLocation } from 'react-router-dom';
@@ -38,9 +38,7 @@ export const FeatureBoundary: React.FC<FeatureBoundaryProps> = ({ children, name
         logger.error('FeatureBoundary', `Error in feature: ${name}`, { error: err, ...errorInfo });
       }}
     >
-      <Suspense fallback={<PageLoader />}>
-        {children}
-      </Suspense>
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
     </ErrorBoundary>
   );
 };

@@ -21,8 +21,12 @@ export function usePrayerTimes(): { prayerTimes: PrayerTimesResult | null } {
 
   // Refresh the clock once per minute (lightweight).
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 60_000);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const prayerTimes = useMemo(

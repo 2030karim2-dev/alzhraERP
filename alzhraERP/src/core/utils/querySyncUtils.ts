@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { logger } from './logger';
 
 export interface FinancialSyncOptions {
@@ -37,7 +37,7 @@ export const invalidateFinancialQueries = async (
     return;
   }
 
-  const invalidations: Promise<void>[] = [];
+  const invalidations: Array<Promise<void>> = [];
 
   // 1. Chart of Accounts & Treasury balances
   if (options.accounts ?? true) {

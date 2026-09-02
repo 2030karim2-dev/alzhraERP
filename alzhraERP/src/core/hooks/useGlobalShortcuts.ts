@@ -80,7 +80,9 @@ export const useGlobalShortcuts = ({ shortcuts }: UseGlobalShortcutsOptions): vo
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [handleKeyDown]);
 };
 

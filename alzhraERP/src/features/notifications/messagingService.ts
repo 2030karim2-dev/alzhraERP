@@ -5,68 +5,79 @@ import { logger } from '../../core/utils/logger';
 // Fire-and-forget: never blocks the transaction
 
 import { messagingApi } from './messagingApi';
-import { messageTemplates, SaleData, PurchaseData, BondData, ExpenseData, StockTransferData } from './messageTemplates';
+import {
+  messageTemplates,
+  type SaleData,
+  type PurchaseData,
+  type BondData,
+  type ExpenseData,
+  type StockTransferData,
+} from './messageTemplates';
 
-type EventMap = {
-    sale: SaleData;
-    purchase: PurchaseData;
-    bond_receipt: BondData;
-    bond_payment: BondData;
-    expense: ExpenseData;
-    stock_transfer: StockTransferData;
-};
+interface EventMap {
+  sale: SaleData;
+  purchase: PurchaseData;
+  bond_receipt: BondData;
+  bond_payment: BondData;
+  expense: ExpenseData;
+  stock_transfer: StockTransferData;
+}
 
 // Map frontend event types to the DB event_type values
 const eventTypeToDbField: Record<string, string> = {
-    sale: 'sale',
-    purchase: 'purchase',
-    bond_receipt: 'bond',
-    bond_payment: 'bond',
-    expense: 'expense',
-    stock_transfer: 'stock_transfer',
+  sale: 'sale',
+  purchase: 'purchase',
+  bond_receipt: 'bond',
+  bond_payment: 'bond',
+  expense: 'expense',
+  stock_transfer: 'stock_transfer',
 };
 
 export const messagingService = {
-    /**
-     * Send a transaction notification (fire-and-forget).
-     * Call this after a successful transaction. Errors are logged but never thrown.
-     */
-    notify: <T extends keyof EventMap>(
-        companyId: string,
-        eventType: T,
-        data: EventMap[T],
-        referenceId?: string
-    ): void => {
-        // Fire-and-forget: run in background
-        (async () => {
-            try {
-                const templateFn = messageTemplates[eventType];
-                if (!templateFn) {
-                    logger.warn("messagingService", `[MessagingService] No template for event: ${eventType}`);
-                    return;
-                }
+  /**
+   * Send a transaction notification (fire-and-forget).
+   * Call this after a successful transaction. Errors are logged but never thrown.
+   */
+  notify: <T extends keyof EventMap>(
+    companyId: string,
+    eventType: T,
+    data: EventMap[T],
+    referenceId?: string
+  ): void => {
+    // Fire-and-forget: run in background
+    (async () => {
+      try {
+        const templateFn = messageTemplates[eventType];
+        if (!templateFn) {
+          logger.warn('messagingService', `[MessagingService] No template for event: ${eventType}`);
+          return;
+        }
 
-                const message = templateFn(data as any);
-                const dbEventType = eventTypeToDbField[eventType] || eventType;
+        const message = templateFn(data as any);
+        const dbEventType = eventTypeToDbField[eventType] || eventType;
 
-                await messagingApi.sendNotification(companyId, dbEventType, message, referenceId);
-            } catch (error) {
-                // Never let notification errors affect the main flow
-                logger.error("messagingService", '[MessagingService] Notification failed (non-blocking):', error);
-            }
-        })();
-    },
+        await messagingApi.sendNotification(companyId, dbEventType, message, referenceId);
+      } catch (error) {
+        // Never let notification errors affect the main flow
+        logger.error(
+          'messagingService',
+          '[MessagingService] Notification failed (non-blocking):',
+          error
+        );
+      }
+    })();
+  },
 
-    /**
-     * Test connection to a specific channel
-     */
-    testConnection: async (companyId: string): Promise<{ success: boolean; results?: any[] }> => {
-        const testMessage = `✅ اختبار الاتصال ناجح!
+  /**
+   * Test connection to a specific channel
+   */
+  testConnection: async (companyId: string): Promise<{ success: boolean; results?: any[] }> => {
+    const testMessage = `✅ اختبار الاتصال ناجح!
 ━━━━━━━━━━━━━━
 🔗 نظام الزهراء سمارت ERP
 📅 ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}
 ⏰ ${new Date().toLocaleTimeString('ar-SA-u-nu-latn')}`;
 
-        return await messagingApi.sendNotification(companyId, 'test', testMessage);
-    },
+    return await messagingApi.sendNotification(companyId, 'test', testMessage);
+  },
 };

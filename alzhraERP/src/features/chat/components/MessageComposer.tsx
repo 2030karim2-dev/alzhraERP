@@ -1,13 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  Send,
-  Paperclip,
-  Smile,
-  X,
-  Layers,
-  Image as ImageIcon,
-  Loader2,
-} from 'lucide-react';
+import { Send, Paperclip, Smile, X, Layers, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { useAuthStore } from '../../auth/store';
 import { EntityShareModal } from './EntityShareModal';
@@ -110,7 +102,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
     <div className="border-t border-[var(--app-border)] bg-[var(--app-surface)] p-3">
       {/* Reply Banner */}
       {replyingTo && (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--app-bg)] p-2 text-xs border border-[var(--app-border)]">
+        <div className="mb-2 flex items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2 text-xs">
           <div className="flex items-center gap-2">
             <div className="h-6 w-1 rounded-full bg-[var(--accent)]" />
             <div>
@@ -119,7 +111,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             </div>
           </div>
           <button
-            onClick={() => setReplyingTo(null)}
+            onClick={() => {
+              setReplyingTo(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
           >
             <X size={14} />
@@ -129,16 +123,22 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
 
       {/* Attached Entity Card Preview */}
       {attachedEntity && (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--accent)]/10 p-2 text-xs border border-[var(--accent)]/30">
+        <div className="bg-[var(--accent)]/10 border-[var(--accent)]/30 mb-2 flex items-center justify-between rounded-xl border p-2 text-xs">
           <div className="flex items-center gap-2">
             <Layers size={16} className="text-[var(--accent)]" />
             <div>
-              <span className="font-bold text-[var(--app-text)]">{attachedEntity.metadata.title}</span>
-              <p className="text-[11px] text-[var(--app-text-secondary)]">{attachedEntity.metadata.subtitle}</p>
+              <span className="font-bold text-[var(--app-text)]">
+                {attachedEntity.metadata.title}
+              </span>
+              <p className="text-[11px] text-[var(--app-text-secondary)]">
+                {attachedEntity.metadata.subtitle}
+              </p>
             </div>
           </div>
           <button
-            onClick={() => setAttachedEntity(null)}
+            onClick={() => {
+              setAttachedEntity(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -148,13 +148,15 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
 
       {/* Selected File Preview */}
       {selectedFile && (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--app-bg)] p-2 text-xs border border-[var(--app-border)]">
+        <div className="mb-2 flex items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2 text-xs">
           <div className="flex items-center gap-2">
             <ImageIcon size={16} className="text-[var(--accent)]" />
             <span className="font-medium text-[var(--app-text)]">{selectedFile.name}</span>
           </div>
           <button
-            onClick={() => setSelectedFile(null)}
+            onClick={() => {
+              setSelectedFile(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -167,7 +169,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
         {/* ERP Card Sharing Button */}
         <button
           type="button"
-          onClick={() => setShowShareModal(true)}
+          onClick={() => {
+            setShowShareModal(true);
+          }}
           title="مشاركة صنف أو طلب مناقلة"
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--accent)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
         >
@@ -183,18 +187,15 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
         >
           <Paperclip size={18} />
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
 
         {/* Emoji Button */}
         <div className="relative">
           <button
             type="button"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            onClick={() => {
+              setShowEmojiPicker(!showEmojiPicker);
+            }}
             title="رموز تعبيرية"
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
           >
@@ -203,11 +204,11 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
 
           {showEmojiPicker && (
             <div className="absolute bottom-11 start-0 z-20 grid grid-cols-4 gap-1.5 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-xl">
-              {EMOJI_LIST.map((emoji) => (
+              {EMOJI_LIST.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => {
-                    setText((prev) => prev + emoji);
+                    setText(prev => prev + emoji);
                     setShowEmojiPicker(false);
                   }}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-base hover:bg-[var(--app-surface-hover)] active:scale-125"
@@ -245,7 +246,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
       {/* Share Entity Modal */}
       <EntityShareModal
         isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
+        onClose={() => {
+          setShowShareModal(false);
+        }}
         onSelectEntity={handleSelectEntity}
       />
     </div>

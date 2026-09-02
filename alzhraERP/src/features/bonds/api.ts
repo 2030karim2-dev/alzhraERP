@@ -1,15 +1,18 @@
 import { logger } from '../../core/utils/logger';
 
 import { supabase } from '../../lib/supabaseClient';
-import { BondFormData, BondType } from './types';
+import type { BondFormData, BondType } from './types';
 
 export const bondsApi = {
   getBonds: async (companyId: string, branchId?: string | null, type?: BondType) => {
     // Map BondType → payments.type
-    const paymentType = type === 'receipt' ? 'receipt' : (type === 'transfer' ? 'transfer' : 'disbursement');
+    const paymentType =
+      type === 'receipt' ? 'receipt' : type === 'transfer' ? 'transfer' : 'disbursement';
 
-    let query = supabase.from('payments')
-      .select(`
+    let query = supabase
+      .from('payments')
+      .select(
+        `
         id,
         payment_number,
         payment_date,
@@ -22,7 +25,8 @@ export const bondsApi = {
         status,
         party:party_id(name),
         account:account_id(name_ar, code)
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .eq('type', paymentType)
       .is('deleted_at', null)
@@ -36,16 +40,21 @@ export const bondsApi = {
     return await query;
   },
 
-  createPaymentRPC: async (companyId: string, userId: string, data: BondFormData & { branchId?: string | null }) => {
+  createPaymentRPC: async (
+    companyId: string,
+    userId: string,
+    data: BondFormData & { branchId?: string | null }
+  ) => {
     if (!data.cash_account_id || !data.counterparty_id) {
-      throw new Error("يجب اختيار الحسابات المطلوبة");
-    }
-    
-    if (Number(data.amount) <= 0) {
-      throw new Error("لا يمكن إنشاء سند بقيمة صفر أو قيمة سالبة");
+      throw new Error('يجب اختيار الحسابات المطلوبة');
     }
 
-    const paymentType = data.type === 'receipt' ? 'receipt' : (data.type === 'transfer' ? 'transfer' : 'disbursement');
+    if (Number(data.amount) <= 0) {
+      throw new Error('لا يمكن إنشاء سند بقيمة صفر أو قيمة سالبة');
+    }
+
+    const paymentType =
+      data.type === 'receipt' ? 'receipt' : data.type === 'transfer' ? 'transfer' : 'disbursement';
 
     const { data: result, error } = await supabase.rpc('commit_payment', {
       p_type: paymentType,
@@ -79,12 +88,12 @@ export const bondsApi = {
     //    (the posted journal is immutable) and then voids the payment.
     // Failure must abort the whole delete to prevent double-entry imbalance.
     const { error: rpcError } = await supabase.rpc('void_bond', {
-      p_payment_id: id
+      p_payment_id: id,
     });
 
     if (rpcError) {
       // Must fail strictly to prevent double-entry imbalance
-      logger.error("api", 'Fatal: void_bond RPC failed', rpcError);
+      logger.error('api', 'Fatal: void_bond RPC failed', rpcError);
       throw new Error('تعذر إلغاء السند: فشل في إنشاء القيود العكسية');
     }
 
@@ -96,5 +105,5 @@ export const bondsApi = {
       p_company_id: companyId,
       ...(branchId ? { p_branch_id: branchId } : {}),
     });
-  }
+  },
 };

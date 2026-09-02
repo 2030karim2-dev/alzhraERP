@@ -71,12 +71,14 @@ src/
 **الوصف:** كل ميزة لها مجلد مستقل يحتوي على كل ما يخصها
 
 **المزايا:**
+
 - سهولة العثور على الكود
 - فصل واضح بين الميزات
 - يسهل فريق العمل على ميزات مختلفة
 - يسهل الاختبار
 
 **مثال:**
+
 ```
 features/inventory/
 ├── api/              # طلبات API
@@ -92,11 +94,13 @@ features/inventory/
 ### 2. Layered Architecture ✅
 
 **الطبقات:**
+
 ```
 Component → Hook → Service → API → Supabase
 ```
 
 **الفوائد:**
+
 - فصل المسؤوليات (Separation of Concerns)
 - سهولة الاختبار
 - سهولة الاستبدال (يمكن تغيير Supabase بسهولة)
@@ -104,6 +108,7 @@ Component → Hook → Service → API → Supabase
 ### 3. Repository Pattern ✅
 
 **التطبيق:**
+
 - كل feature له مجلد `api/` يحتوي على طلبات Supabase
 - مجلد `services/` يحتوي على منطق الأعمال
 - مجلد `hooks/` يحتوي على hooks React
@@ -111,6 +116,7 @@ Component → Hook → Service → API → Supabase
 ### 4. Singleton Pattern ✅
 
 **التطبيق:**
+
 - عميل Supabase واحد فقط في `src/lib/supabaseClient.ts`
 - QueryClient واحد في `src/lib/queryClient.ts`
 
@@ -121,11 +127,13 @@ Component → Hook → Service → API → Supabase
 ### 1. إدارة الحالة (State Management)
 
 **الحل:**
+
 - **Server State:** TanStack Query (React Query)
 - **Client State:** React Context + Hooks
 - **Local Storage:** Persister مخصص
 
 **المزايا:**
+
 - تحديث تلقائي للبيانات
 - إدارة الكاش
 - Offline Support
@@ -133,6 +141,7 @@ Component → Hook → Service → API → Supabase
 ### 2. التوجيه (Routing)
 
 **الحل:**
+
 - React Router DOM v6
 - HashRouter للتوافق
 - Lazy Loading للصفحات
@@ -141,6 +150,7 @@ Component → Hook → Service → API → Supabase
 ### 3. التصميم (Styling)
 
 **الحل:**
+
 - Tailwind CSS
 - CSS Variables للثيمات
 - Dark Mode Support
@@ -149,12 +159,14 @@ Component → Hook → Service → API → Supabase
 ### 4. التحقق من البيانات (Validation)
 
 **الحل:**
+
 - Zod للتحقق من الأنواع
 - Validators مخصصة لكل feature
 
 ### 5. الترجمة (i18n)
 
 **الحل:**
+
 - ملفات JSON للترجمة (ar.json, en.json)
 - Hook مخصص `useTranslation`
 
@@ -163,6 +175,7 @@ Component → Hook → Service → API → Supabase
 ## 📈 إحصائيات الكود
 
 ### حجم المشروع
+
 - **إجمالي الملفات:** ~500+ ملف
 - **Features:** 22 ميزة
 - **UI Components:** 100+ مكون
@@ -170,6 +183,7 @@ Component → Hook → Service → API → Supabase
 - **Services:** 30+ خدمة
 
 ### أكبر الميزات (حسب عدد الملفات)
+
 1. **inventory/** - ~100 ملف (الأكبر)
 2. **dashboard/** - ~40 ملف
 3. **sales/** - ~30 ملف
@@ -181,22 +195,26 @@ Component → Hook → Service → API → Supabase
 ## ✅ نقاط القوة
 
 ### 1. تنظيم ممتاز
+
 - Feature-based architecture واضحة
 - فصل بين الطبقات
 - تسمية متسقة
 
 ### 2. أمان قوي
+
 - RLS في Supabase
 - Tenant Isolation
 - Route Guards
 - Validators
 
 ### 3. أداء جيد
+
 - Lazy Loading
 - React Query للكاش
 - Code Splitting
 
 ### 4. تجربة مستخدم ممتازة
+
 - RTL Support
 - Dark Mode
 - PWA Support
@@ -204,6 +222,7 @@ Component → Hook → Service → API → Supabase
 - AI Integration
 
 ### 5. قابلية الصيانة
+
 - كود منظم
 - توثيق جيد (SUPABASE_RULES.md)
 - أنواع TypeScript صارمة
@@ -213,23 +232,28 @@ Component → Hook → Service → API → Supabase
 ## ⚠️ مجالات للتحسين
 
 ### 1. أخطاء TypeScript
+
 - وجود ملفات أخطاء كبيرة (ts_errors_v3.txt: 107KB)
 - **التوصية:** إصلاح تدريجي، الأولوية للأخطاء الحرجة
 
 ### 2. ملفات فارغة
+
 - `ProductCardView.tsx` (0 chars)
 - `supabase-types.ts` (0 chars)
 - **التوصية:** إكمال أو حذف
 
 ### 3. تكرار الكود
+
 - بعض المكونات مشابهة في features مختلفة
 - **التوصية:** استخراج مكونات مشتركة
 
 ### 4. الاختبارات
+
 - نسبة الاختبارات منخفضة
 - **التوصية:** زيادة تغطية الاختبارات
 
 ### 5. التوثيق
+
 - لا يوجد README شامل
 - **التوصية:** إضافة README.md شامل
 
@@ -238,16 +262,19 @@ Component → Hook → Service → API → Supabase
 ## 🎯 توصيات للتحسين
 
 ### قصيرة المدى (1-2 أسبوع)
+
 1. ✅ إصلاح أخطاء TypeScript الحرجة
 2. ✅ حذف الملفات الفارغة غير المستخدمة
 3. ✅ إضافة README.md
 
 ### متوسطة المدى (1-2 شهر)
+
 1. 📊 زيادة تغطية الاختبارات إلى 60%+
 2. 🔧 استخراج مكونات مشتركة متكررة
 3. 📚 توثيق API endpoints
 
 ### طويلة المدى (3-6 شهر)
+
 1. 🚀 تحسين الأداء (Bundle Size)
 2. 🔄 إعادة هيكلة بعض الميزات الكبيرة
 3. 📱 تحسين تجربة الموبايل
@@ -263,30 +290,30 @@ graph TB
         Pages[Pages]
         Features[Features]
     end
-    
+
     subgraph "State Management"
         RQ[React Query]
         Context[React Context]
         Local[Local Storage]
     end
-    
+
     subgraph "Business Logic"
         Hooks[Custom Hooks]
         Services[Services]
         Usecases[Usecases]
     end
-    
+
     subgraph "Data Layer"
         API[API Layer]
         Supabase[Supabase Client]
     end
-    
+
     subgraph "Backend"
         DB[(PostgreSQL)]
         RLS[Row Level Security]
         Edge[Edge Functions]
     end
-    
+
     UI --> Pages
     Pages --> Features
     Features --> Hooks
@@ -297,7 +324,7 @@ graph TB
     DB --> RLS
     Services --> Usecases
     Usecases --> Edge
-    
+
     RQ -.-> API
     Context -.-> Hooks
     Local -.-> RQ
@@ -307,18 +334,18 @@ graph TB
 
 ## 📊 مقارنة مع أفضل الممارسات
 
-| المعيار | الحالة | التقييم |
-|---------|--------|---------|
-| Feature-based Architecture | ✅ مطبق | ممتاز |
-| Separation of Concerns | ✅ مطبق | ممتاز |
-| TypeScript Strict Mode | ⚠️ جزئي | جيد |
-| Testing Coverage | ⚠️ منخفض | يحتاج تحسين |
-| Documentation | ⚠️ جزئي | جيد |
-| Performance Optimization | ✅ مطبق | ممتاز |
-| Security (RLS) | ✅ مطبق | ممتاز |
-| Accessibility | ⚠️ جزئي | جيد |
-| Error Handling | ✅ مطبق | ممتاز |
-| Offline Support | ✅ مطبق | ممتاز |
+| المعيار                    | الحالة   | التقييم     |
+| -------------------------- | -------- | ----------- |
+| Feature-based Architecture | ✅ مطبق  | ممتاز       |
+| Separation of Concerns     | ✅ مطبق  | ممتاز       |
+| TypeScript Strict Mode     | ⚠️ جزئي  | جيد         |
+| Testing Coverage           | ⚠️ منخفض | يحتاج تحسين |
+| Documentation              | ⚠️ جزئي  | جيد         |
+| Performance Optimization   | ✅ مطبق  | ممتاز       |
+| Security (RLS)             | ✅ مطبق  | ممتاز       |
+| Accessibility              | ⚠️ جزئي  | جيد         |
+| Error Handling             | ✅ مطبق  | ممتاز       |
+| Offline Support            | ✅ مطبق  | ممتاز       |
 
 ---
 

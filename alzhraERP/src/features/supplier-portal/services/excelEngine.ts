@@ -478,7 +478,7 @@ export const parseQuotationExcel = async (
       availabilityRaw === 'on_order' ||
       availabilityRaw === 'unavailable' ||
       availabilityRaw === 'partial'
-        ? (availabilityRaw as ItemAvailability)
+        ? availabilityRaw
         : 'in_stock';
 
     // Map to the ExcelImportRow contract consumed by ExcelImportModal

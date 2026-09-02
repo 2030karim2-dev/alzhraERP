@@ -1,4 +1,3 @@
-
 export interface LedgerEntry {
   date: string;
   journal_entry_id: string;
@@ -29,6 +28,6 @@ export interface TrialBalanceItem {
 
 export interface FinancialReportItem {
   category: string; // e.g., "Current Assets", "Operating Expenses"
-  accounts: { name: string; balance: number }[];
+  accounts: Array<{ name: string; balance: number }>;
   total: number;
 }

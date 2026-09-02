@@ -17,23 +17,28 @@
 ## القرار
 
 ### 1) عزل المستأجرين + أقل صلاحية
+
 - `get_matching_inventory_products` تستدعي `verify_company_access()` وترفض أي `company_id` لا يخص المتصل.
 - `REVOKE EXECUTE ... FROM PUBLIC` + `GRANT` صريح: `authenticated` لدوال القراءة، و`service_role` لدوال دالة الحافة.
 
 ### 2) مصادقة دوال الحافة
+
 - `vin-decode` و`vin-parts` تتحققان من JWT عبر `supabase.auth.getUser()` وترفضان `anon` (401).
 
 ### 3) RPC ذرّي `add_vin_parts_to_inventory`
+
 - معاملة واحدة: إنشاء منتج + ربط `vehicle_products` + حافة `part_compatibility` + find-or-create للمركبة.
 - تفرض `verify_company_access` + `user_is_admin_or_manager` (محاكاة `products_insert` RLS).
 
 ### 4) سلامة البيانات
+
 - `uq_part_compat` أصبح `UNIQUE NULLS NOT DISTINCT` (مع إزالة التكرارات).
 - `ensure_vehicle` يعالج `model = NULL` و`year = 0` (كعلامة "غير معروف").
 - `vehicle_products_insert` يتحقق من ملكية `product_id`.
 - `vin_analyses.updated_at` + trigger لترتيب إعادة الحفظ.
 
 ### 5) سدّ فجوة الجدول
+
 - مهاجرة `CREATE TABLE IF NOT EXISTS public.vehicles` مطابقة للأنواع المولّدة.
 
 ## النتائج المترتبة

@@ -39,7 +39,6 @@ export interface CreateTreasuryInput {
 // ─── API ─────────────────────────────────────────────────────────────────────
 
 export const treasuryApi = {
-
   // ── Cashboxes ──────────────────────────────────────────────────────────────
 
   getCashboxes: async (companyId: string) => {
@@ -53,9 +52,9 @@ export const treasuryApi = {
 
   createCashbox: async (companyId: string, input: CreateTreasuryInput) => {
     const { data, error } = await supabase.rpc('create_cashbox', {
-      p_company_id:      companyId,
-      p_name:            input.name,
-      p_currency_code:   input.currency_code,
+      p_company_id: companyId,
+      p_name: input.name,
+      p_currency_code: input.currency_code,
       ...(input.branch_id ? { p_branch_id: input.branch_id } : {}),
       p_opening_balance: input.opening_balance ?? 0,
     });
@@ -93,9 +92,9 @@ export const treasuryApi = {
 
   createExchangeCompany: async (companyId: string, input: CreateTreasuryInput) => {
     const { data, error } = await supabase.rpc('create_exchange_company', {
-      p_company_id:      companyId,
-      p_name:            input.name,
-      p_currency_code:   input.currency_code,
+      p_company_id: companyId,
+      p_name: input.name,
+      p_currency_code: input.currency_code,
       ...(input.branch_id ? { p_branch_id: input.branch_id } : {}),
       p_opening_balance: input.opening_balance ?? 0,
     });

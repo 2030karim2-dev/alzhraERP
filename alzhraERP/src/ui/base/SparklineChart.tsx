@@ -15,9 +15,13 @@ interface SparklineChartProps {
 }
 
 const SparklineChart: React.FC<SparklineChartProps> = ({
-  data = [], width = 120, height = 30,
-  positiveColor = '#10b981', negativeColor = '#ef4444',
-  className, showValue = true,
+  data,
+  width = 120,
+  height = 30,
+  positiveColor = '#10b981',
+  negativeColor = '#ef4444',
+  className,
+  showValue = true,
 }) => {
   const { path, isPositive, lastVal } = useMemo(() => {
     if (data.length < 2) return { path: '', isPositive: true, lastVal: data[0] || 0 };
@@ -45,18 +49,15 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   return (
     <div className={cn('inline-flex items-center gap-1.5', className)}>
       <svg
-        width={width} height={height}
+        width={width}
+        height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="flex-shrink-0"
         aria-label={`Trend: ${isPositive ? 'up' : 'down'}, value: ${lastVal}`}
         role="img"
       >
         {/* Fill area */}
-        <path
-          d={`${path} L${width},${height} L0,${height} Z`}
-          fill={color}
-          fillOpacity={0.1}
-        />
+        <path d={`${path} L${width},${height} L0,${height} Z`} fill={color} fillOpacity={0.1} />
         {/* Line */}
         <path
           d={path}
@@ -69,14 +70,20 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
         {/* End dot */}
         {data.length > 0 && (
           <circle
-            cx={width} cy={height - ((lastVal - Math.min(...data)) / (Math.max(...data) - Math.min(...data) || 1)) * (height - 4) - 2}
+            cx={width}
+            cy={
+              height -
+              ((lastVal - Math.min(...data)) / (Math.max(...data) - Math.min(...data) || 1)) *
+                (height - 4) -
+              2
+            }
             r={2.5}
             fill={color}
           />
         )}
       </svg>
       {showValue && (
-        <span className="text-[10px] font-bold font-mono text-[var(--app-text)]">
+        <span className="font-mono text-[10px] font-bold text-[var(--app-text)]">
           {lastVal.toLocaleString('en-US')}
         </span>
       )}

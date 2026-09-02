@@ -31,7 +31,10 @@ describe('Production Hardening & Fallback Elimination Verification', () => {
     it('throws immediately on RPC failure without falling back to direct table update', async () => {
       supabaseMock.rpc.mockResolvedValue({
         data: null,
-        error: { message: 'fiscal_year_closed: لا يمكن إلغاء فاتورة في سنة مالية مغلقة', code: 'P0001' },
+        error: {
+          message: 'fiscal_year_closed: لا يمكن إلغاء فاتورة في سنة مالية مغلقة',
+          code: 'P0001',
+        },
       });
 
       await expect(salesApi.deleteInvoice('inv-123')).rejects.toThrow();
@@ -108,6 +111,54 @@ describe('Production Hardening & Fallback Elimination Verification', () => {
         p_notes: 'تسوية يدوية سريعة للمخزون',
       });
       expect(result).toEqual({ success: true, adjusted_count: 2 });
+    });
+  });
+
+  describe('salesApi.commitInvoiceRPC idempotency', () => {
+    const basePayload = {
+      partyId: 'p-1',
+      items: [{ productId: 'pr-1', quantity: 2, unitPrice: 10 }],
+      paymentMethod: 'cash' as const,
+    };
+
+    it('reuses the caller-supplied idempotency key (stable across double-click / retry)', async () => {
+      supabaseMock.rpc.mockResolvedValue({
+        data: { id: 'inv-1', invoice_number: 'INV-1' },
+        error: null,
+      });
+
+      const payload = { ...basePayload, idempotencyKey: 'sale_123_abc' };
+      await salesApi.commitInvoiceRPC('comp-1', 'user-1', payload);
+      await salesApi.commitInvoiceRPC('comp-1', 'user-1', payload);
+
+      const keys = supabaseMock.rpc.mock.calls.map(call => call[1]?.p_idempotency_key);
+      expect(keys).toEqual(['sale_123_abc', 'sale_123_abc']);
+    });
+
+    it('generates a non-empty fallback key when the caller omits it', async () => {
+      supabaseMock.rpc.mockResolvedValue({
+        data: { id: 'inv-2', invoice_number: 'INV-2' },
+        error: null,
+      });
+
+      await salesApi.commitInvoiceRPC('comp-1', 'user-1', { ...basePayload });
+
+      const [rpcName, params] = supabaseMock.rpc.mock.calls[0];
+      expect(rpcName).toBe('commit_sales_invoice_v2');
+      expect(String(params?.p_idempotency_key).length).toBeGreaterThan(0);
+    });
+
+    it('generates DIFFERENT fallback keys per call (legacy callers stay unique)', async () => {
+      supabaseMock.rpc.mockResolvedValue({
+        data: { id: 'inv-3', invoice_number: 'INV-3' },
+        error: null,
+      });
+
+      await salesApi.commitInvoiceRPC('comp-1', 'user-1', { ...basePayload });
+      await salesApi.commitInvoiceRPC('comp-1', 'user-1', { ...basePayload });
+
+      const keys = supabaseMock.rpc.mock.calls.map(call => call[1]?.p_idempotency_key);
+      expect(new Set(keys).size).toBe(2);
     });
   });
 });

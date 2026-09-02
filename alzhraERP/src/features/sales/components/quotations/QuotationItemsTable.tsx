@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Trash2, Search } from 'lucide-react';
-import { ItemRow } from '../../hooks/useQuotationForm';
+import type { ItemRow } from '../../hooks/useQuotationForm';
 
 interface QuotationItemsTableProps {
   items: ItemRow[];
@@ -58,7 +58,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       <input
                         type="text"
                         value={item.description}
-                        onChange={e => updateItem(idx, 'description', e.target.value)}
+                        onChange={e => {
+                          updateItem(idx, 'description', e.target.value);
+                        }}
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === 'F2') {
                             e.preventDefault();
@@ -69,7 +71,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                         className="w-full border-0 bg-transparent pr-1 text-sm font-bold text-gray-900 placeholder-gray-400 outline-none dark:text-white"
                       />
                       <button
-                        onClick={() => handleOpenProductSearch(idx, item.description)}
+                        onClick={() => {
+                          handleOpenProductSearch(idx, item.description);
+                        }}
                         className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-300 opacity-0 transition-all hover:text-indigo-500 group-hover/search:opacity-100 max-md:opacity-100"
                       >
                         <Search size={14} />
@@ -81,7 +85,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       type="number"
                       min={1}
                       value={item.quantity || ''}
-                      onChange={e => updateItem(idx, 'quantity', Number(e.target.value))}
+                      onChange={e => {
+                        updateItem(idx, 'quantity', Number(e.target.value));
+                      }}
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-gray-900 outline-none dark:text-white md:text-base"
                       placeholder="0"
                     />
@@ -92,7 +98,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       min={0}
                       step={0.01}
                       value={item.unitPrice || ''}
-                      onChange={e => updateItem(idx, 'unitPrice', Number(e.target.value))}
+                      onChange={e => {
+                        updateItem(idx, 'unitPrice', Number(e.target.value));
+                      }}
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-emerald-600 outline-none dark:text-emerald-400 md:text-base"
                       placeholder="0.00"
                     />
@@ -103,7 +111,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       min={0}
                       max={100}
                       value={item.discountPercent || ''}
-                      onChange={e => updateItem(idx, 'discountPercent', Number(e.target.value))}
+                      onChange={e => {
+                        updateItem(idx, 'discountPercent', Number(e.target.value));
+                      }}
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-rose-500 outline-none md:text-base"
                       placeholder="0"
                     />
@@ -130,7 +140,9 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                   </td>
                   <td className="px-1 py-2">
                     <button
-                      onClick={() => removeItem(idx)}
+                      onClick={() => {
+                        removeItem(idx);
+                      }}
                       className="p-1 text-gray-400 transition-colors hover:text-rose-500"
                       disabled={items.length <= 1}
                     >

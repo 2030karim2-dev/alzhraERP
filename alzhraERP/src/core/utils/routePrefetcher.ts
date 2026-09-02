@@ -71,7 +71,12 @@ export function prefetchCriticalRoutes(): void {
       setTimeout(
         () => {
           if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-            window.requestIdleCallback(() => prefetchRoute(path), { timeout: 4000 });
+            window.requestIdleCallback(
+              () => {
+                prefetchRoute(path);
+              },
+              { timeout: 4000 }
+            );
           } else {
             prefetchRoute(path);
           }

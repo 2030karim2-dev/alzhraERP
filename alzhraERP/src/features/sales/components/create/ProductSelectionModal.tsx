@@ -118,7 +118,9 @@ const ProductSelectionModal: React.FC<Props> = ({
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+    };
   }, []);
 
   const visibleColumns = config.columns.filter(c => c.visible);
@@ -133,7 +135,12 @@ const ProductSelectionModal: React.FC<Props> = ({
   return (
     <>
       {viewProduct && (
-        <ProductDetailModal product={viewProduct} onClose={() => setViewProduct(null)} />
+        <ProductDetailModal
+          product={viewProduct}
+          onClose={() => {
+            setViewProduct(null);
+          }}
+        />
       )}
 
       <Modal
@@ -161,7 +168,9 @@ const ProductSelectionModal: React.FC<Props> = ({
           <div className="flex flex-wrap items-center gap-2 border-b bg-[var(--app-surface)] p-2 dark:border-slate-800 max-md:gap-2 max-md:p-2">
             <button
               type="button"
-              onClick={() => setShowAddProduct(true)}
+              onClick={() => {
+                setShowAddProduct(true);
+              }}
               className="flex items-center gap-1 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700 max-md:gap-1.5"
               title="إضافة منتج جديد دون مغادرة النافذة"
             >
@@ -179,7 +188,9 @@ const ProductSelectionModal: React.FC<Props> = ({
                 autoFocus
                 type="text"
                 value={localQuery}
-                onChange={e => setLocalQuery(e.target.value)}
+                onChange={e => {
+                  setLocalQuery(e.target.value);
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="ابحث بالاسم، رقم القطعة، الماركة..."
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-3 pr-9 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
@@ -189,7 +200,9 @@ const ProductSelectionModal: React.FC<Props> = ({
             {/* Filter: In Stock Only */}
             <button
               type="button"
-              onClick={() => setShowInStockOnly(!showInStockOnly)}
+              onClick={() => {
+                setShowInStockOnly(!showInStockOnly);
+              }}
               className={`flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors max-md:gap-1.5 ${
                 showInStockOnly
                   ? 'border-emerald-600 bg-emerald-500 text-white'
@@ -205,7 +218,9 @@ const ProductSelectionModal: React.FC<Props> = ({
               <div className="relative" ref={branchMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setShowBranchMenu(!showBranchMenu)}
+                  onClick={() => {
+                    setShowBranchMenu(!showBranchMenu);
+                  }}
                   className={`flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-bold transition-colors max-md:gap-1.5 ${
                     localBranchId !== null
                       ? 'border-indigo-600 bg-indigo-500 text-white'
@@ -292,7 +307,9 @@ const ProductSelectionModal: React.FC<Props> = ({
                       <th
                         key={col.id}
                         style={{ width: col.width }}
-                        onClick={() => handleSort(col.id)}
+                        onClick={() => {
+                          handleSort(col.id);
+                        }}
                         className={`relative select-none border-l border-gray-300 bg-gray-100 p-2 last:border-l-0 dark:border-slate-600 dark:bg-slate-800/80 max-md:p-2 ${
                           col.id === 'index' || col.id === 'stock' || col.id === 'actions'
                             ? 'text-center'
@@ -303,13 +320,15 @@ const ProductSelectionModal: React.FC<Props> = ({
                           {col.label}
                           {isSorted && (
                             <span className="text-blue-500">
-                              {sortConfig!.direction === 'asc' ? '▲' : '▼'}
+                              {sortConfig.direction === 'asc' ? '▲' : '▼'}
                             </span>
                           )}
                         </span>
                         {col.id !== 'index' && (
                           <div
-                            onMouseDown={e => onMouseDown(e, col.id, col.width)}
+                            onMouseDown={e => {
+                              onMouseDown(e, col.id, col.width);
+                            }}
                             className="absolute left-0 top-0 z-30 -ml-1 h-full w-2 cursor-col-resize transition-colors hover:bg-blue-500/40"
                           />
                         )}
@@ -351,7 +370,9 @@ const ProductSelectionModal: React.FC<Props> = ({
                       onSelect={onSelect}
                       onViewProduct={setViewProduct}
                       onRowClick={handleRowClick}
-                      onMouseEnter={() => setFocusedIndex(idx)}
+                      onMouseEnter={() => {
+                        setFocusedIndex(idx);
+                      }}
                     />
                   ))
                 )}
@@ -385,7 +406,9 @@ const ProductSelectionModal: React.FC<Props> = ({
       {/* Add New Product Modal */}
       <AddProductModal
         isOpen={showAddProduct}
-        onClose={() => setShowAddProduct(false)}
+        onClose={() => {
+          setShowAddProduct(false);
+        }}
         onSubmit={handleAddProduct}
         isSubmitting={isSaving}
         zIndex="z-[10000]"

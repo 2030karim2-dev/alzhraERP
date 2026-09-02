@@ -19,7 +19,7 @@ import {
 import type { CalculationMethodKey } from '../../../dhikr/types';
 import { cn } from '../../../../core/utils';
 
-const METHODS: { key: CalculationMethodKey; label: string; desc: string }[] = [
+const METHODS: Array<{ key: CalculationMethodKey; label: string; desc: string }> = [
   { key: 'qatar', label: 'قطر / ماثر', desc: '18° / 18° — الشائع في الخليج' },
   { key: 'ummAlQura', label: 'أم القرى', desc: 'منهج المملكة العربية السعودية' },
   { key: 'muslimWorldLeague', label: 'رابطة العالم الإسلامي', desc: '18° / 17° — شائع عالمياً' },
@@ -78,7 +78,9 @@ export const DhikrSettings: React.FC = () => {
       cityInput.trim()
     );
     setSaved(true);
-    window.setTimeout(() => setSaved(false), 2000);
+    window.setTimeout(() => {
+      setSaved(false);
+    }, 2000);
   };
 
   return (
@@ -118,7 +120,9 @@ export const DhikrSettings: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => setEnabled(!enabled)}
+            onClick={() => {
+              setEnabled(!enabled);
+            }}
             role="switch"
             aria-checked={enabled}
             className={cn(
@@ -152,7 +156,9 @@ export const DhikrSettings: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => setSoundEnabled(!soundEnabled)}
+            onClick={() => {
+              setSoundEnabled(!soundEnabled);
+            }}
             role="switch"
             aria-checked={soundEnabled}
             className={cn(
@@ -222,7 +228,9 @@ export const DhikrSettings: React.FC = () => {
                   max="1"
                   step="0.05"
                   value={volume}
-                  onChange={e => setVolume(parseFloat(e.target.value))}
+                  onChange={e => {
+                    setVolume(parseFloat(e.target.value));
+                  }}
                   className="h-2 w-28 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-emerald-600 dark:bg-slate-700"
                 />
                 <span className="w-10 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -275,7 +283,9 @@ export const DhikrSettings: React.FC = () => {
             </label>
             <input
               value={cityInput}
-              onChange={e => setCityInput(e.target.value)}
+              onChange={e => {
+                setCityInput(e.target.value);
+              }}
               className="w-full rounded-lg border border-slate-200 bg-[var(--app-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-slate-700"
             />
           </div>
@@ -286,7 +296,9 @@ export const DhikrSettings: React.FC = () => {
             <input
               dir="ltr"
               value={latInput}
-              onChange={e => setLatInput(e.target.value)}
+              onChange={e => {
+                setLatInput(e.target.value);
+              }}
               inputMode="decimal"
               className="w-full rounded-lg border border-slate-200 bg-[var(--app-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-slate-700"
             />
@@ -298,7 +310,9 @@ export const DhikrSettings: React.FC = () => {
             <input
               dir="ltr"
               value={lngInput}
-              onChange={e => setLngInput(e.target.value)}
+              onChange={e => {
+                setLngInput(e.target.value);
+              }}
               inputMode="decimal"
               className="w-full rounded-lg border border-slate-200 bg-[var(--app-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-slate-700"
             />
@@ -313,7 +327,9 @@ export const DhikrSettings: React.FC = () => {
             {METHODS.map(m => (
               <button
                 key={m.key}
-                onClick={() => setCalculationMethod(m.key)}
+                onClick={() => {
+                  setCalculationMethod(m.key);
+                }}
                 className={cn(
                   'rounded-xl border-2 p-3 text-right transition-all max-md:p-3',
                   calculationMethod === m.key

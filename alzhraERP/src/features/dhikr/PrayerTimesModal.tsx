@@ -203,7 +203,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Tabs Navigation */}
         <div className="mb-5 flex flex-wrap gap-1.5">
           <button
-            onClick={() => setActiveTab('prayers')}
+            onClick={() => {
+              setActiveTab('prayers');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'prayers'
                 ? 'scale-102 bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
@@ -215,7 +217,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('tasbeeh_tahleel')}
+            onClick={() => {
+              setActiveTab('tasbeeh_tahleel');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'tasbeeh_tahleel'
                 ? 'scale-102 bg-teal-600 text-white shadow-md shadow-teal-600/30'
@@ -227,7 +231,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('quran_prophet')}
+            onClick={() => {
+              setActiveTab('quran_prophet');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'quran_prophet'
                 ? 'scale-102 bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
@@ -239,7 +245,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('istighfar')}
+            onClick={() => {
+              setActiveTab('istighfar');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'istighfar'
                 ? 'scale-102 bg-blue-600 text-white shadow-md shadow-blue-600/30'
@@ -251,7 +259,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('debt_rizq')}
+            onClick={() => {
+              setActiveTab('debt_rizq');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'debt_rizq'
                 ? 'scale-102 bg-amber-600 text-white shadow-md shadow-amber-600/30'
@@ -263,7 +273,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('protection_salawat')}
+            onClick={() => {
+              setActiveTab('protection_salawat');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'protection_salawat'
                 ? 'scale-102 bg-rose-600 text-white shadow-md shadow-rose-600/30'
@@ -275,7 +287,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('counter')}
+            onClick={() => {
+              setActiveTab('counter');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'counter'
                 ? 'scale-102 bg-purple-600 text-white shadow-md shadow-purple-600/30'
@@ -296,7 +310,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setShowCityDropdown(!showCityDropdown)}
+                    onClick={() => {
+                      setShowCityDropdown(!showCityDropdown);
+                    }}
                     className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition-all hover:bg-emerald-50 dark:bg-slate-800 dark:text-emerald-300"
                   >
                     <MapPin size={14} className="text-emerald-600" />
@@ -354,7 +370,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  onClick={() => {
+                    setSoundEnabled(!soundEnabled);
+                  }}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                     soundEnabled
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
@@ -507,7 +525,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setVolume(volume > 0 ? 0 : 0.9)}
+                    onClick={() => {
+                      setVolume(volume > 0 ? 0 : 0.9);
+                    }}
                     className="text-slate-500 hover:text-emerald-600 dark:text-slate-400"
                     title={volume > 0 ? 'كتم الصوت' : 'إعادة تشغيل الصوت'}
                   >
@@ -520,7 +540,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       max="1"
                       step="0.05"
                       value={volume}
-                      onChange={e => setVolume(parseFloat(e.target.value))}
+                      onChange={e => {
+                        setVolume(parseFloat(e.target.value));
+                      }}
                       className="h-2 w-28 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-emerald-600 dark:bg-slate-700"
                     />
                     <span className="w-10 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">

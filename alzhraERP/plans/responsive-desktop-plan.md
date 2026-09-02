@@ -8,15 +8,15 @@
 
 ### 1.1 البنية الحالية
 
-| العنصر | الحالة الحالية | المشكلة على الشاشات الكبيرة |
-|--------|---------------|---------------------------|
-| **نظام Breakpoints** | `useBreakpoint.ts` يدعم حتى `5xl` (3440px) و Tailwind config متطابق | ✅ البنية موجودة لكنها غير مستغلة في المكونات |
-| **القائمة الجانبية** | تتسع تدريجياً `w-20` → `w-36` حسب المقاس | ⚠️ تظل مخفية (collapsed) افتراضياً ولا يوجد وضع expanded دائم |
-| **Dashboard Grid** | `grid-cols-1 md:grid-cols-2` فقط | ❌ على شاشة 2560px يظهر عمودين فقط — إهدار هائل للمساحة |
-| **POS Page** | Split view: كارت `w-[400px] lg:w-[450px]` + grid منتجات | ⚠️ الكارت صغير جداً على شاشات 27″، المنتجات تتمدد بلا حدود |
-| **الجداول (Tables)** | تمتد بعرض %100 | ⚠️ أعمدة نحيفة جداً على الشاشات العريضة، صعوبة في القراءة |
-| **المحتوى الرئيسي** | `max-w-none px-0` — بلا حد أقصى | ❌ النصوص تمتد عبر 3000px مما يصعب القراءة |
-| **Scaling** | `--scale` CSS variable + `font-size: clamp(...)` | ⚠️ scaling بدائي، لا يأخذ في الاعتبار كثافة المعلومات |
+| العنصر               | الحالة الحالية                                                      | المشكلة على الشاشات الكبيرة                                   |
+| -------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **نظام Breakpoints** | `useBreakpoint.ts` يدعم حتى `5xl` (3440px) و Tailwind config متطابق | ✅ البنية موجودة لكنها غير مستغلة في المكونات                 |
+| **القائمة الجانبية** | تتسع تدريجياً `w-20` → `w-36` حسب المقاس                            | ⚠️ تظل مخفية (collapsed) افتراضياً ولا يوجد وضع expanded دائم |
+| **Dashboard Grid**   | `grid-cols-1 md:grid-cols-2` فقط                                    | ❌ على شاشة 2560px يظهر عمودين فقط — إهدار هائل للمساحة       |
+| **POS Page**         | Split view: كارت `w-[400px] lg:w-[450px]` + grid منتجات             | ⚠️ الكارت صغير جداً على شاشات 27″، المنتجات تتمدد بلا حدود    |
+| **الجداول (Tables)** | تمتد بعرض %100                                                      | ⚠️ أعمدة نحيفة جداً على الشاشات العريضة، صعوبة في القراءة     |
+| **المحتوى الرئيسي**  | `max-w-none px-0` — بلا حد أقصى                                     | ❌ النصوص تمتد عبر 3000px مما يصعب القراءة                    |
+| **Scaling**          | `--scale` CSS variable + `font-size: clamp(...)`                    | ⚠️ scaling بدائي، لا يأخذ في الاعتبار كثافة المعلومات         |
 
 ### 1.2 أنماط الشاشات المستهدفة
 
@@ -27,7 +27,7 @@ graph LR
     C --> D[Laptop Standard<br/>1440-1920px]
     D --> E[Desktop<br/>1920-2560px]
     E --> F[Ultra-wide / 4K<br/>2560-3840px]
-    
+
     style A fill:#10b981,color:#fff
     style B fill:#10b981,color:#fff
     style C fill:#f59e0b,color:#000
@@ -36,14 +36,14 @@ graph LR
     style F fill:#ef4444,color:#fff
 ```
 
-| الفئة | الدقة | نسبة العرض | المساحة المتاحة (بعد sidebar) | الأولوية |
-|-------|-------|-----------|------------------------------|----------|
-| 📱 Phone | 320–480px | 9:16–9:19.5 | كامل الشاشة | ✅ ممتاز — لا تغيير |
-| 📱 Tablet | 768–1024px | ~4:3 | 700–960px | ✅ جيد — تحسينات طفيفة |
-| 💻 Laptop | 1366×768–1440×900 | ~16:9 | 1280–1350px | 🟡 متوسط — الأولوية الأولى |
-| 🖥️ Desktop | 1920×1080–2560×1440 | 16:9 | 1840–2480px | 🔴 ضعيف — الأولوية الثانية |
-| 🖥️ Ultra-wide | 3440×1440 | 21:9 | 3360px | 🔴 ضعيف جداً — الأولوية الثالثة |
-| 🖥️ 4K | 3840×2160 | 16:9 | 3760px | 🔴 ضعيف جداً — الأولوية الثالثة |
+| الفئة         | الدقة               | نسبة العرض  | المساحة المتاحة (بعد sidebar) | الأولوية                        |
+| ------------- | ------------------- | ----------- | ----------------------------- | ------------------------------- |
+| 📱 Phone      | 320–480px           | 9:16–9:19.5 | كامل الشاشة                   | ✅ ممتاز — لا تغيير             |
+| 📱 Tablet     | 768–1024px          | ~4:3        | 700–960px                     | ✅ جيد — تحسينات طفيفة          |
+| 💻 Laptop     | 1366×768–1440×900   | ~16:9       | 1280–1350px                   | 🟡 متوسط — الأولوية الأولى      |
+| 🖥️ Desktop    | 1920×1080–2560×1440 | 16:9        | 1840–2480px                   | 🔴 ضعيف — الأولوية الثانية      |
+| 🖥️ Ultra-wide | 3440×1440           | 21:9        | 3360px                        | 🔴 ضعيف جداً — الأولوية الثالثة |
+| 🖥️ 4K         | 3840×2160           | 16:9        | 3760px                        | 🔴 ضعيف جداً — الأولوية الثالثة |
 
 ---
 
@@ -87,30 +87,30 @@ graph LR
 
 ### 3.1 الأولوية القصوى (HIGH) — تأثير فوري على كل المستخدمين
 
-| # | المكون | المسار | المشكلة | الحل |
-|---|--------|--------|---------|------|
-| 1 | **MainLayout** | `src/ui/layout/MainLayout.tsx` | المحتوى بلا `max-width`، الـ sidebar دائم الـ collapse | إضافة content container + sidebar expanded persistent |
-| 2 | **DashboardPage** | `src/features/dashboard/DashboardPage.tsx` | `md:grid-cols-2` فقط لكل المقاسات | `xl:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5` |
-| 3 | **Sidebar** | `src/ui/layout/Sidebar.tsx` | لا وضع expanded دائم للشاشات الكبيرة | Expanded persistent mode عند `3xl`+ مع إمكانية التصغير |
-| 4 | **POSPage** | `src/features/pos/pages/POSPage.tsx` | Cart ضيق جداً، product grid متمدد بلا حدود | Cart width dynamic, product grid max-columns |
+| #   | المكون            | المسار                                     | المشكلة                                                | الحل                                                   |
+| --- | ----------------- | ------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
+| 1   | **MainLayout**    | `src/ui/layout/MainLayout.tsx`             | المحتوى بلا `max-width`، الـ sidebar دائم الـ collapse | إضافة content container + sidebar expanded persistent  |
+| 2   | **DashboardPage** | `src/features/dashboard/DashboardPage.tsx` | `md:grid-cols-2` فقط لكل المقاسات                      | `xl:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5`       |
+| 3   | **Sidebar**       | `src/ui/layout/Sidebar.tsx`                | لا وضع expanded دائم للشاشات الكبيرة                   | Expanded persistent mode عند `3xl`+ مع إمكانية التصغير |
+| 4   | **POSPage**       | `src/features/pos/pages/POSPage.tsx`       | Cart ضيق جداً، product grid متمدد بلا حدود             | Cart width dynamic, product grid max-columns           |
 
 ### 3.2 الأولوية المتوسطة (MEDIUM) — تحسين تجربة صفحات محددة
 
-| # | المكون | المسار | المشكلة | الحل |
-|---|--------|--------|---------|------|
-| 5 | **InventoryPage** | `src/features/inventory/InventoryPage.tsx` | جدول واحد طويل، لا split-view | `3xl`: split view — جدول + تفاصيل جانبية |
-| 6 | **SalesPage** | `src/features/sales/pages/SalesPage.tsx` | تبويبات عمودية، مساحة مهدرة | `xl`: تبويبات أفقية موسعة مع side panel |
-| 7 | **ProductDetailModal** | `src/features/inventory/components/ProductDetailModal.tsx` | Modal ضيق جداً على الشاشات الكبيرة | `xl`: modal عرض 60%، `2xl`: split-panel detail |
-| 8 | **ExcelTable / ExcelGrid** | `src/ui/common/ExcelTable.tsx` | أعمدة رفيعة وهدر مساحة | `2xl`: كثافة أعمدة أعلى + sticky columns |
+| #   | المكون                     | المسار                                                     | المشكلة                            | الحل                                           |
+| --- | -------------------------- | ---------------------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| 5   | **InventoryPage**          | `src/features/inventory/InventoryPage.tsx`                 | جدول واحد طويل، لا split-view      | `3xl`: split view — جدول + تفاصيل جانبية       |
+| 6   | **SalesPage**              | `src/features/sales/pages/SalesPage.tsx`                   | تبويبات عمودية، مساحة مهدرة        | `xl`: تبويبات أفقية موسعة مع side panel        |
+| 7   | **ProductDetailModal**     | `src/features/inventory/components/ProductDetailModal.tsx` | Modal ضيق جداً على الشاشات الكبيرة | `xl`: modal عرض 60%، `2xl`: split-panel detail |
+| 8   | **ExcelTable / ExcelGrid** | `src/ui/common/ExcelTable.tsx`                             | أعمدة رفيعة وهدر مساحة             | `2xl`: كثافة أعمدة أعلى + sticky columns       |
 
 ### 3.3 الأولوية المنخفضة (LOW) — تحسينات جمالية
 
-| # | المكون | المسار | المشكلة | الحل |
-|---|--------|--------|---------|------|
-| 9 | **Header** | `src/ui/layout/Header.tsx` | ضيق، لا يستغل المساحة | `xl`: توسيع search bar + breadcrumbs |
-| 10 | **MicroHeader** | `src/ui/base/MicroHeader.tsx` | تبويبات مكدسة | `xl`: تبويبات موسعة + actions inline |
-| 11 | **StatsGrid** | `src/ui/dashboard/StatsGrid.tsx` | كروت صغيرة | `xl`: كروت أكبر + توزيع أفقي أفضل |
-| 12 | **SettingsPage** | `src/features/settings/SettingsPage.tsx` | عمود واحد | `lg`: عمودين (قائمة + محتوى) |
+| #   | المكون           | المسار                                   | المشكلة               | الحل                                 |
+| --- | ---------------- | ---------------------------------------- | --------------------- | ------------------------------------ |
+| 9   | **Header**       | `src/ui/layout/Header.tsx`               | ضيق، لا يستغل المساحة | `xl`: توسيع search bar + breadcrumbs |
+| 10  | **MicroHeader**  | `src/ui/base/MicroHeader.tsx`            | تبويبات مكدسة         | `xl`: تبويبات موسعة + actions inline |
+| 11  | **StatsGrid**    | `src/ui/dashboard/StatsGrid.tsx`         | كروت صغيرة            | `xl`: كروت أكبر + توزيع أفقي أفضل    |
+| 12  | **SettingsPage** | `src/features/settings/SettingsPage.tsx` | عمود واحد             | `lg`: عمودين (قائمة + محتوى)         |
 
 ---
 
@@ -134,11 +134,13 @@ interface ContentContainerProps {
 }
 
 const ContentContainer: React.FC<ContentContainerProps> = ({ children, fluid, className }) => (
-  <div className={cn(
-    'mx-auto w-full px-3 md:px-4 lg:px-6 xl:px-8',
-    !fluid && 'max-w-[1400px] 3xl:max-w-[1800px] 4xl:max-w-[2200px] 5xl:max-w-[2800px]',
-    className
-  )}>
+  <div
+    className={cn(
+      'mx-auto w-full px-3 md:px-4 lg:px-6 xl:px-8',
+      !fluid && 'max-w-[1400px] 3xl:max-w-[1800px] 4xl:max-w-[2200px] 5xl:max-w-[2800px]',
+      className
+    )}
+  >
     {children}
   </div>
 );
@@ -148,10 +150,12 @@ const ContentContainer: React.FC<ContentContainerProps> = ({ children, fluid, cl
 
 ```tsx
 // تعديل السطر 133-142 في MainLayout.tsx
-<main className={cn(
-  "flex-1 overflow-y-auto custom-scrollbar relative scroll-smooth",
-  mainPaddingBottom
-)}>
+<main
+  className={cn(
+    'custom-scrollbar relative flex-1 overflow-y-auto scroll-smooth',
+    mainPaddingBottom
+  )}
+>
   <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
       <Outlet />
@@ -171,12 +175,16 @@ export const shouldPersistExpandedSidebar = (breakpoint: string): boolean => {
   return breakpoint === '3xl' || breakpoint === '4xl' || breakpoint === '5xl';
 };
 
-export const getExpandedSidebarWidth = ({ breakpoint, isIPad, isTabletLandscape }: SidebarWidthOptions) => {
-  if (breakpoint === '5xl') return 'w-80';    // ultra-wide: narrower sidebar, more content
+export const getExpandedSidebarWidth = ({
+  breakpoint,
+  isIPad,
+  isTabletLandscape,
+}: SidebarWidthOptions) => {
+  if (breakpoint === '5xl') return 'w-80'; // ultra-wide: narrower sidebar, more content
   if (breakpoint === '4xl') return 'w-80';
-  if (breakpoint === '3xl') return 'w-72';    // desktop: comfortable sidebar
+  if (breakpoint === '3xl') return 'w-72'; // desktop: comfortable sidebar
   if (isIPad && isTabletLandscape) return 'w-64';
-  return 'w-64';                               // default expanded
+  return 'w-64'; // default expanded
 };
 ```
 
@@ -206,11 +214,13 @@ useEffect(() => {
 #### 4.2.1 تحديث `DashboardPage.tsx` — grid responsive
 
 **الحالي:**
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 ```
 
 **المقترح:**
+
 ```tsx
 <div className={cn(
   "grid gap-3 md:gap-4 xl:gap-5",
@@ -373,19 +383,27 @@ html {
 }
 
 @media (min-width: 768px) {
-  html { font-size: 15px; }
+  html {
+    font-size: 15px;
+  }
 }
 
 @media (min-width: 1280px) {
-  html { font-size: 16px; }
+  html {
+    font-size: 16px;
+  }
 }
 
 @media (min-width: 1920px) {
-  html { font-size: 17px; }
+  html {
+    font-size: 17px;
+  }
 }
 
 @media (min-width: 2560px) {
-  html { font-size: 18px; }
+  html {
+    font-size: 18px;
+  }
 }
 ```
 
@@ -397,14 +415,14 @@ html {
 
 ### 5.1 مبادئ الحفاظ على الاتساق
 
-| المبدأ | التطبيق |
-|--------|---------|
-| **نظام الألوان** | CSS variables `--app-*` — لا تغيير عليها، كل المكونات تستخدمها |
-| **الخطوط** | `font-cairo` موحد، تغيير `font-size` فقط وليس `font-family` |
-| **الزوايا** | `border-radius` يزيد تدريجياً مع حجم الشاشة (موجود حالياً) — إبقاؤه |
-| **الظلال** | `box-shadow` بنفس `--shadow-strength` — لا تغيير |
-| **الـ Spacing** | استخدام Tailwind spacing scale فقط، لا ارتجال |
-| **الـ Dark Mode** | كل قاعدة `@media` يجب أن تعمل مع `dark:` prefix |
+| المبدأ            | التطبيق                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| **نظام الألوان**  | CSS variables `--app-*` — لا تغيير عليها، كل المكونات تستخدمها      |
+| **الخطوط**        | `font-cairo` موحد، تغيير `font-size` فقط وليس `font-family`         |
+| **الزوايا**       | `border-radius` يزيد تدريجياً مع حجم الشاشة (موجود حالياً) — إبقاؤه |
+| **الظلال**        | `box-shadow` بنفس `--shadow-strength` — لا تغيير                    |
+| **الـ Spacing**   | استخدام Tailwind spacing scale فقط، لا ارتجال                       |
+| **الـ Dark Mode** | كل قاعدة `@media` يجب أن تعمل مع `dark:` prefix                     |
 
 ### 5.2 قواعد صارمة
 
@@ -419,19 +437,19 @@ html {
 
 ### 6.1 مصفوفة الاختبار
 
-| Device | Resolution | Viewport | اختبار |
-|--------|-----------|----------|--------|
-| iPhone SE | 375×667 | 375px | Mobile layout — zero regression |
-| iPhone 14 Pro Max | 430×932 | 430px | Mobile layout — zero regression |
-| iPad Air | 820×1180 | 820px | Tablet layout |
-| iPad Pro 12.9″ | 1024×1366 | 1024px | Tablet landscape |
-| MacBook Air 13″ | 1440×900 | 1440px | Laptop small |
-| MacBook Pro 14″ | 1512×982 | 1512px | Laptop standard |
-| MacBook Pro 16″ | 1728×1117 | 1728px | Laptop large |
-| Desktop 24″ | 1920×1080 | 1920px | Desktop standard |
-| Desktop 27″ | 2560×1440 | 2560px | Desktop large |
-| Ultra-wide 34″ | 3440×1440 | 3440px | Ultra-wide |
-| 4K Monitor 32″ | 3840×2160 | 3840px | 4K |
+| Device            | Resolution | Viewport | اختبار                          |
+| ----------------- | ---------- | -------- | ------------------------------- |
+| iPhone SE         | 375×667    | 375px    | Mobile layout — zero regression |
+| iPhone 14 Pro Max | 430×932    | 430px    | Mobile layout — zero regression |
+| iPad Air          | 820×1180   | 820px    | Tablet layout                   |
+| iPad Pro 12.9″    | 1024×1366  | 1024px   | Tablet landscape                |
+| MacBook Air 13″   | 1440×900   | 1440px   | Laptop small                    |
+| MacBook Pro 14″   | 1512×982   | 1512px   | Laptop standard                 |
+| MacBook Pro 16″   | 1728×1117  | 1728px   | Laptop large                    |
+| Desktop 24″       | 1920×1080  | 1920px   | Desktop standard                |
+| Desktop 27″       | 2560×1440  | 2560px   | Desktop large                   |
+| Ultra-wide 34″    | 3440×1440  | 3440px   | Ultra-wide                      |
+| 4K Monitor 32″    | 3840×2160  | 3840px   | 4K                              |
 
 ### 6.2 أدوات الاختبار
 
@@ -488,13 +506,13 @@ html {
 
 ## 8. المخاطر والاعتبارات
 
-| المخاطرة | الاحتمال | التخفيف |
-|----------|---------|---------|
-| تكسير mobile layout | منخفض | كل التعديلات `min-width` فقط + اختبار regression |
-| بطء في الأداء | منخفض جداً | التعديلات CSS بحتة، لا JavaScript إضافي ثقيل |
-| تعارض مع RTL | متوسط | اختبار كل تعديل مع `dir="rtl"` و `dir="ltr"` |
-| عدم توافق مع dark mode | منخفض | استخدام `dark:` prefix و CSS variables حصراً |
-| صعوبة في الصيانة مستقبلاً | منخفض | توثيق كل breakpoint واستخدامه في ملف مركزي |
+| المخاطرة                  | الاحتمال   | التخفيف                                          |
+| ------------------------- | ---------- | ------------------------------------------------ |
+| تكسير mobile layout       | منخفض      | كل التعديلات `min-width` فقط + اختبار regression |
+| بطء في الأداء             | منخفض جداً | التعديلات CSS بحتة، لا JavaScript إضافي ثقيل     |
+| تعارض مع RTL              | متوسط      | اختبار كل تعديل مع `dir="rtl"` و `dir="ltr"`     |
+| عدم توافق مع dark mode    | منخفض      | استخدام `dark:` prefix و CSS variables حصراً     |
+| صعوبة في الصيانة مستقبلاً | منخفض      | توثيق كل breakpoint واستخدامه في ملف مركزي       |
 
 ---
 

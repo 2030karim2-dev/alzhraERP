@@ -27,7 +27,7 @@ export const useConnectionStore = create<ConnectionState>(set => ({
   realtimeStatus: 'connecting',
   realtimeLastEventAt: null,
 
-  reportTimeout: () =>
+  reportTimeout: () => {
     set(state => {
       const now = Date.now();
       return {
@@ -35,26 +35,35 @@ export const useConnectionStore = create<ConnectionState>(set => ({
         lastTimeoutAt: now,
         consecutiveFailures: state.consecutiveFailures + 1,
       };
-    }),
+    });
+  },
 
-  reportSuccess: () =>
+  reportSuccess: () => {
     set(state => {
       if (!state.isUnstable && state.consecutiveFailures === 0) return state;
       return {
         isUnstable: false,
         consecutiveFailures: 0,
       };
-    }),
+    });
+  },
 
-  reportFailure: () =>
+  reportFailure: () => {
     set(state => ({
       consecutiveFailures: state.consecutiveFailures + 1,
       isUnstable: state.consecutiveFailures + 1 >= 3,
-    })),
+    }));
+  },
 
-  setUnstable: isUnstable => set({ isUnstable }),
+  setUnstable: isUnstable => {
+    set({ isUnstable });
+  },
 
-  setRealtimeStatus: realtimeStatus => set({ realtimeStatus }),
+  setRealtimeStatus: realtimeStatus => {
+    set({ realtimeStatus });
+  },
 
-  reportRealtimeEvent: () => set({ realtimeLastEventAt: Date.now() }),
+  reportRealtimeEvent: () => {
+    set({ realtimeLastEventAt: Date.now() });
+  },
 }));

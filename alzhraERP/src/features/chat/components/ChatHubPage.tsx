@@ -29,11 +29,15 @@ export const ChatHubPage: React.FC = () => {
     <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-[var(--app-bg)]">
       {/* Sidebar List (Desktop: always visible, Mobile: toggled) */}
       <div
-        className={`w-full lg:w-80 lg:flex-shrink-0 lg:block ${
+        className={`w-full lg:block lg:w-80 lg:flex-shrink-0 ${
           mobileView === 'list' ? 'block' : 'hidden lg:block'
         }`}
       >
-        <ConversationList onSelectChannel={() => setMobileView('chat')} />
+        <ConversationList
+          onSelectChannel={() => {
+            setMobileView('chat');
+          }}
+        />
       </div>
 
       {/* Main Chat Area */}
@@ -42,7 +46,12 @@ export const ChatHubPage: React.FC = () => {
           mobileView === 'chat' ? 'flex flex-col' : 'hidden lg:flex lg:flex-col'
         }`}
       >
-        <ConversationView onBack={() => { setMobileView('list'); setActiveChannel(null); }} />
+        <ConversationView
+          onBack={() => {
+            setMobileView('list');
+            setActiveChannel(null);
+          }}
+        />
       </div>
     </div>
   );

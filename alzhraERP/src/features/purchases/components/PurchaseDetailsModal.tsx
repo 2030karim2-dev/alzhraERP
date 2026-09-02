@@ -98,7 +98,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
   const handleCopySku = (sku: string) => {
     void navigator.clipboard.writeText(sku);
     setCopiedSku(sku);
-    setTimeout(() => setCopiedSku(null), 2000);
+    setTimeout(() => {
+      setCopiedSku(null);
+    }, 2000);
     showToast('تم نسخ رمز الصنف', 'info');
   };
 
@@ -245,9 +247,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
     const q = searchQuery.toLowerCase().trim();
     return items.filter(
       item =>
-        (item.product?.name_ar && item.product.name_ar.toLowerCase().includes(q)) ||
+        item.product?.name_ar?.toLowerCase().includes(q) ||
         (item.description && item.description.toLowerCase().includes(q)) ||
-        (item.product?.sku && item.product.sku.toLowerCase().includes(q))
+        item.product?.sku?.toLowerCase().includes(q)
     );
   }, [invoice?.invoice_items, searchQuery]);
 
@@ -367,7 +369,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
             <div className="flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-bold dark:border-slate-700/60 dark:bg-slate-800/80">
               <button
                 type="button"
-                onClick={() => setActiveTab('details')}
+                onClick={() => {
+                  setActiveTab('details');
+                }}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 transition-all duration-200',
                   activeTab === 'details'
@@ -381,7 +385,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('preview')}
+                onClick={() => {
+                  setActiveTab('preview');
+                }}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 transition-all duration-200',
                   activeTab === 'preview'
@@ -553,7 +559,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
                       <input
                         type="text"
                         value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
+                        onChange={e => {
+                          setSearchQuery(e.target.value);
+                        }}
                         placeholder="بحث في الأصناف أو SKU..."
                         className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-3 pr-8 text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                       />
@@ -640,7 +648,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
                                 {item.product?.sku ? (
                                   <button
                                     type="button"
-                                    onClick={() => handleCopySku(item.product!.sku!)}
+                                    onClick={() => {
+                                      handleCopySku(item.product!.sku!);
+                                    }}
                                     title="انقر لنسخ رمز الصنف"
                                     className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-blue-900/40"
                                   >
@@ -840,7 +850,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
       {invoice && (
         <AdvancedReturnModal
           isOpen={isReturnModalOpen}
-          onClose={() => setIsReturnModalOpen(false)}
+          onClose={() => {
+            setIsReturnModalOpen(false);
+          }}
           returnType="purchase"
           initialInvoiceId={invoice.id}
           partyId={invoice.party_id ?? undefined}

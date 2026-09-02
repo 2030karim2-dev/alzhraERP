@@ -103,7 +103,7 @@ export const useNotificationStore = create<NotificationState>()(
         }));
 
         // Show native Desktop / Windows Toast Notification above all apps
-        if (get().desktopEnabled !== false) {
+        if (get().desktopEnabled) {
           showDesktopNotification({
             title: notification.title,
             body: notification.message,

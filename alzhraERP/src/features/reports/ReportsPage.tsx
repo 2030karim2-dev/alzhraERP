@@ -1,13 +1,24 @@
 import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import {
-  BarChart3, Scale, Wallet, History,
-  ShoppingCart, TrendingDown, Clock,
-  LayoutGrid, Activity, Layers,
-  Landmark, TrendingUp, ArrowRightLeft, DollarSign, Receipt
+  BarChart3,
+  Scale,
+  Wallet,
+  History,
+  ShoppingCart,
+  TrendingDown,
+  Clock,
+  LayoutGrid,
+  Activity,
+  Layers,
+  Landmark,
+  TrendingUp,
+  ArrowRightLeft,
+  DollarSign,
+  Receipt,
 } from 'lucide-react';
 import MicroHeader from '../../ui/base/MicroHeader';
 import FullscreenContainer from '../../ui/base/FullscreenContainer';
-import { ReportTab } from './types';
+import type { ReportTab } from './types';
 import DebtReportView from './components/DebtReportView';
 import TrialBalanceView from './components/TrialBalanceView';
 import BalanceSheetView from './components/BalanceSheetView';
@@ -42,40 +53,70 @@ const reportLabelKeys: Record<ReportTab, string> = {
   cash_flow: 'cash_flow',
 };
 
-
 /** Skeleton loader matching report layout */
 const ReportSkeleton: React.FC<{ type?: 'financial' | 'default' }> = ({ type = 'default' }) => (
-  <div className="space-y-4 animate-in fade-in duration-300">
+  <div className="animate-in fade-in space-y-4 duration-300">
     <div className="flex items-center justify-between">
-      <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-      <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+      <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+      <div className="h-8 w-24 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
     </div>
-    <div className={`grid gap-3 ${type === 'financial' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'}`}>
+    <div
+      className={`grid gap-3 ${type === 'financial' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'}`}
+    >
       {Array.from({ length: type === 'financial' ? 4 : 3 }).map((_, i) => (
-        <div key={i} className="h-24 bg-slate-100 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl animate-pulse" />
+        <div
+          key={i}
+          className="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/50 max-md:rounded-xl"
+        />
       ))}
     </div>
-    <div className="h-64 bg-slate-100 dark:bg-slate-800/50 rounded-2xl max-md:rounded-xl animate-pulse" />
+    <div className="h-64 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/50 max-md:rounded-xl" />
   </div>
 );
 
 /** Lazy render map */
 const renderReportComponent = (tab: ReportTab): React.ReactNode => {
-  const loadingFallback = <ReportSkeleton type={tab === 'p_and_l' || tab === 'balance_sheet' ? 'financial' : 'default'} />;
+  const loadingFallback = (
+    <ReportSkeleton type={tab === 'p_and_l' || tab === 'balance_sheet' ? 'financial' : 'default'} />
+  );
 
   switch (tab) {
-    case 'daily_sales': return <DailySalesReport />;
-    case 'returns_report': return <ReturnsReportView />;
-    case 'debt_report': return <DebtReportView />;
-    case 'debt_aging': return <DebtAgingReport />;
-    case 'operational_expenses': return <OperationalExpensesReport />;
-    case 'trial_balance': return <TrialBalanceView />;
-    case 'p_and_l': return <Suspense fallback={loadingFallback}><ProfitLossView /></Suspense>;
-    case 'balance_sheet': return <BalanceSheetView />;
-    case 'currency_diff': return <CurrencyDiffView />;
-    case 'item_movement': return <Suspense fallback={loadingFallback}><InventoryMovementView /></Suspense>;
-    case 'cash_flow': return <Suspense fallback={loadingFallback}><CashFlowView /></Suspense>;
-    default: return null;
+    case 'daily_sales':
+      return <DailySalesReport />;
+    case 'returns_report':
+      return <ReturnsReportView />;
+    case 'debt_report':
+      return <DebtReportView />;
+    case 'debt_aging':
+      return <DebtAgingReport />;
+    case 'operational_expenses':
+      return <OperationalExpensesReport />;
+    case 'trial_balance':
+      return <TrialBalanceView />;
+    case 'p_and_l':
+      return (
+        <Suspense fallback={loadingFallback}>
+          <ProfitLossView />
+        </Suspense>
+      );
+    case 'balance_sheet':
+      return <BalanceSheetView />;
+    case 'currency_diff':
+      return <CurrencyDiffView />;
+    case 'item_movement':
+      return (
+        <Suspense fallback={loadingFallback}>
+          <InventoryMovementView />
+        </Suspense>
+      );
+    case 'cash_flow':
+      return (
+        <Suspense fallback={loadingFallback}>
+          <CashFlowView />
+        </Suspense>
+      );
+    default:
+      return null;
   }
 };
 
@@ -87,13 +128,17 @@ const getStoredTab = (): ReportTab => {
   try {
     const stored = localStorage.getItem(TAB_STORAGE_KEY);
     return (stored as ReportTab) || 'daily_sales';
-  } catch { return 'daily_sales'; }
+  } catch {
+    return 'daily_sales';
+  }
 };
 const getStoredCategory = (): ReportCategory => {
   try {
     const stored = localStorage.getItem(CAT_STORAGE_KEY);
     return (stored as ReportCategory) || 'all';
-  } catch { return 'all'; }
+  } catch {
+    return 'all';
+  }
 };
 
 const ReportsPage: React.FC = () => {
@@ -105,22 +150,60 @@ const ReportsPage: React.FC = () => {
   const handleTabChange = useCallback((id: string) => {
     const tabId = id as ReportTab;
     setActiveTab(tabId);
-    try { localStorage.setItem(TAB_STORAGE_KEY, tabId); } catch { /* noop */ }
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, tabId);
+    } catch {
+      /* noop */
+    }
   }, []);
 
   const handleCategoryChange = useCallback((catId: ReportCategory) => {
     setActiveCategory(catId);
-    try { localStorage.setItem(CAT_STORAGE_KEY, catId); } catch { /* noop */ }
+    try {
+      localStorage.setItem(CAT_STORAGE_KEY, catId);
+    } catch {
+      /* noop */
+    }
   }, []);
 
-  const categories: { id: ReportCategory; label: string; icon: any; colorClass: string; activeClass: string }[] = [
-    { id: 'all', label: t('reports_all'), icon: LayoutGrid, colorClass: 'text-slate-500', activeClass: 'bg-slate-600 text-white border-slate-600 shadow-lg shadow-slate-500/25' },
-    { id: 'sales', label: t('reports_sales_inventory'), icon: Activity, colorClass: 'text-emerald-500', activeClass: 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/25' },
-    { id: 'financial', label: t('reports_financial'), icon: Landmark, colorClass: 'text-blue-500', activeClass: 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/25' },
-    { id: 'accounting', label: t('reports_accounting'), icon: Layers, colorClass: 'text-amber-500', activeClass: 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-500/25' },
+  const categories: Array<{
+    id: ReportCategory;
+    label: string;
+    icon: any;
+    colorClass: string;
+    activeClass: string;
+  }> = [
+    {
+      id: 'all',
+      label: t('reports_all'),
+      icon: LayoutGrid,
+      colorClass: 'text-slate-500',
+      activeClass: 'bg-slate-600 text-white border-slate-600 shadow-lg shadow-slate-500/25',
+    },
+    {
+      id: 'sales',
+      label: t('reports_sales_inventory'),
+      icon: Activity,
+      colorClass: 'text-emerald-500',
+      activeClass: 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/25',
+    },
+    {
+      id: 'financial',
+      label: t('reports_financial'),
+      icon: Landmark,
+      colorClass: 'text-blue-500',
+      activeClass: 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/25',
+    },
+    {
+      id: 'accounting',
+      label: t('reports_accounting'),
+      icon: Layers,
+      colorClass: 'text-amber-500',
+      activeClass: 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-500/25',
+    },
   ];
 
-  const allTabs: { id: ReportTab; label: string; icon: any; category: ReportCategory }[] = [
+  const allTabs: Array<{ id: ReportTab; label: string; icon: any; category: ReportCategory }> = [
     { id: 'daily_sales', label: t('daily_sales_report'), icon: ShoppingCart, category: 'sales' },
     { id: 'returns_report', label: t('returns_report'), icon: History, category: 'sales' },
     { id: 'item_movement', label: t('item_movement'), icon: ArrowRightLeft, category: 'sales' },
@@ -130,8 +213,18 @@ const ReportsPage: React.FC = () => {
     { id: 'trial_balance', label: t('trial_balance'), icon: Scale, category: 'financial' },
     { id: 'debt_report', label: t('debt_report'), icon: Wallet, category: 'accounting' },
     { id: 'debt_aging', label: t('debt_aging'), icon: Clock, category: 'accounting' },
-    { id: 'operational_expenses', label: t('operational_expenses'), icon: TrendingDown, category: 'accounting' },
-    { id: 'currency_diff', label: t('currency_differences'), icon: Receipt, category: 'accounting' },
+    {
+      id: 'operational_expenses',
+      label: t('operational_expenses'),
+      icon: TrendingDown,
+      category: 'accounting',
+    },
+    {
+      id: 'currency_diff',
+      label: t('currency_differences'),
+      icon: Receipt,
+      category: 'accounting',
+    },
   ];
 
   const filteredTabs = useMemo(() => {
@@ -140,8 +233,14 @@ const ReportsPage: React.FC = () => {
   }, [activeCategory, allTabs]);
 
   return (
-    <FullscreenContainer isMaximized={isMaximized} onToggleMaximize={() => { setIsMaximized(false); }} isZenMode={false}>
-      <div className="flex flex-col h-full bg-[var(--app-bg)] transition-colors duration-300">
+    <FullscreenContainer
+      isMaximized={isMaximized}
+      onToggleMaximize={() => {
+        setIsMaximized(false);
+      }}
+      isZenMode={false}
+    >
+      <div className="flex h-full flex-col bg-[var(--app-bg)] transition-colors duration-300">
         <MicroHeader
           title={t('reports_center_title')}
           icon={BarChart3}
@@ -154,21 +253,23 @@ const ReportsPage: React.FC = () => {
             setIsMaximized(!isMaximized);
           }}
           isZenMode={false}
-          onToggleZen={() => { }}
+          onToggleZen={() => {}}
           extraRow={
-            <div className="flex items-center gap-1 max-md:gap-0.5 overflow-x-auto pb-1 max-md:pb-0 no-scrollbar">
-              {categories.map((cat) => {
+            <div className="no-scrollbar flex items-center gap-1 overflow-x-auto pb-1 max-md:gap-0.5 max-md:pb-0">
+              {categories.map(cat => {
                 const isActive = activeCategory === cat.id;
                 const pillClass = isActive
-                  ? cat.activeClass + " scale-105"
-                  : "bg-[var(--app-surface)] text-[var(--app-text-secondary)] border-[var(--app-border)] hover:border-[var(--app-text-secondary)]/40 active:scale-95";
+                  ? cat.activeClass + ' scale-105'
+                  : 'bg-[var(--app-surface)] text-[var(--app-text-secondary)] border-[var(--app-border)] hover:border-[var(--app-text-secondary)]/40 active:scale-95';
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center gap-2 max-md:gap-1 px-4 max-md:px-2 py-2 max-md:py-1.5 rounded-full border transition-all whitespace-nowrap text-xs max-md:text-[10px] font-bold uppercase tracking-tight min-h-[40px] sm:min-h-[36px] max-md:min-h-[32px] ${pillClass}`}
+                    onClick={() => {
+                      handleCategoryChange(cat.id);
+                    }}
+                    className={`flex min-h-[40px] items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-tight transition-all max-md:min-h-[32px] max-md:gap-1 max-md:px-2 max-md:py-1.5 max-md:text-[10px] sm:min-h-[36px] ${pillClass}`}
                   >
-                    <cat.icon size={14} className={isActive ? "text-white" : cat.colorClass} />
+                    <cat.icon size={14} className={isActive ? 'text-white' : cat.colorClass} />
                     {cat.label}
                   </button>
                 );
@@ -178,14 +279,14 @@ const ReportsPage: React.FC = () => {
         />
 
         {import.meta.env.DEV && (
-          <div className="text-center py-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800/50">
+          <div className="border-b border-slate-100 bg-slate-50 py-1 text-center font-mono text-[10px] text-slate-400 dark:border-slate-800/50 dark:bg-slate-900/50 dark:text-slate-500">
             {activeTab} ({filteredTabs.length}/{allTabs.length})
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden flex flex-col relative z-20">
-          <div className="flex-1 overflow-y-auto px-4 max-md:px-2 md:px-6 pt-3 max-md:pt-2 md:pt-5 pb-4 max-md:pb-3 md:pb-8 custom-scrollbar">
-            <div className="max-w-none mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative z-20 flex flex-1 flex-col overflow-hidden">
+          <div className="custom-scrollbar flex-1 overflow-y-auto px-4 pb-4 pt-3 max-md:px-2 max-md:pb-3 max-md:pt-2 md:px-6 md:pb-8 md:pt-5">
+            <div className="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-none duration-700">
               <ReportErrorBoundary reportName={t(reportLabelKeys[activeTab])}>
                 {renderReportComponent(activeTab)}
               </ReportErrorBoundary>

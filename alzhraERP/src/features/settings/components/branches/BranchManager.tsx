@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import {
-  GitBranch, Plus, Pencil, Trash2, Loader2,
-  Phone, MapPin, CheckCircle2, XCircle, Building2
+  GitBranch,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  Phone,
+  MapPin,
+  CheckCircle2,
+  XCircle,
+  Building2,
 } from 'lucide-react';
 import { useBranches, useBranchMutations } from '../../hooks';
-import { Branch, BranchFormData } from '../../types';
+import type { Branch, BranchFormData } from '../../types';
 import BranchFormModal from './BranchFormModal';
 
 const BranchManager: React.FC = () => {
@@ -38,26 +46,30 @@ const BranchManager: React.FC = () => {
   };
 
   const handleDelete = (branch: Branch) => {
-    if (window.confirm(`هل أنت متأكد من حذف فرع "${branch.name}"؟\nلا يمكن التراجع عن هذا الإجراء.`)) {
+    if (
+      window.confirm(`هل أنت متأكد من حذف فرع "${branch.name}"؟\nلا يمكن التراجع عن هذا الإجراء.`)
+    ) {
       deleteBranch(branch.id);
     }
   };
 
   return (
     <>
-      <div className="bg-[var(--app-surface)] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3">
+      <div className="animate-in fade-in slide-in-from-bottom-3 overflow-hidden rounded-2xl border border-gray-200 bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-gray-100 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-800/20">
           <div className="flex items-center gap-3">
             <GitBranch size={22} className="text-blue-600 dark:text-blue-400" />
             <div>
-              <h3 className="font-bold text-gray-800 dark:text-white text-base">فروع الشركة</h3>
-              <p className="text-xs text-gray-500 dark:text-slate-400">إدارة الفروع والمواقع الجغرافية للشركة</p>
+              <h3 className="text-base font-bold text-gray-800 dark:text-white">فروع الشركة</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                إدارة الفروع والمواقع الجغرافية للشركة
+              </p>
             </div>
           </div>
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-xs"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs transition-colors duration-150 hover:bg-blue-700"
           >
             <Plus size={16} />
             إضافة فرع
@@ -67,20 +79,24 @@ const BranchManager: React.FC = () => {
         {/* Content */}
         <div className="p-6">
           {isLoading ? (
-            <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+            <div className="flex items-center justify-center gap-3 py-16 text-gray-400">
               <Loader2 size={24} className="animate-spin text-indigo-500" />
               <span className="text-sm">جاري تحميل الفروع...</span>
             </div>
           ) : !branches || branches.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-full mb-4">
+              <div className="mb-4 rounded-full bg-indigo-50 p-5 dark:bg-indigo-900/20">
                 <Building2 size={40} className="text-indigo-300 dark:text-indigo-600" />
               </div>
-              <p className="text-gray-600 dark:text-slate-300 font-semibold mb-1">لا توجد فروع بعد</p>
-              <p className="text-gray-400 dark:text-slate-500 text-sm mb-5">ابدأ بإضافة فروع شركتك لإدارتها بكفاءة</p>
+              <p className="mb-1 font-semibold text-gray-600 dark:text-slate-300">
+                لا توجد فروع بعد
+              </p>
+              <p className="mb-5 text-sm text-gray-400 dark:text-slate-500">
+                ابدأ بإضافة فروع شركتك لإدارتها بكفاءة
+              </p>
               <button
                 onClick={openAddModal}
-                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all"
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-indigo-700"
               >
                 <Plus size={16} />
                 إضافة أول فرع
@@ -89,22 +105,24 @@ const BranchManager: React.FC = () => {
           ) : (
             <div className="grid gap-3">
               {/* Stats row */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{branches.length}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">إجمالي الفروع</p>
+              <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                <div className="rounded-xl bg-indigo-50 p-4 text-center dark:bg-indigo-900/20">
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {branches.length}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">إجمالي الفروع</p>
                 </div>
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 text-center">
+                <div className="rounded-xl bg-emerald-50 p-4 text-center dark:bg-emerald-900/20">
                   <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                     {branches.filter((b: Branch) => b.status === 'active').length}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">فروع نشطة</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">فروع نشطة</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 text-center hidden md:block">
+                <div className="hidden rounded-xl bg-gray-50 p-4 text-center dark:bg-slate-800 md:block">
                   <p className="text-2xl font-bold text-gray-500 dark:text-slate-400">
                     {branches.filter((b: Branch) => b.status !== 'active').length}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">فروع معطلة</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">فروع معطلة</p>
                 </div>
               </div>
 
@@ -112,43 +130,55 @@ const BranchManager: React.FC = () => {
               {branches.map((branch: Branch) => (
                 <div
                   key={branch.id}
-                  className="group flex items-start justify-between p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-200"
+                  className="group flex items-start justify-between rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50/30 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-indigo-700 dark:hover:bg-indigo-900/10"
                 >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
                     {/* Icon */}
-                    <div className={`p-2 rounded-xl mt-0.5 shrink-0 ${
-                      branch.status === 'active'
-                        ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
-                        : 'bg-gray-100 dark:bg-slate-700 text-gray-400'
-                    }`}>
+                    <div
+                      className={`mt-0.5 shrink-0 rounded-xl p-2 ${
+                        branch.status === 'active'
+                          ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400'
+                          : 'bg-gray-100 text-gray-400 dark:bg-slate-700'
+                      }`}
+                    >
                       <GitBranch size={18} />
                     </div>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <p className="font-bold text-gray-800 dark:text-white">{branch.name}</p>
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          branch.status === 'active'
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                            : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
-                        }`}>
-                          {branch.status === 'active'
-                            ? <><CheckCircle2 size={11} /> نشط</>
-                            : <><XCircle size={11} /> غير نشط</>
-                          }
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            branch.status === 'active'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                              : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'
+                          }`}
+                        >
+                          {branch.status === 'active' ? (
+                            <>
+                              <CheckCircle2 size={11} /> نشط
+                            </>
+                          ) : (
+                            <>
+                              <XCircle size={11} /> غير نشط
+                            </>
+                          )}
                         </span>
                       </div>
 
                       <div className="mt-1 flex flex-col gap-0.5">
                         {branch.address && (
-                          <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
+                          <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400">
                             <MapPin size={11} className="shrink-0" />
                             <span className="truncate">{branch.address}</span>
                           </p>
                         )}
                         {branch.phone && (
-                          <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1" dir="ltr">
+                          <p
+                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400"
+                            dir="ltr"
+                          >
                             <Phone size={11} className="shrink-0" />
                             {branch.phone}
                           </p>
@@ -158,17 +188,21 @@ const BranchManager: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-md:opacity-100 shrink-0">
+                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 max-md:opacity-100">
                     <button
-                      onClick={() => openEditModal(branch)}
-                      className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all"
+                      onClick={() => {
+                        openEditModal(branch);
+                      }}
+                      className="rounded-lg p-2 text-gray-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400"
                       title="تعديل"
                     >
                       <Pencil size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(branch)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                      onClick={() => {
+                        handleDelete(branch);
+                      }}
+                      className="rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
                       title="حذف"
                     >
                       <Trash2 size={16} />

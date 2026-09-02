@@ -1,10 +1,12 @@
+import type { Database } from './database.types';
 
-import { Database } from './database.types';
-
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+export type Tables<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Row'];
 // export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
-export type InsertDto<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
-export type UpdateDto<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+export type InsertDto<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Insert'];
+export type UpdateDto<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Update'];
 
 // Helper to extract Row type safely
 export type DbRow<T extends keyof Database['public']['Tables']> = Tables<T>;

@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import { useCommandPaletteStore, CommandAction } from './store';
-import {  useNavigate } from 'react-router-dom';
+import { useCommandPaletteStore, type CommandAction } from './store';
+import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../lib/themeStore';
 import { MENU_ITEMS } from '../../core/constants';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { Sun, Moon } from 'lucide-react';
 // FIX: Add missing import for 'React' to resolve error when using React.FC.
-import React from 'react';
+import type React from 'react';
 
 export const useCommandPalette = () => {
   const { isOpen, openPalette, closePalette, actions } = useCommandPaletteStore();
@@ -15,13 +15,12 @@ export const useCommandPalette = () => {
 
 // Hook to register a dynamic set of commands
 export const useRegisterCommands = (newActions: CommandAction[]) => {
-  const registerActions = useCommandPaletteStore((state) => state.registerActions);
+  const registerActions = useCommandPaletteStore(state => state.registerActions);
 
   useEffect(() => {
     registerActions(newActions);
   }, []); // Dependencies can be added if actions are dynamic
 };
-
 
 // A component that registers global commands on mount
 export const GlobalCommandRegistrar: React.FC = () => {
@@ -39,7 +38,7 @@ export const GlobalCommandRegistrar: React.FC = () => {
     onSelect: () => {
       navigate(item.path);
       closePalette();
-    }
+    },
   }));
 
   const themeActions: CommandAction[] = [
@@ -52,7 +51,7 @@ export const GlobalCommandRegistrar: React.FC = () => {
       onSelect: () => {
         setMode('light');
         closePalette();
-      }
+      },
     },
     {
       id: 'theme-dark',
@@ -63,7 +62,7 @@ export const GlobalCommandRegistrar: React.FC = () => {
       onSelect: () => {
         setMode('dark');
         closePalette();
-      }
+      },
     },
   ];
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Party, PartyType } from '../../types';
-import { StatementMovement, partiesService } from '../../service';
+import type { Party, PartyType } from '../../types';
+import { type StatementMovement, partiesService } from '../../service';
 import Button from '../../../../ui/base/Button';
 import { Share2, FileDown, Printer } from 'lucide-react';
 import { logger } from '../../../../core/utils/logger';
@@ -34,14 +34,14 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
   companyNameAr,
 }) => {
   const [isExporting, setIsExporting] = useState(false);
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore(state => state.user);
   const { data: settingsCompany } = useCompany();
 
-  const selectedParty = parties?.find((p) => p.id === selectedPartyId);
+  const selectedParty = parties?.find(p => p.id === selectedPartyId);
   const filteredStatement = statement || [];
 
   // تحويل StatementMovement[] → StatementEntry[] (يضمن balance إلزامياً) لتمريره للمصدِّرات.
-  const statementEntries = filteredStatement.map((r) => ({
+  const statementEntries = filteredStatement.map(r => ({
     date: r.date,
     operation_type: r.operation_type ?? '',
     reference_no: r.ref,
@@ -172,9 +172,9 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
   };
 
   return (
-    <div className="bg-[var(--app-surface)] p-4 max-md:p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 max-md:gap-2.5 items-end no-print shadow-sm">
-      <div className="flex-1 min-w-[240px] max-md:w-full">
-        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
+    <div className="no-print flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-[var(--app-surface)] p-4 shadow-sm dark:border-slate-800 max-md:gap-2.5 max-md:p-3">
+      <div className="min-w-[240px] flex-1 max-md:w-full">
+        <label className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">
           اختر {partyType === 'customer' ? 'العميل' : 'المورد'} (بحث ذكي بالاسم أو الهاتف)
         </label>
         <SmartPartySelect
@@ -189,8 +189,10 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
         <input
           type="date"
           value={startDate}
-          onChange={(e) => onStartDateChange(e.target.value)}
-          className="w-full mt-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          onChange={e => {
+            onStartDateChange(e.target.value);
+          }}
+          className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-bold text-slate-700 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200"
         />
       </div>
       <div className="w-36 max-md:flex-1">
@@ -198,16 +200,18 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
         <input
           type="date"
           value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          className="w-full mt-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          onChange={e => {
+            onEndDateChange(e.target.value);
+          }}
+          className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-bold text-slate-700 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200"
         />
       </div>
       {selectedPartyId && selectedParty && (
-        <div className="flex flex-wrap gap-2 mt-auto max-md:w-full max-md:grid max-md:grid-cols-2">
+        <div className="mt-auto flex flex-wrap gap-2 max-md:grid max-md:w-full max-md:grid-cols-2">
           <Button
             variant="outline"
             onClick={handleWhatsAppShare}
-            className="gap-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 rounded-lg font-bold"
+            className="gap-2 rounded-lg border-emerald-200 font-bold text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:border-emerald-800/60 dark:hover:bg-emerald-950/30"
           >
             <Share2 size={15} />
             واتساب
@@ -215,7 +219,7 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
           <Button
             variant="outline"
             onClick={handleShareExcel}
-            className="gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 border-blue-200 dark:border-blue-800/60 rounded-lg font-bold"
+            className="gap-2 rounded-lg border-blue-200 font-bold text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800/60 dark:hover:bg-blue-950/30"
             disabled={isExporting}
           >
             <FileDown size={15} />
@@ -224,13 +228,15 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
           <Button
             onClick={handleExportExcel}
             isLoading={isExporting}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-sm"
+            className="rounded-lg bg-emerald-600 font-bold text-white shadow-sm hover:bg-emerald-700"
             leftIcon={<FileDown size={15} />}
           >
             تصدير Excel
           </Button>
           <Button
-            onClick={() => window.print()}
+            onClick={() => {
+              window.print();
+            }}
             leftIcon={<Printer size={15} />}
             className="rounded-lg font-bold shadow-sm"
           >

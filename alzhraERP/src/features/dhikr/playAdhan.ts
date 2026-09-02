@@ -67,7 +67,9 @@ const stateListeners = new Set<(playing: boolean) => void>();
 function setPlayingState(state: boolean): void {
   if (isPlayingState !== state) {
     isPlayingState = state;
-    stateListeners.forEach(fn => fn(state));
+    stateListeners.forEach(fn => {
+      fn(state);
+    });
   }
 }
 

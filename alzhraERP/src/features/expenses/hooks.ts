@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expensesService } from './service';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
-import { ExpenseFormData } from './types';
+import type { ExpenseFormData } from './types';
 import { useMemo } from 'react';
 import { assertPermission } from '../../core/hooks/usePermission';
 import { invalidateByPreset } from '../../lib/invalidation';
@@ -14,7 +14,10 @@ export const useNextExpenseNumber = () => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['next_expense_number', user?.company_id],
-    queryFn: () => user?.company_id ? expensesService.getNextExpenseNumber(user.company_id) : Promise.resolve('---'),
+    queryFn: () =>
+      user?.company_id
+        ? expensesService.getNextExpenseNumber(user.company_id)
+        : Promise.resolve('---'),
     enabled: !!user?.company_id,
     staleTime: 0,
   });
@@ -26,9 +29,10 @@ export const useExpenseCategories = () => {
 
   return useQuery({
     queryKey: ['expense_categories', companyId],
-    queryFn: () => companyId ? expensesService.getExpenseCategories(companyId) : Promise.resolve([]),
+    queryFn: () =>
+      companyId ? expensesService.getExpenseCategories(companyId) : Promise.resolve([]),
     enabled: !!companyId,
-    select: (data) => Array.isArray(data) ? data : [],
+    select: data => (Array.isArray(data) ? data : []),
   });
 };
 
@@ -39,24 +43,25 @@ export const useExpenseCategoryMutation = () => {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      if (!user?.company_id) throw new Error("Authentication required");
+      if (!user?.company_id) throw new Error('Authentication required');
       return expensesService.createCategory(user.company_id, name);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense_categories'] });
       showToast('تمت إضافة التصنيف بنجاح', 'success');
-    }
+    },
   });
 };
 
-export const useExpensesData = (searchTerm: string = '') => {
+export const useExpensesData = (searchTerm = '') => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
 
   const query = useQuery({
     queryKey: ['expenses', companyId, branchId],
-    queryFn: () => companyId ? expensesService.getExpensesList(companyId, branchId) : Promise.resolve([]),
+    queryFn: () =>
+      companyId ? expensesService.getExpensesList(companyId, branchId) : Promise.resolve([]),
     enabled: !!companyId,
   });
 
@@ -84,7 +89,7 @@ export const useExpenseActions = () => {
 
   const create = useMutation({
     mutationFn: async (data: ExpenseFormData) => {
-      if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
+      if (!user?.company_id || !user?.id) throw new Error('جلسة العمل منتهية');
       await assertPermission('expenses:create', 'تسجيل مصروفات');
       const finalData = { ...data, branch_id: data.branch_id || branchId };
       return expensesService.processNewExpense(finalData, user.company_id, user.id);
@@ -97,13 +102,13 @@ export const useExpenseActions = () => {
       if (!isOnline || error.message?.includes('Failed to fetch')) {
         syncStore.enqueue({
           mutationKey: ['expenses', 'create'],
-          variables: { ...variables, company_id: user?.company_id, user_id: user?.id }
+          variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
         });
-        showToast("تم حفظ المصروف محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.", 'info');
+        showToast('تم حفظ المصروف محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.', 'info');
         return;
       }
       showToast(error.message, 'error', { error });
-    }
+    },
   });
 
   const remove = useMutation({
@@ -112,7 +117,9 @@ export const useExpenseActions = () => {
       invalidateByPreset(queryClient, 'expense');
       showToast('تم إلغاء المصروف بنجاح', 'success');
     },
-    onError: (error: Error) => showToast(error.message, 'error')
+    onError: (error: Error) => {
+      showToast(error.message, 'error');
+    },
   });
 
   return {

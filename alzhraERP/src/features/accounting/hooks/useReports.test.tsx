@@ -44,19 +44,40 @@ describe('useLedger', () => {
 
   it('fetches the ledger through accountingService with company + branch + dates', async () => {
     vi.mocked(accountingService.getLedger).mockResolvedValue([
-      { date: '2026-08-19', journal_entry_id: 'j1', entry_number: 1, description: 'x', debit_amount: 100, credit_amount: 0, balance: 100, accountType: 'asset' },
+      {
+        date: '2026-08-19',
+        journal_entry_id: 'j1',
+        entry_number: 1,
+        description: 'x',
+        debit_amount: 100,
+        credit_amount: 0,
+        balance: 100,
+        accountType: 'asset',
+      },
     ]);
 
-    const { result } = renderHook(() => useLedger('acc1', '2026-01-01', '2026-12-31'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLedger('acc1', '2026-01-01', '2026-12-31'), {
+      wrapper: createWrapper(),
+    });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(accountingService.getLedger).toHaveBeenCalledWith('c1', 'acc1', null, '2026-01-01', '2026-12-31');
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(accountingService.getLedger).toHaveBeenCalledWith(
+      'c1',
+      'acc1',
+      null,
+      '2026-01-01',
+      '2026-12-31'
+    );
     expect(result.current.data).toHaveLength(1);
   });
 
   it('does not fetch when no account is selected', async () => {
     const { result } = renderHook(() => useLedger(null), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isFetched).toBe(false));
+    await waitFor(() => {
+      expect(result.current.isFetched).toBe(false);
+    });
     expect(accountingService.getLedger).not.toHaveBeenCalled();
   });
 });
@@ -65,10 +86,19 @@ describe('useTrialBalance', () => {
   it('fetches the trial balance for the user company', async () => {
     vi.mocked(accountingService.getTrialBalance).mockResolvedValue([]);
 
-    const { result } = renderHook(() => useTrialBalance('2026-01-01', '2026-08-19'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useTrialBalance('2026-01-01', '2026-08-19'), {
+      wrapper: createWrapper(),
+    });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(accountingService.getTrialBalance).toHaveBeenCalledWith('c1', null, '2026-01-01', '2026-08-19');
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(accountingService.getTrialBalance).toHaveBeenCalledWith(
+      'c1',
+      null,
+      '2026-01-01',
+      '2026-08-19'
+    );
   });
 });
 
@@ -76,10 +106,19 @@ describe('useFinancials', () => {
   it('fetches financials (P&L + balance sheet) for the user company', async () => {
     vi.mocked(accountingService.getFinancials).mockResolvedValue(null);
 
-    const { result } = renderHook(() => useFinancials('2026-01-01', '2026-08-19'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useFinancials('2026-01-01', '2026-08-19'), {
+      wrapper: createWrapper(),
+    });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(accountingService.getFinancials).toHaveBeenCalledWith('c1', null, '2026-01-01', '2026-08-19');
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(accountingService.getFinancials).toHaveBeenCalledWith(
+      'c1',
+      null,
+      '2026-01-01',
+      '2026-08-19'
+    );
   });
 });
 
@@ -89,7 +128,9 @@ describe('useAuditJournals', () => {
 
     const { result } = renderHook(() => useAuditJournals(false), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.isFetched).toBe(false));
+    await waitFor(() => {
+      expect(result.current.isFetched).toBe(false);
+    });
     expect(reportsApi.getAuditJournals).not.toHaveBeenCalled();
   });
 
@@ -98,7 +139,9 @@ describe('useAuditJournals', () => {
 
     const { result } = renderHook(() => useAuditJournals(true), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
     expect(reportsApi.getAuditJournals).toHaveBeenCalledWith('c1', null);
   });
 });

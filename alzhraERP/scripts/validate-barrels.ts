@@ -28,13 +28,13 @@ function findReExports(content: string): Set<string> {
   while ((match = reExportRegex.exec(content)) !== null) {
     reExports.add(match[1]);
   }
-  
+
   // Also check direct re-exports: export { x } from '../file'
   const directRegex = /export\s+\{\s*(\w+)\s*\}\s*from\s*['"]\.\.\/(\w+)['"]/g;
   while ((match = directRegex.exec(content)) !== null) {
     // Mark the parent file as re-exported
   }
-  
+
   return reExports;
 }
 
@@ -43,41 +43,52 @@ function checkBarrel(barrelPath: string): BarrelCheck | null {
   const dir = dirname(barrelPath);
   const parentDir = resolve(dir, '..');
   const barrelName = basename(dir);
-  
+
   // Check if there's a sibling .ts file with the same name
   const parentFile = resolve(parentDir, `${barrelName}.ts`);
   if (!existsSync(parentFile)) return null;
-  
+
   const parentContent = readFileSync(parentFile, 'utf-8');
   const parentExports = findExports(parentContent);
   const reExportedFromParent = new Set<string>();
-  
+
   // Find re-exports from '../filename'
-  const fromParentRegex = new RegExp(`export\\s+\\{[^}]+\\}\\s*from\\s*['"]\\.\\.\\/${barrelName}['"]`, 'g');
+  const fromParentRegex = new RegExp(
+    `export\\s+\\{[^}]+\\}\\s*from\\s*['"]\\.\\.\\/${barrelName}['"]`,
+    'g'
+  );
   let match;
   while ((match = fromParentRegex.exec(barrelContent)) !== null) {
-    const names = match[0].match(/\{([^}]+)\}/)?.[1]?.split(',').map(s => s.trim()) || [];
+    const names =
+      match[0]
+        .match(/\{([^}]+)\}/)?.[1]
+        ?.split(',')
+        .map(s => s.trim()) || [];
     names.forEach(n => reExportedFromParent.add(n));
   }
-  
+
   const missing = parentExports.filter(e => !reExportedFromParent.has(e));
-  
+
   if (missing.length > 0) {
     return { barrelPath, missingExports: missing };
   }
-  
+
   return null;
 }
 
 function scanDirectory(dir: string): BarrelCheck[] {
   const issues: BarrelCheck[] = [];
-  
+
   try {
     const entries = readdirSync(dir);
     for (const entry of entries) {
       const fullPath = resolve(dir, entry);
       try {
-        if (statSync(fullPath).isDirectory() && !entry.startsWith('.') && entry !== 'node_modules') {
+        if (
+          statSync(fullPath).isDirectory() &&
+          !entry.startsWith('.') &&
+          entry !== 'node_modules'
+        ) {
           const indexPath = resolve(fullPath, 'index.ts');
           if (existsSync(indexPath)) {
             const issue = checkBarrel(indexPath);
@@ -85,10 +96,14 @@ function scanDirectory(dir: string): BarrelCheck[] {
           }
           issues.push(...scanDirectory(fullPath));
         }
-      } catch (e) { /* skip inaccessible dirs */ }
+      } catch (e) {
+        /* skip inaccessible dirs */
+      }
     }
-  } catch (e) { /* skip */ }
-  
+  } catch (e) {
+    /* skip */
+  }
+
   return issues;
 }
 

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useParties, useStatement } from '../hooks';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { formatCurrency, cn } from '../../../core/utils';
-import { PartyType } from '../types';
-import { StatementMovement } from '../service';
+import type { PartyType } from '../types';
+import type { StatementMovement } from '../service';
 import { useCompany } from '../../settings/hooks';
 import { useInvoiceSettings } from '../../settings/settingsStore';
 import { StatementControls } from './statement/StatementControls';
@@ -23,13 +23,17 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
 
-  const selectedParty = parties?.find((p) => p.id === selectedPartyId);
+  const selectedParty = parties?.find(p => p.id === selectedPartyId);
   const movements = statement || [];
 
   const columns = [
     {
       header: 'التاريخ',
-      accessor: (row: StatementMovement) => <span dir="ltr" className="text-xs">{row.date}</span>,
+      accessor: (row: StatementMovement) => (
+        <span dir="ltr" className="text-xs">
+          {row.date}
+        </span>
+      ),
       width: '110px',
       align: 'center' as const,
     },
@@ -54,7 +58,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
     {
       header: 'البيان',
       accessor: (row: StatementMovement) => (
-        <span className="text-xs text-gray-500 line-clamp-1" title={row.desc}>
+        <span className="line-clamp-1 text-xs text-gray-500" title={row.desc}>
           {row.desc}
         </span>
       ),
@@ -92,7 +96,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         <span
           dir="ltr"
           className={cn(
-            'font-bold font-mono',
+            'font-mono font-bold',
             (row.balance || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'
           )}
         >
@@ -115,7 +119,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   };
 
   return (
-    <div className="space-y-3 print-area font-sans">
+    <div className="print-area space-y-3 font-sans">
       <StatementControls
         partyType={partyType}
         parties={parties}
@@ -151,7 +155,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
           </>
         )
       ) : (
-        <div className="p-20 text-center text-gray-400 border-2 border-dashed rounded-lg bg-gray-50/50 no-print">
+        <div className="no-print rounded-lg border-2 border-dashed bg-gray-50/50 p-20 text-center text-gray-400">
           يرجى اختيار جهة لعرض كشف الحساب
         </div>
       )}

@@ -108,7 +108,9 @@ const CreateQuotationModal: React.FC<Props> = ({
                     </span>
                   </div>
                   <button
-                    onClick={() => setSelectedParty(null)}
+                    onClick={() => {
+                      setSelectedParty(null);
+                    }}
                     className="rounded p-1 text-gray-400 transition-all hover:bg-white hover:text-rose-500 dark:hover:bg-slate-800"
                   >
                     <X size={14} />
@@ -123,7 +125,9 @@ const CreateQuotationModal: React.FC<Props> = ({
                       setPartyQuery(e.target.value);
                       setIsPartyDropdownOpen(true);
                     }}
-                    onFocus={() => setIsPartyDropdownOpen(true)}
+                    onFocus={() => {
+                      setIsPartyDropdownOpen(true);
+                    }}
                     placeholder="بحث عن عميل..."
                     className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
                   />
@@ -177,7 +181,9 @@ const CreateQuotationModal: React.FC<Props> = ({
             <input
               type="date"
               value={issueDate}
-              onChange={e => setIssueDate(e.target.value)}
+              onChange={e => {
+                setIssueDate(e.target.value);
+              }}
               className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
@@ -191,7 +197,9 @@ const CreateQuotationModal: React.FC<Props> = ({
                 min={1}
                 max={365}
                 value={validDays}
-                onChange={e => setValidDays(Number(e.target.value) || 7)}
+                onChange={e => {
+                  setValidDays(Number(e.target.value) || 7);
+                }}
                 className="w-20 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
               />
               <span className="text-xs text-gray-500">
@@ -220,7 +228,9 @@ const CreateQuotationModal: React.FC<Props> = ({
             <input
               type="text"
               value={paymentTerms}
-              onChange={e => setPaymentTerms(e.target.value)}
+              onChange={e => {
+                setPaymentTerms(e.target.value);
+              }}
               className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
@@ -229,7 +239,9 @@ const CreateQuotationModal: React.FC<Props> = ({
             <input
               type="text"
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={e => {
+                setNotes(e.target.value);
+              }}
               className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
@@ -240,7 +252,9 @@ const CreateQuotationModal: React.FC<Props> = ({
           </label>
           <textarea
             value={terms}
-            onChange={e => setTerms(e.target.value)}
+            onChange={e => {
+              setTerms(e.target.value);
+            }}
             rows={2}
             className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
           />
@@ -249,7 +263,9 @@ const CreateQuotationModal: React.FC<Props> = ({
 
       <ProductSelectionModal
         isOpen={productModal.isOpen}
-        onClose={() => setProductModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => {
+          setProductModal(prev => ({ ...prev, isOpen: false }));
+        }}
         onSelect={handleProductSelect}
         initialQuery={productModal.query}
         mode="quotation"

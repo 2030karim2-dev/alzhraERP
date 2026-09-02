@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
-import { treasuryApi, CreateTreasuryInput } from '../api/treasuryApi';
+import { treasuryApi, type CreateTreasuryInput } from '../api/treasuryApi';
 
 // ─── Cashboxes ────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,9 @@ export const useTreasuryMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       showToast('تم إنشاء الصندوق وربطه بالحسابات المحاسبية بنجاح', 'success');
     },
-    onError: (err: Error) => showToast(err.message, 'error'),
+    onError: (err: Error) => {
+      showToast(err.message, 'error');
+    },
   });
 
   const createExchangeCompany = useMutation({
@@ -65,7 +67,9 @@ export const useTreasuryMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       showToast('تم إنشاء شركة الصرافة وربطها بالحسابات المحاسبية بنجاح', 'success');
     },
-    onError: (err: Error) => showToast(err.message, 'error'),
+    onError: (err: Error) => {
+      showToast(err.message, 'error');
+    },
   });
 
   return {

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bondsService } from './service';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
-import { BondType, BondFormData } from './types';
+import type { BondType, BondFormData } from './types';
 import { assertPermission } from '../../core/hooks/usePermission';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
 import { invalidateFinancialQueries } from '../../core/utils/querySyncUtils';
@@ -13,7 +13,10 @@ export const useBonds = (type?: BondType) => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['bonds', user?.company_id, branchId, type],
-    queryFn: () => user?.company_id ? bondsService.fetchBonds(user.company_id, branchId, type) : Promise.resolve([]),
+    queryFn: () =>
+      user?.company_id
+        ? bondsService.fetchBonds(user.company_id, branchId, type)
+        : Promise.resolve([]),
     enabled: !!user?.company_id,
   });
 };
@@ -23,7 +26,10 @@ export const useBondsAnalytics = () => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['bonds_analytics', user?.company_id, branchId],
-    queryFn: () => user?.company_id ? bondsService.getBondsStats(user.company_id, branchId) : Promise.resolve(null),
+    queryFn: () =>
+      user?.company_id
+        ? bondsService.getBondsStats(user.company_id, branchId)
+        : Promise.resolve(null),
     enabled: !!user?.company_id,
   });
 };
@@ -36,22 +42,26 @@ export const useBondMutation = () => {
 
   return useMutation({
     mutationFn: async (data: BondFormData) => {
-      if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
+      if (!user?.company_id || !user?.id) throw new Error('جلسة العمل منتهية');
 
       // فحص الصلاحية لإصدار السندات
       await assertPermission('accounting:create', 'إصدار سندات مالية');
 
-      return bondsService.createBond(user.company_id, user.id, { ...data, ...(branchId ? { branchId } : {}) });
+      return bondsService.createBond(user.company_id, user.id, {
+        ...data,
+        ...(branchId ? { branchId } : {}),
+      });
     },
     onSuccess: (_, variables) => {
       invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
       invalidateByPreset(queryClient, 'bond');
-      const typeName = variables.type === 'receipt' ? 'قبض' : (variables.type === 'transfer' ? 'تحويل' : 'صرف');
+      const typeName =
+        variables.type === 'receipt' ? 'قبض' : variables.type === 'transfer' ? 'تحويل' : 'صرف';
       showToast(`تم إصدار سند ال${typeName} وترحيله آلياً`, 'success');
     },
     onError: (error: Error) => {
       showToast(error.message, 'error', error);
-    }
+    },
   });
 };
 
@@ -62,7 +72,7 @@ export const useDeleteBond = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!user) throw new Error("جلسة العمل منتهية");
+      if (!user) throw new Error('جلسة العمل منتهية');
 
       // فحص الصلاحية لحذف السندات
       await assertPermission('accounting:delete', 'حذف سندات مالية');
@@ -72,10 +82,10 @@ export const useDeleteBond = () => {
     onSuccess: () => {
       invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
       invalidateByPreset(queryClient, 'bond');
-      showToast("تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح", 'success');
+      showToast('تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح', 'success');
     },
     onError: (error: Error) => {
-      showToast(error.message || "فشل حذف السند", 'error', error);
-    }
+      showToast(error.message || 'فشل حذف السند', 'error', error);
+    },
   });
 };

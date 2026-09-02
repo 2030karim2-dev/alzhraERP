@@ -37,15 +37,15 @@ src/
 
 ### 1.2 الملفات الكبيرة (أكثر من 500 سطر)
 
-| الملف | الحجم التقريبي | عدد الأسطر | السبب |
-|-------|---------------|------------|-------|
-| [`database.types.ts`](src/core/database.types.ts:1) | 125KB | ~3000+ | أنواع قاعدة البيانات الضخمة |
-| [`constants.ts` (appearance)](src/features/appearance/constants.ts:1) | 33KB | ~1122 | تعريفات الثيمات |
-| [`LandingPage.tsx`](src/features/auth/LandingPage.tsx:1) | 41KB | ~604 | صفحة هبوط متكاملة |
-| [`ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1) | 20KB | ~500+ | معالج المرتجعات المعقد |
-| [`InventoryMovementView.tsx`](src/features/reports/components/InventoryMovementView.tsx:1) | 21KB | ~500+ | تقرير حركة المخزون |
-| [`CashFlowView.tsx`](src/features/reports/components/CashFlowView.tsx:1) | 15KB | ~400+ | تقرير التدفقات النقدية |
-| [`AdvancedTabBar/useAdvancedTabs.ts`](src/ui/components/AdvancedTabBar/useAdvancedTabs.ts:1) | 20KB | ~600+ | إدارة التبويبات المتقدمة |
+| الملف                                                                                        | الحجم التقريبي | عدد الأسطر | السبب                       |
+| -------------------------------------------------------------------------------------------- | -------------- | ---------- | --------------------------- |
+| [`database.types.ts`](src/core/database.types.ts:1)                                          | 125KB          | ~3000+     | أنواع قاعدة البيانات الضخمة |
+| [`constants.ts` (appearance)](src/features/appearance/constants.ts:1)                        | 33KB           | ~1122      | تعريفات الثيمات             |
+| [`LandingPage.tsx`](src/features/auth/LandingPage.tsx:1)                                     | 41KB           | ~604       | صفحة هبوط متكاملة           |
+| [`ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1)                   | 20KB           | ~500+      | معالج المرتجعات المعقد      |
+| [`InventoryMovementView.tsx`](src/features/reports/components/InventoryMovementView.tsx:1)   | 21KB           | ~500+      | تقرير حركة المخزون          |
+| [`CashFlowView.tsx`](src/features/reports/components/CashFlowView.tsx:1)                     | 15KB           | ~400+      | تقرير التدفقات النقدية      |
+| [`AdvancedTabBar/useAdvancedTabs.ts`](src/ui/components/AdvancedTabBar/useAdvancedTabs.ts:1) | 20KB           | ~600+      | إدارة التبويبات المتقدمة    |
 
 ---
 
@@ -58,6 +58,7 @@ src/
 **المشكلة:** ملف ضخم يحتوي على جميع أنواع قاعدة البيانات (125KB+)
 
 **الحل المقترح:**
+
 ```
 src/core/database.types.ts → تقسيم إلى:
 ├── types/
@@ -81,6 +82,7 @@ src/core/database.types.ts → تقسيم إلى:
 **المشكلة:** يحتوي على تعريفات جميع الثيمات (~1122 سطر)
 
 **الحل المقترح:**
+
 ```
 src/features/appearance/constants.ts → تقسيم إلى:
 ├── presets/
@@ -97,6 +99,7 @@ src/features/appearance/constants.ts → تقسيم إلى:
 **المشكلة:** صفحة هبوط متعددة الأقسام (~604 أسطر)
 
 **الحل المقترح:**
+
 ```
 src/features/auth/LandingPage.tsx → تقسيم إلى:
 ├── sections/
@@ -120,6 +123,7 @@ src/features/auth/LandingPage.tsx → تقسيم إلى:
 **الموقع الحالي:** [`src/features/appearance/`](src/features/appearance/)
 
 **المكونات المستخرجة:**
+
 - `ThemeProvider` - مزود الثيم
 - `useTheme` - خطاف الثيم
 - `ThemePresetCard` - بطاقة الثيم
@@ -132,6 +136,7 @@ src/features/auth/LandingPage.tsx → تقسيم إلى:
 **الموقع الحالي:** [`src/ui/components/AdvancedTabBar/`](src/ui/components/AdvancedTabBar/)
 
 **الملفات:**
+
 - `useAdvancedTabs.ts` (~600 سطر)
 - `AdvancedTabBar.tsx`
 - `types.ts`
@@ -143,6 +148,7 @@ src/features/auth/LandingPage.tsx → تقسيم إلى:
 **الموقع الحالي:** [`src/ui/common/ExcelTable.tsx`](src/ui/common/ExcelTable.tsx:1) (28KB)
 
 **التوصية:** تقسيم إلى:
+
 ```
 src/ui/common/ExcelTable/
 ├── ExcelTable.tsx       (المكون الرئيسي)
@@ -178,11 +184,11 @@ src/ui/common/ExcelTable/
 
 ### 4.3 التعقيد الزائد (مناطق تتطلب تبسيط)
 
-| المنطقة | المشكلة | التوصية |
-|---------|---------|---------|
-| [`sales/components/create/`](src/features/sales/components/create/) | إنشاء الفواتير معقد | تقسيم إلى خطوات/خطافات |
-| [`returns/components/ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1) | معالج المرتجعات ضخم | تحويل إلى حالة آلة |
-| [`reports/`](src/features/reports/) | تقارير متعددة | إنشاء قاعدة تقارير مشتركة |
+| المنطقة                                                                                       | المشكلة             | التوصية                   |
+| --------------------------------------------------------------------------------------------- | ------------------- | ------------------------- |
+| [`sales/components/create/`](src/features/sales/components/create/)                           | إنشاء الفواتير معقد | تقسيم إلى خطوات/خطافات    |
+| [`returns/components/ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1) | معالج المرتجعات ضخم | تحويل إلى حالة آلة        |
+| [`reports/`](src/features/reports/)                                                           | تقارير متعددة       | إنشاء قاعدة تقارير مشتركة |
 
 ---
 
@@ -256,45 +262,48 @@ packages/accounting/
 
 ### المستوى الأول (حرج - يجب معالجته قريباً)
 
-| الملف | المشكلة | الإجراء المقترح |
-|-------|---------|-----------------|
-| [`database.types.ts`](src/core/database.types.ts:1) | ملف ضخم (~3000 سطر) | تقسيم حسب الجداول |
-| [`appearance/constants.ts`](src/features/appearance/constants.ts:1) | ثيمات متعددة (~1122 سطر) | تقسيم حسب الفئات |
-| [`useAdvancedTabs.ts`](src/ui/components/AdvancedTabBar/useAdvancedTabs.ts:1) | خطاف معقد (~600 سطر) | فصل المنطق |
-| [`LandingPage.tsx`](src/features/auth/LandingPage.tsx:1) | صفحة متعددة أقسام (~604 سطر) | تقسيم إلى مكونات |
+| الملف                                                                         | المشكلة                      | الإجراء المقترح   |
+| ----------------------------------------------------------------------------- | ---------------------------- | ----------------- |
+| [`database.types.ts`](src/core/database.types.ts:1)                           | ملف ضخم (~3000 سطر)          | تقسيم حسب الجداول |
+| [`appearance/constants.ts`](src/features/appearance/constants.ts:1)           | ثيمات متعددة (~1122 سطر)     | تقسيم حسب الفئات  |
+| [`useAdvancedTabs.ts`](src/ui/components/AdvancedTabBar/useAdvancedTabs.ts:1) | خطاف معقد (~600 سطر)         | فصل المنطق        |
+| [`LandingPage.tsx`](src/features/auth/LandingPage.tsx:1)                      | صفحة متعددة أقسام (~604 سطر) | تقسيم إلى مكونات  |
 
 ### المستوى الثاني (مهم - يفضل معالجته)
 
-| الملف | المشكلة | الإجراء المقترح |
-|-------|---------|-----------------|
-| [`ExcelTable.tsx`](src/ui/common/ExcelTable.tsx:1) | مكون جدول ضخم (~28KB) | تقسيم إلى وحدات |
-| [`NotificationDropdown.tsx`](src/features/notifications/components/NotificationDropdown.tsx:1) | (~18KB) | تبسيط وتقسيم |
-| [`ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1) | (~20KB) | تحويل لآلة حالات |
-| [`InventoryMovementView.tsx`](src/features/reports/components/InventoryMovementView.tsx:1) | (~21KB) | تبسيط التقارير |
+| الملف                                                                                          | المشكلة               | الإجراء المقترح  |
+| ---------------------------------------------------------------------------------------------- | --------------------- | ---------------- |
+| [`ExcelTable.tsx`](src/ui/common/ExcelTable.tsx:1)                                             | مكون جدول ضخم (~28KB) | تقسيم إلى وحدات  |
+| [`NotificationDropdown.tsx`](src/features/notifications/components/NotificationDropdown.tsx:1) | (~18KB)               | تبسيط وتقسيم     |
+| [`ReturnsWizard.tsx`](src/features/returns/components/ReturnsWizard.tsx:1)                     | (~20KB)               | تحويل لآلة حالات |
+| [`InventoryMovementView.tsx`](src/features/reports/components/InventoryMovementView.tsx:1)     | (~21KB)               | تبسيط التقارير   |
 
 ### المستوى الثالث (تحسينات مستقبلية)
 
-| الملف | المشكلة | الإجراء المقترح |
-|-------|---------|-----------------|
-| [`store.ts` (auth)](src/features/auth/store.ts:1) | (~9604 chars) | فصل الـ actions |
-| [`themeStore.ts`](src/lib/themeStore.ts:1) | (~9956 chars) | تقسيم الثيمات |
-| [`DashboardPage.tsx`](src/features/dashboard/DashboardPage.tsx:1) | (~12KB) | تقسيم ودجات |
+| الملف                                                             | المشكلة       | الإجراء المقترح |
+| ----------------------------------------------------------------- | ------------- | --------------- |
+| [`store.ts` (auth)](src/features/auth/store.ts:1)                 | (~9604 chars) | فصل الـ actions |
+| [`themeStore.ts`](src/lib/themeStore.ts:1)                        | (~9956 chars) | تقسيم الثيمات   |
+| [`DashboardPage.tsx`](src/features/dashboard/DashboardPage.tsx:1) | (~12KB)       | تقسيم ودجات     |
 
 ---
 
 ## 7. خارطة طريق التنفيذ
 
 ### المرحلة 1: التقسيم الحرج (1-2 أسبوع)
+
 1. تقسيم `database.types.ts` إلى ملفات أصغر
 2. تقسيم `appearance/constants.ts` حسب الفئات
 3. إنشاء `shared/` للمكونات المشتركة
 
 ### المرحلة 2: إعادة الهيكلة (2-4 أسابيع)
+
 1. تقسيم `LandingPage.tsx`
 2. إعادة بناء نظام التبويبات
 3. تبسيط `ExcelTable`
 
 ### المرحلة 3: التحسينات (4-8 أسابيع)
+
 1. إنشاء مكتبة UI منفصلة
 2. تحسين هيكل الـ reports
 3. توحيد أنماط التصميم

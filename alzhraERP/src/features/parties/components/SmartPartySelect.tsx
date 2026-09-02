@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, User, X, Check, ChevronsUpDown, Phone } from 'lucide-react';
-import { Party, PartyType } from '../types';
+import type { Party, PartyType } from '../types';
 import { filterPartiesSmart } from '../../../core/utils/partySearch';
 import { cn } from '../../../core/utils';
 
@@ -31,7 +31,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
   const listRef = useRef<HTMLUListElement>(null);
 
   const selectedParty = useMemo(
-    () => parties.find((p) => p.id === selectedPartyId),
+    () => parties.find(p => p.id === selectedPartyId),
     [parties, selectedPartyId]
   );
 
@@ -53,7 +53,9 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   // Reset highlight on query change
@@ -97,12 +99,10 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev < filteredParties.length - 1 ? prev + 1 : prev
-      );
+      setHighlightedIndex(prev => (prev < filteredParties.length - 1 ? prev + 1 : prev));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (filteredParties[highlightedIndex]) {
@@ -117,10 +117,10 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
     <div className={cn('relative w-full', className)} ref={containerRef}>
       <div
         className={cn(
-          'relative flex items-center bg-slate-50 dark:bg-slate-800/80 border rounded-lg transition-all',
+          'relative flex items-center rounded-lg border bg-slate-50 transition-all dark:bg-slate-800/80',
           isOpen
-            ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white dark:bg-slate-800'
-            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+            ? 'border-blue-500 bg-white ring-2 ring-blue-500/20 dark:bg-slate-800'
+            : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
         )}
       >
         <div className="flex items-center justify-center pl-2 pr-3 text-slate-400">
@@ -132,7 +132,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
           type="text"
           autoFocus={autoFocus}
           value={isOpen ? query : selectedParty?.name || query}
-          onChange={(e) => {
+          onChange={e => {
             setQuery(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
@@ -142,7 +142,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
           }}
           onKeyDown={handleKeyDown}
           placeholder={selectedParty ? selectedParty.name : defaultPlaceholder}
-          className="w-full bg-transparent py-2 pl-8 pr-1 text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+          className="w-full bg-transparent py-2 pl-8 pr-1 text-sm font-bold text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
 
         <div className="flex items-center gap-1 pl-2 pr-1">
@@ -150,7 +150,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
             <button
               type="button"
               onClick={handleClear}
-              className="p-1 text-slate-400 hover:text-rose-500 rounded transition-colors"
+              className="rounded p-1 text-slate-400 transition-colors hover:text-rose-500"
               title="مسح الاختيار"
             >
               <X size={14} />
@@ -160,10 +160,10 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
           <button
             type="button"
             onClick={() => {
-              setIsOpen((prev) => !prev);
+              setIsOpen(prev => !prev);
               if (!isOpen && inputRef.current) inputRef.current.focus();
             }}
-            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded"
+            className="rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           >
             <ChevronsUpDown size={15} />
           </button>
@@ -171,7 +171,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1.5 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1">
+        <div className="animate-in fade-in slide-in-from-top-1 absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-[var(--app-surface)] shadow-2xl dark:border-slate-700">
           {filteredParties.length === 0 ? (
             <div className="p-4 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
               لا توجد نتائج مطابقة لـ &quot;{query}&quot;
@@ -179,7 +179,7 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
           ) : (
             <ul
               ref={listRef}
-              className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 custom-scrollbar"
+              className="custom-scrollbar max-h-64 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800/60"
             >
               {filteredParties.map((party, index) => {
                 const isSelected = party.id === selectedPartyId;
@@ -188,32 +188,36 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
                 return (
                   <li
                     key={party.id}
-                    onClick={() => handleSelect(party.id)}
-                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onClick={() => {
+                      handleSelect(party.id);
+                    }}
+                    onMouseEnter={() => {
+                      setHighlightedIndex(index);
+                    }}
                     className={cn(
-                      'px-3 py-2.5 cursor-pointer flex items-center justify-between transition-colors gap-2',
+                      'flex cursor-pointer items-center justify-between gap-2 px-3 py-2.5 transition-colors',
                       isHighlighted
-                        ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100'
-                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                      isSelected && 'font-black bg-blue-100/50 dark:bg-blue-900/60'
+                        ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
+                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800/50',
+                      isSelected && 'bg-blue-100/50 font-black dark:bg-blue-900/60'
                     )}
                   >
                     <div className="flex items-center gap-2.5 overflow-hidden">
                       <div
                         className={cn(
-                          'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black',
+                          'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black',
                           partyType === 'customer'
-                            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                         )}
                       >
                         <User size={14} />
                       </div>
 
                       <div className="flex flex-col truncate">
-                        <span className="text-sm font-bold truncate">{party.name}</span>
+                        <span className="truncate text-sm font-bold">{party.name}</span>
                         {party.phone && (
-                          <span className="text-[11px] text-slate-400 dark:text-slate-400 flex items-center gap-1 font-mono">
+                          <span className="flex items-center gap-1 font-mono text-[11px] text-slate-400 dark:text-slate-400">
                             <Phone size={10} />
                             {party.phone}
                           </span>
@@ -221,9 +225,9 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                       {party.category && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                           {party.category}
                         </span>
                       )}

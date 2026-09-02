@@ -4,9 +4,9 @@ import { cn } from '../../../../core/utils';
 import { useI18nStore } from '@/lib/i18nStore';
 import { PERMISSION_CATEGORIES } from '../../../../core/permissions/permissionTaxonomy';
 import { OFFLINE_ROLE_PERMISSIONS } from '../../../../core/permissions/offlineRolePermissions';
-import { Role } from '../../../../core/types/common';
+import type { Role } from '../../../../core/types/common';
 
-const ROLES: { key: Role | 'owner'; label: string; color: string }[] = [
+const ROLES: Array<{ key: Role | 'owner'; label: string; color: string }> = [
   { key: 'owner', label: 'المالك', color: 'text-amber-600 dark:text-amber-400' },
   { key: 'admin', label: 'مسؤول نظام', color: 'text-rose-600 dark:text-rose-400' },
   { key: 'manager', label: 'مدير', color: 'text-blue-600 dark:text-blue-400' },
@@ -22,20 +22,20 @@ const PermissionsManager: React.FC = () => {
   const filteredCategories =
     selectedCategory === 'all'
       ? PERMISSION_CATEGORIES
-      : PERMISSION_CATEGORIES.filter((c) => c.id === selectedCategory);
+      : PERMISSION_CATEGORIES.filter(c => c.id === selectedCategory);
 
   const hasRolePermission = (role: Role | 'owner', permKey: string): boolean => {
     if (role === 'owner') return true; // Owner has all permissions
-    const list = OFFLINE_ROLE_PERMISSIONS[role as Role] || [];
+    const list = OFFLINE_ROLE_PERMISSIONS[role] || [];
     return list.includes(permKey as any);
   };
 
   return (
-    <div className="bg-[var(--app-surface)] rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in duration-500">
+    <div className="animate-in fade-in overflow-hidden rounded-3xl border border-gray-100 bg-[var(--app-surface)] shadow-sm duration-500 dark:border-slate-800">
       {/* Header */}
-      <div className="p-5 border-b dark:border-slate-800 flex flex-wrap justify-between items-center gap-4 bg-gray-50/50 dark:bg-slate-950/50">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b bg-gray-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/50">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
+          <div className="rounded-2xl bg-blue-600 p-2.5 text-white shadow-lg shadow-blue-500/20">
             <ShieldCheck size={20} />
           </div>
           <div>
@@ -49,7 +49,7 @@ const PermissionsManager: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-800/40 flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-600 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-400">
             <Sparkles size={12} />
             يمكن تخصيص صلاحيات إضافية لكل موظف من تبويب "فريق العمل"
           </span>
@@ -57,29 +57,33 @@ const PermissionsManager: React.FC = () => {
       </div>
 
       {/* Category Filter Pills */}
-      <div className="p-4 bg-gray-50/30 dark:bg-slate-950/20 border-b border-gray-100 dark:border-slate-800/80 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/30 p-4 dark:border-slate-800/80 dark:bg-slate-950/20">
         <button
           type="button"
-          onClick={() => setSelectedCategory('all')}
+          onClick={() => {
+            setSelectedCategory('all');
+          }}
           className={cn(
-            'px-3 py-1 rounded-xl text-[11px] font-bold transition-all',
+            'rounded-xl px-3 py-1 text-[11px] font-bold transition-all',
             selectedCategory === 'all'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-100'
+              : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
           )}
         >
           كافة الأقسام
         </button>
-        {PERMISSION_CATEGORIES.map((cat) => (
+        {PERMISSION_CATEGORIES.map(cat => (
           <button
             key={cat.id}
             type="button"
-            onClick={() => setSelectedCategory(cat.id)}
+            onClick={() => {
+              setSelectedCategory(cat.id);
+            }}
             className={cn(
-              'px-3 py-1 rounded-xl text-[11px] font-bold transition-all',
+              'rounded-xl px-3 py-1 text-[11px] font-bold transition-all',
               selectedCategory === cat.id
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-100'
+                : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
             )}
           >
             {cat.title}
@@ -91,9 +95,9 @@ const PermissionsManager: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full text-right text-xs">
           <thead>
-            <tr className="bg-gray-100/70 dark:bg-slate-800/70 text-[10px] font-extrabold text-gray-600 dark:text-slate-300 uppercase border-b dark:border-slate-700">
-              <th className="p-3.5 w-1/3">صلاحية الإجراء والنظام</th>
-              {ROLES.map((r) => (
+            <tr className="border-b bg-gray-100/70 text-[10px] font-extrabold uppercase text-gray-600 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-300">
+              <th className="w-1/3 p-3.5">صلاحية الإجراء والنظام</th>
+              {ROLES.map(r => (
                 <th key={r.key} className={cn('p-3.5 text-center', r.color)}>
                   {r.label}
                 </th>
@@ -101,37 +105,37 @@ const PermissionsManager: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-            {filteredCategories.map((cat) => (
+            {filteredCategories.map(cat => (
               <React.Fragment key={cat.id}>
-                <tr className="bg-blue-50/40 dark:bg-blue-950/20 border-y border-blue-100/60 dark:border-blue-900/30">
+                <tr className="border-y border-blue-100/60 bg-blue-50/40 dark:border-blue-900/30 dark:bg-blue-950/20">
                   <td
                     colSpan={ROLES.length + 1}
-                    className="p-2.5 font-extrabold text-[11px] text-blue-900 dark:text-blue-300 px-4"
+                    className="p-2.5 px-4 text-[11px] font-extrabold text-blue-900 dark:text-blue-300"
                   >
                     📂 {cat.title}
                   </td>
                 </tr>
-                {cat.permissions.map((perm) => (
+                {cat.permissions.map(perm => (
                   <tr
                     key={perm.key}
-                    className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                    className="transition-colors hover:bg-gray-50/50 dark:hover:bg-slate-800/30"
                   >
                     <td className="p-3.5 font-bold text-gray-800 dark:text-slate-200">
                       <div>{perm.label}</div>
-                      <div className="text-[10px] font-mono text-gray-400 dark:text-slate-500 dir-ltr text-right mt-0.5">
+                      <div className="dir-ltr mt-0.5 text-right font-mono text-[10px] text-gray-400 dark:text-slate-500">
                         {perm.key}
                       </div>
                     </td>
-                    {ROLES.map((r) => {
+                    {ROLES.map(r => {
                       const granted = hasRolePermission(r.key, perm.key);
                       return (
                         <td key={r.key} className="p-3.5 text-center">
                           <div
                             className={cn(
-                              'mx-auto w-6 h-6 rounded-full flex items-center justify-center transition-all',
+                              'mx-auto flex h-6 w-6 items-center justify-center rounded-full transition-all',
                               granted
-                                ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
-                                : 'bg-gray-100/70 dark:bg-slate-800 text-gray-300 dark:text-slate-600'
+                                ? 'border border-emerald-200 bg-emerald-100 text-emerald-600 dark:border-emerald-800/40 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                : 'bg-gray-100/70 text-gray-300 dark:bg-slate-800 dark:text-slate-600'
                             )}
                           >
                             {granted ? <Check size={13} strokeWidth={3} /> : <X size={12} />}

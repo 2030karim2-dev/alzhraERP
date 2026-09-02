@@ -3,8 +3,8 @@
 // React Query Configuration
 // ============================================
 
-import React, { ReactNode, useEffect, useRef } from 'react';
-import { QueryClient } from '@tanstack/react-query';
+import React, { type ReactNode, useEffect, useRef } from 'react';
+import type { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { del } from 'idb-keyval';
 import {
@@ -22,226 +22,234 @@ import { processSyncMutation } from './sync-registry';
 // Query Keys
 // ------------------------------------------
 export const queryKeys = {
-    // Auth
-    auth: {
-        me: ['auth', 'me'] as const,
-        session: ['auth', 'session'] as const,
-    },
+  // Auth
+  auth: {
+    me: ['auth', 'me'] as const,
+    session: ['auth', 'session'] as const,
+  },
 
-    // Inventory
-    inventory: {
-        all: ['inventory'] as const,
-        products: () => [...queryKeys.inventory.all, 'products'] as const,
-        product: (id: string) => [...queryKeys.inventory.all, 'products', id] as const,
-        categories: () => [...queryKeys.inventory.all, 'categories'] as const,
-        warehouses: () => [...queryKeys.inventory.all, 'warehouses'] as const,
-        stock: (warehouseId?: string) => [...queryKeys.inventory.all, 'stock', warehouseId] as const,
-        movements: (productId?: string) => [...queryKeys.inventory.all, 'movements', productId] as const,
-    },
+  // Inventory
+  inventory: {
+    all: ['inventory'] as const,
+    products: () => [...queryKeys.inventory.all, 'products'] as const,
+    product: (id: string) => [...queryKeys.inventory.all, 'products', id] as const,
+    categories: () => [...queryKeys.inventory.all, 'categories'] as const,
+    warehouses: () => [...queryKeys.inventory.all, 'warehouses'] as const,
+    stock: (warehouseId?: string) => [...queryKeys.inventory.all, 'stock', warehouseId] as const,
+    movements: (productId?: string) =>
+      [...queryKeys.inventory.all, 'movements', productId] as const,
+  },
 
-    // Sales
-    sales: {
-        all: ['sales'] as const,
-        invoices: () => [...queryKeys.sales.all, 'invoices'] as const,
-        invoice: (id: string) => [...queryKeys.sales.invoices(), id] as const,
-        returns: () => [...queryKeys.sales.all, 'returns'] as const,
-        stats: () => [...queryKeys.sales.all, 'stats'] as const,
-        analytics: (period: string) => [...queryKeys.sales.all, 'analytics', period] as const,
-    },
+  // Sales
+  sales: {
+    all: ['sales'] as const,
+    invoices: () => [...queryKeys.sales.all, 'invoices'] as const,
+    invoice: (id: string) => [...queryKeys.sales.invoices(), id] as const,
+    returns: () => [...queryKeys.sales.all, 'returns'] as const,
+    stats: () => [...queryKeys.sales.all, 'stats'] as const,
+    analytics: (period: string) => [...queryKeys.sales.all, 'analytics', period] as const,
+  },
 
-    // Purchases
-    purchases: {
-        all: ['purchases'] as const,
-        invoices: () => [...queryKeys.purchases.all, 'invoices'] as const,
-        invoice: (id: string) => [...queryKeys.purchases.invoices(), id] as const,
-        returns: () => [...queryKeys.purchases.all, 'returns'] as const,
-        stats: () => [...queryKeys.purchases.all, 'stats'] as const,
-    },
+  // Purchases
+  purchases: {
+    all: ['purchases'] as const,
+    invoices: () => [...queryKeys.purchases.all, 'invoices'] as const,
+    invoice: (id: string) => [...queryKeys.purchases.invoices(), id] as const,
+    returns: () => [...queryKeys.purchases.all, 'returns'] as const,
+    stats: () => [...queryKeys.purchases.all, 'stats'] as const,
+  },
 
-    // Accounting
-    accounting: {
-        all: ['accounting'] as const,
-        accounts: () => [...queryKeys.accounting.all, 'accounts'] as const,
-        account: (id: string) => [...queryKeys.accounting.accounts(), id] as const,
-        journals: () => [...queryKeys.accounting.all, 'journals'] as const,
-        journal: (id: string) => [...queryKeys.accounting.journals(), id] as const,
-        trialBalance: (date: string) => [...queryKeys.accounting.all, 'trial-balance', date] as const,
-        balanceSheet: (date: string) => [...queryKeys.accounting.all, 'balance-sheet', date] as const,
-        incomeStatement: (period: string) => [...queryKeys.accounting.all, 'income-statement', period] as const,
-    },
+  // Accounting
+  accounting: {
+    all: ['accounting'] as const,
+    accounts: () => [...queryKeys.accounting.all, 'accounts'] as const,
+    account: (id: string) => [...queryKeys.accounting.accounts(), id] as const,
+    journals: () => [...queryKeys.accounting.all, 'journals'] as const,
+    journal: (id: string) => [...queryKeys.accounting.journals(), id] as const,
+    trialBalance: (date: string) => [...queryKeys.accounting.all, 'trial-balance', date] as const,
+    balanceSheet: (date: string) => [...queryKeys.accounting.all, 'balance-sheet', date] as const,
+    incomeStatement: (period: string) =>
+      [...queryKeys.accounting.all, 'income-statement', period] as const,
+  },
 
-    // Parties (Customers/Suppliers)
-    parties: {
-        all: ['parties'] as const,
-        customers: () => [...queryKeys.parties.all, 'customers'] as const,
-        customer: (id: string) => [...queryKeys.parties.customers(), id] as const,
-        suppliers: () => [...queryKeys.parties.all, 'suppliers'] as const,
-        supplier: (id: string) => [...queryKeys.parties.suppliers(), id] as const,
-        statement: (id: string, type: 'customer' | 'supplier') => [...queryKeys.parties.all, 'statement', id, type] as const,
-    },
+  // Parties (Customers/Suppliers)
+  parties: {
+    all: ['parties'] as const,
+    customers: () => [...queryKeys.parties.all, 'customers'] as const,
+    customer: (id: string) => [...queryKeys.parties.customers(), id] as const,
+    suppliers: () => [...queryKeys.parties.all, 'suppliers'] as const,
+    supplier: (id: string) => [...queryKeys.parties.suppliers(), id] as const,
+    statement: (id: string, type: 'customer' | 'supplier') =>
+      [...queryKeys.parties.all, 'statement', id, type] as const,
+  },
 
-    // Dashboard
-    dashboard: {
-        stats: ['dashboard', 'stats'] as const,
-        recentActivity: ['dashboard', 'recent-activity'] as const,
-        topProducts: ['dashboard', 'top-products'] as const,
-        topCustomers: ['dashboard', 'top-customers'] as const,
-        salesChart: (period: string) => ['dashboard', 'sales-chart', period] as const,
-        inventoryChart: (period: string) => ['dashboard', 'inventory-chart', period] as const,
-    },
+  // Dashboard
+  dashboard: {
+    stats: ['dashboard', 'stats'] as const,
+    recentActivity: ['dashboard', 'recent-activity'] as const,
+    topProducts: ['dashboard', 'top-products'] as const,
+    topCustomers: ['dashboard', 'top-customers'] as const,
+    salesChart: (period: string) => ['dashboard', 'sales-chart', period] as const,
+    inventoryChart: (period: string) => ['dashboard', 'inventory-chart', period] as const,
+  },
 
-    // Reports
-    reports: {
-        all: ['reports'] as const,
-        inventory: (type: string) => ['reports', 'inventory', type] as const,
-        financial: (type: string, period: string) => ['reports', 'financial', type, period] as const,
-        tax: (period: string) => ['reports', 'tax', period] as const,
-        cashFlow: (period: string) => ['reports', 'cash-flow', period] as const,
-    },
+  // Reports
+  reports: {
+    all: ['reports'] as const,
+    inventory: (type: string) => ['reports', 'inventory', type] as const,
+    financial: (type: string, period: string) => ['reports', 'financial', type, period] as const,
+    tax: (period: string) => ['reports', 'tax', period] as const,
+    cashFlow: (period: string) => ['reports', 'cash-flow', period] as const,
+  },
 
-    // Settings
-    settings: {
-        all: ['settings'] as const,
-        company: ['settings', 'company'] as const,
-        warehouses: ['settings', 'warehouses'] as const,
-        currency: ['settings', 'currency'] as const,
-        fiscalYear: ['settings', 'fiscal-year'] as const,
-        taxDiscount: ['settings', 'tax-discount'] as const,
-        notifications: ['settings', 'notifications'] as const,
-        security: ['settings', 'security'] as const,
-    },
+  // Settings
+  settings: {
+    all: ['settings'] as const,
+    company: ['settings', 'company'] as const,
+    warehouses: ['settings', 'warehouses'] as const,
+    currency: ['settings', 'currency'] as const,
+    fiscalYear: ['settings', 'fiscal-year'] as const,
+    taxDiscount: ['settings', 'tax-discount'] as const,
+    notifications: ['settings', 'notifications'] as const,
+    security: ['settings', 'security'] as const,
+  },
 } as const;
 
 // ------------------------------------------
 // React Query Provider Component
 // ------------------------------------------
 interface ReactQueryProviderProps {
-    children: ReactNode;
-    client?: QueryClient;
+  children: ReactNode;
+  client?: QueryClient;
 }
 
 /**
  * Hook to manage background synchronization of pending mutations
  */
 const useSyncQueue = (queryClient: QueryClient) => {
-    const { isOnline } = useNetworkStatus();
-    const isProcessingRef = useRef(false);
+  const { isOnline } = useNetworkStatus();
+  const isProcessingRef = useRef(false);
 
-    // A permanently-failing mutation (e.g. a product CONFLICT that no retry can
-    // resolve) must not wedge the whole offline queue forever. After this many
-    // failed processing cycles the mutation is dropped with a critical log.
-    const MAX_SYNC_RETRIES = 5;
+  // A permanently-failing mutation (e.g. a product CONFLICT that no retry can
+  // resolve) must not wedge the whole offline queue forever. After this many
+  // failed processing cycles the mutation is dropped with a critical log.
+  const MAX_SYNC_RETRIES = 5;
 
-    useEffect(() => {
-        if (isOnline) {
-            void processQueue();
+  useEffect(() => {
+    if (isOnline) {
+      void processQueue();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
+
+  const processQueue = async () => {
+    if (isProcessingRef.current) return;
+
+    const pending = await syncStore.getPending();
+    if (pending.length === 0) return;
+
+    isProcessingRef.current = true;
+
+    logger.info('SyncModule', `Starting sync for ${pending.length} pending operations...`);
+
+    try {
+      for (const mutation of pending) {
+        // Exhausted retries: drop the mutation with a critical log instead
+        // of blocking every later mutation indefinitely.
+        if (mutation.retryCount >= MAX_SYNC_RETRIES) {
+          logger.error(
+            'SyncModule',
+            `Dropping mutation ${mutation.id} after ${MAX_SYNC_RETRIES} failed attempts`,
+            { key: mutation.mutationKey }
+          );
+          await syncStore.dequeue(mutation.id);
+          continue;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOnline]);
-
-    const processQueue = async () => {
-        if (isProcessingRef.current) return;
-
-        const pending = await syncStore.getPending();
-        if (pending.length === 0) return;
-
-        isProcessingRef.current = true;
-
-        logger.info('SyncModule', `Starting sync for ${pending.length} pending operations...`);
 
         try {
-            for (const mutation of pending) {
-                // Exhausted retries: drop the mutation with a critical log instead
-                // of blocking every later mutation indefinitely.
-                if (mutation.retryCount >= MAX_SYNC_RETRIES) {
-                    logger.error(
-                        'SyncModule',
-                        `Dropping mutation ${mutation.id} after ${MAX_SYNC_RETRIES} failed attempts`,
-                        { key: mutation.mutationKey }
-                    );
-                    await syncStore.dequeue(mutation.id);
-                    continue;
-                }
+          // We use mutationCache directly to avoid creating new observers
+          await queryClient
+            .getMutationCache()
+            .build(queryClient, {
+              mutationKey: mutation.mutationKey,
+              mutationFn: async variables => {
+                return processSyncMutation(mutation.mutationKey, variables);
+              },
+            })
+            .execute(mutation.variables);
 
-                try {
-                    // We use mutationCache directly to avoid creating new observers
-                    await queryClient.getMutationCache().build(queryClient, {
-                        mutationKey: mutation.mutationKey,
-                        mutationFn: async (variables) => {
-                            return processSyncMutation(mutation.mutationKey, variables);
-                        }
-                    }).execute(mutation.variables);
-
-                    await syncStore.dequeue(mutation.id);
-                } catch (error) {
-                    logger.error('SyncModule', `Sync failed for mutation ${mutation.id}`, error);
-                    await syncStore.incrementRetry(mutation.id);
-                    // Continue with the next pending mutation — a single failure
-                    // must not wedge the rest of the offline queue. Ordering
-                    // dependencies are resolved by retries on later cycles.
-                }
-            }
-        } finally {
-            isProcessingRef.current = false;
+          await syncStore.dequeue(mutation.id);
+        } catch (error) {
+          logger.error('SyncModule', `Sync failed for mutation ${mutation.id}`, error);
+          await syncStore.incrementRetry(mutation.id);
+          // Continue with the next pending mutation — a single failure
+          // must not wedge the rest of the offline queue. Ordering
+          // dependencies are resolved by retries on later cycles.
         }
-    };
+      }
+    } finally {
+      isProcessingRef.current = false;
+    }
+  };
 };
 
-export const ReactQueryProvider: React.FC<ReactQueryProviderProps> = ({
-    children,
-    client
-}) => {
-    // Single shared client + persister instance. This is THE client used by the
-    // whole app (and by src/features/auth/store.ts on logout), so clearing it on
-    // logout actually clears the persisted IndexedDB cache (`AL_ZAHRA_OFFLINE_CACHE`).
-    const activeClient = client ?? appQueryClient;
+export const ReactQueryProvider: React.FC<ReactQueryProviderProps> = ({ children, client }) => {
+  // Single shared client + persister instance. This is THE client used by the
+  // whole app (and by src/features/auth/store.ts on logout), so clearing it on
+  // logout actually clears the persisted IndexedDB cache (`AL_ZAHRA_OFFLINE_CACHE`).
+  const activeClient = client ?? appQueryClient;
 
-    // One-time cleanup: drop the legacy IndexedDB cache key that predates the
-    // unified persister — it may hold stale/cross-user data and must never be
-    // restored again. Runs once per provider mount (cheap, idempotent).
-    useEffect(() => {
-        void del('alzhra-query-cache');
-    }, []);
+  // One-time cleanup: drop the legacy IndexedDB cache key that predates the
+  // unified persister — it may hold stale/cross-user data and must never be
+  // restored again. Runs once per provider mount (cheap, idempotent).
+  useEffect(() => {
+    void del('alzhra-query-cache');
+  }, []);
 
-    // Initialize sync queue
-    useSyncQueue(activeClient);
+  // Initialize sync queue
+  useSyncQueue(activeClient);
 
-    return (
-        <PersistQueryClientProvider
-            client={activeClient}
-            persistOptions={{
-                persister,
-                maxAge: QUERY_PERSIST_MAX_AGE_MS,
-                buster: QUERY_PERSIST_BUSTER,
-            }}
-        >
-            {children}
-        </PersistQueryClientProvider>
-    );
+  return (
+    <PersistQueryClientProvider
+      client={activeClient}
+      persistOptions={{
+        persister,
+        maxAge: QUERY_PERSIST_MAX_AGE_MS,
+        buster: QUERY_PERSIST_BUSTER,
+      }}
+    >
+      {children}
+    </PersistQueryClientProvider>
+  );
 };
 
 // ------------------------------------------
 // Query Hook Options (Legacy Types)
 // ------------------------------------------
 export interface UseQueryOptions<TData, _TError = Error> {
-    enabled?: boolean;
-    staleTime?: number;
-    gcTime?: number;
-    refetchOnWindowFocus?: boolean;
-    refetchOnReconnect?: boolean;
-    retry?: number | false;
-    retryDelay?: (attemptIndex: number) => number;
-    select?: (data: unknown) => TData;
-    placeholderData?: unknown;
-    initialData?: unknown;
+  enabled?: boolean;
+  staleTime?: number;
+  gcTime?: number;
+  refetchOnWindowFocus?: boolean;
+  refetchOnReconnect?: boolean;
+  retry?: number | false;
+  retryDelay?: (attemptIndex: number) => number;
+  select?: (data: unknown) => TData;
+  placeholderData?: unknown;
+  initialData?: unknown;
 }
 
 export interface UseMutationOptions<TData, TError, TVariables, TContext> {
-    onMutate?: (variables: TVariables) => Promise<TContext | void> | TContext | void;
-    onError?: (error: TError, variables: TVariables, context?: TContext) => void | Promise<void>;
-    onSettled?: (data: TData, error: TError | null, variables: TVariables, context?: TContext) => void | Promise<void>;
-    retry?: number | false;
-    retryDelay?: (attemptIndex: number) => number;
+  onMutate?: (variables: TVariables) => Promise<TContext | void> | TContext | void;
+  onError?: (error: TError, variables: TVariables, context?: TContext) => void | Promise<void>;
+  onSettled?: (
+    data: TData,
+    error: TError | null,
+    variables: TVariables,
+    context?: TContext
+  ) => void | Promise<void>;
+  retry?: number | false;
+  retryDelay?: (attemptIndex: number) => number;
 }
 
 // ------------------------------------------

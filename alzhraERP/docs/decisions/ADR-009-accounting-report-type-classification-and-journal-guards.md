@@ -61,6 +61,7 @@ signatures unchanged for every function (existing GRANTs and callers keep workin
   (invoices, payments, reversals).
 
 Frontend defence-in-depth (`journalsApi.postJournalEntryRPC`):
+
 - client-side guards for zero totals and non-positive exchange rate (same
   messages as the server), extracted into `validateJournalInput` so the RPC
   method stays under the lint size limit.
@@ -79,7 +80,7 @@ Frontend defence-in-depth (`journalsApi.postJournalEntryRPC`):
     revenues = 500, net = 100);
   - R2/R3 guard assertions on `post_manual_journal` (empty payload, zero lines,
     rate 0) and on the deferred trigger (`SET CONSTRAINTS ensure_journal_balance
-    IMMEDIATE` rejects a posted zero journal);
+IMMEDIATE` rejects a posted zero journal);
   - positive path: a balanced journal posts with `rate 2` storing base
     amounts `200 × 2 = 400`.
 - `npm run check:encoding` passes (no mojibake in the new files).

@@ -13,6 +13,7 @@ import Button from '../../../ui/base/Button';
 import { cn } from '../../../core/utils';
 import { validateVin } from '../utils/vinValidator';
 import { preDecodeVin } from '../utils/wmiDecoder';
+import { parseCatalogVehicleText } from '../utils/catalogTextExtractor';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
 import { VehicleCard, buildManualVehicleInput } from './decode/VehicleCard';
 import { VinManualVehicleForm } from './decode/VinManualVehicleForm';
@@ -63,6 +64,34 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   const [manualDrive, setManualDrive] = useState('سنجل');
   const [manualVinOptional, setManualVinOptional] = useState('');
 
+  const handleVinChange = (rawInput: string): void => {
+    if (
+      rawInput.includes('\n') ||
+      rawInput.includes('http') ||
+      rawInput.includes('[') ||
+      rawInput.includes('ModelCode') ||
+      rawInput.toLowerCase().includes('partsouq') ||
+      rawInput.toLowerCase().includes('catalog')
+    ) {
+      // It's a catalog paste — sanitize and extract all structured attributes automatically
+      const parsed = parseCatalogVehicleText(rawInput);
+      if (parsed.vin) {
+        setVin(parsed.vin);
+        setManualVinOptional(parsed.vin);
+      }
+      if (parsed.makeAr || parsed.make) setManualMake(parsed.makeAr || parsed.make || 'تويوتا');
+      if (parsed.model) setManualModel(parsed.model);
+      if (parsed.yearStart) setManualYearStart(parsed.yearStart);
+      if (parsed.yearEnd) setManualYearEnd(parsed.yearEnd);
+      if (parsed.market) setManualMarket(parsed.market);
+      if (parsed.engine) setManualEngine(parsed.engine);
+      if (parsed.transmission) setManualTransmission(parsed.transmission);
+      if (parsed.drive) setManualDrive(parsed.drive);
+    } else {
+      setVin(rawInput.toUpperCase());
+    }
+  };
+
   // Reset confirmation whenever a new result arrives
   const prevVinRef = useRef<string | null>(null);
   useEffect(() => {
@@ -112,7 +141,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
       <div className="flex gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-inner dark:border-slate-700 dark:bg-slate-800/90">
         <button
           type="button"
-          onClick={() => setEntryMode('vin')}
+          onClick={() => {
+            setEntryMode('vin');
+          }}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all',
             entryMode === 'vin'
@@ -125,7 +156,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => setEntryMode('manual')}
+          onClick={() => {
+            setEntryMode('manual');
+          }}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all',
             entryMode === 'manual'
@@ -143,10 +176,12 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="space-y-3">
             <Input
-              label="أدخل رقم الشاصي (VIN)"
-              placeholder="مثال: JTDBR32E100001234 أو كود الشاصي..."
+              label="أدخل رقم الشاصي (VIN) أو الصق نص الكتالوج"
+              placeholder="مثال: JTDBR32E100001234 أو الصق بيانات PartSouq مباشرة..."
               value={vin}
-              onChange={e => setVin(e.target.value.toUpperCase())}
+              onChange={e => {
+                handleVinChange(e.target.value);
+              }}
               onKeyDown={e => {
                 if (e.key === 'Enter') void handleDecode();
               }}
@@ -294,7 +329,9 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
                   {!aiSaveConfirmed ? (
                     <div className="flex gap-2 pt-1">
                       <button
-                        onClick={() => setAiSaveConfirmed(true)}
+                        onClick={() => {
+                          setAiSaveConfirmed(true);
+                        }}
                         className="rounded-lg border border-amber-400 px-3 py-1.5 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/40"
                       >
                         أفهم المخاطر — أريد الحفظ

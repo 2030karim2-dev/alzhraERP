@@ -4,7 +4,7 @@ import { useAuthStore } from '@/features/auth/store';
 import { useFeedbackStore } from '@/features/feedback/store';
 import { invalidateByPreset } from '@/lib/invalidation';
 import { syncStore } from '@/core/lib/sync-store';
-import { CreateInvoiceDTO } from '../types';
+import type { CreateInvoiceDTO } from '../types';
 
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
 
@@ -14,7 +14,8 @@ export const useInvoices = () => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['invoices', companyId, branchId],
-    queryFn: () => companyId ? salesService.fetchSalesLog(companyId, 0, branchId) : Promise.resolve([]),
+    queryFn: () =>
+      companyId ? salesService.fetchSalesLog(companyId, 0, branchId) : Promise.resolve([]),
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
   });
@@ -26,7 +27,7 @@ export const useSalesStats = () => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['sales_stats', companyId, branchId],
-    queryFn: () => companyId ? salesService.getStats(companyId, branchId) : Promise.resolve(null),
+    queryFn: () => (companyId ? salesService.getStats(companyId, branchId) : Promise.resolve(null)),
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
   });
@@ -40,7 +41,7 @@ export const useCreateInvoice = () => {
 
   return useMutation({
     mutationFn: async (data: CreateInvoiceDTO) => {
-      if (!user?.company_id || !user?.id) throw new Error("Missing auth context");
+      if (!user?.company_id || !user?.id) throw new Error('Missing auth context');
       const finalData = { ...data, branchId: data.branchId ?? branchId };
       return await salesService.processNewSale(user.company_id, user.id, finalData);
     },
@@ -50,7 +51,8 @@ export const useCreateInvoice = () => {
     },
     onError: (error, variables) => {
       const err = error as { message?: string; status?: number };
-      const isFetchError = typeof err?.message === 'string' && err.message.includes('Failed to fetch');
+      const isFetchError =
+        typeof err?.message === 'string' && err.message.includes('Failed to fetch');
       const isNetworkError = err?.status === 0;
 
       if (!navigator.onLine || isFetchError || isNetworkError) {
@@ -60,11 +62,11 @@ export const useCreateInvoice = () => {
           mutationKey: ['sales', 'create'],
           variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
         });
-        showToast("تم حفظ الفاتورة محلياً. سيتم مزامنتها عند عودة الاتصال.", 'info');
+        showToast('تم حفظ الفاتورة محلياً. سيتم مزامنتها عند عودة الاتصال.', 'info');
         return;
       }
 
       showToast(err?.message || 'فشل في إصدار الفاتورة', 'error');
-    }
+    },
   });
 };

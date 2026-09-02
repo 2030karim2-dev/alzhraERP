@@ -1,4 +1,4 @@
-import { Product } from '../types';
+import type { Product } from '../types';
 import Decimal from 'decimal.js';
 
 export const costingService = {
@@ -13,18 +13,18 @@ export const costingService = {
     newUnitPrice: number
   ): number => {
     if (newQty <= 0) return currentAvgCost; // No change on negative/zero qty (returns/adjustments out)
-    
+
     const stock = new Decimal(currentStock);
     const cost = new Decimal(currentAvgCost);
     const qty = new Decimal(newQty);
     const price = new Decimal(newUnitPrice);
-    
+
     const totalQty = stock.plus(qty);
     if (totalQty.lte(0)) return price.toNumber();
 
     const totalCurrentValue = stock.times(cost);
     const totalNewValue = qty.times(price);
-    
+
     const newWac = totalCurrentValue.plus(totalNewValue).dividedBy(totalQty);
     return newWac.toDecimalPlaces(4).toNumber();
   },
@@ -33,7 +33,10 @@ export const costingService = {
    * تقدير قيمة المخزون الحالية بالكامل
    */
   getInventoryAssetValue: (products: Product[]): number => {
-    return products.reduce((acc, p) => acc + new Decimal(p.stock_quantity || 0).times(p.cost_price || 0).toNumber(), 0);
+    return products.reduce(
+      (acc, p) => acc + new Decimal(p.stock_quantity || 0).times(p.cost_price || 0).toNumber(),
+      0
+    );
   },
 
   /**
@@ -47,7 +50,7 @@ export const costingService = {
     return {
       profit: profit.toNumber(),
       margin,
-      isViable: margin > 10
+      isViable: margin > 10,
     };
-  }
+  },
 };

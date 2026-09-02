@@ -1,12 +1,15 @@
 # ADR-012: Trust Boundaries and Security Architecture Map
 
 ## Status
+
 Accepted
 
 ## Date
+
 2026-08-26
 
 ## Context
+
 A comprehensive security audit of the Al-Zahra ERP system identified the
 need for an explicit map of trust boundaries and the data flow across
 them. This ADR captures the current state after the 2026-08-26 security
@@ -59,6 +62,7 @@ reference for "what protects what."
 ## Trust Boundaries
 
 ### Boundary 1: Browser ↔ Supabase Gateway
+
 - **Threat:** XSS, CSRF (mitigated by JWT-in-Authorization-header),
   token theft via DevTools/Sentry.
 - **Controls:**
@@ -77,6 +81,7 @@ reference for "what protects what."
   Long-term: httpOnly cookies via an auth proxy (R-03, deferred).
 
 ### Boundary 2: Supabase Gateway ↔ Postgres
+
 - **Threat:** PostgREST exposes every table by default; without RLS, all
   rows are visible. RLS is the only safety net.
 - **Controls:**
@@ -94,6 +99,7 @@ reference for "what protects what."
   The audit view + the pre-merge checklist must catch this.
 
 ### Boundary 3: Authenticated user ↔ Other tenants
+
 - **Threat:** cross-tenant data read/write. R-26 (api_v1_*) was the
   biggest example: 39 functions in the baseline accepted `p_company_id`
   but did not verify the caller was a member of that company.
@@ -116,6 +122,7 @@ reference for "what protects what."
   - `file_attachments` RLS tightened from `TO public` to `TO authenticated`.
 
 ### Boundary 4: Database role ↔ Other database roles
+
 - **Threat:** privilege escalation via GRANTs or SECURITY DEFINER.
 - **Controls:**
   - `anon` has NO direct table grants; all data access goes through

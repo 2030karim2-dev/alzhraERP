@@ -1,5 +1,4 @@
-
-import { Account, AccountFormData } from '../types/index';
+import type { Account, AccountFormData } from '../types/index';
 import { accountsApi } from '../api/accountsApi';
 // Fix: Added missing supabase import
 import { supabase } from '../../../lib/supabaseClient';
@@ -32,7 +31,10 @@ const DEFAULT_CHART_OF_ACCOUNTS: Array<{
 
 // Verification point
 export const accountsService = {
-  getAccounts: async (companyId: string, options?: { includeBalances?: boolean }): Promise<Account[]> => {
+  getAccounts: async (
+    companyId: string,
+    options?: { includeBalances?: boolean }
+  ): Promise<Account[]> => {
     // Fetch account metadata
     const { data, error } = await accountsApi.getAccounts(companyId);
     if (error) throw parseError(error);
@@ -43,13 +45,16 @@ export const accountsService = {
     // balances from previous years are included. It is only run when balances
     // are actually needed (e.g. the accounts list view); callers that only
     // route by account metadata (id/code/type) skip it entirely.
-    let balanceMap = new Map<string, number>();
+    const balanceMap = new Map<string, number>();
     if (options?.includeBalances) {
       const now = new Date();
-      const { data: balances, error: balancesError } = await supabase.rpc('report_account_balances', {
-        p_company_id: companyId,
-        p_as_of_date: now.toISOString().split('T')[0]
-      });
+      const { data: balances, error: balancesError } = await supabase.rpc(
+        'report_account_balances',
+        {
+          p_company_id: companyId,
+          p_as_of_date: now.toISOString().split('T')[0],
+        }
+      );
       // Fail loudly rather than silently zeroing every account balance.
       if (balancesError) throw parseError(balancesError);
 
@@ -59,28 +64,28 @@ export const accountsService = {
     }
 
     // Map to Account model
-    return (data ?? []).map((acc) => {
-        // report_trial_balance returns flat `balance = SUM(debit) - SUM(credit)`
-        // for every account type. Normalise the sign by type so that
-        // liabilities / equity / revenue appear as positive CREDIT balances
-        // (standard accounting presentation) instead of negative numbers.
-        const rawBalance = balanceMap.get(acc.id) ?? 0;
-        const isCreditNormal = acc.type === 'liability' || acc.type === 'equity' || acc.type === 'revenue';
-        return {
-            id: acc.id,
-            company_id: acc.company_id,
-            code: acc.code,
-            name: acc.name_ar,
-            type: acc.type as Account['type'],
-            balance: isCreditNormal ? -rawBalance : rawBalance,
-            currency_code: acc.currency_code || 'SAR',
-            is_system: acc.is_system,
-            parent_id: acc.parent_id ?? undefined,
-            allow_posting: acc.allow_posting ?? true
-        };
+    return (data ?? []).map(acc => {
+      // report_trial_balance returns flat `balance = SUM(debit) - SUM(credit)`
+      // for every account type. Normalise the sign by type so that
+      // liabilities / equity / revenue appear as positive CREDIT balances
+      // (standard accounting presentation) instead of negative numbers.
+      const rawBalance = balanceMap.get(acc.id) ?? 0;
+      const isCreditNormal =
+        acc.type === 'liability' || acc.type === 'equity' || acc.type === 'revenue';
+      return {
+        id: acc.id,
+        company_id: acc.company_id,
+        code: acc.code,
+        name: acc.name_ar,
+        type: acc.type as Account['type'],
+        balance: isCreditNormal ? -rawBalance : rawBalance,
+        currency_code: acc.currency_code || 'SAR',
+        is_system: acc.is_system,
+        parent_id: acc.parent_id ?? undefined,
+        allow_posting: acc.allow_posting ?? true,
+      };
     });
   },
-
 
   createAccount: async (data: AccountFormData, companyId: string): Promise<Account> => {
     const { data: account, error } = await accountsApi.createAccount({
@@ -90,7 +95,7 @@ export const accountsService = {
       type: data.type,
       parent_id: data.parent_id || null,
       currency_code: data.currency_code ?? 'SAR',
-      is_system: false
+      is_system: false,
     });
 
     if (error) throw error;
@@ -104,13 +109,13 @@ export const accountsService = {
       balance: 0,
       currency_code: account.currency_code,
       is_system: account.is_system,
-      parent_id: account.parent_id ?? undefined
+      parent_id: account.parent_id ?? undefined,
     };
   },
 
   // حذف حساب من دليل الحسابات — يعبر عبر accountsApi الذري (RPC + fallback)
   deleteAccount: async (companyId: string, id: string, isSystem: boolean) => {
-    if (isSystem) throw new Error("لا يمكن حذف حساب نظام");
+    if (isSystem) throw new Error('لا يمكن حذف حساب نظام');
     await accountsApi.deleteAccount(companyId, id);
   },
 
@@ -122,7 +127,7 @@ export const accountsService = {
       .select('code')
       .eq('company_id', companyId)
       .is('deleted_at', null);
-    const existingCodes = new Set(existing?.map((a) => a.code) || []);
+    const existingCodes = new Set(existing?.map(a => a.code) || []);
     const codeToId = new Map<string, string>();
 
     for (const acc of DEFAULT_CHART_OF_ACCOUNTS) {
@@ -146,7 +151,7 @@ export const accountsService = {
           type: acc.type,
           currency_code: 'SAR',
           is_system: true,
-          parent_id: typeof acc.parent === 'string' ? codeToId.get(acc.parent) ?? null : null,
+          parent_id: typeof acc.parent === 'string' ? (codeToId.get(acc.parent) ?? null) : null,
         })
         .select()
         .single();
@@ -177,15 +182,40 @@ export const accountsService = {
       .eq('company_id', companyId)
       .eq('parent_id', mainCashbox.id);
 
-    const existingCurrencies = new Set(existingChildren?.map((c) => c.currency_code) || []);
+    const existingCurrencies = new Set(existingChildren?.map(c => c.currency_code) || []);
 
     // 3. Define the desired sub-cashboxes
     const desiredBoxes = [
-      { code: '101001', name_ar: 'صندوق الكاش - ريال سعودي', name_en: 'Cash Box - SAR', currency_code: 'SAR' },
-      { code: '101002', name_ar: 'صندوق الكاش - ريال يمني', name_en: 'Cash Box - YER', currency_code: 'YER' },
-      { code: '101003', name_ar: 'صندوق الكاش - دولار أمريكي', name_en: 'Cash Box - USD', currency_code: 'USD' },
-      { code: '101004', name_ar: 'صندوق الكاش - ريال عماني', name_en: 'Cash Box - OMR', currency_code: 'OMR' },
-      { code: '101005', name_ar: 'صندوق الكاش - يوان صيني', name_en: 'Cash Box - CNY', currency_code: 'CNY' },
+      {
+        code: '101001',
+        name_ar: 'صندوق الكاش - ريال سعودي',
+        name_en: 'Cash Box - SAR',
+        currency_code: 'SAR',
+      },
+      {
+        code: '101002',
+        name_ar: 'صندوق الكاش - ريال يمني',
+        name_en: 'Cash Box - YER',
+        currency_code: 'YER',
+      },
+      {
+        code: '101003',
+        name_ar: 'صندوق الكاش - دولار أمريكي',
+        name_en: 'Cash Box - USD',
+        currency_code: 'USD',
+      },
+      {
+        code: '101004',
+        name_ar: 'صندوق الكاش - ريال عماني',
+        name_en: 'Cash Box - OMR',
+        currency_code: 'OMR',
+      },
+      {
+        code: '101005',
+        name_ar: 'صندوق الكاش - يوان صيني',
+        name_en: 'Cash Box - CNY',
+        currency_code: 'CNY',
+      },
     ];
 
     const toInsert = desiredBoxes
@@ -197,7 +227,7 @@ export const accountsService = {
         type: 'asset' as const,
         currency_code: box.currency_code,
         parent_id: mainCashbox.id,
-        is_system: true
+        is_system: true,
       }));
 
     if (toInsert.length > 0) {
@@ -220,16 +250,20 @@ export const accountsService = {
 
     if (!exchangeParent) {
       // Create 1030
-      const { data: newParent, error: parentError } = await supabase.from('accounts').insert({
-        company_id: companyId,
-        code: '1030',
-        name_ar: 'شركات الصرافة',
-        type: 'asset',
-        currency_code: 'SAR',
-        is_system: true
-      }).select().single();
+      const { data: newParent, error: parentError } = await supabase
+        .from('accounts')
+        .insert({
+          company_id: companyId,
+          code: '1030',
+          name_ar: 'شركات الصرافة',
+          type: 'asset',
+          currency_code: 'SAR',
+          is_system: true,
+        })
+        .select()
+        .single();
       if (parentError) throw parentError;
-      if (!newParent) throw new Error("Failed to create parent account");
+      if (!newParent) throw new Error('Failed to create parent account');
       exchangeParent = { id: newParent.id };
     }
 
@@ -240,13 +274,13 @@ export const accountsService = {
       .eq('company_id', companyId)
       .eq('parent_id', exchangeParent.id);
 
-    const existingCodes = new Set(existingChildren?.map((c) => c.code) || []);
+    const existingCodes = new Set(existingChildren?.map(c => c.code) || []);
 
     const exchanges = [
       { code: '103001', name_ar: 'شركة الكريمي للصرافة', currency_code: 'SAR' },
       { code: '103002', name_ar: 'النجم للصرافة والتحويلات', currency_code: 'SAR' },
       { code: '103003', name_ar: 'الامتياز للصرافة', currency_code: 'SAR' },
-      { code: '103004', name_ar: 'الياباني للصرافة', currency_code: 'SAR' }
+      { code: '103004', name_ar: 'الياباني للصرافة', currency_code: 'SAR' },
     ];
 
     const toInsert = exchanges
@@ -257,8 +291,8 @@ export const accountsService = {
         name_ar: ex.name_ar,
         type: 'asset' as const,
         currency_code: ex.currency_code,
-        parent_id: exchangeParent!.id,
-        is_system: false
+        parent_id: exchangeParent.id,
+        is_system: false,
       }));
 
     if (toInsert.length > 0) {
@@ -278,5 +312,5 @@ export const accountsService = {
       .eq('code', code)
       .single();
     return data;
-  }
+  },
 };

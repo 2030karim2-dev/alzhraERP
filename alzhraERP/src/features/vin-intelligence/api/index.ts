@@ -29,7 +29,9 @@ export const vinApi = {
       ...(vehicle.model != null ? { p_model: vehicle.model } : {}),
       ...(vehicle.year != null
         ? { p_year: vehicle.year }
-        : (vehicle.yearStart != null ? { p_year: vehicle.yearStart } : {})),
+        : vehicle.yearStart != null
+          ? { p_year: vehicle.yearStart }
+          : {}),
       ...(vehicle.engine != null ? { p_engine: vehicle.engine } : {}),
       ...(vehicle.bodyType != null ? { p_body_type: vehicle.bodyType } : {}),
       ...(vehicle.driveType != null ? { p_drive_type: vehicle.driveType } : {}),
@@ -41,11 +43,16 @@ export const vinApi = {
       logger.error('VinAPI', 'ensureVehicle failed', error);
       return null;
     }
-    return data as string;
+    return data;
   },
 
   /** Hybrid VIN decode: vPIC → DB → AI (Edge Function) */
-  decodeVin: async (body: { vin: string; mode?: 'hybrid' | 'db' | 'ai'; provider?: string; model?: string }) => {
+  decodeVin: async (body: {
+    vin: string;
+    mode?: 'hybrid' | 'db' | 'ai';
+    provider?: string;
+    model?: string;
+  }) => {
     const { data, error } = await supabase.functions.invoke('vin-decode', { body });
     if (error) {
       logger.error('VinAPI', 'decodeVin failed', error);
@@ -66,7 +73,7 @@ export const vinApi = {
     companyId: string,
     make: string,
     model?: string | null,
-    year?: number | null,
+    year?: number | null
   ): Promise<MatchingInventoryProduct[]> => {
     const { data, error } = await supabase.rpc('get_matching_inventory_products', {
       p_company_id: companyId,
@@ -87,7 +94,10 @@ export const vinApi = {
       logger.error('VinAPI', 'searchPartsByNumber failed', error);
       throw new Error('فشل البحث عن القطعة، حاول مرة أخرى');
     }
-    return data as { source: string; parts: Array<{ partNumber: string; name: string; make: string | null }> };
+    return data as {
+      source: string;
+      parts: Array<{ partNumber: string; name: string; make: string | null }>;
+    };
   },
 
   // ── vin_analyses ─────────────────────────────────────────
@@ -97,11 +107,7 @@ export const vinApi = {
     // PostgREST answers 400 → fall back to created_at ordering so the list
     // keeps working and stops spamming the console with errors.
     const query = () =>
-      supabase
-        .from('vin_analyses')
-        .select('*')
-        .eq('company_id', companyId)
-        .limit(50);
+      supabase.from('vin_analyses').select('*').eq('company_id', companyId).limit(50);
 
     const { data, error } = await query()
       .order('updated_at', { ascending: false })
@@ -114,7 +120,9 @@ export const vinApi = {
       error
     );
 
-    const { data: fallback, error: fallbackError } = await query().order('created_at', { ascending: false });
+    const { data: fallback, error: fallbackError } = await query().order('created_at', {
+      ascending: false,
+    });
     if (fallbackError) throw fallbackError;
     return fallback ?? [];
   },
@@ -139,12 +147,17 @@ export const vinApi = {
 
   // ── vehicle_products (vehicle ↔ product links) ───────────
   listVehicleProducts: async (vehicleId: string): Promise<VehicleProductLink[]> => {
-    const { data, error } = await supabase.from('vehicle_products').select('*').eq('vehicle_id', vehicleId);
+    const { data, error } = await supabase
+      .from('vehicle_products')
+      .select('*')
+      .eq('vehicle_id', vehicleId);
     if (error) throw error;
     return (data ?? []) as VehicleProductLink[];
   },
 
-  linkVehicleProduct: async (payload: TableInsert<'vehicle_products'>): Promise<VehicleProductLink> => {
+  linkVehicleProduct: async (
+    payload: TableInsert<'vehicle_products'>
+  ): Promise<VehicleProductLink> => {
     // PostgREST expects COLUMN names in `on_conflict` (not the constraint name).
     const { data, error } = await supabase
       .from('vehicle_products')
@@ -182,7 +195,7 @@ export const vinApi = {
   addPartsToInventory: async (
     companyId: string,
     vehicle: VehicleInfo,
-    parts: ExtractedPart[],
+    parts: ExtractedPart[]
   ): Promise<{ added: number; existing: number }> => {
     const { data, error } = await supabase.rpc('add_vin_parts_to_inventory', {
       p_company_id: companyId,
@@ -200,7 +213,7 @@ export const vinApi = {
         transmission: vehicle.transmission ?? null,
         region: vehicle.region ?? null,
       },
-      p_parts: parts.map((p) => ({
+      p_parts: parts.map(p => ({
         part_number: p.partNumber,
         description: p.description ?? null,
         manufacturer: p.manufacturer ?? null,

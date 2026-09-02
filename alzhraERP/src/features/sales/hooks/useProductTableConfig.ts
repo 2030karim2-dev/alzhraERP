@@ -48,7 +48,7 @@ const loadInitialConfig = (): TableConfig => {
       const mergedColumns = DEFAULT_CONFIG.columns
         .map(defCol => {
           const savedCol = parsedCols.find(c => c.id === defCol.id);
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
           const order = savedCol?.order !== undefined ? savedCol.order : defCol.order;
           return savedCol ? { ...defCol, ...savedCol, order } : defCol;
         })

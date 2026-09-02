@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from 'recha
 import { useThemeStore } from '../../lib/themeStore';
 
 interface CategoriesChartProps {
-  data: { name: string; value: number }[];
+  data: Array<{ name: string; value: number }>;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
@@ -59,7 +59,9 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
       if (checkDimensions()) clearInterval(interval);
     }, 500);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const onPieEnter = (_: any, _index: number) => {
@@ -67,17 +69,24 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="h-[300px] min-h-[300px] w-full relative group overflow-hidden"
+      className="group relative h-[300px] min-h-[300px] w-full overflow-hidden"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-slate-800/20 rounded-3xl max-md:rounded-xl pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 to-transparent dark:from-slate-800/20 max-md:rounded-xl" />
       {isMounted ? (
         <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <defs>
               {COLORS.map((color, index) => (
-                <linearGradient key={`gradient-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                <linearGradient
+                  key={`gradient-${index}`}
+                  id={`pieGradient-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
                   <stop offset="0%" stopColor={color} stopOpacity={1} />
                   <stop offset="100%" stopColor={color} stopOpacity={0.6} />
                 </linearGradient>
@@ -93,12 +102,16 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
                 border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
                 borderRadius: '16px',
                 color: isDark ? '#f8fafc' : '#0f172a',
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                boxShadow:
+                  '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                 fontWeight: 'bold',
-                padding: '12px 16px'
+                padding: '12px 16px',
               }}
               itemStyle={{ color: isDark ? '#cbd5e1' : '#475569', fontWeight: 'bold' }}
-              formatter={(value: any) => [new Intl.NumberFormat('en-US').format(value || 0), 'القيمة']}
+              formatter={(value: any) => [
+                new Intl.NumberFormat('en-US').format(value || 0),
+                'القيمة',
+              ]}
             />
             <Pie
               activeShape={renderActiveShape}
@@ -117,15 +130,15 @@ const CategoriesChart: React.FC<CategoriesChartProps> = ({ data }) => {
                 <Cell
                   key={`cell-${index}`}
                   fill={`url(#pieGradient-${index % COLORS.length})`}
-                  className="transition-all duration-300 hover:opacity-90 cursor-pointer outline-none"
+                  className="cursor-pointer outline-none transition-all duration-300 hover:opacity-90"
                 />
               ))}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
       ) : (
-        <div className="w-full h-full bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-3xl max-md:rounded-xl flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full border-8 border-slate-200 dark:border-slate-700 border-t-blue-500 animate-spin opacity-20" />
+        <div className="flex h-full w-full animate-pulse items-center justify-center rounded-3xl bg-slate-50/50 dark:bg-slate-800/10 max-md:rounded-xl">
+          <div className="h-32 w-32 animate-spin rounded-full border-8 border-slate-200 border-t-blue-500 opacity-20 dark:border-slate-700" />
         </div>
       )}
     </div>

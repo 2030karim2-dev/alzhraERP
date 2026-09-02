@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Product } from '@/features/inventory/types';
+import type { Product } from '@/features/inventory/types';
 import { salesQuotationsApi } from '@/features/sales/api';
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
@@ -22,11 +22,15 @@ export const useQuotationForm = (
   }
 ) => {
   const [saving, setSaving] = useState(false);
-  const [selectedParty, setSelectedParty] = useState<{ id: string; name: string; phone?: string } | null>(null);
+  const [selectedParty, setSelectedParty] = useState<{
+    id: string;
+    name: string;
+    phone?: string;
+  } | null>(null);
   const [partyQuery, setPartyQuery] = useState('');
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const { branchId } = useBranchFilter();
-  
+
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [validDays, setValidDays] = useState(7);
   const [notes, setNotes] = useState(initialData?.notes || '');
@@ -38,7 +42,11 @@ export const useQuotationForm = (
       : [{ productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 }]
   );
 
-  const [productModal, setProductModal] = useState<{ isOpen: boolean; rowIndex: number; query: string }>({
+  const [productModal, setProductModal] = useState<{
+    isOpen: boolean;
+    rowIndex: number;
+    query: string;
+  }>({
     isOpen: false,
     rowIndex: 0,
     query: '',
@@ -52,17 +60,20 @@ export const useQuotationForm = (
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
-      return sum + (item.quantity * item.unitPrice * (1 - item.discountPercent / 100));
+      return sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100);
     }, 0);
     return { subtotal, total: subtotal };
   }, [items]);
 
   const updateItem = (index: number, field: keyof ItemRow, value: string | number) => {
-    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    setItems(prev => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 
   const addItem = () => {
-    setItems(prev => [...prev, { productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 }]);
+    setItems(prev => [
+      ...prev,
+      { productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+    ]);
   };
 
   const removeItem = (index: number) => {
@@ -70,17 +81,23 @@ export const useQuotationForm = (
     setItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleOpenProductSearch = (index: number, query: string = '') => {
+  const handleOpenProductSearch = (index: number, query = '') => {
     setProductModal({ isOpen: true, rowIndex: index, query });
   };
 
   const handleProductSelect = (product: Product) => {
-    setItems(prev => prev.map((item, i) => i === productModal.rowIndex ? {
-      ...item,
-      productId: product.id,
-      description: product.name,
-      unitPrice: product.selling_price || 0,
-    } : item));
+    setItems(prev =>
+      prev.map((item, i) =>
+        i === productModal.rowIndex
+          ? {
+              ...item,
+              productId: product.id,
+              description: product.name,
+              unitPrice: product.selling_price || 0,
+            }
+          : item
+      )
+    );
     setProductModal(prev => ({ ...prev, isOpen: false }));
   };
 
@@ -103,7 +120,7 @@ export const useQuotationForm = (
       });
       onSuccess();
     } catch (err) {
-      logger.error("useQuotationForm", 'Failed to create quotation:', err);
+      logger.error('useQuotationForm', 'Failed to create quotation:', err);
       throw err;
     } finally {
       setSaving(false);
@@ -138,6 +155,6 @@ export const useQuotationForm = (
     removeItem,
     handleOpenProductSearch,
     handleProductSelect,
-    handleSave
+    handleSave,
   };
 };

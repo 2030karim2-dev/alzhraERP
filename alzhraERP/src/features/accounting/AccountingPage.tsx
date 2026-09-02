@@ -1,8 +1,19 @@
-import React, {  useMemo, Suspense, lazy } from 'react';
+import React, { useMemo, Suspense, lazy } from 'react';
 // Fix: Corrected import path to point to the barrel file.
 import { useJournalMutation, useAccountingView } from './hooks/index';
 import type { AccountingView } from './types/index';
-import { Calculator, Plus, FileText,  Calendar, BookOpen,  Landmark, Layers, LayoutDashboard,  RefreshCw, Wallet } from 'lucide-react';
+import {
+  Calculator,
+  Plus,
+  FileText,
+  Calendar,
+  BookOpen,
+  Landmark,
+  Layers,
+  LayoutDashboard,
+  RefreshCw,
+  Wallet,
+} from 'lucide-react';
 import MicroHeader from '../../ui/base/MicroHeader';
 import PageLoader from '../../ui/base/PageLoader';
 import { useTranslation } from '../../lib/hooks/useTranslation';
@@ -60,7 +71,11 @@ const AccountingPage: React.FC = () => {
   const { createJournal, isCreating } = useJournalMutation();
 
   const handleCreate = (data: JournalEntryFormData) => {
-    createJournal(data, { onSuccess: () => { closeJournalModal(); } });
+    createJournal(data, {
+      onSuccess: () => {
+        closeJournalModal();
+      },
+    });
   };
 
   // ينتظر اكتمال عمليات الإبطال/إعادة الجلب فعلياً — لا تأخير اصطناعي بعد الآن
@@ -92,7 +107,7 @@ const AccountingPage: React.FC = () => {
         variant="primary"
         size="sm"
         leftIcon={<Plus size={14} strokeWidth={3} />}
-        className="hidden sm:inline-flex uppercase tracking-tighter"
+        className="hidden uppercase tracking-tighter sm:inline-flex"
       >
         {t('new_journal_entry')}
       </Button>
@@ -112,28 +127,32 @@ const AccountingPage: React.FC = () => {
     if (!showDateFilter) return undefined;
 
     return (
-      <div className="flex items-center gap-2 max-md:gap-1 bg-blue-50 dark:bg-blue-900/10 px-2 py-1.5 max-md:px-1.5 max-md:py-1 rounded-[var(--radius)] border border-blue-100 dark:border-blue-900/20 w-full md:w-fit animate-in slide-in-from-top-1 duration-300">
-        <div className="p-1.5 bg-blue-600 text-white rounded-md">
+      <div className="animate-in slide-in-from-top-1 flex w-full items-center gap-2 rounded-[var(--radius)] border border-blue-100 bg-blue-50 px-2 py-1.5 duration-300 dark:border-blue-900/20 dark:bg-blue-900/10 max-md:gap-1 max-md:px-1.5 max-md:py-1 md:w-fit">
+        <div className="rounded-md bg-blue-600 p-1.5 text-white">
           <Calendar size={14} />
         </div>
-        <div className="flex items-center gap-1 max-md:gap-0.5 text-[10px] max-md:text-[10px] font-bold text-blue-900 dark:text-blue-300 whitespace-nowrap uppercase tracking-tight">
+        <div className="flex items-center gap-1 whitespace-nowrap text-[10px] font-bold uppercase tracking-tight text-blue-900 dark:text-blue-300 max-md:gap-0.5 max-md:text-[10px]">
           <div className="flex items-center gap-1.5">
             <span>{t('from_date')}:</span>
             <input
               type="date"
               value={dateRange.from}
-              onChange={(e) => { setDateRange(prev => ({ ...prev, from: e.target.value })); }}
-              className="bg-[var(--app-surface)] border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[10px]"
+              onChange={e => {
+                setDateRange(prev => ({ ...prev, from: e.target.value }));
+              }}
+              className="rounded border-none bg-[var(--app-surface)] p-1 font-mono text-blue-600 outline-none dark:text-blue-400 max-md:p-0.5 max-md:text-[10px]"
             />
           </div>
-          <div className="w-px h-4 bg-blue-200 dark:bg-blue-800/50 mx-1"></div>
+          <div className="mx-1 h-4 w-px bg-blue-200 dark:bg-blue-800/50"></div>
           <div className="flex items-center gap-1.5">
             <span>{t('to_date')}:</span>
             <input
               type="date"
               value={dateRange.to}
-              onChange={(e) => { setDateRange(prev => ({ ...prev, to: e.target.value })); }}
-              className="bg-[var(--app-surface)] border-none rounded p-1 max-md:p-0.5 outline-none font-mono text-blue-600 dark:text-blue-400 max-md:text-[10px]"
+              onChange={e => {
+                setDateRange(prev => ({ ...prev, to: e.target.value }));
+              }}
+              className="rounded border-none bg-[var(--app-surface)] p-1 font-mono text-blue-600 outline-none dark:text-blue-400 max-md:p-0.5 max-md:text-[10px]"
             />
           </div>
         </div>
@@ -141,9 +160,9 @@ const AccountingPage: React.FC = () => {
           onClick={handleRefresh}
           disabled={isRefreshing}
           aria-label="تحديث البيانات"
-          className="p-1 text-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+          className="p-1 text-blue-400 transition-colors hover:text-blue-600 disabled:opacity-50"
         >
-          <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+          <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
         </button>
       </div>
     );
@@ -151,27 +170,44 @@ const AccountingPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeView) {
-      case 'overview': return <AccountingOverview onNewJournal={openJournalModal} />;
-      case 'journal': return <JournalTable />;
-      case 'accounts': return <AccountsTable />;
-      case 'treasury': return <TreasuryView dateRange={dateRange} />;
-      case 'ledger': return <LedgerView dateRange={dateRange} />;
-      case 'income': return <IncomeStatement dateRange={dateRange} />;
-      case 'balance_sheet': return <BalanceSheet dateRange={dateRange} />;
-      default: return <AccountingOverview />;
+      case 'overview':
+        return <AccountingOverview onNewJournal={openJournalModal} />;
+      case 'journal':
+        return <JournalTable />;
+      case 'accounts':
+        return <AccountsTable />;
+      case 'treasury':
+        return <TreasuryView dateRange={dateRange} />;
+      case 'ledger':
+        return <LedgerView dateRange={dateRange} />;
+      case 'income':
+        return <IncomeStatement dateRange={dateRange} />;
+      case 'balance_sheet':
+        return <BalanceSheet dateRange={dateRange} />;
+      default:
+        return <AccountingOverview />;
     }
   };
 
   return (
-    <FullscreenContainer isMaximized={isMaximized} onToggleMaximize={() => { setIsMaximized(false); setIsZenMode(false); }} isZenMode={isZenMode}>
-      <div className="flex flex-col h-full bg-[var(--app-bg)] font-cairo">
+    <FullscreenContainer
+      isMaximized={isMaximized}
+      onToggleMaximize={() => {
+        setIsMaximized(false);
+        setIsZenMode(false);
+      }}
+      isZenMode={isZenMode}
+    >
+      <div className="font-cairo flex h-full flex-col bg-[var(--app-bg)]">
         <MicroHeader
           title={t('accounting_center_title')}
           icon={Calculator}
           actions={headerActions}
           tabs={TABS}
           activeTab={activeView}
-          onTabChange={(id) => { setActiveView(id as AccountingView); }}
+          onTabChange={id => {
+            setActiveView(id as AccountingView);
+          }}
           extraRow={dateFilterRow}
           isMaximized={isMaximized}
           onToggleMaximize={() => {
@@ -179,29 +215,33 @@ const AccountingPage: React.FC = () => {
             if (isMaximized) setIsZenMode(false);
           }}
           isZenMode={isZenMode}
-          onToggleZen={() => { setIsZenMode(!isZenMode); }}
+          onToggleZen={() => {
+            setIsZenMode(!isZenMode);
+          }}
         />
 
-      <div className={cn(
-        "flex-1 overflow-hidden flex flex-col relative z-20",
-        isZenMode ? "bg-[var(--app-surface)]" : ""
-      )}>
-        <Suspense fallback={<PageLoader />}>
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 max-md:p-1 md:p-4 pt-3 max-md:pt-1.5 md:pt-6 print-area animate-in slide-in-from-bottom-4 duration-500">
-             {renderContent()}
-          </div>
+        <div
+          className={cn(
+            'relative z-20 flex flex-1 flex-col overflow-hidden',
+            isZenMode ? 'bg-[var(--app-surface)]' : ''
+          )}
+        >
+          <Suspense fallback={<PageLoader />}>
+            <div className="custom-scrollbar print-area animate-in slide-in-from-bottom-4 flex-1 overflow-y-auto p-2 pt-3 duration-500 max-md:p-1 max-md:pt-1.5 md:p-4 md:pt-6">
+              {renderContent()}
+            </div>
+          </Suspense>
+        </div>
+
+        <Suspense fallback={null}>
+          <AddJournalEntryModal
+            isOpen={isModalOpen}
+            onClose={closeJournalModal}
+            onSubmit={handleCreate}
+            isSubmitting={isCreating}
+          />
         </Suspense>
       </div>
-
-      <Suspense fallback={null}>
-        <AddJournalEntryModal
-          isOpen={isModalOpen}
-          onClose={closeJournalModal}
-          onSubmit={handleCreate}
-          isSubmitting={isCreating}
-        />
-      </Suspense>
-    </div>
     </FullscreenContainer>
   );
 };

@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Layers, Save, Book, FolderTree } from 'lucide-react';
-import { AccountFormData, Account } from '../../types/index'; // Import Account type
+import type { AccountFormData, Account } from '../../types/index'; // Import Account type
 import Modal from '../../../../ui/base/Modal';
 import Button from '../../../../ui/base/Button';
 import Input from '../../../../ui/base/Input';
@@ -15,8 +14,20 @@ interface AddAccountModalProps {
   accounts?: Account[] | undefined;
 }
 
-const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSubmit, isSubmitting, accounts = [] }) => {
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<AccountFormData>();
+const AddAccountModal: React.FC<AddAccountModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+  accounts = [],
+}) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<AccountFormData>();
   const selectedType = watch('type');
 
   // Filter potential parents based on type (optional but good UX)
@@ -28,7 +39,12 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
 
   const footer = (
     <>
-      <button onClick={onClose} className="flex-1 py-3 text-[10px] font-bold text-[var(--app-text-secondary)] bg-[var(--app-surface)] border border-[var(--app-border)] uppercase hover:bg-[var(--app-surface-hover)] transition-colors">إلغاء</button>
+      <button
+        onClick={onClose}
+        className="flex-1 border border-[var(--app-border)] bg-[var(--app-surface)] py-3 text-[10px] font-bold uppercase text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)]"
+      >
+        إلغاء
+      </button>
       <Button
         onClick={handleSubmit(onSubmit)}
         isLoading={isSubmitting}
@@ -52,7 +68,6 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
       footer={footer}
     >
       <form className="flex flex-col border-t dark:border-slate-800">
-
         <div className="grid grid-cols-3 divide-x-0">
           <div className="col-span-1">
             <Input
@@ -73,10 +88,12 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
         </div>
 
         <div className="flex flex-col border-b border-[var(--app-border)]">
-          <label className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest">نوع الحساب (Account Classification)</label>
+          <label className="bg-[var(--app-surface-hover)] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)]">
+            نوع الحساب (Account Classification)
+          </label>
           <select
             {...register('type', { required: true })}
-            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
+            className="appearance-none bg-[var(--app-surface)] p-3 text-[10px] font-bold text-[var(--app-text)] outline-none"
           >
             <option value="asset">أصول (Assets)</option>
             <option value="liability">خصوم (Liabilities)</option>
@@ -87,11 +104,16 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
         </div>
 
         <div className="flex flex-col border-b border-[var(--app-border)]">
-          <label htmlFor="account-currency" className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest">العملة (Currency)</label>
+          <label
+            htmlFor="account-currency"
+            className="bg-[var(--app-surface-hover)] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)]"
+          >
+            العملة (Currency)
+          </label>
           <select
             id="account-currency"
             {...register('currency_code')}
-            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
+            className="appearance-none bg-[var(--app-surface)] p-3 text-[10px] font-bold text-[var(--app-text)] outline-none"
           >
             <option value="SAR">SAR — ريال سعودي</option>
             <option value="YER">YER — ريال يمني</option>
@@ -102,13 +124,13 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
         </div>
 
         <div className="flex flex-col border-b border-[var(--app-border)]">
-          <label className="text-[10px] font-bold text-[var(--app-text-secondary)] px-2 py-1 bg-[var(--app-surface-hover)] uppercase tracking-widest flex items-center gap-2">
+          <label className="flex items-center gap-2 bg-[var(--app-surface-hover)] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)]">
             <FolderTree size={10} />
             الحساب الرئيسي (اختياري)
           </label>
           <select
             {...register('parent_id')}
-            className="bg-[var(--app-surface)] text-[10px] font-bold p-3 outline-none appearance-none text-[var(--app-text)]"
+            className="appearance-none bg-[var(--app-surface)] p-3 text-[10px] font-bold text-[var(--app-text)] outline-none"
           >
             <option value="">-- حساب رئيسي (Root) --</option>
             {potentialParents.map(acc => (
@@ -119,10 +141,11 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onSu
           </select>
         </div>
 
-        <div className="bg-blue-50/20 dark:bg-blue-900/5 p-3 flex gap-2 items-center">
-          <Book size={14} className="text-blue-500 shrink-0" />
-          <p className="text-[10px] font-bold text-blue-800 dark:text-blue-400 leading-tight">
-            سيتم إضافة هذا الحساب بشكل آلي إلى دفتر الأستاذ العام وسيكون متاحاً لترحيل القيود فور حفظه.
+        <div className="flex items-center gap-2 bg-blue-50/20 p-3 dark:bg-blue-900/5">
+          <Book size={14} className="shrink-0 text-blue-500" />
+          <p className="text-[10px] font-bold leading-tight text-blue-800 dark:text-blue-400">
+            سيتم إضافة هذا الحساب بشكل آلي إلى دفتر الأستاذ العام وسيكون متاحاً لترحيل القيود فور
+            حفظه.
           </p>
         </div>
       </form>

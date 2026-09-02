@@ -22,17 +22,21 @@ const SRC_ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'src')
 const violations = [];
 
 /** Matches named imports from any module path ending in `supabaseClient`. */
-const NAMED_IMPORT_RE =
-  /import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"][^'"]*supabaseClient['"]/g;
+const NAMED_IMPORT_RE = /import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"][^'"]*supabaseClient['"]/g;
 /** Matches default imports: `import supabase from '...supabaseClient'`. */
-const DEFAULT_IMPORT_RE =
-  /import\s+(\w+)\s+from\s*['"][^'"]*supabaseClient['"]/g;
+const DEFAULT_IMPORT_RE = /import\s+(\w+)\s+from\s*['"][^'"]*supabaseClient['"]/g;
 
 /** A named binding is a violation when it exposes the runtime client itself. */
 function clauseExposesClient(clause) {
   return clause
     .split(',')
-    .map(part => part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)[0].trim())
+    .map(part =>
+      part
+        .trim()
+        .replace(/^type\s+/, '')
+        .split(/\s+as\s+/)[0]
+        .trim()
+    )
     .some(name => name === 'supabase');
 }
 

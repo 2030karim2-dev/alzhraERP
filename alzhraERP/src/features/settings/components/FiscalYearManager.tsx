@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, Plus, Lock, ShieldAlert } from 'lucide-react';
 import { useFiscalYears, useFiscalYearMutations } from '../hooks';
@@ -17,13 +16,19 @@ const FiscalYearManager: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAdd = (data: any) => {
-    addFiscalYear(data, { onSuccess: () => setIsModalOpen(false) });
+    addFiscalYear(data, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+      },
+    });
   };
 
   const handleClose = (id: string) => {
     try {
       assertOwner(user);
-      if (window.confirm('تحذير: إغلاق السنة المالية عملية لا يمكن التراجع عنها. هل تريد المتابعة؟')) {
+      if (
+        window.confirm('تحذير: إغلاق السنة المالية عملية لا يمكن التراجع عنها. هل تريد المتابعة؟')
+      ) {
         closeFiscalYear(id);
       }
     } catch (error: unknown) {
@@ -32,13 +37,22 @@ const FiscalYearManager: React.FC = () => {
     }
   };
 
-  if (isLoading) return <div className="p-8 max-md:p-4 text-center animate-pulse">جاري تحميل...</div>;
+  if (isLoading)
+    return <div className="animate-pulse p-8 text-center max-md:p-4">جاري تحميل...</div>;
 
   return (
-    <div className="bg-[var(--app-surface)] rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 max-md:p-4 space-y-3">
-      <div className="flex justify-between items-center px-1">
+    <div className="space-y-3 overflow-hidden rounded-xl border border-gray-200 bg-[var(--app-surface)] p-4 shadow-sm dark:border-slate-800 max-md:p-4">
+      <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300">السنوات المالية</h3>
-        <Button onClick={() => setIsModalOpen(true)} size="sm" leftIcon={<Plus size={12} />}>سنة جديدة</Button>
+        <Button
+          onClick={() => {
+            setIsModalOpen(true);
+          }}
+          size="sm"
+          leftIcon={<Plus size={12} />}
+        >
+          سنة جديدة
+        </Button>
       </div>
 
       <div className="space-y-2">
@@ -46,22 +60,38 @@ const FiscalYearManager: React.FC = () => {
           <MicroListItem
             key={year.id}
             icon={year.is_closed ? Lock : Calendar}
-            iconColorClass={year.is_closed ? "text-gray-400" : "text-purple-500"}
+            iconColorClass={year.is_closed ? 'text-gray-400' : 'text-purple-500'}
             title={`السنة المالية ${year.name}`}
             subtitle={`${year.start_date} → ${year.end_date}`}
-            tags={[{ label: year.is_closed ? 'مغلقة' : 'نشطة', color: year.is_closed ? 'slate' : 'emerald' }]}
-            actions={!year.is_closed && (
-              <button onClick={(e) => { e.stopPropagation(); handleClose(year.id); }} className="p-1 max-md:p-1.5 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg" title="إغلاق السنة">
-                <ShieldAlert size={14} />
-              </button>
-            )}
+            tags={[
+              {
+                label: year.is_closed ? 'مغلقة' : 'نشطة',
+                color: year.is_closed ? 'slate' : 'emerald',
+              },
+            ]}
+            actions={
+              !year.is_closed && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleClose(year.id);
+                  }}
+                  className="rounded-lg p-1 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 max-md:p-1.5"
+                  title="إغلاق السنة"
+                >
+                  <ShieldAlert size={14} />
+                </button>
+              )
+            }
           />
         ))}
       </div>
 
       <FiscalYearModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+        }}
         onSave={handleAdd}
         isSaving={isAdding}
       />

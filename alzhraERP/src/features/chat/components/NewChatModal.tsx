@@ -51,16 +51,18 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
     ])
       .then(([emps, brs]) => {
         // Filter out current user from direct chat candidates
-        setEmployees(emps.filter((e) => e.id !== user?.id));
+        setEmployees(emps.filter(e => e.id !== user?.id));
         if (brs) setBranches(brs);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [isOpen, companyId, user?.id]);
 
   if (!isOpen) return null;
 
   const filteredEmployees = employees.filter(
-    (e) =>
+    e =>
       e.full_name?.toLowerCase().includes(search.toLowerCase()) ||
       e.branch_name?.toLowerCase().includes(search.toLowerCase()) ||
       e.role?.toLowerCase().includes(search.toLowerCase())
@@ -121,9 +123,11 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex border-b border-[var(--app-border)] bg-[var(--app-bg)]/50 p-2 gap-1.5">
+        <div className="bg-[var(--app-bg)]/50 flex gap-1.5 border-b border-[var(--app-border)] p-2">
           <button
-            onClick={() => setMode('direct')}
+            onClick={() => {
+              setMode('direct');
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               mode === 'direct'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -133,7 +137,9 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <User size={14} /> محادثة مع موظف
           </button>
           <button
-            onClick={() => setMode('group')}
+            onClick={() => {
+              setMode('group');
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               mode === 'group'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -149,12 +155,17 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
           {mode === 'direct' ? (
             <div className="space-y-3">
               <div className="relative">
-                <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]" />
+                <Search
+                  size={16}
+                  className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]"
+                />
                 <input
                   type="text"
                   placeholder="ابحث باسم الموظف، الفرع، أو الدور..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                  }}
                   className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] py-2 pe-3 ps-9 text-xs text-[var(--app-text)] outline-none focus:border-[var(--accent)]"
                 />
               </div>
@@ -172,7 +183,7 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
               )}
 
               <div className="space-y-1.5">
-                {filteredEmployees.map((emp) => (
+                {filteredEmployees.map(emp => (
                   <button
                     key={emp.id}
                     onClick={() => handleStartDirect(emp.id)}
@@ -187,12 +198,14 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
                           className="h-8 w-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)]/10 font-bold text-[var(--accent)] text-xs">
+                        <div className="bg-[var(--accent)]/10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-[var(--accent)]">
                           {emp.full_name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <strong className="block text-xs text-[var(--app-text)]">{emp.full_name}</strong>
+                        <strong className="block text-xs text-[var(--app-text)]">
+                          {emp.full_name}
+                        </strong>
                         <span className="text-[10px] text-[var(--app-text-secondary)]">
                           {emp.role} {emp.branch_name ? `• ${emp.branch_name}` : ''}
                         </span>
@@ -206,14 +219,18 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
           ) : (
             <form onSubmit={handleCreateGroup} className="space-y-3.5 text-xs">
               <div>
-                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">نوع القناة:</label>
+                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                  نوع القناة:
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setGroupType('topic')}
+                    onClick={() => {
+                      setGroupType('topic');
+                    }}
                     className={`rounded-xl border p-2 text-center font-bold transition-all ${
                       groupType === 'topic'
-                        ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                        ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'
                         : 'border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)]'
                     }`}
                   >
@@ -221,10 +238,12 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setGroupType('branch')}
+                    onClick={() => {
+                      setGroupType('branch');
+                    }}
                     className={`rounded-xl border p-2 text-center font-bold transition-all ${
                       groupType === 'branch'
-                        ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                        ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'
                         : 'border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)]'
                     }`}
                   >
@@ -234,40 +253,54 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">اسم القناة / الغرفة:</label>
+                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                  اسم القناة / الغرفة:
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: طلبات التحويل والمناقلة السريعة"
                   value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
+                  onChange={e => {
+                    setGroupName(e.target.value);
+                  }}
                   className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 outline-none focus:border-[var(--accent)]"
                 />
               </div>
 
               {groupType === 'branch' && (
                 <div>
-                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">الفرع المرتبط:</label>
+                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                    الفرع المرتبط:
+                  </label>
                   <select
                     value={selectedBranchId}
-                    onChange={(e) => setSelectedBranchId(e.target.value)}
+                    onChange={e => {
+                      setSelectedBranchId(e.target.value);
+                    }}
                     className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 outline-none"
                   >
                     <option value="">-- اختر الفرع --</option>
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
+                    {branches.map(b => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
                     ))}
                   </select>
                 </div>
               )}
 
               <div>
-                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">الوصف (اختياري):</label>
+                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                  الوصف (اختياري):
+                </label>
                 <textarea
                   rows={2}
                   placeholder="اكتب وصفاً موجزاً لغرض القناة..."
                   value={groupDescription}
-                  onChange={(e) => setGroupDescription(e.target.value)}
+                  onChange={e => {
+                    setGroupDescription(e.target.value);
+                  }}
                   className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 outline-none"
                 />
               </div>

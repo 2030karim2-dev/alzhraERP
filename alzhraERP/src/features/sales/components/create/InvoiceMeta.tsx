@@ -55,7 +55,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -67,13 +69,13 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
         setMetadata('exchangeRate', 1);
         setMetadata('exchangeOperator', 'multiply');
       } else {
-        const rateObj = (rates.data as { currency_code: string; rate_to_base: number }[])?.find(
-          r => r.currency_code === currency
-        );
+        const rateObj = (
+          rates.data as Array<{ currency_code: string; rate_to_base: number }>
+        )?.find(r => r.currency_code === currency);
         if (rateObj) {
           setMetadata('exchangeRate', rateObj.rate_to_base);
           const currencyConfig = (
-            currencies.data as { code: string; exchange_operator: string }[]
+            currencies.data as Array<{ code: string; exchange_operator: string }>
           )?.find(c => c.code === currency);
           if (currencyConfig) {
             setMetadata('exchangeOperator', currencyConfig.exchange_operator);
@@ -103,7 +105,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
     // Default primary warehouse selection
     if (warehouses && warehouses.length > 0 && (warehouseId === 'wh_main' || !warehouseId)) {
-      const castWarehouses = warehouses as Record<string, unknown>[];
+      const castWarehouses = warehouses as Array<Record<string, unknown>>;
       const primary = castWarehouses.find(w => w.is_primary);
       const target = primary || castWarehouses[0];
       if (target?.id) {
@@ -198,7 +200,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
             <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200/60 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-900">
               <button
                 type="button"
-                onClick={() => setMetadata('invoiceType', 'cash')}
+                onClick={() => {
+                  setMetadata('invoiceType', 'cash');
+                }}
                 className={cn(
                   'flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-black transition-all',
                   invoiceType === 'cash'
@@ -212,7 +216,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
               <button
                 type="button"
-                onClick={() => setMetadata('invoiceType', 'credit')}
+                onClick={() => {
+                  setMetadata('invoiceType', 'credit');
+                }}
                 className={cn(
                   'flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-black transition-all',
                   invoiceType === 'credit'
@@ -238,10 +244,12 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
               </div>
               <select
                 value={currency || 'SAR'}
-                onChange={e => setMetadata('currency', e.target.value)}
+                onChange={e => {
+                  setMetadata('currency', e.target.value);
+                }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
-                {(currencies.data as { code: string }[])?.map(c => (
+                {(currencies.data as Array<{ code: string }>)?.map(c => (
                   <option key={c.code} value={c.code}>
                     {c.code}
                   </option>
@@ -290,7 +298,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
               <button
                 type="button"
-                onClick={() => setIsTreasuryOpen(prev => !prev)}
+                onClick={() => {
+                  setIsTreasuryOpen(prev => !prev);
+                }}
                 className="flex w-full items-center justify-between gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
               >
                 <span className="truncate">
@@ -317,7 +327,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                       <input
                         type="text"
                         value={treasurySearch}
-                        onChange={e => setTreasurySearch(e.target.value)}
+                        onChange={e => {
+                          setTreasurySearch(e.target.value);
+                        }}
                         placeholder="بحث عن صندوق..."
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 py-1 pl-2 pr-7 text-xs font-bold outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                         autoFocus
@@ -397,7 +409,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
               </div>
               <select
                 value={warehouseId || ''}
-                onChange={e => setMetadata('warehouseId', e.target.value)}
+                onChange={e => {
+                  setMetadata('warehouseId', e.target.value);
+                }}
                 className="w-full truncate rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
                 {warehouses?.map((w: Record<string, unknown>) => (

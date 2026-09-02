@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { User, ShieldCheck, Zap, Plus, Phone, Globe, Copy } from 'lucide-react';
-import { PartyFormData, Party, PartyType } from '../types';
+import type { PartyFormData, Party, PartyType } from '../types';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
 import Modal from '../../../ui/base/Modal';
@@ -93,7 +93,9 @@ const PartyModal: React.FC<PartyModalProps> = ({
     saveCategory(
       { name: data.name },
       {
-        onSuccess: () => setIsCategoryModalOpen(false),
+        onSuccess: () => {
+          setIsCategoryModalOpen(false);
+        },
       }
     );
   };
@@ -139,7 +141,9 @@ const PartyModal: React.FC<PartyModalProps> = ({
               <div className="flex h-9 w-32 rounded-xl border border-gray-200/50 bg-gray-100 p-1 dark:border-slate-700 dark:bg-slate-800">
                 <button
                   type="button"
-                  onClick={() => setValue('status', 'active')}
+                  onClick={() => {
+                    setValue('status', 'active');
+                  }}
                   className={cn(
                     'flex-1 rounded-lg text-[10px] font-bold transition-all duration-300',
                     currentStatus === 'active'
@@ -151,7 +155,9 @@ const PartyModal: React.FC<PartyModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setValue('status', 'blocked')}
+                  onClick={() => {
+                    setValue('status', 'blocked');
+                  }}
                   className={cn(
                     'flex-1 rounded-lg text-[10px] font-bold transition-all duration-300',
                     currentStatus === 'blocked'
@@ -198,7 +204,9 @@ const PartyModal: React.FC<PartyModalProps> = ({
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsCategoryModalOpen(true)}
+                      onClick={() => {
+                        setIsCategoryModalOpen(true);
+                      }}
                       className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-sm transition-all hover:bg-blue-600 hover:text-white dark:bg-blue-900/20"
                       title={t('add_new_category')}
                     >
@@ -281,7 +289,9 @@ const PartyModal: React.FC<PartyModalProps> = ({
 
       <CategoryModal
         isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+        }}
         onSave={handleSaveCategory}
         isSaving={isSavingCategory}
         initialData={null}

@@ -14,7 +14,7 @@ import type {
 // graph for embedded selects, so we keep explicit raw-row shapes here. The
 // row-level access is fully tenant-scoped by RLS on the server; these types
 // only describe what the queries select back into the service layer.
-type ChannelRawRow = {
+interface ChannelRawRow {
   id: string;
   company_id: string;
   type: string;
@@ -34,9 +34,9 @@ type ChannelRawRow = {
     last_read_message_id: string | null;
     profiles: { id: string; full_name: string; avatar_url: string | null } | null;
   }>;
-};
+}
 
-type MessageRawRow = {
+interface MessageRawRow {
   id: string;
   channel_id: string;
   sender_id: string;
@@ -55,7 +55,7 @@ type MessageRawRow = {
     sender_id: string;
     profiles: { full_name: string } | null;
   } | null;
-  chat_message_attachments: Database['public']['Tables']['chat_message_attachments']['Row'][];
+  chat_message_attachments: Array<Database['public']['Tables']['chat_message_attachments']['Row']>;
   chat_message_reactions: Array<{
     id: string;
     message_id: string;
@@ -64,50 +64,57 @@ type MessageRawRow = {
     created_at: string;
     profiles: { full_name: string } | null;
   }>;
-};
+}
 
-type EmployeeRoleRawRow = {
+interface EmployeeRoleRawRow {
   user_id: string;
   role: string;
   branch_id: string | null;
   branches: { name: string } | null;
   profiles: { id: string; full_name: string; avatar_url: string | null } | null;
-};
+}
 
 /**
  * Typed RPC wrappers. The chat RPCs exist on the server but are not yet part
  * of the generated `database.types.ts` (Functions section), so we declare the
  * exact argument/return shapes here instead of scattering `as any` casts.
  */
-type RpcSendMessageArgs = {
+interface RpcSendMessageArgs {
   p_channel_id: string;
   p_content: string;
   p_message_type: string;
   p_metadata: unknown;
   p_reply_to_id: string | null;
   p_client_message_id: string;
-};
-type RpcSendMessageResult = { success: boolean; message_id?: string | null };
+}
+interface RpcSendMessageResult {
+  success: boolean;
+  message_id?: string | null;
+}
 
-type RpcExecuteActionArgs = {
+interface RpcExecuteActionArgs {
   p_message_id: string;
   p_action: 'approve' | 'reject' | 'cancel';
   p_notes: string | null;
-};
-type RpcExecuteActionResult = { success: boolean; status: ActionStatus; message: string };
+}
+interface RpcExecuteActionResult {
+  success: boolean;
+  status: ActionStatus;
+  message: string;
+}
 
-type RpcCreateChannelArgs = {
+interface RpcCreateChannelArgs {
   p_company_id: string;
   p_target_user_id?: string;
   p_reference_type?: string;
   p_reference_id?: string;
   p_channel_name?: string;
-};
+}
 
-type RpcMarkReadArgs = {
+interface RpcMarkReadArgs {
   p_channel_id: string;
   p_last_message_id: string | null;
-};
+}
 
 /** Call a named RPC with typed args; returns the raw result payload. */
 async function callRpc<Args, Result>(fn: string, args: Args): Promise<Result | null> {
@@ -282,7 +289,7 @@ export const chatService = {
 
       return formatted;
     } catch (err) {
-      logger.error('ChatService', 'Error fetching chat channels', err as Error);
+      logger.error('ChatService', 'Error fetching chat channels', err);
       return [];
     }
   },
@@ -292,7 +299,7 @@ export const chatService = {
    */
   getMessages: async (
     channelId: string,
-    limit: number = 40,
+    limit = 40,
     beforeTimestamp?: string
   ): Promise<ChatMessage[]> => {
     try {
@@ -400,7 +407,7 @@ export const chatService = {
       // Return in chronological order (oldest first)
       return formatted.reverse();
     } catch (err) {
-      logger.error('ChatService', 'Error fetching messages', err as Error);
+      logger.error('ChatService', 'Error fetching messages', err);
       return [];
     }
   },
@@ -428,7 +435,7 @@ export const chatService = {
       if (!data) return null;
       return data as unknown as ChatMessage;
     } catch (err) {
-      logger.error('ChatService', 'Error sending chat message', err as Error);
+      logger.error('ChatService', 'Error sending chat message', err);
       throw err;
     }
   },
@@ -470,7 +477,7 @@ export const chatService = {
       if (dbError) throw dbError;
       return data;
     } catch (err) {
-      logger.error('ChatService', 'Error uploading attachment', err as Error);
+      logger.error('ChatService', 'Error uploading attachment', err);
       throw err;
     }
   },
@@ -487,7 +494,7 @@ export const chatService = {
       if (error) throw error;
       return data?.signedUrl || null;
     } catch (err) {
-      logger.error('ChatService', 'Error getting attachment signed URL', err as Error);
+      logger.error('ChatService', 'Error getting attachment signed URL', err);
       return null;
     }
   },
@@ -512,7 +519,7 @@ export const chatService = {
         });
       }
     } catch (err) {
-      logger.error('ChatService', 'Error toggling reaction', err as Error);
+      logger.error('ChatService', 'Error toggling reaction', err);
     }
   },
 
@@ -526,7 +533,7 @@ export const chatService = {
         p_last_message_id: lastMessageId || null,
       });
     } catch (err) {
-      logger.error('ChatService', 'Error marking channel read', err as Error);
+      logger.error('ChatService', 'Error marking channel read', err);
     }
   },
 
@@ -550,7 +557,7 @@ export const chatService = {
 
       return data ?? { success: false, status: 'cancelled', message: 'لا يوجد رد من الخادم' };
     } catch (err) {
-      logger.error('ChatService', 'Error executing chat action', err as Error);
+      logger.error('ChatService', 'Error executing chat action', err);
       throw err;
     }
   },
@@ -567,7 +574,7 @@ export const chatService = {
 
       return String(data ?? '');
     } catch (err) {
-      logger.error('ChatService', 'Error creating direct channel', err as Error);
+      logger.error('ChatService', 'Error creating direct channel', err);
       throw err;
     }
   },
@@ -594,7 +601,7 @@ export const chatService = {
 
       return String(data ?? '');
     } catch (err) {
-      logger.error('ChatService', 'Error creating contextual channel', err as Error);
+      logger.error('ChatService', 'Error creating contextual channel', err);
       throw err;
     }
   },
@@ -637,7 +644,7 @@ export const chatService = {
 
       return newChannel.id;
     } catch (err) {
-      logger.error('ChatService', 'Error creating group channel', err as Error);
+      logger.error('ChatService', 'Error creating group channel', err);
       throw err;
     }
   },
@@ -688,7 +695,7 @@ export const chatService = {
         branch_name: item.branches?.name || null,
       }));
     } catch (err) {
-      logger.error('ChatService', 'Error fetching company employees', err as Error);
+      logger.error('ChatService', 'Error fetching company employees', err);
       return [];
     }
   },
@@ -704,9 +711,9 @@ export const chatService = {
         .eq('company_id', companyId);
 
       if (error) throw error;
-      return (data || []) as Array<{ id: string; name: string }>;
+      return data || [];
     } catch (err) {
-      logger.error('ChatService', 'Error fetching company branches', err as Error);
+      logger.error('ChatService', 'Error fetching company branches', err);
       return [];
     }
   },
@@ -754,7 +761,7 @@ export const chatService = {
         };
       });
     } catch (err) {
-      logger.error('ChatService', 'Error searching products for sharing', err as Error);
+      logger.error('ChatService', 'Error searching products for sharing', err);
       return [];
     }
   },
@@ -796,7 +803,7 @@ export const chatService = {
         created_at: inv.created_at,
       }));
     } catch (err) {
-      logger.error('ChatService', 'Error searching invoices for sharing', err as Error);
+      logger.error('ChatService', 'Error searching invoices for sharing', err);
       return [];
     }
   },
@@ -834,7 +841,7 @@ export const chatService = {
         created_at: tr.created_at,
       }));
     } catch (err) {
-      logger.error('ChatService', 'Error searching transfers for sharing', err as Error);
+      logger.error('ChatService', 'Error searching transfers for sharing', err);
       return [];
     }
   },
@@ -857,7 +864,7 @@ export const chatService = {
       if (error) throw error;
       return data || [];
     } catch (err) {
-      logger.error('ChatService', 'Error searching VINs for sharing', err as Error);
+      logger.error('ChatService', 'Error searching VINs for sharing', err);
       return [];
     }
   },

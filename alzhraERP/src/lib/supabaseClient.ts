@@ -1,6 +1,5 @@
-
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../core/database.types';
+import type { Database } from '../core/database.types';
 import { logger } from '../core/utils/logger';
 import { useConnectionStore } from '../core/store/connectionStore';
 import { STORAGE_KEYS } from '../core/constants';
@@ -48,8 +47,8 @@ const isUnitTest = import.meta.env.MODE === 'test';
 // request storm (thundering herd) that saturates the browser connection pool and
 // delays recovery. After N consecutive network failures the circuit opens: every
 // request fails fast (single attempt, no retry) until a request succeeds again.
-const CIRCUIT_THRESHOLD = 3;      // consecutive network failures before opening
-const CIRCUIT_RESET_MS = 30_000;  // cooldown before retries are allowed again
+const CIRCUIT_THRESHOLD = 3; // consecutive network failures before opening
+const CIRCUIT_RESET_MS = 30_000; // cooldown before retries are allowed again
 let consecutiveNetworkFailures = 0;
 let circuitOpenedAt = 0;
 
@@ -61,7 +60,10 @@ const reportNetworkFailure = (): void => {
   consecutiveNetworkFailures += 1;
   if (consecutiveNetworkFailures === CIRCUIT_THRESHOLD) {
     circuitOpenedAt = Date.now();
-    logger.warn('Supabase', `⚠️ Circuit open — ${CIRCUIT_THRESHOLD} consecutive network failures; failing fast for ${CIRCUIT_RESET_MS / 1000}s`);
+    logger.warn(
+      'Supabase',
+      `⚠️ Circuit open — ${CIRCUIT_THRESHOLD} consecutive network failures; failing fast for ${CIRCUIT_RESET_MS / 1000}s`
+    );
   }
 };
 
@@ -74,30 +76,34 @@ const reportNetworkSuccess = (): void => {
 };
 
 // Custom fetch with timeout, bounded retry and circuit breaker
-const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
+const customFetch = async (
+  url: RequestInfo | URL,
+  options: RequestInit = {}
+): Promise<Response> => {
   const MAX_RETRIES = 2;
   let lastError: Error | unknown;
 
-  const skipRetry =
-    (() => {
-      const headers = options.headers;
-      if (headers && typeof (headers as Record<string, string>).has === 'function') {
-        // `Headers` instance
-        return (headers as Headers).get('x-skip-network-retry') === '1';
-      }
-      return (headers as Record<string, string> | undefined)?.['x-skip-network-retry'] === '1';
-    })();
+  const skipRetry = (() => {
+    const headers = options.headers;
+    if (headers && typeof (headers as Record<string, string>).has === 'function') {
+      // `Headers` instance
+      return (headers as Headers).get('x-skip-network-retry') === '1';
+    }
+    return (headers as Record<string, string> | undefined)?.['x-skip-network-retry'] === '1';
+  })();
 
   for (let i = 0; i <= MAX_RETRIES; i++) {
     const timeoutController = new AbortController();
     const timeoutId = setTimeout(() => {
       try {
         timeoutController.abort('timeout');
-      } catch (_) { /* ignore */ }
+      } catch (_) {
+        /* ignore */
+      }
     }, 45000);
 
     // Merge signals if options.signal exists
-    let signal = timeoutController.signal;
+    const signal = timeoutController.signal;
     if (options.signal) {
       // If signal is already aborted, silently bail out
       if (options.signal.aborted) {
@@ -106,11 +112,17 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
         // This happens during HMR and auth token refresh
         throw new DOMException('Request aborted', 'AbortError');
       }
-      options.signal.addEventListener('abort', () => {
-        try {
-          timeoutController.abort(options.signal?.reason || 'signal-merge');
-        } catch (_) { /* ignore */ }
-      }, { once: true });
+      options.signal.addEventListener(
+        'abort',
+        () => {
+          try {
+            timeoutController.abort(options.signal?.reason || 'signal-merge');
+          } catch (_) {
+            /* ignore */
+          }
+        },
+        { once: true }
+      );
     }
 
     try {
@@ -133,7 +145,9 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
       clearTimeout(timeoutId);
 
       const err = error as Error & { name: string; message: string; reason?: string };
-      const isTimeout = err.name === 'AbortError' && (err.message?.includes('timeout') || signal.reason === 'timeout');
+      const isTimeout =
+        err.name === 'AbortError' &&
+        (err.message?.includes('timeout') || signal.reason === 'timeout');
       if (isTimeout) {
         useConnectionStore.getState().reportTimeout();
       } else if (err.name !== 'AbortError') {
@@ -180,13 +194,17 @@ const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}): P
         // SECURITY (R-11): never log the request options — they include the
         // bearer Authorization header, which would be leaked to the browser
         // console (and any console-capturing extension / Sentry replay).
-        logger.warn('Supabase', `Request failed (network instability), retrying ${i + 1}/${MAX_RETRIES}...`, {
-          attempt: i + 1,
-          url: typeof url === 'string' ? url : (url as URL).toString(),
-          method: options.method ?? 'GET',
-        });
+        logger.warn(
+          'Supabase',
+          `Request failed (network instability), retrying ${i + 1}/${MAX_RETRIES}...`,
+          {
+            attempt: i + 1,
+            url: typeof url === 'string' ? url : (url as URL).toString(),
+            method: options.method ?? 'GET',
+          }
+        );
 
-        const backoff = (Math.pow(2, i) * 1000) + Math.random() * 500;
+        const backoff = Math.pow(2, i) * 1000 + Math.random() * 500;
         await new Promise(resolve => setTimeout(resolve, backoff));
         continue;
       }
@@ -213,13 +231,13 @@ const createMockClient = () => {
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       signInWithPassword: () => Promise.resolve({ data: null, error: null }),
       signOut: () => Promise.resolve({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     },
     channel: () => ({
       on: () => ({
         subscribe: (cb?: (status: string) => void) => {
           cb?.('SUBSCRIBED');
-          return { unsubscribe: () => { } };
+          return { unsubscribe: () => {} };
         },
       }),
     }),
@@ -234,34 +252,30 @@ const createMockClient = () => {
 //    app cannot silently run on fake/empty data.
 export const supabase: ReturnType<typeof createClient<Database>> = (() => {
   if (isSupabaseConfigured) {
-    return createClient<Database>(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-          storageKey: STORAGE_KEYS.AUTH_TOKEN,
+    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: STORAGE_KEYS.AUTH_TOKEN,
+      },
+      global: {
+        fetch: customFetch,
+        headers: {
+          'x-application-name': 'alzahra-smart-erp-v5-prod',
         },
-        global: {
-          fetch: customFetch,
-          headers: {
-            'x-application-name': 'alzahra-smart-erp-v5-prod',
-          },
-        },
-        db: {
-          schema: 'public',
-        },
-        // Realtime channel subscribe timeout. A shorter timeout lets a dead socket
-        // surface as CHANNEL_ERROR faster, so fallback polling starts sooner
-        // instead of leaving users staring at stale data for 45s.
-        realtime: {
-          timeout: 15000,
-        },
-      }
-    );
+      },
+      db: {
+        schema: 'public',
+      },
+      // Realtime channel subscribe timeout. A shorter timeout lets a dead socket
+      // surface as CHANNEL_ERROR faster, so fallback polling starts sooner
+      // instead of leaving users staring at stale data for 45s.
+      realtime: {
+        timeout: 15000,
+      },
+    });
   }
 
   if (isUnitTest) {
@@ -272,10 +286,7 @@ export const supabase: ReturnType<typeof createClient<Database>> = (() => {
   // type-stable. It is never invoked because index.tsx blocks the app and
   // renders a clear setup-error screen instead.
   console.error('[Supabase] ' + (SUPABASE_CONFIG_ERROR ?? 'Configuration error'));
-  return createClient<Database>(
-    'https://placeholder.supabase.co',
-    'placeholder-anon-key',
-    { auth: { persistSession: false, autoRefreshToken: false } }
-  );
+  return createClient<Database>('https://placeholder.supabase.co', 'placeholder-anon-key', {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 })();
-

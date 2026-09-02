@@ -1,6 +1,5 @@
-
 import { salesApi } from './api/index';
-import { CreateInvoiceDTO, InvoiceResponse } from './types';
+import type { CreateInvoiceDTO } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
@@ -19,20 +18,24 @@ const CASH_CUSTOMER_LABEL = 'عميل نقدي';
  * `toBaseCurrency` utility still fails loudly for callers that need correctness.
  */
 const safeBaseTotal = (
-    amount: number | null | undefined,
-    currency: string | null | undefined,
-    rate: number | null | undefined
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  rate: number | null | undefined
 ): number => {
-    try {
-        return toBaseCurrency({
-            amount: Number(amount) || 0,
-            currency_code: currency || 'SAR',
-            exchange_rate: Number(rate) || 1,
-        });
-    } catch (err) {
-        logger.warn('SalesService', 'Invalid exchange rate — baseTotal set to 0', { currency, rate, error: err });
-        return 0;
-    }
+  try {
+    return toBaseCurrency({
+      amount: Number(amount) || 0,
+      currency_code: currency || 'SAR',
+      exchange_rate: Number(rate) || 1,
+    });
+  } catch (err) {
+    logger.warn('SalesService', 'Invalid exchange rate — baseTotal set to 0', {
+      currency,
+      rate,
+      error: err,
+    });
+    return 0;
+  }
 };
 
 // Type for raw invoice data from Supabase
@@ -59,7 +62,7 @@ interface SalesStatsRow {
 }
 
 export const salesService = {
-  fetchSalesLog: async (companyId: string, page: number = 0, branchId?: string | null) => {
+  fetchSalesLog: async (companyId: string, page = 0, branchId?: string | null) => {
     try {
       const data = await salesApi.getInvoices(companyId, page, 50, branchId);
       return (data || []).map((inv: unknown) => {
@@ -77,7 +80,7 @@ export const salesService = {
           currencyCode: _inv.currency_code || 'SAR',
           exchangeRate: Number(_inv.exchange_rate) || 1,
           itemCount: Array.isArray(_inv.invoice_items) ? _inv.invoice_items.length : 0,
-          referenceInvoiceId: _inv.reference_invoice_id
+          referenceInvoiceId: _inv.reference_invoice_id,
         };
       });
     } catch (error) {
@@ -88,10 +91,16 @@ export const salesService = {
 
   processNewSale: async (companyId: string, userId: string, payload: CreateInvoiceDTO) => {
     // H6: Validate items before sending to RPC
-    assertValid(validateSalePayload({
-      items: payload.items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice })),
-      paymentMethod: payload.paymentMethod
-    }));
+    assertValid(
+      validateSalePayload({
+        items: payload.items.map(i => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+        })),
+        paymentMethod: payload.paymentMethod,
+      })
+    );
 
     if (payload.type === 'sale_return') {
       return await salesApi.commitReturnRPC(companyId, userId, payload);
@@ -114,23 +123,28 @@ export const salesService = {
     const { treasuryAccountId, ...restPayload } = payload;
     const enhancedPayload = {
       ...restPayload,
-      ...(finalTreasuryAccountId ? { treasuryAccountId: finalTreasuryAccountId } : {})
+      ...(finalTreasuryAccountId ? { treasuryAccountId: finalTreasuryAccountId } : {}),
     };
     const result = await salesApi.commitInvoiceRPC(companyId, userId, enhancedPayload);
 
     // 🔔 Fire-and-forget notification
     if (result) {
-      const itemsTotal = payload.items.reduce((sum, it) => sum + (it.quantity * it.unitPrice), 0);
-      const typedResult = result as InvoiceResponse;
-      messagingService.notify(companyId, 'sale', {
-        invoiceNumber: typedResult.invoice_number || '',
-        customerName: payload.customerName || CASH_CUSTOMER_LABEL, // [FIX] استخدام اسم العميل المُمرر
-        amount: itemsTotal,
-        currency: payload.currency || 'SAR',
-        date: new Date().toLocaleDateString('en-GB'),
-        paymentMethod: payload.paymentMethod || 'cash',
-        itemCount: payload.items?.length || 0,
-      }, typedResult.id);
+      const itemsTotal = payload.items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
+      const typedResult = result;
+      messagingService.notify(
+        companyId,
+        'sale',
+        {
+          invoiceNumber: typedResult.invoice_number || '',
+          customerName: payload.customerName || CASH_CUSTOMER_LABEL, // [FIX] استخدام اسم العميل المُمرر
+          amount: itemsTotal,
+          currency: payload.currency || 'SAR',
+          date: new Date().toLocaleDateString('en-GB'),
+          paymentMethod: payload.paymentMethod || 'cash',
+          itemCount: payload.items?.length || 0,
+        },
+        typedResult.id
+      );
     }
 
     return result;
@@ -144,11 +158,16 @@ export const salesService = {
     // Rolling 30-day window
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    const isoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const isoDate = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     const startOfThisWindow = isoDate(thirtyDaysAgo);
-    const startOfPrevWindow = isoDate(new Date(today.getFullYear(), today.getMonth() - 1, today.getDate() - 29));
-    const endOfPrevWindow = isoDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30));
+    const startOfPrevWindow = isoDate(
+      new Date(today.getFullYear(), today.getMonth() - 1, today.getDate() - 29)
+    );
+    const endOfPrevWindow = isoDate(
+      new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)
+    );
 
     try {
       // Query this period's invoices (last 30 days) — exclude voided and deleted
@@ -187,9 +206,10 @@ export const salesService = {
       if (prevWindowError) throw prevWindowError;
 
       // Calculate totals, converting to base currency if necessary
-      const calcTotal = (data: SalesStatsRow[]) => data.reduce((sum, inv) => {
-        return sum + toBaseCurrency(inv);
-      }, 0);
+      const calcTotal = (data: SalesStatsRow[]) =>
+        data.reduce((sum, inv) => {
+          return sum + toBaseCurrency(inv);
+        }, 0);
 
       const totalSales = calcTotal(thisWindowData || []);
       const invoiceCount = (thisWindowData || []).length;
@@ -206,11 +226,11 @@ export const salesService = {
         totalSales,
         invoiceCount,
         avgSale,
-        monthlyGrowth
+        monthlyGrowth,
       };
     } catch (error) {
       logger.error('SalesService', 'Failed to calculate stats', error);
       return { totalSales: 0, invoiceCount: 0, avgSale: 0, monthlyGrowth: null };
     }
-  }
+  },
 };

@@ -14,7 +14,7 @@
  * @see ./services/ for individual service modules
  */
 
-import { Product, ProductFormData, CreateTransferDTO } from './types';
+import type { Product, ProductFormData, CreateTransferDTO } from './types';
 import { supabase } from '@/lib/supabaseClient';
 import { parseError } from '@/core/utils/errorUtils';
 import type { Json } from '@/core/database.types';
@@ -117,7 +117,7 @@ export const inventoryService = {
   addAuditItem: async (
     sessionId: string,
     productId: string,
-    expectedQuantity: number = 0,
+    expectedQuantity = 0,
     companyId: string,
     userId: string
   ) => {
@@ -126,7 +126,7 @@ export const inventoryService = {
 
   finalizeAudit: async (
     sessionId: string,
-    items: { id?: string; product_id: string; counted_quantity: number }[],
+    items: Array<{ id?: string; product_id: string; counted_quantity: number }>,
     companyId: string,
     userId: string
   ) => {
@@ -142,7 +142,7 @@ export const inventoryService = {
   },
 
   saveAuditProgress: async (
-    items: { id?: string; product_id: string; counted_quantity: number }[]
+    items: Array<{ id?: string; product_id: string; counted_quantity: number }>
   ) => {
     return auditService.saveAuditProgress(items);
   },
@@ -185,7 +185,7 @@ export const inventoryService = {
 
   quickAdjustStock: async (
     companyId: string,
-    items: { product_id: string; warehouse_id: string; quantity: number }[],
+    items: Array<{ product_id: string; warehouse_id: string; quantity: number }>,
     _userId?: string
   ) => {
     if (!items || items.length === 0) return true;

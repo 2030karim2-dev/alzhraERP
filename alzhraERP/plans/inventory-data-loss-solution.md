@@ -1,6 +1,7 @@
 # Inventory Data Loss Prevention - Technical Solution
 
 ## Problem Analysis
+
 Data loss occurs when users navigate away from an active inventory session, causing all entered quantities to disappear. This happens because the current implementation likely stores data only in component-level state without persistence mechanisms.
 
 ---
@@ -10,18 +11,21 @@ Data loss occurs when users navigate away from an active inventory session, caus
 ### 1.1 Client-Side Persistence
 
 #### A. localStorage
+
 - **Capacity:** ~5-10MB per domain
 - **Persistence:** Survives browser restarts, cleared only manually
 - **Best for:** Critical session data that must survive crashes
 - **Limitations:** Synchronous API, limited capacity, string-only storage
 
 #### B. sessionStorage
+
 - **Capacity:** ~5MB per domain
 - **Persistence:** Cleared when tab/window closes
 - **Best for:** Temporary data for current session only
 - **Limitations:** Lost on browser close, string-only storage
 
 #### C. IndexedDB
+
 - **Capacity:** Hundreds of MB to GB
 - **Persistence:** Permanent until explicitly cleared
 - **Best for:** Large datasets, complex queries
@@ -31,6 +35,7 @@ Data loss occurs when users navigate away from an active inventory session, caus
 ### 1.2 State Management
 
 #### Options:
+
 - **React Context + useReducer:** Built-in, no dependencies
 - **Zustand:** Lightweight, already in project
 - **Redux Toolkit:** Overkill for this use case
@@ -41,12 +46,14 @@ Data loss occurs when users navigate away from an active inventory session, caus
 ### 1.3 Server-Side Persistence
 
 #### A. Draft Records in Database
+
 - Create `inventory_session_drafts` table
 - Auto-save every N seconds or on each change
 - Survives device changes/browser crashes
 - Requires backend API implementation
 
 #### B. Optimistic UI with Background Sync
+
 - Immediate local update
 - Background sync with server
 - Conflict resolution for multi-user scenarios
@@ -132,12 +139,12 @@ interface InventorySessionState {
   // Current session
   sessionId: string | null;
   items: Map<string, number>; // productId -> quantity
-  
+
   // Persistence status
   isDirty: boolean;
   lastSavedAt: number | null;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
-  
+
   // Actions
   updateQuantity: (productId: string, quantity: number) => void;
   restoreFromStorage: () => Promise<void>;
@@ -152,7 +159,7 @@ interface InventorySessionState {
 class InventoryPersistenceService {
   private storageKey = 'inventory_session_draft';
   private saveDebounceTimer: NodeJs.Timeout | null = null;
-  
+
   // Debounced save to sessionStorage
   scheduleLocalSave(data: InventorySessionDraft) {
     clearTimeout(this.saveDebounceTimer);
@@ -160,35 +167,32 @@ class InventoryPersistenceService {
       sessionStorage.setItem(this.storageKey, JSON.stringify(data));
     }, 500);
   }
-  
+
   // Server-side draft save (throttled)
   async saveToServer(data: InventorySessionDraft) {
     // Only save if dirty and last save > 5s ago
-    if (!data.isDirty || 
-        (data.lastSavedAt && Date.now() - data.lastSavedAt < 5000)) {
+    if (!data.isDirty || (data.lastSavedAt && Date.now() - data.lastSavedAt < 5000)) {
       return;
     }
-    
+
     // Optimistic update
     this.updateSaveStatus('saving');
-    
+
     try {
-      await supabase
-        .from('inventory_session_drafts')
-        .upsert({
-          session_id: data.sessionId,
-          warehouse_id: data.warehouseId,
-          items: data.items,
-          updated_at: new Date().toISOString()
-        });
-      
+      await supabase.from('inventory_session_drafts').upsert({
+        session_id: data.sessionId,
+        warehouse_id: data.warehouseId,
+        items: data.items,
+        updated_at: new Date().toISOString(),
+      });
+
       this.updateSaveStatus('saved');
     } catch (error) {
       this.updateSaveStatus('error');
       // Queue for retry
     }
   }
-  
+
   // Restore logic
   async restoreSession(sessionId: string): Promise<InventorySessionDraft | null> {
     // 1. Try sessionStorage first (fastest)
@@ -196,20 +200,20 @@ class InventoryPersistenceService {
     if (localData) {
       return JSON.parse(localData);
     }
-    
+
     // 2. Try server draft
     const { data } = await supabase
       .from('inventory_session_drafts')
       .select('*')
       .eq('session_id', sessionId)
       .single();
-    
+
     if (data) {
       // Restore to sessionStorage for next time
       sessionStorage.setItem(this.storageKey, JSON.stringify(data));
       return data;
     }
-    
+
     return null;
   }
 }
@@ -221,25 +225,25 @@ class InventoryPersistenceService {
 export function useInventorySession(sessionId: string) {
   const store = useInventorySessionStore();
   const [isRestoring, setIsRestoring] = useState(false);
-  
+
   // Restore on mount
   useEffect(() => {
     let mounted = true;
-    
+
     async function restore() {
       if (!mounted) return;
       setIsRestoring(true);
-      
+
       const draft = await persistenceService.restoreSession(sessionId);
       if (draft && mounted) {
         store.restoreFromDraft(draft);
       }
-      
+
       setIsRestoring(false);
     }
-    
+
     restore();
-    
+
     // Auto-save on unmount
     return () => {
       mounted = false;
@@ -248,16 +252,19 @@ export function useInventorySession(sessionId: string) {
       }
     };
   }, [sessionId]);
-  
+
   // Debounced save on data change
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    store.updateQuantity(productId, quantity);
-    
-    const draft = store.getDraft();
-    persistenceService.scheduleLocalSave(draft);
-    persistenceService.saveToServer(draft);
-  }, [store]);
-  
+  const updateQuantity = useCallback(
+    (productId: string, quantity: number) => {
+      store.updateQuantity(productId, quantity);
+
+      const draft = store.getDraft();
+      persistenceService.scheduleLocalSave(draft);
+      persistenceService.saveToServer(draft);
+    },
+    [store]
+  );
+
   return { updateQuantity, isRestoring };
 }
 ```
@@ -267,21 +274,25 @@ export function useInventorySession(sessionId: string) {
 ## 4. Best Practices
 
 ### 4.1 Handling Unsaved Changes
+
 - **Warning dialogs:** Prompt user before navigating if `isDirty === true`
 - **Auto-save indicators:** Show save status (saving.../saved/error)
 - **Offline support:** Queue saves when offline, retry when online
 
 ### 4.2 Conflict Resolution
+
 - Use last-write-wins for single-user sessions
 - Implement operational transforms for multi-user (if needed)
 - Timestamp-based merging (server authoritative)
 
 ### 4.3 Error Recovery
+
 - Retry failed saves with exponential backoff
 - Queue system for offline support
 - Clear error messages with retry actions
 
 ### 4.4 Performance Optimization
+
 - Debounce localStorage writes (500ms)
 - Throttle server saves (5s minimum interval)
 - Use Web Workers for large datasets
@@ -301,12 +312,12 @@ CREATE TABLE inventory_session_drafts (
   items JSONB NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   UNIQUE(session_id)
 );
 
 -- Index for fast lookups
-CREATE INDEX idx_inventory_drafts_session 
+CREATE INDEX idx_inventory_drafts_session
 ON inventory_session_drafts(session_id);
 
 -- Auto-cleanup old drafts (older than 30 days)
@@ -360,12 +371,14 @@ If full server-side persistence is too complex for immediate implementation:
 ## Conclusion
 
 **Recommended Stack:**
+
 - **Client:** Zustand (existing) + sessionStorage
 - **Server:** Supabase `inventory_session_drafts` table
 - **Sync:** Debounced auto-save + manual save on navigation
 - **Fallback:** sessionStorage if server unreachable
 
 This ensures data survives:
+
 - ✅ Navigation between items
 - ✅ Page reloads
 - ✅ Browser crashes

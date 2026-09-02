@@ -30,7 +30,9 @@ export const AuditCategoryFilterBar: React.FC<AuditCategoryFilterBarProps> = ({
         </span>
       </div>
       <button
-        onClick={() => onSelectCategory(null)}
+        onClick={() => {
+          onSelectCategory(null);
+        }}
         className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[10px] font-bold transition-all ${
           !selectedCategory
             ? 'bg-blue-600 text-white shadow-md'
@@ -42,7 +44,9 @@ export const AuditCategoryFilterBar: React.FC<AuditCategoryFilterBarProps> = ({
       {categories?.map(cat => (
         <button
           key={cat.id}
-          onClick={() => onSelectCategory(cat.name ?? null)}
+          onClick={() => {
+            onSelectCategory(cat.name ?? null);
+          }}
           className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[10px] font-bold transition-all ${
             selectedCategory === cat.name
               ? 'bg-blue-600 text-white shadow-md'

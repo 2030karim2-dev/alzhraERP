@@ -34,15 +34,15 @@ describe('purchasesApi.createSupplierPayment — treasury account resolution', (
     const result = await purchasesApi.createSupplierPayment(
       basePayment({ treasuryAccountId: 'acc-explicit' }),
       'comp-1',
-      'user-1',
+      'user-1'
     );
 
     expect(mockGetCashboxes).not.toHaveBeenCalled();
     expect(mockRpc).toHaveBeenCalledTimes(1);
     const [, params] = mockRpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
-    expect(params['p_cash_account_id']).toBe('acc-explicit');
-    expect(params['p_bond_type']).toBe('payment');
-    expect(params['p_counterparty_id']).toBe('supplier-1');
+    expect(params.p_cash_account_id).toBe('acc-explicit');
+    expect(params.p_bond_type).toBe('payment');
+    expect(params.p_counterparty_id).toBe('supplier-1');
     expect(result).toEqual({ data: { bond_id: 'bond-1' }, error: null });
   });
 
@@ -59,7 +59,7 @@ describe('purchasesApi.createSupplierPayment — treasury account resolution', (
 
     expect(mockGetCashboxes).toHaveBeenCalledWith('comp-1');
     const [, params] = mockRpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
-    expect(params['p_cash_account_id']).toBe('acc-cashbox-1');
+    expect(params.p_cash_account_id).toBe('acc-cashbox-1');
   });
 
   it('skips cashboxes that are not linked to a ledger account', async () => {
@@ -74,7 +74,7 @@ describe('purchasesApi.createSupplierPayment — treasury account resolution', (
     await purchasesApi.createSupplierPayment(basePayment(), 'comp-1', 'user-1');
 
     const [, params] = mockRpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
-    expect(params['p_cash_account_id']).toBe('acc-linked');
+    expect(params.p_cash_account_id).toBe('acc-linked');
   });
 
   it('fails with an Arabic message when no treasury account can be resolved', async () => {
@@ -84,7 +84,7 @@ describe('purchasesApi.createSupplierPayment — treasury account resolution', (
     });
 
     await expect(
-      purchasesApi.createSupplierPayment(basePayment(), 'comp-1', 'user-1'),
+      purchasesApi.createSupplierPayment(basePayment(), 'comp-1', 'user-1')
     ).rejects.toThrow(/لا يوجد صندوق نشط مرتبط بحساب/);
     expect(mockRpc).not.toHaveBeenCalled();
   });
@@ -100,7 +100,7 @@ describe('purchasesApi.createSupplierPayment — treasury account resolution', (
     });
 
     await expect(
-      purchasesApi.createSupplierPayment(basePayment(), 'comp-1', 'user-1'),
+      purchasesApi.createSupplierPayment(basePayment(), 'comp-1', 'user-1')
     ).rejects.toThrow(/السنة المالية مغلقة/);
   });
 });

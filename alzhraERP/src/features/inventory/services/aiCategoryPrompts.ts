@@ -25,8 +25,11 @@ export const CATEGORY_CLASSIFICATION_PROMPT = `أنت خبير تقني في ت�
   }
 ]`;
 
-export const buildCategorizationPrompt = (products: {id: string, name: string}[], categories: {id: string, name: string}[]) => {
-    return `
+export const buildCategorizationPrompt = (
+  products: Array<{ id: string; name: string }>,
+  categories: Array<{ id: string; name: string }>
+) => {
+  return `
 --- قائمة الأقسام الحالية (اختر الرقم المناسب) ---
 ${categories.map((c, i) => `${i + 1}. ${c.name}`).join('\n')}
 

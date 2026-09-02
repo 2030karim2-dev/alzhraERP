@@ -21,31 +21,33 @@ const UpdatePasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-cairo">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3">
+    <div className="font-cairo flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+        <div className="mb-6 flex flex-col items-center">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600">
             <Lock size={28} />
           </div>
           <h1 className="text-xl font-bold text-gray-800">{t('update_password_title')}</h1>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-xs font-bold text-center">
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-center text-xs font-bold text-red-600">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-600 block">{t('new_password')}</label>
+            <label className="block text-xs font-bold text-gray-600">{t('new_password')}</label>
             <div className="relative">
               <Lock className="absolute right-3 top-3 text-gray-400" size={18} />
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all text-sm"
+                onChange={e => {
+                  setPassword(e.target.value);
+                }}
+                className="focus:ring-brand-green/20 focus:border-brand-green w-full rounded-xl border border-gray-200 py-2.5 pl-4 pr-10 text-sm transition-all focus:outline-none focus:ring-2"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -54,14 +56,18 @@ const UpdatePasswordPage: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-600 block">{t('confirm_new_password')}</label>
+            <label className="block text-xs font-bold text-gray-600">
+              {t('confirm_new_password')}
+            </label>
             <div className="relative">
               <Lock className="absolute right-3 top-3 text-gray-400" size={18} />
               <input
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all text-sm"
+                onChange={e => {
+                  setConfirmPassword(e.target.value);
+                }}
+                className="focus:ring-brand-green/20 focus:border-brand-green w-full rounded-xl border border-gray-200 py-2.5 pl-4 pr-10 text-sm transition-all focus:outline-none focus:ring-2"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -72,7 +78,7 @@ const UpdatePasswordPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:bg-blue-400"
           >
             {isLoading ? t('updating') : t('save_password')}
           </button>

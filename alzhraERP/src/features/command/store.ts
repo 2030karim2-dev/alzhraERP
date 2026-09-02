@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface CommandAction {
   id: string;
@@ -22,14 +21,18 @@ interface CommandPaletteState {
 export const useCommandPaletteStore = create<CommandPaletteState>((set, _get) => ({
   isOpen: false,
   actions: [],
-  openPalette: () => set({ isOpen: true }),
-  closePalette: () => set({ isOpen: false }),
-  registerActions: (newActions) => {
+  openPalette: () => {
+    set({ isOpen: true });
+  },
+  closePalette: () => {
+    set({ isOpen: false });
+  },
+  registerActions: newActions => {
     set(state => {
       // Avoid duplicates by checking ID
       const existingIds = new Set(state.actions.map(a => a.id));
       const filteredNewActions = newActions.filter(a => !existingIds.has(a.id));
       return { actions: [...state.actions, ...filteredNewActions] };
     });
-  }
+  },
 }));

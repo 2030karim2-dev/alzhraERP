@@ -20,8 +20,8 @@ Two pending decisions from `tasks/plan.md` needed resolution:
    - `InventoryPage.tsx` imports and renders `SmartImportView` (`mode="inventory"`);
    - `PurchasesPage.tsx` imports and renders it (`mode="invoice"`, tab `smart_import`);
    - it consumes the live `documentAiService` for AI-based document extraction.
-   The earlier conclusion came from **truncated search output** that hid these
-   imports — a false "dead code" verdict.
+     The earlier conclusion came from **truncated search output** that hid these
+     imports — a false "dead code" verdict.
 
 2. **Task 14 (migrations reconciliation).** The local migrations folder was
    re-baselined on 2026-08-19 (26 files: baseline schema/functions/triggers +

@@ -19,7 +19,7 @@ interface ChatState {
   // Channels state
   channels: ChatChannel[];
   isLoadingChannels: boolean;
-  
+
   // Messages state: Record<channelId, ChatMessage[]>
   messagesByChannel: Record<string, ChatMessage[]>;
   isLoadingMessages: boolean;
@@ -48,17 +48,27 @@ interface ChatState {
   // Data Actions
   fetchChannels: (companyId: string, userId: string) => Promise<void>;
   fetchMessages: (channelId: string, loadMore?: boolean) => Promise<void>;
-  sendMessage: (payload: SendMessagePayload, currentUserId: string, currentUserName?: string, file?: File | null, companyId?: string) => Promise<void>;
+  sendMessage: (
+    payload: SendMessagePayload,
+    currentUserId: string,
+    currentUserName?: string,
+    file?: File | null,
+    companyId?: string
+  ) => Promise<void>;
   addIncomingMessage: (message: ChatMessage, currentUserId: string) => void;
   updateMessageInState: (messageId: string, updates: Partial<ChatMessage>) => void;
   markChannelAsRead: (channelId: string) => Promise<void>;
   toggleReaction: (messageId: string, emoji: string, userId: string) => Promise<void>;
-  executeAction: (messageId: string, action: 'approve' | 'reject' | 'cancel', notes?: string) => Promise<void>;
-  
+  executeAction: (
+    messageId: string,
+    action: 'approve' | 'reject' | 'cancel',
+    notes?: string
+  ) => Promise<void>;
+
   // Presence actions
   setUserPresence: (presence: UserPresence) => void;
   setTyping: (channelId: string, userName: string, isTyping: boolean) => void;
-  
+
   // Total computed unread count
   getTotalUnreadCount: () => number;
 }
@@ -86,7 +96,7 @@ export const useChatStore = create<ChatState>()(
       presences: {},
       typingUsers: {},
 
-      setActiveChannel: (channelId) => {
+      setActiveChannel: channelId => {
         set({ activeChannelId: channelId, replyingTo: null });
         if (channelId) {
           get().fetchMessages(channelId);
@@ -94,12 +104,12 @@ export const useChatStore = create<ChatState>()(
         }
       },
 
-      setActiveFilter: (filter) => set({ activeFilter: filter }),
-      setSearchQuery: (query) => set({ searchQuery: query }),
-      setReplyingTo: (message) => set({ replyingTo: message }),
-      setActiveEntityAttachment: (entity) => set({ activeEntityAttachment: entity }),
-      setFloatingOpen: (open) => set({ isFloatingOpen: open }),
-      toggleFloatingMinimized: () => set((s) => ({ isFloatingMinimized: !s.isFloatingMinimized })),
+      setActiveFilter: filter => set({ activeFilter: filter }),
+      setSearchQuery: query => set({ searchQuery: query }),
+      setReplyingTo: message => set({ replyingTo: message }),
+      setActiveEntityAttachment: entity => set({ activeEntityAttachment: entity }),
+      setFloatingOpen: open => set({ isFloatingOpen: open }),
+      toggleFloatingMinimized: () => set(s => ({ isFloatingMinimized: !s.isFloatingMinimized })),
 
       fetchChannels: async (companyId, userId) => {
         if (!companyId || !userId) return;
@@ -108,7 +118,7 @@ export const useChatStore = create<ChatState>()(
           const channels = await chatService.getChannels(companyId, userId);
           set({ channels, isLoadingChannels: false });
         } catch (err) {
-          logger.error('ChatStore', 'Failed to fetch channels', err as Error);
+          logger.error('ChatStore', 'Failed to fetch channels', err);
           set({ isLoadingChannels: false });
         }
       },
@@ -122,7 +132,7 @@ export const useChatStore = create<ChatState>()(
           set({ isLoadingMoreMessages: true });
           const oldestMessage = currentMessages[0];
           const older = await chatService.getMessages(channelId, 30, oldestMessage?.created_at);
-          set((state) => ({
+          set(state => ({
             messagesByChannel: {
               ...state.messagesByChannel,
               [channelId]: [...older, ...(state.messagesByChannel[channelId] || [])],
@@ -136,7 +146,7 @@ export const useChatStore = create<ChatState>()(
         } else {
           set({ isLoadingMessages: true });
           const messages = await chatService.getMessages(channelId, 40);
-          set((state) => ({
+          set(state => ({
             messagesByChannel: {
               ...state.messagesByChannel,
               [channelId]: messages,
@@ -181,7 +191,7 @@ export const useChatStore = create<ChatState>()(
         };
 
         // 1. Optimistic Update
-        set((state) => ({
+        set(state => ({
           messagesByChannel: {
             ...state.messagesByChannel,
             [payload.channel_id]: [
@@ -200,21 +210,27 @@ export const useChatStore = create<ChatState>()(
             let uploadedAttachment = null;
             if (file && companyId) {
               try {
-                uploadedAttachment = await chatService.uploadAttachment(companyId, confirmed.id, file);
+                uploadedAttachment = await chatService.uploadAttachment(
+                  companyId,
+                  confirmed.id,
+                  file
+                );
               } catch (uploadErr) {
-                logger.error('ChatStore', 'Attachment upload failed', uploadErr as Error);
+                logger.error('ChatStore', 'Attachment upload failed', uploadErr);
               }
             }
 
-            set((state) => {
+            set(state => {
               const currentList = state.messagesByChannel[payload.channel_id] || [];
-              const updatedList: ChatMessage[] = currentList.map((m) =>
+              const updatedList: ChatMessage[] = currentList.map(m =>
                 m.id === tempId
                   ? {
                       ...confirmed,
                       is_optimistic: false,
                       sender_name: currentUserName || 'أنت',
-                      attachments: uploadedAttachment ? [uploadedAttachment] : (confirmed.attachments || []),
+                      attachments: uploadedAttachment
+                        ? [uploadedAttachment]
+                        : confirmed.attachments || [],
                     }
                   : m
               );
@@ -227,13 +243,13 @@ export const useChatStore = create<ChatState>()(
             });
           }
         } catch (err) {
-          logger.error('ChatStore', 'Error sending message', err as Error);
+          logger.error('ChatStore', 'Error sending message', err);
           // Revert optimistic on error
-          set((state) => ({
+          set(state => ({
             messagesByChannel: {
               ...state.messagesByChannel,
               [payload.channel_id]: (state.messagesByChannel[payload.channel_id] || []).filter(
-                (m) => m.id !== tempId
+                m => m.id !== tempId
               ),
             },
           }));
@@ -242,21 +258,28 @@ export const useChatStore = create<ChatState>()(
       },
 
       addIncomingMessage: (message, currentUserId) => {
-        set((state) => {
+        set(state => {
           const channelList = state.messagesByChannel[message.channel_id] || [];
           // Avoid duplicate insertion
-          if (channelList.some((m) => m.id === message.id || (m.client_message_id && m.client_message_id === message.client_message_id))) {
+          if (
+            channelList.some(
+              m =>
+                m.id === message.id ||
+                (m.client_message_id && m.client_message_id === message.client_message_id)
+            )
+          ) {
             return state;
           }
 
           const isCurrentActive = state.activeChannelId === message.channel_id;
 
           // Update channels list last message and unread count
-          const updatedChannels = state.channels.map((ch) => {
+          const updatedChannels = state.channels.map(ch => {
             if (ch.id === message.channel_id) {
-              const newUnread = !isCurrentActive && message.sender_id !== currentUserId
-                ? (ch.unread_count || 0) + 1
-                : ch.unread_count || 0;
+              const newUnread =
+                !isCurrentActive && message.sender_id !== currentUserId
+                  ? (ch.unread_count || 0) + 1
+                  : ch.unread_count || 0;
               return {
                 ...ch,
                 last_message: message,
@@ -268,7 +291,9 @@ export const useChatStore = create<ChatState>()(
           });
 
           // Sort channels so the most recently updated appears on top
-          updatedChannels.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+          updatedChannels.sort(
+            (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
 
           return {
             channels: updatedChannels,
@@ -286,10 +311,10 @@ export const useChatStore = create<ChatState>()(
       },
 
       updateMessageInState: (messageId, updates) => {
-        set((state) => {
+        set(state => {
           const newMap = { ...state.messagesByChannel };
           for (const channelId in newMap) {
-            newMap[channelId] = newMap[channelId].map((m) =>
+            newMap[channelId] = newMap[channelId].map(m =>
               m.id === messageId ? { ...m, ...updates } : m
             );
           }
@@ -297,9 +322,9 @@ export const useChatStore = create<ChatState>()(
         });
       },
 
-      markChannelAsRead: async (channelId) => {
-        set((state) => ({
-          channels: state.channels.map((ch) =>
+      markChannelAsRead: async channelId => {
+        set(state => ({
+          channels: state.channels.map(ch =>
             ch.id === channelId ? { ...ch, unread_count: 0 } : ch
           ),
         }));
@@ -310,7 +335,7 @@ export const useChatStore = create<ChatState>()(
         const activeChannel = get().activeChannelId;
         if (!activeChannel) return;
         const currentMessages = get().messagesByChannel[activeChannel] || [];
-        const msg = currentMessages.find((m) => m.id === messageId);
+        const msg = currentMessages.find(m => m.id === messageId);
         if (!msg) return;
 
         await chatService.toggleReaction(messageId, emoji, msg.reactions || [], userId);
@@ -321,16 +346,18 @@ export const useChatStore = create<ChatState>()(
         if (res.success) {
           get().updateMessageInState(messageId, {
             metadata: {
-              ...(get().messagesByChannel[get().activeChannelId || '']?.find((m) => m.id === messageId)?.metadata || {}),
+              ...(get().messagesByChannel[get().activeChannelId || '']?.find(
+                m => m.id === messageId
+              )?.metadata || {}),
               action_status: res.status,
               action_notes: notes,
-            } as any,
+            },
           });
         }
       },
 
-      setUserPresence: (presence) => {
-        set((state) => ({
+      setUserPresence: presence => {
+        set(state => ({
           presences: {
             ...state.presences,
             [presence.user_id]: presence,
@@ -339,11 +366,11 @@ export const useChatStore = create<ChatState>()(
       },
 
       setTyping: (channelId, userName, isTyping) => {
-        set((state) => {
+        set(state => {
           const currentTyping = state.typingUsers[channelId] || [];
           const updated = isTyping
             ? Array.from(new Set([...currentTyping, userName]))
-            : currentTyping.filter((name) => name !== userName);
+            : currentTyping.filter(name => name !== userName);
           return {
             typingUsers: {
               ...state.typingUsers,
@@ -359,7 +386,7 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'alzhra-chat-preferences',
-      partialize: (state) => ({
+      partialize: state => ({
         isFloatingMinimized: state.isFloatingMinimized,
         activeFilter: state.activeFilter,
       }),

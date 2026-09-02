@@ -17,26 +17,25 @@ export * from './formatting';
 
 import { safeDecimal, tryDecimal } from './constructors';
 import {
-    calculateLineItem,
-    calculateInvoiceSummary,
-    validateJournalBalance,
-    assertJournalBalanced,
-    convertCurrency,
+  calculateLineItem,
+  calculateInvoiceSummary,
+  validateJournalBalance,
+  assertJournalBalanced,
+  convertCurrency,
 } from './calculations';
 import { formatDecimal } from './formatting';
 import { generateCalculationHash } from './hashing';
 import { SOX_BALANCE_TOLERANCE } from './constants';
 
 export default {
-    safeDecimal,
-    tryDecimal,
-    calculateLineItem,
-    calculateInvoiceSummary,
-    validateJournalBalance,
-    assertJournalBalanced,
-    convertCurrency,
-    formatDecimal,
-    generateCalculationHash,
-    SOX_BALANCE_TOLERANCE
+  safeDecimal,
+  tryDecimal,
+  calculateLineItem,
+  calculateInvoiceSummary,
+  validateJournalBalance,
+  assertJournalBalanced,
+  convertCurrency,
+  formatDecimal,
+  generateCalculationHash,
+  SOX_BALANCE_TOLERANCE,
 };
-

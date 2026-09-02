@@ -31,35 +31,45 @@ const BASELINE_FILE = path.join(__dirname, 'ts-error-baseline.txt');
 
 const baseline = Number.parseInt(fs.readFileSync(BASELINE_FILE, 'utf8').trim(), 10);
 if (Number.isNaN(baseline)) {
-    console.error('[ts-baseline] FAILED: ts-error-baseline.txt does not contain a number.');
-    process.exit(1);
+  console.error('[ts-baseline] FAILED: ts-error-baseline.txt does not contain a number.');
+  process.exit(1);
 }
 
 console.log('[ts-baseline] Running tsc --noEmit (can take a minute)...');
 
 let output = '';
 try {
-    execSync('npx tsc --noEmit --pretty false', {
-        cwd: ROOT,
-        stdio: 'pipe',
-        maxBuffer: 32 * 1024 * 1024,
-    });
+  execSync('npx tsc --noEmit --pretty false', {
+    cwd: ROOT,
+    stdio: 'pipe',
+    maxBuffer: 32 * 1024 * 1024,
+  });
 } catch (error: any) {
-    // tsc exits non-zero when errors exist; capture its report.
-    output = `${error?.stdout?.toString() ?? ''}\n${error?.stderr?.toString() ?? ''}`;
+  // tsc exits non-zero when errors exist; capture its report.
+  output = `${error?.stdout?.toString() ?? ''}\n${error?.stderr?.toString() ?? ''}`;
 }
 
 const current = (output.match(/error TS\d+/g) || []).length;
 
 if (current > baseline) {
-    console.error(`\n[ts-baseline] FAILED: ${current} type errors (baseline: ${baseline}, +${current - baseline} NEW).`);
-    console.error('Fix the new errors before pushing. Inspect with: npx tsc --noEmit --pretty false\n');
-    process.exit(1);
+  console.error(
+    `\n[ts-baseline] FAILED: ${current} type errors (baseline: ${baseline}, +${current - baseline} NEW).`
+  );
+  console.error(
+    'Fix the new errors before pushing. Inspect with: npx tsc --noEmit --pretty false\n'
+  );
+  process.exit(1);
 }
 
 if (current < baseline) {
-    console.log(`[ts-baseline] Progress: errors dropped ${baseline} -> ${current} (-${baseline - current}).`);
-    console.log('[ts-baseline] Lower scripts/ts-error-baseline.txt in the same commit to lock it in.');
+  console.log(
+    `[ts-baseline] Progress: errors dropped ${baseline} -> ${current} (-${baseline - current}).`
+  );
+  console.log(
+    '[ts-baseline] Lower scripts/ts-error-baseline.txt in the same commit to lock it in.'
+  );
 }
 
-console.log(`[ts-baseline] OK: ${current} type errors (baseline: ${baseline}). No new errors introduced.`);
+console.log(
+  `[ts-baseline] OK: ${current} type errors (baseline: ${baseline}). No new errors introduced.`
+);

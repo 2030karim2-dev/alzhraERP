@@ -1,9 +1,9 @@
-
 // import { LucideIcon } from 'lucide-react';
 
 export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
 export type JournalStatus = 'posted' | 'draft' | 'void';
-export type AccountingView = 'overview' | 'journal' | 'ledger' | 'income' | 'balance_sheet' | 'accounts' | 'treasury';
+export type AccountingView =
+  'overview' | 'journal' | 'ledger' | 'income' | 'balance_sheet' | 'accounts' | 'treasury';
 
 export interface Account {
   id: string;
@@ -69,7 +69,7 @@ export interface JournalEntryFormData {
   party_name?: string | undefined;
   currency_code?: string | undefined;
   exchange_rate?: number | undefined;
-  lines: Omit<JournalLine, 'id' | 'journal_entry_id'>[];
+  lines: Array<Omit<JournalLine, 'id' | 'journal_entry_id'>>;
 }
 
 export interface AccountFormData {

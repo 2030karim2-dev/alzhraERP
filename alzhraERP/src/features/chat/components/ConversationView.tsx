@@ -27,7 +27,7 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
 
   const currentUserId = user?.id || '';
 
-  const activeChannel = channels.find((c) => c.id === activeChannelId);
+  const activeChannel = channels.find(c => c.id === activeChannelId);
   const messages = activeChannelId ? messagesByChannel[activeChannelId] || [] : [];
   const hasMore = activeChannelId ? !!hasMoreMessages[activeChannelId] : false;
   const currentTyping = activeChannelId ? typingUsers[activeChannelId] || [] : [];
@@ -39,7 +39,9 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
       <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-[var(--app-text-secondary)]">
         <Hash size={40} className="mb-3 text-[var(--accent)] opacity-40" />
         <h3 className="text-base font-bold text-[var(--app-text)]">اختر محادثة للبدء</h3>
-        <p className="mt-1 text-xs">تواصل مع زملائك في الفروع وشارك القطع وطلبات المناقلة لحظياً.</p>
+        <p className="mt-1 text-xs">
+          تواصل مع زملائك في الفروع وشارك القطع وطلبات المناقلة لحظياً.
+        </p>
       </div>
     );
   }
@@ -66,10 +68,10 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
               <img
                 src={directUser.avatar_url}
                 alt={activeChannel.name}
-                className="h-9 w-9 rounded-full object-cover border border-[var(--app-border)]"
+                className="h-9 w-9 rounded-full border border-[var(--app-border)] object-cover"
               />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] font-bold">
+              <div className="bg-[var(--accent)]/10 flex h-9 w-9 items-center justify-center rounded-xl font-bold text-[var(--accent)]">
                 {activeChannel.type === 'branch' ? (
                   <Building2 size={18} />
                 ) : activeChannel.type === 'contextual' ? (
@@ -93,7 +95,7 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-[var(--app-text)]">{activeChannel.name}</h3>
               {activeChannel.branch_name && (
-                <span className="rounded bg-[var(--app-bg)] px-1.5 py-0.2 text-[10px] font-semibold text-[var(--app-text-secondary)] border border-[var(--app-border)]">
+                <span className="py-0.2 rounded border border-[var(--app-border)] bg-[var(--app-bg)] px-1.5 text-[10px] font-semibold text-[var(--app-text-secondary)]">
                   {activeChannel.branch_name}
                 </span>
               )}
@@ -102,7 +104,7 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
             <p className="text-[11px] text-[var(--app-text-secondary)]">
               {activeChannel.type === 'direct' ? (
                 isDirectOnline ? (
-                  <span className="text-emerald-600 font-semibold">متصل الآن</span>
+                  <span className="font-semibold text-emerald-600">متصل الآن</span>
                 ) : (
                   'غير متصل'
                 )
@@ -132,13 +134,17 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
         hasMore={hasMore}
         typingUserNames={currentTyping}
         onLoadMore={() => fetchMessages(activeChannel.id, true)}
-        onReply={(msg) => setReplyingTo(msg)}
+        onReply={msg => {
+          setReplyingTo(msg);
+        }}
       />
 
       {/* Composer Input Area */}
       <MessageComposer
         channelId={activeChannel.id}
-        onTyping={(isTyping) => broadcastTyping(isTyping)}
+        onTyping={isTyping => {
+          broadcastTyping(isTyping);
+        }}
       />
     </div>
   );

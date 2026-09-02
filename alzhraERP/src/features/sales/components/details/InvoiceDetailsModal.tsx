@@ -60,7 +60,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       setShowAlert({ type: 'error', message: 'فشل في تصدير الفاتورة' });
     } finally {
       setIsExporting(false);
-      setTimeout(() => setShowAlert(null), 3000);
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
     }
   };
 
@@ -91,13 +93,17 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       totalAmount: invoice.total_amount,
     });
     setShowAlert({ type: 'success', message: 'تم تصدير ملف Excel بنجاح' });
-    setTimeout(() => setShowAlert(null), 3000);
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
   };
 
   const handleReturnSubmit = (invoiceData: Invoice, items: InvoiceItem[]) => {
     if (onReturn) {
       onReturn(invoiceData, items);
-      setTimeout(() => setShowAlert(null), 3000);
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
       setShowReturnSection(false);
     }
   };
@@ -108,7 +114,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   }) => {
     setShowAlert(alertOptions);
     if (alertOptions.type !== 'success') {
-      setTimeout(() => setShowAlert(null), 3000);
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
     }
   };
 
@@ -218,7 +226,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onShare={handleShareWhatsApp}
-          onToggleReturn={() => setShowReturnSection(!showReturnSection)}
+          onToggleReturn={() => {
+            setShowReturnSection(!showReturnSection);
+          }}
           isExporting={isExporting}
           issuedByName={issuedByName}
           printRef={printRef as React.RefObject<HTMLDivElement>}
@@ -255,7 +265,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
             <div className="flex rounded-lg bg-slate-100 p-0.5 text-xs font-bold dark:bg-slate-800/80">
               <button
                 type="button"
-                onClick={() => setActiveTab('details')}
+                onClick={() => {
+                  setActiveTab('details');
+                }}
                 className={cn(
                   'flex-1 rounded-md py-1.5 transition-all',
                   activeTab === 'details'
@@ -267,7 +279,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('preview')}
+                onClick={() => {
+                  setActiveTab('preview');
+                }}
                 className={cn(
                   'flex-1 rounded-md py-1.5 transition-all',
                   activeTab === 'preview'
@@ -373,7 +387,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                   <ReturnWizard
                     invoice={invoice as unknown as Invoice}
                     onReturn={handleReturnSubmit}
-                    onCancel={() => setShowReturnSection(false)}
+                    onCancel={() => {
+                      setShowReturnSection(false);
+                    }}
                     onAlert={handleAlert}
                   />
                 ) : (

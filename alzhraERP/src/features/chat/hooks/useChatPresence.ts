@@ -80,11 +80,11 @@ export const useChatPresence = (activeChannelId?: string | null) => {
         }
       })
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
-        if (payload && payload.channel_id && payload.user_id !== userId) {
+        if (payload?.channel_id && payload.user_id !== userId) {
           setTyping(payload.channel_id, payload.user_name, payload.is_typing);
         }
       })
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
             user_id: userId,
@@ -102,7 +102,16 @@ export const useChatPresence = (activeChannelId?: string | null) => {
       supabase.removeChannel(channel);
       presenceChannelRef.current = null;
     };
-  }, [companyId, userId, userName, branchId, branchName, setUserPresence, setTyping, user?.avatar_url]);
+  }, [
+    companyId,
+    userId,
+    userName,
+    branchId,
+    branchName,
+    setUserPresence,
+    setTyping,
+    user?.avatar_url,
+  ]);
 
   // Broadcast typing state
   const broadcastTyping = useCallback(

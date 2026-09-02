@@ -15,7 +15,7 @@ import type {
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
 import { supabase } from '../../../lib/supabaseClient';
-import { DashboardPeriod, getPeriodDates } from '../types';
+import { type DashboardPeriod, getPeriodDates } from '../types';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -272,9 +272,9 @@ export const useDashboardData = (
       // written by an OLDER build whose API did not return these fields yet.
       // Without defaults, `calculateDashboardInsights` used to crash with
       // `Cannot read properties of undefined (reading 'length')` inside this useMemo.
-      recentInvoices = [],
-      recentExpenses = [],
-      overdueInvoices = [],
+      recentInvoices,
+      recentExpenses,
+      overdueInvoices,
     } = rawDataQuery.data;
 
     // Guard: if summary is missing (RPC failed or old cache), return null

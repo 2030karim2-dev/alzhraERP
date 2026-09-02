@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LogOut, GitBranch } from 'lucide-react';
 import { useAuthStore } from '../../../features/auth/store';
@@ -24,40 +23,51 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
   const isManager = user?.role === 'owner' || user?.role === 'admin';
 
   return (
-    <div className="p-4 border-t border-[var(--app-border)] mt-auto space-y-3">
+    <div className="mt-auto space-y-3 border-t border-[var(--app-border)] p-4">
       {/* Branch Switcher — for managers */}
-      {isManager && (
-        <BranchSwitcher isCollapsed={isCollapsed} className="w-full" />
-      )}
+      {isManager && <BranchSwitcher isCollapsed={isCollapsed} className="w-full" />}
 
       {/* Branch Badge — for restricted employees */}
       {!isManager && user?.branch_name && (
-        <div className={cn(
-          "flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800",
-          isCollapsed ? "w-10 h-10 justify-center p-0 mx-auto" : "px-3 py-1.5"
-        )} title={user.branch_name}>
-          <GitBranch size={14} className="text-indigo-500 shrink-0" />
+        <div
+          className={cn(
+            'flex items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20',
+            isCollapsed ? 'mx-auto h-10 w-10 justify-center p-0' : 'px-3 py-1.5'
+          )}
+          title={user.branch_name}
+        >
+          <GitBranch size={14} className="shrink-0 text-indigo-500" />
           {!isCollapsed && (
-            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 truncate">{user.branch_name}</span>
+            <span className="truncate text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+              {user.branch_name}
+            </span>
           )}
         </div>
       )}
 
       {/* User Info + Logout */}
-      <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center flex-col' : ''} transition-all duration-300`}>
-        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0">
+      <div
+        className={`flex items-center gap-3 ${isCollapsed ? 'flex-col justify-center' : ''} transition-all duration-300`}
+      >
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white shadow-sm">
           {initial}
         </div>
 
         {!isCollapsed ? (
           <>
-            <div className="flex flex-col overflow-hidden animate-in fade-in duration-300">
-              <span className="text-sm font-bold text-[var(--app-text)] truncate" title={name}>{name}</span>
-              <span className="text-[10px] text-[var(--app-text-secondary)] capitalize">{role}</span>
+            <div className="animate-in fade-in flex flex-col overflow-hidden duration-300">
+              <span className="truncate text-sm font-bold text-[var(--app-text)]" title={name}>
+                {name}
+              </span>
+              <span className="text-[10px] capitalize text-[var(--app-text-secondary)]">
+                {role}
+              </span>
             </div>
             <button
-              onClick={() => setIsLogoutModalOpen(true)}
-              className="mr-auto p-2 text-[var(--app-text-secondary)] hover:text-red-500 transition-colors"
+              onClick={() => {
+                setIsLogoutModalOpen(true);
+              }}
+              className="mr-auto p-2 text-[var(--app-text-secondary)] transition-colors hover:text-red-500"
               title={t('logout')}
               aria-label={t('logout')}
             >
@@ -66,8 +76,10 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
           </>
         ) : (
           <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="p-2 text-[var(--app-text-secondary)] hover:text-red-500 transition-colors mt-2"
+            onClick={() => {
+              setIsLogoutModalOpen(true);
+            }}
+            className="mt-2 p-2 text-[var(--app-text-secondary)] transition-colors hover:text-red-500"
             title={t('logout')}
             aria-label={t('logout')}
           >
@@ -78,7 +90,9 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
 
       <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
+        onClose={() => {
+          setIsLogoutModalOpen(false);
+        }}
         onConfirm={performLogout}
         isLoading={isLoggingOut}
       />
@@ -86,4 +100,4 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
   );
 };
 
-export default SidebarFooter;
+export default SidebarFooter;

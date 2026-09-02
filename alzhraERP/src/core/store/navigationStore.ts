@@ -1,9 +1,9 @@
 /**
  * Navigation Store — Persists user navigation preferences.
- * 
+ *
  * Allows reordering and toggling visibility of navigation items.
  * Stores favorites and custom ordering in localStorage.
- * 
+ *
  * @module core/store/navigationStore
  */
 
@@ -72,7 +72,7 @@ export const useNavigationStore = create<NavigationState>()(
 
       getOrderedVisible: (allItems: NavItem[]): NavItem[] => {
         const { order, hidden, favorites } = get();
-        const visible = allItems.filter((item) => !hidden.has(item.id));
+        const visible = allItems.filter(item => !hidden.has(item.id));
 
         // Sort: favorites first, then by custom order, then by original position
         return visible.sort((a, b) => {
@@ -91,7 +91,7 @@ export const useNavigationStore = create<NavigationState>()(
     }),
     {
       name: 'alzhra-navigation',
-      partialize: (state) => ({
+      partialize: state => ({
         order: state.order,
         hidden: Array.from(state.hidden),
         favorites: state.favorites,
@@ -101,10 +101,10 @@ export const useNavigationStore = create<NavigationState>()(
         return {
           ...current,
           order: (p?.order as string[]) || [],
-          hidden: new Set<string>(p?.hidden as string[] || []),
+          hidden: new Set<string>((p?.hidden as string[]) || []),
           favorites: (p?.favorites as string[]) || [],
         };
       },
-    },
-  ),
+    }
+  )
 );

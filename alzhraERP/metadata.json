@@ -13,8 +13,5 @@
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#10b981",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
+  "requestFramePermissions": ["camera", "microphone"]
 }

@@ -64,8 +64,7 @@ describe('safeDecimal', () => {
   });
 
   it('handles very large numbers without precision loss', () => {
-    expect(safeDecimal('1234567890123456.78').toString())
-      .toBe('1234567890123456.78');
+    expect(safeDecimal('1234567890123456.78').toString()).toBe('1234567890123456.78');
   });
 
   it('trims whitespace from strings', () => {
@@ -173,33 +172,65 @@ describe('generateCalculationHashAsync', () => {
 // ── Validation Utilities ──────────────────────────────
 
 describe('isValidDecimal', () => {
-  it('true for valid number', () => { expect(isValidDecimal(42)).toBe(true); });
-  it('true for valid string', () => { expect(isValidDecimal('3.14')).toBe(true); });
-  it('false for undefined', () => { expect(isValidDecimal(undefined)).toBe(false); });
-  it('false for null', () => { expect(isValidDecimal(null)).toBe(false); });
-  it('false for NaN', () => { expect(isValidDecimal(NaN)).toBe(false); });
+  it('true for valid number', () => {
+    expect(isValidDecimal(42)).toBe(true);
+  });
+  it('true for valid string', () => {
+    expect(isValidDecimal('3.14')).toBe(true);
+  });
+  it('false for undefined', () => {
+    expect(isValidDecimal(undefined)).toBe(false);
+  });
+  it('false for null', () => {
+    expect(isValidDecimal(null)).toBe(false);
+  });
+  it('false for NaN', () => {
+    expect(isValidDecimal(NaN)).toBe(false);
+  });
 });
 
 describe('isPositiveDecimal', () => {
-  it('true for positive', () => { expect(isPositiveDecimal(5)).toBe(true); });
-  it('false for negative', () => { expect(isPositiveDecimal(-1)).toBe(false); });
-  it('false for zero (zero is not strictly positive)', () => { expect(isPositiveDecimal(0)).toBe(false); });
+  it('true for positive', () => {
+    expect(isPositiveDecimal(5)).toBe(true);
+  });
+  it('false for negative', () => {
+    expect(isPositiveDecimal(-1)).toBe(false);
+  });
+  it('false for zero (zero is not strictly positive)', () => {
+    expect(isPositiveDecimal(0)).toBe(false);
+  });
   // Note: isPositiveDecimal uses decimal.js isPositive() which may treat 0 as positive
   // This test verifies expected GAAP behavior — zero is not positive
-  it('false for undefined', () => { expect(isPositiveDecimal(undefined)).toBe(false); });
+  it('false for undefined', () => {
+    expect(isPositiveDecimal(undefined)).toBe(false);
+  });
 });
 
 describe('isNonNegativeDecimal', () => {
-  it('true for positive', () => { expect(isNonNegativeDecimal(10)).toBe(true); });
-  it('true for zero', () => { expect(isNonNegativeDecimal(0)).toBe(true); });
-  it('false for negative', () => { expect(isNonNegativeDecimal(-0.01)).toBe(false); });
+  it('true for positive', () => {
+    expect(isNonNegativeDecimal(10)).toBe(true);
+  });
+  it('true for zero', () => {
+    expect(isNonNegativeDecimal(0)).toBe(true);
+  });
+  it('false for negative', () => {
+    expect(isNonNegativeDecimal(-0.01)).toBe(false);
+  });
 });
 
 describe('isZeroDecimal', () => {
-  it('true for zero', () => { expect(isZeroDecimal(0)).toBe(true); });
-  it('true for string "0"', () => { expect(isZeroDecimal('0')).toBe(true); });
-  it('false for non-zero', () => { expect(isZeroDecimal(1)).toBe(false); });
-  it('false for undefined', () => { expect(isZeroDecimal(undefined)).toBe(false); });
+  it('true for zero', () => {
+    expect(isZeroDecimal(0)).toBe(true);
+  });
+  it('true for string "0"', () => {
+    expect(isZeroDecimal('0')).toBe(true);
+  });
+  it('false for non-zero', () => {
+    expect(isZeroDecimal(1)).toBe(false);
+  });
+  it('false for undefined', () => {
+    expect(isZeroDecimal(undefined)).toBe(false);
+  });
 });
 
 // ── formatDecimal ─────────────────────────────────────

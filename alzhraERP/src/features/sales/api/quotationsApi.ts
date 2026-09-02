@@ -44,7 +44,13 @@ export interface QuotationDetailItem {
   total: number;
   notes: string | null;
   sort_order: number;
-  product: { name_ar: string; sku: string; part_number: string | null; brand?: string | null; cost_price?: number | null } | null;
+  product: {
+    name_ar: string;
+    sku: string;
+    part_number: string | null;
+    brand?: string | null;
+    cost_price?: number | null;
+  } | null;
 }
 
 export interface QuotationDetailRow extends Omit<QuotationRow, 'party' | 'quotation_items'> {
@@ -59,7 +65,8 @@ export const salesQuotationsApi = {
   getQuotations: async (companyId: string, branchId?: string | null) => {
     let query = supabase
       .from('quotations')
-      .select(`
+      .select(
+        `
         id,
         quotation_number,
         type,
@@ -72,7 +79,8 @@ export const salesQuotationsApi = {
         created_at,
         party:party_id(name),
         quotation_items(id)
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .eq('type', 'sales')
       .is('deleted_at', null)
@@ -81,7 +89,7 @@ export const salesQuotationsApi = {
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
-    
+
     const { data, error } = await query;
     return { data: data as QuotationRow[] | null, error };
   },
@@ -92,17 +100,19 @@ export const salesQuotationsApi = {
   getQuotationDetails: async (quotationId: string) => {
     const { data, error } = await supabase
       .from('quotations')
-      .select(`
+      .select(
+        `
         *,
         party:party_id(id, name, phone, email),
         quotation_items(
           *,
           product:product_id(name_ar, sku, part_number)
         )
-      `)
+      `
+      )
       .eq('id', quotationId)
       .single();
-    
+
     return { data: data as QuotationDetailRow | null, error };
   },
 
@@ -171,17 +181,14 @@ export const salesQuotationsApi = {
       .single();
 
     if (qError) throw qError;
-    return quotation as { id: string; quotation_number: string };
+    return quotation;
   },
 
   /**
    * Update quotation status
    */
   updateStatus: async (quotationId: string, status: string) => {
-    return await supabase
-      .from('quotations')
-      .update({ status })
-      .eq('id', quotationId);
+    return await supabase.from('quotations').update({ status }).eq('id', quotationId);
   },
 
   /**
@@ -208,4 +215,3 @@ export const salesQuotationsApi = {
       .eq('id', quotationId);
   },
 };
-

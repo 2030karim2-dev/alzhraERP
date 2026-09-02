@@ -1,6 +1,12 @@
 import { supabase } from '../../lib/supabaseClient';
 import type { TableUpdate } from '@/core/types/supabase-helpers';
-import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, BranchFormData } from './types';
+import type {
+  CompanyFormData,
+  WarehouseFormData,
+  FiscalYearFormData,
+  ExchangeRateFormData,
+  BranchFormData,
+} from './types';
 import { logger } from '../../core/utils/logger';
 
 export const settingsApi = {
@@ -10,11 +16,7 @@ export const settingsApi = {
     // ("JSON object requested, multiple (or no) rows returned") وتُعالجه
     // React Query كخطأ يُعاد 3 مرات — عاصفة طلبات متكررة.
     // maybeSingle ترجع { data: null, error: null } بدلاً من رمي خطأ.
-    return await supabase
-      .from('companies')
-      .select('*')
-      .eq('id', companyId)
-      .maybeSingle();
+    return await supabase.from('companies').select('*').eq('id', companyId).maybeSingle();
   },
 
   updateCompany: async (companyId: string, data: CompanyFormData) => {
@@ -43,12 +45,7 @@ export const settingsApi = {
   },
 
   updateBranch: async (id: string, data: BranchFormData) => {
-    return await supabase
-      .from('branches')
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single();
+    return await supabase.from('branches').update(data).eq('id', id).select().single();
   },
 
   deleteBranch: async (id: string) => {
@@ -64,7 +61,13 @@ export const settingsApi = {
       .order('created_at', { ascending: false });
   },
 
-  inviteUser: async (email: string, role: string, companyId: string, userId: string, branchId?: string | null) => {
+  inviteUser: async (
+    email: string,
+    role: string,
+    companyId: string,
+    userId: string,
+    branchId?: string | null
+  ) => {
     return await supabase
       .from('invitations')
       .insert({
@@ -98,11 +101,11 @@ export const settingsApi = {
       .eq('company_id', companyId)
       .is('deleted_at', null)
       .order('name_ar', { ascending: true });
-      
+
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
-    
+
     return await query;
   },
 
@@ -115,7 +118,8 @@ export const settingsApi = {
   },
 
   deleteWarehouse: async (id: string) => {
-    return await supabase.from('warehouses')
+    return await supabase
+      .from('warehouses')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
   },
@@ -139,7 +143,11 @@ export const settingsApi = {
 
     // Rollback: إذا فشل التعيين، نعيد المستودع الأصلي
     if (result.error) {
-      logger.error("api", '[Settings] setPrimaryWarehouse failed, attempting no rollback available:', result.error);
+      logger.error(
+        'api',
+        '[Settings] setPrimaryWarehouse failed, attempting no rollback available:',
+        result.error
+      );
     }
 
     return result;
@@ -149,7 +157,12 @@ export const settingsApi = {
     return await supabase.from('supported_currencies').select('*');
   },
 
-  createCurrency: async (data: { code: string, name_ar: string, symbol: string, exchange_operator?: 'multiply' | 'divide' }) => {
+  createCurrency: async (data: {
+    code: string;
+    name_ar: string;
+    symbol: string;
+    exchange_operator?: 'multiply' | 'divide';
+  }) => {
     return await supabase.from('supported_currencies').insert({ ...data, is_base: false });
   },
 
@@ -174,7 +187,7 @@ export const settingsApi = {
         currency_code: data.currency_code,
         rate_to_base: data.rate_to_base,
         effective_date: data.effective_date,
-        created_by: userId
+        created_by: userId,
       })
       .select()
       .single();
@@ -197,10 +210,7 @@ export const settingsApi = {
   },
 
   closeFiscalYear: async (id: string) => {
-    return await supabase
-      .from('fiscal_years')
-      .update({ is_closed: true })
-      .eq('id', id);
+    return await supabase.from('fiscal_years').update({ is_closed: true }).eq('id', id);
   },
 
   /**
@@ -208,11 +218,11 @@ export const settingsApi = {
    */
   fetchMarketRates: async (companyId?: string) => {
     const { data, error } = await supabase.functions.invoke('fetch-exchange-rates-aden', {
-      body: { company_id: companyId }
+      body: { company_id: companyId },
     });
     if (error) throw error;
     return data;
-  }
+  },
 };
 
 export default settingsApi;

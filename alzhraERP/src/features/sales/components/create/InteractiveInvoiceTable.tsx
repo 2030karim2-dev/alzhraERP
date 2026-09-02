@@ -117,9 +117,9 @@ const InteractiveInvoiceTable: React.FC = () => {
 
     const navigationFields: Array<keyof SalesCartItem | 'total'> = ['name', 'quantity', 'price'];
     if (showDiscount) navigationFields.push('discount');
-    navigationFields.push('total' as unknown as keyof SalesCartItem);
+    navigationFields.push('total');
 
-    const colIndex = navigationFields.indexOf(field as keyof SalesCartItem | 'total');
+    const colIndex = navigationFields.indexOf(field);
 
     const moveFocus = (row: number, colField: keyof SalesCartItem | 'total') => {
       const nextCell =

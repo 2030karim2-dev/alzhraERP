@@ -1,6 +1,3 @@
-
-
-
 export type InvoiceStatus = 'draft' | 'posted' | 'paid' | 'void';
 export type InvoiceType = 'sale' | 'sale_return';
 
@@ -46,6 +43,8 @@ export interface CreateInvoicePayload {
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
   branchId?: string | null;
+  /** مفتاح منع التكرار — يُولَّد مرة واحدة لكل نية مستخدم (انظر core/utils/idempotency.ts) */
+  idempotencyKey?: string;
 }
 
 export interface CreateInvoiceDTO {
@@ -64,6 +63,8 @@ export interface CreateInvoiceDTO {
   returnReason?: string | null;
   branchId?: string | null;
   customerName?: string;
+  /** مفتاح منع التكرار — يُولَّد مرة واحدة لكل نية مستخدم (انظر core/utils/idempotency.ts) */
+  idempotencyKey?: string;
 }
 
 export interface InvoiceResponse {

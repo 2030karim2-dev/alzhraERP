@@ -21,7 +21,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuthStore } from '../../auth/store';
 import { productService } from '../services/productService';
-import { Product } from '../types';
+import type { Product } from '../types';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -92,7 +92,15 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
 
   // ── Main paginated query ─────────────────────────────────────────────────
 
-  const queryKey = productsPageKey(companyId, page, pageSize, debouncedSearch, sortKey, sortDir, branchId);
+  const queryKey = productsPageKey(
+    companyId,
+    page,
+    pageSize,
+    debouncedSearch,
+    sortKey,
+    sortDir,
+    branchId
+  );
 
   const query = useQuery<ProductsPage>({
     queryKey,
@@ -120,14 +128,22 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
     },
     enabled: !!companyId,
     staleTime: 1000 * 30, // 30s - products don't change every second
-    placeholderData: (prev) => prev, // Keep previous data while loading new page (no flicker)
+    placeholderData: prev => prev, // Keep previous data while loading new page (no flicker)
   });
 
   // ── Prefetch next page ───────────────────────────────────────────────────
 
   useEffect(() => {
     if (!query.data || page >= (query.data.totalPages ?? 1)) return;
-    const nextKey = productsPageKey(companyId, page + 1, pageSize, debouncedSearch, sortKey, sortDir, branchId);
+    const nextKey = productsPageKey(
+      companyId,
+      page + 1,
+      pageSize,
+      debouncedSearch,
+      sortKey,
+      sortDir,
+      branchId
+    );
     void queryClient.prefetchQuery({
       queryKey: nextKey,
       queryFn: async (): Promise<ProductsPage> => {
@@ -146,11 +162,27 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
 
         const products = productService.mapRawProducts(data ?? []);
         const totalCount = (data as any)?.[0]?.total_count ?? 0;
-        return { data: products, totalCount, page: page + 1, pageSize, totalPages: Math.ceil(totalCount / pageSize) };
+        return {
+          data: products,
+          totalCount,
+          page: page + 1,
+          pageSize,
+          totalPages: Math.ceil(totalCount / pageSize),
+        };
       },
       staleTime: 1000 * 30,
     });
-  }, [page, query.data, companyId, pageSize, debouncedSearch, sortKey, sortDir, branchId, queryClient]);
+  }, [
+    page,
+    query.data,
+    companyId,
+    pageSize,
+    debouncedSearch,
+    sortKey,
+    sortDir,
+    branchId,
+    queryClient,
+  ]);
 
   // ── Real-time invalidation ───────────────────────────────────────────────
   // Handled by the app-wide `useRealtimeSync` global channel: 'products' changes
@@ -160,9 +192,15 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
 
   // ── Navigation helpers ───────────────────────────────────────────────────
 
-  const goToPage = useCallback((p: number) => setPage(p), []);
-  const nextPage = useCallback(() => setPage((p) => p + 1), []);
-  const prevPage = useCallback(() => setPage((p) => Math.max(1, p - 1)), []);
+  const goToPage = useCallback((p: number) => {
+    setPage(p);
+  }, []);
+  const nextPage = useCallback(() => {
+    setPage(p => p + 1);
+  }, []);
+  const prevPage = useCallback(() => {
+    setPage(p => Math.max(1, p - 1));
+  }, []);
 
   return {
     // Data
@@ -176,7 +214,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
 
     // Loading states
     isLoading: query.isLoading,
-    isFetching: query.isFetching,  // true when background-fetching (next page prefetch etc.)
+    isFetching: query.isFetching, // true when background-fetching (next page prefetch etc.)
     isError: query.isError,
     error: query.error,
 

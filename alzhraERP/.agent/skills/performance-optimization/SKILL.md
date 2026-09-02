@@ -21,11 +21,11 @@ Measure before optimizing. Performance work without measurement is guessing — 
 
 ## Core Web Vitals Targets
 
-| Metric | Good | Needs Improvement | Poor |
-|--------|------|-------------------|------|
-| **LCP** (Largest Contentful Paint) | ≤ 2.5s | ≤ 4.0s | > 4.0s |
-| **INP** (Interaction to Next Paint) | ≤ 200ms | ≤ 500ms | > 500ms |
-| **CLS** (Cumulative Layout Shift) | ≤ 0.1 | ≤ 0.25 | > 0.25 |
+| Metric                              | Good    | Needs Improvement | Poor    |
+| ----------------------------------- | ------- | ----------------- | ------- |
+| **LCP** (Largest Contentful Paint)  | ≤ 2.5s  | ≤ 4.0s            | > 4.0s  |
+| **INP** (Interaction to Next Paint) | ≤ 200ms | ≤ 500ms           | > 500ms |
+| **CLS** (Cumulative Layout Shift)   | ≤ 0.1   | ≤ 0.25            | > 0.25  |
 
 ## The Optimization Workflow
 
@@ -45,6 +45,7 @@ Two complementary approaches — use both:
 - **RUM (web-vitals library, CrUX):** Real user data in real conditions. Required to validate that a fix actually improved user experience.
 
 **Frontend:**
+
 ```bash
 # Synthetic: Lighthouse in Chrome DevTools (or CI)
 # Chrome DevTools → Performance tab → Record
@@ -59,6 +60,7 @@ onCLS(console.log);
 ```
 
 **Backend:**
+
 ```bash
 # Response time logging
 # Application Performance Monitoring (APM)
@@ -102,21 +104,21 @@ Common bottlenecks by category:
 
 **Frontend:**
 
-| Symptom | Likely Cause | Investigation |
-|---------|-------------|---------------|
-| Slow LCP | Large images, render-blocking resources, slow server | Check network waterfall, image sizes |
-| High CLS | Images without dimensions, late-loading content, font shifts | Check layout shift attribution |
-| Poor INP | Heavy JavaScript on main thread, large DOM updates | Check long tasks in Performance trace |
-| Slow initial load | Large bundle, many network requests | Check bundle size, code splitting |
+| Symptom           | Likely Cause                                                 | Investigation                         |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------- |
+| Slow LCP          | Large images, render-blocking resources, slow server         | Check network waterfall, image sizes  |
+| High CLS          | Images without dimensions, late-loading content, font shifts | Check layout shift attribution        |
+| Poor INP          | Heavy JavaScript on main thread, large DOM updates           | Check long tasks in Performance trace |
+| Slow initial load | Large bundle, many network requests                          | Check bundle size, code splitting     |
 
 **Backend:**
 
-| Symptom | Likely Cause | Investigation |
-|---------|-------------|---------------|
-| Slow API responses | N+1 queries, missing indexes, unoptimized queries | Check database query log |
-| Memory growth | Leaked references, unbounded caches, large payloads | Heap snapshot analysis |
-| CPU spikes | Synchronous heavy computation, regex backtracking | CPU profiling |
-| High latency | Missing caching, redundant computation, network hops | Trace requests through the stack |
+| Symptom            | Likely Cause                                         | Investigation                    |
+| ------------------ | ---------------------------------------------------- | -------------------------------- |
+| Slow API responses | N+1 queries, missing indexes, unoptimized queries    | Check database query log         |
+| Memory growth      | Leaked references, unbounded caches, large payloads  | Heap snapshot analysis           |
+| CPU spikes         | Synchronous heavy computation, regex backtracking    | CPU profiling                    |
+| High latency       | Missing caching, redundant computation, network hops | Trace requests through the stack |
 
 ### Step 3: Fix Common Anti-Patterns
 
@@ -236,7 +238,11 @@ const TaskItem = React.memo(function TaskItem({ task }: Props) {
 // Use useMemo for expensive computations
 function TaskStats({ tasks }: Props) {
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
-  return <div>{stats.completed} / {stats.total}</div>;
+  return (
+    <div>
+      {stats.completed} / {stats.total}
+    </div>
+  );
 }
 ```
 
@@ -280,10 +286,13 @@ async function getAppConfig(): Promise<AppConfig> {
 }
 
 // HTTP caching headers for static assets
-app.use('/static', express.static('public', {
-  maxAge: '1y',           // Cache for 1 year
-  immutable: true,        // Never revalidate (use content hashing in filenames)
-}));
+app.use(
+  '/static',
+  express.static('public', {
+    maxAge: '1y', // Cache for 1 year
+    immutable: true, // Never revalidate (use content hashing in filenames)
+  })
+);
 
 // Cache-Control for API responses
 res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
@@ -301,26 +310,26 @@ A fix is a hypothesis until you re-measure. This step decides whether it survive
 
 Then decide, strictly:
 
-| Result vs. baseline | Action |
-|---|---|
-| Past the threshold, tests green | **Keep.** Commit with the before/after numbers in the message. |
-| Within noise (no measurable change) | **Revert.** |
-| Worse | **Revert.** |
-| Improved, but a test went red | **Revert.** A regression wearing a win's clothing. |
+| Result vs. baseline                 | Action                                                         |
+| ----------------------------------- | -------------------------------------------------------------- |
+| Past the threshold, tests green     | **Keep.** Commit with the before/after numbers in the message. |
+| Within noise (no measurable change) | **Revert.**                                                    |
+| Worse                               | **Revert.**                                                    |
+| Improved, but a test went red       | **Revert.** A regression wearing a win's clothing.             |
 
 **"Neutral" is a revert, not a keep.** This is the step teams skip: the change is already written, throwing it away feels wasteful, so it lands unmeasured, and the codebase accretes complexity that never bought anything. Code you keep, you maintain forever. Make it pay for itself.
 
-**Correctness gates the metric.** The suite stays green *and* the number moves. An "optimization" that wins by dropping work the product needed (skipping a validation, caching something that must be fresh, removing an `await` that was load-bearing) is a regression, not a win.
+**Correctness gates the metric.** The suite stays green _and_ the number moves. An "optimization" that wins by dropping work the product needed (skipping a validation, caching something that must be fresh, removing an `await` that was load-bearing) is a regression, not a win.
 
 #### Log every attempt, including the reverted ones
 
 Reverted work leaves no trace in git history, which is exactly why the same dead idea gets tried again next quarter. Keep a short ledger so a discarded idea stays discarded:
 
-| Idea | Baseline → Result | Verdict | Why |
-|---|---|---|---|
-| Memoize the row component | INP 240ms → 235ms | reverted | Inside noise (±15ms). Rows weren't the bottleneck. |
-| Virtualize the list | INP 240ms → 90ms | kept | Long tasks gone from the trace. |
-| Preconnect to the API origin | LCP 2.8s → 2.8s | reverted | Already same-origin. |
+| Idea                         | Baseline → Result | Verdict  | Why                                                |
+| ---------------------------- | ----------------- | -------- | -------------------------------------------------- |
+| Memoize the row component    | INP 240ms → 235ms | reverted | Inside noise (±15ms). Rows weren't the bottleneck. |
+| Virtualize the list          | INP 240ms → 90ms  | kept     | Long tasks gone from the trace.                    |
+| Preconnect to the API origin | LCP 2.8s → 2.8s   | reverted | Already same-origin.                               |
 
 A section in the PR description or a `PERF.md` in the repo both work. What matters is that the next person (or the next agent) reads it before proposing an experiment, and doesn't re-run one that already failed.
 
@@ -339,6 +348,7 @@ Lighthouse Performance score: ≥ 90
 ```
 
 **Enforce in CI:**
+
 ```bash
 # Bundle size check
 npx bundlesize --config bundlesize.config.json
@@ -351,18 +361,17 @@ npx lhci autorun
 
 For detailed performance checklists, optimization commands, and anti-pattern reference, see `../../references/performance-checklist.md`.
 
-
 ## Common Rationalizations
 
-| Rationalization | Reality |
-|---|---|
-| "We'll optimize later" | Performance debt compounds. Fix obvious anti-patterns now, defer micro-optimizations. |
-| "It's fast on my machine" | Your machine isn't the user's. Profile on representative hardware and networks. |
-| "This optimization is obvious" | If you didn't measure, you don't know. Profile first. |
-| "Users won't notice 100ms" | Research shows 100ms delays impact conversion rates. Users notice more than you think. |
-| "The framework handles performance" | Frameworks prevent some issues but can't fix N+1 queries or oversized bundles. |
-| "It didn't help much, but it doesn't hurt" | Neutral changes are a revert. You pay maintenance on them forever and got nothing back. |
-| "We already wrote it, may as well keep it" | Sunk cost. The measurement doesn't care how long the change took to write. |
+| Rationalization                                     | Reality                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| "We'll optimize later"                              | Performance debt compounds. Fix obvious anti-patterns now, defer micro-optimizations.       |
+| "It's fast on my machine"                           | Your machine isn't the user's. Profile on representative hardware and networks.             |
+| "This optimization is obvious"                      | If you didn't measure, you don't know. Profile first.                                       |
+| "Users won't notice 100ms"                          | Research shows 100ms delays impact conversion rates. Users notice more than you think.      |
+| "The framework handles performance"                 | Frameworks prevent some issues but can't fix N+1 queries or oversized bundles.              |
+| "It didn't help much, but it doesn't hurt"          | Neutral changes are a revert. You pay maintenance on them forever and got nothing back.     |
+| "We already wrote it, may as well keep it"          | Sunk cost. The measurement doesn't care how long the change took to write.                  |
 | "The improvement is obvious, no need to re-measure" | Then re-measuring is cheap and proves it. Unmeasured wins are how neutral complexity lands. |
 
 ## Red Flags

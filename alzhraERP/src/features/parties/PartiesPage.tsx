@@ -101,7 +101,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   React.useEffect(() => {
     const intent = partyType === 'customer' ? 'create_customer' : 'create_supplier';
     const aiData = consumePrefill(intent);
-    if (aiData && aiData.entities) {
+    if (aiData?.entities) {
       setPrefillData({
         name: aiData.entities.partyName || '',
       });
@@ -116,7 +116,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   const displayIconColor =
     iconColor || (partyType === 'customer' ? 'text-emerald-600' : 'text-blue-600');
 
-  const columns: Column<Party>[] = useMemo(
+  const columns: Array<Column<Party>> = useMemo(
     () => [
       {
         header: t('name'),
@@ -312,7 +312,9 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
                 isRTL={true}
                 showSearch={false}
                 isLoading={isLoading}
-                onRowDoubleClick={row => handleEdit(row as Party)}
+                onRowDoubleClick={row => {
+                  handleEdit(row);
+                }}
               />
             </div>
           </div>
@@ -348,14 +350,18 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
             { id: 'categories', label: t('categories'), icon: LayoutGrid },
           ]}
           activeTab={activeView}
-          onTabChange={id => setActiveView(id as PartyView)}
+          onTabChange={id => {
+            setActiveView(id as PartyView);
+          }}
           isMaximized={isMaximized}
           onToggleMaximize={() => {
             setIsMaximized(!isMaximized);
             if (isMaximized) setIsZenMode(false);
           }}
           isZenMode={isZenMode}
-          onToggleZen={() => setIsZenMode(!isZenMode)}
+          onToggleZen={() => {
+            setIsZenMode(!isZenMode);
+          }}
         />
 
         {/* Type switcher — the URL is the single source of truth
@@ -384,7 +390,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSubmit={data => {
-            const payload: { data: PartyFormData; id?: string } = { data: data as PartyFormData };
+            const payload: { data: PartyFormData; id?: string } = { data: data };
             if (editingParty?.id) {
               payload.id = editingParty.id;
             }

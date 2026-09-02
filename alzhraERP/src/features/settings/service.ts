@@ -1,265 +1,327 @@
 import { settingsApi } from './api';
-import { CompanyFormData, WarehouseFormData, FiscalYearFormData, ExchangeRateFormData, AutoBackupConfig, BranchFormData } from './types.ts';
+import type {
+  CompanyFormData,
+  WarehouseFormData,
+  FiscalYearFormData,
+  ExchangeRateFormData,
+  AutoBackupConfig,
+  BranchFormData,
+} from './types.ts';
 import { supabase } from '../../lib/supabaseClient';
 import { logger } from '../../core/utils/logger';
 
 import { STORAGE_KEYS } from '../../core/constants';
 
 export const settingsService = {
-    fetchCompany: async (companyId: string) => {
-        const { data, error } = await settingsApi.getCompany(companyId);
-        if (error) throw error;
-        return data;
-    },
+  fetchCompany: async (companyId: string) => {
+    const { data, error } = await settingsApi.getCompany(companyId);
+    if (error) throw error;
+    return data;
+  },
 
-    updateCompanyProfile: async (companyId: string, data: CompanyFormData) => {
-        const { error } = await settingsApi.updateCompany(companyId, data);
-        if (error) throw error;
-    },
+  updateCompanyProfile: async (companyId: string, data: CompanyFormData) => {
+    const { error } = await settingsApi.updateCompany(companyId, data);
+    if (error) throw error;
+  },
 
-    fetchBranches: async (companyId: string) => {
-        const { data, error } = await settingsApi.getBranches(companyId);
-        if (error) throw error;
-        return data || [];
-    },
+  fetchBranches: async (companyId: string) => {
+    const { data, error } = await settingsApi.getBranches(companyId);
+    if (error) throw error;
+    return data || [];
+  },
 
-    addBranch: async (companyId: string, data: BranchFormData) => {
-        const { data: branch, error } = await settingsApi.createBranch(companyId, data);
-        if (error) throw error;
-        return branch;
-    },
+  addBranch: async (companyId: string, data: BranchFormData) => {
+    const { data: branch, error } = await settingsApi.createBranch(companyId, data);
+    if (error) throw error;
+    return branch;
+  },
 
-    updateBranch: async (id: string, data: BranchFormData) => {
-        const { data: branch, error } = await settingsApi.updateBranch(id, data);
-        if (error) throw error;
-        return branch;
-    },
+  updateBranch: async (id: string, data: BranchFormData) => {
+    const { data: branch, error } = await settingsApi.updateBranch(id, data);
+    if (error) throw error;
+    return branch;
+  },
 
-    removeBranch: async (id: string) => {
-        const { error } = await settingsApi.deleteBranch(id);
-        if (error) throw error;
-    },
+  removeBranch: async (id: string) => {
+    const { error } = await settingsApi.deleteBranch(id);
+    if (error) throw error;
+  },
 
-    fetchWarehouses: async (companyId: string) => {
-        const { data, error } = await settingsApi.getWarehouses(companyId);
-        if (error) throw error;
-        return data || [];
-    },
+  fetchWarehouses: async (companyId: string) => {
+    const { data, error } = await settingsApi.getWarehouses(companyId);
+    if (error) throw error;
+    return data || [];
+  },
 
-    addWarehouse: async (companyId: string, data: WarehouseFormData) => {
-        const { data: wh, error } = await settingsApi.createWarehouse(companyId, data);
-        if (error) throw error;
-        return wh;
-    },
+  addWarehouse: async (companyId: string, data: WarehouseFormData) => {
+    const { data: wh, error } = await settingsApi.createWarehouse(companyId, data);
+    if (error) throw error;
+    return wh;
+  },
 
-    removeWarehouse: async (id: string) => {
-        const { error } = await settingsApi.deleteWarehouse(id);
-        if (error) throw error;
-    },
+  removeWarehouse: async (id: string) => {
+    const { error } = await settingsApi.deleteWarehouse(id);
+    if (error) throw error;
+  },
 
-    updatePrimaryStatus: async (companyId: string, warehouseId: string) => {
-        const { error } = await settingsApi.setPrimaryWarehouse(companyId, warehouseId);
-        if (error) throw error;
-    },
+  updatePrimaryStatus: async (companyId: string, warehouseId: string) => {
+    const { error } = await settingsApi.setPrimaryWarehouse(companyId, warehouseId);
+    if (error) throw error;
+  },
 
-    fetchFiscalYears: async (companyId: string) => {
-        const { data, error } = await settingsApi.getFiscalYears(companyId);
-        if (error) throw error;
-        return data || [];
-    },
+  fetchFiscalYears: async (companyId: string) => {
+    const { data, error } = await settingsApi.getFiscalYears(companyId);
+    if (error) throw error;
+    return data || [];
+  },
 
-    addFiscalYear: async (companyId: string, data: FiscalYearFormData) => {
-        const { data: fy, error } = await settingsApi.createFiscalYear(companyId, data);
-        if (error) throw error;
-        return fy;
-    },
+  addFiscalYear: async (companyId: string, data: FiscalYearFormData) => {
+    const { data: fy, error } = await settingsApi.createFiscalYear(companyId, data);
+    if (error) throw error;
+    return fy;
+  },
 
-    closeFiscalYear: async (id: string) => {
-        const { error } = await settingsApi.closeFiscalYear(id);
-        if (error) throw error;
-    },
+  closeFiscalYear: async (id: string) => {
+    const { error } = await settingsApi.closeFiscalYear(id);
+    if (error) throw error;
+  },
 
-    fetchCurrencies: async () => {
-        const { data, error } = await settingsApi.getSupportedCurrencies();
-        if (error) throw error;
-        return data || [];
-    },
+  fetchCurrencies: async () => {
+    const { data, error } = await settingsApi.getSupportedCurrencies();
+    if (error) throw error;
+    return data || [];
+  },
 
-    fetchExchangeRates: async (companyId: string) => {
-        const { data, error } = await settingsApi.getExchangeRates(companyId);
-        if (error) throw error;
-        return data || [];
-    },
+  fetchExchangeRates: async (companyId: string) => {
+    const { data, error } = await settingsApi.getExchangeRates(companyId);
+    if (error) throw error;
+    return data || [];
+  },
 
-    setExchangeRate: async (companyId: string, data: ExchangeRateFormData, userId: string) => {
-        const { error } = await settingsApi.updateExchangeRate(companyId, data, userId);
-        if (error) throw error;
-    },
+  setExchangeRate: async (companyId: string, data: ExchangeRateFormData, userId: string) => {
+    const { error } = await settingsApi.updateExchangeRate(companyId, data, userId);
+    if (error) throw error;
+  },
 
-    // LocalStorage helpers for Backup Config (Client preference)
-    getAutoBackupConfig: (): AutoBackupConfig => {
-        const stored = localStorage.getItem(STORAGE_KEYS.AUTO_BACKUP);
-        return stored ? JSON.parse(stored) : { enabled: true, frequency: 'daily', retentionDays: 30, includeImages: false, lastBackupStatus: 'idle' };
-    },
-
-    saveAutoBackupConfig: (config: AutoBackupConfig) => {
-        localStorage.setItem(STORAGE_KEYS.AUTO_BACKUP, JSON.stringify(config));
-    },
-
-    getStorageStats: () => {
-        return {
-            totalRecords: 0,
-            details: {},
-            lastSync: new Date().toISOString(),
-            spaceUsed: 'DB Managed',
-            spaceLimit: 'Unlimited'
+  // LocalStorage helpers for Backup Config (Client preference)
+  getAutoBackupConfig: (): AutoBackupConfig => {
+    const stored = localStorage.getItem(STORAGE_KEYS.AUTO_BACKUP);
+    return stored
+      ? JSON.parse(stored)
+      : {
+          enabled: true,
+          frequency: 'daily',
+          retentionDays: 30,
+          includeImages: false,
+          lastBackupStatus: 'idle',
         };
-    },
+  },
 
-    getBackupLogs: (): { id: string; action: string; size: string; time: string; status: string; icon: string }[] => {
-        const logs = localStorage.getItem(STORAGE_KEYS.BACKUP_LOGS);
-        return logs ? JSON.parse(logs) : [];
-    },
+  saveAutoBackupConfig: (config: AutoBackupConfig) => {
+    localStorage.setItem(STORAGE_KEYS.AUTO_BACKUP, JSON.stringify(config));
+  },
 
-    addBackupLog: (action: string, size: string, status: 'Success' | 'Error') => {
-        const logs = settingsService.getBackupLogs();
-        const newLog = {
-            id: Date.now().toString(),
-            action,
-            size,
-            time: new Date().toLocaleString('en-GB'),
-            status,
-            icon: action.includes('Google') ? 'CloudSync' : 'HardDrive'
-        };
-        localStorage.setItem(STORAGE_KEYS.BACKUP_LOGS, JSON.stringify([newLog, ...logs].slice(0, 10)));
-    },
+  getStorageStats: () => {
+    return {
+      totalRecords: 0,
+      details: {},
+      lastSync: new Date().toISOString(),
+      spaceUsed: 'DB Managed',
+      spaceLimit: 'Unlimited',
+    };
+  },
 
-    exportSystemData: async () => {
-        const tables = [
-            'companies', 'branches', 'warehouses', 'products', 'product_categories',
-            'product_stock', 'product_cross_references', 'product_supplier_prices', 'product_kit_items',
-            'inventory_transactions', 'stock_transfers', 'stock_transfer_items',
-            'parties', 'party_categories',
-            'invoices', 'invoice_items',
-            'accounts', 'journal_entries', 'journal_entry_lines',
-            'fiscal_years', 'supported_currencies', 'exchange_rates',
-            'expenses', 'expense_categories'
-        ];
+  getBackupLogs: (): Array<{
+    id: string;
+    action: string;
+    size: string;
+    time: string;
+    status: string;
+    icon: string;
+  }> => {
+    const logs = localStorage.getItem(STORAGE_KEYS.BACKUP_LOGS);
+    return logs ? JSON.parse(logs) : [];
+  },
 
-        const exportData: Record<string, unknown> = {
-            version: '2.0',
-            exportedAt: new Date().toISOString(),
-            data: {} as Record<string, unknown>
-        };
+  addBackupLog: (action: string, size: string, status: 'Success' | 'Error') => {
+    const logs = settingsService.getBackupLogs();
+    const newLog = {
+      id: Date.now().toString(),
+      action,
+      size,
+      time: new Date().toLocaleString('en-GB'),
+      status,
+      icon: action.includes('Google') ? 'CloudSync' : 'HardDrive',
+    };
+    localStorage.setItem(STORAGE_KEYS.BACKUP_LOGS, JSON.stringify([newLog, ...logs].slice(0, 10)));
+  },
 
-        for (const table of tables) {
-            try {
-                // تجنب التقييم العميق لـ keyof Tables (كان يسبب TS2589)
-                const { data, error } = await supabase
-                    .from(table as unknown as never)
-                    .select('*');
-                if (!error && data) {
-                    (exportData.data as Record<string, unknown>)[table] = data;
-                }
-            } catch (err) {
-                logger.warn('SettingsService', `Failed to export table ${table}`, err);
-            }
+  exportSystemData: async () => {
+    const tables = [
+      'companies',
+      'branches',
+      'warehouses',
+      'products',
+      'product_categories',
+      'product_stock',
+      'product_cross_references',
+      'product_supplier_prices',
+      'product_kit_items',
+      'inventory_transactions',
+      'stock_transfers',
+      'stock_transfer_items',
+      'parties',
+      'party_categories',
+      'invoices',
+      'invoice_items',
+      'accounts',
+      'journal_entries',
+      'journal_entry_lines',
+      'fiscal_years',
+      'supported_currencies',
+      'exchange_rates',
+      'expenses',
+      'expense_categories',
+    ];
+
+    const exportData: Record<string, unknown> = {
+      version: '2.0',
+      exportedAt: new Date().toISOString(),
+      data: {},
+    };
+
+    for (const table of tables) {
+      try {
+        // تجنب التقييم العميق لـ keyof Tables (كان يسبب TS2589)
+        const { data, error } = await supabase.from(table as unknown as never).select('*');
+        if (!error && data) {
+          (exportData.data as Record<string, unknown>)[table] = data;
         }
-
-        settingsService.addBackupLog('Export Full Data Archive', `${(JSON.stringify(exportData).length / 1024 / 1024).toFixed(2)} MB`, 'Success');
-        return exportData;
-    },
-
-    importSystemData: async (file: File, companyId: string) => {
-        try {
-            const text = await file.text();
-            const json = JSON.parse(text);
-
-            if (!json.data || !json.version) {
-                throw new Error("ملف غير صالح أو تالف");
-            }
-
-            const isRecord = (value: unknown): value is Record<string, unknown> =>
-                typeof value === 'object' && value !== null && !Array.isArray(value);
-
-            // Security: never write rows that belong to another tenant. A row is
-            // scoped to the target company either by `company_id` or — for the
-            // `companies` table itself — by its own `id`.
-            const assertRowBelongsToCompany = (table: string, row: Record<string, unknown>): void => {
-                const companyKey = table === 'companies' ? 'id' : 'company_id';
-                const rowCompany = row[companyKey];
-                if (rowCompany !== undefined && rowCompany !== null && String(rowCompany) !== companyId) {
-                    throw new Error(
-                        `ملف الاستيراد يحتوي على بيانات لشركة أخرى (جدول ${table}) — تم إيقاف الاستيراد حفاظاً على عزل البيانات.`
-                    );
-                }
-            };
-
-            // Tables in order of dependencies (roughly).
-            // NOTE: `supported_currencies` is intentionally EXCLUDED from the
-            // write set — it is a global reference table owned by the platform,
-            // not tenant data, so a restore must never upsert into it.
-            const tables = [
-                'companies', 'branches', 'warehouses', 'product_categories', 'products',
-                'product_stock', 'product_cross_references', 'product_supplier_prices', 'product_kit_items',
-                'inventory_transactions', 'stock_transfers', 'stock_transfer_items',
-                'party_categories', 'parties',
-                'fiscal_years', 'exchange_rates',
-                'invoices', 'invoice_items',
-                'accounts', 'journal_entries', 'journal_entry_lines',
-                'expense_categories', 'expenses'
-            ];
-
-            // Validate ALL rows for tenant isolation BEFORE sending anything —
-            // fail fast in the UI; the server enforces the same rule again
-            // inside the atomic RPC below.
-            for (const table of tables) {
-                const tableData = json.data[table];
-                if (tableData && Array.isArray(tableData)) {
-                    for (const row of tableData) {
-                        if (isRecord(row)) assertRowBelongsToCompany(table, row);
-                    }
-                }
-            }
-
-            // [FIX] Perform the restore ATOMICALLY server-side.
-            // Previously this looped 23 separate upsert requests: a failure at
-            // table N silently kept tables 1..N-1 written (partial restore).
-            // `restore_company_data` runs the whole set inside ONE transaction
-            // — any failure rolls back everything — and re-validates tenant
-            // isolation plus owner/admin authorization on the server.
-            const { data: summary, error } = await supabase.rpc('restore_company_data', {
-                p_company_id: companyId,
-                p_payload: json.data,
-            });
-            if (error) {
-                const message = (error as { message?: string }).message ?? String(error);
-                throw new Error(`فشل استيراد البيانات: ${message}`);
-            }
-
-            const totalRows = (Array.isArray(summary) ? summary : [])
-                .reduce((sum: number, entry: unknown) => {
-                    const rowsCount = isRecord(entry) && typeof entry.rows_count === 'number' ? entry.rows_count : 0;
-                    return sum + rowsCount;
-                }, 0);
-
-            settingsService.addBackupLog('System Data Restore', `${(file.size / 1024).toFixed(1)} KB · ${totalRows} صف`, 'Success');
-            return true;
-        } catch (err) {
-            settingsService.addBackupLog('System Data Restore', '0 KB', 'Error');
-            throw err;
-        }
-    },
-
-    /**
-     * تحديث أسعار الصرف من السوق عبر Edge Function
-     */
-    refreshMarketRates: async (companyId?: string) => {
-        try {
-            return await settingsApi.fetchMarketRates(companyId);
-        } catch (error) {
-            logger.error('SettingsService', 'Failed to refresh market rates', error);
-            throw error;
-        }
+      } catch (err) {
+        logger.warn('SettingsService', `Failed to export table ${table}`, err);
+      }
     }
+
+    settingsService.addBackupLog(
+      'Export Full Data Archive',
+      `${(JSON.stringify(exportData).length / 1024 / 1024).toFixed(2)} MB`,
+      'Success'
+    );
+    return exportData;
+  },
+
+  importSystemData: async (file: File, companyId: string) => {
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      if (!json.data || !json.version) {
+        throw new Error('ملف غير صالح أو تالف');
+      }
+
+      const isRecord = (value: unknown): value is Record<string, unknown> =>
+        typeof value === 'object' && value !== null && !Array.isArray(value);
+
+      // Security: never write rows that belong to another tenant. A row is
+      // scoped to the target company either by `company_id` or — for the
+      // `companies` table itself — by its own `id`.
+      const assertRowBelongsToCompany = (table: string, row: Record<string, unknown>): void => {
+        const companyKey = table === 'companies' ? 'id' : 'company_id';
+        const rowCompany = row[companyKey];
+        if (rowCompany !== undefined && rowCompany !== null && String(rowCompany) !== companyId) {
+          throw new Error(
+            `ملف الاستيراد يحتوي على بيانات لشركة أخرى (جدول ${table}) — تم إيقاف الاستيراد حفاظاً على عزل البيانات.`
+          );
+        }
+      };
+
+      // Tables in order of dependencies (roughly).
+      // NOTE: `supported_currencies` is intentionally EXCLUDED from the
+      // write set — it is a global reference table owned by the platform,
+      // not tenant data, so a restore must never upsert into it.
+      const tables = [
+        'companies',
+        'branches',
+        'warehouses',
+        'product_categories',
+        'products',
+        'product_stock',
+        'product_cross_references',
+        'product_supplier_prices',
+        'product_kit_items',
+        'inventory_transactions',
+        'stock_transfers',
+        'stock_transfer_items',
+        'party_categories',
+        'parties',
+        'fiscal_years',
+        'exchange_rates',
+        'invoices',
+        'invoice_items',
+        'accounts',
+        'journal_entries',
+        'journal_entry_lines',
+        'expense_categories',
+        'expenses',
+      ];
+
+      // Validate ALL rows for tenant isolation BEFORE sending anything —
+      // fail fast in the UI; the server enforces the same rule again
+      // inside the atomic RPC below.
+      for (const table of tables) {
+        const tableData = json.data[table];
+        if (tableData && Array.isArray(tableData)) {
+          for (const row of tableData) {
+            if (isRecord(row)) assertRowBelongsToCompany(table, row);
+          }
+        }
+      }
+
+      // [FIX] Perform the restore ATOMICALLY server-side.
+      // Previously this looped 23 separate upsert requests: a failure at
+      // table N silently kept tables 1..N-1 written (partial restore).
+      // `restore_company_data` runs the whole set inside ONE transaction
+      // — any failure rolls back everything — and re-validates tenant
+      // isolation plus owner/admin authorization on the server.
+      const { data: summary, error } = await supabase.rpc('restore_company_data', {
+        p_company_id: companyId,
+        p_payload: json.data,
+      });
+      if (error) {
+        const message = (error as { message?: string }).message ?? String(error);
+        throw new Error(`فشل استيراد البيانات: ${message}`);
+      }
+
+      const totalRows = (Array.isArray(summary) ? summary : []).reduce(
+        (sum: number, entry: unknown) => {
+          const rowsCount =
+            isRecord(entry) && typeof entry.rows_count === 'number' ? entry.rows_count : 0;
+          return sum + rowsCount;
+        },
+        0
+      );
+
+      settingsService.addBackupLog(
+        'System Data Restore',
+        `${(file.size / 1024).toFixed(1)} KB · ${totalRows} صف`,
+        'Success'
+      );
+      return true;
+    } catch (err) {
+      settingsService.addBackupLog('System Data Restore', '0 KB', 'Error');
+      throw err;
+    }
+  },
+
+  /**
+   * تحديث أسعار الصرف من السوق عبر Edge Function
+   */
+  refreshMarketRates: async (companyId?: string) => {
+    try {
+      return await settingsApi.fetchMarketRates(companyId);
+    } catch (error) {
+      logger.error('SettingsService', 'Failed to refresh market rates', error);
+      throw error;
+    }
+  },
 };

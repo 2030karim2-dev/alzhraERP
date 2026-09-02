@@ -9,14 +9,15 @@ import { test, expect } from '@playwright/test';
  * 4. Finance & Accounting View Navigation
  */
 test.describe('Procurement to POS Full Business Lifecycle', () => {
-
   test.beforeEach(async ({ page }) => {
     // Open application via HashRouter
     await page.goto('/#/');
     await page.waitForURL(/.*\/(|welcome|landing)/, { timeout: 15000 });
   });
 
-  test('should navigate through Supplier Portal and inspect RFQs and Quotations tabs', async ({ page }) => {
+  test('should navigate through Supplier Portal and inspect RFQs and Quotations tabs', async ({
+    page,
+  }) => {
     const url = page.url();
     test.skip(url.includes('/welcome'), 'Skipping: user not authenticated');
 
@@ -26,7 +27,9 @@ test.describe('Procurement to POS Full Business Lifecycle', () => {
 
     // 2. Verify Portal header and tabs exist
     await expect(page.locator('body')).not.toBeEmpty();
-    const catalogTab = page.getByRole('button', { name: /كتالوج المنتجات|طلبات التسعير|عروض الأسعار/i }).first();
+    const catalogTab = page
+      .getByRole('button', { name: /كتالوج المنتجات|طلبات التسعير|عروض الأسعار/i })
+      .first();
     if (await catalogTab.isVisible()) {
       await expect(catalogTab).toBeVisible();
     }

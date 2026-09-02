@@ -35,7 +35,7 @@ const SalesPage: React.FC = () => {
   const consumePrefill = useAIPrefillStore((s: any) => s.consumePrefill);
   React.useEffect(() => {
     const aiData = consumePrefill(['create_sales_invoice', 'create_return_sale']);
-    if (aiData && aiData.entities) {
+    if (aiData?.entities) {
       const { resetCart, setCustomer, setMetadata, calculateTotals } = useSalesStore.getState();
       resetCart();
       const entities = aiData.entities;
@@ -105,7 +105,13 @@ const SalesPage: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'create':
-        return <CreateInvoiceView onSuccess={() => setActiveTab('list')} />;
+        return (
+          <CreateInvoiceView
+            onSuccess={() => {
+              setActiveTab('list');
+            }}
+          />
+        );
       case 'list':
         return (
           <InvoiceListView
@@ -117,7 +123,13 @@ const SalesPage: React.FC = () => {
       case 'returns':
         return <SalesReturnsView searchTerm={searchTerm} onViewDetails={setViewInvoiceId} />;
       case 'quotations':
-        return <QuotationsTab onConvertToInvoice={() => setActiveTab('create')} />;
+        return (
+          <QuotationsTab
+            onConvertToInvoice={() => {
+              setActiveTab('create');
+            }}
+          />
+        );
       case 'analytics':
         return <SalesAnalyticsView />;
       default:
@@ -133,7 +145,9 @@ const SalesPage: React.FC = () => {
         iconColor="text-emerald-600"
         tabs={TABS}
         activeTab={activeTab}
-        onTabChange={id => setActiveTab(id as SalesViewTab)}
+        onTabChange={id => {
+          setActiveTab(id as SalesViewTab);
+        }}
         searchPlaceholder={t('search_in_sales_or_customers')}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
@@ -143,7 +157,9 @@ const SalesPage: React.FC = () => {
       </div>
       <InvoiceDetailsModal
         invoiceId={viewInvoiceId}
-        onClose={() => setViewInvoiceId(null)}
+        onClose={() => {
+          setViewInvoiceId(null);
+        }}
         onReturn={handleReturnAction}
       />
     </div>

@@ -27,11 +27,11 @@ const readBaseline = () => {
   }
 };
 
-const writeBaseline = (b) => {
+const writeBaseline = b => {
   fs.writeFileSync(BASELINE_PATH, JSON.stringify(b, null, 2) + '\n');
 };
 
-const runEslint = (files) => {
+const runEslint = files => {
   const res = spawnSync(
     process.execPath,
     [path.join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js'), ...files, '--format', 'json'],
@@ -52,36 +52,54 @@ const runEslint = (files) => {
       try {
         results.push(...JSON.parse(single.stdout || '[]'));
       } catch {
-        results.push({ filePath: path.resolve(ROOT, f), errorCount: 999, messages: [{ message: 'eslint failed to run', severity: 2, ruleId: null }] });
+        results.push({
+          filePath: path.resolve(ROOT, f),
+          errorCount: 999,
+          messages: [{ message: 'eslint failed to run', severity: 2, ruleId: null }],
+        });
       }
     }
   }
   return results;
 };
 
-const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
+const rel = p => path.relative(ROOT, p).split(path.sep).join('/');
 
 if (process.argv.includes('--seed-all')) {
   // يعيد بناء الأساس لكل الملفات مرة واحدة (خطوة تهيئة/سداد دين).
-  const allFiles = execFileSync('git', ['ls-files', '--', '*.ts', '*.tsx'], { cwd: ROOT, encoding: 'utf8' })
-    .split('\n').filter(Boolean);
+  const allFiles = execFileSync('git', ['ls-files', '--', '*.ts', '*.tsx'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(Boolean);
   const results = runEslint(allFiles);
   const baseline = {};
   for (const r of results) baseline[rel(r.filePath)] = r.errorCount || 0;
   writeBaseline(baseline);
-  console.log(`[lint-ratchet] Seeded baseline: ${Object.keys(baseline).length} files, ${Object.values(baseline).reduce((a, b) => a + b, 0)} total errors.`);
+  console.log(
+    `[lint-ratchet] Seeded baseline: ${Object.keys(baseline).length} files, ${Object.values(baseline).reduce((a, b) => a + b, 0)} total errors.`
+  );
   process.exit(0);
 }
 
 // تحديد الملفات المتغيرة
 let files;
-const filesFlag = process.argv.find((a) => a.startsWith('--files='));
+const filesFlag = process.argv.find(a => a.startsWith('--files='));
 if (filesFlag) {
-  files = filesFlag.slice(8).split(/[\s,]+/).filter(Boolean);
+  files = filesFlag
+    .slice(8)
+    .split(/[\s,]+/)
+    .filter(Boolean);
 } else {
   try {
-    const changed = execFileSync('git', ['diff', '--name-only', 'HEAD~1', 'HEAD', '--', '*.ts', '*.tsx'], { cwd: ROOT, encoding: 'utf8' })
-      .split('\n').filter(Boolean);
+    const changed = execFileSync(
+      'git',
+      ['diff', '--name-only', 'HEAD~1', 'HEAD', '--', '*.ts', '*.tsx'],
+      { cwd: ROOT, encoding: 'utf8' }
+    )
+      .split('\n')
+      .filter(Boolean);
     files = changed;
   } catch {
     // أول commit أو لا أصل تاريخي — لا شيء للمقارنة به.
@@ -90,7 +108,7 @@ if (filesFlag) {
   }
 }
 
-files = files.filter((f) => /\.(ts|tsx)$/.test(f));
+files = files.filter(f => /\.(ts|tsx)$/.test(f));
 if (files.length === 0) {
   console.log('[lint-ratchet] No changed TS/TSX files.');
   process.exit(0);
@@ -114,7 +132,7 @@ for (const r of results) {
   if (now > prev) {
     failed = true;
     console.error(`❌ ${key}: ${now} errors (baseline ${prev}) — new lint debt introduced.`);
-    for (const m of (r.messages || []).filter((m) => m.severity === 2)) {
+    for (const m of (r.messages || []).filter(m => m.severity === 2)) {
       console.error(`   ${m.line}:${m.column}  ${m.ruleId}  ${m.message}`);
     }
   } else {
@@ -123,7 +141,9 @@ for (const r of results) {
 }
 
 if (failed) {
-  console.error('[lint-ratchet] FAILED: new lint debt detected. Fix it, or run --update ONLY when debt is intentionally paid down.');
+  console.error(
+    '[lint-ratchet] FAILED: new lint debt detected. Fix it, or run --update ONLY when debt is intentionally paid down.'
+  );
   process.exit(1);
 }
 console.log(`[lint-ratchet] OK: all ${results.length} changed files within lint baseline.`);

@@ -50,13 +50,14 @@
 ### P4 — سد فجوات الموبايل الوظيفية
 
 ### P4 — سد فجوات الموبايل الوظيفية (المنفَّذ)
-| # | البند | الحالة |
-|---|---|---|
-| P4-1 | XL للجداول غير القياسية — فحص 320px: `/#/`, `/#/inventory`, `/#/pos` صفر overflow ✅؛ أنماط `dark:bg-slate-800/80` نغمات مقصودة لا تكسر الثيم — أُبقيت | ✅ |
-| P4-2 | مكوّن `MobileCardList`/`MobileCardRow` في `ui/base` + توحيد البطاقات الأربع (JournalTable, FollowUpTable, PromisesPage, OutboxPage) — -175 سطر تكرار | ✅ |
-| P4-3 | POS عند 320px: `activeMobileTab` + `w-full min-w-0` للسلة + `100dvh overflow-hidden` — آمن | ✅ |
-| P4-4 | PWA: `pwa-icon-192.png` + `pwa-icon-512.png` (قيمتا `any`/`maskable`) | ✅ |
-| P4-5 | `useBreakpoint`/`useCurrentBreakpoint`: `window.resize` → `matchMedia` (SSR-safe) | ✅ |
+
+| #    | البند                                                                                                                                                  | الحالة |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| P4-1 | XL للجداول غير القياسية — فحص 320px: `/#/`, `/#/inventory`, `/#/pos` صفر overflow ✅؛ أنماط `dark:bg-slate-800/80` نغمات مقصودة لا تكسر الثيم — أُبقيت | ✅     |
+| P4-2 | مكوّن `MobileCardList`/`MobileCardRow` في `ui/base` + توحيد البطاقات الأربع (JournalTable, FollowUpTable, PromisesPage, OutboxPage) — -175 سطر تكرار   | ✅     |
+| P4-3 | POS عند 320px: `activeMobileTab` + `w-full min-w-0` للسلة + `100dvh overflow-hidden` — آمن                                                             | ✅     |
+| P4-4 | PWA: `pwa-icon-192.png` + `pwa-icon-512.png` (قيمتا `any`/`maskable`)                                                                                  | ✅     |
+| P4-5 | `useBreakpoint`/`useCurrentBreakpoint`: `window.resize` → `matchMedia` (SSR-safe)                                                                      | ✅     |
 
 **Def. of Done P4: ✅** — لا overflow على 320px في الجرد/POS، البطاقات موحّدة، PWA قابلة للتثبيت، breakpoints عبر matchMedia.
 

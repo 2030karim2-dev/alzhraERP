@@ -20,6 +20,7 @@
 **الخطوات التقنية:**
 
 1. تحليل جميع الأنواع الموجودة في الملف
+
    ```typescript
    // الأنواع الحالية في database.types.ts
    - Product, Customer, Supplier
@@ -30,6 +31,7 @@
    ```
 
 2. إنشاء هيكل المجلدات الجديد
+
    ```
    src/core/types/
    ├── tables/
@@ -62,6 +64,7 @@
    - إصلاح أي أخطاء Typescript
 
 **معايير الاكتمال:**
+
 - [ ] جميع الأنواع منفصلة في ملفات خاصة بها
 - [ ] وقت compile ي decreased بنسبة 30% على الأقل
 - [ ] جميع الاختبارات تمر بنجاح
@@ -83,16 +86,25 @@
 **الخطوات التقنية:**
 
 1. تحليل الثيمات الحالية
+
    ```typescript
    // الفئات الحالية
-   - premium (emerald-pro, sapphire-pro, amethyst-pro, obsidian-pro)
-   - classic (clean-white, midnight-ocean)
-   - beige (warm-sand, desert-cream, champagne-gold, mocha-latte, rose-beige, midnight-caramel)
-   - royal (royal-navy, royal-purple, royal-emerald, royal-burgundy)
-   - accounting (finance-blue, finance-green, finance-dark, finance-slate)
+   -premium(emerald - pro, sapphire - pro, amethyst - pro, obsidian - pro) -
+     classic(clean - white, midnight - ocean) -
+     beige(
+       warm - sand,
+       desert - cream,
+       champagne - gold,
+       mocha - latte,
+       rose - beige,
+       midnight - caramel
+     ) -
+     royal(royal - navy, royal - purple, royal - emerald, royal - burgundy) -
+     accounting(finance - blue, finance - green, finance - dark, finance - slate);
    ```
 
 2. إنشاء هيكل المجلدات
+
    ```
    src/features/appearance/
    ├── presets/
@@ -107,10 +119,11 @@
    ```
 
 3. إنشاء كل ملف فئة
+
    ```typescript
    // مثال: src/features/appearance/presets/premium.ts
    import { ThemePreset } from '../types';
-   
+
    export const PREMIUM_PRESETS: ThemePreset[] = [
      { id: 'emerald-pro', name: 'زمردي احترافي', ... },
      { id: 'sapphire-pro', name: 'ياقوت أزرق احترافي', ... },
@@ -126,6 +139,7 @@
    ```
 
 **معايير الاكتمال:**
+
 - [ ] جميع الثيمات منفذة في ملفات منفصلة
 - [ ] الاستيرادات تعمل بشكل صحيح
 - [ ] لا يوجد كسر في التطبيق
@@ -146,6 +160,7 @@
 **الخطوات التقنية:**
 
 1. تحديد المكونات المشتركة
+
    ```
    المكونات المطلوبة:
    - StatCard (مستخدم في dashboard, sales, inventory)
@@ -157,6 +172,7 @@
    ```
 
 2. إنشاء هيكل المجلدات
+
    ```
    src/shared/
    ├── components/
@@ -187,6 +203,7 @@
    - تحديث الواردات
 
 **معايير الاكتمال:**
+
 - [ ] 5+ مكونات مشتركة منشأة
 - [ ] جميع الاستخدامات القديمة محدثة
 - [ ] التوثيق الأساسي موجود
@@ -217,6 +234,7 @@
    - MobileMenu (القائمة المحمولة)
 
 2. إنشاء المجلدات
+
    ```
    src/features/auth/
    ├── LandingPage/
@@ -233,6 +251,7 @@
    ```
 
 3. استخراج كل قسم
+
    ```typescript
    // مثال: HeroSection.tsx
    export const HeroSection: React.FC<HeroSectionProps> = ({ onCtaClick }) => {
@@ -247,6 +266,7 @@
 4. التجميع في الصفحة الرئيسية
 
 **معايير الاكتمال:**
+
 - [ ] الصفحة تعمل بشكل صحيح
 - [ ] جميع الأقسام منفصلة
 - [ ] الأداء محسّن (lazy loading للحاويات)
@@ -273,6 +293,7 @@
    - `styles.css` - الأنماط
 
 2. إعادة البناء
+
    ```
    src/ui/components/AdvancedTabBar/
    ├── AdvancedTabBar.tsx
@@ -293,7 +314,7 @@
    export const useTabState = (initialTabs) => { ... };
    export const useTabNavigation = (state) => { ... };
    export const useTabAnimation = (state) => { ... };
-   
+
    // التجميع
    export const useAdvancedTabs = (props) => ({
      ...useTabState(props),
@@ -303,6 +324,7 @@
    ```
 
 **معايير الاكتمال:**
+
 - [ ] الوظائف تعمل كما كانت
 - [ ] الكود مقسوم إلى وحدات
 - [ ] الاختبارات تمر
@@ -329,6 +351,7 @@
    - `ExcelTablePagination.tsx` (الترقيم)
 
 2. إعادة البناء
+
    ```
    src/ui/components/ExcelTable/
    ├── ExcelTable.tsx         // المكون الرئيسي
@@ -348,6 +371,7 @@
    - دعم للـ export
 
 **معايير الاكتمال:**
+
 - [ ] جميع الوظائف محفوظة
 - [ ] الأداء محسّن
 - [ ] واجهة برمجة تطبيقات محسّنة
@@ -370,6 +394,7 @@
 **الخطوات التقنية:**
 
 1. تحليل التقارير
+
    ```
    التقارير الحالية:
    - CashFlowView.tsx (15KB)
@@ -380,6 +405,7 @@
    ```
 
 2. إنشاء قاعدة مشتركة
+
    ```
    src/shared/reports/
    ├── ReportContainer/     // حاوية التقارير
@@ -392,6 +418,7 @@
 3. تطبيق على التقارير
 
 **معايير الاكتمال:**
+
 - [ ] 3+ تقارير تستخدم القاعدة المشتركة
 - [ ] الكود مكرر أقل
 
@@ -411,6 +438,7 @@
 **الخطوات التقنية:**
 
 1. تحديد النطاق
+
    ```
    packages/ui/
    ├── src/
@@ -437,6 +465,7 @@
    - إعداد npm registry
 
 **معايير الاكتمال:**
+
 - [ ] 10+ مكونات مصدرة
 - [ ] Storybook يعمل
 - [ ] اختبارات موجودة
@@ -447,16 +476,16 @@
 
 ## ملخص الجدول الزمني
 
-| المرحلة | المهمة | الوقت |
-|---------|--------|-------|
-| المرحلة الأولى | C1: database.types.ts | 3-5 أيام |
-| المرحلة الأولى | C2: appearance/constants.ts | 1-2 يوم |
-| المرحلة الأولى | C3: Shared Components | 2-3 أيام |
-| المرحلة الثانية | R1: LandingPage | 1-2 يوم |
-| المرحلة الثانية | R2: AdvancedTabBar | 1-2 يوم |
-| المرحلة الثانية | R3: ExcelTable | 2-3 أيام |
-| المرحلة الثالثة | O1: Reports | 2-3 أيام |
-| المرحلة الثالثة | O2: UI Library | 5-7 أيام |
+| المرحلة         | المهمة                      | الوقت    |
+| --------------- | --------------------------- | -------- |
+| المرحلة الأولى  | C1: database.types.ts       | 3-5 أيام |
+| المرحلة الأولى  | C2: appearance/constants.ts | 1-2 يوم  |
+| المرحلة الأولى  | C3: Shared Components       | 2-3 أيام |
+| المرحلة الثانية | R1: LandingPage             | 1-2 يوم  |
+| المرحلة الثانية | R2: AdvancedTabBar          | 1-2 يوم  |
+| المرحلة الثانية | R3: ExcelTable              | 2-3 أيام |
+| المرحلة الثالثة | O1: Reports                 | 2-3 أيام |
+| المرحلة الثالثة | O2: UI Library              | 5-7 أيام |
 
 **الإجمالي:** 17-27 يوم عمل
 
@@ -477,11 +506,11 @@
 
 ## المخاطر والتخفيف
 
-| المخاطرة | التأثير | التخفيف |
-|----------|--------|---------|
-| كسر التوافق | عالي | اختبارات شاملة، نشر تدريجي |
-| وقت طويل | متوسط | تقسيم المهام، أولوية واضحة |
-| صيانة متعددة | متوسط | توثيق جيد، مراجعة الكود |
+| المخاطرة     | التأثير | التخفيف                    |
+| ------------ | ------- | -------------------------- |
+| كسر التوافق  | عالي    | اختبارات شاملة، نشر تدريجي |
+| وقت طويل     | متوسط   | تقسيم المهام، أولوية واضحة |
+| صيانة متعددة | متوسط   | توثيق جيد، مراجعة الكود    |
 
 ---
 

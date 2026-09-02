@@ -1,11 +1,10 @@
-
-import { Product } from '../types';
+import type { Product } from '../types';
 
 export const stockAlertService = {
   /**
    * حساب معدل الاستهلاك اليومي (خوارزمية بسيطة)
    */
-  calculateDailyVelocity: (salesHistory: { quantity: number }[], days: number = 30): number => {
+  calculateDailyVelocity: (salesHistory: Array<{ quantity: number }>, days = 30): number => {
     const totalQty = salesHistory.reduce((sum, sale) => sum + sale.quantity, 0);
     return totalQty / days;
   },
@@ -22,9 +21,10 @@ export const stockAlertService = {
    * فلترة الأصناف التي تتطلب "طلب شراء" فوراً
    */
   getRestockCandidates: (products: Product[]) => {
-    return products.filter(p =>
-      p.stock_quantity <= p.min_stock_level ||
-      ((p as unknown as Record<string, unknown>).predictedDaysRemaining as number) < 7 // تنبيه إذا كان المخزون يكفي لأقل من أسبوع
+    return products.filter(
+      p =>
+        p.stock_quantity <= p.min_stock_level ||
+        ((p as unknown as Record<string, unknown>).predictedDaysRemaining as number) < 7 // تنبيه إذا كان المخزون يكفي لأقل من أسبوع
     );
-  }
+  },
 };

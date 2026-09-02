@@ -1,7 +1,7 @@
 import React from 'react';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import Input from '../../../../ui/base/Input';
-import { ProductFormData } from '../../types';
+import type { ProductFormData } from '../../types';
 import { Box, BellRing } from 'lucide-react';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 
@@ -21,7 +21,7 @@ const ProductStockInfo: React.FC<Props> = ({ register, errors }) => {
         dir="ltr"
         icon={<Box className="text-blue-500" />}
         className="font-bold text-blue-600 dark:text-blue-400"
-        error={errors.stock_quantity?.message as string}
+        error={errors.stock_quantity?.message}
       />
       <Input
         label={t('alert_limit')}
@@ -30,7 +30,7 @@ const ProductStockInfo: React.FC<Props> = ({ register, errors }) => {
         dir="ltr"
         icon={<BellRing className="text-amber-500" />}
         className="font-bold text-amber-600 dark:text-amber-400"
-        error={errors.min_stock_level?.message as string}
+        error={errors.min_stock_level?.message}
       />
     </>
   );

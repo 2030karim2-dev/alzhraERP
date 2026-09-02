@@ -1,6 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { parseError } from '../../../core/utils/errorUtils';
-import { Database } from '../../../core/database.types';
+import type { Database } from '../../../core/database.types';
 
 type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
 
@@ -26,10 +26,10 @@ const throwParsed = (err: unknown): never => {
   throw new Error(parsed.message);
 };
 
-
 export const accountsApi = {
   getAccounts: async (companyId: string) => {
-    return await supabase.from('accounts')
+    return await supabase
+      .from('accounts')
       .select('*')
       .eq('company_id', companyId)
       .is('deleted_at', null)
@@ -38,16 +38,11 @@ export const accountsApi = {
   },
 
   createAccount: async (account: AccountInsert) => {
-    return await supabase.from('accounts')
-      .insert(account)
-      .select()
-      .single();
+    return await supabase.from('accounts').insert(account).select().single();
   },
 
   insertAccounts: async (accounts: AccountInsert[]) => {
-    return await supabase.from('accounts')
-      .insert(accounts)
-      .select();
+    return await supabase.from('accounts').insert(accounts).select();
   },
 
   /**
@@ -76,7 +71,8 @@ export const accountsApi = {
     }
 
     // 2) Fallback legacy: فحص القيود المرتبطة
-    const { count, error: checkError } = await supabase.from('journal_entry_lines')
+    const { count, error: checkError } = await supabase
+      .from('journal_entry_lines')
       .select('id', { count: 'exact', head: true })
       .eq('account_id', id)
       .eq('company_id', companyId)
@@ -88,7 +84,8 @@ export const accountsApi = {
     }
 
     // Safety check: prevent deleting an account that has children accounts
-    const { count: childrenCount, error: childrenError } = await supabase.from('accounts')
+    const { count: childrenCount, error: childrenError } = await supabase
+      .from('accounts')
       .select('id', { count: 'exact', head: true })
       .eq('parent_id', id)
       .eq('company_id', companyId)
@@ -99,12 +96,13 @@ export const accountsApi = {
       throw new Error(FALLBACK_ERRORS.hasChildren);
     }
 
-    const { error: updateError } = await supabase.from('accounts')
+    const { error: updateError } = await supabase
+      .from('accounts')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
       .eq('company_id', companyId);
 
     if (updateError) throw updateError;
     return { ok: true };
-  }
+  },
 };

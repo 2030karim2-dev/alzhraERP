@@ -1,4 +1,3 @@
-
 // Export individual API modules for granular usage
 export * from './accountsApi';
 export * from './journalsApi';
@@ -12,5 +11,5 @@ import { reportsApi } from './reportsApi';
 export const accountingApi = {
   ...accountsApi,
   ...journalsApi,
-  ...reportsApi
+  ...reportsApi,
 };

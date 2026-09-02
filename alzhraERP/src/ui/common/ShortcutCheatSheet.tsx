@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Keyboard } from 'lucide-react';
 import { cn } from '../../core/utils';
-import { ShortcutBinding } from '../../core/hooks/useGlobalShortcuts';
+import type { ShortcutBinding } from '../../core/hooks/useGlobalShortcuts';
 
 interface ShortcutCheatSheetProps {
   isOpen: boolean;
@@ -20,7 +20,10 @@ const formatKey = (binding: ShortcutBinding): string => {
 };
 
 const ShortcutCheatSheet: React.FC<ShortcutCheatSheetProps> = ({
-  isOpen, onClose, shortcuts, title = 'اختصارات لوحة المفاتيح',
+  isOpen,
+  onClose,
+  shortcuts,
+  title = 'اختصارات لوحة المفاتيح',
 }) => {
   if (!isOpen) return null;
 
@@ -29,37 +32,50 @@ const ShortcutCheatSheet: React.FC<ShortcutCheatSheetProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-      onClick={onClose} onKeyDown={handleKeyDown}>
+    <div
+      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+    >
       <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm" />
       <div
-        role="dialog" aria-modal="true" aria-label={title}
-        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={e => {
+          e.stopPropagation();
+        }}
         className={cn(
-          'relative w-full max-w-md bg-[var(--app-surface)] rounded-2xl shadow-2xl border border-[var(--app-border)] overflow-hidden',
-          'animate-in zoom-in-95 fade-in duration-200',
+          'relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl',
+          'animate-in zoom-in-95 fade-in duration-200'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--app-border)]">
+        <div className="flex items-center justify-between border-b border-[var(--app-border)] px-5 py-4">
           <div className="flex items-center gap-2">
             <Keyboard size={18} className="text-[var(--accent)]" />
             <h3 className="text-sm font-bold text-[var(--app-text)]">{title}</h3>
           </div>
-          <button onClick={onClose} aria-label="إغلاق"
-            className="p-1.5 rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] transition-colors">
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="rounded-lg p-1.5 text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)]"
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Shortcuts List */}
-        <div className="p-4 space-y-1 max-h-[70dvh] overflow-y-auto custom-scrollbar">
+        <div className="custom-scrollbar max-h-[70dvh] space-y-1 overflow-y-auto p-4">
           {shortcuts.map((binding, idx) => (
-            <div key={idx}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--app-surface-hover)] transition-colors">
-              <span className="text-xs font-medium text-[var(--app-text)]">{binding.description}</span>
-              <kbd className="px-2 py-1 text-[10px] font-bold rounded-lg bg-[var(--app-bg)]
-                border border-[var(--app-border)] text-[var(--app-text-secondary)] font-mono tracking-wide">
+            <div
+              key={idx}
+              className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-[var(--app-surface-hover)]"
+            >
+              <span className="text-xs font-medium text-[var(--app-text)]">
+                {binding.description}
+              </span>
+              <kbd className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-1 font-mono text-[10px] font-bold tracking-wide text-[var(--app-text-secondary)]">
                 {formatKey(binding)}
               </kbd>
             </div>
@@ -67,9 +83,13 @@ const ShortcutCheatSheet: React.FC<ShortcutCheatSheetProps> = ({
         </div>
 
         {/* Footer hint */}
-        <div className="px-5 py-3 border-t border-[var(--app-border)] text-center">
+        <div className="border-t border-[var(--app-border)] px-5 py-3 text-center">
           <p className="text-[10px] font-semibold text-[var(--app-text-secondary)]">
-            اضغط <kbd className="px-1 py-0.5 rounded bg-[var(--app-bg)] border border-[var(--app-border)] text-[10px] font-bold mx-0.5">?</kbd> في أي وقت لإظهار هذه القائمة
+            اضغط{' '}
+            <kbd className="mx-0.5 rounded border border-[var(--app-border)] bg-[var(--app-bg)] px-1 py-0.5 text-[10px] font-bold">
+              ?
+            </kbd>{' '}
+            في أي وقت لإظهار هذه القائمة
           </p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { journalService } from '../services/journalService';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
-import { JournalEntryFormData } from '../types/models';
+import type { JournalEntryFormData } from '../types/models';
 import { PostTransactionUsecase } from '../../../core/usecases/accounting/PostTransactionUsecase';
 import { assertPermission } from '../../../core/hooks/usePermission';
 import { invalidateByPreset } from '../../../lib/invalidation';
@@ -17,13 +17,13 @@ export const useJournals = () => {
 
   return useInfiniteQuery({
     queryKey: ['journals', companyId, branchId],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
       if (!companyId) return [];
       try {
         const result = await journalService.formatJournalsForUI(companyId, branchId, pageParam);
         return Array.isArray(result) ? result : [];
       } catch (error) {
-        logger.error("useJournals", "useJournals fetch error:", error);
+        logger.error('useJournals', 'useJournals fetch error:', error);
         throw error;
       }
     },
@@ -46,7 +46,7 @@ export const useJournalMutation = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: JournalEntryFormData) => {
-      if (!user?.company_id || !user?.id) throw new Error("جلسة العمل منتهية");
+      if (!user?.company_id || !user?.id) throw new Error('جلسة العمل منتهية');
 
       // 1. فحص الصلاحية عبر الخادم
       await assertPermission('accounting:create', 'ترحيل قيود محاسبية');
@@ -60,11 +60,11 @@ export const useJournalMutation = () => {
     },
     onError: (error: Error) => {
       showToast(error.message, 'error', error);
-    }
+    },
   });
 
   return {
     createJournal: mutation.mutate,
-    isCreating: mutation.isPending
+    isCreating: mutation.isPending,
   };
 };

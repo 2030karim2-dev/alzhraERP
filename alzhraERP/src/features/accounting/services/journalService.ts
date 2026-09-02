@@ -1,6 +1,5 @@
-
 import { journalsApi } from '../api/journalsApi';
-import { UIJournalEntry, JournalEntryFormData, JournalStatus } from '../types/models';
+import type { UIJournalEntry, JournalEntryFormData, JournalStatus } from '../types/models';
 import { PostTransactionUsecase } from '../../../core/usecases/accounting/PostTransactionUsecase';
 import { parseError } from '../../../core/utils/errorUtils';
 
@@ -49,8 +48,16 @@ export const journalService = {
   /**
    * تنسيق البيانات القادمة من الـ API لتناسب العرض
    */
-  formatJournalsForUI: async (companyId: string, branchId?: string | null, pageParam: number = 0): Promise<UIJournalEntry[]> => {
-    const { data: rawData, error } = await journalsApi.fetchJournals(companyId, branchId, pageParam);
+  formatJournalsForUI: async (
+    companyId: string,
+    branchId?: string | null,
+    pageParam = 0
+  ): Promise<UIJournalEntry[]> => {
+    const { data: rawData, error } = await journalsApi.fetchJournals(
+      companyId,
+      branchId,
+      pageParam
+    );
     if (error) throw parseError(error);
 
     const journals = (rawData || []) as RawJournal[];
@@ -78,25 +85,29 @@ export const journalService = {
         status: (j.status || 'posted') as JournalStatus,
         created_at: j.created_at,
         created_by: j.created_by || '',
-        journal_entry_lines: lines.map((l) => ({
+        journal_entry_lines: lines.map(l => ({
           debit_amount: l.debit_amount || 0,
           credit_amount: l.credit_amount || 0,
           description: l.description || '',
-          ...(l.account ? {
-            account: {
-              name_ar: l.account.name_ar ?? '',
-              name: l.account.name_ar ?? '',
-              code: l.account.code ?? '',
-            },
-          } : {}),
+          ...(l.account
+            ? {
+                account: {
+                  name_ar: l.account.name_ar ?? '',
+                  name: l.account.name_ar ?? '',
+                  code: l.account.code ?? '',
+                },
+              }
+            : {}),
         })),
         total_amount: Math.max(
           lines.reduce((sum, l) => sum + (l.debit_amount || 0), 0),
           lines.reduce((sum, l) => sum + (l.credit_amount || 0), 0)
         ),
-        ...(j.created_by_profile?.full_name ? { created_by_profile: { full_name: j.created_by_profile.full_name } } : {}),
+        ...(j.created_by_profile?.full_name
+          ? { created_by_profile: { full_name: j.created_by_profile.full_name } }
+          : {}),
         ...(partyName ? { party_name: partyName } : {}),
       };
     });
-  }
+  },
 };

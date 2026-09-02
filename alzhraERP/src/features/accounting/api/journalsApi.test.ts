@@ -63,39 +63,47 @@ describe('journalsApi.postJournalEntryRPC', () => {
   });
 
   it('rejects a zero-amount journal before calling the RPC (R2)', async () => {
-    await expect(journalsApi.postJournalEntryRPC(companyId, userId, {
-      ...baseInput,
-      lines: [
-        { account_id: accountA, debit: 0, credit: 0 },
-        { account_id: accountB, debit: 0, credit: 0 },
-      ],
-    })).rejects.toThrow('مبلغ صفري');
+    await expect(
+      journalsApi.postJournalEntryRPC(companyId, userId, {
+        ...baseInput,
+        lines: [
+          { account_id: accountA, debit: 0, credit: 0 },
+          { account_id: accountB, debit: 0, credit: 0 },
+        ],
+      })
+    ).rejects.toThrow('مبلغ صفري');
 
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 
   it('rejects a non-positive exchange rate before calling the RPC (R3)', async () => {
-    await expect(journalsApi.postJournalEntryRPC(companyId, userId, {
-      ...baseInput,
-      exchange_rate: 0,
-    })).rejects.toThrow('سعر صرف');
+    await expect(
+      journalsApi.postJournalEntryRPC(companyId, userId, {
+        ...baseInput,
+        exchange_rate: 0,
+      })
+    ).rejects.toThrow('سعر صرف');
 
-    await expect(journalsApi.postJournalEntryRPC(companyId, userId, {
-      ...baseInput,
-      exchange_rate: -1,
-    })).rejects.toThrow('سعر صرف');
+    await expect(
+      journalsApi.postJournalEntryRPC(companyId, userId, {
+        ...baseInput,
+        exchange_rate: -1,
+      })
+    ).rejects.toThrow('سعر صرف');
 
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 
   it('rejects an unbalanced journal before calling the RPC', async () => {
-    await expect(journalsApi.postJournalEntryRPC(companyId, userId, {
-      ...baseInput,
-      lines: [
-        { account_id: accountA, debit: 100, credit: 0 },
-        { account_id: accountB, debit: 0, credit: 150 },
-      ],
-    })).rejects.toThrow('غير متوازن');
+    await expect(
+      journalsApi.postJournalEntryRPC(companyId, userId, {
+        ...baseInput,
+        lines: [
+          { account_id: accountA, debit: 100, credit: 0 },
+          { account_id: accountB, debit: 0, credit: 150 },
+        ],
+      })
+    ).rejects.toThrow('غير متوازن');
 
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });

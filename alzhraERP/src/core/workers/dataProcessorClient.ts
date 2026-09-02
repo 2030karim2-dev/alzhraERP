@@ -6,7 +6,7 @@ import type { WorkerTaskMessage, WorkerResponseMessage } from './dataProcessor.w
 
 class DataProcessorClient {
   private worker: Worker | null = null;
-  private pendingTasks = new Map<
+  private readonly pendingTasks = new Map<
     string,
     { resolve: (value: any) => void; reject: (reason?: any) => void }
   >();
@@ -21,10 +21,9 @@ class DataProcessorClient {
     }
 
     try {
-      this.worker = new Worker(
-        new URL('./dataProcessor.worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      this.worker = new Worker(new URL('./dataProcessor.worker.ts', import.meta.url), {
+        type: 'module',
+      });
 
       this.worker.onmessage = (e: MessageEvent<WorkerResponseMessage>) => {
         const { id, success, result, error } = e.data;
@@ -39,25 +38,25 @@ class DataProcessorClient {
         }
       };
 
-      this.worker.onerror = (err) => {
+      this.worker.onerror = err => {
         console.error('DataProcessor Worker error:', err);
       };
     } catch (e) {
-      console.warn('Web Workers unavailable or failed to initialize, using main thread fallback', e);
+      console.warn(
+        'Web Workers unavailable or failed to initialize, using main thread fallback',
+        e
+      );
       this.worker = null;
     }
   }
 
-  public async runTask<T = any>(
-    type: WorkerTaskMessage['type'],
-    payload: any
-  ): Promise<T> {
+  public async runTask<T = any>(type: WorkerTaskMessage['type'], payload: any): Promise<T> {
     const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     if (this.worker) {
       return new Promise<T>((resolve, reject) => {
         this.pendingTasks.set(id, { resolve, reject });
-        this.worker!.postMessage({ id, type, payload } as WorkerTaskMessage);
+        this.worker!.postMessage({ id, type, payload });
       });
     }
 

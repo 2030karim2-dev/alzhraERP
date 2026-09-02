@@ -1,12 +1,15 @@
 # ADR-006: Treasury RLS Alignment, Ledger Branch Filter, Balance Sign Convention
 
 ## Status
+
 Accepted (2026-08-18)
 
 ## Date
+
 2026-08-18
 
 ## Context
+
 Follow-up to ADR-005. Deep inspection of the live production database and the
 frontend exposed three inconsistencies in the P2 area:
 
@@ -32,6 +35,7 @@ frontend exposed three inconsistencies in the P2 area:
    already handles the sign semantically (مدين/دائن).
 
 ## Decision
+
 1. **Treasury RLS** — update `20260818000001_fix_accounting_engine.sql` so its
    `cashboxes` / `exchange_companies` policies **exactly match production**:
    `FOR … TO public`, tenancy via `get_user_company_id()`, and write access for
@@ -56,20 +60,26 @@ frontend exposed three inconsistencies in the P2 area:
    left unchanged.
 
 ## Alternatives Considered
+
 ### Add branch filter client-side (filter entries after the RPC)
+
 Rejected — running balances would be computed over all branches then filtered,
 producing incorrect balances for a branch-filtered view.
 
 ### Change `report_trial_balance` to per-type CASE signs in production
+
 Rejected — the live trial-balance consumers (reports view, ledger RPC) already
 interpret the flat sign correctly; altering the RPC would flip those displays and
 affect every caller.
 
 ### Keep `user_is_admin_or_manager()` in the treasury policies
+
 Rejected — excludes `accountant`, diverging from production behavior.
 
 ## Consequences
+
 ### Positive
+
 - Treasury RLS in the repository now reproduces production exactly.
 - The ledger respects the active branch filter; balances are correct for the
   filtered branch.
@@ -78,6 +88,7 @@ Rejected — excludes `accountant`, diverging from production behavior.
 - Baseline functions regenerated to include the new 5-arg `get_account_ledger`.
 
 ## Addendum (2026-08-18): Bond (receipt/payment) posting fixed
+
 While enabling the treasury **سند قبض / سند صرف** buttons, the live engine revealed
 that bond journals are created by the AFTER INSERT trigger
 `fn_auto_post_payment_journal` on `payments` — **not** by `commit_payment`. Both had
@@ -85,6 +96,7 @@ the same **posted-first** ordering bug, so every bond insert failed with
 `23514: Cannot add lines to a posted journal entry`.
 
 Fixes applied to production (same signatures):
+
 1. `fn_auto_post_payment_journal` → header inserted as `'draft'`, lines added, then
    `UPDATE … SET status='posted'`; idempotency check retained; Arabic messages
    cleaned.
@@ -99,6 +111,7 @@ Frontend: treasury receipt/payment buttons enabled; `useCashPaymentAccounts` /
 entry (trial balance) instead of the static `opening_balance`.
 
 ### Negative / Follow-up
+
 - `get_account_ledger`'s old 4-arg signature is dropped; any external caller must be
   updated to the 5-arg form (frontend already updated).
 - `accountsService.getAccounts` sign normalization is a presentation convention;
@@ -111,4 +124,3 @@ entry (trial balance) instead of the static `opening_balance`.
   AR and payments to AP for party counterparties is a future enhancement.
 - `trg_auto_post_payment_journal` skips transfers (`party_id` is null); internal
   cash transfers rely on the transfer bond flow in the UI.
-

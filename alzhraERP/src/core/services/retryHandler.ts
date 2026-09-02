@@ -1,9 +1,9 @@
 /**
  * Retry Handler — Centralized retry logic with exponential backoff.
- * 
+ *
  * Provides a reusable retry mechanism for API calls, DB operations,
  * and other async functions that may fail transiently.
- * 
+ *
  * @module core/services/retryHandler
  */
 
@@ -74,7 +74,7 @@ const calculateDelay = (
   attempt: number,
   baseDelay: number,
   maxDelay: number,
-  exponential: boolean,
+  exponential: boolean
 ): number => {
   if (exponential) {
     // Exponential: baseDelay * 2^(attempt-1) with jitter
@@ -89,7 +89,7 @@ const calculateDelay = (
 
 /**
  * Retry an async function with exponential backoff.
- * 
+ *
  * @example
  * ```typescript
  * const data = await retryWithBackoff(
@@ -100,16 +100,12 @@ const calculateDelay = (
  */
 export const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {},
+  options: RetryOptions = {}
 ): Promise<T> => {
-  const {
-    maxRetries,
-    baseDelay,
-    maxDelay,
-    exponential,
-    retryOnlyTransient,
-    onRetry,
-  } = { ...DEFAULT_OPTIONS, ...options };
+  const { maxRetries, baseDelay, maxDelay, exponential, retryOnlyTransient, onRetry } = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  };
 
   let lastError: Error = new Error('Unknown retry error');
 
@@ -134,7 +130,7 @@ export const retryWithBackoff = async <T>(
 
       // Wait before retrying
       const delay = calculateDelay(attempt + 1, baseDelay, maxDelay, exponential);
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
@@ -144,7 +140,7 @@ export const retryWithBackoff = async <T>(
 /**
  * Wraps a function with retry logic, returning a new function with the same signature.
  * Useful for creating retry-enabled versions of existing functions.
- * 
+ *
  * @example
  * ```typescript
  * const safeFetch = withRetry(fetchProducts, { maxRetries: 2 });
@@ -153,7 +149,7 @@ export const retryWithBackoff = async <T>(
  */
 export const withRetry = <TArgs extends unknown[], TResult>(
   fn: (...args: TArgs) => Promise<TResult>,
-  options: RetryOptions = {},
+  options: RetryOptions = {}
 ): ((...args: TArgs) => Promise<TResult>) => {
   return async (...args: TArgs): Promise<TResult> => {
     return retryWithBackoff(() => fn(...args), options);

@@ -78,11 +78,16 @@ export const useSystemInitialization = () => {
     notificationService.checkSystemHealth(user.company_id);
 
     // Run interval checks every 10 minutes
-    const interval = setInterval(() => {
-      notificationService.checkSystemHealth(user.company_id!);
-    }, 1000 * 60 * 10);
+    const interval = setInterval(
+      () => {
+        notificationService.checkSystemHealth(user.company_id!);
+      },
+      1000 * 60 * 10
+    );
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [user?.company_id]);
 
   // 3. Global Keyboard Shortcuts
@@ -94,7 +99,9 @@ export const useSystemInitialization = () => {
       }
     };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+    };
   }, [openPalette]);
 
   // ملاحظة: كانت هناك حلقة "REPLAY_ACTIONS" عبر Service Worker اليدوي (sw.js)

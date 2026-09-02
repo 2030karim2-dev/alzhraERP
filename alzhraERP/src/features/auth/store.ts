@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { AuthUser } from './types';
+import type { AuthUser } from './types';
 import { supabase } from '../../lib/supabaseClient';
 import { authApi } from './api';
 import { queryClient } from '../../lib/queryClient';
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       isReady: false,
 
-      login: (user) => set({ user, isAuthenticated: true, isLoading: false, isReady: true }),
+      login: user => set({ user, isAuthenticated: true, isLoading: false, isReady: true }),
 
       loginWithGoogle: async () => {
         try {
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
           // The page will redirect to Google, so we don't need to do anything else here.
         } catch (err) {
-          logger.error('Auth', 'Google login error', err as Error);
+          logger.error('Auth', 'Google login error', err);
           set({ isLoading: false });
           throw err;
         }
@@ -54,11 +54,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           await supabase.auth.signOut();
         } catch (err) {
-          logger.error('Auth', 'Sign out error', err as Error);
+          logger.error('Auth', 'Sign out error', err);
         } finally {
           // Clear all React Query cache + IndexedDB persisted data on logout
           queryClient.clear();
-          Promise.resolve(persister.removeClient()).catch(() => { });
+          Promise.resolve(persister.removeClient()).catch(() => {});
           set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
         }
       },
@@ -85,14 +85,18 @@ export const useAuthStore = create<AuthState>()(
 
           // 1. Create a timeout promise
           const timeoutPromise = new Promise<{ timeout: boolean }>(resolve =>
-            setTimeout(() => resolve({ timeout: true }), SESSION_CHECK_TIMEOUT)
+            setTimeout(() => {
+              resolve({ timeout: true });
+            }, SESSION_CHECK_TIMEOUT)
           );
 
           // 2. Try to get session with timeout
           let session = null;
           let sessionError = null;
 
-          const sessionPromise = supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null }));
+          const sessionPromise = supabase.auth
+            .getSession()
+            .catch(() => ({ data: { session: null }, error: null }));
           const result = await Promise.race([sessionPromise, timeoutPromise]);
 
           if (result && 'timeout' in result) {
@@ -111,18 +115,24 @@ export const useAuthStore = create<AuthState>()(
 
           // ⚡ If Refresh Token fails, clear session immediately
           if (sessionError) {
-            logger.warn('Auth', 'Stale session detected, clearing token', { message: sessionError.message });
+            logger.warn('Auth', 'Stale session detected, clearing token', {
+              message: sessionError.message,
+            });
             await supabase.auth.signOut({ scope: 'local' });
             queryClient.clear();
-            Promise.resolve(persister.removeClient()).catch(() => { });
+            Promise.resolve(persister.removeClient()).catch(() => {});
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           } else if (session?.user) {
             // 2. Fetch full profile with timeout
             let profile: Record<string, unknown> | null = null;
 
-            const profilePromise = authApi.getProfile(session.user.id).catch(() => ({ data: null, error: null, isAborted: false }));
+            const profilePromise = authApi
+              .getProfile(session.user.id)
+              .catch(() => ({ data: null, error: null, isAborted: false }));
             const profileTimeout = new Promise<{ timeout: boolean }>(resolve =>
-              setTimeout(() => resolve({ timeout: true }), PROFILE_FETCH_TIMEOUT)
+              setTimeout(() => {
+                resolve({ timeout: true });
+              }, PROFILE_FETCH_TIMEOUT)
             );
 
             const profileResult = await Promise.race([profilePromise, profileTimeout]);
@@ -134,8 +144,12 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: false, isReady: true });
               }
             } else {
-              const resolved = profileResult as { data?: Record<string, unknown>, isAborted?: boolean } | Record<string, unknown>;
-              profile = ('data' in resolved && resolved.data ? resolved.data : resolved) as Record<string, unknown>;
+              const resolved = profileResult as
+                { data?: Record<string, unknown>; isAborted?: boolean } | Record<string, unknown>;
+              profile = ('data' in resolved && resolved.data ? resolved.data : resolved) as Record<
+                string,
+                unknown
+              >;
             }
 
             if (profile && typeof profile === 'object' && profile.id) {
@@ -172,7 +186,9 @@ export const useAuthStore = create<AuthState>()(
                   recoveredRole = roleData?.role || 'viewer';
                   recoveredBranchId = roleData?.branch_id ?? null;
                 }
-              } catch (_) { /* ignore — best effort */ }
+              } catch (_) {
+                /* ignore — best effort */
+              }
 
               set({
                 user: {
@@ -189,12 +205,11 @@ export const useAuthStore = create<AuthState>()(
               });
               queryClient.invalidateQueries({ type: 'active' });
             }
-
           } else if (!persistedUser) {
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           } else {
             queryClient.clear();
-            Promise.resolve(persister.removeClient()).catch(() => { });
+            Promise.resolve(persister.removeClient()).catch(() => {});
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           }
 
@@ -202,76 +217,101 @@ export const useAuthStore = create<AuthState>()(
           if (_authSubscription) _authSubscription.unsubscribe();
 
           // 4. Listen for auth state changes
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            try {
-              logger.debug('Auth', 'State change event', { event });
+          const {
+            data: { subscription },
+          } = supabase.auth.onAuthStateChange(
+            async (event: AuthChangeEvent, session: Session | null) => {
+              try {
+                logger.debug('Auth', 'State change event', { event });
 
-              // ⚡ تنظيف الـ Hash من الرابط بعد تسجيل الدخول عبر Google/OAuth
-              // لمنع تحذير `@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago` عند إعادة تحميل الصفحة
-              if (typeof window !== 'undefined' && window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error_description='))) {
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
-              }
-
-              if (event === 'SIGNED_OUT' || !session) {
-                queryClient.clear();
-                Promise.resolve(persister.removeClient()).catch(() => { });
-                set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
-                return;
-              }
-
-              const currentUser = get().user;
-              // ⚡ TOKEN_REFRESHED فقط هو ما يُتخطّى: إعادة جلب البروفايل كل ساعة بلا
-              // داعٍ. أما INITIAL_SESSION فيجب أن يُعيد التحقق من البروفايل دائماً —
-              // المستخدم المحفوظ (localStorage) قد يحمل company_id قديماً (شركة
-              // محذوفة / عضوية ملغاة) وإعادة جلب get_user_profile عند كل تحميل
-              // تطبيق تصحّحه بدلاً من إطلاق عاصفة 406 من استعلامات companies.
-              if (currentUser && currentUser.id === session.user.id && event === 'TOKEN_REFRESHED') {
-                return;
-              }
-
-              if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-                if (!session.user?.id) return;
-
-                try {
-                  const profileResult = await authApi.getProfile(session.user.id);
-                  const resolved = profileResult as unknown as { data?: Record<string, unknown> } | Record<string, unknown>;
-                  const profile = ('data' in resolved && resolved.data ? resolved.data : resolved) as Record<string, unknown>;
-
-                  if (profile && typeof profile === 'object' && profile.id) {
-                    set({
-                      user: profile as unknown as AuthUser,
-                      isAuthenticated: true,
-                      isLoading: false,
-                      isReady: true
-                    });
-                    // ⚡ Targeted invalidation (active-only) — see initialize().
-                    queryClient.invalidateQueries({ type: 'active' });
-                  }
-                } catch (e) {
-                  logger.warn('Auth', `Profile fetch after ${event} failed`);
+                // ⚡ تنظيف الـ Hash من الرابط بعد تسجيل الدخول عبر Google/OAuth
+                // لمنع تحذير `@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago` عند إعادة تحميل الصفحة
+                if (
+                  typeof window !== 'undefined' &&
+                  window.location.hash &&
+                  (window.location.hash.includes('access_token=') ||
+                    window.location.hash.includes('error_description='))
+                ) {
+                  window.history.replaceState(
+                    null,
+                    '',
+                    window.location.pathname + window.location.search
+                  );
                 }
+
+                if (event === 'SIGNED_OUT' || !session) {
+                  queryClient.clear();
+                  Promise.resolve(persister.removeClient()).catch(() => {});
+                  set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
+                  return;
+                }
+
+                const currentUser = get().user;
+                // ⚡ TOKEN_REFRESHED فقط هو ما يُتخطّى: إعادة جلب البروفايل كل ساعة بلا
+                // داعٍ. أما INITIAL_SESSION فيجب أن يُعيد التحقق من البروفايل دائماً —
+                // المستخدم المحفوظ (localStorage) قد يحمل company_id قديماً (شركة
+                // محذوفة / عضوية ملغاة) وإعادة جلب get_user_profile عند كل تحميل
+                // تطبيق تصحّحه بدلاً من إطلاق عاصفة 406 من استعلامات companies.
+                if (
+                  currentUser &&
+                  currentUser.id === session.user.id &&
+                  event === 'TOKEN_REFRESHED'
+                ) {
+                  return;
+                }
+
+                if (
+                  event === 'INITIAL_SESSION' ||
+                  event === 'TOKEN_REFRESHED' ||
+                  event === 'SIGNED_IN'
+                ) {
+                  if (!session.user?.id) return;
+
+                  try {
+                    const profileResult = await authApi.getProfile(session.user.id);
+                    const resolved = profileResult as unknown as
+                      { data?: Record<string, unknown> } | Record<string, unknown>;
+                    const profile = (
+                      'data' in resolved && resolved.data ? resolved.data : resolved
+                    ) as Record<string, unknown>;
+
+                    if (profile && typeof profile === 'object' && profile.id) {
+                      set({
+                        user: profile as unknown as AuthUser,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        isReady: true,
+                      });
+                      // ⚡ Targeted invalidation (active-only) — see initialize().
+                      queryClient.invalidateQueries({ type: 'active' });
+                    }
+                  } catch (e) {
+                    logger.warn('Auth', `Profile fetch after ${event} failed`);
+                  }
+                }
+              } catch (err) {
+                logger.error('Auth', 'onAuthStateChange handler failed', err);
               }
-            } catch (err) {
-              logger.error('Auth', 'onAuthStateChange handler failed', err);
             }
-          });
+          );
 
           _authSubscription = subscription;
-
         } catch (err) {
-          logger.error('Auth', 'Initialization error', err as Error);
-          try { await supabase.auth.signOut({ scope: 'local' }); } catch (_) { }
+          logger.error('Auth', 'Initialization error', err);
+          try {
+            await supabase.auth.signOut({ scope: 'local' });
+          } catch (_) {}
           queryClient.clear();
-          Promise.resolve(persister.removeClient()).catch(() => { });
+          Promise.resolve(persister.removeClient()).catch(() => {});
           set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
         } finally {
           isInitializingGlobal = false;
         }
-      }
+      },
     }),
     {
       name: 'alzhra-auth',
-      partialize: (state) => ({
+      partialize: state => ({
         user: state.user,
         // isAuthenticated intentionally NOT persisted (QA-2026-003) — derived
         // from `user` presence during initialize(). Storing a bare boolean in

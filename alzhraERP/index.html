@@ -1,94 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl" translate="no">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="google" content="notranslate" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/pwa-icon-512.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#2563eb" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' *.supabase.co *.vercel.app https://vercel.com; script-src 'self' 'unsafe-inline' *.google.com *.googleapis.com *.gstatic.com *.vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com *.vercel.com; media-src 'self' data: blob: https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org *.supabase.co; connect-src 'self' https://zzthamxjxnxzzpswllid.supabase.co wss://zzthamxjxnxzzpswllid.supabase.co *.supabase.co wss://*.supabase.co https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org https://api.deepseek.com https://openrouter.ai https://*.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com https://vercel.com; object-src 'none';" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/pwa-icon-512.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' *.supabase.co *.vercel.app https://vercel.com; script-src 'self' 'unsafe-inline' *.google.com *.googleapis.com *.gstatic.com *.vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' *.googleapis.com; font-src 'self' *.gstatic.com *.googleapis.com data:; img-src 'self' data: blob: *.supabase.co *.google.com *.googleusercontent.com *.vercel.com; media-src 'self' data: blob: https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org *.supabase.co; connect-src 'self' https://zzthamxjxnxzzpswllid.supabase.co wss://zzthamxjxnxzzpswllid.supabase.co *.supabase.co wss://*.supabase.co https://cdn.islamic.network https://*.islamic.network https://*.archive.org https://archive.org https://api.deepseek.com https://openrouter.ai https://*.openrouter.ai *.google.com *.googleapis.com *.vercel.live *.vercel-analytics.com https://vpic.nhtsa.dot.gov; frame-src 'self' *.google.com https://vercel.com; object-src 'none';"
+    />
 
-  <!-- Primary Meta Tags -->
-  <title>نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار</title>
-  <meta name="title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
-  <meta name="description" content="نظام الزهراء الذكي - نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، ذكاء اصطناعي، والمزيد." />
+    <!-- Primary Meta Tags -->
+    <title>نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار</title>
+    <meta name="title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
+    <meta
+      name="description"
+      content="نظام الزهراء الذكي - نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، ذكاء اصطناعي، والمزيد."
+    />
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://alzahra-erp.app/" />
-  <meta property="og:title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
-  <meta property="og:description" content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي." />
-  <meta property="og:image" content="/pwa-icon-512.png" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://alzahra-erp.app/" />
+    <meta
+      property="og:title"
+      content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار"
+    />
+    <meta
+      property="og:description"
+      content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي."
+    />
+    <meta property="og:image" content="/pwa-icon-512.png" />
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://alzahra-erp.app/" />
-  <meta property="twitter:title" content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار" />
-  <meta property="twitter:description" content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي." />
-  <meta property="twitter:image" content="/pwa-icon-512.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://alzahra-erp.app/" />
+    <meta
+      property="twitter:title"
+      content="نظام الزهراء الذكي | الحل المتكامل لإدارة مراكز قطع الغيار"
+    />
+    <meta
+      property="twitter:description"
+      content="نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات. إدارة مخزون، فواتير، محاسبة، نقطة بيع، ذكاء اصطناعي."
+    />
+    <meta property="twitter:image" content="/pwa-icon-512.png" />
 
-  <!-- Schema.org JSON-LD -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "نظام الزهراء الذكي",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "description": "نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
-    }
-  </script>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
-    rel="stylesheet">
-  <script>
-    // Theme initialization to prevent flicker
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
-    // Auto-recover from stale deployment chunks or stylesheets
-    window.addEventListener('error', function(e) {
-      var target = e.target;
-      if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) {
-        var key = 'alzahra_asset_reload_timestamp';
-        var lastReload = Number(sessionStorage.getItem(key)) || 0;
-        var now = Date.now();
-        if (now - lastReload > 10000) {
-          sessionStorage.setItem(key, String(now));
-          window.location.reload();
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "نظام الزهراء الذكي",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "نظام ERP عربي متكامل لإدارة محلات ومراكز قطع غيار السيارات",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
         }
       }
-    }, true);
-  </script>
-<!-- All styles moved to src/index.css for PWA build compatibility -->
-</head>
+    </script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-<body class="font-sans antialiased">
-  <!-- Skip to main content for accessibility -->
-  <a href="#landing-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-2xl focus:font-black focus:shadow-2xl">
-    تخطي إلى المحتوى الرئيسي
-  </a>
-  <div id="root"></div>
-  <script type="module" src="/src/index.tsx"></script>
-</body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Theme initialization to prevent flicker
+      if (
+        localStorage.getItem('theme') === 'dark' ||
+        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
 
+      // Auto-recover from stale deployment chunks or stylesheets
+      window.addEventListener(
+        'error',
+        function (e) {
+          var target = e.target;
+          if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) {
+            var key = 'alzahra_asset_reload_timestamp';
+            var lastReload = Number(sessionStorage.getItem(key)) || 0;
+            var now = Date.now();
+            if (now - lastReload > 10000) {
+              sessionStorage.setItem(key, String(now));
+              window.location.reload();
+            }
+          }
+        },
+        true
+      );
+    </script>
+    <!-- All styles moved to src/index.css for PWA build compatibility -->
+  </head>
+
+  <body class="font-sans antialiased">
+    <!-- Skip to main content for accessibility -->
+    <a
+      href="#landing-main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-2xl focus:bg-blue-600 focus:px-6 focus:py-3 focus:font-black focus:text-white focus:shadow-2xl"
+    >
+      تخطي إلى المحتوى الرئيسي
+    </a>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
 </html>

@@ -23,7 +23,9 @@ const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) =
           </h4>
           <textarea
             value={notes}
-            onChange={event => onNotesChange(event.target.value)}
+            onChange={event => {
+              onNotesChange(event.target.value);
+            }}
             className="mt-2 h-full w-full resize-none bg-transparent text-xs font-bold outline-none"
           />
         </div>

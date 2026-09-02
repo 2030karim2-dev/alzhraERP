@@ -6,9 +6,9 @@ import { useState, useEffect } from 'react';
 import { syncStore, type PendingMutation } from '../lib/sync-store';
 import { logger } from '../utils/logger';
 
-export interface MutationProcessor<TVariables = any, TResult = any> {
-  (variables: TVariables): Promise<TResult>;
-}
+export type MutationProcessor<TVariables = any, TResult = any> = (
+  variables: TVariables
+) => Promise<TResult>;
 
 type SyncListener = (pendingCount: number, isSyncing: boolean) => void;
 
@@ -26,10 +26,10 @@ function isFatalClientError(err: any): boolean {
 }
 
 class OfflineMutationQueueManager {
-  private handlers = new Map<string, MutationProcessor>();
+  private readonly handlers = new Map<string, MutationProcessor>();
   private isProcessing = false;
-  private listeners = new Set<SyncListener>();
-  private maxRetries = 5;
+  private readonly listeners = new Set<SyncListener>();
+  private readonly maxRetries = 5;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -61,7 +61,9 @@ class OfflineMutationQueueManager {
   private async notifyListeners() {
     const pending = await syncStore.getPending();
     const count = pending.length;
-    this.listeners.forEach(fn => fn(count, this.isProcessing));
+    this.listeners.forEach(fn => {
+      fn(count, this.isProcessing);
+    });
   }
 
   /**

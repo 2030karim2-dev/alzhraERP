@@ -1,4 +1,12 @@
-export type InventoryView = 'products' | 'categories' | 'warehouses' | 'history' | 'low-stock' | 'transfers' | 'audit' | 'analysis';
+export type InventoryView =
+  | 'products'
+  | 'categories'
+  | 'warehouses'
+  | 'history'
+  | 'low-stock'
+  | 'transfers'
+  | 'audit'
+  | 'analysis';
 
 /** سجل توافق منتج مع مركبة (VIN / طراز) */
 export interface CarCompatibility {
@@ -99,12 +107,14 @@ export interface Product {
   isLowStock?: boolean | undefined;
 
   // Relations - merged warehouse_distribution (location is optional for backward compatibility)
-  warehouse_distribution?: Array<{
-    warehouse_id: string;
-    warehouse_name: string;
-    quantity: number;
-    location?: string;
-  }> | undefined;
+  warehouse_distribution?:
+    | Array<{
+        warehouse_id: string;
+        warehouse_name: string;
+        quantity: number;
+        location?: string;
+      }>
+    | undefined;
 
   created_at: string;
   updated_at?: string;
@@ -116,12 +126,14 @@ export interface Product {
   compatibility?: CarCompatibility[] | undefined;
 
   location?: string | undefined;
-  locations?: {
-    warehouse_id: string;
-    aisle: string;
-    shelf: string;
-    bin: string;
-  }[] | undefined;
+  locations?:
+    | Array<{
+        warehouse_id: string;
+        aisle: string;
+        shelf: string;
+        bin: string;
+      }>
+    | undefined;
   uoms?: ProductUOM[] | undefined;
 }
 
@@ -186,7 +198,7 @@ export interface StockTransfer {
   from_warehouse_id: string;
   to_warehouse_id: string;
   status: 'pending' | 'completed' | 'cancelled';
-  items: { product_id: string; quantity: number }[];
+  items: Array<{ product_id: string; quantity: number }>;
   notes?: string;
   created_at: string;
   created_by: string;
@@ -195,14 +207,14 @@ export interface StockTransfer {
 export interface TransferFormData {
   from_warehouse_id: string;
   to_warehouse_id: string;
-  items: { product_id: string; quantity: number }[];
+  items: Array<{ product_id: string; quantity: number }>;
   notes?: string;
 }
 
 export interface CreateTransferDTO {
   from_warehouse_id: string;
   to_warehouse_id: string;
-  items: { product_id: string; quantity: number }[];
+  items: Array<{ product_id: string; quantity: number }>;
   notes?: string;
   company_id: string;
   user_id: string;
@@ -221,9 +233,9 @@ export interface InventoryAnalysisData {
     outOfStockItems: number;
     potentialRevenue: number;
   };
-  trendData: { date: string; in: number; out: number }[];
-  topMovingItems: { name: string; qty: number; trend: string }[];
-  categoryDistribution: { name: string; value: number; fill: string }[];
+  trendData: Array<{ date: string; in: number; out: number }>;
+  topMovingItems: Array<{ name: string; qty: number; trend: string }>;
+  categoryDistribution: Array<{ name: string; value: number; fill: string }>;
 }
 
 export interface InventoryStats {
@@ -237,7 +249,17 @@ export interface InventoryTransaction {
   product_id: string;
   warehouse_id: string;
   quantity: number;
-  transaction_type: 'purchase' | 'sales' | 'purchase_return' | 'sales_return' | 'transfer_in' | 'transfer_out' | 'adj_in' | 'adj_out' | 'adj' | 'initial';
+  transaction_type:
+    | 'purchase'
+    | 'sales'
+    | 'purchase_return'
+    | 'sales_return'
+    | 'transfer_in'
+    | 'transfer_out'
+    | 'adj_in'
+    | 'adj_out'
+    | 'adj'
+    | 'initial';
   reference_type?: string;
   reference_id?: string;
   created_by: string;

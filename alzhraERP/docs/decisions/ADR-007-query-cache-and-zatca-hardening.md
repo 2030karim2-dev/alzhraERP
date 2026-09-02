@@ -16,7 +16,7 @@ The 2026-08-18 audit found two critical issues:
    `alzhra-query-cache`) and a second one used only by `src/features/auth/store.ts`
    (`src/lib/queryClient.ts` + `src/lib/persister.ts`, keyed
    `AL_ZAHRA_OFFLINE_CACHE`). On logout, `auth/store.ts` called
-   `queryClient.clear()` and `persister.removeClient()` on the *unused* client,
+   `queryClient.clear()` and `persister.removeClient()` on the _unused_ client,
    leaving the real IndexedDB cache intact. On shared devices a subsequent user
    could be rehydrated with the previous user's financial data
    (`refetchOnMount: false`, `staleTime` up to 15 min). The `buster` for the
@@ -68,7 +68,7 @@ The 2026-08-18 audit found two critical issues:
   rehydrated on shared devices.
 - Deploy-time cache invalidation works again via `QUERY_PERSIST_BUSTER`.
 - ZATCA can no longer be triggered anonymously or report fake "cleared" status.
-  Full ZATCA *compliance* (onboarding CSR / compliance certificate + EInvoice
+  Full ZATCA _compliance_ (onboarding CSR / compliance certificate + EInvoice
   signing) remains a documented prerequisite before real production use.
 - The offline sync queue (`syncStore`) is intentionally **not** cleared on
   logout — replay is blocked by RLS for a different user, and clearing it would

@@ -32,12 +32,14 @@ const createInsertRecorder = (final: { data: unknown; error: { message: string }
             return isTerminal ? Promise.resolve(final) : build();
           };
         },
-      },
+      }
     );
   return { calls, build };
 };
 
-const baseDto = (overrides: Partial<CreatePurchaseQuotationDTO> = {}): CreatePurchaseQuotationDTO => ({
+const baseDto = (
+  overrides: Partial<CreatePurchaseQuotationDTO> = {}
+): CreatePurchaseQuotationDTO => ({
   partyId: 'party-1',
   issueDate: '2026-08-26',
   items: [
@@ -58,27 +60,23 @@ describe('purchaseQuotationsApi.createQuotation — atomic write & safe numberin
     const { calls, build } = createInsertRecorder({ data: insertedRow, error: null });
     mockFrom.mockImplementation(() => build());
 
-    const result = await purchaseQuotationsApi.createQuotation(
-      'comp-1',
-      'user-1',
-      baseDto(),
-    );
+    const result = await purchaseQuotationsApi.createQuotation('comp-1', 'user-1', baseDto());
 
     const fromTable = mockFrom.mock.calls[0]?.[0];
     expect(fromTable).toBe('quotations');
 
     // Exactly ONE write entry point: insert() called once carrying the items array
-    const insertCall = calls.find((c) => c.method === 'insert');
+    const insertCall = calls.find(c => c.method === 'insert');
     expect(insertCall).toBeDefined();
-    expect(calls.filter((c) => c.method === 'insert')).toHaveLength(1);
+    expect(calls.filter(c => c.method === 'insert')).toHaveLength(1);
 
     const payload = insertCall?.args[0] as Record<string, unknown>;
-    expect(payload['quotation_number']).toBe('QP-0042');
-    expect(payload['type']).toBe('purchase');
-    expect(payload['company_id']).toBe('comp-1');
-    expect(payload['created_by']).toBe('user-1');
+    expect(payload.quotation_number).toBe('QP-0042');
+    expect(payload.type).toBe('purchase');
+    expect(payload.company_id).toBe('comp-1');
+    expect(payload.created_by).toBe('user-1');
 
-    const nestedItems = payload['quotation_items'] as Array<Record<string, unknown>>;
+    const nestedItems = payload.quotation_items as Array<Record<string, unknown>>;
     expect(nestedItems).toHaveLength(2);
     expect(nestedItems[0]).toMatchObject({
       product_id: 'prod-1',
@@ -102,13 +100,13 @@ describe('purchaseQuotationsApi.createQuotation — atomic write & safe numberin
     mockFrom.mockImplementation(() => build());
 
     await expect(
-      purchaseQuotationsApi.createQuotation('comp-1', 'user-1', baseDto()),
+      purchaseQuotationsApi.createQuotation('comp-1', 'user-1', baseDto())
     ).rejects.toThrow(/duplicate key/);
   });
 
   it('refuses to save a quotation with zero items (client-side fail-fast)', async () => {
     await expect(
-      purchaseQuotationsApi.createQuotation('comp-1', 'user-1', baseDto({ items: [] })),
+      purchaseQuotationsApi.createQuotation('comp-1', 'user-1', baseDto({ items: [] }))
     ).rejects.toThrow(/بدون أصناف/);
     expect(mockFrom).not.toHaveBeenCalled();
   });

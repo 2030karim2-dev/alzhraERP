@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 // Extended breakpoints matching Tailwind config
 const BREAKPOINTS = {
   // Mobile
-  'xs': 480,
-  'sm': 640,
+  xs: 480,
+  sm: 640,
   // Tablet
-  'md': 768,
-  'lg': 1024,
-  'xl': 1280,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
   // Desktop
   '2xl': 1536,
   // Mac Large Screens
@@ -30,10 +30,14 @@ export const useBreakpoint = (breakpoint: BreakpointKey): boolean => {
 
   useEffect(() => {
     const mql = window.matchMedia(query);
-    const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches);
+    const handleChange = (e: MediaQueryListEvent) => {
+      setMatches(e.matches);
+    };
     setMatches(mql.matches); // sync initial state (SSR-safe)
     mql.addEventListener('change', handleChange);
-    return () => mql.removeEventListener('change', handleChange);
+    return () => {
+      mql.removeEventListener('change', handleChange);
+    };
   }, [query]);
 
   return matches;
@@ -57,11 +61,17 @@ export const useCurrentBreakpoint = (): BreakpointKey => {
       setBreakpoint(getCurrentBreakpointFromWidth(window.innerWidth));
     };
 
-    mqls.forEach(({ mql }) => mql.addEventListener('change', handleChange));
+    mqls.forEach(({ mql }) => {
+      mql.addEventListener('change', handleChange);
+    });
     // احسب الحالة الأولية + استجب لأي تغيير محتمل
     handleChange();
 
-    return () => mqls.forEach(({ mql }) => mql.removeEventListener('change', handleChange));
+    return () => {
+      mqls.forEach(({ mql }) => {
+        mql.removeEventListener('change', handleChange);
+      });
+    };
   }, []);
 
   return breakpoint;
@@ -73,10 +83,10 @@ function getCurrentBreakpointFromWidth(width: number): BreakpointKey {
   if (width >= BREAKPOINTS['4xl']) return '4xl';
   if (width >= BREAKPOINTS['3xl']) return '3xl';
   if (width >= BREAKPOINTS['2xl']) return '2xl';
-  if (width >= BREAKPOINTS['xl']) return 'xl';
-  if (width >= BREAKPOINTS['lg']) return 'lg';
-  if (width >= BREAKPOINTS['md']) return 'md';
-  if (width >= BREAKPOINTS['sm']) return 'sm';
+  if (width >= BREAKPOINTS.xl) return 'xl';
+  if (width >= BREAKPOINTS.lg) return 'lg';
+  if (width >= BREAKPOINTS.md) return 'md';
+  if (width >= BREAKPOINTS.sm) return 'sm';
   return 'xs';
 }
 

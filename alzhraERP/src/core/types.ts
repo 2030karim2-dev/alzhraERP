@@ -1,5 +1,4 @@
-
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { Permission } from './types/common';
 
 export type IconColor =
@@ -31,7 +30,8 @@ export interface MenuItem {
   requiredPermission?: Permission;
 }
 
-export type ThemeColor = 'emerald' | 'purple' | 'amber' | 'blue' | 'slate' | 'red' | 'rose' | 'indigo';
+export type ThemeColor =
+  'emerald' | 'purple' | 'amber' | 'blue' | 'slate' | 'red' | 'rose' | 'indigo';
 
 export interface StatConfig {
   id: string;

@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from 'vitest';
 import { formatCurrency, cn, formatNumberDisplay } from './utils';
 
@@ -40,11 +39,7 @@ describe('Core Utils', () => {
     it('should handle conditional classes', () => {
       const isTrue = true;
       const isFalse = false;
-      const result = cn(
-        'base-class',
-        isTrue && 'active',
-        isFalse && 'inactive'
-      );
+      const result = cn('base-class', isTrue && 'active', isFalse && 'inactive');
       expect(result).toBe('base-class active');
     });
 

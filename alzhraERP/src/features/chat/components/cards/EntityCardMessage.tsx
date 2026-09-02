@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const EntityCardMessage: React.FC<Props> = ({ messageId, metadata }) => {
-  if (!metadata || !metadata.entity_type) return null;
+  if (!metadata?.entity_type) return null;
 
   switch (metadata.entity_type) {
     case 'product':

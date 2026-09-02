@@ -53,7 +53,9 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
       await navigator.clipboard.writeText(portalUrl);
       setCopied(true);
       showToast('تم نسخ رابط البوابة بنجاح', 'success');
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2500);
     } catch {
       showToast('تعذر نسخ الرابط تلقائياً', 'error');
     }

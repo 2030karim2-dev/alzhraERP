@@ -11,20 +11,20 @@
 
 ### 1.1 النتيجة الإجمالية
 
-| المؤشر | القيمة |
-|--------|--------|
-| إجمالي الثغرات المُكتشفة | **19** |
-| المُصلَحة بالكامل | **17** |
-| المُعتمدة مع تبرير (Accepted) | **2** |
-| Critical vulnerabilities | 1 (R-26) |
-| High vulnerabilities | 4 (R-09, R-11, R-21, R-27) |
-| Migrations جديدة | 9 |
-| SQL test files جديدة | 8 |
-| Edge Functions جديدة | 2 |
-| Audit views جديدة | 8 |
-| Honeypot tables | 10 |
-| RLS policies جديدة/مُعدَّلة | ~20 |
-| **نسبة النجاح في الاختبارات** | **471/471** (100%) |
+| المؤشر                        | القيمة                                    |
+| ----------------------------- | ----------------------------------------- |
+| إجمالي الثغرات المُكتشفة      | **19**                                    |
+| المُصلَحة بالكامل             | **17**                                    |
+| المُعتمدة مع تبرير (Accepted) | **2**                                     |
+| Critical vulnerabilities      | 1 (R-26)                                  |
+| High vulnerabilities          | 4 (R-09, R-11, R-21, R-27)                |
+| Migrations جديدة              | 9                                         |
+| SQL test files جديدة          | 8                                         |
+| Edge Functions جديدة          | 2                                         |
+| Audit views جديدة             | 8                                         |
+| Honeypot tables               | 10                                        |
+| RLS policies جديدة/مُعدَّلة   | ~20                                       |
+| **نسبة النجاح في الاختبارات** | **471/471** (100%)                        |
 | **حالة Production Readiness** | **READY** (مشروط بتطبيق الـ 9 migrations) |
 
 ### 1.2 أهم الإنجازات
@@ -45,29 +45,31 @@
 
 #### R-26: Cross-Tenant Write via 39 `api_v1_*` Functions
 
-| البند | التفاصيل |
-|------|----------|
-| **الموقع** | `supabase/migrations/20260819000002_baseline_functions.sql:180-1692` |
-| **الخطورة** | CRITICAL |
-| **النوع** | Broken Access Control / IDOR |
-| **الحالة** | ✅ FIXED |
+| البند       | التفاصيل                                                             |
+| ----------- | -------------------------------------------------------------------- |
+| **الموقع**  | `supabase/migrations/20260819000002_baseline_functions.sql:180-1692` |
+| **الخطورة** | CRITICAL                                                             |
+| **النوع**   | Broken Access Control / IDOR                                         |
+| **الحالة**  | ✅ FIXED                                                             |
 
 **الوصف التقني:**
 39 دالة في مجموعة `api_v1_*` (المالية، المخزون، المشتريات، النظام) كانت تأخذ `p_company_id uuid` كمعامل، وكانت `SECURITY DEFINER` مع `GRANT EXECUTE TO authenticated`، لكنها **لم تستدعِ** `fn_assert_company_access(p_company_id)`. كانت تعتمد فقط على `WHERE company_id = p_company_id` في SELECT/UPDATE/INSERT.
 
 **سيناريو الاستغلال:**
+
 ```javascript
 // Attacker from company A can call:
 supabase.rpc('api_v1_prc_cancel_po', {
-  p_company_id: '<target_company_id>',  // Company B
-  p_po_id: '<target_po_id>',            // PO in Company B
+  p_company_id: '<target_company_id>', // Company B
+  p_po_id: '<target_po_id>', // PO in Company B
   p_cancelled_by: '<attacker_user_id>',
-  p_reason: 'malicious'
-})
+  p_reason: 'malicious',
+});
 // Result: cancels Company B's PO successfully
 ```
 
 **الإصلاح:**
+
 - Migration `20260826000001_fix_api_v1_cross_tenant_vulnerability.sql`
 - حقن `PERFORM public.fn_assert_company_access(p_company_id);` كأول statement في كل دالة
 - استخدام `pg_get_functiondef()` للحقن الآمن
@@ -75,6 +77,7 @@ supabase.rpc('api_v1_prc_cancel_po', {
 - View جديد `v_api_v1_missing_tenant_guard` لكشف أي دالة مستقبلية بدون guard
 
 **الدليل على الإصلاح:**
+
 ```sql
 -- Before:
 CREATE FUNCTION api_v1_prc_cancel_po(p_company_id uuid, ...)
@@ -98,26 +101,29 @@ END $$;
 
 #### R-09: XML Injection in ZATCA UBL Builder
 
-| البند | التفاصيل |
-|------|----------|
-| **الموقع** | `supabase/functions/zatca-integration/index.ts:81-118` |
-| **الخطورة** | HIGH |
-| **النوع** | XML Injection / Business Logic Bypass |
-| **الحالة** | ✅ FIXED |
+| البند       | التفاصيل                                               |
+| ----------- | ------------------------------------------------------ |
+| **الموقع**  | `supabase/functions/zatca-integration/index.ts:81-118` |
+| **الخطورة** | HIGH                                                   |
+| **النوع**   | XML Injection / Business Logic Bypass                  |
+| **الحالة**  | ✅ FIXED                                               |
 
 **الوصف التقني:**
 دالة `generateUBLXML` كانت تستخدم template literals مع قيم من قاعدة البيانات مباشرة:
+
 ```typescript
-`<cbc:RegistrationName>${supplierName}</cbc:RegistrationName>`
+`<cbc:RegistrationName>${supplierName}</cbc:RegistrationName>`;
 ```
 
 إذا كان اسم الشركة أو الطرف يحتوي على `<` أو `>`، يمكن حقن XML غير صالح أو محتوى إضافي.
 
 **سيناريو الاستغلال:**
+
 - شركة اسمها: `</cbc:RegistrationName><cbc:OtherText>malicious</cbc:OtherText><!--`
 - النتيجة: XML غير صالح → رفض ZATCA (DoS) أو smuggling لمحتوى فاتورة مزور
 
 **الإصلاح:**
+
 - Migration في `supabase/functions/zatca-integration/index.ts`
 - دالة `escapeXml()` تهرب من `<`, `>`, `&`, `"`, `'` وتحذف control chars غير القانونية في XML 1.0
 - TLV length cap (200 chars seller, 32 chars VAT)
@@ -126,15 +132,16 @@ END $$;
 
 #### R-11: Authorization Header Leak via console.warn
 
-| البند | التفاصيل |
-|------|----------|
-| **الموقع** | `src/lib/supabaseClient.ts:180-181` (السطر القديم) |
-| **الخطورة** | HIGH |
-| **النوع** | Sensitive Data Exposure |
-| **الحالة** | ✅ FIXED |
+| البند       | التفاصيل                                           |
+| ----------- | -------------------------------------------------- |
+| **الموقع**  | `src/lib/supabaseClient.ts:180-181` (السطر القديم) |
+| **الخطورة** | HIGH                                               |
+| **النوع**   | Sensitive Data Exposure                            |
+| **الحالة**  | ✅ FIXED                                           |
 
 **الوصف التقني:**
 دالة retry في Supabase client كانت تسجل `options` كاملة عند فشل network:
+
 ```typescript
 logger.warn('Supabase', `Request failed...`, { attempt: i + 1 });
 // الـ options تحتوي على Authorization: Bearer <JWT>
@@ -143,6 +150,7 @@ logger.warn('Supabase', `Request failed...`, { attempt: i + 1 });
 النتيجة: أي مستخدم يفتح DevTools يرى الـ JWT في console.
 
 **الإصلاح:**
+
 - استبدال `{ attempt: i + 1 }` بـ `{ attempt, url, method }` فقط
 - لا يتم تسجيل الـ options أبداً
 
@@ -150,12 +158,12 @@ logger.warn('Supabase', `Request failed...`, { attempt: i + 1 });
 
 #### R-21: react-router-dom RSC CSRF (CVE)
 
-| البند | التفاصيل |
-|------|----------|
-| **الموقع** | `package.json` / `package-lock.json` |
-| **الخطورة** | HIGH |
-| **النوع** | Known CVE |
-| **الحالة** | ✅ FIXED |
+| البند       | التفاصيل                             |
+| ----------- | ------------------------------------ |
+| **الموقع**  | `package.json` / `package-lock.json` |
+| **الخطورة** | HIGH                                 |
+| **النوع**   | Known CVE                            |
+| **الحالة**  | ✅ FIXED                             |
 
 **الإصلاح:** `npm audit fix` رفع `react-router-dom` إلى إصدار آمن.
 
@@ -163,17 +171,18 @@ logger.warn('Supabase', `Request failed...`, { attempt: i + 1 });
 
 #### R-27: Cross-Tenant File Read in Storage Buckets
 
-| البند | التفاصيل |
-|------|----------|
-| **الموقع** | `supabase/migrations/20260819000005_file_attachments_storage.sql:80-98` |
-| **الخطورة** | HIGH |
-| **النوع** | Broken Access Control |
-| **الحالة** | ✅ FIXED |
+| البند       | التفاصيل                                                                |
+| ----------- | ----------------------------------------------------------------------- |
+| **الموقع**  | `supabase/migrations/20260819000005_file_attachments_storage.sql:80-98` |
+| **الخطورة** | HIGH                                                                    |
+| **النوع**   | Broken Access Control                                                   |
+| **الحالة**  | ✅ FIXED                                                                |
 
 **الوصف التقني:**
 سياسات `storage.objects` لـ buckets `invoices` و `company-assets` كانت تتحقق فقط من `bucket_id = 'invoices'` بدون التحقق من `company_id` للمستخدم.
 
 **سيناريو الاستغلال:**
+
 ```javascript
 // User from Company A can read Company B's invoice PDF:
 const { data } = await supabase.storage
@@ -182,6 +191,7 @@ const { data } = await supabase.storage
 ```
 
 **الإصلاح:**
+
 - Migration `20260826000002_storage_per_bucket_tenant_policies.sql`
 - دالة `storage_path_company_id(name)` تستخرج `company_id` من أول segment في المسار
 - السياسات الجديدة تتحقق: `IN (SELECT get_auth_companies())`
@@ -191,21 +201,21 @@ const { data } = await supabase.storage
 
 ### 2.3 الثغرات المتوسطة (MEDIUM)
 
-| ID | الوصف | الحالة |
-|----|-------|--------|
-| R-01 | CSP `'unsafe-eval'` و `connect-src` واسع | ✅ FIXED |
-| R-12 | SVG/HTML مقبول في Storage | ✅ FIXED |
-| R-14 | TOCTOU race في `vin-decode` rate limit | ✅ FIXED |
-| R-15 | `chat_messages.body` بدون تحقق | ✅ FIXED |
-| R-19 | Global `idempotency_key` UNIQUE (DoS vector) | ✅ FIXED |
-| R-20 | CSP `connect-src` واسع | ✅ FIXED |
-| R-22 | `dompurify` CVE | ✅ FIXED |
-| R-23 | `brace-expansion` CVE | ✅ FIXED |
-| R-28 | 35/37 write RPCs بدون audit logging | ✅ FIXED |
-| R-29 | TOCTOU في `check_rate_limit` | ✅ FIXED |
-| R-02 | Password complexity client-side only | ⏳ Accepted (Auth Hook) |
-| R-03 | Tokens في `localStorage` | ⏳ Accepted (auth proxy) |
-| R-10 | `void_invoice` reason field | ⏳ Tracked |
+| ID   | الوصف                                        | الحالة                   |
+| ---- | -------------------------------------------- | ------------------------ |
+| R-01 | CSP `'unsafe-eval'` و `connect-src` واسع     | ✅ FIXED                 |
+| R-12 | SVG/HTML مقبول في Storage                    | ✅ FIXED                 |
+| R-14 | TOCTOU race في `vin-decode` rate limit       | ✅ FIXED                 |
+| R-15 | `chat_messages.body` بدون تحقق               | ✅ FIXED                 |
+| R-19 | Global `idempotency_key` UNIQUE (DoS vector) | ✅ FIXED                 |
+| R-20 | CSP `connect-src` واسع                       | ✅ FIXED                 |
+| R-22 | `dompurify` CVE                              | ✅ FIXED                 |
+| R-23 | `brace-expansion` CVE                        | ✅ FIXED                 |
+| R-28 | 35/37 write RPCs بدون audit logging          | ✅ FIXED                 |
+| R-29 | TOCTOU في `check_rate_limit`                 | ✅ FIXED                 |
+| R-02 | Password complexity client-side only         | ⏳ Accepted (Auth Hook)  |
+| R-03 | Tokens في `localStorage`                     | ⏳ Accepted (auth proxy) |
+| R-10 | `void_invoice` reason field                  | ⏳ Tracked               |
 
 ---
 
@@ -213,46 +223,46 @@ const { data } = await supabase.storage
 
 ### 3.1 قائمة الـ Migrations
 
-| # | الملف | الوصف | التاريخ |
-|---|------|-------|--------|
-| 000 | `20260826000000_security_sweep_audit.sql` | 3 audit views + Storage MIME guard + Chat guard + Idempotency per-company index | 2026-08-26 |
-| 001 | `20260826000001_fix_api_v1_cross_tenant_vulnerability.sql` | R-26: حقن `fn_assert_company_access` في 39 دالة | 2026-08-26 |
-| 002 | `20260826000002_storage_per_bucket_tenant_policies.sql` | R-27: عزل المستأجرين على Storage | 2026-08-26 |
-| 003 | `20260826000003_audit_logging_hardening.sql` | R-28: helper `audit_write()` + view | 2026-08-26 |
-| 004 | `20260826000004_rate_limit_hardening.sql` | R-29: atomic `check_rate_limit` + wrappers | 2026-08-26 |
-| 005 | `20260826000005_wire_audit_write_into_write_rpcs.sql` | R-28 phase 2: 10 RPCs wired | 2026-08-26 |
-| 006 | `20260826000006_input_validation_triggers.sql` | DB length/control-char guards | 2026-08-26 |
-| 007 | `20260826000007_csp_reports_table.sql` | CSP reporting infrastructure | 2026-08-26 |
-| 008 | `20260826000008_security_honeypot.sql` | 10 honeypot tables + alerts | 2026-08-26 |
-| 009 | `20260826000009_csp_nonce_helper.sql` | CSP nonce RPC | 2026-08-26 |
+| #   | الملف                                                      | الوصف                                                                           | التاريخ    |
+| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------- |
+| 000 | `20260826000000_security_sweep_audit.sql`                  | 3 audit views + Storage MIME guard + Chat guard + Idempotency per-company index | 2026-08-26 |
+| 001 | `20260826000001_fix_api_v1_cross_tenant_vulnerability.sql` | R-26: حقن `fn_assert_company_access` في 39 دالة                                 | 2026-08-26 |
+| 002 | `20260826000002_storage_per_bucket_tenant_policies.sql`    | R-27: عزل المستأجرين على Storage                                                | 2026-08-26 |
+| 003 | `20260826000003_audit_logging_hardening.sql`               | R-28: helper `audit_write()` + view                                             | 2026-08-26 |
+| 004 | `20260826000004_rate_limit_hardening.sql`                  | R-29: atomic `check_rate_limit` + wrappers                                      | 2026-08-26 |
+| 005 | `20260826000005_wire_audit_write_into_write_rpcs.sql`      | R-28 phase 2: 10 RPCs wired                                                     | 2026-08-26 |
+| 006 | `20260826000006_input_validation_triggers.sql`             | DB length/control-char guards                                                   | 2026-08-26 |
+| 007 | `20260826000007_csp_reports_table.sql`                     | CSP reporting infrastructure                                                    | 2026-08-26 |
+| 008 | `20260826000008_security_honeypot.sql`                     | 10 honeypot tables + alerts                                                     | 2026-08-26 |
+| 009 | `20260826000009_csp_nonce_helper.sql`                      | CSP nonce RPC                                                                   | 2026-08-26 |
 
 ### 3.2 Audit Views المُنشأة (8 views)
 
-| View | الغرض |
-|------|--------|
-| `v_tables_without_rls` | كشف أي business table بدون RLS |
+| View                                | الغرض                                    |
+| ----------------------------------- | ---------------------------------------- |
+| `v_tables_without_rls`              | كشف أي business table بدون RLS           |
 | `v_security_definer_no_search_path` | كشف أي SECURITY DEFINER بدون search_path |
-| `v_functions_public_execute` | كشف أي دالة callable من PUBLIC role |
-| `v_api_v1_missing_tenant_guard` | كشف أي api_v1_* بدون tenant guard |
-| `v_rpcs_missing_audit` | كشف أي write RPC بدون audit_write |
-| `v_storage_policies_by_bucket` | عرض سياسات Storage لكل bucket |
-| `v_csp_violations_recent` | آخر 7 أيام من انتهاكات CSP |
-| `v_security_alerts_unresolved` | alerts غير محللة (high/critical) |
+| `v_functions_public_execute`        | كشف أي دالة callable من PUBLIC role      |
+| `v_api_v1_missing_tenant_guard`     | كشف أي api_v1_* بدون tenant guard        |
+| `v_rpcs_missing_audit`              | كشف أي write RPC بدون audit_write        |
+| `v_storage_policies_by_bucket`      | عرض سياسات Storage لكل bucket            |
+| `v_csp_violations_recent`           | آخر 7 أيام من انتهاكات CSP               |
+| `v_security_alerts_unresolved`      | alerts غير محللة (high/critical)         |
 
 ---
 
 ## 4. SQL Test Harness (8 ملفات)
 
-| الملف | عدد الاختبارات | الهدف |
-|------|---------------|--------|
-| `test_api_v1_cross_tenant.sql` | 10 | إثبات إصلاح R-26 |
-| `test_security_authorization.sql` | 10 | RLS coverage + search_path + PUBLIC EXECUTE |
-| `test_rls_isolation.sql` | 2 | cross-tenant read/write rejection |
-| `test_audit_trail.sql` | 5 | `audit_write` helper يعمل |
-| `test_injection_xss.sql` | 4 | SQLi + XSS payloads |
-| `test_business_logic.sql` | 5 | race conditions + financial manipulation |
-| `test_canary_all_audit_views.sql` | 13 | single-shot CI check |
-| `test_audit_trail_phase2.sql` | 4 | R-28 wiring + honeypot probe |
+| الملف                             | عدد الاختبارات | الهدف                                       |
+| --------------------------------- | -------------- | ------------------------------------------- |
+| `test_api_v1_cross_tenant.sql`    | 10             | إثبات إصلاح R-26                            |
+| `test_security_authorization.sql` | 10             | RLS coverage + search_path + PUBLIC EXECUTE |
+| `test_rls_isolation.sql`          | 2              | cross-tenant read/write rejection           |
+| `test_audit_trail.sql`            | 5              | `audit_write` helper يعمل                   |
+| `test_injection_xss.sql`          | 4              | SQLi + XSS payloads                         |
+| `test_business_logic.sql`         | 5              | race conditions + financial manipulation    |
+| `test_canary_all_audit_views.sql` | 13             | single-shot CI check                        |
+| `test_audit_trail_phase2.sql`     | 4              | R-28 wiring + honeypot probe                |
 
 **كل الاختبارات تستخدم BEGIN/ROLLBACK** ولا تُعدّل بيانات production.
 
@@ -262,17 +272,18 @@ const { data } = await supabase.storage
 
 ### 5.1 الموجودة سابقاً (5)
 
-| Function | الغرض |
-|----------|--------|
-| `vin-decode` | فك تشفير VIN + rate limit (R-14 fixed) |
-| `vin-parts` | ربط VIN بالأجزاء |
-| `part-search` | البحث عن قطع (R-21 rate limit added) |
-| `zatca-integration` | ZATCA XML (R-09 fixed) |
-| `send-notification` | إرسال إشعارات |
+| Function            | الغرض                                  |
+| ------------------- | -------------------------------------- |
+| `vin-decode`        | فك تشفير VIN + rate limit (R-14 fixed) |
+| `vin-parts`         | ربط VIN بالأجزاء                       |
+| `part-search`       | البحث عن قطع (R-21 rate limit added)   |
+| `zatca-integration` | ZATCA XML (R-09 fixed)                 |
+| `send-notification` | إرسال إشعارات                          |
 
 ### 5.2 الجديدة (2)
 
 #### csp-report
+
 - يستقبل تقارير انتهاك CSP من المتصفح
 - يدعم `application/csp-report` و `application/reports+json`
 - Rate limit: 60 reports/min/IP
@@ -281,6 +292,7 @@ const { data } = await supabase.storage
 - لا يحتاج auth (CSP reports قد تحدث على landing page)
 
 #### validate-upload
+
 - فحص magic bytes (16 توقيع معروف) قبل upload
 - يرفض path traversal (`..`, `\`)
 - Per-bucket size caps (2-25 MB حسب الـ bucket)
@@ -293,18 +305,18 @@ const { data } = await supabase.storage
 
 ### 6.1 الجداول (10)
 
-| Table | لماذا جذابة للمهاجم |
-|-------|---------------------|
-| `admin_secrets` | يبدو كأنه يخزن بيانات admin |
-| `api_keys_cache` | API keys |
-| `vault_staging_keys` | مفاتيح Vault |
-| `pg_credential_dump` | بيانات اعتماد PostgreSQL |
-| `service_role_holders` | من لديه service_role |
-| `auth_bypass_tokens` | tokens لتجاوز auth |
-| `decrypted_passwords` | كلمات مرور مكسورة |
-| `jwt_signing_secrets` | JWT secrets |
-| `aws_root_keys` | AWS keys |
-| `stripe_internal_accounts` | حسابات Stripe |
+| Table                      | لماذا جذابة للمهاجم         |
+| -------------------------- | --------------------------- |
+| `admin_secrets`            | يبدو كأنه يخزن بيانات admin |
+| `api_keys_cache`           | API keys                    |
+| `vault_staging_keys`       | مفاتيح Vault                |
+| `pg_credential_dump`       | بيانات اعتماد PostgreSQL    |
+| `service_role_holders`     | من لديه service_role        |
+| `auth_bypass_tokens`       | tokens لتجاوز auth          |
+| `decrypted_passwords`      | كلمات مرور مكسورة           |
+| `jwt_signing_secrets`      | JWT secrets                 |
+| `aws_root_keys`            | AWS keys                    |
+| `stripe_internal_accounts` | حسابات Stripe               |
 
 ### 6.2 السلوك
 
@@ -320,6 +332,7 @@ const { data } = await supabase.storage
 ### 7.1 GitHub Actions Workflow
 
 `/.github/workflows/security-canary.yml`:
+
 - يشتغل على كل push لـ main/develop
 - يشتغل على كل PR
 - يشتغل أسبوعياً (Monday 06:00 UTC)
@@ -329,6 +342,7 @@ const { data } = await supabase.storage
 ### 7.2 PowerShell Runner
 
 `scripts/run-security-canary.ps1`:
+
 - يستخدم `SUPABASE_DB_URL` من environment
 - يشغّل الـ canary
 - يطبع ملخّص PASS/INFO/FAIL
@@ -339,9 +353,11 @@ const { data } = await supabase.storage
 ## 8. Frontend Changes
 
 ### 8.1 `src/lib/supabaseClient.ts`
+
 - R-11: إزالة `options` من `console.warn` في retry path
 
 ### 8.2 `src/features/auth/hooks.ts` (useRegister)
+
 - R-02 client hardening:
   - Email length cap (254)
   - Email format validation
@@ -353,6 +369,7 @@ const { data } = await supabase.storage
   - Refactored to `validateRegistrationInputs()` helper (complexity 10→2)
 
 ### 8.3 `supabase/functions/part-search/index.ts`
+
 - R-21: per-user rate limit (30 req/min)
 - In-memory bucket map
 
@@ -362,14 +379,14 @@ const { data } = await supabase.storage
 
 ### 9.1 التحسينات في `vercel.json` و `netlify.toml`
 
-| Header | قبل | بعد |
-|--------|-----|-----|
-| CSP | `'unsafe-eval'` موجود | محذوف + `frame-ancestors 'self'` + `base-uri 'self'` + `form-action 'self'` |
-| CSP-Report-Only | غير موجود | `default-src 'self' https://zzthamxjxnxzzpswllid.supabase.co; report-uri /api/csp-report` |
-| Permissions-Policy | 3 صلاحيات | 9 صلاحيات (camera=(self), mic=(), geo=(), interest-cohort=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()) |
-| COOP | غير موجود | `same-origin` |
-| CORP | غير موجود | `same-site` |
-| COEP | غير موجود | `require-corp` |
+| Header             | قبل                   | بعد                                                                                                                                |
+| ------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| CSP                | `'unsafe-eval'` موجود | محذوف + `frame-ancestors 'self'` + `base-uri 'self'` + `form-action 'self'`                                                        |
+| CSP-Report-Only    | غير موجود             | `default-src 'self' https://zzthamxjxnxzzpswllid.supabase.co; report-uri /api/csp-report`                                          |
+| Permissions-Policy | 3 صلاحيات             | 9 صلاحيات (camera=(self), mic=(), geo=(), interest-cohort=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()) |
+| COOP               | غير موجود             | `same-origin`                                                                                                                      |
+| CORP               | غير موجود             | `same-site`                                                                                                                        |
+| COEP               | غير موجود             | `require-corp`                                                                                                                     |
 
 ---
 
@@ -389,30 +406,30 @@ const { data } = await supabase.storage
 
 ### 11.1 CVEs المُصلحة
 
-| Package | CVE | الإصلاح |
-|---------|-----|---------|
+| Package            | CVE                            | الإصلاح         |
+| ------------------ | ------------------------------ | --------------- |
 | `react-router-dom` | GHSA-qwww-vcr4-c8h2 (RSC CSRF) | `npm audit fix` |
-| `dompurify` | XSS via IN_PLACE hook removal | `npm audit fix` |
-| `brace-expansion` | GHSA-mh99-v99m-4gvg (DoS) | `npm audit fix` |
+| `dompurify`        | XSS via IN_PLACE hook removal  | `npm audit fix` |
+| `brace-expansion`  | GHSA-mh99-v99m-4gvg (DoS)      | `npm audit fix` |
 
 ### 11.2 CVEs المؤجلة (Accepted)
 
-| Package | السبب |
-|---------|------|
-| `esbuild` (dev) | يحتاج Vite major upgrade |
+| Package                 | السبب                                        |
+| ----------------------- | -------------------------------------------- |
+| `esbuild` (dev)         | يحتاج Vite major upgrade                     |
 | `elliptic` (transitive) | يحتاج downgrade `vite-plugin-node-polyfills` |
 
 ---
 
 ## 12. الوثائق المُنتجة
 
-| الملف | الوصف |
-|------|------|
-| `SECURITY.md` | Public security policy + contact |
-| `docs/decisions/ADR-012-trust-boundaries.md` | خريطة طبقات الثقة |
-| `docs/decisions/ADR-013-security-gate.md` | Phase 25 sign-off |
-| `docs/security-hardening-2026-08-26.md` | دليل شامل بكل الإصلاحات |
-| `plans/1787241861489-erp-security-audit-plan.md` | الخطة + completion status |
+| الملف                                            | الوصف                            |
+| ------------------------------------------------ | -------------------------------- |
+| `SECURITY.md`                                    | Public security policy + contact |
+| `docs/decisions/ADR-012-trust-boundaries.md`     | خريطة طبقات الثقة                |
+| `docs/decisions/ADR-013-security-gate.md`        | Phase 25 sign-off                |
+| `docs/security-hardening-2026-08-26.md`          | دليل شامل بكل الإصلاحات          |
+| `plans/1787241861489-erp-security-audit-plan.md` | الخطة + completion status        |
 
 ---
 
@@ -440,6 +457,7 @@ supabase functions deploy validate-upload
 ### 13.2 Rollback Plan
 
 كل migration مغلف بـ `BEGIN; ... COMMIT;`:
+
 - فشل في أي نقطة = rollback تلقائي
 - لا `DROP` على production objects بدون backup
 - كل migration يحتوي على `IF EXISTS` و `DO` blocks للفحص
@@ -449,6 +467,7 @@ supabase functions deploy validate-upload
 ## 14. المخرجات (Deliverables) الكاملة
 
 ### 14.1 Migrations (9)
+
 1. `20260826000000_security_sweep_audit.sql` (14 KB)
 2. `20260826000001_fix_api_v1_cross_tenant_vulnerability.sql` (10 KB)
 3. `20260826000002_storage_per_bucket_tenant_policies.sql` (11 KB)
@@ -461,6 +480,7 @@ supabase functions deploy validate-upload
 10. `20260826000009_csp_nonce_helper.sql` (1.5 KB)
 
 ### 14.2 SQL Tests (8)
+
 1. `test_api_v1_cross_tenant.sql` (10 tests)
 2. `test_security_authorization.sql` (10 tests)
 3. `test_rls_isolation.sql` (2 tests)
@@ -471,30 +491,36 @@ supabase functions deploy validate-upload
 8. `test_audit_trail_phase2.sql` (4 tests)
 
 ### 14.3 Edge Functions (2 جديدة)
+
 1. `csp-report/index.ts`
 2. `validate-upload/index.ts`
 
 ### 14.4 Frontend (3 ملفات معدّلة)
+
 1. `src/lib/supabaseClient.ts` (R-11)
 2. `src/features/auth/hooks.ts` (R-02)
 3. `supabase/functions/part-search/index.ts` (R-21)
 
 ### 14.5 Deploy Configs (2 معدّلة)
+
 1. `vercel.json`
 2. `netlify.toml`
 
 ### 14.6 Documentation (4 ملفات)
+
 1. `SECURITY.md`
 2. `docs/decisions/ADR-012-trust-boundaries.md`
 3. `docs/decisions/ADR-013-security-gate.md`
 4. `docs/security-hardening-2026-08-26.md`
 
 ### 14.7 CI/CD (3 ملفات)
+
 1. `.github/workflows/security-canary.yml`
 2. `scripts/run-security-canary.ps1`
 3. `plans/1787241861489-erp-security-audit-plan.md`
 
 ### 14.8 Analysis Files (5)
+
 1. `plans/baseline_functions_audit.csv` (286 functions)
 2. `plans/all_migrations_function_audit.csv` (38 migrations)
 3. `plans/frontend_rpcs.txt` (74 frontend RPCs)
@@ -527,19 +553,19 @@ supabase functions deploy validate-upload
 
 ## 16. التوقيع (Sign-off)
 
-| البند | الحالة |
-|------|--------|
-| جميع الثغرات الحرجة مُعالجة | ✅ |
-| جميع الثغرات العالية مُعالجة | ✅ |
-| RLS مفروض على كل business table | ✅ |
-| SECURITY DEFINER مع search_path مثبت | ✅ |
-| Audit logging على كل write RPC حرج | ✅ |
-| Rate limiting على الـ write paths | ✅ |
-| CSP مُحكم | ✅ |
-| Bundle خالي من secrets | ✅ |
-| Dependencies مأمونة | ✅ |
-| CI canaries مُفعّلة | ✅ |
-| **Production Readiness** | **✅ READY** (بشرط تطبيق الـ migrations) |
+| البند                                | الحالة                                   |
+| ------------------------------------ | ---------------------------------------- |
+| جميع الثغرات الحرجة مُعالجة          | ✅                                       |
+| جميع الثغرات العالية مُعالجة         | ✅                                       |
+| RLS مفروض على كل business table      | ✅                                       |
+| SECURITY DEFINER مع search_path مثبت | ✅                                       |
+| Audit logging على كل write RPC حرج   | ✅                                       |
+| Rate limiting على الـ write paths    | ✅                                       |
+| CSP مُحكم                            | ✅                                       |
+| Bundle خالي من secrets               | ✅                                       |
+| Dependencies مأمونة                  | ✅                                       |
+| CI canaries مُفعّلة                  | ✅                                       |
+| **Production Readiness**             | **✅ READY** (بشرط تطبيق الـ migrations) |
 
 **التاريخ:** 2026-08-26
 **المسؤول:** Security Audit Team

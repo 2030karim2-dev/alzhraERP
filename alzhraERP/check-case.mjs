@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 
@@ -34,7 +33,7 @@ files.forEach(file => {
     if (importPath.startsWith('.')) {
       const dir = path.dirname(file);
       const fullPath = path.resolve(dir, importPath);
-      
+
       let exists = false;
       let actualPath = '';
       let base = '';

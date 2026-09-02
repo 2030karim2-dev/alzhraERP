@@ -29,10 +29,10 @@ interface ServerPaginationBarProps {
 }
 
 /** Build the list of page items with ellipsis */
-function buildPageItems(page: number, totalPages: number): (number | '...')[] {
+function buildPageItems(page: number, totalPages: number): Array<number | '...'> {
   if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const pages: (number | '...')[] = [1];
+  const pages: Array<number | '...'> = [1];
 
   if (page > 4) pages.push('...');
 
@@ -71,24 +71,26 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
       dir={isRTL ? 'rtl' : 'ltr'}
       className={cn(
         'flex flex-wrap items-center justify-between gap-3 px-4 py-2.5',
-        'bg-[var(--app-surface)] border-t border-[var(--app-border)]',
-        'text-xs font-bold select-none',
+        'border-t border-[var(--app-border)] bg-[var(--app-surface)]',
+        'select-none text-xs font-bold',
         className
       )}
     >
       {/* Left: Record count */}
-      <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400 shrink-0">
-        {isFetching && (
-          <Loader2 size={13} className="animate-spin text-blue-500" />
-        )}
+      <div className="flex shrink-0 items-center gap-2 text-gray-500 dark:text-slate-400">
+        {isFetching && <Loader2 size={13} className="animate-spin text-blue-500" />}
         <span className="hidden sm:inline">
           عرض{' '}
-          <span className="text-gray-800 dark:text-slate-200 font-black">{from.toLocaleString('en-US')}–{to.toLocaleString('en-US')}</span>
-          {' '}من{' '}
-          <span className="text-blue-600 dark:text-blue-400 font-black">{totalCount.toLocaleString('en-US')}</span>
-          {' '}سجل
+          <span className="font-black text-gray-800 dark:text-slate-200">
+            {from.toLocaleString('en-US')}–{to.toLocaleString('en-US')}
+          </span>{' '}
+          من{' '}
+          <span className="font-black text-blue-600 dark:text-blue-400">
+            {totalCount.toLocaleString('en-US')}
+          </span>{' '}
+          سجل
         </span>
-        <span className="sm:hidden text-blue-600 dark:text-blue-400 font-black">
+        <span className="font-black text-blue-600 dark:text-blue-400 sm:hidden">
           {totalCount.toLocaleString('en-US')}
         </span>
       </div>
@@ -97,7 +99,9 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
       <div className="flex items-center gap-1">
         {/* First page */}
         <PagBtn
-          onClick={() => onPageChange(1)}
+          onClick={() => {
+            onPageChange(1);
+          }}
           disabled={page === 1}
           title="الصفحة الأولى"
         >
@@ -106,7 +110,9 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
 
         {/* Prev page */}
         <PagBtn
-          onClick={() => onPageChange(page - 1)}
+          onClick={() => {
+            onPageChange(page - 1);
+          }}
           disabled={page === 1}
           title="الصفحة السابقة"
         >
@@ -116,11 +122,15 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
         {/* Page numbers */}
         {pageItems.map((item, idx) =>
           item === '...' ? (
-            <span key={`ellipsis-${idx}`} className="w-8 text-center text-gray-400">…</span>
+            <span key={`ellipsis-${idx}`} className="w-8 text-center text-gray-400">
+              …
+            </span>
           ) : (
             <PagBtn
               key={item}
-              onClick={() => onPageChange(item)}
+              onClick={() => {
+                onPageChange(item);
+              }}
               active={item === page}
               title={`الصفحة ${item}`}
             >
@@ -131,7 +141,9 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
 
         {/* Next page */}
         <PagBtn
-          onClick={() => onPageChange(page + 1)}
+          onClick={() => {
+            onPageChange(page + 1);
+          }}
           disabled={page >= totalPages}
           title="الصفحة التالية"
         >
@@ -140,7 +152,9 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
 
         {/* Last page */}
         <PagBtn
-          onClick={() => onPageChange(totalPages)}
+          onClick={() => {
+            onPageChange(totalPages);
+          }}
           disabled={page >= totalPages}
           title="الصفحة الأخيرة"
         >
@@ -150,23 +164,25 @@ const ServerPaginationBar: React.FC<ServerPaginationBarProps> = ({
 
       {/* Right: Page size selector */}
       {onPageSizeChange && (
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-gray-400 hidden sm:inline">صفوف/صفحة</span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="hidden text-gray-400 sm:inline">صفوف/صفحة</span>
           <select
             value={pageSize}
-            onChange={(e) => {
+            onChange={e => {
               onPageSizeChange(Number(e.target.value));
               onPageChange(1);
             }}
             className={cn(
-              'h-7 px-2 text-xs font-black rounded-lg border',
-              'bg-[var(--app-surface)] border-[var(--app-border)]',
+              'h-7 rounded-lg border px-2 text-xs font-black',
+              'border-[var(--app-border)] bg-[var(--app-surface)]',
               'text-[var(--app-text)] outline-none',
-              'focus:border-[var(--accent)] cursor-pointer',
+              'cursor-pointer focus:border-[var(--accent)]'
             )}
           >
-            {pageSizeOptions.map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {pageSizeOptions.map(s => (
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
         </div>
@@ -192,12 +208,12 @@ const PagBtn: React.FC<PagBtnProps> = ({ onClick, disabled, active, title, child
     disabled={disabled}
     title={title}
     className={cn(
-      'min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-black transition-all duration-150',
+      'h-7 min-w-[28px] rounded-lg px-1.5 text-xs font-black transition-all duration-150',
       'flex items-center justify-center',
       active
-        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105'
-        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800',
-      disabled && 'opacity-30 cursor-not-allowed pointer-events-none',
+        ? 'scale-105 bg-blue-600 text-white shadow-md shadow-blue-500/30'
+        : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800',
+      disabled && 'pointer-events-none cursor-not-allowed opacity-30'
     )}
   >
     {children}

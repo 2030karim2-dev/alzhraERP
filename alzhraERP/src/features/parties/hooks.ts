@@ -1,9 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { partiesService } from './service';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
-import { PartyFormData, PartyType, Party, PartyView } from './types';
+import type { PartyFormData, PartyType, Party, PartyView } from './types';
 import { useMemo, useState } from 'react';
 import { assertPermission } from '../../core/hooks/usePermission';
 import { syncStore } from '../../core/lib/sync-store';
@@ -12,10 +11,10 @@ import { partyCache } from './lib/party-cache';
 import { filterPartiesSmart } from '../../core/utils/partySearch';
 import { invalidateByPreset } from '../../lib/invalidation';
 
-export const useCustomers = (searchTerm: string = '') => useParties('customer', searchTerm);
-export const useSuppliers = (searchTerm: string = '') => useParties('supplier', searchTerm);
+export const useCustomers = (searchTerm = '') => useParties('customer', searchTerm);
+export const useSuppliers = (searchTerm = '') => useParties('supplier', searchTerm);
 
-export const useParties = (type: PartyType, searchTerm: string = '') => {
+export const useParties = (type: PartyType, searchTerm = '') => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
 
@@ -28,7 +27,7 @@ export const useParties = (type: PartyType, searchTerm: string = '') => {
       return data;
     },
     enabled: !!companyId,
-    initialData: () => companyId ? partyCache.get(companyId, type) : [],
+    initialData: () => (companyId ? partyCache.get(companyId, type) : []),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -49,9 +48,12 @@ export const useCategories = (type: PartyType) => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['party_categories', user?.company_id, type],
-    queryFn: () => user?.company_id ? partiesService.getCategoriesWithStats(user.company_id, type) : Promise.resolve([]),
+    queryFn: () =>
+      user?.company_id
+        ? partiesService.getCategoriesWithStats(user.company_id, type)
+        : Promise.resolve([]),
     enabled: !!user?.company_id,
-    select: (data) => Array.isArray(data) ? data : [],
+    select: data => (Array.isArray(data) ? data : []),
   });
 };
 
@@ -62,7 +64,8 @@ export const useStatement = (
 ) => {
   return useQuery({
     queryKey: ['party_statement_v3', partyId, options?.startDate, options?.endDate],
-    queryFn: () => (partyId ? partiesService.getStatement(partyId, type, options) : Promise.resolve([])),
+    queryFn: () =>
+      partyId ? partiesService.getStatement(partyId, type, options) : Promise.resolve([]),
     enabled: !!partyId,
   });
 };
@@ -73,8 +76,8 @@ export const usePartyMutations = (type: PartyType) => {
   const { showToast } = useFeedbackStore();
 
   const saveParty = useMutation({
-    mutationFn: async ({ data, id }: { data: PartyFormData, id?: string }) => {
-      if (!user?.company_id) throw new Error("Authentication required");
+    mutationFn: async ({ data, id }: { data: PartyFormData; id?: string }) => {
+      if (!user?.company_id) throw new Error('Authentication required');
       return partiesService.saveParty(user.company_id, data, id);
     },
     onSuccess: () => {
@@ -85,20 +88,31 @@ export const usePartyMutations = (type: PartyType) => {
       invalidateByPreset(queryClient, 'party');
       showToast('تم حفظ البيانات بنجاح', 'success');
     },
-    onError: (err: Error & { status?: number }, variables: { data: PartyFormData; id?: string }) => {
+    onError: (
+      err: Error & { status?: number },
+      variables: { data: PartyFormData; id?: string }
+    ) => {
       // If it's a network error, enqueue for offline processing. Use the current
       // auth state so we never sync under a stale company_id after logout.
       const currentUser = useAuthStore.getState().user;
       if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
         syncStore.enqueue({
           mutationKey: ['parties', 'save'],
-          variables: { ...variables.data, id: variables.id, company_id: currentUser?.company_id, type }
+          variables: {
+            ...variables.data,
+            id: variables.id,
+            company_id: currentUser?.company_id,
+            type,
+          },
         });
-        showToast("تم الحفظ محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً عند عودة الإنترنت.", 'info');
+        showToast(
+          'تم الحفظ محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً عند عودة الإنترنت.',
+          'info'
+        );
         return;
       }
-      showToast("خطأ في حفظ البيانات", 'error', err);
-    }
+      showToast('خطأ في حفظ البيانات', 'error', err);
+    },
   });
 
   const deleteParty = useMutation({
@@ -112,10 +126,16 @@ export const usePartyMutations = (type: PartyType) => {
       invalidateByPreset(queryClient, 'party');
       showToast('تم حذف السجل نهائياً', 'success');
     },
-    onError: (err: Error) => showToast(err.message, 'error', err)
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
-  return { saveParty: saveParty.mutate, deleteParty: deleteParty.mutate, isSaving: saveParty.isPending };
+  return {
+    saveParty: saveParty.mutate,
+    deleteParty: deleteParty.mutate,
+    isSaving: saveParty.isPending,
+  };
 };
 
 export const useCategoryMutations = (type: PartyType) => {
@@ -124,27 +144,34 @@ export const useCategoryMutations = (type: PartyType) => {
   const { showToast } = useFeedbackStore();
 
   const save = useMutation({
-    mutationFn: async ({ name, id }: { name: string, id?: string }) => {
-      if (!user?.company_id) throw new Error("Auth error");
+    mutationFn: async ({ name, id }: { name: string; id?: string }) => {
+      if (!user?.company_id) throw new Error('Auth error');
       return partiesService.saveCategory(user.company_id, { name, type }, id);
     },
     onSuccess: () => {
       const currentUser = useAuthStore.getState().user;
-      queryClient.invalidateQueries({ queryKey: ['party_categories', currentUser?.company_id, type] });
-      showToast("تم حفظ الفئة بنجاح", 'success');
+      queryClient.invalidateQueries({
+        queryKey: ['party_categories', currentUser?.company_id, type],
+      });
+      showToast('تم حفظ الفئة بنجاح', 'success');
     },
     onError: (err: Error & { status?: number }, variables: { name: string; id?: string }) => {
       const currentUser = useAuthStore.getState().user;
       if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.status === 0) {
         syncStore.enqueue({
           mutationKey: ['parties', 'save_category'],
-          variables: { name: variables.name, id: variables.id, company_id: currentUser?.company_id, type }
+          variables: {
+            name: variables.name,
+            id: variables.id,
+            company_id: currentUser?.company_id,
+            type,
+          },
         });
-        showToast("تم حفظ الفئة محلياً (وضع عدم الاتصال).", 'info');
+        showToast('تم حفظ الفئة محلياً (وضع عدم الاتصال).', 'info');
         return;
       }
-      showToast(err.message || "فشل حفظ الفئة", 'error');
-    }
+      showToast(err.message || 'فشل حفظ الفئة', 'error');
+    },
   });
 
   const remove = useMutation({
@@ -155,12 +182,14 @@ export const useCategoryMutations = (type: PartyType) => {
     },
     onSuccess: () => {
       const currentUser = useAuthStore.getState().user;
-      queryClient.invalidateQueries({ queryKey: ['party_categories', currentUser?.company_id, type] });
-      showToast("تم حذف الفئة", 'info');
+      queryClient.invalidateQueries({
+        queryKey: ['party_categories', currentUser?.company_id, type],
+      });
+      showToast('تم حذف الفئة', 'info');
     },
     onError: (err: Error) => {
-      showToast(err.message || "لا يمكن حذف هذه الفئة حالياً", 'error');
-    }
+      showToast(err.message || 'لا يمكن حذف هذه الفئة حالياً', 'error');
+    },
   });
 
   return { save: save.mutate, remove: remove.mutate, isSaving: save.isPending };
@@ -170,9 +199,10 @@ export const usePartySearch = (type: PartyType, query: string) => {
   const { user } = useAuthStore();
   return useQuery({
     queryKey: ['party_search', type, query, user?.company_id],
-    queryFn: () => (user?.company_id && query.length > 1)
-      ? partiesService.search(user.company_id, type, query)
-      : Promise.resolve([]),
+    queryFn: () =>
+      user?.company_id && query.length > 1
+        ? partiesService.search(user.company_id, type, query)
+        : Promise.resolve([]),
     enabled: !!user?.company_id && query.length > 1,
   });
 };
@@ -206,6 +236,6 @@ export const usePartiesView = () => {
     editingParty,
     handleEdit,
     handleAddNew,
-    handleCloseModal
+    handleCloseModal,
   };
 };

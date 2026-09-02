@@ -35,8 +35,18 @@ describe('OfflineMutationQueue', () => {
       return { success: true };
     });
 
-    await offlineMutationQueue.addMutation(['TEST_CREATE_ORDER'], { orderNumber: 'ORD-001' }, undefined, { autoFlush: false });
-    await offlineMutationQueue.addMutation(['TEST_CREATE_ORDER'], { orderNumber: 'ORD-002' }, undefined, { autoFlush: false });
+    await offlineMutationQueue.addMutation(
+      ['TEST_CREATE_ORDER'],
+      { orderNumber: 'ORD-001' },
+      undefined,
+      { autoFlush: false }
+    );
+    await offlineMutationQueue.addMutation(
+      ['TEST_CREATE_ORDER'],
+      { orderNumber: 'ORD-002' },
+      undefined,
+      { autoFlush: false }
+    );
 
     const countBefore = await offlineMutationQueue.getPendingCount();
     expect(countBefore).toBe(2);
@@ -59,7 +69,9 @@ describe('OfflineMutationQueue', () => {
       throw new Error('Database connection timeout');
     });
 
-    await offlineMutationQueue.addMutation(['TEST_FAILING_ACTION'], { data: 123 }, undefined, { autoFlush: false });
+    await offlineMutationQueue.addMutation(['TEST_FAILING_ACTION'], { data: 123 }, undefined, {
+      autoFlush: false,
+    });
 
     const result = await offlineMutationQueue.processQueue();
 

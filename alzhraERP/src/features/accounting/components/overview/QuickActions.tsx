@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Receipt, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
@@ -36,7 +35,7 @@ const QuickActions: React.FC<Props> = ({ onNewJournal }) => {
     },
   };
 
-  const actions: { color: keyof typeof colorMap; icon: any; onClick: () => void }[] = [
+  const actions: Array<{ color: keyof typeof colorMap; icon: any; onClick: () => void }> = [
     { color: 'blue', icon: Plus, onClick: () => onNewJournal?.() },
     { color: 'rose', icon: Receipt, onClick: () => navigate(ROUTES.DASHBOARD.EXPENSES) },
     { color: 'emerald', icon: ArrowDownCircle, onClick: () => navigate(ROUTES.DASHBOARD.BONDS) },
@@ -45,7 +44,9 @@ const QuickActions: React.FC<Props> = ({ onNewJournal }) => {
 
   return (
     <Card variant="ledger">
-      <h3 className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest mb-3 px-1">إجراءات سريعة</h3>
+      <h3 className="mb-3 px-1 text-[10px] font-bold uppercase tracking-widest text-[var(--app-text-secondary)]">
+        إجراءات سريعة
+      </h3>
       <div className="grid grid-cols-2 gap-2">
         {actions.map(action => {
           const c = colorMap[action.color];
@@ -54,10 +55,13 @@ const QuickActions: React.FC<Props> = ({ onNewJournal }) => {
             <button
               key={c.label}
               onClick={action.onClick}
-              className={`group border p-3 transition-all text-right rounded-[var(--radius)] ${c.btn}`}
+              className={`group rounded-[var(--radius)] border p-3 text-right transition-all ${c.btn}`}
             >
-              <Icon size={16} className={`mb-2 transition-transform group-hover:scale-110 ${c.icon}`} />
-              <span className="text-[11px] font-bold block">{c.label}</span>
+              <Icon
+                size={16}
+                className={`mb-2 transition-transform group-hover:scale-110 ${c.icon}`}
+              />
+              <span className="block text-[11px] font-bold">{c.label}</span>
             </button>
           );
         })}

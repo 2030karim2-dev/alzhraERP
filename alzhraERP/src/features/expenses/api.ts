@@ -1,8 +1,7 @@
-
 import { supabase } from '../../lib/supabaseClient';
 import type { Json } from '../../core/database.types';
 import { parseError } from '../../core/utils/errorUtils';
-import { ExpenseFormData } from './types';
+import type { ExpenseFormData } from './types';
 
 // Typed interfaces for category create payload
 interface CategoryInsert {
@@ -25,7 +24,8 @@ export const expensesApi = {
   getExpensesRaw: async (companyId: string, branchId?: string | null) => {
     let query = supabase
       .from('expenses')
-      .select(`
+      .select(
+        `
         id,
         category_id,
         voucher_number,
@@ -42,7 +42,8 @@ export const expensesApi = {
         created_at,
         branch_id,
         expense_categories:category_id(name)
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .neq('status', 'void')
       .is('deleted_at', null)
@@ -78,10 +79,11 @@ export const expensesApi = {
   },
 
   createExpenseCategory: async (categoryData: CategoryInsert) => {
-    return await supabase.from('expense_categories')
+    return await supabase
+      .from('expense_categories')
       .insert({
         company_id: categoryData.company_id,
-        name: categoryData.name
+        name: categoryData.name,
       })
       .select()
       .single();
@@ -92,11 +94,11 @@ export const expensesApi = {
     // journal entry atomically. There is deliberately NO soft-delete fallback —
     // voiding without reversing the journal would leave the ledger unbalanced.
     const { error: rpcError } = await supabase.rpc('void_expense', {
-      p_expense_id: id
+      p_expense_id: id,
     });
 
     if (rpcError) {
       throw parseError(rpcError);
     }
-  }
+  },
 };

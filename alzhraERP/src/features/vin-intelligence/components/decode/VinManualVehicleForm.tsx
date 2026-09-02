@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Car,
   Sparkles,
@@ -10,6 +10,8 @@ import {
   Calendar,
   ArrowRight,
   Zap,
+  Clipboard,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '../../../../core/utils';
 import {
@@ -25,6 +27,10 @@ import {
   normalizeToEnglishNumbers,
 } from '../../utils/vehicleCanonicalizer';
 import { getArabicVehicleName } from '../../utils/smartPartNamer';
+import {
+  parseCatalogVehicleText,
+  type ExtractedCatalogVehicle,
+} from '../../utils/catalogTextExtractor';
 
 interface VinManualVehicleFormProps {
   manualMake: string;
@@ -78,6 +84,47 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
   onApplyManualVehicle,
   isDecoding,
 }) => {
+  const [rawCatalogText, setRawCatalogText] = useState('');
+  const [extractedData, setExtractedData] = useState<ExtractedCatalogVehicle | null>(null);
+
+  useEffect(() => {
+    if (rawCatalogText.trim()) {
+      const parsed = parseCatalogVehicleText(rawCatalogText);
+      setExtractedData(parsed);
+    } else {
+      setExtractedData(null);
+    }
+  }, [rawCatalogText]);
+
+  const handleApplyExtractedData = (dataToApply?: ExtractedCatalogVehicle): void => {
+    const data = dataToApply || extractedData;
+    if (!data) return;
+
+    if (data.makeAr || data.make) setManualMake(data.makeAr || data.make || '');
+    if (data.model) setManualModel(data.model);
+    if (data.yearStart) setManualYearStart(data.yearStart);
+    if (data.yearEnd) setManualYearEnd(data.yearEnd);
+    if (data.market) setManualMarket(data.market);
+    if (data.engine) setManualEngine(data.engine);
+    if (data.transmission) setManualTransmission(data.transmission);
+    if (data.drive) setManualDrive(data.drive);
+    if (data.vin) setManualVinOptional(data.vin);
+  };
+
+  const handlePasteFromClipboard = async (): Promise<void> => {
+    try {
+      const clipText = await navigator.clipboard.readText();
+      if (clipText.trim()) {
+        setRawCatalogText(clipText);
+        const parsed = parseCatalogVehicleText(clipText);
+        setExtractedData(parsed);
+        handleApplyExtractedData(parsed);
+      }
+    } catch {
+      // Ignore clipboard permission errors
+    }
+  };
+
   const canonicalCurrentMake = useMemo(() => canonicalizeMake(manualMake), [manualMake]);
 
   const availableModelPresets = useMemo(() => {
@@ -184,6 +231,176 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         )}
       </div>
 
+      {/* 1.5. AI & PartSouq Smart Text Extractor Dropzone */}
+      <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-slate-50 p-2.5 shadow-xs dark:border-blue-900/60 dark:from-slate-900 dark:via-blue-950/30 dark:to-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-600 text-white shadow-xs">
+              <Sparkles size={13} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                المستخرج الذكي لبيانات الكتالوجات (PartSouq / EPC AI Parser)
+              </h4>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                الصق نص الكتالوج الخام أو الرابط ليتم تنظيفه واستخلاص مواصفات المركبة فوراً
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handlePasteFromClipboard}
+              className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs transition-all hover:bg-blue-500"
+              title="لصق المحتوى من الحافظة وتحليله مباشرة"
+            >
+              <Clipboard size={12} />
+              <span>لصق واستخراج تلقائي</span>
+            </button>
+
+            {rawCatalogText && (
+              <button
+                type="button"
+                onClick={() => {
+                  setRawCatalogText('');
+                  setExtractedData(null);
+                }}
+                className="rounded-lg p-1 text-slate-400 transition-all hover:bg-slate-200 hover:text-rose-500 dark:hover:bg-slate-800 dark:hover:text-rose-400"
+                title="مسح النص"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Textarea for pasting */}
+        <div className="relative mt-1">
+          <textarea
+            value={rawCatalogText}
+            onChange={e => setRawCatalogText(e.target.value)}
+            rows={rawCatalogText ? 3 : 2}
+            placeholder="الصق هنا أي نص منقول من PartSouq أو Amayama أو روابط الكتالوجات (مثل: [VIN: ...], Region, ModelCode, Details)..."
+            className="w-full resize-none rounded-xl border border-slate-300 bg-white p-2 font-mono text-[11px] text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-200 dark:placeholder:text-slate-500"
+          />
+        </div>
+
+        {/* Live Extraction Badges and Apply Action */}
+        {extractedData && extractedData.extractedFieldsCount > 0 && (
+          <div className="mt-2 space-y-2 rounded-xl border border-emerald-300 bg-emerald-50/80 p-2 text-right dark:border-emerald-800/60 dark:bg-emerald-950/30">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-1.5 dark:border-emerald-800/40">
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-400">
+                <CheckCircle2 size={13} />
+                <span>
+                  تم استخلاص {extractedData.extractedFieldsCount} مواصفات بنجاح (دقة{' '}
+                  {extractedData.confidenceScore}%)
+                </span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => handleApplyExtractedData()}
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-emerald-500"
+              >
+                <Zap size={12} />
+                <span>تطبيق كافة المواصفات في النموذج</span>
+              </button>
+            </div>
+
+            {/* Badges Grid */}
+            <div className="flex flex-wrap gap-1.5 font-mono text-[10px]">
+              {extractedData.vin && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  الشاصي:{' '}
+                  <strong className="text-emerald-600 dark:text-emerald-400">
+                    {extractedData.vin}
+                  </strong>
+                </span>
+              )}
+              {extractedData.make && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  الماركة:{' '}
+                  <strong className="text-blue-600 dark:text-blue-400">
+                    {extractedData.makeAr || extractedData.make}
+                  </strong>
+                </span>
+              )}
+              {extractedData.model && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  الموديل:{' '}
+                  <strong className="text-purple-600 dark:text-purple-400">
+                    {extractedData.model}
+                  </strong>
+                </span>
+              )}
+              {extractedData.modelCode && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  كود الموديل:{' '}
+                  <strong className="text-amber-600 dark:text-amber-400">
+                    {extractedData.modelCode}
+                  </strong>
+                </span>
+              )}
+              {extractedData.engine && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  المحرك:{' '}
+                  <strong className="text-teal-600 dark:text-teal-400">
+                    {extractedData.engine}
+                  </strong>
+                </span>
+              )}
+              {extractedData.year && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  السنة:{' '}
+                  <strong className="text-slate-900 dark:text-white">{extractedData.year}</strong>
+                </span>
+              )}
+              {extractedData.productionRange && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  فترة الإنتاج:{' '}
+                  <strong className="text-slate-700 dark:text-slate-300">
+                    {extractedData.productionRange}
+                  </strong>
+                </span>
+              )}
+              {extractedData.colorCode && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  كود اللون:{' '}
+                  <strong className="text-pink-600 dark:text-pink-400">
+                    {extractedData.colorCode}
+                  </strong>
+                </span>
+              )}
+              {extractedData.trimCode && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  كود الفرش:{' '}
+                  <strong className="text-cyan-600 dark:text-cyan-400">
+                    {extractedData.trimCode}
+                  </strong>
+                </span>
+              )}
+              {extractedData.grade && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  الفئة:{' '}
+                  <strong className="text-indigo-600 dark:text-indigo-400">
+                    {extractedData.grade}
+                  </strong>
+                </span>
+              )}
+              {extractedData.market && (
+                <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  السوق:{' '}
+                  <strong className="text-indigo-600 dark:text-indigo-400">
+                    {extractedData.market}
+                  </strong>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* 2. Compact Quick Presets Section */}
       <div className="rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-blue-50/50 to-slate-50/70 p-2.5 shadow-xs dark:border-indigo-800/70 dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900">
         <div className="mb-1.5 flex items-center justify-between">
@@ -207,7 +424,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <button
                 key={p.label}
                 type="button"
-                onClick={() => applyPreset(p)}
+                onClick={() => {
+                  applyPreset(p);
+                }}
                 className={cn(
                   'rounded-lg border px-2.5 py-1 text-[11px] font-bold shadow-xs transition-all active:scale-95',
                   isPresetActive
@@ -272,7 +491,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               type="text"
               placeholder="أو اكتب اسم الماركة يدوياً..."
               value={manualMake}
-              onChange={e => setManualMake(e.target.value)}
+              onChange={e => {
+                setManualMake(e.target.value);
+              }}
               className="h-8.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400"
             />
           </div>
@@ -306,7 +527,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                     <button
                       key={m.id}
                       type="button"
-                      onClick={() => setManualModel(m.id)}
+                      onClick={() => {
+                        setManualModel(m.id);
+                      }}
                       className={cn(
                         'rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all',
                         isSelected
@@ -331,7 +554,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               type="text"
               placeholder="مثال: Corolla أو كورولا..."
               value={manualModel}
-              onChange={e => setManualModel(e.target.value)}
+              onChange={e => {
+                setManualModel(e.target.value);
+              }}
               className="h-8.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400"
             />
           </div>
@@ -457,7 +682,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <button
                   key={eng}
                   type="button"
-                  onClick={() => setManualEngine(eng)}
+                  onClick={() => {
+                    setManualEngine(eng);
+                  }}
                   className={cn(
                     'rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors',
                     manualEngine === eng
@@ -487,7 +714,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-750 dark:bg-slate-950">
                 <button
                   type="button"
-                  onClick={() => setManualTransmission('تماتيك')}
+                  onClick={() => {
+                    setManualTransmission('تماتيك');
+                  }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
                     manualTransmission === 'تماتيك'
@@ -499,7 +728,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setManualTransmission('عادي')}
+                  onClick={() => {
+                    setManualTransmission('عادي');
+                  }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
                     manualTransmission === 'عادي'
@@ -519,7 +750,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-750 dark:bg-slate-950">
                 <button
                   type="button"
-                  onClick={() => setManualDrive('سنجل')}
+                  onClick={() => {
+                    setManualDrive('سنجل');
+                  }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
                     manualDrive === 'سنجل'
@@ -531,7 +764,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setManualDrive('دبل')}
+                  onClick={() => {
+                    setManualDrive('دبل');
+                  }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
                     manualDrive === 'دبل'
@@ -560,7 +795,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               </span>
               <select
                 value={manualMarket}
-                onChange={e => setManualMarket(e.target.value)}
+                onChange={e => {
+                  setManualMarket(e.target.value);
+                }}
                 className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
               >
                 {POPULAR_MARKETS.map(m => (
@@ -590,7 +827,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 dir="ltr"
                 placeholder="JT3HN87R... (17 Chars)"
                 value={manualVinOptional}
-                onChange={e => setManualVinOptional(e.target.value.toUpperCase().trim())}
+                onChange={e => {
+                  setManualVinOptional(e.target.value.toUpperCase().trim());
+                }}
                 maxLength={17}
                 className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs font-bold uppercase tracking-wider text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
               />

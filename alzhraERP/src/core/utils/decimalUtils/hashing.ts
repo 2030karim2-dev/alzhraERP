@@ -10,13 +10,13 @@ import { safeDecimal } from './constructors';
  * Shared by both sync and async hashing paths so they always hash the same bytes.
  */
 const buildHashInput = (inputs: Record<string, NumericInput>): string => {
-    const sortedKeys = Object.keys(inputs).sort();
-    return sortedKeys
-        .map(key => {
-            const value = safeDecimal(inputs[key]);
-            return `${key}:${value.toFixed(10)}`;
-        })
-        .join('|');
+  const sortedKeys = Object.keys(inputs).sort();
+  return sortedKeys
+    .map(key => {
+      const value = safeDecimal(inputs[key]);
+      return `${key}:${value.toFixed(10)}`;
+    })
+    .join('|');
 };
 
 /**
@@ -32,11 +32,9 @@ const buildHashInput = (inputs: Record<string, NumericInput>): string => {
  * change-detection fingerprint in render paths. It is intentionally named
  * without "SHA-256" to avoid the false security claim.
  */
-export const generateCalculationHash = (
-    inputs: Record<string, NumericInput>
-): string => {
-    const hashInput = buildHashInput(inputs);
-    return generateHashSync(hashInput);
+export const generateCalculationHash = (inputs: Record<string, NumericInput>): string => {
+  const hashInput = buildHashInput(inputs);
+  return generateHashSync(hashInput);
 };
 
 /**
@@ -47,23 +45,23 @@ export const generateCalculationHash = (
  * trails always use `generateCalculationHashAsync` (true SHA-256).
  */
 function generateHashSync(hashInput: string): string {
-    // Use a combination of FNV-1a hash and DJB2 for better distribution
-    let hash1 = 2166136261; // FNV offset basis
-    let hash2 = 5381;       // DJB2 initial
+  // Use a combination of FNV-1a hash and DJB2 for better distribution
+  let hash1 = 2166136261; // FNV offset basis
+  let hash2 = 5381; // DJB2 initial
 
-    for (let i = 0; i < hashInput.length; i++) {
-        const char = hashInput.charCodeAt(i);
-        // FNV-1a
-        hash1 ^= char;
-        hash1 = Math.imul(hash1, 16777619);
-        // DJB2
-        hash2 = ((hash2 << 5) + hash2) + char;
-        hash2 = hash2 & hash2;
-    }
+  for (let i = 0; i < hashInput.length; i++) {
+    const char = hashInput.charCodeAt(i);
+    // FNV-1a
+    hash1 ^= char;
+    hash1 = Math.imul(hash1, 16777619);
+    // DJB2
+    hash2 = (hash2 << 5) + hash2 + char;
+    hash2 = hash2 & hash2;
+  }
 
-    // Combine both hashes and pad to 64 chars (simulating SHA-256 hex length)
-    const combined = (BigInt(hash1 >>> 0) << 32n) | BigInt(hash2 >>> 0);
-    return combined.toString(16).padStart(64, '0');
+  // Combine both hashes and pad to 64 chars (simulating SHA-256 hex length)
+  const combined = (BigInt(hash1 >>> 0) << 32n) | BigInt(hash2 >>> 0);
+  return combined.toString(16).padStart(64, '0');
 }
 
 /**
@@ -75,15 +73,15 @@ function generateHashSync(hashInput: string): string {
  * @returns Promise resolving to a 64-character hex string (SHA-256)
  */
 export const generateCalculationHashAsync = async (
-    inputs: Record<string, NumericInput>
+  inputs: Record<string, NumericInput>
 ): Promise<string> => {
-    const hashInput = buildHashInput(inputs);
+  const hashInput = buildHashInput(inputs);
 
-    const encoder = new TextEncoder();
-    const data = encoder.encode(hashInput);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(hashInput);
 
-    // Use Web Crypto API for true SHA-256
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Use Web Crypto API for true SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };

@@ -10,62 +10,117 @@
 // authorizes writes.
 // ============================================================
 
-import { Permission, Role } from '../types/common';
+import type { Permission, Role } from '../types/common';
 
 export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-    admin: [
-        'sales:create', 'sales:read', 'sales:update', 'sales:delete',
-        'purchases:create', 'purchases:read', 'purchases:update', 'purchases:delete',
-        'accounting:create', 'accounting:read', 'accounting:update', 'accounting:delete',
-        'inventory:create', 'inventory:read', 'inventory:update', 'inventory:delete',
-        'customers:create', 'customers:read', 'customers:update', 'customers:delete',
-        'expenses:create', 'expenses:read', 'expenses:update', 'expenses:delete',
-        'reports:read', 'reports:export',
-        'ai:use', 'admin:access', 'settings:manage',
-        'debts:read', 'debts:manage', 'debts:remind',
-        'incentive:manage_plans', 'incentive:calculate_period',
-        'incentive:period_calculating', 'incentive:period_calculated',
-        'incentive:period_under_review', 'incentive:period_approved',
-        'incentive:period_locked', 'incentive:period_paid'
-    ],
-    manager: [
-        'sales:create', 'sales:read', 'sales:update',
-        'purchases:create', 'purchases:read', 'purchases:update',
-        'accounting:create', 'accounting:read', 'accounting:update',
-        'inventory:read', 'inventory:update',
-        'customers:create', 'customers:read', 'customers:update',
-        'expenses:create', 'expenses:read', 'expenses:update',
-        'reports:read', 'reports:export',
-        'ai:use',
-        'debts:read', 'debts:manage', 'debts:remind',
-        'incentive:manage_plans', 'incentive:calculate_period',
-        'incentive:period_calculating', 'incentive:period_calculated',
-        'incentive:period_under_review', 'incentive:period_approved',
-        'incentive:period_locked', 'incentive:period_paid'
-    ],
-    accountant: [
-        'sales:read', 'sales:update',
-        'purchases:read',
-        'accounting:create', 'accounting:read', 'accounting:update',
-        'expenses:create', 'expenses:read', 'expenses:update',
-        'reports:read', 'reports:export',
-        'debts:read', 'debts:manage'
-    ],
-    sales: [
-        'sales:create', 'sales:read',
-        'customers:create', 'customers:read',
-        'inventory:read',
-        'debts:read', 'debts:remind'
-    ],
-    viewer: [
-        'sales:read',
-        'purchases:read',
-        'accounting:read',
-        'inventory:read',
-        'customers:read',
-        'reports:read',
-        'debts:read'
-    ]
+  admin: [
+    'sales:create',
+    'sales:read',
+    'sales:update',
+    'sales:delete',
+    'purchases:create',
+    'purchases:read',
+    'purchases:update',
+    'purchases:delete',
+    'accounting:create',
+    'accounting:read',
+    'accounting:update',
+    'accounting:delete',
+    'inventory:create',
+    'inventory:read',
+    'inventory:update',
+    'inventory:delete',
+    'customers:create',
+    'customers:read',
+    'customers:update',
+    'customers:delete',
+    'expenses:create',
+    'expenses:read',
+    'expenses:update',
+    'expenses:delete',
+    'reports:read',
+    'reports:export',
+    'ai:use',
+    'admin:access',
+    'settings:manage',
+    'debts:read',
+    'debts:manage',
+    'debts:remind',
+    'incentive:manage_plans',
+    'incentive:calculate_period',
+    'incentive:period_calculating',
+    'incentive:period_calculated',
+    'incentive:period_under_review',
+    'incentive:period_approved',
+    'incentive:period_locked',
+    'incentive:period_paid',
+  ],
+  manager: [
+    'sales:create',
+    'sales:read',
+    'sales:update',
+    'purchases:create',
+    'purchases:read',
+    'purchases:update',
+    'accounting:create',
+    'accounting:read',
+    'accounting:update',
+    'inventory:read',
+    'inventory:update',
+    'customers:create',
+    'customers:read',
+    'customers:update',
+    'expenses:create',
+    'expenses:read',
+    'expenses:update',
+    'reports:read',
+    'reports:export',
+    'ai:use',
+    'debts:read',
+    'debts:manage',
+    'debts:remind',
+    'incentive:manage_plans',
+    'incentive:calculate_period',
+    'incentive:period_calculating',
+    'incentive:period_calculated',
+    'incentive:period_under_review',
+    'incentive:period_approved',
+    'incentive:period_locked',
+    'incentive:period_paid',
+  ],
+  accountant: [
+    'sales:read',
+    'sales:update',
+    'purchases:read',
+    'accounting:create',
+    'accounting:read',
+    'accounting:update',
+    'expenses:create',
+    'expenses:read',
+    'expenses:update',
+    'reports:read',
+    'reports:export',
+    'debts:read',
+    'debts:manage',
+  ],
+  sales: [
+    'sales:create',
+    'sales:read',
+    'customers:create',
+    'customers:read',
+    'inventory:read',
+    'debts:read',
+    'debts:remind',
+  ],
+  viewer: [
+    'sales:read',
+    'purchases:read',
+    'accounting:read',
+    'inventory:read',
+    'customers:read',
+    'reports:read',
+    'debts:read',
+  ],
 };
 
 /**
@@ -74,9 +129,9 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
  * (the same normalization the removed legacy map performed).
  */
 export const offlineHasPermission = (role: string | undefined, permission: string): boolean => {
-    if (!role) return false;
-    const normalized = (role.toLowerCase() === 'owner' ? 'admin' : role) as Role;
-    const list = OFFLINE_ROLE_PERMISSIONS[normalized];
-    if (!list) return false;
-    return list.includes(permission as Permission);
+  if (!role) return false;
+  const normalized = (role.toLowerCase() === 'owner' ? 'admin' : role) as Role;
+  const list = OFFLINE_ROLE_PERMISSIONS[normalized];
+  if (!list) return false;
+  return list.includes(permission as Permission);
 };

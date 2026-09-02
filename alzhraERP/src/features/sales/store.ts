@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Product } from '../inventory/types';
+import type { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
 import { useFeedbackStore } from '../feedback/store';
 import { convertCurrency } from '../../core/utils/currencyUtils';
@@ -14,14 +14,15 @@ export interface SalesCartItem {
   productId: string;
   sku: string;
   name: string;
-  partNumber?: string;    // OEM part number - matches purchases
-  brand?: string;        // Brand/manufacturer - matches purchases
+  partNumber?: string; // OEM part number - matches purchases
+  brand?: string; // Brand/manufacturer - matches purchases
   quantity: number;
   basePrice: number; // Price in SAR (base currency)
-  price: number;     // Converted price based on current exchange rate
+  price: number; // Converted price based on current exchange rate
   discount: number;
   costPrice: number;
-  warehouse_distribution?: Array<{ warehouse_id: string; warehouse_name: string; quantity: number }> | undefined;
+  warehouse_distribution?:
+    Array<{ warehouse_id: string; warehouse_name: string; quantity: number }> | undefined;
 }
 
 export interface SalesSummary {
@@ -32,7 +33,7 @@ export interface SalesSummary {
 
 interface SalesState {
   items: SalesCartItem[];
-  selectedCustomer: { id: string, name: string, phone?: string } | null;
+  selectedCustomer: { id: string; name: string; phone?: string } | null;
   summary: SalesSummary;
   invoiceType: 'cash' | 'credit';
   currency: string;
@@ -52,7 +53,7 @@ interface SalesState {
   addProductToCart: (product: Product) => void;
   removeItem: (idOrIndex: number | string) => void;
   calculateTotals: () => void;
-  setCustomer: (customer: { id: string, name: string, phone?: string } | null) => void;
+  setCustomer: (customer: { id: string; name: string; phone?: string } | null) => void;
   setMetadata: (field: string, value: string | boolean | null | number) => void;
   toggleColumn: (field: 'showDiscount') => void;
   resetCart: () => void;
@@ -78,10 +79,12 @@ const createNewItem = (): SalesCartItem => ({
  */
 const assertValidExchangeRate = (currency: string, rate: number): boolean => {
   if (currency !== 'SAR' && (!rate || rate <= 0)) {
-    useFeedbackStore.getState().showToast(
-      'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
-      'error'
-    );
+    useFeedbackStore
+      .getState()
+      .showToast(
+        'لا يمكن تحويل العملة: سعر الصرف غير صالح (صفر أو سالب). يرجى ضبط سعر الصرف أولاً.',
+        'error'
+      );
     return false;
   }
   return true;
@@ -103,10 +106,9 @@ const safeConvertFromBase = (
     return { price: convertCurrency(basePrice, rate, 'fromBase', operator), failed: false };
   } catch (e) {
     logger.error('SalesStore', `Invalid exchange rate for ${context}`, { rate, currency });
-    useFeedbackStore.getState().showToast(
-      'خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'),
-      'error'
-    );
+    useFeedbackStore
+      .getState()
+      .showToast('خطأ في تحويل العملة: ' + ((e as Error)?.message || 'سعر صرف غير صالح'), 'error');
     return { price: basePrice, failed: true };
   }
 };
@@ -126,7 +128,9 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   showDiscount: false,
   notes: '',
 
-  initializeItems: (count) => set({ items: Array.from({ length: count }, createNewItem) }),
+  initializeItems: count => {
+    set({ items: Array.from({ length: count }, createNewItem) });
+  },
 
   updateItem: (index, field, value) => {
     set(state => {
@@ -135,9 +139,20 @@ export const useSalesStore = create<SalesState>((set, get) => ({
         // Use typed Pick to constrain field-value pairs:
         // quantity/costPrice/basePrice/price/discount → number, rest → string
         type NumericFields = 'quantity' | 'costPrice' | 'basePrice' | 'price' | 'discount';
-        const numericFields = new Set<NumericFields>(['quantity', 'costPrice', 'basePrice', 'price', 'discount']);
-        const coercedValue = numericFields.has(field as NumericFields) ? Number(value) : String(value);
-        newItems[index] = { ...newItems[index], [field]: coercedValue as SalesCartItem[typeof field] };
+        const numericFields = new Set<NumericFields>([
+          'quantity',
+          'costPrice',
+          'basePrice',
+          'price',
+          'discount',
+        ]);
+        const coercedValue = numericFields.has(field as NumericFields)
+          ? Number(value)
+          : String(value);
+        newItems[index] = {
+          ...newItems[index],
+          [field]: coercedValue as SalesCartItem[typeof field],
+        };
       }
       return { items: newItems };
     });
@@ -148,7 +163,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     set(state => ({
       items: state.items.map(item =>
         item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item
-      )
+      ),
     }));
     get().calculateTotals();
   },
@@ -161,7 +176,11 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       const newItems = [...state.items];
       const basePrice = product.selling_price || 0;
       const { price: convertedPrice, failed } = safeConvertFromBase(
-        basePrice, state.currency, state.exchangeRate, state.exchangeOperator, 'setProductForRow'
+        basePrice,
+        state.currency,
+        state.exchangeRate,
+        state.exchangeOperator,
+        'setProductForRow'
       );
       if (failed) return state;
 
@@ -177,7 +196,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           price: convertedPrice,
           quantity: 1,
           costPrice: product.cost_price || 0,
-          warehouse_distribution: product.warehouse_distribution
+          warehouse_distribution: product.warehouse_distribution,
         };
       }
       return { items: newItems };
@@ -185,9 +204,11 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     get().calculateTotals();
   },
 
-  addItem: () => set(state => ({ items: [...state.items, createNewItem()] })),
+  addItem: () => {
+    set(state => ({ items: [...state.items, createNewItem()] }));
+  },
 
-  addProductToCart: (product) => {
+  addProductToCart: product => {
     const currentState = get();
     if (!assertValidExchangeRate(currentState.currency, currentState.exchangeRate)) return;
 
@@ -203,7 +224,11 @@ export const useSalesStore = create<SalesState>((set, get) => ({
 
       const basePrice = product.selling_price || 0;
       const { price: convertedPrice, failed } = safeConvertFromBase(
-        basePrice, state.currency, state.exchangeRate, state.exchangeOperator, 'addProductToCart'
+        basePrice,
+        state.currency,
+        state.exchangeRate,
+        state.exchangeOperator,
+        'addProductToCart'
       );
       if (failed) return state;
 
@@ -219,7 +244,7 @@ export const useSalesStore = create<SalesState>((set, get) => ({
         price: convertedPrice,
         discount: 0,
         costPrice: product.cost_price || 0,
-        warehouse_distribution: product.warehouse_distribution
+        warehouse_distribution: product.warehouse_distribution,
       };
 
       return { items: [newItem, ...state.items] };
@@ -227,11 +252,12 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     get().calculateTotals();
   },
 
-  removeItem: (idOrIndex) => {
+  removeItem: idOrIndex => {
     set(state => {
-      const newItems = typeof idOrIndex === 'string'
-        ? state.items.filter(i => i.productId !== idOrIndex)
-        : state.items.filter((_, i) => i !== idOrIndex);
+      const newItems =
+        typeof idOrIndex === 'string'
+          ? state.items.filter(i => i.productId !== idOrIndex)
+          : state.items.filter((_, i) => i !== idOrIndex);
       return { items: newItems };
     });
     get().calculateTotals();
@@ -251,25 +277,27 @@ export const useSalesStore = create<SalesState>((set, get) => ({
         const lineSub = qty * price;
         subtotal += lineSub;
 
-        const lineDiscount = (discountEnabled && state.showDiscount) ? (Number(item.discount) || 0) : 0;
+        const lineDiscount = discountEnabled && state.showDiscount ? Number(item.discount) || 0 : 0;
         discountAmount += lineDiscount;
       });
 
       const totalAmount = subtotal - discountAmount;
 
       return {
-        summary: { subtotal, discountAmount, totalAmount }
+        summary: { subtotal, discountAmount, totalAmount },
       };
     });
   },
 
-  setCustomer: (selectedCustomer) => set({ selectedCustomer }),
+  setCustomer: selectedCustomer => {
+    set({ selectedCustomer });
+  },
 
   setMetadata: (field, value) => {
-    set((state) => {
+    set(state => {
       const newState = { ...state, [field]: value };
 
-      if (['currency', 'exchangeRate', 'exchangeOperator'].includes(field as string)) {
+      if (['currency', 'exchangeRate', 'exchangeOperator'].includes(field)) {
         const rate = newState.exchangeRate;
         const isForeign = newState.currency !== 'SAR';
 
@@ -278,10 +306,18 @@ export const useSalesStore = create<SalesState>((set, get) => ({
           if (!isForeign) return { ...item, price: item.basePrice };
 
           try {
-            const newPrice = convertCurrency(item.basePrice, rate, 'fromBase', newState.exchangeOperator);
+            const newPrice = convertCurrency(
+              item.basePrice,
+              rate,
+              'fromBase',
+              newState.exchangeOperator
+            );
             return { ...item, price: newPrice };
           } catch (e) {
-            logger.error('SalesStore', 'Invalid rate in setMetadata', { rate, currency: newState.currency });
+            logger.error('SalesStore', 'Invalid rate in setMetadata', {
+              rate,
+              currency: newState.currency,
+            });
             return item;
           }
         });
@@ -292,24 +328,26 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     get().calculateTotals();
   },
 
-  toggleColumn: (field) => {
+  toggleColumn: field => {
     set(state => ({ [field]: !state[field] }));
     get().calculateTotals();
   },
 
-  resetCart: () => set(() => ({
-    items: [],
-    selectedCustomer: null,
-    summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
-    invoiceType: 'cash',
-    currency: 'SAR',
-    exchangeRate: 1,
-    exchangeOperator: 'multiply',
-    warehouseId: '',
-    cashboxId: '',
-    showDiscount: false,
-    notes: ''
-  }))
+  resetCart: () => {
+    set(() => ({
+      items: [],
+      selectedCustomer: null,
+      summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
+      invoiceType: 'cash',
+      currency: 'SAR',
+      exchangeRate: 1,
+      exchangeOperator: 'multiply',
+      warehouseId: '',
+      cashboxId: '',
+      showDiscount: false,
+      notes: '',
+    }));
+  },
 }));
 
 // [FIX #3] الاشتراك في تغييرات إعدادات الخصم لإعادة حساب الإجماليات تلقائياً

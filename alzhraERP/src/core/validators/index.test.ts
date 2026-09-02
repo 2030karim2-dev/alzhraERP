@@ -54,44 +54,55 @@ describe('passwordSchema', () => {
   });
 });
 
-
 // ── Journal Line Validation (Double-Entry) ──────────────
 
 describe('journalLineSchema', () => {
   it('accepts debit-only line', () => {
-    expect(journalLineSchema.safeParse({
-      account_id: VALID_UUID,
-      debit_amount: 100,
-      credit_amount: 0,
-    }).success).toBe(true);
+    expect(
+      journalLineSchema.safeParse({
+        account_id: VALID_UUID,
+        debit_amount: 100,
+        credit_amount: 0,
+      }).success
+    ).toBe(true);
   });
 
   it('accepts credit-only line', () => {
-    expect(journalLineSchema.safeParse({
-      account_id: VALID_UUID,
-      debit_amount: 0,
-      credit_amount: 100,
-    }).success).toBe(true);
+    expect(
+      journalLineSchema.safeParse({
+        account_id: VALID_UUID,
+        debit_amount: 0,
+        credit_amount: 100,
+      }).success
+    ).toBe(true);
   });
 
   it('rejects line with both debit and credit', () => {
-    expect(journalLineSchema.safeParse({
-      account_id: VALID_UUID,
-      debit_amount: 100,
-      credit_amount: 50,
-    }).success).toBe(false);
+    expect(
+      journalLineSchema.safeParse({
+        account_id: VALID_UUID,
+        debit_amount: 100,
+        credit_amount: 50,
+      }).success
+    ).toBe(false);
   });
 
   it('rejects line with neither debit nor credit (zero both)', () => {
-    expect(journalLineSchema.safeParse({
-      account_id: VALID_UUID,
-      debit_amount: 0,
-      credit_amount: 0,
-    }).success).toBe(false);
+    expect(
+      journalLineSchema.safeParse({
+        account_id: VALID_UUID,
+        debit_amount: 0,
+        credit_amount: 0,
+      }).success
+    ).toBe(false);
   });
 
   it('defaults missing amounts to zero', () => {
-    const result = journalLineSchema.safeParse({ account_id: VALID_UUID, debit_amount: 100, credit_amount: 0 });
+    const result = journalLineSchema.safeParse({
+      account_id: VALID_UUID,
+      debit_amount: 100,
+      credit_amount: 0,
+    });
     expect(result.success).toBe(true);
   });
 });
@@ -164,11 +175,13 @@ describe('journalEntrySchema', () => {
   });
 
   it('requires description', () => {
-    expect(journalEntrySchema.safeParse({
-      date: '2026-08-10',
-      description: '',
-      lines: makeLines([100], [100]),
-    }).success).toBe(false);
+    expect(
+      journalEntrySchema.safeParse({
+        date: '2026-08-10',
+        description: '',
+        lines: makeLines([100], [100]),
+      }).success
+    ).toBe(false);
   });
 });
 
@@ -179,30 +192,36 @@ describe('invoiceSchema', () => {
     const result = invoiceSchema.safeParse({
       type: 'sale',
       payment_method: 'cash',
-      items: [{
-        product_id: VALID_UUID,
-        name: 'Product A',
-        quantity: 1,
-        unit_price: 100,
-      }],
+      items: [
+        {
+          product_id: VALID_UUID,
+          name: 'Product A',
+          quantity: 1,
+          unit_price: 100,
+        },
+      ],
     });
     expect(result.success).toBe(true);
   });
 
   it('rejects invoice without items', () => {
-    expect(invoiceSchema.safeParse({
-      type: 'sale',
-      payment_method: 'cash',
-      items: [],
-    }).success).toBe(false);
+    expect(
+      invoiceSchema.safeParse({
+        type: 'sale',
+        payment_method: 'cash',
+        items: [],
+      }).success
+    ).toBe(false);
   });
 
   it('rejects invalid invoice type', () => {
-    expect(invoiceSchema.safeParse({
-      type: 'invalid',
-      payment_method: 'cash',
-      items: [{ product_id: VALID_UUID, name: 'X', quantity: 1, unit_price: 10 }],
-    }).success).toBe(false);
+    expect(
+      invoiceSchema.safeParse({
+        type: 'invalid',
+        payment_method: 'cash',
+        items: [{ product_id: VALID_UUID, name: 'X', quantity: 1, unit_price: 10 }],
+      }).success
+    ).toBe(false);
   });
 
   it('defaults currency to SAR', () => {
@@ -219,19 +238,23 @@ describe('invoiceSchema', () => {
 
 describe('productSchema', () => {
   it('accepts valid product', () => {
-    expect(productSchema.safeParse({
-      name: 'Product A',
-      cost_price: 50,
-      sell_price: 100,
-    }).success).toBe(true);
+    expect(
+      productSchema.safeParse({
+        name: 'Product A',
+        cost_price: 50,
+        sell_price: 100,
+      }).success
+    ).toBe(true);
   });
 
   it('rejects negative cost price', () => {
-    expect(productSchema.safeParse({
-      name: 'Product',
-      cost_price: -10,
-      sell_price: 100,
-    }).success).toBe(false);
+    expect(
+      productSchema.safeParse({
+        name: 'Product',
+        cost_price: -10,
+        sell_price: 100,
+      }).success
+    ).toBe(false);
   });
 });
 

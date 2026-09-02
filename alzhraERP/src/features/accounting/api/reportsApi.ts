@@ -1,10 +1,16 @@
-
 import { supabase } from '../../../lib/supabaseClient';
 
 export const reportsApi = {
-  getJournalLines: async (companyId: string, branchId?: string | null, fromDate?: string, toDate?: string) => {
-    let query = supabase.from('journal_entry_lines')
-      .select(`
+  getJournalLines: async (
+    companyId: string,
+    branchId?: string | null,
+    fromDate?: string,
+    toDate?: string
+  ) => {
+    let query = supabase
+      .from('journal_entry_lines')
+      .select(
+        `
         *,
         journal:journal_entries!inner (
           id,
@@ -21,7 +27,8 @@ export const reportsApi = {
           type,
           currency_code
         )
-      `)
+      `
+      )
       .eq('journal.company_id', companyId)
       .eq('journal.status', 'posted')
       .is('deleted_at', null);
@@ -41,8 +48,10 @@ export const reportsApi = {
   },
 
   getAuditJournals: async (companyId: string, branchId?: string | null) => {
-    let query = supabase.from('journal_entries')
-      .select(`
+    let query = supabase
+      .from('journal_entries')
+      .select(
+        `
         id,
         entry_date,
         description,
@@ -51,7 +60,8 @@ export const reportsApi = {
           debit_amount,
           credit_amount
         )
-      `)
+      `
+      )
       .eq('company_id', companyId)
       .neq('status', 'void')
       .is('deleted_at', null)
@@ -62,5 +72,5 @@ export const reportsApi = {
       query = query.eq('branch_id', branchId);
     }
     return await query;
-  }
+  },
 };

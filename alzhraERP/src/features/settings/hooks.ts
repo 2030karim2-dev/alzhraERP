@@ -213,7 +213,9 @@ export const useCurrencyMutation = () => {
       await queryClient.invalidateQueries({ queryKey: ['exchange_rates'] });
       showToast('تم تحديث سعر الصرف بنجاح', 'success');
     },
-    onError: (error: any) => showToast(error?.message || 'فشل تحديث سعر الصرف', 'error'),
+    onError: (error: any) => {
+      showToast(error?.message || 'فشل تحديث سعر الصرف', 'error');
+    },
   });
 
   const addCurrency = useMutation({
@@ -292,7 +294,9 @@ export const useBackupActions = () => {
       if (!user?.company_id) throw new Error('لا يوجد شركة نشطة لهذا الحساب');
       await settingsService.importSystemData(file, user.company_id);
       showToast('تم استيراد البيانات بنجاح، سيتم إعادة التحميل', 'success');
-      setTimeout(() => window.location.reload(), 1500);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (err: any) {
       showToast(err.message, 'error');
     }
@@ -325,7 +329,9 @@ export const useBranchMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تمت إضافة الفرع الجديد بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في إضافة الفرع', 'error'),
+    onError: (err: any) => {
+      showToast(err.message || 'خطأ في إضافة الفرع', 'error');
+    },
   });
 
   const editBranch = useMutation({
@@ -335,7 +341,9 @@ export const useBranchMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تم تحديث بيانات الفرع بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في تحديث الفرع', 'error'),
+    onError: (err: any) => {
+      showToast(err.message || 'خطأ في تحديث الفرع', 'error');
+    },
   });
 
   const deleteBranch = useMutation({
@@ -344,7 +352,9 @@ export const useBranchMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['branches'] });
       showToast('تم حذف الفرع', 'info');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في حذف الفرع', 'error'),
+    onError: (err: any) => {
+      showToast(err.message || 'خطأ في حذف الفرع', 'error');
+    },
   });
 
   return {
@@ -383,7 +393,9 @@ export const useInvitationMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['invitations'] });
       showToast('تم إرسال الدعوة بنجاح', 'success');
     },
-    onError: (err: any) => showToast(err.message || 'فشل إرسال الدعوة', 'error'),
+    onError: (err: any) => {
+      showToast(err.message || 'فشل إرسال الدعوة', 'error');
+    },
   });
 
   const revokeInvitation = useMutation({
@@ -392,7 +404,9 @@ export const useInvitationMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['invitations'] });
       showToast('تم إلغاء الدعوة', 'info');
     },
-    onError: (err: any) => showToast(err.message || 'خطأ في إلغاء الدعوة', 'error'),
+    onError: (err: any) => {
+      showToast(err.message || 'خطأ في إلغاء الدعوة', 'error');
+    },
   });
 
   return {

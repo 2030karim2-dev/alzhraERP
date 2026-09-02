@@ -3,22 +3,25 @@ import { supabase } from '../../lib/supabaseClient';
 import { logger } from '../../core/utils/logger';
 
 export function useAuthSession() {
-  const ensureValidSession = useCallback(async (): Promise<{ userId: string | null; token: string | null }> => {
+  const ensureValidSession = useCallback(async (): Promise<{
+    userId: string | null;
+    token: string | null;
+  }> => {
     try {
       const { data: s } = await supabase.auth.getSession();
       if (s?.session?.access_token && s?.session?.user?.id) {
         return { userId: s.session.user.id, token: s.session.access_token };
       }
-      
+
       // Session missing or expired, try refresh
       const { data: ref } = await supabase.auth.refreshSession();
       if (ref?.session?.access_token && ref?.session?.user?.id) {
         return { userId: ref.session.user.id, token: ref.session.access_token };
       }
-      
+
       return { userId: null, token: null };
     } catch (err) {
-      logger.error("useAuthSession", '[AuthSession] Critical error during session check:', err);
+      logger.error('useAuthSession', '[AuthSession] Critical error during session check:', err);
       return { userId: null, token: null };
     }
   }, []);

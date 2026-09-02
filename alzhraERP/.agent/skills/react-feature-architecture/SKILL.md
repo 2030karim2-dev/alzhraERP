@@ -42,6 +42,7 @@ src/features/feature-name/
 ## Component Standards
 
 ### File Naming
+
 - Components: PascalCase (e.g., `InvoiceTable.tsx`)
 - Hooks: camelCase with `use` prefix (e.g., `useInvoices.ts`)
 - Utilities: camelCase (e.g., `invoiceHelpers.ts`)
@@ -74,20 +75,23 @@ export function InvoiceList({ customerId, onSelect }: InvoiceListProps) {
   // Hooks at top
   const { data, isLoading } = useInvoices(customerId);
   const { toast } = useToast();
-  
+
   // Local state
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  
+
   // Callbacks
-  const handleSelect = useCallback((invoice: Invoice) => {
-    setSelectedId(invoice.id);
-    onSelect?.(invoice);
-  }, [onSelect]);
-  
+  const handleSelect = useCallback(
+    (invoice: Invoice) => {
+      setSelectedId(invoice.id);
+      onSelect?.(invoice);
+    },
+    [onSelect]
+  );
+
   // Render helpers
   if (isLoading) return <LoadingSpinner />;
   if (!data?.length) return <EmptyState />;
-  
+
   // Return JSX
   return (
     <div className="space-y-4">
@@ -107,12 +111,14 @@ export function InvoiceList({ customerId, onSelect }: InvoiceListProps) {
 ## TypeScript Standards
 
 ### Props Interface Naming
+
 - `{ComponentName}Props` for component props
 - Use `interface` not `type` for object shapes
 - Mark optional props with `?`
 - Use `| null` not `undefined` for nullable values
 
 ### Type Exports
+
 ```typescript
 // types.ts
 export interface Invoice {
@@ -124,11 +130,7 @@ export interface Invoice {
   createdAt: string;
 }
 
-export type InvoiceStatus = 
-  | 'draft' 
-  | 'sent' 
-  | 'paid' 
-  | 'cancelled';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'cancelled';
 
 // Re-export from index.ts
 export type { Invoice, InvoiceStatus } from './types';
@@ -137,6 +139,7 @@ export type { Invoice, InvoiceStatus } from './types';
 ## Hook Standards
 
 ### Data Fetching Hooks
+
 ```typescript
 export function useInvoices(filters?: InvoiceFilters) {
   return useQuery({
@@ -148,21 +151,22 @@ export function useInvoices(filters?: InvoiceFilters) {
 ```
 
 ### Mutation Hooks
+
 ```typescript
 export function useCreateInvoice() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: createInvoice,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast({ title: 'Invoice created successfully' });
     },
-    onError: (error) => {
-      toast({ 
-        title: 'Failed to create invoice', 
-        variant: 'destructive' 
+    onError: error => {
+      toast({
+        title: 'Failed to create invoice',
+        variant: 'destructive',
       });
     },
   });
@@ -179,16 +183,19 @@ export function useCreateInvoice() {
 ## State Management
 
 ### Local State
+
 - Use `useState` for UI state (modals, forms)
 - Use `useReducer` for complex component state
 - Lift state up only when necessary
 
 ### Server State
+
 - Use React Query for all server data
 - Define query keys consistently: `[entity, id, filters]`
 - Use optimistic updates for better UX
 
 ### Global State
+
 - Use Zustand for cross-feature state
 - Keep stores minimal and focused
 - Prefer composition over large stores
@@ -211,6 +218,7 @@ export function useCreateInvoice() {
 ## Common Patterns
 
 ### Modal Pattern
+
 ```tsx
 interface ModalProps {
   isOpen: boolean;
@@ -220,7 +228,7 @@ interface ModalProps {
 
 export function ConfirmModal({ isOpen, onClose, onConfirm }: ModalProps) {
   if (!isOpen) return null;
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       {/* content */}
@@ -230,18 +238,17 @@ export function ConfirmModal({ isOpen, onClose, onConfirm }: ModalProps) {
 ```
 
 ### Form Pattern
+
 ```tsx
 export function InvoiceForm({ initialData, onSubmit }: FormProps) {
   const form = useForm<InvoiceFormData>({
     defaultValues: initialData,
     resolver: zodResolver(invoiceSchema),
   });
-  
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        {/* fields */}
-      </form>
+      <form onSubmit={form.handleSubmit(onSubmit)}>{/* fields */}</form>
     </Form>
   );
 }

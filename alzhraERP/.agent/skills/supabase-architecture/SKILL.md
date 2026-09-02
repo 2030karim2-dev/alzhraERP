@@ -18,6 +18,7 @@ Ensures robust, scalable Supabase backend without contradictions or errors.
 ## Validation Checklist
 
 ### 1. Migration Quality & Architecture
+
 - [ ] Migration has descriptive name with date prefix (YYYYMMDD_description.sql)
 - [ ] Uses `IF EXISTS` / `IF NOT EXISTS` for idempotency
 - [ ] Includes both "up" and "down" migrations when possible
@@ -27,12 +28,14 @@ Ensures robust, scalable Supabase backend without contradictions or errors.
 - [ ] Implements strict `CHECK` constraints on financial fields (e.g., `CHECK (debit_amount >= 0)`, `CHECK (balance >= 0)`).
 
 ### 2. Type Consistency
+
 - [ ] All database tables have corresponding TypeScript types in src/core/database.types.ts
 - [ ] Enum values match between database and TypeScript
 - [ ] Nullable fields are properly marked with `| null`
 - [ ] Arrays use correct syntax `type[]`
 
 ### 3. RLS Policies & Tenant Isolation
+
 - [ ] All tables have RLS enabled. No exceptions.
 - [ ] Policies follow naming convention: `allow_[action]_[condition]`
 - [ ] No overly permissive policies (e.g., `true` without authentication)
@@ -40,6 +43,7 @@ Ensures robust, scalable Supabase backend without contradictions or errors.
 - [ ] Separate policies for `SELECT` (read access) vs `INSERT/UPDATE/DELETE` (write access, requiring specific accounting/admin roles).
 
 ### 4. Relationships
+
 - [ ] Foreign keys use `on delete` and `on update` actions explicitly
 - [ ] No circular foreign key dependencies
 - [ ] Junction tables for many-to-many relationships are properly indexed
@@ -47,12 +51,14 @@ Ensures robust, scalable Supabase backend without contradictions or errors.
 ## Best Practices
 
 ### Naming Conventions
+
 - Tables: plural, strict **snake_case** (e.g., `invoice_items`). NO camelCase in the database.
 - Columns: strict **snake_case** (e.g., `created_at`, `customer_type`). NO camelCase.
 - Enums: singular, snake_case or PascalCase (be consistent).
 - Functions: snake_case with action prefix (e.g., `get_customer_balance`)
 
 ### Performance
+
 - Add indexes on foreign keys automatically
 - Add indexes on frequently queried fields
 - Use partial indexes for filtered queries
@@ -74,10 +80,10 @@ CREATE TABLE IF NOT EXISTS table_name (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     -- business fields
-    
+
     -- relationships
     related_id UUID REFERENCES other_table(id) ON DELETE CASCADE,
-    
+
     -- constraints
     CONSTRAINT positive_amount CHECK (amount >= 0)
 );
@@ -111,6 +117,7 @@ CREATE TRIGGER update_table_updated_at
 ## Common Patterns
 
 ### Soft Delete
+
 ```sql
 ALTER TABLE table_name ADD COLUMN deleted_at TIMESTAMPTZ;
 CREATE POLICY "hide_deleted" ON table_name
@@ -118,6 +125,7 @@ CREATE POLICY "hide_deleted" ON table_name
 ```
 
 ### Multi-tenancy
+
 ```sql
 -- Add business_id to all tables
 ALTER TABLE table_name ADD COLUMN business_id UUID REFERENCES businesses(id);

@@ -26,6 +26,7 @@ Maintains strict TypeScript type safety and prevents runtime errors through comp
 ## Type Definition Standards
 
 ### Interface vs Type
+
 ```typescript
 // Use interface for object shapes
 interface User {
@@ -40,6 +41,7 @@ type ID = string | number;
 ```
 
 ### Naming Conventions
+
 ```typescript
 // PascalCase for types and interfaces
 interface InvoiceItem { }
@@ -55,6 +57,7 @@ type InvoiceEntity    // Database entity
 ```
 
 ### Strict Optional Properties
+
 ```typescript
 // ❌ Bad - undefined can be confused with missing
 interface Bad {
@@ -84,8 +87,8 @@ export interface Database {
       invoices: {
         Row: {
           id: string;
-          total: number;  // numeric in DB
-          created_at: string;  // timestamptz
+          total: number; // numeric in DB
+          created_at: string; // timestamptz
         };
       };
     };
@@ -106,21 +109,22 @@ interface InvoiceFormData {
 ## Utility Types Usage
 
 ### Common Patterns
+
 ```typescript
 // Make all properties optional
-Partial<User>
+Partial<User>;
 
 // Pick specific properties
-Pick<User, 'id' | 'name'>
+Pick<User, 'id' | 'name'>;
 
 // Omit specific properties
-Omit<User, 'password' | 'internalNotes'>
+Omit<User, 'password' | 'internalNotes'>;
 
 // Make all properties required
-Required<FormData>
+Required<FormData>;
 
 // Readonly version
-Readonly<Config>
+Readonly<Config>;
 
 // Extract return type
 type APIResponse = Awaited<ReturnType<typeof fetchUser>>;
@@ -130,6 +134,7 @@ type FetchOptions = Parameters<typeof fetchUser>[0];
 ```
 
 ### Custom Utility Types
+
 ```typescript
 // Nullable type
 type Nullable<T> = T | null;
@@ -141,18 +146,21 @@ type Optional<T> = T | undefined;
 type WithId<T> = T & { id: string };
 
 // API Response wrapper
-type APIResponse<T> = {
-  data: T;
-  error: null;
-} | {
-  data: null;
-  error: Error;
-};
+type APIResponse<T> =
+  | {
+      data: T;
+      error: null;
+    }
+  | {
+      data: null;
+      error: Error;
+    };
 ```
 
 ## Function Type Safety
 
 ### Explicit Return Types
+
 ```typescript
 // ✅ Good - explicit return type
 function calculateTotal(items: InvoiceItem[]): number {
@@ -166,28 +174,23 @@ function calculateTotal(items: InvoiceItem[]) {
 ```
 
 ### Proper Error Handling
+
 ```typescript
 // ✅ Good - Result type for errors
-type Result<T, E = Error> = 
-  | { success: true; data: T }
-  | { success: false; error: E };
+type Result<T, E = Error> = { success: true; data: T } | { success: false; error: E };
 
 async function fetchUser(id: string): Promise<Result<User>> {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
+    const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
+
     if (error) {
       return { success: false, error: new Error(error.message) };
     }
-    
+
     if (!data) {
       return { success: false, error: new Error('User not found') };
     }
-    
+
     return { success: true, data };
   } catch (error) {
     return { success: false, error: error as Error };
@@ -214,7 +217,7 @@ const InvoiceStatus = {
   Paid: 'paid',
 } as const;
 
-type InvoiceStatus = typeof InvoiceStatus[keyof typeof InvoiceStatus];
+type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
 
 // ✅ Also good - simple union
 type InvoiceStatus = 'draft' | 'sent' | 'paid';
@@ -274,19 +277,16 @@ function handleResult(result: Result) {
 
 ```typescript
 // Generic hook
-function useAsyncData<T>(
-  fetcher: () => Promise<T>,
-  deps: DependencyList = []
-) {
+function useAsyncData<T>(fetcher: () => Promise<T>, deps: DependencyList = []) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     fetcher()
       .then(setData)
       .finally(() => setLoading(false));
   }, deps);
-  
+
   return { data, loading };
 }
 
@@ -295,10 +295,7 @@ interface Entity {
   id: string;
 }
 
-function findById<T extends Entity>(
-  items: T[],
-  id: string
-): T | undefined {
+function findById<T extends Entity>(items: T[], id: string): T | undefined {
   return items.find(item => item.id === id);
 }
 ```
@@ -310,26 +307,26 @@ function findById<T extends Entity>(
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/core/database.types';
 
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+const supabase = createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
 // Typed query
 const { data, error } = await supabase
   .from('invoices')
-  .select(`
+  .select(
+    `
     *,
     customer:customers(*),
     items:invoice_items(*)
-  `)
+  `
+  )
   .eq('status', 'paid')
-  .returns<InvoiceWithRelations[]>();  // Explicit return type
+  .returns<InvoiceWithRelations[]>(); // Explicit return type
 ```
 
 ## Common TypeScript Errors
 
 ### TS2532: Object is possibly 'undefined'
+
 ```typescript
 // ❌ Bad
 const name = user.profile.name;
@@ -342,11 +339,12 @@ const name = user.profile?.name ?? 'Anonymous';
 
 // ✅ Good - type guard
 if (user.profile) {
-  const name = user.profile.name;  // profile is defined here
+  const name = user.profile.name; // profile is defined here
 }
 ```
 
 ### TS2345: Argument of type X is not assignable to Y
+
 ```typescript
 // Check that types are compatible
 // May need explicit type assertion (use sparingly)
@@ -359,6 +357,7 @@ if (typeof unknownValue === 'string') {
 ```
 
 ### TS2322: Type X is not assignable to type Y
+
 ```typescript
 // Check object shapes match
 // Missing properties or wrong types

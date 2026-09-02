@@ -3,104 +3,112 @@
  */
 import { supabase } from '@/lib/supabaseClient';
 import type {
-    CustomerActivity,
-    CustomerStats,
-    TopCustomer,
+  CustomerActivity,
+  CustomerStats,
+  TopCustomer,
 } from '@/features/parties/types/enhanced';
 import type { CustomerActivityRow, TopCustomerRow } from './types';
 import { mapCustomerActivity } from './activities';
 
 export async function getCustomerStats(companyId: string): Promise<CustomerStats> {
-    const { data, error } = await supabase
-        .rpc('get_customer_stats', { p_company_id: companyId });
+  const { data, error } = await supabase.rpc('get_customer_stats', { p_company_id: companyId });
 
-    if (error) throw error;
+  if (error) throw error;
 
-    // Minimal runtime guard: fail fast instead of silently returning undefined
-    // fields if the RPC signature changes.
-    if (!data || typeof data !== 'object') {
-        throw new Error('Unexpected response from get_customer_stats');
-    }
+  // Minimal runtime guard: fail fast instead of silently returning undefined
+  // fields if the RPC signature changes.
+  if (!data || typeof data !== 'object') {
+    throw new Error('Unexpected response from get_customer_stats');
+  }
 
-    return data as unknown as CustomerStats;
+  return data as unknown as CustomerStats;
 }
 
-export async function getTopCustomers(companyId: string, limit: number = 10): Promise<TopCustomer[]> {
-    const { data, error } = await supabase
-        .rpc('get_top_customers_by_revenue', {
-            p_company_id: companyId,
-            p_limit: limit
-        });
+export async function getTopCustomers(companyId: string, limit = 10): Promise<TopCustomer[]> {
+  const { data, error } = await supabase.rpc('get_top_customers_by_revenue', {
+    p_company_id: companyId,
+    p_limit: limit,
+  });
 
-    if (error) throw error;
-    return (data || []).map((item) => {
-        const row = item as unknown as TopCustomerRow;
-        return {
-            id: row.id,
-            name: row.name,
-            // PostgREST serializes numeric/bigint aggregates (SUM/COUNT) as
-            // strings to avoid JS precision loss — normalize to numbers here.
-            totalRevenue: Number(row.total_revenue) || 0,
-            invoiceCount: Number(row.invoice_count) || 0
-        };
-    });
+  if (error) throw error;
+  return (data || []).map(item => {
+    const row = item as unknown as TopCustomerRow;
+    return {
+      id: row.id,
+      name: row.name,
+      // PostgREST serializes numeric/bigint aggregates (SUM/COUNT) as
+      // strings to avoid JS precision loss — normalize to numbers here.
+      totalRevenue: Number(row.total_revenue) || 0,
+      invoiceCount: Number(row.invoice_count) || 0,
+    };
+  });
 }
 
-export async function getUpcomingActivities(companyId: string, days: number = 7): Promise<CustomerActivity[]> {
-    const fromDate = new Date();
-    const toDate = new Date();
-    toDate.setDate(toDate.getDate() + days);
+export async function getUpcomingActivities(
+  companyId: string,
+  days = 7
+): Promise<CustomerActivity[]> {
+  const fromDate = new Date();
+  const toDate = new Date();
+  toDate.setDate(toDate.getDate() + days);
 
-    const { data, error } = await supabase
-        .from('customer_activities')
-        .select(`
+  const { data, error } = await supabase
+    .from('customer_activities')
+    .select(
+      `
             *,
             customer_parties:parties!customer_activities_customer_id_fkey(name),
             assigned_to_profile:profiles!customer_activities_assigned_to_fkey(full_name)
-        `)
-        .eq('company_id', companyId)
-        .eq('status', 'pending')
-        .gte('scheduled_at', fromDate.toISOString())
-        .lte('scheduled_at', toDate.toISOString())
-        .order('scheduled_at', { ascending: true });
+        `
+    )
+    .eq('company_id', companyId)
+    .eq('status', 'pending')
+    .gte('scheduled_at', fromDate.toISOString())
+    .lte('scheduled_at', toDate.toISOString())
+    .order('scheduled_at', { ascending: true });
 
-    if (error) throw error;
+  if (error) throw error;
 
-    return (data || []).map((item) => mapCustomerActivity(item as unknown as CustomerActivityRow));
+  return (data || []).map(item => mapCustomerActivity(item as unknown as CustomerActivityRow));
 }
 
 export async function getOverdueActivities(companyId: string): Promise<CustomerActivity[]> {
-    const now = new Date().toISOString();
+  const now = new Date().toISOString();
 
-    const { data, error } = await supabase
-        .from('customer_activities')
-        .select(`
+  const { data, error } = await supabase
+    .from('customer_activities')
+    .select(
+      `
             *,
             customer_parties:parties!customer_activities_customer_id_fkey(name),
             assigned_to_profile:profiles!customer_activities_assigned_to_fkey(full_name)
-        `)
-        .eq('company_id', companyId)
-        .eq('status', 'pending')
-        .lt('scheduled_at', now)
-        .order('scheduled_at', { ascending: true });
+        `
+    )
+    .eq('company_id', companyId)
+    .eq('status', 'pending')
+    .lt('scheduled_at', now)
+    .order('scheduled_at', { ascending: true });
 
-    if (error) throw error;
+  if (error) throw error;
 
-    // Mark them as overdue — update exactly the fetched row IDs so the
-    // returned set always matches the database state (no over- or under-matching
-    // under concurrency), and surface update failures instead of ignoring them.
-    if (data && data.length > 0) {
-        const { error: updateError } = await supabase
-            .from('customer_activities')
-            .update({ status: 'overdue' })
-            .in('id', data.map((item) => item.id));
+  // Mark them as overdue — update exactly the fetched row IDs so the
+  // returned set always matches the database state (no over- or under-matching
+  // under concurrency), and surface update failures instead of ignoring them.
+  if (data && data.length > 0) {
+    const { error: updateError } = await supabase
+      .from('customer_activities')
+      .update({ status: 'overdue' })
+      .in(
+        'id',
+        data.map(item => item.id)
+      );
 
-        if (updateError) throw updateError;
-    }
+    if (updateError) throw updateError;
+  }
 
-    return (data || []).map((item) => {
-        const activity = mapCustomerActivity(item as unknown as CustomerActivityRow);
-        activity.status = 'overdue';
-        return activity;
-    });
+  return (data || []).map(item => {
+    const activity = mapCustomerActivity(item);
+    activity.status = 'overdue';
+    return activity;
+  });
 }

@@ -5,6 +5,7 @@ import Button from '../../../ui/base/Button';
 import { cn } from '../../../core/utils';
 import type { VehicleInfo } from '../types';
 import { POPULAR_MAKE_OPTIONS, getPopularModelsForMake } from '../constants/vinPresetsData';
+import { parseCatalogVehicleText } from '../utils/catalogTextExtractor';
 
 interface ManualVinModalProps {
   isOpen: boolean;
@@ -37,6 +38,42 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
   const [market, setMarket] = useState('وارد ياباني');
   const [submodel, setSubmodel] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleVinPasteChange = (raw: string): void => {
+    if (
+      raw.includes('\n') ||
+      raw.includes('http') ||
+      raw.includes('[') ||
+      raw.includes('ModelCode') ||
+      raw.toLowerCase().includes('partsouq') ||
+      raw.toLowerCase().includes('catalog')
+    ) {
+      const parsed = parseCatalogVehicleText(raw);
+      if (parsed.vin) setVinNumber(parsed.vin);
+      if (parsed.make) {
+        const matchedMake = COMMON_MAKES.find(
+          m =>
+            m.id.toLowerCase() === parsed.make?.toLowerCase() ||
+            (parsed.makeAr && m.label.includes(parsed.makeAr))
+        );
+        if (matchedMake) {
+          setMake(matchedMake.id);
+        } else {
+          setMake('OTHER');
+          setCustomMake(parsed.make || '');
+        }
+      }
+      if (parsed.model) setModel(parsed.model);
+      if (parsed.year) setYear(parseInt(parsed.year, 10) || 2011);
+      if (parsed.market) setMarket(parsed.market);
+      if (parsed.transmission) {
+        setTransmission(parsed.transmission === 'عادي' ? 'manual' : 'automatic');
+      }
+      if (parsed.drive) setDriveType(parsed.drive === 'دبل' ? '4WD' : '2WD');
+    } else {
+      setVinNumber(raw.toUpperCase());
+    }
+  };
 
   const activeMake = make === 'OTHER' ? customMake.trim() : make;
   const activeModel = model;
@@ -149,9 +186,9 @@ export const ManualVinModal: React.FC<ManualVinModalProps> = ({
               type="text"
               value={vinNumber}
               onChange={e => {
-                setVinNumber(e.target.value.toUpperCase());
+                handleVinPasteChange(e.target.value);
               }}
-              placeholder="مثال: KSP90-5012345 أو JTEBU25J56..."
+              placeholder="مثال: KSP90-5012345 أو الصق بيانات الكتالوج مباشرة..."
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold text-blue-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-blue-400"
             />
           </div>

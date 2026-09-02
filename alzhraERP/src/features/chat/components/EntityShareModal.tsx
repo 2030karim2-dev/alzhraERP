@@ -44,7 +44,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   // Load branches
   useEffect(() => {
     if (!companyId) return;
-    chatService.getCompanyBranches(companyId).then((data) => {
+    chatService.getCompanyBranches(companyId).then(data => {
       if (data) setBranches(data);
     });
   }, [companyId]);
@@ -79,7 +79,9 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
       }
     }, 250);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [search, activeTab, transferMode, companyId, isOpen]);
 
   if (!isOpen) return null;
@@ -107,7 +109,8 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
       entity_type: 'vin',
       entity_id: vinItem.id,
       title: vinItem.vin,
-      subtitle: `${decoded.make || ''} ${decoded.model || ''} ${decoded.year || ''}`.trim() || 'مركبة',
+      subtitle:
+        `${decoded.make || ''} ${decoded.model || ''} ${decoded.year || ''}`.trim() || 'مركبة',
       details: {
         vin: vinItem.vin,
         make: decoded.make || 'غير محدد',
@@ -158,7 +161,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   const handleCreateTransferRequest = () => {
     if (!selectedProductForTransfer || !targetBranchId) return;
 
-    const targetBranch = branches.find((b) => b.id === targetBranchId);
+    const targetBranch = branches.find(b => b.id === targetBranchId);
     const fromBranchName = user?.branch_name || 'الفرع الحالي';
     const trNumber = `TR-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -185,11 +188,13 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-200">
       <div className="flex h-[520px] w-full max-w-lg flex-col rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--app-border)] p-4">
-          <h3 className="text-base font-bold text-[var(--app-text)]">مشاركة بطاقة ERP في المحادثة</h3>
+          <h3 className="text-base font-bold text-[var(--app-text)]">
+            مشاركة بطاقة ERP في المحادثة
+          </h3>
           <button
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
@@ -199,9 +204,13 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
         </div>
 
         {/* Category Tabs */}
-        <div className="flex border-b border-[var(--app-border)] bg-[var(--app-bg)]/50 p-2 gap-1.5">
+        <div className="bg-[var(--app-bg)]/50 flex gap-1.5 border-b border-[var(--app-border)] p-2">
           <button
-            onClick={() => { setActiveTab('product'); setSearch(''); setResults([]); }}
+            onClick={() => {
+              setActiveTab('product');
+              setSearch('');
+              setResults([]);
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               activeTab === 'product'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -212,7 +221,11 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           </button>
 
           <button
-            onClick={() => { setActiveTab('transfer'); setSearch(''); setResults([]); }}
+            onClick={() => {
+              setActiveTab('transfer');
+              setSearch('');
+              setResults([]);
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               activeTab === 'transfer'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -223,7 +236,11 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           </button>
 
           <button
-            onClick={() => { setActiveTab('vin'); setSearch(''); setResults([]); }}
+            onClick={() => {
+              setActiveTab('vin');
+              setSearch('');
+              setResults([]);
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               activeTab === 'vin'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -234,7 +251,11 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           </button>
 
           <button
-            onClick={() => { setActiveTab('invoice'); setSearch(''); setResults([]); }}
+            onClick={() => {
+              setActiveTab('invoice');
+              setSearch('');
+              setResults([]);
+            }}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
               activeTab === 'invoice'
                 ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
@@ -250,16 +271,24 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           {activeTab !== 'transfer' || transferMode === 'search' ? (
             <div className="space-y-3">
               {activeTab === 'transfer' && (
-                <div className="flex gap-2 mb-2">
+                <div className="mb-2 flex gap-2">
                   <button
-                    onClick={() => { setTransferMode('new'); setSearch(''); setResults([]); }}
-                    className="flex items-center gap-1 text-xs font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1.5 rounded-lg hover:bg-[var(--accent)]/20 transition-all"
+                    onClick={() => {
+                      setTransferMode('new');
+                      setSearch('');
+                      setResults([]);
+                    }}
+                    className="bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition-all"
                   >
                     <PlusCircle size={14} /> طلب مناقلة جديد
                   </button>
                   <button
-                    onClick={() => { setTransferMode('search'); setSearch(''); setResults([]); }}
-                    className="flex items-center gap-1 text-xs font-bold text-[var(--app-text)] bg-[var(--app-bg)] px-3 py-1.5 rounded-lg border border-[var(--app-border)]"
+                    onClick={() => {
+                      setTransferMode('search');
+                      setSearch('');
+                      setResults([]);
+                    }}
+                    className="flex items-center gap-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-1.5 text-xs font-bold text-[var(--app-text)]"
                   >
                     <Search size={14} /> بحث في المناقلات القائمة
                   </button>
@@ -267,20 +296,25 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
               )}
 
               <div className="relative">
-                <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]" />
+                <Search
+                  size={16}
+                  className="absolute start-3 top-1/2 -translate-y-1/2 text-[var(--app-text-secondary)]"
+                />
                 <input
                   type="text"
                   placeholder={
                     activeTab === 'product'
                       ? 'ابحث باسم القطعة، رقم الصنف أو SKU...'
                       : activeTab === 'vin'
-                      ? 'ابحث برقم الهيكل VIN...'
-                      : activeTab === 'invoice'
-                      ? 'ابحث برقم الفاتورة...'
-                      : 'ابحث برقم المناقلة...'
+                        ? 'ابحث برقم الهيكل VIN...'
+                        : activeTab === 'invoice'
+                          ? 'ابحث برقم الفاتورة...'
+                          : 'ابحث برقم المناقلة...'
                   }
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                  }}
                   className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] py-2 pe-3 ps-9 text-sm text-[var(--app-text)] outline-none focus:border-[var(--accent)]"
                   autoFocus
                 />
@@ -300,19 +334,29 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
               <div className="space-y-2">
                 {activeTab === 'product' &&
-                  results.map((item) => (
+                  results.map(item => (
                     <div
                       key={item.id}
-                      onClick={() => handleSelectProduct(item)}
+                      onClick={() => {
+                        handleSelectProduct(item);
+                      }}
                       className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--app-border)] p-3 transition-all hover:border-[var(--accent)] hover:bg-[var(--app-surface-hover)]"
                     >
                       <div>
-                        <span className="font-mono text-xs font-bold text-[var(--accent)]">{item.part_number || item.sku}</span>
+                        <span className="font-mono text-xs font-bold text-[var(--accent)]">
+                          {item.part_number || item.sku}
+                        </span>
                         <p className="text-xs font-bold text-[var(--app-text)]">{item.name}</p>
-                        {item.brand && <span className="text-[10px] text-[var(--app-text-secondary)]">{item.brand}</span>}
+                        {item.brand && (
+                          <span className="text-[10px] text-[var(--app-text-secondary)]">
+                            {item.brand}
+                          </span>
+                        )}
                       </div>
                       <div className="text-end text-xs">
-                        <span className="font-bold text-emerald-600">{formatCurrency(item.sale_price)}</span>
+                        <span className="font-bold text-emerald-600">
+                          {formatCurrency(item.sale_price)}
+                        </span>
                         <span className="block text-[10px] text-[var(--app-text-secondary)]">
                           المتوفر: {item.total_stock ?? item.stock ?? 0}
                         </span>
@@ -321,14 +365,18 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                   ))}
 
                 {activeTab === 'vin' &&
-                  results.map((item) => (
+                  results.map(item => (
                     <div
                       key={item.id}
-                      onClick={() => handleSelectVin(item)}
+                      onClick={() => {
+                        handleSelectVin(item);
+                      }}
                       className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--app-border)] p-3 transition-all hover:border-[var(--accent)] hover:bg-[var(--app-surface-hover)]"
                     >
                       <div>
-                        <span className="font-mono text-xs font-bold text-[var(--app-text)]">{item.vin}</span>
+                        <span className="font-mono text-xs font-bold text-[var(--app-text)]">
+                          {item.vin}
+                        </span>
                         <p className="text-xs text-[var(--app-text-secondary)]">
                           {item.decoded?.make} {item.decoded?.model} {item.decoded?.year}
                         </p>
@@ -337,15 +385,21 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                   ))}
 
                 {activeTab === 'invoice' &&
-                  results.map((item) => (
+                  results.map(item => (
                     <div
                       key={item.id}
-                      onClick={() => handleSelectInvoice(item)}
+                      onClick={() => {
+                        handleSelectInvoice(item);
+                      }}
                       className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--app-border)] p-3 transition-all hover:border-[var(--accent)] hover:bg-[var(--app-surface-hover)]"
                     >
                       <div>
-                        <span className="font-mono text-xs font-bold text-[var(--app-text)]">{item.invoice_number}</span>
-                        <p className="text-xs text-[var(--app-text-secondary)]">{item.customer_name || 'عميل نقدي'}</p>
+                        <span className="font-mono text-xs font-bold text-[var(--app-text)]">
+                          {item.invoice_number}
+                        </span>
+                        <p className="text-xs text-[var(--app-text-secondary)]">
+                          {item.customer_name || 'عميل نقدي'}
+                        </p>
                       </div>
                       <div className="text-end font-bold text-emerald-600">
                         {formatCurrency(item.total)}
@@ -353,21 +407,30 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                     </div>
                   ))}
 
-                {activeTab === 'transfer' && transferMode === 'search' &&
-                  results.map((item) => (
+                {activeTab === 'transfer' &&
+                  transferMode === 'search' &&
+                  results.map(item => (
                     <div
                       key={item.id}
-                      onClick={() => handleSelectTransfer(item)}
+                      onClick={() => {
+                        handleSelectTransfer(item);
+                      }}
                       className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--app-border)] p-3 transition-all hover:border-[var(--accent)] hover:bg-[var(--app-surface-hover)]"
                     >
                       <div>
-                        <span className="font-mono text-xs font-bold text-[var(--accent)]">{item.transfer_number}</span>
+                        <span className="font-mono text-xs font-bold text-[var(--accent)]">
+                          {item.transfer_number}
+                        </span>
                         <p className="text-xs text-[var(--app-text-secondary)]">
                           {item.from_warehouse} ➔ {item.to_warehouse}
                         </p>
                       </div>
                       <div className="text-end text-[10px] font-semibold text-[var(--app-text-secondary)]">
-                        {item.status === 'completed' ? 'مكتملة' : item.status === 'approved' ? 'معتمدة' : 'قيد الانتظار'}
+                        {item.status === 'completed'
+                          ? 'مكتملة'
+                          : item.status === 'approved'
+                            ? 'معتمدة'
+                            : 'قيد الانتظار'}
                       </div>
                     </div>
                   ))}
@@ -376,26 +439,34 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           ) : (
             /* Transfer Request Form */
             <div className="space-y-3.5 text-xs">
-              <div className="flex justify-between items-center mb-1">
+              <div className="mb-1 flex items-center justify-between">
                 <span className="font-bold text-[var(--app-text)]">طلب مناقلة صنف جديد</span>
                 <button
                   type="button"
-                  onClick={() => { setTransferMode('search'); setSearch(''); setResults([]); }}
-                  className="text-[11px] text-[var(--accent)] hover:underline font-semibold"
+                  onClick={() => {
+                    setTransferMode('search');
+                    setSearch('');
+                    setResults([]);
+                  }}
+                  className="text-[11px] font-semibold text-[var(--accent)] hover:underline"
                 >
                   بحث في المناقلات القائمة ➔
                 </button>
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">اختر القطعة المطلوب مناقلتها:</label>
+                <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                  اختر القطعة المطلوب مناقلتها:
+                </label>
                 {!selectedProductForTransfer ? (
                   <div className="space-y-2">
                     <input
                       type="text"
                       placeholder="ابحث عن الصنف بالاسم أو رقم القطعة أو SKU..."
                       value={search}
-                      onChange={(e) => setSearch(e.target.value)}
+                      onChange={e => {
+                        setSearch(e.target.value);
+                      }}
                       className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2 text-xs outline-none focus:border-[var(--accent)]"
                     />
                     {isLoading && (
@@ -403,18 +474,20 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                         <Loader2 size={18} className="animate-spin" />
                       </div>
                     )}
-                    <div className="max-h-36 overflow-y-auto space-y-1">
-                      {results.map((p) => (
+                    <div className="max-h-36 space-y-1 overflow-y-auto">
+                      {results.map(p => (
                         <div
                           key={p.id}
-                          onClick={() => setSelectedProductForTransfer(p)}
-                          className="flex cursor-pointer items-center justify-between rounded-lg bg-[var(--app-bg)] p-2 hover:bg-[var(--accent)]/10"
+                          onClick={() => {
+                            setSelectedProductForTransfer(p);
+                          }}
+                          className="hover:bg-[var(--accent)]/10 flex cursor-pointer items-center justify-between rounded-lg bg-[var(--app-bg)] p-2"
                         >
                           <div>
                             <span className="font-mono font-bold">{p.part_number || p.sku}</span>
                             <p className="text-[11px] text-[var(--app-text)]">{p.name}</p>
                           </div>
-                          <span className="text-[10px] text-emerald-600 font-bold">
+                          <span className="text-[10px] font-bold text-emerald-600">
                             متوفر: {p.total_stock ?? p.stock ?? 0}
                           </span>
                         </div>
@@ -430,7 +503,9 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                       <p className="text-[11px] font-semibold">{selectedProductForTransfer.name}</p>
                     </div>
                     <button
-                      onClick={() => setSelectedProductForTransfer(null)}
+                      onClick={() => {
+                        setSelectedProductForTransfer(null);
+                      }}
                       className="text-xs font-bold text-rose-500 hover:underline"
                     >
                       تغيير
@@ -441,26 +516,36 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">الفرع المستهدف:</label>
+                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                    الفرع المستهدف:
+                  </label>
                   <select
                     value={targetBranchId}
-                    onChange={(e) => setTargetBranchId(e.target.value)}
+                    onChange={e => {
+                      setTargetBranchId(e.target.value);
+                    }}
                     className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2 text-xs outline-none"
                   >
                     <option value="">-- اختر الفرع --</option>
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
+                    {branches.map(b => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">الكمية المطلوبة:</label>
+                  <label className="mb-1 block font-semibold text-[var(--app-text-secondary)]">
+                    الكمية المطلوبة:
+                  </label>
                   <input
                     type="number"
                     min={1}
                     value={transferQty}
-                    onChange={(e) => setTransferQty(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={e => {
+                      setTransferQty(Math.max(1, parseInt(e.target.value) || 1));
+                    }}
                     className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2 text-xs outline-none"
                   />
                 </div>

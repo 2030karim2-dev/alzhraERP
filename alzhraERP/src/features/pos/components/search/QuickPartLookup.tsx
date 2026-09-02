@@ -29,13 +29,16 @@ const QuickPartLookup: React.FC<QuickPartLookupProps> = ({ onSearch, className }
       <div className="flex gap-1.5">
         {types.map(t => (
           <button
-            key={t.key} type="button"
-            onClick={() => setSearchType(t.key)}
+            key={t.key}
+            type="button"
+            onClick={() => {
+              setSearchType(t.key);
+            }}
             className={cn(
-              'flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all',
+              'flex items-center gap-1 rounded-lg px-3 py-1.5 text-[10px] font-bold transition-all',
               searchType === t.key
                 ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)]',
+                : 'bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)]'
             )}
           >
             {t.icon} {t.label}
@@ -46,8 +49,12 @@ const QuickPartLookup: React.FC<QuickPartLookupProps> = ({ onSearch, className }
       <div className="flex gap-2">
         <Input
           placeholder={searchType === 'barcode' ? 'امسح الباركود...' : 'أدخل رقم القطعة...'}
-          value={query} onChange={e => setQuery(e.target.value)}
-          icon={<Search size={14} />} className="flex-1"
+          value={query}
+          onChange={e => {
+            setQuery(e.target.value);
+          }}
+          icon={<Search size={14} />}
+          className="flex-1"
           autoFocus
         />
         <Button type="submit" variant="primary" size="md">
