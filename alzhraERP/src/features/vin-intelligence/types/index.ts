@@ -48,9 +48,11 @@ export interface MatchingInventoryProduct {
   name_ar: string;
   brand: string | null;
   sale_price: number;
+  quantity?: number | undefined;
   status: string;
   compatibility_status: CompatibilityStatus;
   match_source: string;
+  link_id?: string | undefined;
 }
 
 export interface PartAlternative {
@@ -77,16 +79,25 @@ export interface CompatibleVehicle {
 export interface ExtractedPart {
   partNumber: string;
   manufacturer?: string;
-  description?: string;        // الاسم بالعربية
-  descriptionEn?: string;      // Name in English
-  category?: string;           // الفئة بالعربية
-  categoryEn?: string;         // Category in English
+  description?: string; // الاسم بالعربية
+  descriptionEn?: string; // Name in English
+  category?: string; // الفئة بالعربية
+  categoryEn?: string; // Category in English
   oemNumbers?: string[];
   alternatives?: PartAlternative[];
   compatibleVehicles?: CompatibleVehicle[];
-  source: 'ai' | 'manual' | 'fapi' | 'megazip' | 'partsouq' | 'spareto' | 'autodoc' | 'amayama' | 'catalog';
+  source:
+    | 'ai'
+    | 'manual'
+    | 'fapi'
+    | 'megazip'
+    | 'partsouq'
+    | 'spareto'
+    | 'autodoc'
+    | 'amayama'
+    | 'catalog';
   confidence?: 'high' | 'medium' | 'low';
-  confidenceScore?: number;    // e.g. 95 (percentage)
+  confidenceScore?: number; // e.g. 95 (percentage)
   sizeSpec?: string;
   salePrice?: number;
   purchasePrice?: number;
@@ -135,4 +146,16 @@ export interface VehicleProductLink {
   fitment_status: CompatibilityStatus;
   source: 'manual' | 'vin_extract';
   created_by?: string | null;
+  product?: {
+    id: string;
+    name?: string | null;
+    name_ar?: string | null;
+    sku?: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+    sale_price?: number | null;
+    cost_price?: number | null;
+    quantity?: number | null;
+    status?: string | null;
+  } | null;
 }

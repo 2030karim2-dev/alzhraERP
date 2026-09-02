@@ -43,9 +43,11 @@ interface SpecBoxProps {
 }
 
 const SpecBox: React.FC<SpecBoxProps> = ({ label, value, valueClass = '' }) => (
-  <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+  <div className="rounded-xl border border-slate-200/80 bg-slate-50 p-2.5 dark:border-slate-700/60 dark:bg-slate-800/60">
     <span className="block text-[10px] font-bold text-slate-400">{label}</span>
-    <span className={`block text-xs font-bold text-slate-800 dark:text-slate-100 mt-0.5 ${valueClass}`}>
+    <span
+      className={`mt-0.5 block text-xs font-bold text-slate-800 dark:text-slate-100 ${valueClass}`}
+    >
       {value}
     </span>
   </div>
@@ -62,12 +64,20 @@ const SpecsGrid: React.FC<SpecsGridProps> = ({ vehicle, names, years }) => {
   const engine = formatEngineSpec(vehicle) || '—';
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
       <SpecBox label="الشركة الصانعة" value={names.makeAr || vehicle.make} />
       <SpecBox label="الموديل / الطراز" value={names.modelAr || (vehicle.model ?? '') || '—'} />
       <SpecBox label="سنة الصنع" value={years || '—'} />
-      <SpecBox label="المواصفات / السوق" value={market} valueClass="text-blue-600 dark:text-blue-400" />
-      <SpecBox label="المحرك والسعة" value={engine} valueClass="text-emerald-600 dark:text-emerald-400" />
+      <SpecBox
+        label="المواصفات / السوق"
+        value={market}
+        valueClass="text-blue-600 dark:text-blue-400"
+      />
+      <SpecBox
+        label="المحرك والسعة"
+        value={engine}
+        valueClass="text-emerald-600 dark:text-emerald-400"
+      />
       <SpecBox label="ناقل الحركة" value={transmissionLabel(vehicle)} />
       <SpecBox label="نظام الدفع" value={driveTypeLabel(vehicle)} />
       <SpecBox label="نوع الوقود" value={fuelTypeLabel(vehicle)} />
@@ -95,15 +105,15 @@ const TitleBlock: React.FC<TitleBlockProps> = ({
   selected,
 }) => (
   <div className="flex items-center gap-3">
-    <div className="p-3 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+    <div className="rounded-2xl border border-blue-500/20 bg-blue-600/10 p-3 text-blue-600 dark:text-blue-400">
       <Car size={24} />
     </div>
     <div>
-      <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">
+      <h3 className="text-base font-bold text-slate-900 dark:text-white md:text-lg">
         {names.makeAr} {names.modelAr} {years ? `(${years})` : ''}
       </h3>
-      <div className="flex items-center gap-2 mt-0.5">
-        <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+      <div className="mt-0.5 flex items-center gap-2">
+        <span className="rounded-lg border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
           {vin}
         </span>
         <VinActions
@@ -126,20 +136,26 @@ interface VinActionsProps {
   selected: VinAnalysisRecord;
 }
 
-const VinActions: React.FC<VinActionsProps> = ({ copiedVin, vin, onCopyVin, onRequestDelete, selected }) => (
+const VinActions: React.FC<VinActionsProps> = ({
+  copiedVin,
+  vin,
+  onCopyVin,
+  onRequestDelete,
+  selected,
+}) => (
   <div className="flex items-center gap-2">
     <button
       type="button"
       onClick={() => {
         onCopyVin(vin);
       }}
-      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 font-bold flex items-center gap-1 transition-colors"
+      className="flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400"
       title="نسخ رقم الشاصي"
     >
       {copiedVin ? (
         <>
           <Check size={12} className="text-emerald-500" />
-          <span className="text-emerald-600 text-[11px]">تم النسخ</span>
+          <span className="text-[11px] text-emerald-600">تم النسخ</span>
         </>
       ) : (
         <>
@@ -153,7 +169,7 @@ const VinActions: React.FC<VinActionsProps> = ({ copiedVin, vin, onCopyVin, onRe
       onClick={() => {
         onRequestDelete(selected);
       }}
-      className="text-xs text-rose-500 hover:text-rose-700 font-bold flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/40"
+      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-bold text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40"
       title="حذف هذا الشاصي من السجل"
     >
       <Trash2 size={12} />
@@ -167,19 +183,30 @@ interface LinkedPartsBadgesProps {
 }
 
 const LinkedPartsBadges: React.FC<LinkedPartsBadgesProps> = ({ linkedParts }) => (
-  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+  <div className="space-y-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
       القطع المتوافقة المرتبطة في المخزون ({linkedParts.length}):
     </span>
     <div className="flex flex-wrap gap-1.5">
-      {linkedParts.map((l) => (
-        <span
-          key={l.id ?? l.product_id}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
-        >
-          {l.product_id.slice(0, 10)}
-        </span>
-      ))}
+      {linkedParts.map(l => {
+        const title =
+          l.product?.name_ar ||
+          l.product?.name ||
+          (l.product?.part_number ? `قطعة (${l.product.part_number})` : l.product_id.slice(0, 8));
+        return (
+          <span
+            key={l.id ?? l.product_id}
+            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            {title}
+            {l.product?.sku && (
+              <span className="font-mono text-[10px] text-emerald-600 opacity-80 dark:text-emerald-400">
+                ({l.product.sku})
+              </span>
+            )}
+          </span>
+        );
+      })}
     </div>
   </div>
 );
@@ -195,9 +222,9 @@ export const VehicleProfileCard: React.FC<VehicleProfileCardProps> = ({
   onOpenInExtract,
   linkedParts,
 }) => (
-  <div className="bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+  <div className="space-y-4 rounded-2xl border border-slate-200 bg-[var(--app-surface)] p-5 shadow-sm dark:border-slate-800">
     {/* Header Row */}
-    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 dark:border-slate-800">
       <TitleBlock
         names={names}
         years={years}
@@ -214,7 +241,7 @@ export const VehicleProfileCard: React.FC<VehicleProfileCardProps> = ({
           onClick={() => {
             onOpenInExtract(selected);
           }}
-          className="text-xs font-bold px-4 bg-gradient-to-l from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-md shadow-blue-500/20"
+          className="rounded-xl bg-gradient-to-l from-blue-600 to-indigo-600 px-4 text-xs font-bold shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
         >
           <Sparkles size={14} className="ml-1.5 text-amber-300" />
           إدارة في جدول القطع الذكي ⚡
@@ -229,4 +256,3 @@ export const VehicleProfileCard: React.FC<VehicleProfileCardProps> = ({
     {linkedParts.length > 0 && <LinkedPartsBadges linkedParts={linkedParts} />}
   </div>
 );
-

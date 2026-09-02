@@ -149,10 +149,43 @@ export const vinApi = {
   listVehicleProducts: async (vehicleId: string): Promise<VehicleProductLink[]> => {
     const { data, error } = await supabase
       .from('vehicle_products')
-      .select('*')
+      .select(
+        `
+        id,
+        company_id,
+        vehicle_id,
+        product_id,
+        fitment_status,
+        source,
+        created_at,
+        created_by,
+        product:products (
+          id,
+          name,
+          name_ar,
+          sku,
+          part_number,
+          brand,
+          sale_price,
+          cost_price,
+          quantity,
+          status
+        )
+      `
+      )
       .eq('vehicle_id', vehicleId);
-    if (error) throw error;
-    return (data ?? []) as VehicleProductLink[];
+
+    if (error) {
+      logger.warn('VinAPI', 'listVehicleProducts with join failed, retrying flat select', error);
+      const { data: flatData, error: flatErr } = await supabase
+        .from('vehicle_products')
+        .select('*')
+        .eq('vehicle_id', vehicleId);
+      if (flatErr) throw flatErr;
+      return (flatData ?? []) as unknown as VehicleProductLink[];
+    }
+
+    return (data ?? []) as unknown as VehicleProductLink[];
   },
 
   linkVehicleProduct: async (
