@@ -118,6 +118,7 @@ const VINPage: React.FC = () => {
               history={vin.savedVins}
               onDecode={handleDecode}
               onSetManualVehicle={vin.setManualVehicle}
+              onUpdateVehicle={vin.updateVehicle}
               onSave={() => {
                 void handleSave();
               }}

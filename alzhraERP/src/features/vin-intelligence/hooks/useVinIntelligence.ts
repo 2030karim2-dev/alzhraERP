@@ -19,6 +19,7 @@ export interface UseVinIntelligenceResult {
   decodeError: string | null;
   decodeVin: (vin: string, mode?: VinDecodeMode) => Promise<VinDecodeResult>;
   setManualVehicle: (manualVehicle: VehicleInfo, vinNumber?: string) => Promise<VinDecodeResult>;
+  updateVehicle: (updatedVehicle: VehicleInfo) => void;
   saveManualVehicle: (
     manualVehicle: VehicleInfo,
     vinNumber?: string
@@ -261,6 +262,24 @@ export function useVinIntelligence(companyId?: string, userId?: string): UseVinI
     setDecodeError(null);
   }, []);
 
+  const updateVehicle = useCallback((updatedVehicle: VehicleInfo) => {
+    setResult(prev => {
+      if (!prev) {
+        return {
+          vin: `MANUAL-${Date.now().toString(36).toUpperCase()}`,
+          found: true,
+          source: 'manual',
+          confidence: null,
+          vehicle: updatedVehicle,
+        };
+      }
+      return {
+        ...prev,
+        vehicle: updatedVehicle,
+      };
+    });
+  }, []);
+
   /** Backward-compatible wrapper: returns total count (added + existing) so the
    * legacy `Promise<number>` shape keeps working in PartsExtractTab / VinsTab.
    * Toast feedback still surfaces the breakdown accurately. */
@@ -277,6 +296,7 @@ export function useVinIntelligence(companyId?: string, userId?: string): UseVinI
     decodeError,
     decodeVin,
     setManualVehicle,
+    updateVehicle,
     saveManualVehicle,
     reset,
     matchingProducts: matchingQuery.data ?? [],

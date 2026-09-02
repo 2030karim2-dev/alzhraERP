@@ -25,6 +25,7 @@ interface VinDecodeTabProps {
   history: VinAnalysisRecord[];
   onDecode: (vin: string, mode: VinDecodeMode) => Promise<void>;
   onSetManualVehicle?: (vehicle: VehicleInfo, vinNumber?: string) => Promise<VinDecodeResult>;
+  onUpdateVehicle?: (vehicle: VehicleInfo) => void;
   onSave: () => void;
   onNavigateToExtract?: () => void;
   onNavigateToInventory?: () => void;
@@ -44,6 +45,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   history,
   onDecode,
   onSetManualVehicle,
+  onUpdateVehicle,
   onSave,
   onNavigateToExtract,
   onNavigateToInventory,
@@ -268,6 +270,7 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
             vehicle={result.vehicle}
             source={result.source}
             confidence={result.confidence}
+            onUpdateVehicle={onUpdateVehicle}
           />
 
           {/* Guided Next-Step Actions */}
