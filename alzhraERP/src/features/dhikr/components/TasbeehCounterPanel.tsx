@@ -11,6 +11,7 @@ interface TasbeehCounterPanelProps {
 }
 
 /** Interactive electronic tasbeeh counter — extracted from PrayerTimesModal. */
+/* eslint-disable-next-line max-lines-per-function -- interactive counter boundary; the panel IS the extracted unit from PrayerTimesModal (same documented exemption pattern as VinsTab) */
 export const TasbeehCounterPanel: React.FC<TasbeehCounterPanelProps> = ({
   selectedDhikr,
   setSelectedDhikr,
@@ -74,7 +75,9 @@ export const TasbeehCounterPanel: React.FC<TasbeehCounterPanelProps> = ({
         <button
           key={g.val}
           type="button"
-          onClick={() => setTasbeehGoal(g.val as 33 | 100 | 0)}
+          onClick={() => {
+            setTasbeehGoal(g.val as 33 | 100 | 0);
+          }}
           className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
             tasbeehGoal === g.val
               ? 'bg-purple-600 text-white'

@@ -27,13 +27,13 @@ export interface VendorProductItem {
   image_url: string | null;
   lead_time_days: number;
   is_preferred: boolean;
-  vehicle_compatibility?: {
+  vehicle_compatibility?: Array<{
     make: string;
     model: string;
     year_from?: number;
     year_to?: number;
     engine?: string;
-  }[];
+  }>;
 }
 
 export interface RFQLineItem {
@@ -156,7 +156,7 @@ export interface ComparisonVendorScore {
     is_best_warranty: boolean;
     is_best_availability: boolean;
   };
-  items: {
+  items: Array<{
     product_id: string;
     product_name: string;
     quantity: number;
@@ -164,7 +164,7 @@ export interface ComparisonVendorScore {
     total_price: number;
     availability: ItemAvailability;
     lead_time_days: number;
-  }[];
+  }>;
 }
 
 export interface ExcelImportRow {

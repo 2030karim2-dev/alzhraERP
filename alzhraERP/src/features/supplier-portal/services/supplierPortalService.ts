@@ -141,19 +141,28 @@ interface RawQuotationRow {
  * so we declare the exact argument/return shapes here (mirrors the
  * chatService pattern) instead of scattering `(supabase as any)` casts.
  */
-type RpcGetContextArgs = { p_token: string };
-type RpcSubmitQuotationArgs = { p_token: string; p_payload: SubmitPortalQuotationPayload };
-type RpcRegenerateTokenArgs = { p_party_id: string };
+interface RpcGetContextArgs {
+  p_token: string;
+}
+interface RpcSubmitQuotationArgs {
+  p_token: string;
+  p_payload: SubmitPortalQuotationPayload;
+}
+interface RpcRegenerateTokenArgs {
+  p_party_id: string;
+}
+
+type PortalRpcArgs = RpcGetContextArgs | RpcSubmitQuotationArgs | RpcRegenerateTokenArgs;
 
 /** Call a named portal RPC with typed args; returns the raw result payload. */
-async function callPortalRpc<Args, Result>(fn: string, args: Args): Promise<Result> {
+async function callPortalRpc<Result>(fn: string, args: PortalRpcArgs): Promise<Result> {
   const { data, error } = await (
     supabase.rpc as unknown as (
       name: string,
-      args: Args
+      args: PortalRpcArgs
     ) => Promise<{ data: Result | null; error: { message: string } | null }>
   )(fn, args);
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return data as Result;
 }
 
@@ -245,7 +254,7 @@ export const supplierPortalService = {
    */
   getVendorRFQs: async (companyId: string, _supplierId?: string): Promise<VendorRFQ[]> => {
     try {
-      let query = supabase
+      const query = supabase
         .from('prc_rfqs')
         .select(
           `
@@ -488,8 +497,8 @@ export const supplierPortalService = {
         } as never
       );
 
-      if (error) throw error;
-      return data as unknown as { success: boolean; revision_number: number; total_amount: number };
+      if (error) throw new Error(error.message);
+      return data;
     } catch (err) {
       logger.error('supplierPortalService.submitQuotationRevision', 'RPC failed', err);
       throw parseError(err);
@@ -524,13 +533,8 @@ export const supplierPortalService = {
         } as never
       );
 
-      if (error) throw error;
-      return data as unknown as {
-        success: boolean;
-        po_id: string;
-        po_number: string;
-        quotation_id: string;
-      };
+      if (error) throw new Error(error.message);
+      return data;
     } catch (err) {
       logger.error('supplierPortalService.convertQuotationToPO', 'PO conversion failed', err);
       throw parseError(err);
@@ -633,10 +637,10 @@ export const supplierPortalService = {
         quotation_id: r.quotation_id,
         revision_number: r.revision_number,
         status: r.status,
-        subtotal: Number(r.subtotal) || 0,
-        discount_amount: Number(r.discount_amount) || 0,
-        tax_amount: Number(r.tax_amount) || 0,
-        total_amount: Number(r.total_amount) || 0,
+        subtotal: r.subtotal,
+        discount_amount: r.discount_amount,
+        tax_amount: r.tax_amount,
+        total_amount: r.total_amount,
         currency: r.currency || 'SAR',
         delivery_lead_time_days: Number(r.delivery_lead_time_days) || 0,
         warranty_days: Number(r.warranty_days) || 0,
@@ -667,10 +671,9 @@ export const supplierPortalService = {
 
   getPublicPortalContext: async (token: string): Promise<PublicPortalContext> => {
     try {
-      return await callPortalRpc<RpcGetContextArgs, PublicPortalContext>(
-        'get_supplier_portal_context',
-        { p_token: token }
-      );
+      return await callPortalRpc<PublicPortalContext>('get_supplier_portal_context', {
+        p_token: token,
+      });
     } catch (err) {
       logger.error(
         'supplierPortalService.getPublicPortalContext',
@@ -686,10 +689,10 @@ export const supplierPortalService = {
     payload: SubmitPortalQuotationPayload
   ): Promise<SubmitPortalQuotationResult> => {
     try {
-      return await callPortalRpc<RpcSubmitQuotationArgs, SubmitPortalQuotationResult>(
-        'submit_supplier_portal_quotation',
-        { p_token: token, p_payload: payload }
-      );
+      return await callPortalRpc<SubmitPortalQuotationResult>('submit_supplier_portal_quotation', {
+        p_token: token,
+        p_payload: payload,
+      });
     } catch (err) {
       logger.error(
         'supplierPortalService.submitPublicQuotation',
@@ -702,11 +705,10 @@ export const supplierPortalService = {
 
   regeneratePortalToken: async (partyId: string): Promise<string> => {
     try {
-      const newToken = await callPortalRpc<RpcRegenerateTokenArgs, unknown>(
-        'regenerate_supplier_portal_token',
-        { p_party_id: partyId }
-      );
-      return String(newToken);
+      const newToken = await callPortalRpc<string>('regenerate_supplier_portal_token', {
+        p_party_id: partyId,
+      });
+      return newToken;
     } catch (err) {
       logger.error(
         'supplierPortalService.regeneratePortalToken',

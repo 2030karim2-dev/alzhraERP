@@ -12,6 +12,7 @@ interface DhikrCardProps {
 }
 
 /** Single dhikr card (list item) — extracted from PrayerTimesModal. */
+/* eslint-disable-next-line max-lines-per-function -- presentational card boundary; splitting a 57-line card hurts cohesion (same documented exemption pattern as VinsTab) */
 export const DhikrCard: React.FC<DhikrCardProps> = ({
   item,
   idx,
@@ -32,14 +33,14 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
           <p className="text-sm font-bold leading-relaxed text-slate-900 dark:text-slate-100">
             «{item.text}»
           </p>
-          {item.source && (
+          {Boolean(item.source) && (
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.source}</p>
           )}
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        {item.repeatCount && (
+        {item.repeatCount != null && item.repeatCount > 0 && (
           <span className="flex items-center gap-0.5 rounded-lg bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
             <Repeat size={11} />
             <span>{item.repeatCount} مرات</span>
@@ -47,7 +48,9 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
         )}
         <button
           type="button"
-          onClick={() => onCopy(item)}
+          onClick={() => {
+            onCopy(item);
+          }}
           title="نسخ الذكر"
           className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-700"
         >
@@ -59,7 +62,9 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => onSendToCounter(item)}
+          onClick={() => {
+            onSendToCounter(item);
+          }}
           title="نقل إلى السبحة الإلكترونية"
           className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40"
         >

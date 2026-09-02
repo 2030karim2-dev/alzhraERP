@@ -102,6 +102,7 @@ export const productService = {
   /**
    * Get all products for a company
    */
+  /* eslint-disable-next-line max-params -- legacy adapter signature mirroring the inventoryService facade; changing it would ripple through every caller */
   getProducts: async (
     companyId: string,
     page = 1,
@@ -160,7 +161,7 @@ export const productService = {
           uoms: (prod.uoms || []).map(u => ({
             id: u.id,
             uom_name: u.uom_name,
-            conversion_factor: Number(u.conversion_factor),
+            conversion_factor: u.conversion_factor,
           })),
           image_url: prod.image_url || null,
           alternative_numbers: prod.alternative_numbers || null,
