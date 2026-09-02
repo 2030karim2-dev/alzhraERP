@@ -275,7 +275,8 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 )}
               >
-                تفاصيل البنود والمنتجات
+                <span className="hidden sm:inline">تفاصيل البنود والمنتجات</span>
+                <span className="sm:hidden">بنود الفاتورة</span>
               </button>
               <button
                 type="button"
@@ -352,7 +353,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
                   </div>
 
                   {/* Amount Summary */}
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-2.5 dark:border-blue-900/60 dark:bg-blue-950/30">
+                  <div className="col-span-2 rounded-xl border border-blue-100 bg-blue-50/60 p-2.5 dark:border-blue-900/60 dark:bg-blue-950/30 sm:col-span-1">
                     <div className="mb-1 flex items-center gap-1.5 text-blue-500">
                       <DollarSign size={13} />
                       <span className="text-[10px] font-bold uppercase">المبلغ الإجمالي</span>

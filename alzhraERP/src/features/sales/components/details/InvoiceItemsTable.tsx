@@ -27,7 +27,7 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
   return (
     <div className="mt-3 space-y-2">
       <div className="custom-scrollbar overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-        <table className="w-full border-collapse text-right text-xs">
+        <table className="w-full min-w-[560px] border-collapse text-right text-xs sm:min-w-full">
           <thead className="border-b border-slate-200 bg-slate-100 font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200">
             <tr>
               <th className="w-10 px-3 py-2 text-center">#</th>
@@ -118,7 +118,7 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
 
       {/* Compact Financial Summary footer */}
       <div className="flex justify-end pt-2">
-        <div className="w-72 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/80">
+        <div className="w-full space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/80 sm:w-72">
           <div className="flex justify-between text-slate-600 dark:text-slate-300">
             <span>مجموع البنود:</span>
             <span dir="ltr" className="font-mono font-bold">

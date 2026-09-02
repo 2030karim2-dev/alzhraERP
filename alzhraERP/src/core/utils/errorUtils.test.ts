@@ -18,6 +18,21 @@ describe('parseError', () => {
   it('should handle unique violation (23505)', () => {
     const result = parseError({ code: '23505', message: 'duplicate key' });
     expect(result.message).toBe('هذا السجل (رقم SKU أو الاسم) موجود مسبقاً في النظام.');
+
+    const barcodeResult = parseError({
+      code: '23505',
+      message: 'duplicate key violates ux_products_company_barcode',
+    });
+    expect(barcodeResult.message).toBe('الباركود المدخل مسجل مسبقاً لصنف آخر في نفس المنشأة.');
+
+    const phoneResult = parseError({
+      code: '23505',
+      message: 'duplicate key violates phone constraint',
+    });
+    expect(phoneResult.message).toBe('رقم الهاتف مسجل مسبقاً لجهة تعامل أخرى (عميل/مورد).');
+
+    const taxResult = parseError({ code: '23505', message: 'duplicate key violates tax_number' });
+    expect(taxResult.message).toBe('الرقم الضريبي مسجل مسبقاً في النظام.');
   });
 
   it('should handle permission error (42501)', () => {

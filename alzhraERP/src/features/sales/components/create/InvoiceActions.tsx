@@ -11,14 +11,14 @@ interface Props {
 
 const InvoiceActions: React.FC<Props> = ({ onSave, onPrint, isSaving }) => {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 p-2">
+    <div className="flex w-full flex-wrap items-center justify-end gap-1.5 p-1.5 sm:w-auto sm:gap-2 sm:p-2">
       <Button
         onClick={() => {
           onSave('draft');
         }}
         isLoading={isSaving}
         variant="secondary"
-        className="rounded-xl"
+        className="flex-1 rounded-xl text-xs sm:flex-none sm:text-sm"
         leftIcon={<FileDown size={14} />}
       >
         حفظ كمسودة
@@ -27,7 +27,7 @@ const InvoiceActions: React.FC<Props> = ({ onSave, onPrint, isSaving }) => {
       <Button
         onClick={onPrint}
         variant="outline"
-        className="rounded-xl border-gray-200 text-gray-500 hover:text-indigo-600"
+        className="flex-1 rounded-xl border-gray-200 text-xs text-gray-500 hover:text-indigo-600 sm:flex-none sm:text-sm"
         leftIcon={<Printer size={14} />}
       >
         طباعة
@@ -39,7 +39,7 @@ const InvoiceActions: React.FC<Props> = ({ onSave, onPrint, isSaving }) => {
         }}
         isLoading={isSaving}
         variant="primary"
-        className="min-w-[160px] rounded-xl"
+        className="w-full rounded-xl text-xs sm:w-auto sm:min-w-[160px] sm:text-sm"
         leftIcon={<Save size={14} />}
       >
         حفظ وترحيل

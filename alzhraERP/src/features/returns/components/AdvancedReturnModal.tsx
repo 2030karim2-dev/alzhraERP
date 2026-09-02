@@ -166,8 +166,8 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
       description="نافذة مرتجعات متقدمة"
       size="resizable"
       footer={
-        <div className="flex w-full items-center justify-between gap-2 max-md:gap-2">
-          <div className="text-xs font-medium text-slate-500">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+          <div className="hidden text-xs font-medium text-slate-500 sm:block">
             استخدم مفاتيح{' '}
             <span className="rounded bg-slate-200 px-1.5 py-0.5 font-mono dark:bg-slate-700">
               ↑↓
@@ -178,18 +178,18 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             </span>{' '}
             للتنقل.
           </div>
-          <div className="flex items-center gap-2 max-md:gap-2">
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 sm:px-4 sm:py-2 sm:text-sm"
             >
               إلغاء الأمر
             </button>
             <button
               type="submit"
               form="advanced-return-form"
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 dark:shadow-indigo-900/20 max-md:gap-2"
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 dark:shadow-indigo-900/20 sm:px-6 sm:py-2 sm:text-sm"
             >
               حفظ المرتجع
             </button>

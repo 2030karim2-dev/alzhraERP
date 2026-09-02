@@ -42,7 +42,7 @@ const POSPage: React.FC = () => {
   const { items, summary, selectedCustomer, currency, resetCart, addProductToCart } =
     useSalesStore();
   const { suspendedOrders, suspendCurrentOrder, resumeOrder, removeSuspended } = usePOSStore();
-  const { processPayment } = usePOSCheckout();
+  const { processPayment, isProcessing } = usePOSCheckout();
 
   // مفتاح منع التكرار لكل نية دفع — يُعاد توليده بعد نجاح الدفع فقط.
   const checkoutIdempotencyKeyRef = useRef(createIdempotencyKey('pos'));
@@ -101,6 +101,7 @@ const POSPage: React.FC = () => {
   );
 
   const handlePayConfirm = useCallback(() => {
+    if (isProcessing) return;
     processPayment(
       {
         partyId: selectedCustomer?.id || null,
@@ -125,7 +126,7 @@ const POSPage: React.FC = () => {
         },
       }
     );
-  }, [processPayment, selectedCustomer, validCartItems, resetCart]);
+  }, [isProcessing, processPayment, selectedCustomer, validCartItems, resetCart]);
 
   const handleSuspend = useCallback(() => {
     if (validCartItems.length === 0) return;
@@ -175,7 +176,11 @@ const POSPage: React.FC = () => {
             </div>
           )}
           <div className="min-h-0 flex-1 overflow-hidden">
-            <POSCart onPay={handlePayConfirm} onSuspend={handleSuspend} />
+            <POSCart
+              onPay={handlePayConfirm}
+              onSuspend={handleSuspend}
+              isProcessing={isProcessing}
+            />
           </div>
 
           {!isQuickMode && (

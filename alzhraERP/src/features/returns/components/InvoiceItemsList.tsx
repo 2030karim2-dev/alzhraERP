@@ -176,141 +176,146 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
         </div>
       )}
 
-      {/* Header */}
-      <div className="grid grid-cols-12 items-center gap-2 bg-gray-100 p-3 text-xs font-bold text-gray-600 dark:bg-slate-800 dark:text-slate-300 max-md:gap-2 max-md:p-3">
-        <div className="col-span-1 flex items-center justify-center text-center">
-          {onSelectAll ? (
-            <input
-              type="checkbox"
-              checked={isAllSelected}
-              onChange={e => {
-                onSelectAll(e.target.checked);
-              }}
-              title="تحديد وإرجاع كامل المنتجات بالفاتورة"
-              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-          ) : (
-            '#'
-          )}
-        </div>
-        <div className="col-span-4">المنتج</div>
-        <div className="col-span-2 text-center">الكمية</div>
-        <div className="col-span-2 text-center">السعر</div>
-        <div className="col-span-3 text-center">الإرجاع</div>
-      </div>
-
-      {/* Items List */}
-      <div className="max-h-80 overflow-y-auto">
-        {filteredItems.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 max-md:p-4">
-            <Search size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">لا توجد نتائج للبحث</p>
+      {/* Scrollable Items Table Container */}
+      <div className="custom-scrollbar overflow-x-auto">
+        <div className="min-w-[480px] sm:min-w-0">
+          {/* Header */}
+          <div className="grid grid-cols-12 items-center gap-2 bg-gray-100 p-2.5 text-xs font-bold text-gray-600 dark:bg-slate-800 dark:text-slate-300 sm:p-3">
+            <div className="col-span-1 flex items-center justify-center text-center">
+              {onSelectAll ? (
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={e => {
+                    onSelectAll(e.target.checked);
+                  }}
+                  title="تحديد وإرجاع كامل المنتجات بالفاتورة"
+                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+              ) : (
+                '#'
+              )}
+            </div>
+            <div className="col-span-4">المنتج</div>
+            <div className="col-span-2 text-center">الكمية</div>
+            <div className="col-span-2 text-center">السعر</div>
+            <div className="col-span-3 text-center">الإرجاع</div>
           </div>
-        ) : (
-          filteredItems.map((item, index) => {
-            const isSelected = selectedItems[item.id] || false;
-            const returnQty = returnQuantities[item.id] || 0;
-            const maxQty = item.quantity;
 
-            return (
-              <div
-                key={`${item.id}-${item.product_id}-${index}`}
-                className={`grid grid-cols-12 items-center gap-2 border-b border-gray-100 p-3 transition-colors dark:border-slate-700 max-md:gap-2 max-md:p-3 ${
-                  isSelected
-                    ? 'bg-blue-50 dark:bg-blue-900/20'
-                    : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
-                } ${focusedRow === index ? 'ring-2 ring-inset ring-indigo-500/50' : ''}`}
-              >
-                {/* Checkbox */}
-                <div className="col-span-1 text-center">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={e => {
-                      onItemSelect(item.id, e.target.checked);
-                    }}
-                    ref={el => {
-                      if (itemRefs.current[index]) itemRefs.current[index][0] = el;
-                    }}
-                    onFocus={() => {
-                      setFocusedRow(index);
-                      setFocusedCol(0);
-                    }}
-                    onKeyDown={e => {
-                      handleKeyDown(e, index, 0, item, maxQty);
-                    }}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 outline-none transition-shadow focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
-                    tabIndex={0}
-                  />
-                </div>
-
-                {/* Product Name */}
-                <div className="col-span-4">
-                  <p
-                    className="truncate text-sm font-bold text-gray-900 dark:text-white"
-                    title={item.description}
-                  >
-                    {item.description || 'منتج بدون اسم'}
-                  </p>
-                  <p className="text-xs text-gray-400">كود: {item.product_id || '-'}</p>
-                </div>
-
-                {/* Original Quantity */}
-                <div className="col-span-2 text-center">
-                  <span className="inline-flex items-center rounded border border-slate-200 bg-gray-100 px-2 py-1 text-xs font-bold text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                    {item.quantity}
-                  </span>
-                </div>
-
-                {/* Unit Price */}
-                <div className="col-span-2 text-center">
-                  <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {formatCurrency(item.unit_price)}
-                  </span>
-                </div>
-
-                {/* Return Quantity */}
-                <div className="col-span-3">
-                  <div className="flex items-center gap-1 max-md:gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      max={maxQty}
-                      value={returnQty === 0 ? '' : returnQty}
-                      onChange={e => {
-                        const rawVal = e.target.value;
-                        const val = Math.min(Math.max(0, parseInt(rawVal) || 0), maxQty);
-
-                        // إصلاح فقدان الكمية: عند كتابة كمية لصنف غير محدد بعد،
-                        // نضيف الصنف مباشرة بالكمية المدخلة بدلاً من الكمية الافتراضية 1
-                        if (val > 0 && !isSelected) {
-                          onItemSelect(item.id, true, val);
-                        } else if (val === 0 && isSelected) {
-                          onItemSelect(item.id, false);
-                        } else {
-                          onQuantityChange(item.id, val, maxQty);
-                        }
-                      }}
-                      ref={el => {
-                        if (itemRefs.current[index]) itemRefs.current[index][1] = el;
-                      }}
-                      onFocus={() => {
-                        setFocusedRow(index);
-                        setFocusedCol(1);
-                      }}
-                      onKeyDown={e => {
-                        handleKeyDown(e, index, 1, item, maxQty);
-                      }}
-                      className="w-16 rounded border border-gray-300 bg-[var(--app-surface)] p-1 text-center text-sm font-bold text-slate-900 placeholder-transparent outline-none transition-all hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:text-slate-100 max-md:p-1"
-                      tabIndex={0}
-                    />
-                    <span className="font-mono text-xs text-gray-400">/ {maxQty}</span>
-                  </div>
-                </div>
+          {/* Items List */}
+          <div className="max-h-80 overflow-y-auto">
+            {filteredItems.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 max-md:p-4">
+                <Search size={32} className="mx-auto mb-2 opacity-50" />
+                <p className="text-sm">لا توجد نتائج للبحث</p>
               </div>
-            );
-          })
-        )}
+            ) : (
+              filteredItems.map((item, index) => {
+                const isSelected = selectedItems[item.id] || false;
+                const returnQty = returnQuantities[item.id] || 0;
+                const maxQty = item.quantity;
+
+                return (
+                  <div
+                    key={`${item.id}-${item.product_id}-${index}`}
+                    className={`grid grid-cols-12 items-center gap-2 border-b border-gray-100 p-2.5 transition-colors dark:border-slate-700 sm:p-3 ${
+                      isSelected
+                        ? 'bg-blue-50 dark:bg-blue-900/20'
+                        : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                    } ${focusedRow === index ? 'ring-2 ring-inset ring-indigo-500/50' : ''}`}
+                  >
+                    {/* Checkbox */}
+                    <div className="col-span-1 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={e => {
+                          onItemSelect(item.id, e.target.checked);
+                        }}
+                        ref={el => {
+                          if (itemRefs.current[index]) itemRefs.current[index][0] = el;
+                        }}
+                        onFocus={() => {
+                          setFocusedRow(index);
+                          setFocusedCol(0);
+                        }}
+                        onKeyDown={e => {
+                          handleKeyDown(e, index, 0, item, maxQty);
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 outline-none transition-shadow focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+                        tabIndex={0}
+                      />
+                    </div>
+
+                    {/* Product Name */}
+                    <div className="col-span-4">
+                      <p
+                        className="truncate text-xs font-bold text-gray-900 dark:text-white sm:text-sm"
+                        title={item.description}
+                      >
+                        {item.description || 'منتج بدون اسم'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 sm:text-xs">
+                        كود: {item.product_id || '-'}
+                      </p>
+                    </div>
+
+                    {/* Original Quantity */}
+                    <div className="col-span-2 text-center">
+                      <span className="inline-flex items-center rounded border border-slate-200 bg-gray-100 px-2 py-0.5 text-xs font-bold text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        {item.quantity}
+                      </span>
+                    </div>
+
+                    {/* Unit Price */}
+                    <div className="col-span-2 text-center">
+                      <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {formatCurrency(item.unit_price)}
+                      </span>
+                    </div>
+
+                    {/* Return Quantity */}
+                    <div className="col-span-3">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          max={maxQty}
+                          value={returnQty === 0 ? '' : returnQty}
+                          onChange={e => {
+                            const rawVal = e.target.value;
+                            const val = Math.min(Math.max(0, parseInt(rawVal) || 0), maxQty);
+
+                            if (val > 0 && !isSelected) {
+                              onItemSelect(item.id, true, val);
+                            } else if (val === 0 && isSelected) {
+                              onItemSelect(item.id, false);
+                            } else {
+                              onQuantityChange(item.id, val, maxQty);
+                            }
+                          }}
+                          ref={el => {
+                            if (itemRefs.current[index]) itemRefs.current[index][1] = el;
+                          }}
+                          onFocus={() => {
+                            setFocusedRow(index);
+                            setFocusedCol(1);
+                          }}
+                          onKeyDown={e => {
+                            handleKeyDown(e, index, 1, item, maxQty);
+                          }}
+                          className="w-16 rounded border border-gray-300 bg-[var(--app-surface)] p-1 text-center text-sm font-bold text-slate-900 placeholder-transparent outline-none transition-all hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:text-slate-100"
+                          tabIndex={0}
+                        />
+                        <span className="font-mono text-xs text-gray-400">/ {maxQty}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Summary */}

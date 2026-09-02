@@ -243,71 +243,72 @@ const QuotationDetailsModal: React.FC<Props> = ({
       description="تفاصيل عرض السعر"
       size="xl"
       footer={
-        <div className="no-print flex w-full items-center gap-2 max-md:gap-2">
+        <div className="no-print flex w-full flex-wrap items-center justify-between gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
+            className="rounded-lg px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800 sm:px-4 sm:py-2 sm:text-sm"
           >
             إغلاق
           </button>
-          <div className="flex-1"></div>
-          <button
-            onClick={() => {
-              if (quotation) {
-                const comp2 = (company || {}) as Record<string, unknown>;
-                exportQuotationToExcel({
-                  companyName: (comp2?.name_ar || comp2?.name || 'الشركة') as string,
-                  quotationNumber: quotation.quotation_number,
-                  issueDate: quotation.issue_date,
-                  validUntil: quotation.valid_until ?? '',
-                  customerName: quotation.party?.name || 'عميل نقدي',
-                  issuedBy: user?.full_name || user?.email || 'النظام',
-                  items: quotation.quotation_items.map((it: QuotationDetailItem) => ({
-                    name: it.product?.name_ar || it.description,
-                    quantity: it.quantity,
-                    unitPrice: it.unit_price,
-                    total: it.total,
-                  })),
-                  subtotal: quotation.total_amount,
-                  totalAmount: quotation.total_amount,
-                });
-              }
-            }}
-            className="flex items-center gap-2 rounded-lg border border-emerald-100 px-3 py-2 text-emerald-600 transition-colors hover:bg-emerald-50 dark:border-emerald-800/20 dark:text-emerald-400 dark:hover:bg-emerald-900/20 max-md:gap-2"
-          >
-            <FileText size={16} />
-            <span className="hidden sm:inline">إكسل</span>
-          </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 dark:border-slate-800 dark:text-gray-400 dark:hover:bg-slate-800 max-md:gap-2"
-          >
-            <Printer size={16} />
-            <span className="hidden sm:inline">طباعة</span>
-          </button>
-          <button
-            onClick={shareViaWhatsApp}
-            className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-600 transition-colors hover:bg-emerald-100 dark:border-emerald-800/20 dark:bg-emerald-900/20 dark:text-emerald-400 max-md:gap-2"
-          >
-            <Share2 size={16} />
-            <span className="hidden sm:inline">مشاركة واتساب</span>
-          </button>
-          {actions.map(
-            (
-              action: { label: string; icon: React.ReactNode; color: string; nextStatus: string },
-              idx: number
-            ) => (
-              <button
-                key={idx}
-                onClick={() => handleAction(action.nextStatus)}
-                disabled={actionLoading}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 max-md:gap-2 ${action.color}`}
-              >
-                {actionLoading ? <Loader2 size={14} className="animate-spin" /> : action.icon}
-                {action.label}
-              </button>
-            )
-          )}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => {
+                if (quotation) {
+                  const comp2 = (company || {}) as Record<string, unknown>;
+                  exportQuotationToExcel({
+                    companyName: (comp2?.name_ar || comp2?.name || 'الشركة') as string,
+                    quotationNumber: quotation.quotation_number,
+                    issueDate: quotation.issue_date,
+                    validUntil: quotation.valid_until ?? '',
+                    customerName: quotation.party?.name || 'عميل نقدي',
+                    issuedBy: user?.full_name || user?.email || 'النظام',
+                    items: quotation.quotation_items.map((it: QuotationDetailItem) => ({
+                      name: it.product?.name_ar || it.description,
+                      quantity: it.quantity,
+                      unitPrice: it.unit_price,
+                      total: it.total,
+                    })),
+                    subtotal: quotation.total_amount,
+                    totalAmount: quotation.total_amount,
+                  });
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-100 px-2.5 py-1.5 text-xs text-emerald-600 transition-colors hover:bg-emerald-50 dark:border-emerald-800/20 dark:text-emerald-400 dark:hover:bg-emerald-900/20 sm:px-3 sm:py-2"
+            >
+              <FileText size={14} />
+              <span>إكسل</span>
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-100 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:border-slate-800 dark:text-gray-400 dark:hover:bg-slate-800 sm:px-3 sm:py-2"
+            >
+              <Printer size={14} />
+              <span>طباعة</span>
+            </button>
+            <button
+              onClick={shareViaWhatsApp}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-600 transition-colors hover:bg-emerald-100 dark:border-emerald-800/20 dark:bg-emerald-900/20 dark:text-emerald-400 sm:px-3 sm:py-2"
+            >
+              <Share2 size={14} />
+              <span>واتساب</span>
+            </button>
+            {actions.map(
+              (
+                action: { label: string; icon: React.ReactNode; color: string; nextStatus: string },
+                idx: number
+              ) => (
+                <button
+                  key={idx}
+                  onClick={() => handleAction(action.nextStatus)}
+                  disabled={actionLoading}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 sm:px-4 sm:py-2 sm:text-sm ${action.color}`}
+                >
+                  {actionLoading ? <Loader2 size={14} className="animate-spin" /> : action.icon}
+                  {action.label}
+                </button>
+              )
+            )}
+          </div>
         </div>
       }
     >
@@ -434,54 +435,67 @@ const QuotationDetailsModal: React.FC<Props> = ({
                 بنود العرض ({quotation.quotation_items?.length || 0})
               </h3>
             </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-slate-800">
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">#</th>
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">
-                    الوصف
-                  </th>
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">
-                    الكمية
-                  </th>
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">
-                    سعر الوحدة
-                  </th>
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">
-                    خصم %
-                  </th>
-                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500">
-                    الإجمالي
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
-                {quotation.quotation_items?.map((item: QuotationDetailItem, idx: number) => (
-                  <tr
-                    key={item.id}
-                    className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
-                  >
-                    <td className="px-4 py-2.5 text-xs text-gray-400">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">
-                      {item.product?.name_ar || item.description}
-                      {item.product?.sku && (
-                        <span className="block font-mono text-xs text-gray-400">
-                          {item.product.sku}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5 text-center">{item.quantity}</td>
-                    <td className="px-4 py-2.5 text-center font-mono" dir="ltr">
-                      {formatCurrency(item.unit_price)}
-                    </td>
-                    <td className="px-4 py-2.5 text-center">{item.discount_percent || 0}%</td>
-                    <td className="px-4 py-2.5 text-center font-mono font-bold" dir="ltr">
-                      {formatCurrency(item.total)}
-                    </td>
+            <div className="custom-scrollbar overflow-x-auto">
+              <table className="w-full min-w-[500px] text-xs sm:min-w-full sm:text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-slate-800">
+                    <th className="px-3 py-2 text-right text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      #
+                    </th>
+                    <th className="px-3 py-2 text-right text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      الوصف
+                    </th>
+                    <th className="px-3 py-2 text-center text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      الكمية
+                    </th>
+                    <th className="px-3 py-2 text-center text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      سعر الوحدة
+                    </th>
+                    <th className="px-3 py-2 text-center text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      خصم %
+                    </th>
+                    <th className="px-3 py-2 text-center text-[11px] font-medium text-gray-500 sm:px-4 sm:py-2.5 sm:text-xs">
+                      الإجمالي
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
+                  {quotation.quotation_items?.map((item: QuotationDetailItem, idx: number) => (
+                    <tr
+                      key={item.id}
+                      className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                    >
+                      <td className="px-3 py-2 text-[10px] text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
+                        {idx + 1}
+                      </td>
+                      <td className="px-3 py-2 font-medium text-gray-900 dark:text-white sm:px-4 sm:py-2.5">
+                        {item.product?.name_ar || item.description}
+                        {item.product?.sku && (
+                          <span className="block font-mono text-[10px] text-gray-400 sm:text-xs">
+                            {item.product.sku}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-center font-bold sm:px-4 sm:py-2.5">
+                        {item.quantity}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono sm:px-4 sm:py-2.5" dir="ltr">
+                        {formatCurrency(item.unit_price)}
+                      </td>
+                      <td className="px-3 py-2 text-center sm:px-4 sm:py-2.5">
+                        {item.discount_percent || 0}%
+                      </td>
+                      <td
+                        className="px-3 py-2 text-center font-mono font-bold sm:px-4 sm:py-2.5"
+                        dir="ltr"
+                      >
+                        {formatCurrency(item.total)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Terms */}

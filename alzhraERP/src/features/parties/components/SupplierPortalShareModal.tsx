@@ -140,7 +140,7 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
         </div>
       }
     >
-      <div className="space-y-4 p-4 text-xs">
+      <div className="space-y-3.5 text-xs">
         {/* Supplier Profile Summary */}
         <div className="flex items-center justify-between rounded-2xl border border-blue-200/70 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/20">
           <div className="flex items-center gap-3">

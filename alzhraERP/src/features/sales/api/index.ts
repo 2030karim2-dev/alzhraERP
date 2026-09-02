@@ -84,8 +84,8 @@ export const salesApi = {
     _userId: string,
     payload: CreateInvoicePayload
   ): Promise<InvoiceResponse> => {
-    if (!payload.partyId) {
-      throw new Error('يجب اختيار العميل قبل إنشاء الفاتورة');
+    if (payload.paymentMethod === 'credit' && !payload.partyId) {
+      throw new Error('يجب اختيار العميل للفاتورة الآجلة');
     }
 
     // Idempotency: prefer the caller-provided key, which is stable per user
@@ -98,7 +98,7 @@ export const salesApi = {
       `${companyId}_${Date.now()}_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
 
     const rpcParams = {
-      p_party_id: payload.partyId,
+      p_party_id: payload.partyId || null,
       p_invoice_date: payload.issueDate || new Date().toISOString().split('T')[0],
       p_due_date: payload.dueDate || new Date().toISOString().split('T')[0],
       p_items: payload.items.map(i => ({

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * validate-barrels.ts
  * يتحقق من أن جميع ملفات index.ts (barrel files) تُعيد تصدير محتويات الملفات المجاورة
  */
@@ -54,7 +54,7 @@ function checkBarrel(barrelPath: string): BarrelCheck | null {
 
   // Find re-exports from '../filename'
   const fromParentRegex = new RegExp(
-    `export\\s+\\{[^}]+\\}\\s*from\\s*['"]\\.\\.\\/${barrelName}['"]`,
+    `export\\s+(?:type\\s+)?\\{[^}]+\\}\\s*from\\s*['"]\\.\\.\\/${barrelName}['"]`,
     'g'
   );
   let match;
@@ -63,7 +63,7 @@ function checkBarrel(barrelPath: string): BarrelCheck | null {
       match[0]
         .match(/\{([^}]+)\}/)?.[1]
         ?.split(',')
-        .map(s => s.trim()) || [];
+        .map(s => s.replace(/^type\s+/, '').trim()) || [];
     names.forEach(n => reExportedFromParent.add(n));
   }
 

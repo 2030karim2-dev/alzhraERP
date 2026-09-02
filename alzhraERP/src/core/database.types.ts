@@ -11918,7 +11918,7 @@ export type Database = {
           p_invoice_date: string
           p_items: Json
           p_notes?: string
-          p_party_id: string
+          p_party_id?: string | null
           p_payment_account_id?: string
           p_payment_type?: string
         }

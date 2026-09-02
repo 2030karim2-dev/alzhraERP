@@ -317,7 +317,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
 
               {/* Popover Menu with high z-index */}
               {isTreasuryOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-850">
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-850">
                   {paymentAccounts && paymentAccounts.length > 5 && (
                     <div className="relative mb-2">
                       <Search

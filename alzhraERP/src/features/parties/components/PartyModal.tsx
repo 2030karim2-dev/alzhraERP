@@ -132,7 +132,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
       >
         <form className="flex flex-col overflow-hidden">
           {/* Section 1: Core Identity */}
-          <div className="space-y-5 bg-[var(--app-surface)] p-6">
+          <div className="space-y-3.5 bg-[var(--app-surface)] p-3.5 sm:space-y-5 sm:p-6">
             <div className="flex items-center justify-between">
               <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500">
                 <User size={14} />
@@ -219,7 +219,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
           </div>
 
           {/* Section 2: Communication */}
-          <div className="space-y-5 border-t bg-gray-50/50 p-6 dark:border-slate-800 dark:bg-slate-950/20">
+          <div className="space-y-3.5 border-t bg-gray-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-950/20 sm:space-y-5 sm:p-6">
             <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500">
               <Phone size={14} />
               {t('contact_info')}
@@ -250,7 +250,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
 
           {/* Section 3: Supplier Portal Link */}
           {partyType === 'supplier' && initialData?.portal_token && (
-            <div className="space-y-3 border-t bg-blue-50/30 p-6 dark:border-slate-800 dark:bg-blue-950/20">
+            <div className="space-y-3 border-t bg-blue-50/30 p-3.5 dark:border-slate-800 dark:bg-blue-950/20 sm:p-6">
               <div className="flex items-center justify-between">
                 <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500">
                   <Globe size={14} />

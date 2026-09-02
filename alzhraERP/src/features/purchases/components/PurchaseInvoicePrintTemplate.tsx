@@ -15,7 +15,12 @@ export interface PurchasePrintItem {
   quantity: number;
   unit_price: number;
   total: number;
-  product: { name_ar: string | null; sku: string | null } | null;
+  product: {
+    name_ar: string | null;
+    sku: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+  } | null;
 }
 
 export interface PurchasePrintInvoice {

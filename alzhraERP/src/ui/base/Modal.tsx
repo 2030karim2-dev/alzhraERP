@@ -364,7 +364,7 @@ const Modal: React.FC<ModalProps> = ({
         <div
           className={cn(
             'custom-scrollbar flex-1 overflow-y-auto bg-[var(--app-bg)]',
-            isMaximized || size === 'full' ? 'p-1 md:p-2 lg:p-3' : 'p-4 md:p-8 lg:p-10'
+            isMaximized || size === 'full' ? 'p-1 md:p-2 lg:p-3' : 'p-2.5 sm:p-5 md:p-6 lg:p-8'
           )}
         >
           {children}
@@ -372,7 +372,7 @@ const Modal: React.FC<ModalProps> = ({
 
         {/* Footer */}
         {footer && (
-          <div className="flex shrink-0 gap-1 border-t border-[var(--app-border)] bg-[var(--app-bg)] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:gap-2 md:p-4 md:pb-4">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-1.5 border-t border-[var(--app-border)] bg-[var(--app-bg)] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:gap-2 sm:p-3 md:p-4 md:pb-4">
             {footer}
           </div>
         )}

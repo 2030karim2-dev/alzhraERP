@@ -569,7 +569,7 @@ function ExcelTable<T>({
               aria-label={title || 'جدول البيانات'}
               style={{ fontSize: `${zoomLevel * 11}px` }}
               className={cn(
-                'w-full min-w-[800px] table-auto border-collapse border-l border-t border-[var(--app-border)] max-md:min-w-0',
+                'w-full min-w-[640px] table-auto border-collapse border-l border-t border-[var(--app-border)] md:min-w-[800px]',
                 isRTL ? 'text-right' : 'text-left'
               )}
             >

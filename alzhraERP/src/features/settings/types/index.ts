@@ -28,3 +28,22 @@ export { DEFAULT_INTEGRATION_SETTINGS } from './integrationSettings';
 // Localization Settings
 export type { LocalizationSettings } from './localizationSettings';
 export { DEFAULT_LOCALIZATION_SETTINGS } from './localizationSettings';
+
+// Re-export parent types for barrel consistency
+export type {
+  SettingsSection,
+  Company,
+  Branch,
+  BranchFormData,
+  CompanyFormData,
+  Invitation,
+  AuditLog,
+  Warehouse,
+  WarehouseFormData,
+  FiscalYear,
+  FiscalYearFormData,
+  SupportedCurrency,
+  ExchangeRate,
+  ExchangeRateFormData,
+  AutoBackupConfig,
+} from '../types';

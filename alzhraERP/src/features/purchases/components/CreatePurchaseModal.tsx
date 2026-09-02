@@ -11,6 +11,7 @@ import PurchaseMeta from './create/PurchaseMeta';
 import InteractivePurchaseTable from './create/InteractivePurchaseTable';
 import { formatCurrency } from '../../../core/utils';
 import Button from '../../../ui/base/Button';
+import DraftStatusBanner from '../../../ui/common/DraftStatusBanner';
 
 interface Props {
   onSuccess: () => void;
@@ -129,6 +130,19 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
     setMetadata,
   ]);
 
+  useEffect((): (() => void) => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+      const hasWork = items.some(item => item.productId !== '' && item.quantity > 0);
+      if (hasWork) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return (): void => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [items]);
+
   const handleSave = useCallback((): void => {
     const validItems = items.filter(
       item => item.productId !== '' && item.quantity > 0 && item.costPrice > 0
@@ -199,8 +213,15 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
     warehouseId,
   ]);
 
+  const enteredItemsCount = items.filter(item => item.productId !== '').length;
+
   return (
-    <div className="animate-in fade-in mx-auto max-w-none space-y-3 px-1 pb-24 pt-2 duration-500 max-md:space-y-0.5 max-md:pb-12 max-md:pt-0 md:px-2">
+    <div className="animate-in fade-in mx-auto max-w-none space-y-2 px-1 pb-24 pt-1 duration-500 max-md:space-y-1.5 max-md:pb-12 max-md:pt-0 sm:space-y-3 sm:pt-2 md:px-2">
+      <DraftStatusBanner
+        itemCount={enteredItemsCount}
+        onClearDraft={resetCart}
+        entityName={supplier?.name}
+      />
       <div
         ref={printRef}
         className="flex flex-col overflow-hidden rounded-2xl border-2 bg-[var(--app-surface)] shadow-2xl dark:border-gray-100 dark:border-slate-800 max-md:border"
@@ -210,13 +231,13 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         <InteractivePurchaseTable />
         <Totals totals={totals} />
       </div>
-      <div className="flex justify-end gap-2 max-md:gap-0.5 print:hidden">
+      <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2 print:hidden">
         <Button
           onClick={() => {
             handlePrint();
           }}
           variant="outline"
-          className="border-gray-200 text-gray-500 max-md:h-7 max-md:px-1.5 max-md:text-[10px]"
+          className="flex-1 border-gray-200 text-xs text-gray-500 sm:flex-none"
           leftIcon={<Printer size={14} />}
         >
           طباعة المستند
@@ -224,7 +245,7 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         <Button
           onClick={handleSave}
           isLoading={isPending}
-          className="min-w-[140px] max-md:h-7 max-md:min-w-0 max-md:px-2 max-md:text-[10px]"
+          className="w-full min-w-0 text-xs sm:w-auto sm:min-w-[140px]"
           leftIcon={<Save size={14} />}
         >
           اعتماد التوريد

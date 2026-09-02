@@ -36,7 +36,19 @@ describe('Purchases Store Logic', () => {
 
   it('keeps at least one item after remove', () => {
     usePurchaseStore.setState({
-      items: [{ id: '1', productId: '', sku: '', partNumber: '', brand: '', name: '', quantity: 0, costPrice: 0, discount: 0 }],
+      items: [
+        {
+          id: '1',
+          productId: '',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: '',
+          quantity: 0,
+          costPrice: 0,
+          discount: 0,
+        },
+      ],
     });
     usePurchaseStore.getState().removeItem(0);
     expect(usePurchaseStore.getState().items.length).toBeGreaterThanOrEqual(1);
@@ -44,7 +56,19 @@ describe('Purchases Store Logic', () => {
 
   it('updates item and recalculates totals', () => {
     usePurchaseStore.setState({
-      items: [{ id: '1', productId: '', sku: '', partNumber: '', brand: '', name: '', quantity: 3, costPrice: 50, discount: 0 }],
+      items: [
+        {
+          id: '1',
+          productId: '',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: '',
+          quantity: 3,
+          costPrice: 50,
+          discount: 0,
+        },
+      ],
     });
     usePurchaseStore.getState().updateItem(0, 'quantity', 5);
     const { items, totals } = usePurchaseStore.getState();
@@ -52,12 +76,31 @@ describe('Purchases Store Logic', () => {
     expect(totals.subTotal).toBe(250);
   });
 
-
   it('calculates totals from multiple items', () => {
     usePurchaseStore.setState({
       items: [
-        { id: '1', productId: 'p1', sku: '', partNumber: '', brand: '', name: 'A', quantity: 2, costPrice: 100, discount: 0 },
-        { id: '2', productId: 'p2', sku: '', partNumber: '', brand: '', name: 'B', quantity: 3, costPrice: 50, discount: 0 },
+        {
+          id: '1',
+          productId: 'p1',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: 'A',
+          quantity: 2,
+          costPrice: 100,
+          discount: 0,
+        },
+        {
+          id: '2',
+          productId: 'p2',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: 'B',
+          quantity: 3,
+          costPrice: 50,
+          discount: 0,
+        },
       ],
     });
     usePurchaseStore.getState().calculateTotals();
@@ -70,7 +113,19 @@ describe('Purchases Store Logic', () => {
     useDiscountStore.setState({ discountEnabled: true });
     usePurchaseStore.getState().toggleColumn('showDiscount');
     usePurchaseStore.setState({
-      items: [{ id: '1', productId: '', sku: '', partNumber: '', brand: '', name: '', quantity: 10, costPrice: 100, discount: 50 }],
+      items: [
+        {
+          id: '1',
+          productId: '',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: '',
+          quantity: 10,
+          costPrice: 100,
+          discount: 50,
+        },
+      ],
     });
     usePurchaseStore.getState().calculateTotals();
     const { totals } = usePurchaseStore.getState();
@@ -83,7 +138,19 @@ describe('Purchases Store Logic', () => {
     useDiscountStore.setState({ discountEnabled: false });
     usePurchaseStore.getState().toggleColumn('showDiscount');
     usePurchaseStore.setState({
-      items: [{ id: '1', productId: '', sku: '', partNumber: '', brand: '', name: '', quantity: 10, costPrice: 100, discount: 50 }],
+      items: [
+        {
+          id: '1',
+          productId: '',
+          sku: '',
+          partNumber: '',
+          brand: '',
+          name: '',
+          quantity: 10,
+          costPrice: 100,
+          discount: 50,
+        },
+      ],
     });
     usePurchaseStore.getState().calculateTotals();
     expect(usePurchaseStore.getState().totals.grandTotal).toBe(1000);
@@ -123,9 +190,9 @@ describe('Purchases Store Logic', () => {
 
   it('loads bulk items with unitPrice fallback', () => {
     usePurchaseStore.setState({ items: [] });
-    usePurchaseStore.getState().bulkLoadItems([
-      { productId: 'p1', name: 'B', quantity: 1, unitPrice: 75 },
-    ]);
+    usePurchaseStore
+      .getState()
+      .bulkLoadItems([{ productId: 'p1', name: 'B', quantity: 1, unitPrice: 75 }]);
     expect(usePurchaseStore.getState().items[0].costPrice).toBe(75);
   });
 
@@ -140,5 +207,44 @@ describe('Purchases Store Logic', () => {
     expect(state.notes).toBe('');
     expect(state.warehouseId).toBe('');
     expect(state.showDiscount).toBe(false);
+  });
+
+  it('preserves supplier and items until resetCart is called', () => {
+    usePurchaseStore.getState().setSupplier({ id: 'sup-99', name: 'مورد معتمد' });
+    usePurchaseStore.getState().setProductForRow(0, {
+      id: 'p-pur-1',
+      name: 'قطع غيار أصلية',
+      sku: 'PARTS-01',
+      selling_price: 300,
+      cost_price: 200,
+      stock_quantity: 50,
+      min_stock_level: 5,
+      name_ar: 'قطع غيار',
+      alternative_numbers: '',
+      company_id: '1',
+      part_number: 'OEM-100',
+      brand: 'Toyota',
+      category: '',
+      size: '',
+      specifications: '',
+      unit: 'piece',
+      created_at: '',
+      alternatives: [],
+      compatibility: [],
+      warehouse_distribution: [],
+      total_purchases_qty: 0,
+      total_sales_qty: 0,
+      last_invoice_date: '',
+      total_profit: 0,
+      total_loss: 0,
+      isLowStock: false,
+    });
+
+    expect(usePurchaseStore.getState().supplier?.name).toBe('مورد معتمد');
+    expect(usePurchaseStore.getState().items[0]?.name).toBe('قطع غيار أصلية');
+
+    usePurchaseStore.getState().resetCart();
+    expect(usePurchaseStore.getState().supplier).toBeNull();
+    expect(usePurchaseStore.getState().items[0]?.productId).toBe('');
   });
 });

@@ -1,6 +1,7 @@
 import { partiesApi } from './api';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../auth/store';
+import { parseError } from '../../core/utils/errorUtils';
 import type { Party, PartyStats, PartyFormData, PartyType, PartyCategory } from './types';
 
 export interface StatementMovement {
@@ -180,13 +181,14 @@ export const partiesService = {
     const trimmedTaxNumber = (data.tax_number || '').trim();
     const partyType = data.type || 'customer';
     const typeLabel = partyType === 'customer' ? 'العميل' : 'المورد';
+    const relevantTypes = [partyType, 'both'];
 
-    // 1. Check duplicate name for same type & company
+    // 1. Check duplicate name for same or overlapping type & company
     let nameQuery = supabase
       .from('parties')
       .select('id, name')
       .eq('company_id', companyId)
-      .eq('type', partyType)
+      .in('type', relevantTypes)
       .ilike('name', trimmedName)
       .limit(1);
 
@@ -199,13 +201,13 @@ export const partiesService = {
       throw new Error(`يوجد ${typeLabel} مسجل مسبقاً بنفس الاسم: "${trimmedName}"`);
     }
 
-    // 2. Check duplicate phone for same type & company (if phone provided)
+    // 2. Check duplicate phone for same or overlapping type & company (if phone provided)
     if (trimmedPhone) {
       let phoneQuery = supabase
         .from('parties')
         .select('id, name, phone')
         .eq('company_id', companyId)
-        .eq('type', partyType)
+        .in('type', relevantTypes)
         .eq('phone', trimmedPhone)
         .limit(1);
 
@@ -269,7 +271,7 @@ export const partiesService = {
         'code' in error &&
         (error as { code: string }).code === '23505'
       ) {
-        throw new Error('عذراً، البيانات المدخلة مكررة ومسجلة مسبقاً في النظام');
+        throw parseError(error);
       }
       throw error;
     }

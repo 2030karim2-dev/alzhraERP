@@ -98,7 +98,7 @@ export const accountsService = {
       is_system: false,
     });
 
-    if (error) throw error;
+    if (error) throw parseError(error);
 
     return {
       id: account.id,

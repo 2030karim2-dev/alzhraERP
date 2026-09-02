@@ -14,6 +14,7 @@ import PrintableInvoice from '../PrintableInvoice';
 import type { InvoiceStatus } from '../../types';
 import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
+import DraftStatusBanner from '../../../../ui/common/DraftStatusBanner';
 import { useReactToPrint } from 'react-to-print';
 import { logger } from '../../../../core/utils/logger';
 import { createIdempotencyKey } from '../../../../core/utils/idempotency';
@@ -99,6 +100,20 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     }
   }, [comp?.id, invoiceSettings, selectedCustomer, setMetadata, setCustomer]);
 
+  // تنبيه المتصفح عند محاولة الإغلاق غير المقصود مع وجود أصناف مدخلة
+  React.useEffect((): (() => void) => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+      const hasWork = items.some(i => Boolean(i.productId) && i.quantity > 0);
+      if (hasWork) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return (): void => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [items]);
+
   // مفتاح منع التكرار: يُولَّد مرة واحدة لكل نية فاتورة (جلسة النموذج) ويُعاد
   // توليده فقط بعد نجاح الاعتماد — فيُرفض التكرار عند النقر المزدوج/إعادة المحاولة.
   const invoiceIdempotencyKeyRef = useRef(createIdempotencyKey('sale'));
@@ -179,9 +194,16 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   if (companyError || numberError)
     return <ErrorDisplay error={(companyError || numberError)?.message || null} variant="full" />;
 
+  const enteredItemsCount = items.filter(i => Boolean(i.productId)).length;
+
   return (
     <>
-      <div className="animate-in fade-in mx-auto max-w-none space-y-3 pb-24 pt-2 duration-500">
+      <div className="animate-in fade-in mx-auto max-w-none space-y-2 px-1 pb-20 pt-1 duration-500 sm:space-y-3 sm:px-2 sm:pb-24 sm:pt-2">
+        <DraftStatusBanner
+          itemCount={enteredItemsCount}
+          onClearDraft={resetCart}
+          entityName={selectedCustomer?.name}
+        />
         {/* Modern Enterprise Invoice Workspace Container */}
         <div className="flex flex-col rounded-2xl border border-slate-200 bg-[var(--app-surface)] shadow-xl dark:border-slate-800">
           <InvoiceHeader company={comp} />

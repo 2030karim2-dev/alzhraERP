@@ -1,9 +1,11 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
 import { useFeedbackStore } from '../feedback/store';
 import { convertCurrency } from '../../core/utils/currencyUtils';
 import { logger } from '../../core/utils/logger';
+import { STORAGE_KEYS } from '../../core/constants';
 
 /**
  * SalesCartItem - Used for the sales cart/UI state
@@ -113,228 +115,9 @@ const safeConvertFromBase = (
   }
 };
 
-export const useSalesStore = create<SalesState>((set, get) => ({
-  items: [],
-  selectedCustomer: null,
-  summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
-  invoiceType: 'cash',
-  currency: 'SAR',
-  exchangeRate: 1,
-  exchangeOperator: 'multiply',
-  // [FIX] warehouseId فارغ — يُعيّن تلقائياً من InvoiceMeta عند التحميل (مثل cashboxId)
-  warehouseId: '',
-  // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
-  cashboxId: '',
-  showDiscount: false,
-  notes: '',
-
-  initializeItems: count => {
-    set({ items: Array.from({ length: count }, createNewItem) });
-  },
-
-  updateItem: (index, field, value) => {
-    set(state => {
-      const newItems = [...state.items];
-      if (newItems[index]) {
-        // Use typed Pick to constrain field-value pairs:
-        // quantity/costPrice/basePrice/price/discount → number, rest → string
-        type NumericFields = 'quantity' | 'costPrice' | 'basePrice' | 'price' | 'discount';
-        const numericFields = new Set<NumericFields>([
-          'quantity',
-          'costPrice',
-          'basePrice',
-          'price',
-          'discount',
-        ]);
-        const coercedValue = numericFields.has(field as NumericFields)
-          ? Number(value)
-          : String(value);
-        newItems[index] = {
-          ...newItems[index],
-          [field]: coercedValue as SalesCartItem[typeof field],
-        };
-      }
-      return { items: newItems };
-    });
-    get().calculateTotals();
-  },
-
-  updateQuantity: (productId, quantity) => {
-    set(state => ({
-      items: state.items.map(item =>
-        item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item
-      ),
-    }));
-    get().calculateTotals();
-  },
-
-  setProductForRow: (index, product) => {
-    const state = get();
-    if (!assertValidExchangeRate(state.currency, state.exchangeRate)) return;
-
-    set(state => {
-      const newItems = [...state.items];
-      const basePrice = product.selling_price || 0;
-      const { price: convertedPrice, failed } = safeConvertFromBase(
-        basePrice,
-        state.currency,
-        state.exchangeRate,
-        state.exchangeOperator,
-        'setProductForRow'
-      );
-      if (failed) return state;
-
-      if (newItems[index]) {
-        newItems[index] = {
-          ...newItems[index],
-          productId: product.id,
-          name: product.name,
-          sku: product.sku,
-          partNumber: product.part_number || '',
-          brand: product.brand || '',
-          basePrice: basePrice,
-          price: convertedPrice,
-          quantity: 1,
-          costPrice: product.cost_price || 0,
-          warehouse_distribution: product.warehouse_distribution,
-        };
-      }
-      return { items: newItems };
-    });
-    get().calculateTotals();
-  },
-
-  addItem: () => {
-    set(state => ({ items: [...state.items, createNewItem()] }));
-  },
-
-  addProductToCart: product => {
-    const currentState = get();
-    if (!assertValidExchangeRate(currentState.currency, currentState.exchangeRate)) return;
-
-    set(state => {
-      const existing = state.items.find(i => i.productId === product.id);
-      if (existing) {
-        return {
-          items: state.items.map(i =>
-            i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
-          ),
-        };
-      }
-
-      const basePrice = product.selling_price || 0;
-      const { price: convertedPrice, failed } = safeConvertFromBase(
-        basePrice,
-        state.currency,
-        state.exchangeRate,
-        state.exchangeOperator,
-        'addProductToCart'
-      );
-      if (failed) return state;
-
-      const newItem: SalesCartItem = {
-        id: crypto.randomUUID(),
-        productId: product.id,
-        sku: product.sku,
-        name: product.name,
-        partNumber: product.part_number || '',
-        brand: product.brand || '',
-        quantity: 1,
-        basePrice: basePrice,
-        price: convertedPrice,
-        discount: 0,
-        costPrice: product.cost_price || 0,
-        warehouse_distribution: product.warehouse_distribution,
-      };
-
-      return { items: [newItem, ...state.items] };
-    });
-    get().calculateTotals();
-  },
-
-  removeItem: idOrIndex => {
-    set(state => {
-      const newItems =
-        typeof idOrIndex === 'string'
-          ? state.items.filter(i => i.productId !== idOrIndex)
-          : state.items.filter((_, i) => i !== idOrIndex);
-      return { items: newItems };
-    });
-    get().calculateTotals();
-  },
-
-  calculateTotals: () => {
-    // [FIX #3] تُقرأ حالة الخصم من المتجر الخارجي خارج set() لتجنب سباق الحالة
-    // هذا آمن لأن JS أحادي الخيط ويتم الاستدعاء دائماً خارج set()
-    const { discountEnabled } = useDiscountStore.getState();
-    set(state => {
-      let subtotal = 0;
-      let discountAmount = 0;
-
-      state.items.forEach(item => {
-        const qty = Number(item.quantity) || 0;
-        const price = Number(item.price) || 0;
-        const lineSub = qty * price;
-        subtotal += lineSub;
-
-        const lineDiscount = discountEnabled && state.showDiscount ? Number(item.discount) || 0 : 0;
-        discountAmount += lineDiscount;
-      });
-
-      const totalAmount = subtotal - discountAmount;
-
-      return {
-        summary: { subtotal, discountAmount, totalAmount },
-      };
-    });
-  },
-
-  setCustomer: selectedCustomer => {
-    set({ selectedCustomer });
-  },
-
-  setMetadata: (field, value) => {
-    set(state => {
-      const newState = { ...state, [field]: value };
-
-      if (['currency', 'exchangeRate', 'exchangeOperator'].includes(field)) {
-        const rate = newState.exchangeRate;
-        const isForeign = newState.currency !== 'SAR';
-
-        newState.items = newState.items.map(item => {
-          if (!item.productId) return item;
-          if (!isForeign) return { ...item, price: item.basePrice };
-
-          try {
-            const newPrice = convertCurrency(
-              item.basePrice,
-              rate,
-              'fromBase',
-              newState.exchangeOperator
-            );
-            return { ...item, price: newPrice };
-          } catch (e) {
-            logger.error('SalesStore', 'Invalid rate in setMetadata', {
-              rate,
-              currency: newState.currency,
-            });
-            return item;
-          }
-        });
-      }
-
-      return newState;
-    });
-    get().calculateTotals();
-  },
-
-  toggleColumn: field => {
-    set(state => ({ [field]: !state[field] }));
-    get().calculateTotals();
-  },
-
-  resetCart: () => {
-    set(() => ({
+export const useSalesStore = create<SalesState>()(
+  persist(
+    (set, get) => ({
       items: [],
       selectedCustomer: null,
       summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
@@ -342,13 +125,253 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       currency: 'SAR',
       exchangeRate: 1,
       exchangeOperator: 'multiply',
+      // [FIX] warehouseId فارغ — يُعيّن تلقائياً من InvoiceMeta عند التحميل (مثل cashboxId)
       warehouseId: '',
+      // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
       cashboxId: '',
       showDiscount: false,
       notes: '',
-    }));
-  },
-}));
+
+      initializeItems: count => {
+        set({ items: Array.from({ length: count }, createNewItem) });
+      },
+
+      updateItem: (index, field, value) => {
+        set(state => {
+          const newItems = [...state.items];
+          if (newItems[index]) {
+            // Use typed Pick to constrain field-value pairs:
+            // quantity/costPrice/basePrice/price/discount → number, rest → string
+            type NumericFields = 'quantity' | 'costPrice' | 'basePrice' | 'price' | 'discount';
+            const numericFields = new Set<NumericFields>([
+              'quantity',
+              'costPrice',
+              'basePrice',
+              'price',
+              'discount',
+            ]);
+            const coercedValue = numericFields.has(field as NumericFields)
+              ? Number(value)
+              : String(value);
+            newItems[index] = {
+              ...newItems[index],
+              [field]: coercedValue as SalesCartItem[typeof field],
+            };
+          }
+          return { items: newItems };
+        });
+        get().calculateTotals();
+      },
+
+      updateQuantity: (productId, quantity) => {
+        set(state => ({
+          items: state.items.map(item =>
+            item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item
+          ),
+        }));
+        get().calculateTotals();
+      },
+
+      setProductForRow: (index, product) => {
+        const state = get();
+        if (!assertValidExchangeRate(state.currency, state.exchangeRate)) return;
+
+        set(state => {
+          const newItems = [...state.items];
+          const basePrice = product.selling_price || 0;
+          const { price: convertedPrice, failed } = safeConvertFromBase(
+            basePrice,
+            state.currency,
+            state.exchangeRate,
+            state.exchangeOperator,
+            'setProductForRow'
+          );
+          if (failed) return state;
+
+          if (newItems[index]) {
+            newItems[index] = {
+              ...newItems[index],
+              productId: product.id,
+              name: product.name,
+              sku: product.sku,
+              partNumber: product.part_number || '',
+              brand: product.brand || '',
+              basePrice: basePrice,
+              price: convertedPrice,
+              quantity: 1,
+              costPrice: product.cost_price || 0,
+              warehouse_distribution: product.warehouse_distribution,
+            };
+          }
+          return { items: newItems };
+        });
+        get().calculateTotals();
+      },
+
+      addItem: () => {
+        set(state => ({ items: [...state.items, createNewItem()] }));
+      },
+
+      addProductToCart: product => {
+        const currentState = get();
+        if (!assertValidExchangeRate(currentState.currency, currentState.exchangeRate)) return;
+
+        set(state => {
+          const existing = state.items.find(i => i.productId === product.id);
+          if (existing) {
+            return {
+              items: state.items.map(i =>
+                i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
+              ),
+            };
+          }
+
+          const basePrice = product.selling_price || 0;
+          const { price: convertedPrice, failed } = safeConvertFromBase(
+            basePrice,
+            state.currency,
+            state.exchangeRate,
+            state.exchangeOperator,
+            'addProductToCart'
+          );
+          if (failed) return state;
+
+          const newItem: SalesCartItem = {
+            id: crypto.randomUUID(),
+            productId: product.id,
+            sku: product.sku,
+            name: product.name,
+            partNumber: product.part_number || '',
+            brand: product.brand || '',
+            quantity: 1,
+            basePrice: basePrice,
+            price: convertedPrice,
+            discount: 0,
+            costPrice: product.cost_price || 0,
+            warehouse_distribution: product.warehouse_distribution,
+          };
+
+          return { items: [newItem, ...state.items] };
+        });
+        get().calculateTotals();
+      },
+
+      removeItem: idOrIndex => {
+        set(state => {
+          const newItems =
+            typeof idOrIndex === 'string'
+              ? state.items.filter(i => i.productId !== idOrIndex)
+              : state.items.filter((_, i) => i !== idOrIndex);
+          return { items: newItems };
+        });
+        get().calculateTotals();
+      },
+
+      calculateTotals: () => {
+        // [FIX #3] تُقرأ حالة الخصم من المتجر الخارجي خارج set() لتجنب سباق الحالة
+        // هذا آمن لأن JS أحادي الخيط ويتم الاستدعاء دائماً خارج set()
+        const { discountEnabled } = useDiscountStore.getState();
+        set(state => {
+          let subtotal = 0;
+          let discountAmount = 0;
+
+          state.items.forEach(item => {
+            const qty = Number(item.quantity) || 0;
+            const price = Number(item.price) || 0;
+            const lineSub = qty * price;
+            subtotal += lineSub;
+
+            const lineDiscount =
+              discountEnabled && state.showDiscount ? Number(item.discount) || 0 : 0;
+            discountAmount += lineDiscount;
+          });
+
+          const totalAmount = subtotal - discountAmount;
+
+          return {
+            summary: { subtotal, discountAmount, totalAmount },
+          };
+        });
+      },
+
+      setCustomer: selectedCustomer => {
+        set({ selectedCustomer });
+      },
+
+      setMetadata: (field, value) => {
+        set(state => {
+          const newState = { ...state, [field]: value };
+
+          if (['currency', 'exchangeRate', 'exchangeOperator'].includes(field)) {
+            const rate = newState.exchangeRate;
+            const isForeign = newState.currency !== 'SAR';
+
+            newState.items = newState.items.map(item => {
+              if (!item.productId) return item;
+              if (!isForeign) return { ...item, price: item.basePrice };
+
+              try {
+                const newPrice = convertCurrency(
+                  item.basePrice,
+                  rate,
+                  'fromBase',
+                  newState.exchangeOperator
+                );
+                return { ...item, price: newPrice };
+              } catch (e) {
+                logger.error('SalesStore', 'Invalid rate in setMetadata', {
+                  rate,
+                  currency: newState.currency,
+                });
+                return item;
+              }
+            });
+          }
+
+          return newState;
+        });
+        get().calculateTotals();
+      },
+
+      toggleColumn: field => {
+        set(state => ({ [field]: !state[field] }));
+        get().calculateTotals();
+      },
+
+      resetCart: () => {
+        set(() => ({
+          items: [],
+          selectedCustomer: null,
+          summary: { subtotal: 0, discountAmount: 0, totalAmount: 0 },
+          invoiceType: 'cash',
+          currency: 'SAR',
+          exchangeRate: 1,
+          exchangeOperator: 'multiply',
+          warehouseId: '',
+          cashboxId: '',
+          showDiscount: false,
+          notes: '',
+        }));
+      },
+    }),
+    {
+      name: STORAGE_KEYS.SALES_DRAFT,
+      partialize: state => ({
+        items: state.items,
+        selectedCustomer: state.selectedCustomer,
+        summary: state.summary,
+        invoiceType: state.invoiceType,
+        currency: state.currency,
+        exchangeRate: state.exchangeRate,
+        exchangeOperator: state.exchangeOperator,
+        warehouseId: state.warehouseId,
+        cashboxId: state.cashboxId,
+        showDiscount: state.showDiscount,
+        notes: state.notes,
+      }),
+    }
+  )
+);
 
 // [FIX #3] الاشتراك في تغييرات إعدادات الخصم لإعادة حساب الإجماليات تلقائياً
 // يضمن أن إجماليات الفاتورة محدّثة دائماً عند تفعيل/إلغاء الخصم

@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import type { InsertDto } from '../../../core/database.helpers';
 import type { TableUpdate } from '@/core/types/supabase-helpers';
 import { logger } from '../../../core/utils/logger';
+import { parseError } from '../../../core/utils/errorUtils';
 
 interface RawStock {
   quantity?: number | string;
@@ -363,7 +364,7 @@ export const productService = {
         'code' in error &&
         (error as { code: string }).code === '23505'
       ) {
-        throw new Error('عذراً، بيانات الصنف (SKU أو الاسم أو الباركود) مكررة ومسجلة مسبقاً');
+        throw parseError(error);
       }
       throw error;
     }
@@ -497,6 +498,14 @@ export const productService = {
       return product;
     } catch (err) {
       logger.error('ProductService', `Critical failure in updateProduct`, err);
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: string }).code === '23505'
+      ) {
+        throw parseError(err);
+      }
       throw err;
     }
   },

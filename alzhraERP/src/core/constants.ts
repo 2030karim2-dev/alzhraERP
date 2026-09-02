@@ -141,4 +141,6 @@ export const STORAGE_KEYS = {
   INVOICE_COL_WIDTHS: 'invoice_col_widths',
   AI_MODEL: 'ai_model',
   COLUMN_RESIZE: 'persist-cols',
+  SALES_DRAFT: 'alzhra_sales_draft_v1',
+  PURCHASES_DRAFT: 'alzhra_purchases_draft_v1',
 } as const;

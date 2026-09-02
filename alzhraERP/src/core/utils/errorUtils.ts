@@ -56,15 +56,47 @@ export const parseError = (error: unknown): AppError => {
     );
   }
 
+  const details = typeof errorRecord?.details === 'string' ? errorRecord.details.toLowerCase() : '';
+  const combinedContext = `${lowerMsg} ${details}`;
+
+  // Unique violation check (code 23505 or raw duplicate message)
+  if (
+    code === '23505' ||
+    combinedContext.includes('duplicate key') ||
+    combinedContext.includes('23505')
+  ) {
+    let customMsg = 'هذا السجل (رقم SKU أو الاسم) موجود مسبقاً في النظام.';
+    if (combinedContext.includes('barcode') || combinedContext.includes('بار كود')) {
+      customMsg = 'الباركود المدخل مسجل مسبقاً لصنف آخر في نفس المنشأة.';
+    } else if (combinedContext.includes('sku')) {
+      customMsg = 'رمز الصنف (SKU) مسجل مسبقاً في قائمة المنتجات.';
+    } else if (combinedContext.includes('part_number') || combinedContext.includes('part_brand')) {
+      customMsg = 'رقم القطعة مع الماركة مسجل مسبقاً لصنف آخر.';
+    } else if (combinedContext.includes('phone') || combinedContext.includes('هاتف')) {
+      customMsg = 'رقم الهاتف مسجل مسبقاً لجهة تعامل أخرى (عميل/مورد).';
+    } else if (combinedContext.includes('tax_number') || combinedContext.includes('الضريبي')) {
+      customMsg = 'الرقم الضريبي مسجل مسبقاً في النظام.';
+    } else if (
+      combinedContext.includes('fin_accounts') ||
+      combinedContext.includes('code') ||
+      combinedContext.includes('الحساب')
+    ) {
+      customMsg = 'رمز الحساب المالي مسجل مسبقاً في شجرة ودليل الحسابات.';
+    } else if (
+      combinedContext.includes('invoice_number') ||
+      combinedContext.includes('idempotency')
+    ) {
+      customMsg = 'تم إرسال هذه الفاتورة مسبقاً أو يوجد تكرار في رقم الفاتورة.';
+    } else if (combinedContext.includes('payment_number') || combinedContext.includes('bond')) {
+      customMsg = 'رقم السند مسجل مسبقاً في النظام.';
+    } else if (combinedContext.includes('name_ar') || combinedContext.includes('name')) {
+      customMsg = 'الاسم المدخل مسجل مسبقاً في النظام لنفس المنشأة.';
+    }
+    return makeAppError('23505', customMsg, 'medium', 'تغيير القيمة');
+  }
+
   // خوارزمية تحديد الرسالة بناءً على الكود
   switch (code) {
-    case '23505': // Unique violation
-      return makeAppError(
-        code,
-        'هذا السجل (رقم SKU أو الاسم) موجود مسبقاً في النظام.',
-        'medium',
-        'تغيير القيمة'
-      );
     case 'PGRST116':
       // PostgREST: "JSON object requested, multiple (or no) rows returned" —
       // عادةً ما يحدث عند طلب سجل واحد (.single()/.maybeSingle()) دون نتيجة
