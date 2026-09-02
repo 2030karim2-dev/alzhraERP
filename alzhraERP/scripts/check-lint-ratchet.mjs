@@ -32,31 +32,47 @@ const writeBaseline = b => {
 };
 
 const runEslint = files => {
-  const res = spawnSync(
-    process.execPath,
-    [path.join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js'), ...files, '--format', 'json'],
-    { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
-  );
-  const out = res.stdout || '';
-  let results = [];
-  try {
-    results = JSON.parse(out);
-  } catch {
-    // لا ينتج JSON صالح دائماً عند أخطاء خارج الملفات — نتعامل مع كل ملف على حدة أدناه
-    for (const f of files) {
-      const single = spawnSync(
-        process.execPath,
-        [path.join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js'), f, '--format', 'json'],
-        { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
-      );
-      try {
-        results.push(...JSON.parse(single.stdout || '[]'));
-      } catch {
-        results.push({
-          filePath: path.resolve(ROOT, f),
-          errorCount: 999,
-          messages: [{ message: 'eslint failed to run', severity: 2, ruleId: null }],
-        });
+  const eslintBin = path.join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js');
+  const results = [];
+
+  // Windows command-line limit (~32K chars) does NOT fit ~1000 absolute paths
+  // in a single spawn (ENAMETOOLONG). Split into batches of 200 files: each
+  // batch is a single eslint process (fast), while total matches the size of
+  // the argument one call would need.
+  const BATCH = 200;
+  for (let i = 0; i < files.length; i += BATCH) {
+    const chunk = files.slice(i, i + BATCH);
+    const res = spawnSync(
+      process.execPath,
+      [eslintBin, ...chunk.map(f => f.split(path.sep).join('/')), '--format', 'json'],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 }
+    );
+    const out = res.stdout || '';
+    try {
+      results.push(...JSON.parse(out));
+    } catch (parseErr) {
+      // The batch JSON is invalid (eslint crashed / stdout truncated) — log the
+      // reason when asked, then process this batch's files one-by-one.
+      if (res.error) {
+        console.error(`[lint-ratchet] batch eslint failed (${res.error.message}) — falling back to per-file.`);
+      } else if (process.env.LINT_RATCHET_DEBUG) {
+        console.error(`[lint-ratchet] batch JSON parse failed (stdout ${out.length} chars) — falling back to per-file.`);
+      }
+      for (const f of chunk) {
+        const single = spawnSync(
+          process.execPath,
+          [eslintBin, f.split(path.sep).join('/'), '--format', 'json'],
+          { cwd: ROOT, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 }
+        );
+        try {
+          results.push(...JSON.parse(single.stdout || '[]'));
+        } catch {
+          results.push({
+            filePath: path.resolve(ROOT, f),
+            errorCount: 999,
+            messages: [{ message: 'eslint failed to run', severity: 2, ruleId: null }],
+          });
+        }
       }
     }
   }
@@ -67,12 +83,17 @@ const rel = p => path.relative(ROOT, p).split(path.sep).join('/');
 
 if (process.argv.includes('--seed-all')) {
   // يعيد بناء الأساس لكل الملفات مرة واحدة (خطوة تهيئة/سداد دين).
-  const allFiles = execFileSync('git', ['ls-files', '--', '*.ts', '*.tsx'], {
-    cwd: ROOT,
-    encoding: 'utf8',
-  })
+  // النطاق مقصور على src/ لتغطية كل ملفات التطبيق (بما فيها الملفات الجديدة
+  // التي لن تجدها البطاقة القديمة) دون سحب e2e/scripts/test التي يستثنيها
+  // eslint.config.js أصلاً (ستُسجل 0 أخطاء في كل الأحوال).
+  const allFiles = execFileSync(
+    'git',
+    ['ls-files', '--', 'src/*.ts', 'src/*.tsx', 'src/**/*.ts', 'src/**/*.tsx'],
+    { cwd: ROOT, encoding: 'utf8' }
+  )
     .split('\n')
     .filter(Boolean);
+  console.log(`[lint-ratchet] --seed-all: rebuilding baseline for ${allFiles.length} src files...`);
   const results = runEslint(allFiles);
   const baseline = {};
   for (const r of results) baseline[rel(r.filePath)] = r.errorCount || 0;
@@ -109,32 +130,6 @@ if (filesFlag) {
 }
 
 files = files.filter(f => /\.(ts|tsx)$/.test(f));
-
-// `--seed-all`: rebuild the ENTIRE baseline from the current src/ state.
-// Documented in the header but was never implemented — add it so the ratchet
-// can be re-seeded after large autofix passes (fixes "guard doesn't cover
-// every file" gap). Collects every .ts/.tsx under src/ and takes the --update
-// write path.
-if (process.argv.includes('--seed-all')) {
-  const srcRoot = path.join(ROOT, 'src');
-  try {
-    const all = [];
-    const walk = (dir) => {
-      for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-        const p = path.join(dir, ent.name);
-        if (ent.isDirectory()) walk(p);
-        else if (/\.tsx?$/.test(ent.name)) all.push(p);
-      }
-    };
-    walk(srcRoot);
-    files = all;
-    console.log(`[lint-ratchet] --seed-all: rebuilding baseline for ${files.length} source files...`);
-    process.argv.push('--update');
-  } catch (e) {
-    console.error('[lint-ratchet] --seed-all failed to walk src/:', e.message);
-    process.exit(1);
-  }
-}
 
 if (files.length === 0) {
   console.log('[lint-ratchet] No changed TS/TSX files.');

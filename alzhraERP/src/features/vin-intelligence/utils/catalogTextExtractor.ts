@@ -73,12 +73,19 @@ const KNOWN_MAKES: Record<string, { en: string; ar: string }> = {
 /** Normalizes market strings to standard portal dropdown categories */
 export const normalizeMarketCategory = (rawMarket: string): string => {
   const norm = rawMarket.trim().toLowerCase();
-  if (norm.includes('jp') || norm.includes('japan') || norm.includes('domestic')) {
+  if (
+    norm.includes('jp') ||
+    norm.includes('japan') ||
+    norm.includes('domestic') ||
+    norm.includes('ياباني')
+  ) {
     return 'ياباني';
   }
   if (
     norm.includes('gcc') ||
     norm.includes('gulf') ||
+    norm.includes('خليج') ||
+    norm.includes('دول الخليج') ||
     norm.includes('me') ||
     norm.includes('middle east') ||
     norm.includes('ar') ||
@@ -90,18 +97,111 @@ export const normalizeMarketCategory = (rawMarket: string): string => {
     norm.includes('us') ||
     norm.includes('usa') ||
     norm.includes('america') ||
+    norm.includes('أمريك') ||
+    norm.includes('امريك') ||
     norm.includes('na') ||
     norm.includes('ca')
   ) {
     return 'أمريكي';
   }
-  if (norm.includes('eu') || norm.includes('europe') || norm.includes('uk')) {
+  if (
+    norm.includes('eu') ||
+    norm.includes('europe') ||
+    norm.includes('أوروب') ||
+    norm.includes('اوروب') ||
+    norm.includes('uk')
+  ) {
     return 'أوروبي';
   }
-  if (norm.includes('kor') || norm.includes('korea')) {
+  if (norm.includes('kor') || norm.includes('korea') || norm.includes('كور')) {
     return 'كوري';
   }
   return 'خليجي';
+};
+
+/** Cleans engine string from verbose catalog titles (e.g. "TB48DE TYPE ENGINE" -> "TB48DE") */
+const cleanEngineCode = (raw: string): string => {
+  return raw
+    .replace(/(?:TYPE ENGINE|TYPE ENG|ENGINE TYPE|ENGINE|المحرك|كود المحرك|TYPE|محرك)/gi, '')
+    .trim();
+};
+
+/** Normalizes transmission text */
+const cleanTransmission = (raw: string): string => {
+  if (/يدوي|عادي|manual|mtm/i.test(raw)) return 'عادي';
+  if (/أوتوماتيك|اوتوماتيك|تماتيك|auto|atm|cvt/i.test(raw)) return 'تماتيك';
+  return raw.trim();
+};
+
+/**
+ * Extracts key-value mappings from vertical matrix blocks (e.g. Afyal / Nissan / Toyota EPC catalogs)
+ * where headers list is followed by matching values list.
+ */
+const parseMatrixKeyValueBlock = (text: string): Record<string, string> => {
+  const result: Record<string, string> = {};
+  const rawLines = text
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  // Clean lines: strip markdown link wrappers [val](url) -> val
+  const lines = rawLines.map(l => {
+    const md = l.match(/^\[(.*?)\](?:\(.*?\))?$/);
+    return md ? md[1].trim() : l;
+  });
+
+  const HEADER_KEYS = [
+    'الماركة',
+    'الموديل',
+    'سنة الموديل',
+    'سنة الصنع',
+    'السنة',
+    'هيكل المركبة',
+    'المحرك',
+    'المنطقة',
+    'السوق',
+    'susp',
+    'الفئة',
+    'ناقل الحركة',
+    'الجير',
+    'make',
+    'model',
+    'year',
+    'body',
+    'engine',
+    'region',
+    'market',
+    'grade',
+    'transmission',
+    'modelcode',
+    'model code',
+    'details',
+  ];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (HEADER_KEYS.some(k => k.toLowerCase() === lines[i].toLowerCase())) {
+      const headers: string[] = [];
+      let j = i;
+      while (
+        j < lines.length &&
+        HEADER_KEYS.some(k => k.toLowerCase() === lines[j].toLowerCase())
+      ) {
+        headers.push(lines[j]);
+        j++;
+      }
+
+      if (headers.length >= 3 && j < lines.length) {
+        for (let k = 0; k < headers.length && j + k < lines.length; k++) {
+          const header = headers[k];
+          const val = lines[j + k];
+          result[header] = val;
+        }
+        break;
+      }
+    }
+  }
+
+  return result;
 };
 
 /**
@@ -117,6 +217,8 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   }
 
   const text = rawInput.trim();
+  const matrix = parseMatrixKeyValueBlock(text);
+
   let vin: string | null = null;
   let make: string | null = null;
   let makeAr: string | null = null;
@@ -139,15 +241,12 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   let body: string | null = null;
 
   // 1. Extract VIN / Frame Number
-  // Examples:
-  // [VIN: ZRR750086287](...)
-  // vin=ZRR750086287
-  // VIN: ZRR75-0086287
-  // Frame: ZRR750086287
   const vinPatterns = [
     /\[VIN:\s*([A-Z0-9-]{7,17})\]/i,
     /(?:[?&]vin=|\/vin\/|\/search\/)([A-Z0-9-]{7,17})/i,
     /(?:VIN|Frame|Chassis|شاصي|رقم الشاصي|الهيكل)[:\s#]*([A-Z0-9-]{7,17})/i,
+    /(?:^|\n)\s*([A-HJ-NPR-Z0-9]{17})\s*(?:\n|$)/i,
+    /(?:^|\n)\s*([A-Z0-9-]{9,17})\s*(?:\n|$)/i,
   ];
 
   for (const pat of vinPatterns) {
@@ -288,6 +387,56 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
     }
   }
 
+  // Apply Matrix values if present
+  if (matrix['الماركة'] || matrix['Make']) {
+    const rawM = matrix['الماركة'] || matrix['Make'];
+    for (const [key, val] of Object.entries(KNOWN_MAKES)) {
+      if (
+        key.toLowerCase() === rawM.toLowerCase() ||
+        val.en.toLowerCase() === rawM.toLowerCase() ||
+        val.ar === rawM
+      ) {
+        make = val.en;
+        makeAr = val.ar;
+        break;
+      }
+    }
+  }
+
+  if (matrix['الموديل'] || matrix['Model']) {
+    model = matrix['الموديل'] || matrix['Model'];
+  }
+
+  if (matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix['Year']) {
+    year = matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix['Year'];
+    if (!yearStart) yearStart = year;
+    if (!yearEnd) yearEnd = year;
+  }
+
+  if (matrix['هيكل المركبة'] || matrix['Body']) {
+    body = matrix['هيكل المركبة'] || matrix['Body'];
+  }
+
+  if (matrix['المحرك'] || matrix['Engine']) {
+    engine = cleanEngineCode(matrix['المحرك'] || matrix['Engine']);
+  }
+
+  if (matrix['المنطقة'] || matrix['السوق'] || matrix['Region'] || matrix['Market']) {
+    market = normalizeMarketCategory(
+      matrix['المنطقة'] || matrix['السوق'] || matrix['Region'] || matrix['Market']
+    );
+  }
+
+  if (matrix['ناقل الحركة'] || matrix['الجير'] || matrix['Transmission']) {
+    transmission = cleanTransmission(
+      matrix['ناقل الحركة'] || matrix['الجير'] || matrix['Transmission']
+    );
+  }
+
+  if (matrix['الفئة'] || matrix['Grade']) {
+    grade = matrix['الفئة'] || matrix['Grade'];
+  }
+
   // 6. Extract Production Date and Range
   // Example: "Production Date: 2011-10" or "Production: 2010-04 » 2014-01" or "(04/2010 - 01/2014)"
   const prodDateMatch = text.match(
@@ -341,11 +490,13 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   if (!yearEnd && year) yearEnd = year;
 
   // 8. Extract Engine (e.g. Engine: 3ZRFA, 2TRFE, 1GRFE, 3ZR-FAE, 3URFE (5.7L V8), 2.0L, 1.8L)
-  const engineMatch = text.match(
-    /(?:Engine|المحرك|كود المحرك)[:\s]*([^\n\r]+?)(?=(?:Production Date|Production|Color Code|Color|Grade Description|Grade|Trim Code|Trim|Model Short|ModelShort|\n|$))/i
-  );
-  if (engineMatch && engineMatch[1]) {
-    engine = engineMatch[1].trim();
+  if (!engine) {
+    const engineMatch = text.match(
+      /(?:Engine|المحرك|كود المحرك)[:\s]*([^\n\r]+?)(?=(?:Production Date|Production|Color Code|Color|Grade Description|Grade|Trim Code|Trim|Model Short|ModelShort|\n|$))/i
+    );
+    if (engineMatch && engineMatch[1]) {
+      engine = cleanEngineCode(engineMatch[1]);
+    }
   }
 
   // 9. Extract Color Code (e.g. Color Code: 070, 1D6, 202, 040)
@@ -365,40 +516,60 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   }
 
   // 11. Extract Grade Description / Trim (e.g. Grade Description: X TYPE, TX-L, G, V)
-  const gradeMatch = text.match(
-    /(?:Grade Description|Grade|الفئة)[:\s]*([^\n\r]+?)(?=(?:Model Short|Production|Trim|Color|Engine|$))/i
-  );
-  if (gradeMatch && gradeMatch[1]) {
-    grade = gradeMatch[1].trim();
+  if (!grade) {
+    const gradeMatch = text.match(
+      /(?:Grade Description|Grade|الفئة)[:\s]*([^\n\r]+?)(?=(?:Model Short|Production|Trim|Color|Engine|$))/i
+    );
+    if (gradeMatch && gradeMatch[1]) {
+      grade = gradeMatch[1].trim();
+    }
   }
 
   // 12. Extract Market / Region (e.g. Japan, GCC, Europe, USA)
-  const marketMatch =
-    text.match(/\[(Japan|GCC|General|Europe|USA|North America|Middle East)\]/i) ||
-    text.match(
-      /(?:Region|Market|السوق|المنطقة)[:\s]*\n?(Japan|GCC|General|Europe|USA|North America|Middle East|JP|EU|US)\b/i
-    );
-  if (marketMatch && marketMatch[1]) {
-    market = normalizeMarketCategory(marketMatch[1]);
-  } else if (text.toLowerCase().includes('japan') || text.includes('/region/jp')) {
-    market = 'ياباني';
-  } else if (text.toLowerCase().includes('gcc') || text.toLowerCase().includes('general')) {
-    market = 'خليجي';
-  } else {
-    market = 'خليجي';
+  if (!market) {
+    const marketMatch =
+      text.match(/\[(Japan|GCC|General|Europe|USA|North America|Middle East)\]/i) ||
+      text.match(
+        /(?:Region|Market|السوق|المنطقة)[:\s]*\n?(Japan|GCC|General|Europe|USA|North America|Middle East|JP|EU|US)\b/i
+      );
+    if (marketMatch && marketMatch[1]) {
+      market = normalizeMarketCategory(marketMatch[1]);
+    } else if (text.toLowerCase().includes('japan') || text.includes('/region/jp')) {
+      market = 'ياباني';
+    } else if (
+      text.toLowerCase().includes('gcc') ||
+      text.toLowerCase().includes('general') ||
+      text.includes('خليج')
+    ) {
+      market = 'خليجي';
+    } else {
+      market = 'خليجي';
+    }
   }
 
   // 13. Transmission & Drive heuristics
-  if (text.match(/(?:4WD|AWD|4X4|دبل)/i)) {
-    drive = 'دبل';
-  } else if (text.match(/(?:2WD|FWD|RHD|سنجل|دفع أمامي|دفع خلفي)/i)) {
-    drive = 'سنجل';
+  if (!drive) {
+    if (
+      text.match(/(?:4WD|AWD|4X4|دبل)/i) ||
+      (model && /سافاري|باترول|شاص|لاندكروزر|برادو|safari|patrol/i.test(model)) ||
+      (body && /pick up|بيك اب/i.test(body) && (make === 'Nissan' || make === 'Toyota'))
+    ) {
+      drive = 'دبل';
+    } else if (text.match(/(?:2WD|FWD|RHD|سنجل|دفع أمامي|دفع خلفي)/i)) {
+      drive = 'سنجل';
+    } else {
+      drive = 'دبل';
+    }
   }
 
-  if (text.match(/(?:ATM|CVT|AUTOMATIC|AUTO|تماتيك|أوتوماتيك)/i)) {
-    transmission = 'تماتيك';
-  } else if (text.match(/(?:MTM|MANUAL|عادي|يدوي)/i)) {
-    transmission = 'عادي';
+  if (!transmission) {
+    if (text.match(/(?:ATM|CVT|AUTOMATIC|AUTO|تماتيك|أوتوماتيك)/i)) {
+      transmission = 'تماتيك';
+    } else if (text.match(/(?:MTM|MANUAL|عادي|يدوي)/i)) {
+      transmission = 'عادي';
+    } else {
+      transmission = 'عادي';
+    }
   }
 
   // Calculate score and count

@@ -100,4 +100,23 @@ describe('smartPartNamer', () => {
       'باكن غطاء باص نوها 2011 دبل مكينة 3ZRFA'
     );
   });
+
+  it('generates full Arabic product name for Nissan Safari Pick Up (سافاري بيك اب)', () => {
+    const safari: VehicleInfo = {
+      make: 'Nissan',
+      model: 'سافاري بيك اب',
+      year: 2016,
+      market: 'خليجي',
+      transmission: 'عادي',
+      driveType: '4WD',
+      engine: 'TB48DE',
+    };
+
+    expect(generateSmartPartName('باكن راس', safari)).toBe(
+      'باكن راس سافاري بيك اب 2016 خليجي عادي دبل مكينة TB48DE'
+    );
+    expect(generateSmartPartName('بلف حرارة', safari)).toBe(
+      'بلف حرارة سافاري بيك اب 2016 خليجي عادي دبل مكينة TB48DE'
+    );
+  });
 });
