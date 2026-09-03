@@ -86,8 +86,8 @@ const MainLayout: React.FC = () => {
 
   // Padding bottom for main content (to account for mobile nav + iOS safe area)
   const mainPaddingBottom = useMemo(() => {
-    if (deviceCategory === 'phone') return 'pb-[calc(5rem_+_env(safe-area-inset-bottom))]';
-    if (isIPad && isTabletPortrait) return 'pb-[calc(4rem_+_env(safe-area-inset-bottom))]';
+    if (deviceCategory === 'phone') return 'pb-[calc(3.75rem_+_env(safe-area-inset-bottom))]';
+    if (isIPad && isTabletPortrait) return 'pb-[calc(3.5rem_+_env(safe-area-inset-bottom))]';
     return 'pb-4';
   }, [deviceCategory, isIPad, isTabletPortrait]);
 
@@ -239,7 +239,7 @@ const MainLayout: React.FC = () => {
         <nav
           role="navigation"
           aria-label={t('mobile_navigation') || 'التنقل السفلي'}
-          className="no-print bg-[var(--app-surface)]/95 fixed bottom-0 left-0 right-0 z-40 flex h-[calc(3.5rem_+_env(safe-area-inset-bottom))] items-center justify-around border-t-2 border-[var(--app-border)] px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] backdrop-blur-md md:hidden"
+          className="no-print bg-[var(--app-surface)]/95 fixed bottom-0 left-0 right-0 z-40 flex h-[calc(3.25rem_+_env(safe-area-inset-bottom))] items-center justify-around border-t border-[var(--app-border)] px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden"
         >
           {navItems.map(item => {
             const isActive = location.pathname === item.path;
