@@ -7,10 +7,13 @@ import { usePlanMutations } from '../../hooks/useAdminData';
 interface EditPlanModalProps {
   plan: SubscriptionPlan | null;
   onClose: () => void;
+  /** أسماء الباقات الموجودة (يُستثنى منها الباقة الجاري تعديلها) لمنع الازدواجية */
+  existingNames: string[];
 }
 
-export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose }) => {
+export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose, existingNames }) => {
   const { savePlan, isSaving } = usePlanMutations();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<SubscriptionPlan>>({
     ...(plan?.id ? { id: plan.id } : {}),
@@ -52,9 +55,45 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name_ar) return;
-    await savePlan(formData);
-    onClose();
+
+    const trimmedName = (formData.name_ar ?? '').trim();
+    if (!trimmedName) {
+      setFormError('اسم الباقة (عربي) مطلوب.');
+      return;
+    }
+
+    const isDuplicate = existingNames.some(
+      name => name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (isDuplicate) {
+      setFormError('يوجد باقة أخرى بنفس الاسم مسبقاً. اختر اسماً مختلفاً.');
+      return;
+    }
+
+    const monthly = formData.price_monthly ?? 0;
+    const yearly = formData.price_yearly ?? 0;
+    const aiTokens = formData.ai_tokens_monthly ?? 0;
+    const maxUsers = formData.max_users ?? 0;
+    const maxProducts = formData.max_products ?? 0;
+    const maxInvoices = formData.max_invoices_monthly ?? 0;
+
+    if (monthly < 0 || yearly < 0 || aiTokens < 0) {
+      setFormError('لا يمكن أن تكون الأسعار أو رصيد التوكنز أرقاماً سالبة.');
+      return;
+    }
+    if (maxUsers < 1 || maxProducts < 1 || maxInvoices < 1) {
+      setFormError('الحدود القصوى (مستخدمين/منتجات/فواتير) يجب أن تكون 1 على الأقل.');
+      return;
+    }
+
+    try {
+      setFormError(null);
+      await savePlan({ ...formData, name_ar: trimmedName });
+      onClose();
+    } catch {
+      // onError في الـ hook يعرض التوست؛ نعرض رسالة محلية ونُبقي النموذج مفتوحاً
+      setFormError('تعذر حفظ الباقة. تحقق من الاتصال ثم أعد المحاولة.');
+    }
   };
 
   return (
@@ -76,6 +115,12 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose }) =
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5 p-5 text-xs">
+          {formError && (
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5 py-2 text-[10px] font-bold text-rose-600">
+              {formError}
+            </div>
+          )}
+
           {/* Names */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>

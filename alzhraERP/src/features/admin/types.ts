@@ -15,6 +15,13 @@ export interface PlatformMetrics {
   fetched_at: string;
 }
 
+/** عدّادات الخدمات الحية من get_platform_service_telemetry (RPC جديد). */
+export interface ServiceTelemetry {
+  total_chat_messages: number;
+  total_vin_analyses: number;
+  total_supplier_price_rows: number;
+}
+
 export interface TrialExtensionResult {
   trial_ends_at: string;
   subscription_status: AdminCompany['subscription_status'];

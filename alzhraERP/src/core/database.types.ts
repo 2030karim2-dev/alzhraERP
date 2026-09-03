@@ -12981,6 +12981,20 @@ export type Database = {
         Returns: undefined
       }
       is_super_admin: { Args: never; Returns: boolean }
+      get_admin_companies_count: {
+        Args: {
+          p_search?: string | null
+          p_status?: string | null
+        }
+        Returns: number
+      }
+      get_admin_users_count: {
+        Args: {
+          p_search?: string | null
+        }
+        Returns: number
+      }
+      get_platform_service_telemetry: { Args: Record<PropertyKey, never>; Returns: Json }
       get_platform_system_metrics: { Args: Record<PropertyKey, never>; Returns: Json }
       get_admin_companies_list: {
         Args: {

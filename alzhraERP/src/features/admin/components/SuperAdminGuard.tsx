@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ShieldAlert, ArrowRight } from 'lucide-react';
 import { useAuth, useIsSuperAdmin } from '../../auth/hooks';
 import PageLoader from '../../../ui/base/PageLoader';
@@ -23,7 +23,11 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) =>
     );
   }
 
-  if (!isAuthenticated || !isSuperAdmin) {
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.AUTH.LANDING} replace />;
+  }
+
+  if (!isSuperAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--app-bg)] px-4 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/10">

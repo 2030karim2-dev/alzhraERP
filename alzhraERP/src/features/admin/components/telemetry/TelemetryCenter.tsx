@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bot, Car, Store, MessageSquare, WifiOff, CheckCircle2, Database } from 'lucide-react';
 import type { PlatformMetrics } from '../../types';
+import { useServiceTelemetry } from '../../hooks/useAdminData';
 import { calcCacheHitRate } from '../../utils';
 
 interface TelemetryCenterProps {
@@ -8,6 +9,7 @@ interface TelemetryCenterProps {
 }
 
 export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => {
+  const { data: serviceTelemetry } = useServiceTelemetry();
   const cacheHitRate = calcCacheHitRate(
     metrics?.total_ai_requests || 0,
     metrics?.ai_cache_hits || 0
@@ -21,8 +23,9 @@ export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => 
           مركز مراقبة واستهلاك الخدمات التقنية (Platform Telemetry)
         </h2>
         <p className="text-[10px] text-[var(--app-text-secondary)]">
-          رصد مباشر لأداء خدمات الذكاء الاصطناعي، فك الشاصي VIN، بوابة الموردين، والمزامنة غير
-          المتصلة.
+          بطاقة الحالة العامة للخدمات التقنية: إحصاءات الذكاء الاصطناعي، رسائل المحادثات، تحليلات
+          VIN المحفوظة، وسجلات أسعار الموردين تُقرأ مباشرة من قاعدة البيانات؛ باقي الأسطر معلومات
+          وصفية للمنصة.
         </p>
       </div>
 
@@ -106,8 +109,8 @@ export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => 
               </span>
             </div>
             <div className="flex justify-between rounded-lg border border-blue-500/20 bg-blue-500/10 p-2 font-bold text-blue-700 dark:text-blue-300">
-              <span className="text-[11px]">متوسط سرعة فك الشاصي:</span>
-              <span className="font-mono">~120ms</span>
+              <span className="text-[11px]">التحليلات المحفوظة (VIN):</span>
+              <span className="font-mono">{serviceTelemetry?.total_vin_analyses ?? 0}</span>
             </div>
           </div>
         </div>
@@ -145,8 +148,8 @@ export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => 
               <span className="font-bold text-emerald-600">نشطة (60 req/min)</span>
             </div>
             <div className="flex justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 font-bold text-amber-700 dark:text-amber-300">
-              <span className="text-[11px]">معدل الردود المباشرة:</span>
-              <span className="font-mono">عالي الكفاءة</span>
+              <span className="text-[11px]">سجلات أسعار الموردين:</span>
+              <span className="font-mono">{serviceTelemetry?.total_supplier_price_rows ?? 0}</span>
             </div>
           </div>
         </div>
@@ -180,8 +183,8 @@ export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => 
               <span className="font-bold text-emerald-600">RLS محكم</span>
             </div>
             <div className="flex justify-between rounded-lg border border-blue-500/20 bg-blue-500/10 p-2 font-bold text-blue-700 dark:text-blue-300">
-              <span className="text-[11px]">المرفقات والمستندات:</span>
-              <span className="font-mono">مشفرة في Storage</span>
+              <span className="text-[11px]">رسائل المحادثات الكلية:</span>
+              <span className="font-mono">{serviceTelemetry?.total_chat_messages ?? 0}</span>
             </div>
           </div>
         </div>

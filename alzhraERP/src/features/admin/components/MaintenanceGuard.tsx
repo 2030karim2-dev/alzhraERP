@@ -21,21 +21,37 @@ interface MaintenanceConfig {
   estimated_end: string | null;
 }
 
+const DEFAULT_MAINTENANCE: MaintenanceConfig = {
+  enabled: false,
+  message: '',
+  estimated_end: null,
+};
+
+const isMaintenanceConfig = (value: unknown): value is MaintenanceConfig => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.enabled === 'boolean' &&
+    typeof record.message === 'string' &&
+    (typeof record.estimated_end === 'string' || record.estimated_end === null)
+  );
+};
+
 const useMaintenanceMode = () => {
   return useQuery({
     queryKey: ['platform_maintenance_mode'],
     queryFn: async (): Promise<MaintenanceConfig> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('system_platform_configs')
         .select('value')
         .eq('key', 'maintenance_mode')
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
-        return { enabled: false, message: '', estimated_end: null };
+        return DEFAULT_MAINTENANCE;
       }
 
-      return data.value as MaintenanceConfig;
+      return isMaintenanceConfig(data.value) ? data.value : DEFAULT_MAINTENANCE;
     },
     staleTime: 30_000, // 30 ثانية — فحص سريع ومتكرر
     gcTime: 60_000,

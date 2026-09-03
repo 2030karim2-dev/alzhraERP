@@ -12,8 +12,10 @@ import {
   Filter,
   Check,
   X,
+  Download,
 } from 'lucide-react';
 import { useSecurityLogs, useSecurityMutations } from '../../hooks/useAdminData';
+import { downloadCsvFile, toCsv } from '../../utils';
 import type { SecurityAlertLog } from '../../types';
 import Button from '../../../../ui/base/Button';
 
@@ -73,6 +75,33 @@ export const SecurityAuditingHub: React.FC = () => {
     }
   };
 
+  const handleExportActive = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    if (activeSubTab === 'csp') {
+      const header = ['الصفحة المستهدفة', 'المورد المحظور', 'القاعدة المنتهكة', 'التوقيت'];
+      const rows = cspReports.map(report => [
+        report.document_uri ?? '',
+        report.blocked_uri ?? '',
+        report.violated_directive ?? '',
+        report.received_at,
+      ]);
+      downloadCsvFile(`csp-reports-${stamp}.csv`, toCsv(header, rows));
+      return;
+    }
+
+    const header = ['المستوى', 'نوع التنبيه', 'IP', 'التفاصيل', 'وقت الاكتشاف', 'تمت المعالجة'];
+    const rows = filteredHoneypotLogs.map(log => [
+      log.severity,
+      log.alert_type,
+      log.source_ip ?? '',
+      JSON.stringify(log.details ?? {}),
+      new Date(log.detected_at).toLocaleString('ar-SA'),
+      log.resolved_at ? 'نعم' : 'لا',
+    ]);
+    downloadCsvFile(`security-alerts-${stamp}.csv`, toCsv(header, rows));
+  };
+
   return (
     <div className="space-y-4">
       {/* Top Banner & Posture Indicators */}
@@ -82,26 +111,36 @@ export const SecurityAuditingHub: React.FC = () => {
             <div className="flex items-center gap-2">
               <ShieldAlert size={16} className="text-rose-500" />
               <h2 className="text-xs font-black text-[var(--app-text)]">
-                مركز الأمان ومصيدة الاختراق (Security & Honeypot Hub)
+                مركز الأمان والتنبيهات (Security Alerts Hub)
               </h2>
             </div>
             <p className="mt-0.5 text-[10px] text-[var(--app-text-secondary)]">
-              رصد استباقي للهجمات السيبرانية ومحاولات استغلال الثغرات عبر جداول الفخاخ (Honeypot
-              Trap Tables) وتنبيهات أمان المنصة.
+              سجلّات تنبيهات أمان المنصة (مصيدة Honeypot + Rate-limit + حظر تلقائي) وتقارير انتهاك
+              سياسة أمان المتصفح (CSP).
             </p>
           </div>
 
-          <Button
-            variant="outline"
-            onClick={refetch}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-          >
-            <RefreshCw
-              size={12}
-              className={isLoadingHoneypot || isLoadingCsp ? 'animate-spin' : ''}
-            />
-            <span>تحديث السجلات</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportActive}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              <Download size={12} />
+              <span>تصدير CSV</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={refetch}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              <RefreshCw
+                size={12}
+                className={isLoadingHoneypot || isLoadingCsp ? 'animate-spin' : ''}
+              />
+              <span>تحديث السجلات</span>
+            </Button>
+          </div>
         </div>
 
         {/* Security Pillars */}
@@ -137,7 +176,7 @@ export const SecurityAuditingHub: React.FC = () => {
             }`}
           >
             <ShieldAlert size={14} />
-            <span>تنبيهات مصيدة الـ Honeypot ({honeypotLogs.length})</span>
+            <span>سجلات الأمان والتنبيهات ({honeypotLogs.length})</span>
           </button>
 
           <button

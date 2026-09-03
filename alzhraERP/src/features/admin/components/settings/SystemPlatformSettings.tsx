@@ -234,6 +234,9 @@ export const SystemPlatformSettings: React.FC = () => {
                   <span className="text-[10px] text-[var(--app-text-secondary)]">
                     البحث الصوتي والتعرف على القطع
                   </span>
+                  <span className="mt-0.5 block text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                    ⚠ غير مربوط بخدمة تشغيلية بعد — الإيقاف لن يغيّر سلوك النظام حالياً
+                  </span>
                 </div>
               </div>
               <button
@@ -321,6 +324,9 @@ export const SystemPlatformSettings: React.FC = () => {
                   </p>
                   <span className="text-[10px] text-[var(--app-text-secondary)]">
                     العمل ونقاط البيع بدون إنترنت
+                  </span>
+                  <span className="mt-0.5 block text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                    ⚠ غير مربوط بخدمة تشغيلية بعد — الإيقاف لن يغيّر سلوك النظام حالياً
                   </span>
                 </div>
               </div>

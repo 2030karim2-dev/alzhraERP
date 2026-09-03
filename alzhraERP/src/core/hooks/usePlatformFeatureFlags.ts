@@ -30,19 +30,24 @@ export const usePlatformFeatureFlags = () => {
   return useQuery({
     queryKey: ['platform_feature_flags'],
     queryFn: async (): Promise<PlatformFeatureFlags> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('system_platform_configs')
         .select('value')
         .eq('key', 'feature_flags')
-        .single();
+        .maybeSingle();
 
-      if (error || !data?.value) {
+      if (error || !data) {
+        return DEFAULT_FLAGS;
+      }
+
+      const value = data.value;
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) {
         return DEFAULT_FLAGS;
       }
 
       return {
         ...DEFAULT_FLAGS,
-        ...(data.value as Partial<PlatformFeatureFlags>),
+        ...(value as unknown as Partial<PlatformFeatureFlags>),
       };
     },
     staleTime: 30_000,

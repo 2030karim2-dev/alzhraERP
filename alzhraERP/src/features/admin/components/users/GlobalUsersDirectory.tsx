@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, RefreshCw, Crown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, RefreshCw, Crown, ChevronRight, ChevronLeft, Download } from 'lucide-react';
 import type { AdminUser } from '../../types';
-import { useAdminUsers, useUserMutations } from '../../hooks/useAdminData';
+import { useAdminUsers, useAdminUsersCount, useUserMutations } from '../../hooks/useAdminData';
+import { downloadCsvFile, toCsv } from '../../utils';
 import Button from '../../../../ui/base/Button';
 import { useAuthStore } from '../../../auth/store';
 import { useDebounce } from '../../../../lib/hooks/useDebounce';
@@ -33,6 +34,8 @@ export const GlobalUsersDirectory: React.FC = () => {
   });
 
   const { toggleSuperAdmin, isTogglingSuperAdmin } = useUserMutations();
+  const { data: totalUsers = 0 } = useAdminUsersCount(debouncedSearch.trim() || undefined);
+  const totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE));
 
   const handleConfirmToggle = async () => {
     if (!targetUserToToggle) return;
@@ -45,6 +48,18 @@ export const GlobalUsersDirectory: React.FC = () => {
     } finally {
       setTargetUserToToggle(null);
     }
+  };
+
+  const handleExportCsv = () => {
+    const header = ['البريد الإلكتروني', 'سوبر أدمن', 'عدد المنشآت', 'المنشآت', 'تاريخ التسجيل'];
+    const rows = users.map(u => [
+      u.email,
+      u.is_super_admin ? 'نعم' : 'لا',
+      u.companies_count,
+      u.company_names.join(' | '),
+      new Date(u.created_at).toLocaleDateString('ar-SA'),
+    ]);
+    downloadCsvFile(`users-page-${page}.csv`, toCsv(header, rows));
   };
 
   return (
@@ -63,6 +78,15 @@ export const GlobalUsersDirectory: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs"
+            title="تصدير نتائج هذه الصفحة CSV"
+          >
+            <Download size={12} />
+            <span className="hidden sm:inline">تصدير CSV</span>
+          </Button>
           <Button
             variant="outline"
             onClick={() => refetch()}
@@ -211,7 +235,7 @@ export const GlobalUsersDirectory: React.FC = () => {
         {/* Pagination Footer */}
         <div className="flex items-center justify-between border-t border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3.5 py-2 text-xs">
           <span className="text-[10px] text-[var(--app-text-secondary)]">
-            عرض {users.length} مستخدم (صفحة {page})
+            عرض {users.length} من {totalUsers} مستخدم (صفحة {page} من {totalPages})
           </span>
           <div className="flex items-center gap-1.5">
             <Button
@@ -226,7 +250,7 @@ export const GlobalUsersDirectory: React.FC = () => {
             <span className="px-2 text-[10px] font-bold text-[var(--app-text)]">{page}</span>
             <Button
               variant="outline"
-              disabled={users.length < PAGE_SIZE || isLoading}
+              disabled={page >= totalPages || isLoading}
               onClick={() => setPage(p => p + 1)}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >

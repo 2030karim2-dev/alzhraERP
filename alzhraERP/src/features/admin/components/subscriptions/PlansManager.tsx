@@ -189,6 +189,10 @@ export const PlansManager: React.FC = () => {
       {(editingPlan || isCreating) && (
         <EditPlanModal
           plan={editingPlan}
+          existingNames={plans
+            .filter(p => p.id !== editingPlan?.id)
+            .map(p => p.name_ar)
+            .filter(name => name.trim() !== '')}
           onClose={() => {
             setEditingPlan(null);
             setIsCreating(false);
@@ -200,7 +204,7 @@ export const PlansManager: React.FC = () => {
       <ConfirmModal
         isOpen={!!planToDelete}
         title={`حذف باقة "${planToDelete?.name_ar || ''}"`}
-        message="هل أنت متأكد من حذف باقة الاشتراك هذه نهائياً؟ ستفقد المنشآت المرتبطة بها تعيينها للباقة."
+        message="هل أنت متأكد من حذف باقة الاشتراك هذه نهائياً؟ في حال كانت الباقة مرتبطة بمنشآت سيرفض النظام الحذف حمايةً لبياناتها — ألغِ ربطها أولاً ثم أعد المحاولة."
         variant="danger"
         confirmLabel="حذف نهائي"
         isLoading={isDeleting}

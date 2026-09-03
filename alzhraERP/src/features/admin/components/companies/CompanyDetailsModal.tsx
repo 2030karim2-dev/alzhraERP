@@ -17,6 +17,7 @@ import {
 import type { AdminCompany } from '../../types';
 import Button from '../../../../ui/base/Button';
 import { useCompanyMutations, useSubscriptionPlans } from '../../hooks/useAdminData';
+import { deriveStatusAfterToggle, subscriptionStatusLabel } from '../../utils';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
 
 interface CompanyDetailsModalProps {
@@ -55,11 +56,8 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
 
   const handleToggleClick = () => {
     const nextActive = !currentCompany.is_active;
-    const nextStatus = nextActive
-      ? currentCompany.subscription_status === 'trial'
-        ? 'trial'
-        : 'active'
-      : 'suspended';
+    // الحالة المحسوبة تطابق منطق الخادم (20260904000001)؛ الخادم هو مصدر الحقيقة
+    const nextStatus = deriveStatusAfterToggle(currentCompany, nextActive);
     const actionLabel = nextActive ? 'إعادة تفعيل' : 'تعليق';
 
     setConfirmModal({
@@ -70,61 +68,73 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
         : `هل أنت متأكد من تعليق المنشأة؟ سيتم حظر كافة المستخدمين من إجراء أي عمليات بيع أو تقارير فوراً.`,
       variant: nextActive ? 'primary' : 'danger',
       action: async () => {
-        await toggleStatus({
-          companyId: currentCompany.id,
-          isActive: nextActive,
-          status: nextStatus,
-        });
-        setCurrentCompany(prev =>
-          prev
-            ? {
-                ...prev,
-                is_active: nextActive,
-                subscription_status: nextStatus,
-              }
-            : null
-        );
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await toggleStatus({
+            companyId: currentCompany.id,
+            isActive: nextActive,
+            status: nextStatus,
+          });
+          setCurrentCompany(prev =>
+            prev
+              ? {
+                  ...prev,
+                  is_active: nextActive,
+                  subscription_status: nextStatus,
+                }
+              : null
+          );
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        } catch {
+          // onError في الـ hook يعرض التوست؛ نُبقي المودال مفتوحاً لإعادة المحاولة
+        }
       },
     });
   };
 
   const handleExtend = async () => {
-    const result = await extendTrial({
-      companyId: currentCompany.id,
-      days: extendDays,
-    });
-    if (result?.trial_ends_at) {
-      setCurrentCompany(prev =>
-        prev
-          ? {
-              ...prev,
-              trial_ends_at: result.trial_ends_at,
-              subscription_status: result.subscription_status,
-              is_active: true,
-            }
-          : null
-      );
+    try {
+      const result = await extendTrial({
+        companyId: currentCompany.id,
+        days: extendDays,
+      });
+      if (result?.trial_ends_at) {
+        setCurrentCompany(prev =>
+          prev
+            ? {
+                ...prev,
+                trial_ends_at: result.trial_ends_at,
+                subscription_status: result.subscription_status,
+                is_active: true,
+              }
+            : null
+        );
+      }
+    } catch {
+      // onError في الـ hook يعرض التوست بالفعل؛ لا نُحدّث الحالة المحلية عند الفشل
     }
   };
 
   const handleSavePlan = async () => {
     const planIdToSave = selectedPlanId ? selectedPlanId : null;
-    const success = await assignPlan({
-      companyId: currentCompany.id,
-      planId: planIdToSave,
-    });
-    if (success) {
-      const matchedPlan = subscriptionPlans.find(p => p.id === selectedPlanId);
-      setCurrentCompany(prev =>
-        prev
-          ? {
-              ...prev,
-              plan_id: planIdToSave,
-              plan_name: matchedPlan ? matchedPlan.name_ar : null,
-            }
-          : null
-      );
+    try {
+      const success = await assignPlan({
+        companyId: currentCompany.id,
+        planId: planIdToSave,
+      });
+      if (success) {
+        const matchedPlan = subscriptionPlans.find(p => p.id === selectedPlanId);
+        setCurrentCompany(prev =>
+          prev
+            ? {
+                ...prev,
+                plan_id: planIdToSave,
+                plan_name: matchedPlan ? matchedPlan.name_ar : null,
+              }
+            : null
+        );
+      }
+    } catch {
+      // onError في الـ hook يعرض التوست بالفعل؛ لا نُحدّث الحالة المحلية عند الفشل
     }
   };
 
@@ -174,7 +184,7 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
                 {currentCompany.is_active ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-black text-emerald-600">
                     <CheckCircle2 size={11} />
-                    <span>نشطة ({currentCompany.subscription_status})</span>
+                    <span>نشطة ({subscriptionStatusLabel(currentCompany.subscription_status)})</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-black text-rose-600">
@@ -298,7 +308,14 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
               </span>
               <span className="font-bold text-amber-600 dark:text-amber-400">
                 {currentCompany.trial_ends_at
-                  ? new Date(currentCompany.trial_ends_at).toLocaleDateString('ar-SA')
+                  ? `${new Date(currentCompany.trial_ends_at).toLocaleDateString(
+                      'ar-SA'
+                    )} — متبقي ${Math.max(
+                      0,
+                      Math.ceil(
+                        (new Date(currentCompany.trial_ends_at).getTime() - Date.now()) / 86400000
+                      )
+                    )} يوم`
                   : 'غير محددة'}
               </span>
             </div>

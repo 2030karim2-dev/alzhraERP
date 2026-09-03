@@ -52,7 +52,7 @@ export const AdminHubPage: React.FC = () => {
     { id: 'telemetry', label: 'مراقبة الخدمات والـ AI', icon: <Activity size={14} /> },
     {
       id: 'security',
-      label: 'الأمان ومصيدة الـ Honeypot',
+      label: 'الأمان والتنبيهات',
       icon: <ShieldAlert size={14} />,
       badge: metrics?.honeypot_alerts ? `${metrics.honeypot_alerts}` : undefined,
     },

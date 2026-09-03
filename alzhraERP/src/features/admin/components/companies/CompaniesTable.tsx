@@ -4,14 +4,21 @@ import {
   Filter,
   CheckCircle2,
   Ban,
+  Download,
   Eye,
   RefreshCw,
   ChevronRight,
   ChevronLeft,
 } from 'lucide-react';
 import type { AdminCompany } from '../../types';
-import { useAdminCompanies, useCompanyMutations } from '../../hooks/useAdminData';
+import { useAdminCompanies, useAdminCompaniesCount, useCompanyMutations } from '../../hooks/useAdminData';
 import { CompanyDetailsModal } from './CompanyDetailsModal';
+import {
+  deriveStatusAfterToggle,
+  downloadCsvFile,
+  subscriptionStatusLabel,
+  toCsv,
+} from '../../utils';
 import Button from '../../../../ui/base/Button';
 import { useDebounce } from '../../../../lib/hooks/useDebounce';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
@@ -59,16 +66,17 @@ export const CompaniesTable: React.FC = () => {
 
   const { data: companies = [], isLoading, isError, refetch } = useAdminCompanies(queryParams);
   const { toggleStatus, isToggling } = useCompanyMutations();
+  const { data: totalCompanies = 0 } = useAdminCompaniesCount({
+    search: debouncedSearch.trim() || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+  });
+  const totalPages = Math.max(1, Math.ceil(totalCompanies / PAGE_SIZE));
 
   const handleToggleClick = (company: AdminCompany) => {
     const nextActive = !company.is_active;
     const actionLabel = nextActive ? 'إعادة تفعيل' : 'تعليق';
-    // Preserve trial status if company is in trial
-    const nextStatus = nextActive
-      ? company.subscription_status === 'trial'
-        ? 'trial'
-        : 'active'
-      : 'suspended';
+    // الحالة المحسوبة تطابق منطق الخادم (20260904000001)؛ الخادم هو مصدر الحقيقة
+    const nextStatus = deriveStatusAfterToggle(company, nextActive);
 
     setConfirmModalState({
       isOpen: true,
@@ -80,14 +88,44 @@ export const CompaniesTable: React.FC = () => {
       }`,
       variant: nextActive ? 'primary' : 'danger',
       action: async () => {
-        await toggleStatus({
-          companyId: company.id,
-          isActive: nextActive,
-          status: nextStatus,
-        });
-        setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+        try {
+          await toggleStatus({
+            companyId: company.id,
+            isActive: nextActive,
+            status: nextStatus,
+          });
+          setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+        } catch {
+          // onError في الـ hook يعرض التوست؛ نُبقي المودال مفتوحاً لإعادة المحاولة
+        }
       },
     });
+  };
+
+  const handleExportCsv = () => {
+    const header = [
+      'المنشأة',
+      'الرقم الضريبي',
+      'بريد المالك',
+      'الباقة',
+      'الحالة',
+      'المستخدمون',
+      'الفروع',
+      'الفواتير',
+      'تاريخ التسجيل',
+    ];
+    const rows = companies.map(c => [
+      c.name_ar,
+      c.tax_number ?? '',
+      c.owner_email ?? '',
+      c.plan_name ?? '',
+      c.is_active ? c.subscription_status : 'suspended',
+      c.user_count,
+      c.branch_count,
+      c.invoice_count,
+      c.created_at ? new Date(c.created_at).toLocaleDateString('ar-SA') : '',
+    ]);
+    downloadCsvFile(`companies-page-${page}.csv`, toCsv(header, rows));
   };
 
   return (
@@ -121,6 +159,16 @@ export const CompaniesTable: React.FC = () => {
               <option value="cancelled">ملغاة (Cancelled)</option>
             </select>
           </div>
+
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs"
+            title="تصدير نتائج هذه الصفحة CSV"
+          >
+            <Download size={12} />
+            <span className="hidden sm:inline">تصدير CSV</span>
+          </Button>
 
           <Button
             variant="outline"
@@ -237,13 +285,7 @@ export const CompaniesTable: React.FC = () => {
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                           <CheckCircle2 size={10} />
                           <span>
-                            {company.subscription_status === 'trial'
-                              ? 'تجريبي'
-                              : company.subscription_status === 'past_due'
-                                ? 'متأخر'
-                                : company.subscription_status === 'cancelled'
-                                  ? 'ملغي'
-                                  : 'نشط'}
+                            {subscriptionStatusLabel(company.subscription_status)}
                           </span>
                         </span>
                       ) : (
@@ -288,7 +330,7 @@ export const CompaniesTable: React.FC = () => {
         {/* Pagination Footer */}
         <div className="flex items-center justify-between border-t border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3.5 py-2 text-xs">
           <span className="text-[10px] text-[var(--app-text-secondary)]">
-            عرض {companies.length} منشأة (صفحة {page})
+            عرض {companies.length} من {totalCompanies} منشأة (صفحة {page} من {totalPages})
           </span>
           <div className="flex items-center gap-1.5">
             <Button
@@ -303,7 +345,7 @@ export const CompaniesTable: React.FC = () => {
             <span className="px-2 text-[10px] font-bold text-[var(--app-text)]">{page}</span>
             <Button
               variant="outline"
-              disabled={companies.length < PAGE_SIZE || isLoading}
+              disabled={page >= totalPages || isLoading}
               onClick={() => setPage(p => p + 1)}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >

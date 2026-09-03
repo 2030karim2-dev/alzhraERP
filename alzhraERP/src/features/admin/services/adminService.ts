@@ -6,6 +6,7 @@ import type {
   CspReportLog,
   PlatformMetrics,
   SecurityAlertLog,
+  ServiceTelemetry,
   SubscriptionPlan,
   SystemPlatformConfigs,
   TrialExtensionResult,
@@ -113,6 +114,15 @@ export const adminService = {
   },
 
   /**
+   * جلب عدّادات الخدمات الحية (محادثات/تحليلات VIN/أسعار موردين)
+   */
+  async getServiceTelemetry(): Promise<ServiceTelemetry> {
+    const { data, error } = await supabase.rpc('get_platform_service_telemetry');
+    if (error) throw error;
+    return (data ?? {}) as unknown as ServiceTelemetry;
+  },
+
+  /**
    * جلب قائمة الشركات المشتركة مع فلترة وبحث
    */
   async getCompanies(params?: {
@@ -129,6 +139,21 @@ export const adminService = {
     });
     if (error) throw error;
     return (data ?? []).map(toAdminCompany);
+  },
+
+  /**
+   * إجمالي عدد المنشآت المطابقة (لحساب صفحات القائمة بدقة)
+   */
+  async getCompaniesCount(params?: {
+    search?: string | undefined;
+    status?: string | undefined;
+  }): Promise<number> {
+    const { data, error } = await supabase.rpc('get_admin_companies_count', {
+      p_search: params?.search?.trim() || null,
+      p_status: params?.status || null,
+    });
+    if (error) throw error;
+    return Number(data ?? 0);
   },
 
   /**
@@ -251,6 +276,17 @@ export const adminService = {
     });
     if (error) throw error;
     return (data ?? []).map(toAdminUser);
+  },
+
+  /**
+   * إجمالي عدد المستخدمين المطابقين (لحساب صفحات دليل المستخدمين بدقة)
+   */
+  async getUsersCount(search?: string): Promise<number> {
+    const { data, error } = await supabase.rpc('get_admin_users_count', {
+      p_search: search?.trim() || null,
+    });
+    if (error) throw error;
+    return Number(data ?? 0);
   },
 
   /**

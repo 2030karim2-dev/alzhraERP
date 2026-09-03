@@ -29,6 +29,24 @@ export const useAdminCompanies = (params?: {
   });
 };
 
+export const useAdminCompaniesCount = (params?: {
+  search?: string | undefined;
+  status?: string | undefined;
+}) => {
+  return useQuery({
+    queryKey: ['admin_companies_count', params?.search, params?.status],
+    queryFn: () => adminService.getCompaniesCount(params),
+  });
+};
+
+export const useServiceTelemetry = () => {
+  return useQuery({
+    queryKey: ['admin_service_telemetry'],
+    queryFn: () => adminService.getServiceTelemetry(),
+    refetchInterval: 60000,
+  });
+};
+
 export const useCompanyMutations = () => {
   const queryClient = useQueryClient();
   const { showToast } = useFeedbackStore();
@@ -45,6 +63,7 @@ export const useCompanyMutations = () => {
     }) => adminService.toggleCompanyStatus(companyId, isActive, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_companies_count'] });
       queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast('تم تحديث حالة المنشأة بنجاح', 'success');
     },
@@ -142,6 +161,13 @@ export const useAdminUsers = (params?: {
   return useQuery({
     queryKey: ['admin_users', params?.search, params?.limit, params?.offset],
     queryFn: () => adminService.getUsers(params),
+  });
+};
+
+export const useAdminUsersCount = (search?: string) => {
+  return useQuery({
+    queryKey: ['admin_users_count', search],
+    queryFn: () => adminService.getUsersCount(search),
   });
 };
 

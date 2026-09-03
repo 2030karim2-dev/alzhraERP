@@ -117,7 +117,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-xl font-black text-[var(--app-text)]">{metrics.total_users}</span>
-            <span className="text-[10px] font-bold text-indigo-500">حسابات نشطة</span>
+            <span className="text-[10px] font-bold text-indigo-500">إجمالي الحسابات المسجلة</span>
           </div>
           <div className="border-[var(--app-border)]/60 mt-2.5 flex items-center justify-between border-t pt-2 text-[10px] text-[var(--app-text-secondary)]">
             <span>دليل المستخدمين</span>
@@ -264,7 +264,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             <div className="flex items-center gap-2">
               <ShieldAlert size={15} className="text-rose-500" />
               <h2 className="text-xs font-black text-[var(--app-text)]">
-                جدار الأمان والـ Honeypot
+                مركز الأمان والتنبيهات
               </h2>
             </div>
             <span className="text-[10px] font-bold text-rose-500 group-hover:underline">
@@ -275,7 +275,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between rounded-lg bg-[var(--app-surface-hover)] p-2 text-xs">
               <span className="text-[11px] font-bold text-[var(--app-text-secondary)]">
-                هجمات مصيدة الـ Honeypot
+                تنبيهات أمنية نشطة (غير محلولة)
               </span>
               <span className="font-black text-rose-500">{metrics.honeypot_alerts}</span>
             </div>
