@@ -89,18 +89,31 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
     }
 
     // Auto-Treasury (Cashbox) Selection on currency change
+    // [AUDIT-FIX] كانت المصطلحات تقتصر على SAR/YER، فتُترك خزينة قديمة (غالباً
+    // صندوق سعودي) مع عملة مثل USD/OMR/CNY فيُودَع البيع في الصندوق الخطأ بصمت.
+    // الآن: مطابقة دقيقة بالعملة أولاً ثم بالاسم/الرمز، مع إفراغ الاختيار القديم
+    // عند غياب حساب مطابق حتى لا يمرر المتصل حساباً بعملة مختلفة.
     if (currencyChanged && paymentAccounts && paymentAccounts.length > 0) {
-      const searchTerms =
-        currency === 'SAR' ? ['SAR', 'سعودي', 'ريال سعودي'] : ['YER', 'يمني', 'ريال يمني'];
-      const matchingAccount = paymentAccounts.find(
-        acc =>
-          acc.currency_code === currency ||
-          searchTerms.some(term => acc.name_ar.toLowerCase().includes(term.toLowerCase()))
-      );
+      const normalizedCurrency = (currency || 'SAR').toUpperCase();
+      const searchTerms = [
+        normalizedCurrency,
+        ...(normalizedCurrency === 'SAR'
+          ? ['سعودي', 'ريال سعودي']
+          : normalizedCurrency === 'YER'
+            ? ['يمني', 'ريال يمني']
+            : []),
+      ];
+      const matchingAccount = paymentAccounts.find(acc => {
+        const accCurrency = (acc.currency_code ?? '').toUpperCase();
+        const currencyMatches = accCurrency !== '' && accCurrency === normalizedCurrency;
+        const searchableText = `${acc.name_ar} ${acc.code ?? ''}`.toLowerCase();
+        const keywordMatches = searchTerms.some(term =>
+          searchableText.includes(term.toLowerCase())
+        );
+        return currencyMatches || keywordMatches;
+      });
 
-      if (matchingAccount) {
-        setMetadata('cashboxId', matchingAccount.id);
-      }
+      setMetadata('cashboxId', matchingAccount ? matchingAccount.id : '');
     }
 
     // Default primary warehouse selection
@@ -172,7 +185,9 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                 <span className="text-[10px] font-bold">رقم الفاتورة</span>
               </div>
               <span className="font-mono text-xs font-black text-slate-800 dark:text-slate-200">
-                #{invoiceNumber || '---'}
+                {invoiceNumber && /^[A-Za-z]+-/.test(invoiceNumber)
+                  ? invoiceNumber
+                  : `#${invoiceNumber || '---'}`}
               </span>
             </div>
 

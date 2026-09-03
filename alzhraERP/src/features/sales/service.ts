@@ -2,6 +2,7 @@ import { salesApi } from './api/index';
 import type { CreateInvoiceDTO } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
+import { netUnitPrices } from '../../core/utils/invoiceDiscount';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
 import { resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
 import { logger } from '../../core/utils/logger';
@@ -118,18 +119,47 @@ export const salesService = {
         payload.currency || 'SAR',
         payload.treasuryAccountId
       );
+      // [AUDIT-FIX] لا تُوجَّه عملية نقدية بلا حساب مطابق بصمت إلى أول صندوق
+      // (كان ذلك يُودع عملة أجنبية في صندوق SAR). نوقف العملية برسالة واضحة.
+      if (!finalTreasuryAccountId) {
+        throw new Error(
+          'لم يُعثر على حساب صندوق/بنك مطابق لعملة الفاتورة — اختر الحساب يدوياً ثم أعد المحاولة'
+        );
+      }
     }
+
+    // [AUDIT-FIX] توزيع خصم الفاتورة على أسعار الوحدات الصافية قبل الإرسال:
+    // commit_sales_invoice_v2 لا يقبل discount إطلاقاً، فكان الخصم الذي يراه
+    // المستخدم (إجمالي الخصم/الصافي) يُفقد كلياً ويُخزَّن إجمالي أعلى من المعروض.
+    // بتوزيع الخصم تناسبياً على unit_price يطابق المبلغ المخزَّن إجمالي الواجهة.
+    const netLines = netUnitPrices(
+      payload.items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+      payload.discount
+    );
+    const netItems = payload.items.map((item, index) => ({
+      ...item,
+      unitPrice: netLines[index]?.unitPrice ?? item.unitPrice,
+    }));
 
     const { treasuryAccountId, ...restPayload } = payload;
     const enhancedPayload = {
       ...restPayload,
+      items: netItems,
       ...(finalTreasuryAccountId ? { treasuryAccountId: finalTreasuryAccountId } : {}),
     };
     const result = await salesApi.commitInvoiceRPC(companyId, userId, enhancedPayload);
 
     // 🔔 Fire-and-forget notification
     if (result) {
-      const itemsTotal = payload.items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
+      const itemsTotal = netItems.reduce(
+        (sum: number, it: { quantity: number; unitPrice: number }) =>
+          sum + it.quantity * it.unitPrice,
+        0
+      );
       const typedResult = result;
       messagingService.notify(
         companyId,
@@ -155,19 +185,19 @@ export const salesService = {
   // stats showing all-zero when the month just started. Also filters voided invoices.
   getStats: async (companyId: string, branchId?: string | null) => {
     const today = new Date();
-    // Rolling 30-day window
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const isoDate = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+    // Current 30-day window: [today - 30d, today]
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * MS_PER_DAY);
     const startOfThisWindow = isoDate(thirtyDaysAgo);
-    const startOfPrevWindow = isoDate(
-      new Date(today.getFullYear(), today.getMonth() - 1, today.getDate() - 29)
-    );
-    const endOfPrevWindow = isoDate(
-      new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)
-    );
+
+    // Previous 30-day window: [today - 60d, today - 31d]
+    const sixtyDaysAgo = new Date(today.getTime() - 60 * MS_PER_DAY);
+    const thirtyOneDaysAgo = new Date(today.getTime() - 31 * MS_PER_DAY);
+    const startOfPrevWindow = isoDate(sixtyDaysAgo);
+    const endOfPrevWindow = isoDate(thirtyOneDaysAgo);
 
     try {
       // Query this period's invoices (last 30 days) — exclude voided and deleted

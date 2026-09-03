@@ -24,3 +24,6 @@ export function formatNumberDisplay(value: number): string {
   // Format non-currency numbers to English digits
   return ensureLatinDigits(new Intl.NumberFormat('en-US').format(value));
 }
+
+export { formatLocalDate, getLocalYearStart } from './utils/dateUtils';
+export { netUnitPrices } from './utils/invoiceDiscount';

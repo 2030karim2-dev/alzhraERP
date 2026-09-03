@@ -146,19 +146,26 @@ const QuotationDetailsModal: React.FC<Props> = ({
         setMetadata('invoiceType', 'credit'); // Quotations usually lead to credit or formal invoices
 
         if (quotation.quotation_items && quotation.quotation_items.length > 0) {
-          const newItems = quotation.quotation_items.map((item: QuotationDetailItem) => ({
-            id: crypto.randomUUID(),
-            productId: item.product_id || '',
-            sku: item.product?.sku || '',
-            name: item.product?.name_ar || item.description || 'صنف غير محدد',
-            partNumber: item.product?.part_number || '',
-            brand: item.product?.brand || '',
-            quantity: item.quantity || 1,
-            basePrice: item.unit_price || 0,
-            price: item.unit_price || 0,
-            discount: 0, // Simplified for now
-            costPrice: item.product?.cost_price || 0,
-          }));
+          const newItems = quotation.quotation_items.map((item: QuotationDetailItem) => {
+            const unitPrice = Number(item.unit_price) || 0;
+            const discountAmount = item.discount_percent
+              ? (unitPrice * Number(item.discount_percent)) / 100
+              : 0;
+
+            return {
+              id: crypto.randomUUID(),
+              productId: item.product_id || '',
+              sku: item.product?.sku || '',
+              name: item.product?.name_ar || item.description || 'صنف غير محدد',
+              partNumber: item.product?.part_number || '',
+              brand: item.product?.brand || '',
+              quantity: Number(item.quantity) || 1,
+              basePrice: unitPrice,
+              price: unitPrice,
+              discount: discountAmount,
+              costPrice: Number(item.product?.cost_price) || 0,
+            };
+          });
           useSalesStore.setState({ items: newItems });
           calculateTotals();
         }

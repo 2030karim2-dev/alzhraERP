@@ -107,8 +107,12 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
             onSearchChange={setSearchTerm}
           />
         </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-slate-400">
+          <p className="text-xs font-bold">لا توجد منتجات تطابق البحث</p>
+        </div>
       ) : (
-        <div className="custom-scrollbar grid min-h-0 flex-1 grid-cols-1 gap-3.5 overflow-y-auto p-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="custom-scrollbar grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start gap-3 overflow-y-auto p-3 pb-24 sm:grid-cols-2 sm:p-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {products.map(p => (
             <ProductMicroCard key={p.id} product={p} onClick={setSelectedProduct} />
           ))}

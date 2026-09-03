@@ -93,10 +93,7 @@ export function assertOwner(user: { role?: string } | null): void {
 // Minimal safe offline fallback over the legacy role map. The full legacy
 // module was deleted (ADR-003 Phase 3); only the plain role→permission map
 // remains in `offlineRolePermissions.ts` for the offline/degraded case.
-async function legacyRoleHasPermission(
-  role: string | undefined,
-  permission: string
-): Promise<boolean> {
+function legacyRoleHasPermission(role: string | undefined, permission: string): boolean {
   return offlineHasPermission(role, permission);
 }
 

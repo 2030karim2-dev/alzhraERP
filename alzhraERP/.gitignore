@@ -64,6 +64,7 @@ tsconfig.tsbuildinfo
 tmp_supabase_test.mjs
 supabase/.temp/
 reports/
+coverage/
 
 # one-off / secret-bearing scripts & credentials
 *.ps1

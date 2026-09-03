@@ -25,8 +25,9 @@ import { useParties } from '../../parties/hooks';
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
-import { cn, formatCurrency } from '../../../core/utils';
+import { cn, formatCurrency, formatLocalDate } from '../../../core/utils';
 import { convertToBaseCurrency } from '../../../core/utils/currencyUtils';
+import { createIdempotencyKey } from '../../../core/utils/idempotency';
 
 interface CreateBondModalProps {
   isOpen: boolean;
@@ -76,10 +77,12 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
     return allParties || [];
   }, [allParties]);
 
+  const idempotencyKeyRef = React.useRef(createIdempotencyKey('bond'));
+
   const { register, handleSubmit, reset, watch, setValue } = useForm<BondFormData>({
     defaultValues: {
       type,
-      date: new Date().toISOString().split('T')[0],
+      date: formatLocalDate(),
       currency_code: 'SAR',
       exchange_rate: 1,
       counterparty_type: type === 'transfer' ? 'account' : 'party',
@@ -96,9 +99,10 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      idempotencyKeyRef.current = createIdempotencyKey('bond');
       reset({
         type,
-        date: new Date().toISOString().split('T')[0],
+        date: formatLocalDate(),
         currency_code: 'SAR',
         exchange_rate: 1,
         counterparty_type: type === 'transfer' ? 'account' : 'party',
@@ -182,8 +186,11 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
         إلغاء
       </Button>
       <Button
-        onClick={handleSubmit(onSubmit)}
+        onClick={handleSubmit(data => {
+          onSubmit({ ...data, idempotency_key: idempotencyKeyRef.current });
+        })}
         isLoading={isSubmitting}
+        disabled={isSubmitting}
         variant={type === 'receipt' ? 'success' : type === 'transfer' ? 'primary' : 'danger'}
         className="group flex-[2] py-6 text-xs font-bold uppercase shadow-xl shadow-blue-500/10"
         leftIcon={<Save size={18} className="transition-transform group-hover:scale-110" />}

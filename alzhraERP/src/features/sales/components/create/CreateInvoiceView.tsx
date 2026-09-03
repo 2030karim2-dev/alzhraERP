@@ -119,6 +119,23 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   const invoiceIdempotencyKeyRef = useRef(createIdempotencyKey('sale'));
 
   const handleSave = (status: InvoiceStatus) => {
+    // [AUDIT-FIX] «حفظ كمسودة» يجب ألا ينشئ فاتورة معتمدة في الخادم إطلاقاً.
+    // كان status='draft' يُمرَّر إلى commit_sales_invoice_v2 الذي لا يقبل أي
+    // status، فتُنشأ الفاتورة «paid/posted» ويُخصم المخزون ويُسجَّل paid_amount
+    // كاملاً — أي أن زر المسودة كان يعتمد البيع فعلياً. المسودة الآن تُحفظ محلياً
+    // فقط (الـ cart مُخزَّن تلقائياً عبر zustand persist) بلا أي أثر خادمي.
+    if (status === 'draft') {
+      const hasDraftItems = items.some(
+        item => Boolean(item.productId) && Boolean(item.name) && item.quantity > 0
+      );
+      if (!hasDraftItems) {
+        showToast('أضف صنفاً واحداً على الأقل بكمية صحيحة لحفظ المسودة', 'warning');
+        return;
+      }
+      showToast('تم حفظ المسودة محلياً على هذا الجهاز — لم تُرحَّل ولن يُخصم المخزون', 'success');
+      return;
+    }
+
     // [FIX #2] تحقق من وجود عميل محدد
     if (!selectedCustomer) {
       showToast('يرجى اختيار عميل أولاً', 'error');
@@ -131,6 +148,12 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     );
     if (validItems.length === 0) {
       showToast('يرجى إضافة صنف واحد على الأقل بكمية وسعر صحيحين', 'error');
+      return;
+    }
+
+    // [AUDIT-FIX] منع اعتماد فاتورة بخصم يتجاوز قيمة البضاعة (إجمالي سالب).
+    if (summary.totalAmount < 0) {
+      showToast('الخصم الإجمالي أكبر من قيمة الفاتورة — راجع الخصومات', 'error');
       return;
     }
 

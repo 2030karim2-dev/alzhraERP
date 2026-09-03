@@ -62,5 +62,8 @@ export { generateZatcaBase64 } from './zatca';
 export { invalidateFinancialQueries } from './querySyncUtils';
 export type { FinancialSyncOptions } from './querySyncUtils';
 
+// Date utilities
+export { formatLocalDate, getLocalYearStart } from './dateUtils';
+
 // Re-export from parent utils.ts (cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL)
 export { cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL } from '../utils';

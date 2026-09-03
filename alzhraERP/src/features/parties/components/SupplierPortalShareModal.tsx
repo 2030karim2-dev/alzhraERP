@@ -39,16 +39,32 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
   React.useEffect(() => {
     if (party?.portal_token) {
       setCurrentToken(party.portal_token);
+    } else if (party?.id && isOpen && !currentToken && !isRegenerating) {
+      setIsRegenerating(true);
+      supplierPortalService
+        .regeneratePortalToken(party.id)
+        .then(newToken => {
+          setCurrentToken(newToken);
+          if (onTokenUpdated) onTokenUpdated({ ...party, portal_token: newToken });
+        })
+        .catch(() => {
+          showToast('تعذر استخراج رابط المورد، اضغط زر التجديد بالأسفل', 'error');
+        })
+        .finally(() => setIsRegenerating(false));
     }
-  }, [party]);
+  }, [party, isOpen]);
 
   if (!party) return null;
 
   const origin = window.location.origin;
-  const portalUrl = `${origin}/portal/supplier/${currentToken}`;
+  const portalUrl = currentToken ? `${origin}/portal/supplier/${currentToken}` : '';
   const companyName = (company as { name_ar?: string })?.name_ar || 'منشأتنا';
 
   const handleCopyLink = async () => {
+    if (!portalUrl) {
+      showToast('جاري توليد الرابط، يرجى الانتظار لحظة...', 'warning');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(portalUrl);
       setCopied(true);
@@ -62,6 +78,10 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
   };
 
   const handleShareWhatsApp = () => {
+    if (!portalUrl) {
+      showToast('جاري توليد الرابط، يرجى الانتظار لحظة...', 'warning');
+      return;
+    }
     const lines = [
       `مرحباً بكم *${party.name}* 🌸`,
       `يسرنا تزويدكم برابط الدخول المباشر إلى *بوابة الموردين الخاصة بكم* لدى *${companyName}*:`,
@@ -159,9 +179,15 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
               </div>
             </div>
           </div>
-          <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
-            بوابة مفعلة
-          </span>
+          {currentToken ? (
+            <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+              بوابة مفعلة
+            </span>
+          ) : (
+            <span className="animate-pulse rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+              {isRegenerating ? 'جاري تجهيز الرابط...' : 'بانتظار التفعيل'}
+            </span>
+          )}
         </div>
 
         {/* Dedicated Link Box */}

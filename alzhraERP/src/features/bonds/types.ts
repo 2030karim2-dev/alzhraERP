@@ -1,4 +1,3 @@
-
 export type BondType = 'receipt' | 'payment' | 'transfer';
 
 export interface BondFormData {
@@ -20,6 +19,7 @@ export interface BondFormData {
   description: string;
   reference_number?: string;
   branchId?: string | null;
+  idempotency_key?: string;
 }
 
 export interface Bond {

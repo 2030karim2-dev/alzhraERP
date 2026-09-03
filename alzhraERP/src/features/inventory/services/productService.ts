@@ -251,6 +251,7 @@ export const productService = {
       .from('products')
       .select('id, name_ar')
       .eq('company_id', companyId)
+      .is('deleted_at', null)
       .ilike('name_ar', trimmedName)
       .limit(1);
 
@@ -264,6 +265,7 @@ export const productService = {
         .from('products')
         .select('id, name_ar, sku')
         .eq('company_id', companyId)
+        .is('deleted_at', null)
         .eq('sku', trimmedSku)
         .limit(1);
 
@@ -280,6 +282,7 @@ export const productService = {
         .from('products')
         .select('id, name_ar, barcode')
         .eq('company_id', companyId)
+        .is('deleted_at', null)
         .eq('barcode', trimmedBarcode)
         .limit(1);
 
@@ -296,6 +299,7 @@ export const productService = {
         .from('products')
         .select('id, name_ar, part_number, brand')
         .eq('company_id', companyId)
+        .is('deleted_at', null)
         .eq('part_number', trimmedPartNo);
 
       if (trimmedBrand) {
@@ -389,6 +393,7 @@ export const productService = {
           .from('products')
           .select('id, name_ar')
           .eq('company_id', companyId)
+          .is('deleted_at', null)
           .ilike('name_ar', trimmedName)
           .neq('id', id)
           .limit(1);
@@ -404,6 +409,7 @@ export const productService = {
           .from('products')
           .select('id, name_ar, sku')
           .eq('company_id', companyId)
+          .is('deleted_at', null)
           .eq('sku', trimmedSku)
           .neq('id', id)
           .limit(1);
@@ -421,6 +427,7 @@ export const productService = {
           .from('products')
           .select('id, name_ar, barcode')
           .eq('company_id', companyId)
+          .is('deleted_at', null)
           .eq('barcode', trimmedBarcode)
           .neq('id', id)
           .limit(1);
@@ -438,6 +445,7 @@ export const productService = {
           .from('products')
           .select('id, name_ar, part_number, brand')
           .eq('company_id', companyId)
+          .is('deleted_at', null)
           .eq('part_number', trimmedPartNo)
           .neq('id', id);
 

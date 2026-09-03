@@ -174,20 +174,13 @@ export const productsApi = {
       throw new Error(`لا يمكن حذف المنتجات: ${invoiceCount} عنصر فاتورة مرتبط بها.`);
     }
 
-    // Clean up child tables
-    try {
-      await supabase.from('product_uoms').delete().in('product_id', ids);
-      await supabase.from('product_stock').delete().in('product_id', ids);
-    } catch {
-      // ignore non-fatal child deletion error
-    }
-
-    // Try hard delete first
+    // Try hard delete first without destroying stock history prematurely
     const { error: hardDeleteErr } = await supabase.from('products').delete().in('id', ids);
     if (!hardDeleteErr) {
       return { data: null, error: null };
     }
 
+    // If hard delete fails due to constraints, soft-delete preserving data integrity
     return await supabase
       .from('products')
       .update({ status: 'deleted', deleted_at: new Date().toISOString() })

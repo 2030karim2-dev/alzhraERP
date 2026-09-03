@@ -72,6 +72,7 @@ export const bondsApi = {
       ...(data.exchange_rate ? { p_exchange_rate: data.exchange_rate } : {}),
       ...(data.foreign_amount ? { p_foreign_amount: data.foreign_amount } : {}),
       ...(data.branchId ? { p_branch_id: data.branchId } : {}),
+      ...(data.idempotency_key ? { p_idempotency_key: data.idempotency_key } : {}),
     });
 
     if (error) {

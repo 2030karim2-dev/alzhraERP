@@ -188,6 +188,7 @@ export const partiesService = {
       .from('parties')
       .select('id, name')
       .eq('company_id', companyId)
+      .is('deleted_at', null)
       .in('type', relevantTypes)
       .ilike('name', trimmedName)
       .limit(1);
@@ -207,6 +208,7 @@ export const partiesService = {
         .from('parties')
         .select('id, name, phone')
         .eq('company_id', companyId)
+        .is('deleted_at', null)
         .in('type', relevantTypes)
         .eq('phone', trimmedPhone)
         .limit(1);
@@ -229,6 +231,7 @@ export const partiesService = {
         .from('parties')
         .select('id, name, tax_number')
         .eq('company_id', companyId)
+        .is('deleted_at', null)
         .eq('tax_number', trimmedTaxNumber)
         .limit(1);
 

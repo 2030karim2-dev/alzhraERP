@@ -133,6 +133,13 @@ export const resolveStrictPaymentAccount = (
     }
   }
 
-  // 4. Default cash account fallback
-  return preferredAccountId || cashAccounts[0]?.id;
+  // 4. Default cash account fallback — آمن للريال السعودي فقط.
+  //    [AUDIT-FIX] سابقاً كان يُرجَع أول حساب نقدي (غالباً صندوق SAR) بصمت لأي
+  //    عملة أخرى (USD/OMR/CNY...) فيُودَع بيع دولاري في صندوق سعودي. الآن نُعيد
+  //    undefined لعملات لا نملك لها تطابقاً فيُوقف المتصل العملية برسالة عربية
+  //    واضحة تطلب اختيار حساب مطابق بدلاً من توجيه خاطئ.
+  if (currency !== 'SAR') {
+    return undefined;
+  }
+  return preferredAccountId ?? cashAccounts[0]?.id ?? undefined;
 };

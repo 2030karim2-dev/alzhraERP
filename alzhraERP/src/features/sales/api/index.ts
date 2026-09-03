@@ -105,7 +105,11 @@ export const salesApi = {
         product_id: i.productId,
         quantity: i.quantity,
         unit_price: i.unitPrice,
-        tax_rate: i.taxRate ?? 15,
+        // [AUDIT-FIX] لا تُضف ضريبة 15% افتراضية صامتة: كانت tax_rate ?? 15 تُحمّل
+        // الفاتورة 15% بينما الواجهة والقالب المطبوع لا يعرضان أي ضريبة (tax_amount: 0)
+        // ونظام tax_rates يُنشأ افتراضياً 0%. الافتراضي الآن 0% ويُحترم أي taxRate صريح
+        // فقط عندما تعرض الواجهة الضريبة فعلياً.
+        tax_rate: i.taxRate ?? 0,
         ...(i.warehouseId ? { warehouse_id: i.warehouseId } : {}),
       })),
       p_payment_type: payload.paymentMethod || 'cash',
@@ -196,6 +200,24 @@ export const salesApi = {
       return { data: null, error: parseError(error) };
     }
     return { data, error: null };
+  },
+
+  /**
+   * [AUDIT-FIX] الرقم المعروض/المطبوع قبل الاعتماد.
+   * يستخدم دالة generate_invoice_number الخادمية (إن وُجدت) لتوليد رقم بصيغة
+   * INV-YYYYMMDD-NNNN مطابقة لما يعتمده الخادم، بدلاً من get_next_sequence('sale')
+   * التي لا تملك فرع 'sale' فترجع '1' دائماً.
+   */
+  getNextGeneratedNumber: async (companyId: string, type: 'sale' | 'purchase' = 'sale') => {
+    const { data, error } = await supabase.rpc('generate_invoice_number', {
+      p_company_id: companyId,
+      p_type: type,
+    });
+    if (error) {
+      logger.warn('Sales', 'generate_invoice_number unavailable — falling back to sequence', error);
+      return { data: null, error: parseError(error) };
+    }
+    return { data: data as string | null, error: null };
   },
 
   getSalesAnalytics: async (params: {

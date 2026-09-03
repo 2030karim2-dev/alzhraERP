@@ -12,13 +12,18 @@ const toCleanStr = (val: unknown): string | null => {
  * واجهة التفاعل مع جدول العملاء والموردين
  * تتبع هيكلية قاعدة البيانات v2.0
  */
-async function fetchPartyCurrencies(companyId: string): Promise<Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>> {
+async function fetchPartyCurrencies(
+  companyId: string
+): Promise<Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>> {
   const { data } = await supabase
     .from('party_balances_by_currency')
     .select('party_id, currency_code, balance, transaction_count')
     .eq('company_id', companyId);
 
-  const map = new Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>();
+  const map = new Map<
+    string,
+    Array<{ currency: string; balance: number; transaction_count?: number }>
+  >();
   if (data !== null) {
     data.forEach(c => {
       if (typeof c.party_id === 'string' && typeof c.currency_code === 'string') {
@@ -44,7 +49,7 @@ export const partiesApi = {
       .from('parties')
       .select('*, party_categories(id, name)')
       .eq('company_id', companyId)
-      .eq('type', type)
+      .in('type', [type, 'both'])
       .is('deleted_at', null)
       .order('name', { ascending: true });
 

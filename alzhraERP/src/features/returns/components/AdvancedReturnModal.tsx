@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Loader2 } from 'lucide-react';
+import { formatLocalDate } from '../../../core/utils';
 import { useForm, FormProvider } from 'react-hook-form';
 import * as z from 'zod';
 import Modal from '../../../ui/base/Modal';
@@ -100,7 +101,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
     resolver: zodResolver(returnSchema),
     defaultValues: {
       invoiceId: initialInvoiceId || '',
-      date: new Date().toISOString().split('T')[0],
+      date: formatLocalDate(),
       status: 'processing',
       items: [],
       returnReason: '',
@@ -113,20 +114,6 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
       methods.setValue('invoiceId', initialInvoiceId);
     }
   }, [initialInvoiceId, isOpen, methods]);
-
-  // Handle Escape Key for closing
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        // Implement safety check (unsaved changes) here later
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
 
   // Handle Escape Key for closing
   useEffect(() => {
@@ -189,9 +176,17 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
             <button
               type="submit"
               form="advanced-return-form"
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 dark:shadow-indigo-900/20 sm:px-6 sm:py-2 sm:text-sm"
+              disabled={createSalesReturn.isPending || createPurchaseReturn.isPending}
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-indigo-900/20 sm:px-6 sm:py-2 sm:text-sm"
             >
-              حفظ المرتجع
+              {createSalesReturn.isPending || createPurchaseReturn.isPending ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>جاري الحفظ...</span>
+                </>
+              ) : (
+                <span>حفظ المرتجع</span>
+              )}
             </button>
           </div>
         </div>
@@ -251,7 +246,7 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
                   issueDate: data.date,
                   notes: data.notes || '',
                   status: data.status === 'accepted' ? 'posted' : 'draft',
-                  paymentMethod: 'cash',
+                  paymentMethod: selectedInvoice.payment_method === 'credit' ? 'credit' : 'cash',
                   currency: selectedInvoice.currency_code ?? 'SAR',
                   exchangeRate: selectedInvoice.exchange_rate ?? 1,
                   referenceInvoiceId: data.invoiceId,
