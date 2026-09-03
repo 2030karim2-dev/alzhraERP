@@ -33,6 +33,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
+        Relationships: []
       }
       csp_reports: {
         Row: {
@@ -98,6 +99,7 @@ export type Database = {
           user_id?: string | null
           violated_directive?: string | null
         }
+        Relationships: []
       }
       security_alerts: {
         Row: {
@@ -142,6 +144,7 @@ export type Database = {
           resolved_by?: string | null
           resolution_notes?: string | null
         }
+        Relationships: []
       }
       chat_channels: {
         Row: {

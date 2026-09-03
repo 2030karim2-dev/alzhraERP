@@ -61,9 +61,10 @@ export const SecurityAuditingHub: React.FC = () => {
   const handleConfirmResolve = async () => {
     if (!selectedAlertToResolve) return;
     try {
+      const trimmedNotes = resolutionNotes.trim();
       await resolveAlert({
         alertId: selectedAlertToResolve.id,
-        notes: resolutionNotes.trim() || undefined,
+        ...(trimmedNotes ? { notes: trimmedNotes } : {}),
       });
       setSelectedAlertToResolve(null);
       setResolutionNotes('');
