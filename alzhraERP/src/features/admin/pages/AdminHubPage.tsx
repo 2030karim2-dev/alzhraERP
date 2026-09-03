@@ -85,7 +85,7 @@ export const AdminHubPage: React.FC = () => {
                   <span>{tab.label}</span>
                   {tab.badge !== undefined && (
                     <span
-                      className={`py-0.2 rounded-full px-1.5 text-[10px] font-black ${
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
                         isActive
                           ? 'bg-white/20 text-white'
                           : 'border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)]'

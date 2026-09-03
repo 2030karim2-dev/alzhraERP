@@ -202,33 +202,53 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5">
-              <div className="flex items-center justify-center gap-1 text-xs font-black text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 size={13} />
+          <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-5">
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2">
+              <div className="flex items-center justify-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 size={12} />
                 <span>نشطة</span>
               </div>
-              <p className="mt-1 text-lg font-black text-emerald-700 dark:text-emerald-300">
+              <p className="mt-0.5 text-base font-black text-emerald-700 dark:text-emerald-300">
                 {metrics.active_companies}
               </p>
             </div>
 
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5">
-              <div className="flex items-center justify-center gap-1 text-xs font-black text-amber-600 dark:text-amber-400">
-                <Clock size={13} />
-                <span>تجريبية (Trial)</span>
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2">
+              <div className="flex items-center justify-center gap-1 text-[10px] font-black text-amber-600 dark:text-amber-400">
+                <Clock size={12} />
+                <span>تجريبية</span>
               </div>
-              <p className="mt-1 text-lg font-black text-amber-700 dark:text-amber-300">
+              <p className="mt-0.5 text-base font-black text-amber-700 dark:text-amber-300">
                 {metrics.trial_companies}
               </p>
             </div>
 
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-2.5">
-              <div className="flex items-center justify-center gap-1 text-xs font-black text-rose-600 dark:text-rose-400">
-                <Ban size={13} />
-                <span>معلقة / موقوفة</span>
+            <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 p-2">
+              <div className="flex items-center justify-center gap-1 text-[10px] font-black text-orange-600 dark:text-orange-400">
+                <Clock size={12} />
+                <span>متأخرة</span>
               </div>
-              <p className="mt-1 text-lg font-black text-rose-700 dark:text-rose-300">
+              <p className="mt-0.5 text-base font-black text-orange-700 dark:text-orange-300">
+                {metrics.past_due_companies ?? 0}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-500/20 bg-slate-500/10 p-2">
+              <div className="flex items-center justify-center gap-1 text-[10px] font-black text-slate-600 dark:text-slate-400">
+                <Ban size={12} />
+                <span>ملغاة</span>
+              </div>
+              <p className="mt-0.5 text-base font-black text-slate-700 dark:text-slate-300">
+                {metrics.cancelled_companies ?? 0}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-2">
+              <div className="flex items-center justify-center gap-1 text-[10px] font-black text-rose-600 dark:text-rose-400">
+                <Ban size={12} />
+                <span>موقوفة</span>
+              </div>
+              <p className="mt-0.5 text-base font-black text-rose-700 dark:text-rose-300">
                 {metrics.suspended_companies}
               </p>
             </div>

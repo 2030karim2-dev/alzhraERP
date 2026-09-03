@@ -8,6 +8,7 @@ import type {
   SecurityAlertLog,
   SubscriptionPlan,
   SystemPlatformConfigs,
+  TrialExtensionResult,
 } from '../types';
 
 // أنواع مستمدة من مخطط قاعدة البيانات المُولّد (تبقي هذا الملف خالياً من `any`)
@@ -22,17 +23,19 @@ const toSubscriptionPlan = (row: SubscriptionPlanRow): SubscriptionPlan => ({
   id: row.id,
   name_ar: row.name_ar,
   name_en: row.name_en ?? '',
-  price_monthly: row.price_monthly,
-  price_yearly: row.price_yearly,
-  max_users: row.max_users,
-  max_products: row.max_products,
-  max_invoices_monthly: row.max_invoices_monthly,
-  ai_tokens_monthly: row.ai_tokens_monthly,
-  features: row.features ?? [],
-  is_active: row.is_active,
+  price_monthly: row.price_monthly ?? 0,
+  price_yearly: row.price_yearly ?? 0,
+  max_users: row.max_users ?? 0,
+  max_products: row.max_products ?? 0,
+  max_invoices_monthly: row.max_invoices_monthly ?? 0,
+  ai_tokens_monthly: row.ai_tokens_monthly ?? 0,
+  features: Array.isArray(row.features)
+    ? row.features.filter((item): item is string => typeof item === 'string')
+    : [],
+  is_active: row.is_active ?? true,
   color: row.color ?? '#3B82F6',
-  sort_order: row.sort_order,
-  created_at: row.created_at,
+  sort_order: row.sort_order ?? 0,
+  created_at: row.created_at ?? undefined,
 });
 
 const toAdminCompany = (row: AdminCompanyRow): AdminCompany => ({
@@ -85,6 +88,8 @@ const toHoneypotLog = (row: SecurityAlertRow): SecurityAlertLog => {
     details,
     detected_at: row.detected_at,
     resolved_at: row.resolved_at,
+    resolved_by: row.resolved_by,
+    resolution_notes: row.resolution_notes,
   };
 };
 
@@ -144,15 +149,20 @@ export const adminService = {
   },
 
   /**
-   * تمديد الفترة التجريبية لشركة
+   * تمديد الفترة التجريبية لشركة وإرجاع التاريخ والحالة المحدثة
    */
-  async extendTrial(companyId: string, days: number): Promise<string> {
+  async extendTrial(companyId: string, days: number): Promise<TrialExtensionResult> {
     const { data, error } = await supabase.rpc('extend_company_trial', {
       p_company_id: companyId,
       p_days: days,
     });
     if (error) throw error;
-    return data ?? '';
+    const res = data as unknown as { trial_ends_at?: string; subscription_status?: string };
+    return {
+      trial_ends_at: res?.trial_ends_at ?? '',
+      subscription_status: (res?.subscription_status ??
+        'trial') as AdminCompany['subscription_status'],
+    };
   },
 
   /**
@@ -288,15 +298,27 @@ export const adminService = {
   },
 
   /**
-   * تحديث إعدادات المنصة
+   * تحديث إعدادات المنصة عبر RPC محمي وموثق بالتدقيق الأمني
    */
   async updateSystemConfig(key: string, value: Record<string, unknown>): Promise<void> {
-    const { error } = await supabase.from('system_platform_configs').upsert({
-      key,
-      value: value as unknown as Json,
-      updated_at: new Date().toISOString(),
+    const { error } = await supabase.rpc('admin_update_system_config', {
+      p_key: key,
+      p_value: value as unknown as Json,
     });
     if (error) throw error;
+  },
+
+  /**
+   * معالجة تنبيه أمني وتوثيقه في سجل التدقيق
+   */
+  async resolveSecurityAlert(alertId: number | string, notes?: string): Promise<boolean> {
+    const numericId = typeof alertId === 'number' ? alertId : parseInt(alertId, 10);
+    const { data, error } = await supabase.rpc('admin_resolve_security_alert', {
+      p_alert_id: numericId,
+      p_notes: notes || null,
+    });
+    if (error) throw error;
+    return !!data;
   },
 
   /**

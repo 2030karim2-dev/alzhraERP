@@ -20,6 +20,7 @@ export const SystemPlatformSettings: React.FC = () => {
 
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMsg, setMaintenanceMsg] = useState('');
+  const [estimatedEnd, setEstimatedEnd] = useState('');
   const [flags, setFlags] = useState({
     ai_assistance: true,
     vin_intelligence: true,
@@ -32,6 +33,11 @@ export const SystemPlatformSettings: React.FC = () => {
     if (configs) {
       setMaintenanceEnabled(configs.maintenance_mode?.enabled || false);
       setMaintenanceMsg(configs.maintenance_mode?.message || '');
+      setEstimatedEnd(
+        configs.maintenance_mode?.estimated_end
+          ? new Date(configs.maintenance_mode.estimated_end).toISOString().slice(0, 16)
+          : ''
+      );
       setFlags(
         configs.feature_flags || {
           ai_assistance: true,
@@ -51,7 +57,7 @@ export const SystemPlatformSettings: React.FC = () => {
         value: {
           enabled: maintenanceEnabled,
           message: maintenanceMsg.trim() || 'النظام يخضع حالياً لعملية صيانة مجدولة. سنعود قريباً.',
-          estimated_end: configs?.maintenance_mode?.estimated_end ?? null,
+          estimated_end: estimatedEnd ? new Date(estimatedEnd).toISOString() : null,
         },
       });
     } catch {
@@ -163,6 +169,29 @@ export const SystemPlatformSettings: React.FC = () => {
                 className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 text-xs text-[var(--app-text)] focus:outline-none"
               />
             </div>
+
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-[10px] font-bold text-[var(--app-text-secondary)]">
+                  الموعد المتوقع لانتهاء الصيانة (اختياري):
+                </label>
+                {estimatedEnd && (
+                  <button
+                    type="button"
+                    onClick={() => setEstimatedEnd('')}
+                    className="text-[10px] font-bold text-rose-500 hover:underline"
+                  >
+                    تفريغ التاريخ
+                  </button>
+                )}
+              </div>
+              <input
+                type="datetime-local"
+                value={estimatedEnd}
+                onChange={e => setEstimatedEnd(e.target.value)}
+                className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1.5 font-mono text-xs text-[var(--app-text)] focus:outline-none"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">
@@ -208,8 +237,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 </div>
               </div>
               <button
+                disabled={isUpdating}
                 onClick={() => handleToggleFlag('ai_assistance')}
-                className={`text-lg transition-colors ${flags.ai_assistance ? 'text-emerald-500' : 'text-slate-400'}`}
+                className={`text-lg transition-colors disabled:opacity-50 ${flags.ai_assistance ? 'text-emerald-500' : 'text-slate-400'}`}
               >
                 {flags.ai_assistance ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
               </button>
@@ -229,8 +259,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 </div>
               </div>
               <button
+                disabled={isUpdating}
                 onClick={() => handleToggleFlag('vin_intelligence')}
-                className={`text-lg transition-colors ${flags.vin_intelligence ? 'text-emerald-500' : 'text-slate-400'}`}
+                className={`text-lg transition-colors disabled:opacity-50 ${flags.vin_intelligence ? 'text-emerald-500' : 'text-slate-400'}`}
               >
                 {flags.vin_intelligence ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
               </button>
@@ -250,8 +281,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 </div>
               </div>
               <button
+                disabled={isUpdating}
                 onClick={() => handleToggleFlag('supplier_portal')}
-                className={`text-lg transition-colors ${flags.supplier_portal ? 'text-emerald-500' : 'text-slate-400'}`}
+                className={`text-lg transition-colors disabled:opacity-50 ${flags.supplier_portal ? 'text-emerald-500' : 'text-slate-400'}`}
               >
                 {flags.supplier_portal ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
               </button>
@@ -271,8 +303,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 </div>
               </div>
               <button
+                disabled={isUpdating}
                 onClick={() => handleToggleFlag('internal_chat')}
-                className={`text-lg transition-colors ${flags.internal_chat ? 'text-emerald-500' : 'text-slate-400'}`}
+                className={`text-lg transition-colors disabled:opacity-50 ${flags.internal_chat ? 'text-emerald-500' : 'text-slate-400'}`}
               >
                 {flags.internal_chat ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
               </button>
@@ -292,8 +325,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 </div>
               </div>
               <button
+                disabled={isUpdating}
                 onClick={() => handleToggleFlag('offline_sync')}
-                className={`text-lg transition-colors ${flags.offline_sync ? 'text-emerald-500' : 'text-slate-400'}`}
+                className={`text-lg transition-colors disabled:opacity-50 ${flags.offline_sync ? 'text-emerald-500' : 'text-slate-400'}`}
               >
                 {flags.offline_sync ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
               </button>

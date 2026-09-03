@@ -3,6 +3,8 @@ export interface PlatformMetrics {
   active_companies: number;
   trial_companies: number;
   suspended_companies: number;
+  past_due_companies?: number;
+  cancelled_companies?: number;
   total_users: number;
   total_invoices: number;
   today_invoices: number;
@@ -11,6 +13,11 @@ export interface PlatformMetrics {
   honeypot_alerts: number;
   csp_reports: number;
   fetched_at: string;
+}
+
+export interface TrialExtensionResult {
+  trial_ends_at: string;
+  subscription_status: AdminCompany['subscription_status'];
 }
 
 export interface AdminCompany {
@@ -85,6 +92,8 @@ export interface SecurityAlertLog {
   details: Record<string, unknown>;
   detected_at: string;
   resolved_at: string | null;
+  resolved_by?: string | null;
+  resolution_notes?: string | null;
 }
 
 /** Backward-compatibility alias */

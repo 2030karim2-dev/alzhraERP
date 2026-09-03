@@ -56,11 +56,11 @@ export const useCompanyMutations = () => {
   const extendTrialMutation = useMutation({
     mutationFn: ({ companyId, days }: { companyId: string; days: number }) =>
       adminService.extendTrial(companyId, days),
-    onSuccess: newExpiry => {
+    onSuccess: result => {
       queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
       queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast(
-        `تم تمديد الفترة التجريبية حتى ${new Date(newExpiry).toLocaleDateString('ar-SA')}`,
+        `تم تمديد الفترة التجريبية حتى ${new Date(result.trial_ends_at).toLocaleDateString('ar-SA')}`,
         'success'
       );
     },
@@ -154,6 +154,7 @@ export const useUserMutations = () => {
       adminService.toggleSuperAdmin(userId, makeSuperAdmin),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['admin_users'] });
+      queryClient.invalidateQueries({ queryKey: ['is_super_admin'] });
       showToast(
         vars.makeSuperAdmin
           ? 'تمت ترقية المستخدم إلى سوبر أدمن بنجاح'
@@ -240,5 +241,28 @@ export const useSecurityLogs = () => {
       honeypotQuery.refetch();
       cspQuery.refetch();
     },
+  };
+};
+
+export const useSecurityMutations = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useFeedbackStore();
+
+  const resolveAlertMutation = useMutation({
+    mutationFn: ({ alertId, notes }: { alertId: number | string; notes?: string }) =>
+      adminService.resolveSecurityAlert(alertId, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_honeypot_logs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
+      showToast('تمت معالجة التنبيه الأمني بنجاح', 'success');
+    },
+    onError: (err: unknown) => {
+      showToast(errorMessage(err, 'تعذر معالجة التنبيه الأمني'), 'error');
+    },
+  });
+
+  return {
+    resolveAlert: resolveAlertMutation.mutateAsync,
+    isResolvingAlert: resolveAlertMutation.isPending,
   };
 };

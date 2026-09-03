@@ -37,11 +37,14 @@ export const GlobalUsersDirectory: React.FC = () => {
   const handleConfirmToggle = async () => {
     if (!targetUserToToggle) return;
     const nextState = !targetUserToToggle.is_super_admin;
-    await toggleSuperAdmin({
-      userId: targetUserToToggle.user_id,
-      makeSuperAdmin: nextState,
-    });
-    setTargetUserToToggle(null);
+    try {
+      await toggleSuperAdmin({
+        userId: targetUserToToggle.user_id,
+        makeSuperAdmin: nextState,
+      });
+    } finally {
+      setTargetUserToToggle(null);
+    }
   };
 
   return (

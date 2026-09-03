@@ -115,10 +115,13 @@ describe('adminService Unit Tests', () => {
   });
 
   describe('extendTrial', () => {
-    it('calls extend_company_trial RPC and returns new expiry ISO string', async () => {
-      const mockExpiry = '2026-10-01T00:00:00Z';
+    it('calls extend_company_trial RPC and returns new expiry and status', async () => {
+      const mockResult = {
+        trial_ends_at: '2026-10-01T00:00:00Z',
+        subscription_status: 'trial',
+      };
       vi.mocked(supabase.rpc).mockResolvedValueOnce({
-        data: mockExpiry,
+        data: mockResult,
         error: null,
       } as any);
 
@@ -127,7 +130,38 @@ describe('adminService Unit Tests', () => {
         p_company_id: 'comp-1',
         p_days: 14,
       });
-      expect(result).toBe(mockExpiry);
+      expect(result).toEqual(mockResult);
+    });
+  });
+
+  describe('updateSystemConfig', () => {
+    it('calls admin_update_system_config RPC with key and value', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({
+        data: true,
+        error: null,
+      } as any);
+
+      await adminService.updateSystemConfig('maintenance_mode', { enabled: true });
+      expect(supabase.rpc).toHaveBeenCalledWith('admin_update_system_config', {
+        p_key: 'maintenance_mode',
+        p_value: { enabled: true },
+      });
+    });
+  });
+
+  describe('resolveSecurityAlert', () => {
+    it('calls admin_resolve_security_alert RPC with alertId and notes', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({
+        data: true,
+        error: null,
+      } as any);
+
+      const result = await adminService.resolveSecurityAlert(42, 'تم فحص الباك إند');
+      expect(supabase.rpc).toHaveBeenCalledWith('admin_resolve_security_alert', {
+        p_alert_id: 42,
+        p_notes: 'تم فحص الباك إند',
+      });
+      expect(result).toBe(true);
     });
   });
 

@@ -16,75 +16,22 @@ export type Database = {
     Tables: {
       system_platform_configs: {
         Row: {
-          id: string
           key: string
           value: Json
-          created_at: string
-          updated_at: string
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
-          id?: string
           key: string
-          value: Json
-          created_at?: string
-          updated_at?: string
+          value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
-          id?: string
           key?: string
           value?: Json
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      subscription_plans: {
-        Row: {
-          id: string
-          name_ar: string
-          name_en: string | null
-          price_monthly: number
-          price_yearly: number
-          max_users: number
-          max_products: number
-          max_invoices_monthly: number
-          ai_tokens_monthly: number
-          features: string[] | null
-          is_active: boolean
-          color: string | null
-          sort_order: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name_ar: string
-          name_en?: string | null
-          price_monthly: number
-          price_yearly: number
-          max_users?: number
-          max_products?: number
-          max_invoices_monthly?: number
-          ai_tokens_monthly?: number
-          features?: string[] | null
-          is_active?: boolean
-          color?: string | null
-          sort_order?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name_ar?: string
-          name_en?: string | null
-          price_monthly?: number
-          price_yearly?: number
-          max_users?: number
-          max_products?: number
-          max_invoices_monthly?: number
-          ai_tokens_monthly?: number
-          features?: string[] | null
-          is_active?: boolean
-          color?: string | null
-          sort_order?: number
-          created_at?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
       }
       csp_reports: {
@@ -13072,7 +13019,24 @@ export type Database = {
           p_company_id: string
           p_days: number
         }
-        Returns: string
+        Returns: {
+          trial_ends_at: string
+          subscription_status: string
+        }
+      }
+      admin_update_system_config: {
+        Args: {
+          p_key: string
+          p_value: Json
+        }
+        Returns: boolean
+      }
+      admin_resolve_security_alert: {
+        Args: {
+          p_alert_id: number
+          p_notes?: string | null
+        }
+        Returns: boolean
       }
       admin_assign_company_plan: {
         Args: {

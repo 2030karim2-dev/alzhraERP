@@ -15,8 +15,11 @@ export const PlansManager: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!planToDelete?.id) return;
-    await deletePlan(planToDelete.id);
-    setPlanToDelete(null);
+    try {
+      await deletePlan(planToDelete.id);
+    } finally {
+      setPlanToDelete(null);
+    }
   };
 
   return (

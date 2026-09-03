@@ -22,7 +22,6 @@ import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
 interface CompanyDetailsModalProps {
   company: AdminCompany | null;
   onClose: () => void;
-  onSupportLogin?: ((company: AdminCompany) => void) | undefined;
 }
 
 export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ company, onClose }) => {
@@ -91,17 +90,17 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
   };
 
   const handleExtend = async () => {
-    const newExpiry = await extendTrial({
+    const result = await extendTrial({
       companyId: currentCompany.id,
       days: extendDays,
     });
-    if (newExpiry) {
+    if (result?.trial_ends_at) {
       setCurrentCompany(prev =>
         prev
           ? {
               ...prev,
-              trial_ends_at: newExpiry,
-              subscription_status: 'trial',
+              trial_ends_at: result.trial_ends_at,
+              subscription_status: result.subscription_status,
               is_active: true,
             }
           : null

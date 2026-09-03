@@ -15,7 +15,7 @@ export const AdminHeader: React.FC = () => {
   const isMaintenance = configs?.maintenance_mode?.enabled;
 
   return (
-    <header className="bg-[var(--app-surface)]/90 sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-[var(--app-border)] px-4 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-4 backdrop-blur-md transition-colors">
       {/* Brand & Badge */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20">
