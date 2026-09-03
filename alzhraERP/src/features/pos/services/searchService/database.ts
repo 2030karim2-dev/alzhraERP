@@ -4,6 +4,7 @@ import { logger } from '../../../../core/utils/logger';
  */
 import { supabase } from '../../../../lib/supabaseClient';
 import { scoreSearchResult } from '../../../../core/utils/search';
+import { buildEqOrFilter, buildIlikeOrFilter } from '../../../../core/utils/postgrestFilter';
 import type { BarcodeSearchRow, POSSearchFilters, POSSearchResult } from './types';
 
 /** Stock entry nested inside a search row. */
@@ -191,10 +192,11 @@ export async function searchDatabaseFallback(
     )
     .eq('company_id', companyId)
     .eq('status', 'active')
+    // [FIX] buildIlikeOrFilter يلفّ النمط بعلامتي اقتباس — الفاصلة/الأقواس في
+    // مدخل المستخدم كانت تكسر صيغة or() فيرمي PostgREST خطأ 400 ويتوقف
+    // البحث عن العمل بصمت (كان الخطأ يُبتلع ويُرجع []).
     .or(
-      `name_ar.ilike.%${query}%,sku.ilike.%${query}%,` +
-        `part_number.ilike.%${query}%,alternative_numbers.ilike.%${query}%,` +
-        `barcode.ilike.%${query}%`
+      buildIlikeOrFilter(['name_ar', 'sku', 'part_number', 'alternative_numbers', 'barcode'], query)
     )
     .limit(limit);
 
@@ -260,7 +262,9 @@ export async function searchByBarcode(
     )
     .eq('company_id', companyId)
     .eq('status', 'active')
-    .or(`barcode.eq.${barcode},sku.eq.${barcode},part_number.eq.${barcode}`)
+    // [FIX] قيم مساواة مقتبسة: باركود يحتوي فاصلة كان يكسر or() فيفشل
+    // البحث بالباركود صامتاً ويعود كبحث نصي.
+    .or(buildEqOrFilter(['barcode', 'sku', 'part_number'], barcode))
     .limit(1)
     .single();
 

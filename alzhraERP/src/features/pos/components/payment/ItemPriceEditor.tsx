@@ -1,63 +1,91 @@
 import React from 'react';
 import { ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 import { useSalesStore } from '../../../sales/store';
+import { convertCurrency } from '../../../../core/utils/currencyUtils';
 
 interface ItemPriceEditorProps {
-    show: boolean;
-    onToggle: () => void;
-    items: Array<{ name: string; quantity: number; price: number; productId: string }>;
-    allItems: Array<{ name: string; quantity: number; price: number; productId: string }>;
-    currency: string;
+  show: boolean;
+  onToggle: () => void;
+  items: Array<{ name: string; quantity: number; price: number; productId: string }>;
+  allItems: Array<{ name: string; quantity: number; price: number; productId: string }>;
+  currency: string;
 }
 
 export const ItemPriceEditor: React.FC<ItemPriceEditorProps> = ({
-    show, onToggle, items, allItems, currency
+  show,
+  onToggle,
+  items,
+  allItems,
+  currency,
 }) => {
-    const { updateItem } = useSalesStore();
+  const { updateItem, exchangeRate, exchangeOperator } = useSalesStore();
 
-    return (
-        <div className="border-b border-slate-100 dark:border-slate-800">
-            <button
-                onClick={onToggle}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
-            >
-                <span className="flex items-center gap-1.5"><Edit3 size={12} />تعديل أسعار الأصناف</span>
-                {show ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            </button>
-            {show && (
-                <div className="px-3 pb-3 space-y-1.5 bg-slate-50/50 dark:bg-slate-950/30">
-                    {items.map((item) => {
-                        const realIdx = allItems.findIndex(i => i.productId === item.productId);
-                        return (
-                            <div key={item.productId} className="flex items-center gap-2 bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{item.name}</p>
-                                    <p className="text-[10px] text-slate-400">×{item.quantity}</p>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                    <span className="text-[10px] text-slate-400">سعر:</span>
-                                    <input
-                                        type="number"
-                                        defaultValue={item.price}
-                                        onBlur={e => {
-                                            const v = parseFloat(e.target.value);
-                                            if (!isNaN(v) && v >= 0 && realIdx !== -1) {
-                                                updateItem(realIdx, 'price', v);
-                                                updateItem(realIdx, 'basePrice', v);
-                                            }
-                                        }}
-                                        className="w-20 text-xs font-mono font-black text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-blue-400 text-center"
-                                        dir="ltr"
-                                    />
-                                    <span className="text-[10px] text-slate-400">{currency}</span>
-                                </div>
-                            </div>
-                        );
-                    })}
+  return (
+    <div className="border-b border-slate-100 dark:border-slate-800">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/30"
+      >
+        <span className="flex items-center gap-1.5">
+          <Edit3 size={12} />
+          تعديل أسعار الأصناف
+        </span>
+        {show ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+      </button>
+      {show && (
+        <div className="space-y-1.5 bg-slate-50/50 px-3 pb-3 dark:bg-slate-950/30">
+          {items.map(item => {
+            const realIdx = allItems.findIndex(i => i.productId === item.productId);
+            return (
+              <div
+                key={item.productId}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-[var(--app-surface)] px-3 py-2 dark:border-slate-800"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                    {item.name}
+                  </p>
+                  <p className="text-[10px] text-slate-400">×{item.quantity}</p>
                 </div>
-            )}
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="text-[10px] text-slate-400">سعر:</span>
+                  <input
+                    type="number"
+                    defaultValue={item.price}
+                    onBlur={e => {
+                      const v = parseFloat(e.target.value);
+                      if (!isNaN(v) && v >= 0 && realIdx !== -1) {
+                        // [FIX] نفس إصلاح EditPriceInline: المُدخل بعملة
+                        // السلة — basePrice يُشتق عكسياً للعملة الأساس.
+                        let basePrice = v;
+                        if (currency !== 'SAR') {
+                          try {
+                            basePrice = convertCurrency(
+                              v,
+                              exchangeRate,
+                              'toBase',
+                              exchangeOperator
+                            );
+                          } catch {
+                            return; // سعر صرف غير صالح — لا نفسد سعر الأساس
+                          }
+                        }
+                        updateItem(realIdx, 'price', v);
+                        updateItem(realIdx, 'basePrice', basePrice);
+                      }
+                    }}
+                    className="w-20 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-center font-mono text-xs font-black text-blue-700 outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                    dir="ltr"
+                  />
+                  <span className="text-[10px] text-slate-400">{currency}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default ItemPriceEditor;

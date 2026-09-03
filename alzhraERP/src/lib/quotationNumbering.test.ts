@@ -26,7 +26,7 @@ const createChainRecorder = (final: { data: unknown; error: { message: string } 
             return isTerminal ? Promise.resolve(final) : build();
           };
         },
-      },
+      }
     );
   return { calls, build };
 };
@@ -44,10 +44,16 @@ describe('generateQuotationNumber (race-resistant quotation numbering)', () => {
 
     expect(result).toBe('QP-0001');
     expect(mockFrom).toHaveBeenCalledWith('quotations');
-    expect(calls.map((c) => c.method)).toEqual(['select', 'eq', 'eq', 'limit']);
+    // [FIX] أُضيف order(created_at desc) قبل limit — أحدث الأرقام أعلى تسلسلاً
+    // فيظل الحد 10_000 ذا معنى فوقه بدل عينة اعتباطية.
+    expect(calls.map(c => c.method)).toEqual(['select', 'eq', 'eq', 'order', 'limit']);
+    expect(calls.find(c => c.method === 'order')?.args).toEqual([
+      'created_at',
+      { ascending: false },
+    ]);
     // Tenant isolation + kind filter must both be applied
-    expect(calls.find((c) => c.method === 'eq')?.args).toEqual(['company_id', 'comp-1']);
-    expect(calls.filter((c) => c.method === 'eq')[1]?.args).toEqual(['type', 'purchase']);
+    expect(calls.find(c => c.method === 'eq')?.args).toEqual(['company_id', 'comp-1']);
+    expect(calls.filter(c => c.method === 'eq')[1]?.args).toEqual(['type', 'purchase']);
   });
 
   it('continues after the highest existing trailing sequence (max+1, not count+1)', async () => {
@@ -112,7 +118,7 @@ describe('generateQuotationNumber (race-resistant quotation numbering)', () => {
     mockFrom.mockImplementation(() => build());
 
     await expect(generateQuotationNumber('comp-1', 'purchase')).rejects.toThrow(
-      /تعذر توليد رقم عرض السعر/,
+      /تعذر توليد رقم عرض السعر/
     );
   });
 

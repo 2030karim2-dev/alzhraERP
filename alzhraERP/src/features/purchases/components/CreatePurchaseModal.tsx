@@ -226,7 +226,11 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         ref={printRef}
         className="flex flex-col overflow-hidden rounded-2xl border-2 bg-[var(--app-surface)] shadow-2xl dark:border-gray-100 dark:border-slate-800 max-md:border"
       >
-        {company && <InvoiceHeader company={company} documentTypeTitle="فاتورة توريد مشتريات" />}
+        {company && (
+          <div className="hidden md:block">
+            <InvoiceHeader company={company} documentTypeTitle="فاتورة توريد مشتريات" />
+          </div>
+        )}
         <PurchaseMeta />
         <InteractivePurchaseTable />
         <Totals totals={totals} />

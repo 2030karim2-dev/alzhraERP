@@ -41,18 +41,26 @@ export const useAuditSession = (sessionId: string | undefined) => {
 
     const channelKey = `audit_session_${sessionId}`;
     type AuditChannel = ReturnType<typeof supabase.channel>;
+    interface AuditChannelEntry {
+      channel: AuditChannel;
+      refCount: number;
+    }
     interface AuditChannelRegistry {
-      __ALZ_AUDIT_CHANNELS__?: Map<string, AuditChannel>;
+      __ALZ_AUDIT_CHANNELS__?: Map<string, AuditChannelEntry>;
     }
     const registryRef = window as unknown as AuditChannelRegistry;
     let registry = registryRef.__ALZ_AUDIT_CHANNELS__;
     if (!registry) {
-      registry = new Map<string, AuditChannel>();
+      registry = new Map<string, AuditChannelEntry>();
       registryRef.__ALZ_AUDIT_CHANNELS__ = registry;
     }
 
-    // Reuse existing channel if already subscribed (prevents race condition)
-    if (!registry.has(channelKey)) {
+    // Reuse existing channel while other consumers still need it (prevents
+    // subscribe/unsubscribe churn across HMR / StrictMode remounts).
+    const existing = registry.get(channelKey);
+    if (existing) {
+      existing.refCount += 1;
+    } else {
       const channel = supabase
         .channel(channelKey)
         .on(
@@ -74,11 +82,21 @@ export const useAuditSession = (sessionId: string | undefined) => {
           }
         });
 
-      registry.set(channelKey, channel);
+      registry.set(channelKey, { channel, refCount: 1 });
     }
 
     return () => {
-      /* no-op: keep channel alive for stability */
+      // [FIX] كان الـ cleanup لا يفعل شيئاً ("keep channel alive") فتتراكم
+      // الاشتراكات الحية لكل جلسة جرّدت زيارتها وتستقبل أحداثاً وتطلق
+      // إبطالات في الخلفية لصفحات تركها المستخدم. الآن نُحرر المرجع، وإذا
+      // لم يعد له مستهلكون نُلغي الاشتراك فعلياً ونحذفه من السجل.
+      const entry = registry?.get(channelKey);
+      if (!entry) return;
+      entry.refCount -= 1;
+      if (entry.refCount <= 0) {
+        registry?.delete(channelKey);
+        void supabase.removeChannel(entry.channel);
+      }
     };
   }, [sessionId, queryClient]);
 

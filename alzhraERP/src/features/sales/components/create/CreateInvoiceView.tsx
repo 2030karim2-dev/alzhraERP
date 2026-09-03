@@ -229,7 +229,11 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
         />
         {/* Modern Enterprise Invoice Workspace Container */}
         <div className="flex flex-col rounded-2xl border border-slate-200 bg-[var(--app-surface)] shadow-xl dark:border-slate-800">
-          <InvoiceHeader company={comp} />
+          {comp && (
+            <div className="hidden md:block">
+              <InvoiceHeader company={comp} />
+            </div>
+          )}
           <InvoiceMeta invoiceNumber={nextInvoiceNumber!} />
           <InteractiveInvoiceTable />
           <InvoiceTotals

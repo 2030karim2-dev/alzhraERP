@@ -24,12 +24,16 @@ const DOMAIN_KEYS = {
     'sales_quotations',
   ],
   // Purchases related
+  // [FIX] المفاتيح الفعلية في usePurchaseReturns تستخدم شرطة سفلية
+  // (purchase_returns / purchase_returns_stats) — كانت 'purchase-returns'
+  // بشرطة علوية فلا يصل الإبطال لهدفه أبداً وتبقى قائمة المرتجعات قديمة.
   purchases: [
     'purchases',
     'purchase_stats',
     'purchase_details',
     'purchases_analytics',
-    'purchase-returns',
+    'purchase_returns',
+    'purchase_returns_stats',
   ],
   // Bonds related (Receipt & Payment)
   bonds: [

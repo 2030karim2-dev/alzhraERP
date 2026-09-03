@@ -11,6 +11,7 @@
  */
 
 import { supabase } from '../../lib/supabaseClient';
+import { buildIlikeOrFilter } from '../../core/utils/postgrestFilter';
 
 export interface OmniSearchResult {
   id: string;
@@ -53,9 +54,9 @@ export const searchAll = async (companyId: string, query: string): Promise<OmniS
       .from('products')
       .select('id, name_ar, sku, part_number, sale_price')
       .eq('company_id', companyId)
-      .or(
-        `name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern}`
-      )
+      // [FIX] قيمة مقتبسة داخل or() — الفاصلة في مدخل البحث كانت تكسر الفلتر
+      // وترمي 400 فيسقط Promise.all ويفشل البحث الشامل كله.
+      .or(buildIlikeOrFilter(['name_ar', 'sku', 'part_number'], term))
       .limit(5),
     supabase
       .from('parties')
@@ -75,7 +76,8 @@ export const searchAll = async (companyId: string, query: string): Promise<OmniS
       .from('invoices')
       .select('id, invoice_number, total_amount, party:party_id(name)')
       .eq('company_id', companyId)
-      .or(`invoice_number.ilike.${searchPattern}`)
+      // [FIX] ilike مباشرة بدل or() بشرط واحد — نفس السلوك بلا هشاشة الصيغة.
+      .ilike('invoice_number', searchPattern)
       .limit(5),
     supabase
       .from('journal_entries')

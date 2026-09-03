@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
-import { useSalesStore } from '../../../sales/store';
+import { useSalesStore } from '../../../../features/sales/store';
+import { convertCurrency } from '../../../../core/utils/currencyUtils';
 
 export const EditPriceInline: React.FC<{
   productId: string;
@@ -8,15 +9,28 @@ export const EditPriceInline: React.FC<{
   onDone: () => void;
 }> = React.memo(({ productId, currentPrice, onDone }) => {
   const [value, setValue] = useState(String(currentPrice));
-  const { items, updateItem } = useSalesStore();
+  const { items, updateItem, currency, exchangeRate, exchangeOperator } = useSalesStore();
 
   const commit = () => {
     const num = parseFloat(value);
     if (!isNaN(num) && num >= 0) {
       const idx = items.findIndex(i => i.productId === productId);
       if (idx !== -1) {
+        // [FIX] السعر المُدخل بعملة السلة؛ basePrice يجب أن يبقى بالعملة الأساس.
+        // الكتابة بنفس القيمة كانت تفسد سعر الأساس بعامل سعر الصرف، فتعود
+        // التعديلات لقيم خاطئة عند أي تغيير عملة لاحق.
+        let basePrice = num;
+        if (currency !== 'SAR') {
+          try {
+            basePrice = convertCurrency(num, exchangeRate, 'toBase', exchangeOperator);
+          } catch {
+            // سعر صرف غير صالح: نُبقي basePrice القديم ونطبّق تعديل السعر الظاهر فقط
+            onDone();
+            return;
+          }
+        }
         updateItem(idx, 'price', num);
-        updateItem(idx, 'basePrice', num);
+        updateItem(idx, 'basePrice', basePrice);
       }
     }
     onDone();

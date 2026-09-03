@@ -15,6 +15,9 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(
   ({ onPay, canPay, isProcessing }) => {
     const { t } = useTranslation();
     const { summary, currency } = useSalesStore();
+    // [FIX] اشتراك تفاعلي بدل getState() داخل الرندر — القراءة غير المشتركة
+    // كانت تعرض صف الخصم حسب قيمة قديمة إن غيّر المتجر دون إعادة رندر.
+    const discountEnabled = useDiscountStore(state => state.discountEnabled);
 
     return (
       <div className="shrink-0 space-y-2 border-t border-slate-800 bg-slate-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-white dark:bg-slate-950">
@@ -27,7 +30,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(
         </div>
 
         {/* Discount row */}
-        {useDiscountStore.getState().discountEnabled && summary.discountAmount > 0 && (
+        {discountEnabled && summary.discountAmount > 0 && (
           <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-rose-400">
             <span>خصم</span>
             <span dir="ltr" className="font-mono">

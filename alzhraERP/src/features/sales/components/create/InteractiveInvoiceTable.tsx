@@ -4,6 +4,7 @@ import { useDiscountStore } from '../../../settings/taxDiscountStore';
 import type { Product } from '../../../inventory/types';
 import { Plus, Settings } from 'lucide-react';
 import { cn } from '../../../../core/utils';
+import { logger } from '../../../../core/utils/logger';
 import { STORAGE_KEYS } from '../../../../core/constants';
 import ProductSelectionModal from './ProductSelectionModal';
 import InvoiceRow from './InvoiceRow';
@@ -45,7 +46,13 @@ const InteractiveInvoiceTable: React.FC = () => {
   const [colWidths, setColWidths] = useState<Record<string, number>>(initialWidths);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.INVOICE_COL_WIDTHS, JSON.stringify(colWidths));
+    // [FIX] التخزين قد يرمي QuotaExceededError في وضع التصفح الخاص أو عند
+    // امتلاء الحصة — كان ينهار داخل useEffect فيسقط نموذج الفاتورة كله.
+    try {
+      localStorage.setItem(STORAGE_KEYS.INVOICE_COL_WIDTHS, JSON.stringify(colWidths));
+    } catch (err) {
+      logger.warn('InteractiveInvoiceTable', 'Failed to persist column widths', err);
+    }
   }, [colWidths]);
 
   const resizingRef = useRef<{ field: string; startX: number; startWidth: number } | null>(null);

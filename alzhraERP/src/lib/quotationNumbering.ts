@@ -41,15 +41,21 @@ export const formatQuotationNumber = (kind: QuotationKind, sequence: number): st
 
 export const generateQuotationNumber = async (
   companyId: string,
-  kind: QuotationKind,
+  kind: QuotationKind
 ): Promise<string> => {
   // لا فلترة deleted_at عمداً: الأرقام المحذوفة ناعمياً لا يجوز إعادة استخدامها
   // حتى تبقى المراجع الورقية والمرسلة سليمة تاريخياً.
+  //
+  // [FIX] ترتيب تنازلي بـ created_at: بدون ترتيب كان الحد 10_000 يُرجع عينة
+  // اعتباطية من الصفوف، فتُشتق "أقصى لاحقة" من عينة لا تمثل الواقع فوق هذا
+  // الحد ويتولّد رقم مكرر يرفضه قيد UNIQUE كخطأ للمستخدم. التسلسل يتزايد
+  // زمنياً بحكم التصميم، فالأحدث يحمل الأرقام الأعلى.
   const { data, error } = await supabase
     .from('quotations')
     .select('quotation_number')
     .eq('company_id', companyId)
     .eq('type', kind)
+    .order('created_at', { ascending: false })
     .limit(MAX_ROWS_SCAN);
 
   if (error !== null) {
@@ -70,7 +76,7 @@ export const generateQuotationNumber = async (
     candidate += 1;
     if (candidate > maxSequence + MAX_GAP_SCAN) {
       throw new Error(
-        `تعذر إيجاد رقم عرض سعر فريد بعد فحص ${MAX_GAP_SCAN} رقماً متتالياً — راجع تسلسل أرقام العروض (${QUOTATION_PREFIX[kind]})`,
+        `تعذر إيجاد رقم عرض سعر فريد بعد فحص ${MAX_GAP_SCAN} رقماً متتالياً — راجع تسلسل أرقام العروض (${QUOTATION_PREFIX[kind]})`
       );
     }
   }

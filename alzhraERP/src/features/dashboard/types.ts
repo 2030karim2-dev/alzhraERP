@@ -4,6 +4,7 @@
  */
 
 import type { Database } from '@/core/database.types';
+import { formatLocalDate } from '@/core/utils/dateUtils';
 
 // Journal Entry with Lines (for bonds)
 export interface JournalEntryWithLines {
@@ -60,7 +61,10 @@ export function getPeriodDates(period: DashboardPeriod): {
   dateTo?: string | undefined;
 } {
   const now = new Date();
-  const dateTo = now.toISOString().split('T')[0];
+  // [FIX] التاريخ المحلي وليس UTC: كانت toISOString() تُرجع تاريخ الأمس قبل
+  // منتصف الليل UTC (مثلاً قبل 3 صباحاً بتوقيت GMT+3)، فتصبح فترة "اليوم"
+  // هي الأمس. formatLocalDate() مخصصة لهذه المشكلة بالضبط.
+  const dateTo = formatLocalDate(now);
 
   if (period === 'today') {
     return { dateFrom: dateTo, dateTo };
@@ -70,7 +74,7 @@ export function getPeriodDates(period: DashboardPeriod): {
     const day = now.getDay(); // 0 is Sunday, 6 is Saturday
     const diff = (day + 1) % 7; // distance from Saturday
     startOfWeek.setDate(now.getDate() - diff);
-    return { dateFrom: startOfWeek.toISOString().split('T')[0], dateTo };
+    return { dateFrom: formatLocalDate(startOfWeek), dateTo };
   }
   if (period === 'this_month') {
     const year = now.getFullYear();

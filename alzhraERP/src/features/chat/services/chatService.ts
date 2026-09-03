@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
+import { buildIlikeOrFilter } from '../../../core/utils/postgrestFilter';
 import type { Database } from '../../../core/database.types';
 import type {
   ChatChannel,
@@ -742,7 +743,8 @@ export const chatService = {
         `
         )
         .eq('company_id', companyId)
-        .or(`part_number.ilike.%${term}%,name_ar.ilike.%${term}%,sku.ilike.%${term}%`)
+        // [FIX] قيم مقتبسة داخل or() — مصطلح بحث يحتوي فاصلة كان يكسر الفلتر.
+        .or(buildIlikeOrFilter(['part_number', 'name_ar', 'sku'], term))
         .limit(10);
 
       if (error) throw error;

@@ -67,7 +67,11 @@ export const salesApi = {
       .eq('type', 'sale')
       .neq('status', 'void')
       .is('deleted_at', null)
+      // [FIX] رابط ترتيب ثانٍ فريد: كل فواتير اليوم تتساوى في issue_date، وبدون
+      // رابط فريد كان ترتيبها بين الصفحات يتقلب (range pagination) فتظهر
+      // فواتير مكررة وتُتخطى أخرى في سجل المبيعات.
       .order('issue_date', { ascending: false })
+      .order('id', { ascending: false })
       .range(from, to);
 
     if (branchId) {

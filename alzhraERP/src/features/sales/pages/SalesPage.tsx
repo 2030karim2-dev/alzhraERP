@@ -140,17 +140,33 @@ const SalesPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col bg-gray-50 dark:bg-slate-950">
       <MicroHeader
-        title={t('sales_management')}
+        title={activeTab === 'create' ? 'فاتورة مبيعات جديدة' : t('sales_management')}
         icon={ShoppingBag}
         iconColor="text-emerald-600"
-        tabs={TABS}
+        actions={
+          activeTab === 'create' ? (
+            <button
+              type="button"
+              onClick={() => setActiveTab('list')}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1 text-xs font-bold text-[var(--app-text)] shadow-xs transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
+            >
+              <ShoppingBag size={13} className="text-emerald-500" />
+              <span>سجل الفواتير</span>
+            </button>
+          ) : undefined
+        }
+        {...(activeTab !== 'create'
+          ? {
+              tabs: TABS,
+              searchPlaceholder: t('search_in_sales_or_customers'),
+              searchValue: searchTerm,
+              onSearchChange: setSearchTerm,
+            }
+          : {})}
         activeTab={activeTab}
         onTabChange={id => {
           setActiveTab(id as SalesViewTab);
         }}
-        searchPlaceholder={t('search_in_sales_or_customers')}
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
       />
       <div className="custom-scrollbar flex-1 overflow-y-auto px-2 pb-16 pt-2">
         <div className="mx-auto max-w-none">{renderContent()}</div>

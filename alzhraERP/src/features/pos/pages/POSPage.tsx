@@ -16,6 +16,8 @@ import { formatCurrency } from '../../../core/utils';
 import type { Product } from '../../inventory/types';
 import { buildProductFromSearchResult } from '../utils/buildProductFromResult';
 import { SuspendedOrdersModal } from '../components/SuspendedOrdersModal';
+import PaymentModal from '../components/PaymentModal';
+import type { POSPaymentResult } from '../components/payment/paymentTypes';
 import { POSHeader } from '../components/layout/POSHeader';
 import { useWarehousesWithBranches } from '../../inventory/hooks/useWarehouseStock';
 import { createIdempotencyKey } from '../../../core/utils/idempotency';
@@ -28,6 +30,10 @@ const POSPage: React.FC = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(null);
+  // [FIX] كانت نافذة الدفع (PaymentModal) كوداً ميتاً — لا تُعرض في أي مكان،
+  // فكان البيع يتم بصمت بنقد/مدفوع دون التقاط المبلغ المستلم أو الباقي
+  // أو تأكيد صندوق الخزينة. الآن يفتح زر الدفع النافذة.
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const isDesktop = useBreakpoint('md');
 
   const { warehouses } = useWarehousesWithBranches();
