@@ -106,33 +106,45 @@ const POSPage: React.FC = () => {
     [items]
   );
 
-  const handlePayConfirm = useCallback(() => {
+  const handleOpenPayment = useCallback(() => {
     if (isProcessing) return;
-    processPayment(
-      {
-        partyId: selectedCustomer?.id || null,
-        idempotencyKey: checkoutIdempotencyKeyRef.current,
-        type: 'sale',
-        items: validCartItems.map(i => ({
-          ...i,
-          unitPrice: i.price,
-          costPrice: i.costPrice || 0,
-          maxStock: 0,
-        })),
-        discount: 0,
-        paymentMethod: 'cash',
-        status: 'paid' as const,
-      },
-      {
-        onSuccess: () => {
-          resetCart();
-          // نية دفع جديدة = مفتاح جديد (الإبقاء عليه عند الفشل يسمح
-          // بإعادة المحاولة بأمان دون فاتورة مكررة).
-          checkoutIdempotencyKeyRef.current = createIdempotencyKey('pos');
+    if (validCartItems.length === 0) return;
+    setIsPaymentOpen(true);
+  }, [isProcessing, validCartItems.length]);
+
+  const handlePayConfirm = useCallback(
+    (result: POSPaymentResult) => {
+      if (isProcessing) return;
+      processPayment(
+        {
+          partyId: selectedCustomer?.id || null,
+          idempotencyKey: checkoutIdempotencyKeyRef.current,
+          type: 'sale',
+          items: validCartItems.map(i => ({
+            ...i,
+            unitPrice: i.price,
+            costPrice: i.costPrice || 0,
+            maxStock: 0,
+          })),
+          discount: 0,
+          paymentMethod: 'cash',
+          // تأكيد صندوق الخزينة من النافذة (يُوجَّه عبر resolveStrictPaymentAccount)
+          ...(result.treasuryAccountId ? { treasuryAccountId: result.treasuryAccountId } : {}),
+          status: 'paid' as const,
         },
-      }
-    );
-  }, [isProcessing, processPayment, selectedCustomer, validCartItems, resetCart]);
+        {
+          onSuccess: () => {
+            setIsPaymentOpen(false);
+            resetCart();
+            // نية دفع جديدة = مفتاح جديد (الإبقاء عليه عند الفشل يسمح
+            // بإعادة المحاولة بأمان دون فاتورة مكررة).
+            checkoutIdempotencyKeyRef.current = createIdempotencyKey('pos');
+          },
+        }
+      );
+    },
+    [isProcessing, processPayment, selectedCustomer, validCartItems, resetCart]
+  );
 
   const handleSuspend = useCallback(() => {
     if (validCartItems.length === 0) return;
@@ -183,7 +195,7 @@ const POSPage: React.FC = () => {
           )}
           <div className="min-h-0 flex-1 overflow-hidden">
             <POSCart
-              onPay={handlePayConfirm}
+              onPay={handleOpenPayment}
               onSuspend={handleSuspend}
               isProcessing={isProcessing}
             />
@@ -276,6 +288,23 @@ const POSPage: React.FC = () => {
             }
           }}
           onRemove={removeSuspended}
+        />
+      )}
+
+      {/* [FIX] نافذة الدفع: التقاط المبلغ المستلم/الباقي + تأكيد صندوق الخزينة.
+          النقد فقط حالياً — مسار «شركة صرافة» غير مفعّل في خط أنابيب البيع
+          (paymentMethod يقبل 'cash' | 'credit' فقط) فيُخفى اختياره. */}
+      {isPaymentOpen && (
+        <PaymentModal
+          isOpen
+          onClose={() => {
+            setIsPaymentOpen(false);
+          }}
+          total={summary.totalAmount}
+          currency={currency}
+          isProcessing={isProcessing}
+          onConfirm={handlePayConfirm}
+          allowedMethods={['cash']}
         />
       )}
     </div>
