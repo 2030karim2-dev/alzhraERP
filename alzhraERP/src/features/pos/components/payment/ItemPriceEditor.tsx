@@ -11,6 +11,92 @@ interface ItemPriceEditorProps {
   currency: string;
 }
 
+type UpdateItemFn = (index: number, field: 'price' | 'basePrice', value: number) => void;
+
+interface CommitPriceEditArgs {
+  raw: string;
+  realIdx: number;
+  currency: string;
+  exchangeRate: number;
+  exchangeOperator: 'multiply' | 'divide';
+  updateItem: UpdateItemFn;
+}
+
+/**
+ * [FIX] تثبيت تعديل السعر خارج المكوّن: المُدخل بعملة السلة — basePrice يُشتق
+ * عكسياً للعملة الأساس (كان يُكتب بنفس القيمة فيفسد سعر الأساس بعامل سعر
+ * الصرف فتعود التعديلات لقيم خاطئة عند أي تغيير عملة لاحق).
+ */
+const commitPriceEdit = ({
+  raw,
+  realIdx,
+  currency,
+  exchangeRate,
+  exchangeOperator,
+  updateItem,
+}: CommitPriceEditArgs): void => {
+  const v = parseFloat(raw);
+  if (isNaN(v) || v < 0 || realIdx === -1) return;
+
+  let basePrice = v;
+  if (currency !== 'SAR') {
+    try {
+      basePrice = convertCurrency(v, exchangeRate, 'toBase', exchangeOperator);
+    } catch {
+      return; // سعر صرف غير صالح — لا نفسد سعر الأساس
+    }
+  }
+  updateItem(realIdx, 'price', v);
+  updateItem(realIdx, 'basePrice', basePrice);
+};
+
+interface PriceRowProps {
+  item: { name: string; quantity: number; price: number; productId: string };
+  realIdx: number;
+  currency: string;
+  exchangeRate: number;
+  exchangeOperator: 'multiply' | 'divide';
+  updateItem: UpdateItemFn;
+}
+
+const PriceRow: React.FC<PriceRowProps> = ({
+  item,
+  realIdx,
+  currency,
+  exchangeRate,
+  exchangeOperator,
+  updateItem,
+}) => (
+  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-[var(--app-surface)] px-3 py-2 dark:border-slate-800">
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-[10px] font-bold text-slate-700 dark:text-slate-300">
+        {item.name}
+      </p>
+      <p className="text-[10px] text-slate-400">×{item.quantity}</p>
+    </div>
+    <div className="flex shrink-0 items-center gap-1">
+      <span className="text-[10px] text-slate-400">سعر:</span>
+      <input
+        type="number"
+        defaultValue={item.price}
+        onBlur={e => {
+          commitPriceEdit({
+            raw: e.target.value,
+            realIdx,
+            currency,
+            exchangeRate,
+            exchangeOperator,
+            updateItem,
+          });
+        }}
+        className="w-20 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-center font-mono text-xs font-black text-blue-700 outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+        dir="ltr"
+      />
+      <span className="text-[10px] text-slate-400">{currency}</span>
+    </div>
+  </div>
+);
+
 export const ItemPriceEditor: React.FC<ItemPriceEditorProps> = ({
   show,
   onToggle,
@@ -37,49 +123,15 @@ export const ItemPriceEditor: React.FC<ItemPriceEditorProps> = ({
           {items.map(item => {
             const realIdx = allItems.findIndex(i => i.productId === item.productId);
             return (
-              <div
+              <PriceRow
                 key={item.productId}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-[var(--app-surface)] px-3 py-2 dark:border-slate-800"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                    {item.name}
-                  </p>
-                  <p className="text-[10px] text-slate-400">×{item.quantity}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <span className="text-[10px] text-slate-400">سعر:</span>
-                  <input
-                    type="number"
-                    defaultValue={item.price}
-                    onBlur={e => {
-                      const v = parseFloat(e.target.value);
-                      if (!isNaN(v) && v >= 0 && realIdx !== -1) {
-                        // [FIX] نفس إصلاح EditPriceInline: المُدخل بعملة
-                        // السلة — basePrice يُشتق عكسياً للعملة الأساس.
-                        let basePrice = v;
-                        if (currency !== 'SAR') {
-                          try {
-                            basePrice = convertCurrency(
-                              v,
-                              exchangeRate,
-                              'toBase',
-                              exchangeOperator
-                            );
-                          } catch {
-                            return; // سعر صرف غير صالح — لا نفسد سعر الأساس
-                          }
-                        }
-                        updateItem(realIdx, 'price', v);
-                        updateItem(realIdx, 'basePrice', basePrice);
-                      }
-                    }}
-                    className="w-20 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-center font-mono text-xs font-black text-blue-700 outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                    dir="ltr"
-                  />
-                  <span className="text-[10px] text-slate-400">{currency}</span>
-                </div>
-              </div>
+                item={item}
+                realIdx={realIdx}
+                currency={currency}
+                exchangeRate={exchangeRate}
+                exchangeOperator={exchangeOperator}
+                updateItem={updateItem}
+              />
             );
           })}
         </div>

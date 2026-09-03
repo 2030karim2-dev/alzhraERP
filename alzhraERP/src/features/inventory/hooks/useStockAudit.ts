@@ -2,7 +2,7 @@
 // useStockAudit — إدارة جلسات الجرد والتسوية
 // ============================================
 import { useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { inventoryService } from '../service';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
@@ -22,6 +22,37 @@ export const useAuditSessions = () => {
     enabled: !!user?.company_id,
   });
 };
+
+/**
+ * إنشاء قناة Realtime لأصناف جلسة الجرد — مُستخرجة من الـ effect
+ * لإبقاء تعقيد الوظيفة تحت الحد المعتمد.
+ */
+function createAuditItemsChannel(
+  channelKey: string,
+  sessionId: string,
+  queryClient: QueryClient
+): ReturnType<typeof supabase.channel> {
+  return supabase
+    .channel(channelKey)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'audit_items',
+        filter: `session_id=eq.${sessionId}`,
+      },
+      (payload: Record<string, unknown>) => {
+        logger.debug('Audit item changed:', JSON.stringify(payload));
+        void queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
+      }
+    )
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        logger.debug('Audit', `Realtime channel [${channelKey}] subscribed`);
+      }
+    });
+}
 
 /** جلب تفاصيل جلسة جرد مع Realtime subscription */
 export const useAuditSession = (sessionId: string | undefined) => {
@@ -49,40 +80,21 @@ export const useAuditSession = (sessionId: string | undefined) => {
       __ALZ_AUDIT_CHANNELS__?: Map<string, AuditChannelEntry>;
     }
     const registryRef = window as unknown as AuditChannelRegistry;
-    let registry = registryRef.__ALZ_AUDIT_CHANNELS__;
-    if (!registry) {
-      registry = new Map<string, AuditChannelEntry>();
-      registryRef.__ALZ_AUDIT_CHANNELS__ = registry;
-    }
+    // const + ?? جديد: سجل مؤكد التعيين يغني عن optional chaining في الـ cleanup
+    const registry: Map<string, AuditChannelEntry> =
+      registryRef.__ALZ_AUDIT_CHANNELS__ ?? new Map<string, AuditChannelEntry>();
+    registryRef.__ALZ_AUDIT_CHANNELS__ = registry;
 
     // Reuse existing channel while other consumers still need it (prevents
     // subscribe/unsubscribe churn across HMR / StrictMode remounts).
     const existing = registry.get(channelKey);
-    if (existing) {
+    if (existing !== undefined) {
       existing.refCount += 1;
     } else {
-      const channel = supabase
-        .channel(channelKey)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'audit_items',
-            filter: `session_id=eq.${sessionId}`,
-          },
-          (payload: Record<string, unknown>) => {
-            logger.debug('Audit item changed:', JSON.stringify(payload));
-            void queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
-          }
-        )
-        .subscribe(status => {
-          if (status === 'SUBSCRIBED') {
-            logger.debug('Audit', `Realtime channel [${channelKey}] subscribed`);
-          }
-        });
-
-      registry.set(channelKey, { channel, refCount: 1 });
+      registry.set(channelKey, {
+        channel: createAuditItemsChannel(channelKey, sessionId, queryClient),
+        refCount: 1,
+      });
     }
 
     return () => {
@@ -90,11 +102,11 @@ export const useAuditSession = (sessionId: string | undefined) => {
       // الاشتراكات الحية لكل جلسة جرّدت زيارتها وتستقبل أحداثاً وتطلق
       // إبطالات في الخلفية لصفحات تركها المستخدم. الآن نُحرر المرجع، وإذا
       // لم يعد له مستهلكون نُلغي الاشتراك فعلياً ونحذفه من السجل.
-      const entry = registry?.get(channelKey);
-      if (!entry) return;
+      const entry = registry.get(channelKey);
+      if (entry === undefined) return;
       entry.refCount -= 1;
       if (entry.refCount <= 0) {
-        registry?.delete(channelKey);
+        registry.delete(channelKey);
         void supabase.removeChannel(entry.channel);
       }
     };

@@ -129,7 +129,9 @@ const POSPage: React.FC = () => {
           discount: 0,
           paymentMethod: 'cash',
           // تأكيد صندوق الخزينة من النافذة (يُوجَّه عبر resolveStrictPaymentAccount)
-          ...(result.treasuryAccountId ? { treasuryAccountId: result.treasuryAccountId } : {}),
+          ...(result.treasuryAccountId != null
+            ? { treasuryAccountId: result.treasuryAccountId }
+            : {}),
           status: 'paid' as const,
         },
         {

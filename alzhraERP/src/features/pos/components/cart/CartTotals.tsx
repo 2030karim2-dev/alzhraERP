@@ -11,8 +11,45 @@ interface CartTotalsProps {
   isProcessing?: boolean | undefined;
 }
 
+/** صف الخصم — مُستخرج لإبقاء المكوّن الرئيس تحت حد طول الدالة. */
+const DiscountRow: React.FC<{ amount: number; currency: string }> = ({ amount, currency }) => (
+  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-rose-400">
+    <span>خصم</span>
+    <span dir="ltr" className="font-mono">
+      -{formatCurrency(amount)} {currency}
+    </span>
+  </div>
+);
+
+const PayButton: React.FC<{
+  onPay: () => void;
+  canPay: boolean;
+  isProcessing: boolean;
+}> = ({ onPay, canPay, isProcessing }) => {
+  const { t } = useTranslation();
+  return (
+    <button
+      onClick={onPay}
+      disabled={!canPay || isProcessing}
+      className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 py-4 text-base font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-blue-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 max-md:gap-2"
+    >
+      {isProcessing ? (
+        <>
+          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          <span>جاري إتمام البيع...</span>
+        </>
+      ) : (
+        <>
+          <CreditCard size={20} className="transition-transform group-hover:rotate-12" />
+          {t('complete_and_pay')}
+        </>
+      )}
+    </button>
+  );
+};
+
 export const CartTotals: React.FC<CartTotalsProps> = React.memo(
-  ({ onPay, canPay, isProcessing }) => {
+  ({ onPay, canPay, isProcessing = false }) => {
     const { t } = useTranslation();
     const { summary, currency } = useSalesStore();
     // [FIX] اشتراك تفاعلي بدل getState() داخل الرندر — القراءة غير المشتركة
@@ -31,12 +68,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(
 
         {/* Discount row */}
         {discountEnabled && summary.discountAmount > 0 && (
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-rose-400">
-            <span>خصم</span>
-            <span dir="ltr" className="font-mono">
-              -{formatCurrency(summary.discountAmount)} {currency}
-            </span>
-          </div>
+          <DiscountRow amount={summary.discountAmount} currency={currency} />
         )}
 
         {/* Grand total */}
@@ -58,23 +90,7 @@ export const CartTotals: React.FC<CartTotalsProps> = React.memo(
         </div>
 
         {/* Pay button */}
-        <button
-          onClick={onPay}
-          disabled={!canPay || isProcessing}
-          className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 py-4 text-base font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-blue-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 max-md:gap-2"
-        >
-          {isProcessing ? (
-            <>
-              <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              <span>جاري إتمام البيع...</span>
-            </>
-          ) : (
-            <>
-              <CreditCard size={20} className="transition-transform group-hover:rotate-12" />
-              {t('complete_and_pay')}
-            </>
-          )}
-        </button>
+        <PayButton onPay={onPay} canPay={canPay} isProcessing={isProcessing} />
       </div>
     );
   }
