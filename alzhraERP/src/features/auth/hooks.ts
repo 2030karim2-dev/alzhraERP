@@ -3,6 +3,8 @@ import { authApi } from './api';
 import type { AuthUser } from './types';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../../lib/supabaseClient';
 import { ROUTES } from '../../core/routes/paths';
 import { parseError } from '../../core/utils/errorUtils';
 import { logger } from '../../core/utils/logger';
@@ -281,4 +283,37 @@ export const useGoogleLogin = () => {
   };
 
   return { login, isLoading, error };
+};
+
+/**
+ * useIsSuperAdmin — Server-authoritative check for Super Admin privileges
+ * Cached for 5 minutes via React Query.
+ */
+export const useIsSuperAdmin = () => {
+  const { user, isAuthenticated } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['is_super_admin', user?.id],
+    queryFn: async (): Promise<boolean> => {
+      if (!isAuthenticated || !user?.id) return false;
+      try {
+        const { data, error } = await supabase.rpc('is_super_admin');
+        if (error) {
+          logger.warn('Auth', 'is_super_admin check error', error);
+          return false;
+        }
+        return !!data;
+      } catch (err) {
+        logger.error('Auth', 'Failed to evaluate is_super_admin', err);
+        return false;
+      }
+    },
+    enabled: !!isAuthenticated && !!user?.id,
+    // فترة قصيرة حتى تنعكس أي تغييرات على صلاحية السوبر أدمن (ترقية/سحب)
+    // بأسرع وقت دون ترك نافذة وصول قديمة لمستخدم سُحبت صلاحيته.
+    staleTime: 30_000,
+    gcTime: 2 * 60 * 1000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
 };

@@ -1,6 +1,16 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Bell, Moon, Sun, Volume2, VolumeX, LogOut, User as UserIcon, Building2, MessageSquare } from 'lucide-react';
+import {
+  Bell,
+  Moon,
+  Sun,
+  Volume2,
+  VolumeX,
+  LogOut,
+  User as UserIcon,
+  Building2,
+  MessageSquare,
+  ShieldCheck,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../../lib/themeStore';
 import { useAuthStore } from '../../../features/auth/store';
@@ -15,7 +25,8 @@ import { syncStore } from '../../../core/lib/sync-store';
 import { RefreshCw } from 'lucide-react';
 import SyncStatusModal from '../../components/SyncStatusModal';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
-import { useLogout } from '../../../features/auth/hooks';
+import { useLogout, useIsSuperAdmin } from '../../../features/auth/hooks';
+import { ROUTES } from '../../../core/routes/paths';
 
 const HeaderActions: React.FC = () => {
   const navigate = useNavigate();
@@ -28,6 +39,7 @@ const HeaderActions: React.FC = () => {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { logout: performLogout, isLoggingOut } = useLogout();
+  const { data: isSuperAdmin } = useIsSuperAdmin();
 
   // Poll for pending sync count
   useEffect(() => {
@@ -37,19 +49,28 @@ const HeaderActions: React.FC = () => {
     };
     checkPending();
     const interval = setInterval(checkPending, 5000);
-    return () => { clearInterval(interval); };
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const { getCompanyUnreadCount } = useNotificationStore();
   const companyId = user?.company_id || '';
-  const unreadCount = useMemo(() => getCompanyUnreadCount(companyId), [getCompanyUnreadCount, companyId]);
+  const unreadCount = useMemo(
+    () => getCompanyUnreadCount(companyId),
+    [getCompanyUnreadCount, companyId]
+  );
   const { isSoundEnabled, toggleSound } = useSoundStore();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');
+  const userInitial = user?.full_name
+    ? user.full_name.charAt(0).toUpperCase()
+    : user?.email
+      ? user.email.charAt(0).toUpperCase()
+      : 'U';
 
   // Handle click outside to close notification dropdown
   useEffect(() => {
@@ -88,7 +109,7 @@ const HeaderActions: React.FC = () => {
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] transition-all active:scale-90 border border-[var(--app-border)]"
+        className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface)] active:scale-90 md:h-8 md:w-8"
         title={theme === 'light' ? t('theme_dark') : t('theme_light')}
       >
         {theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-yellow-500" />}
@@ -96,8 +117,10 @@ const HeaderActions: React.FC = () => {
 
       {/* Language Toggle (Desktop Friendly) */}
       <button
-        onClick={() => { setLang(lang === 'ar' ? 'en' : 'ar'); }}
-        className="hidden sm:flex w-8 h-8 items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] transition-all border border-[var(--app-border)] font-sans text-[10px] font-black uppercase tracking-tighter"
+        onClick={() => {
+          setLang(lang === 'ar' ? 'en' : 'ar');
+        }}
+        className="hidden h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] font-sans text-[10px] font-black uppercase tracking-tighter text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface)] sm:flex"
         title={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
         aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
       >
@@ -107,8 +130,10 @@ const HeaderActions: React.FC = () => {
       {/* Sound Toggle */}
       <button
         onClick={toggleSound}
-        className="hidden sm:flex w-7 h-7 md:w-8 md:h-8 items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] transition-all active:scale-90 border border-[var(--app-border)]"
-        title={isSoundEnabled ? t('sound_disable') || 'تعطيل الصوت' : t('sound_enable') || 'تفعيل الصوت'}
+        className="hidden h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface)] active:scale-90 sm:flex md:h-8 md:w-8"
+        title={
+          isSoundEnabled ? t('sound_disable') || 'تعطيل الصوت' : t('sound_enable') || 'تفعيل الصوت'
+        }
         aria-label={isSoundEnabled ? 'تعطيل صوت الإشعارات' : 'تفعيل صوت الإشعارات'}
         aria-pressed={isSoundEnabled}
       >
@@ -122,15 +147,19 @@ const HeaderActions: React.FC = () => {
       {/* Sync Status Button */}
       {pendingCount > 0 && (
         <button
-          onClick={() => { setIsSyncModalOpen(true); }}
-          className="relative w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all active:scale-95 border border-amber-200 dark:border-amber-800"
+          onClick={() => {
+            setIsSyncModalOpen(true);
+          }}
+          className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600 transition-all hover:bg-amber-100 active:scale-95 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30 md:h-8 md:w-8"
           title={`${pendingCount} عمليات بانتظار المزامنة`}
         >
-          <RefreshCw size={14} className={cn(pendingCount > 0 && "animate-spin-slow")} />
-          <span className={cn(
-            "absolute -top-1.5 flex items-center justify-center min-w-[14px] h-[14px] bg-amber-600 text-white text-[10px] font-black rounded-full border-2 border-[var(--app-surface)] shadow-sm",
-            dir === 'rtl' ? '-left-1.5' : '-right-1.5'
-          )}>
+          <RefreshCw size={14} className={cn(pendingCount > 0 && 'animate-spin-slow')} />
+          <span
+            className={cn(
+              'absolute -top-1.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-amber-600 text-[10px] font-black text-white shadow-sm',
+              dir === 'rtl' ? '-left-1.5' : '-right-1.5'
+            )}
+          >
             {pendingCount}
           </span>
         </button>
@@ -139,23 +168,29 @@ const HeaderActions: React.FC = () => {
       {/* Sync Modal */}
       <SyncStatusModal
         isOpen={isSyncModalOpen}
-        onClose={() => { setIsSyncModalOpen(false); }}
+        onClose={() => {
+          setIsSyncModalOpen(false);
+        }}
       />
 
       {/* Internal Branch Chat & Collaboration */}
       <button
         onClick={() => navigate('/chat')}
-        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] hover:text-[var(--accent)] transition-all duration-200 active:scale-95 border border-[var(--app-border)] relative focus:outline-none"
+        className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all duration-200 hover:bg-[var(--app-surface)] hover:text-[var(--accent)] focus:outline-none active:scale-95 md:h-8 md:w-8"
         title="محادثات الفروع والموظفين"
         aria-label="المحادثات والتواصل الداخلي"
       >
         <MessageSquare size={14} className="transition-transform duration-150" />
         {useChatStore.getState().getTotalUnreadCount() > 0 && (
-          <span className={cn(
-            "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
-            dir === 'rtl' ? '-left-1.5' : '-right-1.5'
-          )}>
-            {useChatStore.getState().getTotalUnreadCount() > 9 ? '9+' : useChatStore.getState().getTotalUnreadCount()}
+          <span
+            className={cn(
+              'absolute -top-1.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs',
+              dir === 'rtl' ? '-left-1.5' : '-right-1.5'
+            )}
+          >
+            {useChatStore.getState().getTotalUnreadCount() > 9
+              ? '9+'
+              : useChatStore.getState().getTotalUnreadCount()}
           </span>
         )}
       </button>
@@ -163,8 +198,10 @@ const HeaderActions: React.FC = () => {
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
         <button
-          onClick={() => { setIsNotifOpen(!isNotifOpen); }}
-          className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)] hover:text-[var(--accent)] transition-all duration-200 active:scale-95 border border-[var(--app-border)] relative focus:outline-none"
+          onClick={() => {
+            setIsNotifOpen(!isNotifOpen);
+          }}
+          className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all duration-200 hover:bg-[var(--app-surface)] hover:text-[var(--accent)] focus:outline-none active:scale-95 md:h-8 md:w-8"
           title={t('notifications')}
           aria-label={`${t('notifications')} ${unreadCount > 0 ? `(${unreadCount} غير مقروء)` : ''}`}
           aria-expanded={isNotifOpen}
@@ -172,37 +209,51 @@ const HeaderActions: React.FC = () => {
         >
           <Bell size={14} className="transition-transform duration-150" />
           {unreadCount > 0 && (
-            <span className={cn(
-              "absolute -top-1.5 min-w-[14px] h-[14px] flex items-center justify-center px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-[var(--app-surface)] shadow-xs",
-              dir === 'rtl' ? '-left-1.5' : '-right-1.5'
-            )}>
+            <span
+              className={cn(
+                'absolute -top-1.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs',
+                dir === 'rtl' ? '-left-1.5' : '-right-1.5'
+              )}
+            >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
-        <NotificationDropdown isOpen={isNotifOpen} onClose={() => { setIsNotifOpen(false); }} />
+        <NotificationDropdown
+          isOpen={isNotifOpen}
+          onClose={() => {
+            setIsNotifOpen(false);
+          }}
+        />
       </div>
 
       {/* User Profile Dropdown */}
       <div className="relative" ref={profileRef}>
         <button
-          onClick={() => { setIsProfileOpen(!isProfileOpen); }}
-          className="ms-1 group relative focus:outline-none rounded-lg"
+          onClick={() => {
+            setIsProfileOpen(!isProfileOpen);
+          }}
+          className="group relative ms-1 rounded-lg focus:outline-none"
           title={t('profile') || 'الملف الشخصي'}
           aria-label={t('profile') || 'الملف الشخصي'}
           aria-expanded={isProfileOpen}
         >
-          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-slate-800 dark:bg-slate-700 text-white flex items-center justify-center font-bold text-xs border border-[var(--app-border)] transition-colors duration-150 hover:bg-slate-900">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-slate-800 text-xs font-bold text-white transition-colors duration-150 hover:bg-slate-900 dark:bg-slate-700 md:h-8 md:w-8">
             {userInitial}
           </div>
           {/* Connectivity Status Indicator */}
-          <span className={cn(
-            "absolute -bottom-0.5 w-3 h-3 border-2 border-[var(--app-surface)] rounded-full transition-colors duration-500",
-            dir === 'rtl' ? '-left-0.5' : '-right-0.5',
-            status.isOnline
-              ? (status.isPoorConnection ? "bg-amber-500 animate-pulse" : "bg-emerald-500")
-              : "bg-rose-500"
-          )} title={status.isOnline ? (status.isPoorConnection ? 'اتصال ضعيف' : 'متصل') : 'غير متصل'}></span>
+          <span
+            className={cn(
+              'absolute -bottom-0.5 h-3 w-3 rounded-full border-2 border-[var(--app-surface)] transition-colors duration-500',
+              dir === 'rtl' ? '-left-0.5' : '-right-0.5',
+              status.isOnline
+                ? status.isPoorConnection
+                  ? 'animate-pulse bg-amber-500'
+                  : 'bg-emerald-500'
+                : 'bg-rose-500'
+            )}
+            title={status.isOnline ? (status.isPoorConnection ? 'اتصال ضعيف' : 'متصل') : 'غير متصل'}
+          ></span>
         </button>
 
         {/* Dropdown Menu */}
@@ -211,53 +262,83 @@ const HeaderActions: React.FC = () => {
             {/* Mobile backdrop */}
             <div
               className="fixed inset-0 z-40 sm:hidden"
-              onClick={() => { setIsProfileOpen(false); }}
+              onClick={() => {
+                setIsProfileOpen(false);
+              }}
             />
-            <div className={cn(
-              "absolute mt-2 w-56 max-w-[calc(100vw-1.5rem)] bg-[var(--app-surface)] border border-[var(--app-border)] rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200",
-              dir === 'rtl' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
-            )}>
-            {/* User Info Header */}
-            <div className="p-4 bg-[var(--app-surface-hover)] border-b border-[var(--app-border)]">
-              <p className="text-xs font-black text-[var(--app-text)] truncate">{user?.full_name}</p>
-              <p className="text-[10px] text-[var(--app-text-secondary)] truncate mt-0.5">{user?.email}</p>
-            </div>
+            <div
+              className={cn(
+                'animate-in fade-in slide-in-from-top-2 absolute z-50 mt-2 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl shadow-gray-200/50 duration-200 dark:shadow-black/50',
+                dir === 'rtl' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
+              )}
+            >
+              {/* User Info Header */}
+              <div className="border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] p-4">
+                <p className="truncate text-xs font-black text-[var(--app-text)]">
+                  {user?.full_name}
+                </p>
+                <p className="mt-0.5 truncate text-[10px] text-[var(--app-text-secondary)]">
+                  {user?.email}
+                </p>
+              </div>
 
-            <div className="p-1.5">
-              <button
-                onClick={handleProfileClick}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-[var(--app-text-secondary)] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-              >
-                <UserIcon size={16} />
-                <span>الملف الشخصي</span>
-              </button>
-              <button
-                onClick={() => { navigate('/settings'); setIsProfileOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-[var(--app-text-secondary)] hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
-              >
-                <Building2 size={16} />
-                <span>إعدادات المنشأة</span>
-              </button>
-            </div>
+              <div className="p-1.5">
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => {
+                      navigate(ROUTES.ADMIN.ROOT);
+                      setIsProfileOpen(false);
+                    }}
+                    className="mb-1.5 flex w-full items-center justify-between rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-black text-rose-600 transition-all hover:bg-rose-500/20 dark:text-rose-400"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck size={16} />
+                      <span>إدارة المنصة (Super Admin)</span>
+                    </div>
+                    <span className="rounded-sm bg-rose-500 px-1 text-[10px] font-black text-white">
+                      PRO
+                    </span>
+                  </button>
+                )}
+                <button
+                  onClick={handleProfileClick}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[var(--app-text-secondary)] transition-all hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                >
+                  <UserIcon size={16} />
+                  <span>الملف الشخصي</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/settings');
+                    setIsProfileOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[var(--app-text-secondary)] transition-all hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                >
+                  <Building2 size={16} />
+                  <span>إعدادات المنشأة</span>
+                </button>
+              </div>
 
-            <div className="p-1.5 border-t border-[var(--app-border)]">
-              <button
-                onClick={handleLogoutClick}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-              >
-                <LogOut size={16} />
-                <span>تسجيل الخروج</span>
-              </button>
+              <div className="border-t border-[var(--app-border)] p-1.5">
+                <button
+                  onClick={handleLogoutClick}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-rose-500 transition-all hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                >
+                  <LogOut size={16} />
+                  <span>تسجيل الخروج</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
       </div>
 
       {/* Logout Confirmation Modal */}
       <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
-        onClose={() => { setIsLogoutModalOpen(false); }}
+        onClose={() => {
+          setIsLogoutModalOpen(false);
+        }}
         onConfirm={performLogout}
         isLoading={isLoggingOut}
       />

@@ -62,6 +62,10 @@ const PublicSupplierPortalPage = lazy(
   () => import('../features/supplier-portal/pages/PublicSupplierPortalPage')
 );
 const ChatHubPage = lazy(() => import('../features/chat').then(m => ({ default: m.ChatHubPage })));
+const AdminHubPage = lazy(() => import('../features/admin/pages/AdminHubPage'));
+import { SuperAdminGuard } from '../features/admin/components/SuperAdminGuard';
+import { MaintenanceGuard } from '../features/admin/components/MaintenanceGuard';
+import { FeatureFlagGate } from '../core/components/FeatureFlagGate';
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 
@@ -153,13 +157,28 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
+      {/* Super Admin Platform Cockpit (Protected by SuperAdminGuard) */}
+      <Route
+        path={ROUTES.ADMIN.ROOT}
+        element={
+          <SuperAdminGuard>
+            <FeatureBoundary name="super-admin">
+              <AdminHubPage />
+            </FeatureBoundary>
+          </SuperAdminGuard>
+        }
+      />
+      <Route path="/admin/*" element={<Navigate to={ROUTES.ADMIN.ROOT} replace />} />
+
       {/* Protected App Routes */}
       <Route
         path="/"
         element={
-          <AuthGuard>
-            <MainLayout />
-          </AuthGuard>
+          <MaintenanceGuard>
+            <AuthGuard>
+              <MainLayout />
+            </AuthGuard>
+          </MaintenanceGuard>
         }
       >
         {/* Dashboard — eager, no boundary needed */}
@@ -212,7 +231,9 @@ export const AppRoutes: React.FC = () => {
           path={ROUTES.DASHBOARD.VIN}
           element={
             <FeatureBoundary name="vin-intelligence">
-              <VINPage />
+              <FeatureFlagGate flag="vin_intelligence" label="ذكاء الشاصي VIN">
+                <VINPage />
+              </FeatureFlagGate>
             </FeatureBoundary>
           }
         />
@@ -370,7 +391,9 @@ export const AppRoutes: React.FC = () => {
           path={ROUTES.DASHBOARD.SUPPLIER_PORTAL}
           element={
             <FeatureBoundary name="supplier-portal">
-              <SupplierPortalPage />
+              <FeatureFlagGate flag="supplier_portal" label="بوابة الموردين">
+                <SupplierPortalPage />
+              </FeatureFlagGate>
             </FeatureBoundary>
           }
         />
@@ -380,7 +403,9 @@ export const AppRoutes: React.FC = () => {
           path={ROUTES.DASHBOARD.CHAT}
           element={
             <FeatureBoundary name="chat">
-              <ChatHubPage />
+              <FeatureFlagGate flag="internal_chat" label="المحادثات والتواصل">
+                <ChatHubPage />
+              </FeatureFlagGate>
             </FeatureBoundary>
           }
         />

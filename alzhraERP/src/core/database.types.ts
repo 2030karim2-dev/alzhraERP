@@ -14,6 +14,188 @@ export type Database = {
   }
   public: {
     Tables: {
+      system_platform_configs: {
+        Row: {
+          id: string
+          key: string
+          value: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      subscription_plans: {
+        Row: {
+          id: string
+          name_ar: string
+          name_en: string | null
+          price_monthly: number
+          price_yearly: number
+          max_users: number
+          max_products: number
+          max_invoices_monthly: number
+          ai_tokens_monthly: number
+          features: string[] | null
+          is_active: boolean
+          color: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name_ar: string
+          name_en?: string | null
+          price_monthly: number
+          price_yearly: number
+          max_users?: number
+          max_products?: number
+          max_invoices_monthly?: number
+          ai_tokens_monthly?: number
+          features?: string[] | null
+          is_active?: boolean
+          color?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name_ar?: string
+          name_en?: string | null
+          price_monthly?: number
+          price_yearly?: number
+          max_users?: number
+          max_products?: number
+          max_invoices_monthly?: number
+          ai_tokens_monthly?: number
+          features?: string[] | null
+          is_active?: boolean
+          color?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+      }
+      csp_reports: {
+        Row: {
+          blocked_uri: string | null
+          column_number: number | null
+          company_id: string | null
+          disposition: string | null
+          document_uri: string | null
+          effective_directive: string | null
+          id: number
+          line_number: number | null
+          original_policy: string | null
+          raw_payload: Json
+          received_at: string
+          referrer: string | null
+          remote_addr: string | null
+          script_sample: string | null
+          source_file: string | null
+          status_code: number | null
+          user_agent: string | null
+          user_id: string | null
+          violated_directive: string | null
+        }
+        Insert: {
+          blocked_uri?: string | null
+          column_number?: number | null
+          company_id?: string | null
+          disposition?: string | null
+          document_uri?: string | null
+          effective_directive?: string | null
+          id?: number
+          line_number?: number | null
+          original_policy?: string | null
+          raw_payload: Json
+          received_at?: string
+          referrer?: string | null
+          remote_addr?: string | null
+          script_sample?: string | null
+          source_file?: string | null
+          status_code?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          violated_directive?: string | null
+        }
+        Update: {
+          blocked_uri?: string | null
+          column_number?: number | null
+          company_id?: string | null
+          disposition?: string | null
+          document_uri?: string | null
+          effective_directive?: string | null
+          id?: number
+          line_number?: number | null
+          original_policy?: string | null
+          raw_payload?: Json
+          received_at?: string
+          referrer?: string | null
+          remote_addr?: string | null
+          script_sample?: string | null
+          source_file?: string | null
+          status_code?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          violated_directive?: string | null
+        }
+      }
+      security_alerts: {
+        Row: {
+          id: number
+          detected_at: string
+          alert_type: string
+          severity: string
+          user_id: string | null
+          company_id: string | null
+          source_ip: string | null
+          user_agent: string | null
+          details: Json
+          resolved_at: string | null
+          resolved_by: string | null
+          resolution_notes: string | null
+        }
+        Insert: {
+          id?: number
+          detected_at?: string
+          alert_type: string
+          severity: string
+          user_id?: string | null
+          company_id?: string | null
+          source_ip?: string | null
+          user_agent?: string | null
+          details?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+        }
+        Update: {
+          id?: number
+          detected_at?: string
+          alert_type?: string
+          severity?: string
+          user_id?: string | null
+          company_id?: string | null
+          source_ip?: string | null
+          user_agent?: string | null
+          details?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+        }
+      }
       chat_channels: {
         Row: {
           archived_at: string | null
@@ -12849,6 +13031,78 @@ export type Database = {
         Returns: undefined
       }
       is_super_admin: { Args: never; Returns: boolean }
+      get_platform_system_metrics: { Args: Record<PropertyKey, never>; Returns: Json }
+      get_admin_companies_list: {
+        Args: {
+          p_search?: string | null
+          p_status?: string | null
+          p_limit?: number | null
+          p_offset?: number | null
+        }
+        Returns: {
+          id: string
+          name_ar: string
+          name_en: string | null
+          tax_number: string | null
+          base_currency: string
+          owner_id: string | null
+          owner_email: string | null
+          phone: string | null
+          is_active: boolean
+          subscription_status: string
+          trial_ends_at: string | null
+          plan_id: string | null
+          plan_name: string | null
+          user_count: number
+          branch_count: number
+          invoice_count: number
+          created_at: string
+        }[]
+      }
+      toggle_company_status: {
+        Args: {
+          p_company_id: string
+          p_is_active: boolean
+          p_status: string
+        }
+        Returns: boolean
+      }
+      extend_company_trial: {
+        Args: {
+          p_company_id: string
+          p_days: number
+        }
+        Returns: string
+      }
+      admin_assign_company_plan: {
+        Args: {
+          p_company_id: string
+          p_plan_id?: string | null
+        }
+        Returns: boolean
+      }
+      get_admin_users_list: {
+        Args: {
+          p_search?: string | null
+          p_limit?: number | null
+          p_offset?: number | null
+        }
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          is_super_admin: boolean
+          companies_count: number
+          company_names: string[]
+        }[]
+      }
+      toggle_super_admin: {
+        Args: {
+          p_target_user_id: string
+          p_make_super_admin: boolean
+        }
+        Returns: boolean
+      }
       is_valid_branch: {
         Args: { p_branch_id: string; p_company_id: string }
         Returns: boolean

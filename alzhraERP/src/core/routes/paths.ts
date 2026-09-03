@@ -45,6 +45,9 @@ export const ROUTES = {
     SUPPLIER_PORTAL: '/supplier-portal',
     CHAT: '/chat',
   },
+  ADMIN: {
+    ROOT: '/admin',
+  },
   PUBLIC: {
     SUPPLIER_PORTAL: '/portal/supplier/:token',
   },
