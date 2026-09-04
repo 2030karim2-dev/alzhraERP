@@ -11,7 +11,11 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import type { AdminCompany } from '../../types';
-import { useAdminCompanies, useAdminCompaniesCount, useCompanyMutations } from '../../hooks/useAdminData';
+import {
+  useAdminCompanies,
+  useAdminCompaniesCount,
+  useCompanyMutations,
+} from '../../hooks/useAdminData';
 import { CompanyDetailsModal } from './CompanyDetailsModal';
 import {
   deriveStatusAfterToggle,
@@ -119,7 +123,7 @@ export const CompaniesTable: React.FC = () => {
       c.tax_number ?? '',
       c.owner_email ?? '',
       c.plan_name ?? '',
-      c.is_active ? c.subscription_status : 'suspended',
+      c.is_active ? subscriptionStatusLabel(c.subscription_status) : 'موقوفة',
       c.user_count,
       c.branch_count,
       c.invoice_count,
@@ -284,9 +288,7 @@ export const CompaniesTable: React.FC = () => {
                       {company.is_active ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                           <CheckCircle2 size={10} />
-                          <span>
-                            {subscriptionStatusLabel(company.subscription_status)}
-                          </span>
+                          <span>{subscriptionStatusLabel(company.subscription_status)}</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600">

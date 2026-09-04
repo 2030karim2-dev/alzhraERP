@@ -76,9 +76,14 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose, exi
     const maxUsers = formData.max_users ?? 0;
     const maxProducts = formData.max_products ?? 0;
     const maxInvoices = formData.max_invoices_monthly ?? 0;
+    const sortOrder = formData.sort_order ?? 0;
 
     if (monthly < 0 || yearly < 0 || aiTokens < 0) {
       setFormError('لا يمكن أن تكون الأسعار أو رصيد التوكنز أرقاماً سالبة.');
+      return;
+    }
+    if (sortOrder < 0) {
+      setFormError('ترتيب العرض يجب أن يكون صفراً أو رقماً موجباً.');
       return;
     }
     if (maxUsers < 1 || maxProducts < 1 || maxInvoices < 1) {
@@ -88,11 +93,12 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose, exi
 
     try {
       setFormError(null);
-      await savePlan({ ...formData, name_ar: trimmedName });
+      await savePlan({ ...formData, name_ar: trimmedName, sort_order: sortOrder });
       onClose();
-    } catch {
-      // onError في الـ hook يعرض التوست؛ نعرض رسالة محلية ونُبقي النموذج مفتوحاً
-      setFormError('تعذر حفظ الباقة. تحقق من الاتصال ثم أعد المحاولة.');
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'تعذر حفظ الباقة. تحقق من الاتصال ثم أعد المحاولة.';
+      setFormError(msg);
     }
   };
 
@@ -287,8 +293,8 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose, exi
             </div>
           </div>
 
-          {/* Active Status & Color */}
-          <div className="flex items-center justify-between border-t border-[var(--app-border)] pt-2">
+          {/* Active Status, Sort Order & Color */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--app-border)] pt-2.5">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
@@ -301,14 +307,35 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onClose, exi
               </span>
             </label>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-[var(--app-text-secondary)]">لون التمييز:</span>
-              <input
-                type="color"
-                value={formData.color || '#3B82F6'}
-                onChange={e => setFormData({ ...formData, color: e.target.value })}
-                className="h-6 w-6 cursor-pointer rounded border-0"
-              />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-[var(--app-text-secondary)]">
+                  ترتيب العرض:
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.sort_order ?? 0}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      sort_order: Math.max(0, parseInt(e.target.value, 10) || 0),
+                    })
+                  }
+                  className="w-16 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-1 font-mono text-xs text-[var(--app-text)] focus:outline-none"
+                  title="الترتيب التصاعدي لظهور الباقة"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-[var(--app-text-secondary)]">لون التمييز:</span>
+                <input
+                  type="color"
+                  value={formData.color || '#3B82F6'}
+                  onChange={e => setFormData({ ...formData, color: e.target.value })}
+                  className="h-6 w-6 cursor-pointer rounded border-0"
+                />
+              </div>
             </div>
           </div>
 

@@ -240,7 +240,12 @@ export const adminService = {
         .eq('id', plan.id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('اسم باقة الاشتراك مسجل مسبقاً، يرجى اختيار اسم مختلف');
+        }
+        throw error;
+      }
       return toSubscriptionPlan(data);
     }
 
@@ -249,7 +254,12 @@ export const adminService = {
       .insert(payload)
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('اسم باقة الاشتراك مسجل مسبقاً، يرجى اختيار اسم مختلف');
+      }
+      throw error;
+    }
     return toSubscriptionPlan(data);
   },
 
@@ -302,7 +312,7 @@ export const adminService = {
   },
 
   /**
-   * جلب إعدادات المنصة ومفاتيح الميزات
+   * جلب إعدادات المنصة ومفاتيح الميزات مع دمج الحقول الافتراضية دفاعياً
    */
   async getSystemConfigs(): Promise<SystemPlatformConfigs> {
     const { data, error } = await supabase.from('system_platform_configs').select('key, value');
@@ -313,23 +323,41 @@ export const adminService = {
       return acc;
     }, {});
 
+    const defaultMaintenance: SystemPlatformConfigs['maintenance_mode'] = {
+      enabled: false,
+      message: 'النظام يخضع حالياً لأعمال صيانة مجدولة لتحسين الخدمات. سنعود قريباً.',
+      estimated_end: null,
+    };
+
+    const defaultFlags: SystemPlatformConfigs['feature_flags'] = {
+      ai_assistance: true,
+      vin_intelligence: true,
+      supplier_portal: true,
+      internal_chat: true,
+      offline_sync: true,
+    };
+
+    const rawMaintenance = configsMap['maintenance_mode'];
+    const maintenanceMode: SystemPlatformConfigs['maintenance_mode'] =
+      rawMaintenance && typeof rawMaintenance === 'object' && !Array.isArray(rawMaintenance)
+        ? {
+            ...defaultMaintenance,
+            ...(rawMaintenance as unknown as Partial<SystemPlatformConfigs['maintenance_mode']>),
+          }
+        : defaultMaintenance;
+
+    const rawFlags = configsMap['feature_flags'];
+    const featureFlags: SystemPlatformConfigs['feature_flags'] =
+      rawFlags && typeof rawFlags === 'object' && !Array.isArray(rawFlags)
+        ? {
+            ...defaultFlags,
+            ...(rawFlags as unknown as Partial<SystemPlatformConfigs['feature_flags']>),
+          }
+        : defaultFlags;
+
     return {
-      maintenance_mode: (configsMap[
-        'maintenance_mode'
-      ] as unknown as SystemPlatformConfigs['maintenance_mode']) ?? {
-        enabled: false,
-        message: 'النظام يخضع للصيانة',
-        estimated_end: null,
-      },
-      feature_flags: (configsMap[
-        'feature_flags'
-      ] as unknown as SystemPlatformConfigs['feature_flags']) ?? {
-        ai_assistance: true,
-        vin_intelligence: true,
-        supplier_portal: true,
-        internal_chat: true,
-        offline_sync: true,
-      },
+      maintenance_mode: maintenanceMode,
+      feature_flags: featureFlags,
     };
   },
 

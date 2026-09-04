@@ -14,6 +14,14 @@ import {
 import { useSystemConfigs, useConfigMutations } from '../../hooks/useAdminData';
 import Button from '../../../../ui/base/Button';
 
+const DEFAULT_FLAGS = {
+  ai_assistance: true,
+  vin_intelligence: true,
+  supplier_portal: true,
+  internal_chat: true,
+  offline_sync: true,
+};
+
 export const SystemPlatformSettings: React.FC = () => {
   const { data: configs, isLoading, isError, refetch } = useSystemConfigs();
   const { updateConfig, isUpdating } = useConfigMutations();
@@ -21,13 +29,7 @@ export const SystemPlatformSettings: React.FC = () => {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMsg, setMaintenanceMsg] = useState('');
   const [estimatedEnd, setEstimatedEnd] = useState('');
-  const [flags, setFlags] = useState({
-    ai_assistance: true,
-    vin_intelligence: true,
-    supplier_portal: true,
-    internal_chat: true,
-    offline_sync: true,
-  });
+  const [flags, setFlags] = useState(DEFAULT_FLAGS);
 
   useEffect(() => {
     if (configs) {
@@ -38,15 +40,10 @@ export const SystemPlatformSettings: React.FC = () => {
           ? new Date(configs.maintenance_mode.estimated_end).toISOString().slice(0, 16)
           : ''
       );
-      setFlags(
-        configs.feature_flags || {
-          ai_assistance: true,
-          vin_intelligence: true,
-          supplier_portal: true,
-          internal_chat: true,
-          offline_sync: true,
-        }
-      );
+      setFlags({
+        ...DEFAULT_FLAGS,
+        ...(configs.feature_flags || {}),
+      });
     }
   }, [configs]);
 
@@ -67,7 +64,7 @@ export const SystemPlatformSettings: React.FC = () => {
 
   const handleToggleFlag = async (key: keyof typeof flags) => {
     const prevFlags = flags;
-    const nextFlags = { ...prevFlags, [key]: !prevFlags[key] };
+    const nextFlags = { ...DEFAULT_FLAGS, ...prevFlags, [key]: !prevFlags[key] };
     setFlags(nextFlags);
     try {
       await updateConfig({

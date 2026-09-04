@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabaseClient';
 import { useIsSuperAdmin } from '../../auth/hooks';
 import { useAuth } from '../../auth/hooks';
-import { AlertTriangle, Wrench } from 'lucide-react';
+import { AlertTriangle, Wrench, ShieldCheck } from 'lucide-react';
+import { ROUTES } from '../../../core/routes/paths';
 
 /**
  * MaintenanceGuard — يحجب المستخدمين العاديين عند تفعيل وضع الصيانة.
@@ -60,6 +62,7 @@ const useMaintenanceMode = () => {
 };
 
 export const MaintenanceGuard: React.FC<MaintenanceGuardProps> = ({ children }) => {
+  const navigate = useNavigate();
   const { isAuthenticated, isReady } = useAuth();
   const { data: maintenanceConfig, isLoading: isMaintenanceLoading } = useMaintenanceMode();
   const { data: isSuperAdmin, isLoading: isSuperAdminLoading } = useIsSuperAdmin();
@@ -124,6 +127,17 @@ export const MaintenanceGuard: React.FC<MaintenanceGuardProps> = ({ children }) 
         <p className="text-[10px] text-[var(--app-text-secondary)]">
           نعتذر عن أي إزعاج. نعمل على تحسين النظام لتقديم تجربة أفضل.
         </p>
+
+        {/* رابط وصول مشرفي النظام */}
+        <div className="pt-2">
+          <button
+            onClick={() => navigate(ROUTES.AUTH.LANDING)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-bold text-[var(--app-text)] shadow-xs transition-colors hover:bg-[var(--app-surface-hover)] hover:text-blue-600"
+          >
+            <ShieldCheck size={14} className="text-blue-600" />
+            <span>تسجيل الدخول كمسؤول النظام</span>
+          </button>
+        </div>
       </div>
     </div>
   );
