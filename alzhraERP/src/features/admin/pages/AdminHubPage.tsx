@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Building2,
   BarChart3,
-  Sparkles,
+  CreditCard,
   Users,
   Activity,
   ShieldAlert,
@@ -29,12 +29,12 @@ export const AdminHubPage: React.FC = () => {
     refetch: refetchMetrics,
   } = usePlatformMetrics();
 
-  const tabs: {
+  const tabs: Array<{
     id: AdminTab;
     label: string;
     icon: React.ReactNode;
     badge?: number | string | undefined;
-  }[] = [
+  }> = [
     { id: 'overview', label: 'نظرة عامة', icon: <BarChart3 size={14} /> },
     {
       id: 'companies',
@@ -42,7 +42,7 @@ export const AdminHubPage: React.FC = () => {
       icon: <Building2 size={14} />,
       badge: metrics?.total_companies,
     },
-    { id: 'subscriptions', label: 'باقات الاشتراك', icon: <Sparkles size={14} /> },
+    { id: 'subscriptions', label: 'باقات الاشتراك', icon: <CreditCard size={14} /> },
     {
       id: 'users',
       label: 'دليل المستخدمين',
@@ -74,7 +74,9 @@ export const AdminHubPage: React.FC = () => {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                  }}
                   className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-xs'
@@ -117,7 +119,9 @@ export const AdminHubPage: React.FC = () => {
               isLoading={isMetricsLoading}
               isError={isMetricsError}
               onRetry={() => refetchMetrics()}
-              onNavigateTab={tab => setActiveTab(tab)}
+              onNavigateTab={tab => {
+                setActiveTab(tab);
+              }}
             />
           )}
 

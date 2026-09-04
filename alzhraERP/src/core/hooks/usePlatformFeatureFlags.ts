@@ -1,25 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { DEFAULT_FEATURE_FLAGS, type PlatformFeatureFlags } from '../config/platformDefaults';
 
-/**
- * مفاتيح الميزات العامة المتاحة في المنصة.
- * يتم قراءتها من system_platform_configs (المفتوح للقراءة العامة عبر RLS).
- */
-export interface PlatformFeatureFlags {
-  ai_assistance: boolean;
-  vin_intelligence: boolean;
-  supplier_portal: boolean;
-  internal_chat: boolean;
-  offline_sync: boolean;
-}
-
-const DEFAULT_FLAGS: PlatformFeatureFlags = {
-  ai_assistance: true,
-  vin_intelligence: true,
-  supplier_portal: true,
-  internal_chat: true,
-  offline_sync: true,
-};
+// إعادة تصدير النوع للتوافق مع المستهلكين الحاليين (FeatureFlagGate وغيرها)
+export type { PlatformFeatureFlags };
 
 /**
  * usePlatformFeatureFlags — جلب مفاتيح الميزات العامة من قاعدة البيانات.
@@ -37,16 +21,16 @@ export const usePlatformFeatureFlags = () => {
         .maybeSingle();
 
       if (error || !data) {
-        return DEFAULT_FLAGS;
+        return DEFAULT_FEATURE_FLAGS;
       }
 
       const value = data.value;
       if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-        return DEFAULT_FLAGS;
+        return DEFAULT_FEATURE_FLAGS;
       }
 
       return {
-        ...DEFAULT_FLAGS,
+        ...DEFAULT_FEATURE_FLAGS,
         ...(value as unknown as Partial<PlatformFeatureFlags>),
       };
     },

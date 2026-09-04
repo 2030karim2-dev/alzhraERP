@@ -127,33 +127,49 @@ export const AppRoutes: React.FC = () => {
       <Route
         path={ROUTES.PUBLIC.SUPPLIER_PORTAL}
         element={
-          <FeatureBoundary name="public-supplier-portal">
-            <PublicSupplierPortalPage />
-          </FeatureBoundary>
+          <MaintenanceGuard>
+            <FeatureFlagGate flag="supplier_portal" label="بوابة الموردين">
+              <FeatureBoundary name="public-supplier-portal">
+                <PublicSupplierPortalPage />
+              </FeatureBoundary>
+            </FeatureFlagGate>
+          </MaintenanceGuard>
         }
       />
       <Route
         path="/portal/supplier"
         element={
-          <FeatureBoundary name="public-supplier-portal">
-            <PublicSupplierPortalPage />
-          </FeatureBoundary>
+          <MaintenanceGuard>
+            <FeatureFlagGate flag="supplier_portal" label="بوابة الموردين">
+              <FeatureBoundary name="public-supplier-portal">
+                <PublicSupplierPortalPage />
+              </FeatureBoundary>
+            </FeatureFlagGate>
+          </MaintenanceGuard>
         }
       />
       <Route
         path="/portal/:token"
         element={
-          <FeatureBoundary name="public-supplier-portal">
-            <PublicSupplierPortalPage />
-          </FeatureBoundary>
+          <MaintenanceGuard>
+            <FeatureFlagGate flag="supplier_portal" label="بوابة الموردين">
+              <FeatureBoundary name="public-supplier-portal">
+                <PublicSupplierPortalPage />
+              </FeatureBoundary>
+            </FeatureFlagGate>
+          </MaintenanceGuard>
         }
       />
       <Route
         path="/supplier-portal/:token"
         element={
-          <FeatureBoundary name="public-supplier-portal">
-            <PublicSupplierPortalPage />
-          </FeatureBoundary>
+          <MaintenanceGuard>
+            <FeatureFlagGate flag="supplier_portal" label="بوابة الموردين">
+              <FeatureBoundary name="public-supplier-portal">
+                <PublicSupplierPortalPage />
+              </FeatureBoundary>
+            </FeatureFlagGate>
+          </MaintenanceGuard>
         }
       />
 

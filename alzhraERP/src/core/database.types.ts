@@ -13036,10 +13036,8 @@ export type Database = {
           p_company_id: string
           p_days: number
         }
-        Returns: {
-          trial_ends_at: string
-          subscription_status: string
-        }
+        // دالة SECURITY DEFINER تعيد jsonb (بعد إصلاح 20260904000002 بـ DROP+CREATE)
+        Returns: Json
       }
       admin_update_system_config: {
         Args: {
@@ -13083,6 +13081,50 @@ export type Database = {
           p_make_super_admin: boolean
         }
         Returns: boolean
+      }
+      get_security_alerts_page: {
+        Args: {
+          p_limit?: number | null
+          p_offset?: number | null
+          p_resolved?: boolean | null
+        }
+        Returns: {
+          id: number
+          detected_at: string
+          alert_type: string
+          severity: string
+          user_id: string | null
+          company_id: string | null
+          source_ip: string | null
+          user_agent: string | null
+          details: Json
+          resolved_at: string | null
+          resolved_by: string | null
+          resolution_notes: string | null
+        }[]
+      }
+      get_security_alerts_count: {
+        Args: {
+          p_resolved?: boolean | null
+        }
+        Returns: number
+      }
+      get_csp_reports_page: {
+        Args: {
+          p_limit?: number | null
+          p_offset?: number | null
+        }
+        Returns: {
+          id: number
+          received_at: string
+          document_uri: string | null
+          blocked_uri: string | null
+          violated_directive: string | null
+        }[]
+      }
+      get_csp_reports_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       is_valid_branch: {
         Args: { p_branch_id: string; p_company_id: string }

@@ -1,5 +1,11 @@
 import { supabase } from '../../../lib/supabaseClient';
 import type { Database, Json } from '../../../core/database.types';
+import {
+  DEFAULT_FEATURE_FLAGS,
+  DEFAULT_MAINTENANCE_MODE,
+  isMaintenanceModeConfig,
+  type MaintenanceModeConfig,
+} from '../../../core/config/platformDefaults';
 import type {
   AdminCompany,
   AdminUser,
@@ -75,7 +81,7 @@ const toAdminUser = (row: AdminUserRow): AdminUser => ({
 const toHoneypotLog = (row: SecurityAlertRow): SecurityAlertLog => {
   const details: Record<string, unknown> =
     row.details !== null && typeof row.details === 'object' && !Array.isArray(row.details)
-      ? (row.details as Record<string, unknown>)
+      ? row.details
       : {};
 
   return {
@@ -153,7 +159,7 @@ export const adminService = {
       p_status: params?.status || null,
     });
     if (error) throw error;
-    return Number(data ?? 0);
+    return data ?? 0;
   },
 
   /**
@@ -170,7 +176,7 @@ export const adminService = {
       p_status: status,
     });
     if (error) throw error;
-    return !!data;
+    return data;
   },
 
   /**
@@ -199,11 +205,11 @@ export const adminService = {
       p_plan_id: planId,
     });
     if (error) throw error;
-    return !!data;
+    return data;
   },
 
   /**
-   * جلب قائمة باقات الاشتراك
+   * جلب قائمة باقات الاشتراك مع حساب عدد الشركات المرتبطة بكل باقة
    */
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     const { data, error } = await supabase
@@ -211,7 +217,32 @@ export const adminService = {
       .select('*')
       .order('sort_order', { ascending: true });
     if (error) throw error;
-    return (data ?? []).map(toSubscriptionPlan);
+
+    const companyCounts = new Map<string, number>();
+    try {
+      const { data: companiesData } = await supabase
+        .from('companies')
+        .select('plan_id')
+        .not('plan_id', 'is', null);
+
+      if (companiesData) {
+        for (const row of companiesData) {
+          if (row.plan_id) {
+            companyCounts.set(row.plan_id, (companyCounts.get(row.plan_id) ?? 0) + 1);
+          }
+        }
+      }
+    } catch {
+      // في حال تعذر احتساب المنشآت، يستمر العرض دون إيقاف الواجهة
+    }
+
+    return (data ?? []).map(row => {
+      const plan = toSubscriptionPlan(row);
+      if (plan.id) {
+        plan.companies_count = companyCounts.get(plan.id) ?? 0;
+      }
+      return plan;
+    });
   },
 
   /**
@@ -264,11 +295,22 @@ export const adminService = {
   },
 
   /**
-   * حذف باقة اشتراك
+   * حذف باقة اشتراك مع حماية تكامل البيانات
    */
   async deleteSubscriptionPlan(planId: string): Promise<void> {
     const { error } = await supabase.from('subscription_plans').delete().eq('id', planId);
-    if (error) throw error;
+    if (error) {
+      if (
+        error.code === '23503' ||
+        error.message?.includes('foreign key') ||
+        error.message?.includes('companies')
+      ) {
+        throw new Error(
+          'لا يمكن حذف هذه الباقة لوجود منشآت مشتركة بها حالياً. قم بإلغاء أو تعديل اشتراك المنشآت أولاً.'
+        );
+      }
+      throw error;
+    }
   },
 
   /**
@@ -296,7 +338,7 @@ export const adminService = {
       p_search: search?.trim() || null,
     });
     if (error) throw error;
-    return Number(data ?? 0);
+    return data ?? 0;
   },
 
   /**
@@ -308,7 +350,25 @@ export const adminService = {
       p_make_super_admin: makeSuperAdmin,
     });
     if (error) throw error;
-    return !!data;
+    return data;
+  },
+
+  /**
+   * جلب إعداد وضع الصيانة مباشرة من جدول system_platform_configs
+   * (للاستخدام في MaintenanceGuard لتجنب استيراد supabase داخل المكون)
+   */
+  async getMaintenanceConfig(): Promise<MaintenanceModeConfig> {
+    const { data, error } = await supabase
+      .from('system_platform_configs')
+      .select('value')
+      .eq('key', 'maintenance_mode')
+      .maybeSingle();
+
+    if (error || !data) {
+      return DEFAULT_MAINTENANCE_MODE;
+    }
+
+    return isMaintenanceModeConfig(data.value) ? data.value : DEFAULT_MAINTENANCE_MODE;
   },
 
   /**
@@ -323,21 +383,11 @@ export const adminService = {
       return acc;
     }, {});
 
-    const defaultMaintenance: SystemPlatformConfigs['maintenance_mode'] = {
-      enabled: false,
-      message: 'النظام يخضع حالياً لأعمال صيانة مجدولة لتحسين الخدمات. سنعود قريباً.',
-      estimated_end: null,
-    };
+    // القيم الافتراضية من المصدر الموحد core/config/platformDefaults
+    const defaultMaintenance: SystemPlatformConfigs['maintenance_mode'] = DEFAULT_MAINTENANCE_MODE;
+    const defaultFlags: SystemPlatformConfigs['feature_flags'] = DEFAULT_FEATURE_FLAGS;
 
-    const defaultFlags: SystemPlatformConfigs['feature_flags'] = {
-      ai_assistance: true,
-      vin_intelligence: true,
-      supplier_portal: true,
-      internal_chat: true,
-      offline_sync: true,
-    };
-
-    const rawMaintenance = configsMap['maintenance_mode'];
+    const rawMaintenance = configsMap.maintenance_mode;
     const maintenanceMode: SystemPlatformConfigs['maintenance_mode'] =
       rawMaintenance && typeof rawMaintenance === 'object' && !Array.isArray(rawMaintenance)
         ? {
@@ -346,7 +396,7 @@ export const adminService = {
           }
         : defaultMaintenance;
 
-    const rawFlags = configsMap['feature_flags'];
+    const rawFlags = configsMap.feature_flags;
     const featureFlags: SystemPlatformConfigs['feature_flags'] =
       rawFlags && typeof rawFlags === 'object' && !Array.isArray(rawFlags)
         ? {
@@ -382,32 +432,162 @@ export const adminService = {
       p_notes: notes || null,
     });
     if (error) throw error;
-    return !!data;
+    return data;
   },
 
   /**
-   * جلب تنبيهات الأمان (مصيدة Honeypot + rate-limit) من جدول security_alerts الحقيقي
+   * جلب صفحة من تنبيهات الأمان عبر RPC محمي (ترقيم صفحات وفلترة حالة المعالجة
+   * على الخادم — ترحيل 20260904000008) بدل القراءة المباشرة المحدودة بـ 50 سجلاً.
    */
-  async getHoneypotLogs(): Promise<SecurityAlertLog[]> {
-    const { data, error } = await supabase
-      .from('security_alerts')
-      .select('*')
-      .order('detected_at', { ascending: false })
-      .limit(50);
+  async getSecurityAlerts(params?: {
+    limit?: number | undefined;
+    offset?: number | undefined;
+    resolved?: boolean | undefined;
+  }): Promise<SecurityAlertLog[]> {
+    const { data, error } = await supabase.rpc('get_security_alerts_page', {
+      p_limit: params?.limit ?? 50,
+      p_offset: params?.offset ?? 0,
+      p_resolved: params?.resolved ?? null,
+    });
     if (error) throw error;
-    return (data ?? []).map(toHoneypotLog);
+    return ((data ?? []) as unknown as SecurityAlertRow[]).map(toHoneypotLog);
   },
 
   /**
-   * جلب تقارير انتهاك سياسة المتصفح (CSP)
+   * عدد تنبيهات الأمان المطابقة لفلتر حالة المعالجة (لترقيم الصفحات بدقة)
    */
-  async getCspReports(): Promise<CspReportLog[]> {
-    const { data, error } = await supabase
-      .from('csp_reports')
-      .select('*')
-      .order('received_at', { ascending: false })
-      .limit(50);
+  async getSecurityAlertsCount(resolved?: boolean): Promise<number> {
+    const { data, error } = await supabase.rpc('get_security_alerts_count', {
+      p_resolved: resolved ?? null,
+    });
     if (error) throw error;
-    return (data ?? []).map(toCspReport);
+    return data ?? 0;
+  },
+
+  /**
+   * جلب صفحة من تقارير انتهاك سياسة المتصفح (CSP) عبر RPC محمي
+   */
+  async getCspReportsPage(params?: {
+    limit?: number | undefined;
+    offset?: number | undefined;
+  }): Promise<CspReportLog[]> {
+    const { data, error } = await supabase.rpc('get_csp_reports_page', {
+      p_limit: params?.limit ?? 50,
+      p_offset: params?.offset ?? 0,
+    });
+    if (error) throw error;
+    return ((data ?? []) as unknown as CspReportRow[]).map(toCspReport);
+  },
+
+  /**
+   * إجمالي تقارير CSP (لترقيم الصفحات)
+   */
+  async getCspReportsCount(): Promise<number> {
+    const { data, error } = await supabase.rpc('get_csp_reports_count');
+    if (error) throw error;
+    return data ?? 0;
+  },
+
+  /** حجم الشريحة لتصدير قوائم المنشآت/المستخدمين (لا يوجد حد خادمي صريح). */
+  EXPORT_LIST_CHUNK: 500,
+
+  /** الحد الأقصى لكل استدعاء في get_security_alerts_page/get_csp_reports_page (200 خادمياً). */
+  EXPORT_SECURITY_CHUNK: 200,
+
+  /**
+   * جلب كل المنشآت المطابقة للبحث/الحالة عبر تجزئة متسلسلة — للتصدير الكامل CSV
+   * (الواجهة تعرض صفحة واحدة فقط بحجم ADMIN_TABLE_PAGE_SIZE).
+   */
+  async exportAllCompanies(params?: {
+    search?: string | undefined;
+    status?: string | undefined;
+  }): Promise<AdminCompany[]> {
+    const chunk = this.EXPORT_LIST_CHUNK;
+    const out: AdminCompany[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await supabase.rpc('get_admin_companies_list', {
+        p_search: params?.search?.trim() || null,
+        p_status: params?.status || null,
+        p_limit: chunk,
+        p_offset: offset,
+      });
+      if (error) throw error;
+      const rows = data ?? [];
+      if (rows.length === 0) break;
+      out.push(...rows.map(toAdminCompany));
+      if (rows.length < chunk) break;
+      offset += chunk;
+    }
+    return out;
+  },
+
+  /**
+   * جلب كل المستخدمين المطابقين للبحث — للتصدير الكامل CSV.
+   */
+  async exportAllUsers(search?: string): Promise<AdminUser[]> {
+    const chunk = this.EXPORT_LIST_CHUNK;
+    const out: AdminUser[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await supabase.rpc('get_admin_users_list', {
+        p_search: search?.trim() || null,
+        p_limit: chunk,
+        p_offset: offset,
+      });
+      if (error) throw error;
+      const rows = data ?? [];
+      if (rows.length === 0) break;
+      out.push(...rows.map(toAdminUser));
+      if (rows.length < chunk) break;
+      offset += chunk;
+    }
+    return out;
+  },
+
+  /**
+   * جلب كل تنبيهات الأمان المطابقة لحالة المعالجة — للتصدير الكامل.
+   * (ترحيل 20260904000008 يفرض حد 200 للاستدعاء → تجزئة متسلسلة.)
+   */
+  async exportAllSecurityAlerts(resolved?: boolean): Promise<SecurityAlertLog[]> {
+    const chunk = this.EXPORT_SECURITY_CHUNK;
+    const out: SecurityAlertLog[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await supabase.rpc('get_security_alerts_page', {
+        p_limit: chunk,
+        p_offset: offset,
+        p_resolved: resolved ?? null,
+      });
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as SecurityAlertRow[];
+      if (rows.length === 0) break;
+      out.push(...rows.map(toHoneypotLog));
+      if (rows.length < chunk) break;
+      offset += chunk;
+    }
+    return out;
+  },
+
+  /**
+   * جلب كل تقارير CSP — للتصدير الكامل (تجزئة متسلسلة بحد 200 خادمياً).
+   */
+  async exportAllCspReports(): Promise<CspReportLog[]> {
+    const chunk = this.EXPORT_SECURITY_CHUNK;
+    const out: CspReportLog[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await supabase.rpc('get_csp_reports_page', {
+        p_limit: chunk,
+        p_offset: offset,
+      });
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as CspReportRow[];
+      if (rows.length === 0) break;
+      out.push(...rows.map(toCspReport));
+      if (rows.length < chunk) break;
+      offset += chunk;
+    }
+    return out;
   },
 };

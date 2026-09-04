@@ -74,7 +74,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Companies Card */}
         <div
-          onClick={() => onNavigateTab('companies')}
+          onClick={() => {
+            onNavigateTab('companies');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-all hover:border-blue-500/40 hover:shadow-md"
         >
           <div className="flex items-center justify-between">
@@ -104,7 +106,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* Global Users Card */}
         <div
-          onClick={() => onNavigateTab('users')}
+          onClick={() => {
+            onNavigateTab('users');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-all hover:border-indigo-500/40 hover:shadow-md"
         >
           <div className="flex items-center justify-between">
@@ -154,7 +158,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* AI & Intelligence Card */}
         <div
-          onClick={() => onNavigateTab('telemetry')}
+          onClick={() => {
+            onNavigateTab('telemetry');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-all hover:border-purple-500/40 hover:shadow-md"
         >
           <div className="flex items-center justify-between">
@@ -195,7 +201,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
               </h2>
             </div>
             <button
-              onClick={() => onNavigateTab('subscriptions')}
+              onClick={() => {
+                onNavigateTab('subscriptions');
+              }}
               className="text-[10px] font-bold text-blue-500 hover:underline"
             >
               إدارة الباقات
@@ -257,15 +265,15 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* Security & Honeypot Pulse */}
         <div
-          onClick={() => onNavigateTab('security')}
+          onClick={() => {
+            onNavigateTab('security');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-xs transition-all hover:border-rose-500/40"
         >
           <div className="mb-3 flex items-center justify-between border-b border-[var(--app-border)] pb-2.5">
             <div className="flex items-center gap-2">
               <ShieldAlert size={15} className="text-rose-500" />
-              <h2 className="text-xs font-black text-[var(--app-text)]">
-                مركز الأمان والتنبيهات
-              </h2>
+              <h2 className="text-xs font-black text-[var(--app-text)]">مركز الأمان والتنبيهات</h2>
             </div>
             <span className="text-[10px] font-bold text-rose-500 group-hover:underline">
               سجلات الأمان

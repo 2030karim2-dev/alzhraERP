@@ -345,8 +345,11 @@ GRANT EXECUTE ON FUNCTION public.extend_company_trial(uuid, integer) TO authenti
 GRANT EXECUTE ON FUNCTION public.get_admin_users_list(text, int, int) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.toggle_super_admin(uuid, boolean) TO authenticated, service_role;
 
--- 9. بذر السوبر أدمن الأساسي من مستخدمي النظام المعتمدين
-INSERT INTO public.super_admins (user_id)
-SELECT id FROM auth.users 
-WHERE email IN ('2030.karim2@gmail.com', 'seen.soq@gmail.com')
-ON CONFLICT DO NOTHING;
+-- 9. بذر السوبر أدمن الأساسي
+-- ⚠ أمنياً: تمت إزالة بذر السوبر أدمن بعناوين بريد مثبتة داخل الترحيلات.
+-- أي بيئة تتطابق فيها هذه العناوين (ستيجنج/تجريبي/نسخة عميل) كانت تكتسب
+-- صلاحيات مطلقة على المنصة بمجرد تطبيق الترحيلات، كما أن العناوين الشخصية
+-- لا مكان لها في مستودع الكود.
+-- بعد أي `supabase db reset` أو نشر نظيف، شغّل السكربت:
+--   psql "$SUPABASE_DB_URL" -f supabase/scripts/seed_super_admins.sql
+-- أو الصقه في SQL Editor لمشروع Supabase (يعمل بصلاحية postgres ويتجاوز RLS).

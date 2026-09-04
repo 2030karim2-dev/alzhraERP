@@ -12,15 +12,9 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { useSystemConfigs, useConfigMutations } from '../../hooks/useAdminData';
+import { DEFAULT_FEATURE_FLAGS } from '../../../../core/config/platformDefaults';
+import { localDateTimeInputValueToIso, toLocalDateTimeInputValue } from '../../utils';
 import Button from '../../../../ui/base/Button';
-
-const DEFAULT_FLAGS = {
-  ai_assistance: true,
-  vin_intelligence: true,
-  supplier_portal: true,
-  internal_chat: true,
-  offline_sync: true,
-};
 
 export const SystemPlatformSettings: React.FC = () => {
   const { data: configs, isLoading, isError, refetch } = useSystemConfigs();
@@ -29,19 +23,15 @@ export const SystemPlatformSettings: React.FC = () => {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMsg, setMaintenanceMsg] = useState('');
   const [estimatedEnd, setEstimatedEnd] = useState('');
-  const [flags, setFlags] = useState(DEFAULT_FLAGS);
+  const [flags, setFlags] = useState(DEFAULT_FEATURE_FLAGS);
 
   useEffect(() => {
     if (configs) {
       setMaintenanceEnabled(configs.maintenance_mode?.enabled || false);
       setMaintenanceMsg(configs.maintenance_mode?.message || '');
-      setEstimatedEnd(
-        configs.maintenance_mode?.estimated_end
-          ? new Date(configs.maintenance_mode.estimated_end).toISOString().slice(0, 16)
-          : ''
-      );
+      setEstimatedEnd(toLocalDateTimeInputValue(configs.maintenance_mode?.estimated_end));
       setFlags({
-        ...DEFAULT_FLAGS,
+        ...DEFAULT_FEATURE_FLAGS,
         ...(configs.feature_flags || {}),
       });
     }
@@ -54,7 +44,7 @@ export const SystemPlatformSettings: React.FC = () => {
         value: {
           enabled: maintenanceEnabled,
           message: maintenanceMsg.trim() || 'النظام يخضع حالياً لعملية صيانة مجدولة. سنعود قريباً.',
-          estimated_end: estimatedEnd ? new Date(estimatedEnd).toISOString() : null,
+          estimated_end: localDateTimeInputValueToIso(estimatedEnd),
         },
       });
     } catch {
@@ -64,7 +54,7 @@ export const SystemPlatformSettings: React.FC = () => {
 
   const handleToggleFlag = async (key: keyof typeof flags) => {
     const prevFlags = flags;
-    const nextFlags = { ...DEFAULT_FLAGS, ...prevFlags, [key]: !prevFlags[key] };
+    const nextFlags = { ...DEFAULT_FEATURE_FLAGS, ...prevFlags, [key]: !prevFlags[key] };
     setFlags(nextFlags);
     try {
       await updateConfig({
@@ -146,7 +136,9 @@ export const SystemPlatformSettings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={maintenanceEnabled}
-                onChange={e => setMaintenanceEnabled(e.target.checked)}
+                onChange={e => {
+                  setMaintenanceEnabled(e.target.checked);
+                }}
                 className="rounded border-[var(--app-border)] text-amber-600 focus:ring-0"
               />
               <span className="text-xs font-bold text-[var(--app-text)]">
@@ -161,7 +153,9 @@ export const SystemPlatformSettings: React.FC = () => {
               <textarea
                 rows={3}
                 value={maintenanceMsg}
-                onChange={e => setMaintenanceMsg(e.target.value)}
+                onChange={e => {
+                  setMaintenanceMsg(e.target.value);
+                }}
                 placeholder="النظام يخضع حالياً لأعمال صيانة وتحسينات كبرى. سنعود للعمل قريباً..."
                 className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 text-xs text-[var(--app-text)] focus:outline-none"
               />
@@ -175,7 +169,9 @@ export const SystemPlatformSettings: React.FC = () => {
                 {estimatedEnd && (
                   <button
                     type="button"
-                    onClick={() => setEstimatedEnd('')}
+                    onClick={() => {
+                      setEstimatedEnd('');
+                    }}
                     className="text-[10px] font-bold text-rose-500 hover:underline"
                   >
                     تفريغ التاريخ
@@ -185,7 +181,9 @@ export const SystemPlatformSettings: React.FC = () => {
               <input
                 type="datetime-local"
                 value={estimatedEnd}
-                onChange={e => setEstimatedEnd(e.target.value)}
+                onChange={e => {
+                  setEstimatedEnd(e.target.value);
+                }}
                 className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1.5 font-mono text-xs text-[var(--app-text)] focus:outline-none"
               />
             </div>
@@ -229,10 +227,10 @@ export const SystemPlatformSettings: React.FC = () => {
                 <div>
                   <p className="font-bold text-[var(--app-text)]">خدمات الذكاء الاصطناعي (AI)</p>
                   <span className="text-[10px] text-[var(--app-text-secondary)]">
-                    البحث الصوتي والتعرف على القطع
+                    البحث الصوتي والتعرف على القطع (Gemini Multimodal)
                   </span>
-                  <span className="mt-0.5 block text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                    ⚠ غير مربوط بخدمة تشغيلية بعد — الإيقاف لن يغيّر سلوك النظام حالياً
+                  <span className="mt-0.5 block text-[10px] text-purple-600 dark:text-purple-400">
+                    مربوط تشغيلياً: التعطيل يوقف فوراً معالجة طلبات الـ AI عبر المنصة
                   </span>
                 </div>
               </div>
@@ -320,10 +318,7 @@ export const SystemPlatformSettings: React.FC = () => {
                     المزامنة غير المتصلة (Offline Sync)
                   </p>
                   <span className="text-[10px] text-[var(--app-text-secondary)]">
-                    العمل ونقاط البيع بدون إنترنت
-                  </span>
-                  <span className="mt-0.5 block text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                    ⚠ غير مربوط بخدمة تشغيلية بعد — الإيقاف لن يغيّر سلوك النظام حالياً
+                    طابور حفظ فواتير نقاط البيع (POS) محلياً عند انقطاع الإنترنت
                   </span>
                 </div>
               </div>

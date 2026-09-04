@@ -1,3 +1,8 @@
+import type {
+  MaintenanceModeConfig,
+  PlatformFeatureFlags,
+} from '../../core/config/platformDefaults';
+
 export interface PlatformMetrics {
   total_companies: number;
   active_companies: number;
@@ -61,6 +66,7 @@ export interface SubscriptionPlan {
   is_active: boolean;
   color: string;
   sort_order: number;
+  companies_count?: number | undefined;
   created_at?: string | undefined;
 }
 
@@ -73,19 +79,10 @@ export interface AdminUser {
   company_names: string[];
 }
 
+/** إعدادات المنصة — الأنواع من المصدر الموحد core/config/platformDefaults */
 export interface SystemPlatformConfigs {
-  maintenance_mode: {
-    enabled: boolean;
-    message: string;
-    estimated_end: string | null;
-  };
-  feature_flags: {
-    ai_assistance: boolean;
-    vin_intelligence: boolean;
-    supplier_portal: boolean;
-    internal_chat: boolean;
-    offline_sync: boolean;
-  };
+  maintenance_mode: MaintenanceModeConfig;
+  feature_flags: PlatformFeatureFlags;
 }
 
 export interface SecurityAlertLog {

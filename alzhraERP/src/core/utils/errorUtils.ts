@@ -106,6 +106,12 @@ export const parseError = (error: unknown): AppError => {
         'لم يتم العثور على السجل المطلوب (أو توجد عدة نتائج حيث كان متوقعاً سجل واحد).',
         'medium'
       );
+    case '23503':
+      return makeAppError(
+        code,
+        'لا يمكن إتمام العملية لوجود سجلات أو بيانات أخرى مرتبطة بهذا السجل.',
+        'medium'
+      );
     case '42501':
       return makeAppError(
         code,

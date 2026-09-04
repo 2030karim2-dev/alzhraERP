@@ -35,6 +35,13 @@ describe('parseError', () => {
     expect(taxResult.message).toBe('الرقم الضريبي مسجل مسبقاً في النظام.');
   });
 
+  it('should handle foreign key violation (23503)', () => {
+    const result = parseError({ code: '23503' });
+    expect(result.message).toBe(
+      'لا يمكن إتمام العملية لوجود سجلات أو بيانات أخرى مرتبطة بهذا السجل.'
+    );
+  });
+
   it('should handle permission error (42501)', () => {
     const result = parseError({ code: '42501' });
     expect(result.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');

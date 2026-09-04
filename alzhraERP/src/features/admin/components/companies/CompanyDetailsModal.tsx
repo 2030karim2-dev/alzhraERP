@@ -11,13 +11,14 @@ import {
   GitBranch,
   Users,
   Calendar,
-  Sparkles,
+  Layers,
+  AlertTriangle,
   Save,
 } from 'lucide-react';
 import type { AdminCompany } from '../../types';
 import Button from '../../../../ui/base/Button';
 import { useCompanyMutations, useSubscriptionPlans } from '../../hooks/useAdminData';
-import { deriveStatusAfterToggle, subscriptionStatusLabel } from '../../utils';
+import { companyStatusLabel, deriveStatusAfterToggle, canExtendCompanyTrial } from '../../utils';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
 
 interface CompanyDetailsModalProps {
@@ -54,9 +55,13 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
 
   if (!company || !currentCompany) return null;
 
+  // لا يُسمح بالتمديد للمنشآت الموقوفة/الملغاة — إعادة التفعيل قرار مستقل
+  // (زر التعليق/التفعيل) وليس عبر تمديد التجربة (تطابق الخادم 20260904000009).
+  const canExtend = canExtendCompanyTrial(currentCompany);
+
   const handleToggleClick = () => {
     const nextActive = !currentCompany.is_active;
-    // الحالة المحسوبة تطابق منطق الخادم (20260904000001)؛ الخادم هو مصدر الحقيقة
+    // الحالة المحسوبة تطابق منطق الخادم (20260904000001 مع تحسين 20260904000009)؛ الخادم هو مصدر الحقيقة
     const nextStatus = deriveStatusAfterToggle(currentCompany, nextActive);
     const actionLabel = nextActive ? 'إعادة تفعيل' : 'تعليق';
 
@@ -92,6 +97,7 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
   };
 
   const handleExtend = async () => {
+    if (!canExtend) return; // حماية إضافية — الزر معطّل أصلاً للمنشآت الموقوفة/الملغاة
     try {
       const result = await extendTrial({
         companyId: currentCompany.id,
@@ -139,7 +145,7 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
   };
 
   return (
-    <div className="backdrop-blur-xs animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm duration-200">
       <div className="animate-in zoom-in-95 w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl duration-200">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] px-5 py-3.5">
@@ -181,15 +187,30 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
                 حالة المنشأة
               </span>
               <div>
-                {currentCompany.is_active ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-black text-emerald-600">
-                    <CheckCircle2 size={11} />
-                    <span>نشطة ({subscriptionStatusLabel(currentCompany.subscription_status)})</span>
-                  </span>
-                ) : (
+                {!currentCompany.is_active ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-black text-rose-600">
                     <Ban size={11} />
-                    <span>موقوفة / معلقة</span>
+                    <span>{companyStatusLabel(currentCompany)}</span>
+                  </span>
+                ) : currentCompany.subscription_status === 'past_due' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-black text-amber-600">
+                    <AlertTriangle size={11} />
+                    <span>متأخرة السداد</span>
+                  </span>
+                ) : currentCompany.subscription_status === 'cancelled' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-black text-rose-600">
+                    <Ban size={11} />
+                    <span>ملغاة</span>
+                  </span>
+                ) : currentCompany.subscription_status === 'trial' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-0.5 text-[10px] font-black text-sky-600">
+                    <Clock size={11} />
+                    <span>تجريبية</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-black text-emerald-600">
+                    <CheckCircle2 size={11} />
+                    <span>نشطة</span>
                   </span>
                 )}
               </div>
@@ -200,7 +221,7 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
           <div className="rounded-xl border border-blue-500/20 bg-blue-50/50 p-3 dark:bg-blue-900/10">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-[11px] font-black text-blue-600 dark:text-blue-400">
-                <Sparkles size={14} />
+                <Layers size={14} />
                 <span>تعيين أو ترقية باقة الاشتراك</span>
               </div>
               {currentCompany.plan_id !== selectedPlanId && (
@@ -210,7 +231,9 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
             <div className="flex items-center gap-2">
               <select
                 value={selectedPlanId}
-                onChange={e => setSelectedPlanId(e.target.value)}
+                onChange={e => {
+                  setSelectedPlanId(e.target.value);
+                }}
                 className="flex-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1.5 text-xs text-[var(--app-text)] focus:outline-none"
               >
                 <option value="">(بدون باقة مخصصة - الخطة الافتراضية)</option>
@@ -307,16 +330,16 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
                 <span>نهاية الفترة التجريبية:</span>
               </span>
               <span className="font-bold text-amber-600 dark:text-amber-400">
-                {currentCompany.trial_ends_at
-                  ? `${new Date(currentCompany.trial_ends_at).toLocaleDateString(
-                      'ar-SA'
-                    )} — متبقي ${Math.max(
-                      0,
-                      Math.ceil(
-                        (new Date(currentCompany.trial_ends_at).getTime() - Date.now()) / 86400000
-                      )
-                    )} يوم`
-                  : 'غير محددة'}
+                {(() => {
+                  if (!currentCompany.trial_ends_at) return 'غير محددة';
+                  const end = new Date(currentCompany.trial_ends_at);
+                  if (Number.isNaN(end.getTime())) return 'غير محددة';
+                  const diffDays = Math.ceil((end.getTime() - Date.now()) / 86400000);
+                  const dateStr = end.toLocaleDateString('ar-SA');
+                  return diffDays <= 0
+                    ? `انتهت التجربة (${dateStr})`
+                    : `${dateStr} — متبقي ${diffDays} يوم`;
+                })()}
               </span>
             </div>
           </div>
@@ -330,7 +353,9 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
             <div className="flex items-center gap-2">
               <select
                 value={extendDays}
-                onChange={e => setExtendDays(Number(e.target.value))}
+                onChange={e => {
+                  setExtendDays(Number(e.target.value));
+                }}
                 className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1.5 text-xs text-[var(--app-text)] focus:outline-none"
               >
                 <option value={7}>+ 7 أيام</option>
@@ -341,12 +366,25 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
               <Button
                 variant="outline"
                 onClick={handleExtend}
-                disabled={isExtending}
+                disabled={isExtending || !canExtend}
                 className="py-1.5 text-xs font-bold"
+                title={
+                  canExtend
+                    ? 'تمديد الفترة التجريبية'
+                    : 'غير متاح للمنشآت الموقوفة أو الملغاة — أعد التفعيل أولاً'
+                }
               >
                 {isExtending ? 'جاري التمديد...' : 'تمديد التجربة'}
               </Button>
             </div>
+
+            {!canExtend && (
+              <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-2 text-[10px] font-bold leading-relaxed text-amber-600 dark:text-amber-400">
+                لا يمكن تمديد الفترة التجريبية لمنشأة موقوفة أو ملغاة. أعد تفعيل المنشأة أولاً عبر
+                زر «{currentCompany.is_active ? 'تعليق حساب الشركة' : 'إعادة تفعيل الشركة'}» في أسفل
+                النافذة.
+              </p>
+            )}
           </div>
         </div>
 
@@ -378,7 +416,9 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
         message={confirmModal.message}
         variant={confirmModal.variant}
         isLoading={isToggling}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => {
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        }}
         onConfirm={confirmModal.action}
       />
     </div>

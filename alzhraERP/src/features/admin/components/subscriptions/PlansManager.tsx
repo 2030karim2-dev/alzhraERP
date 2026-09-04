@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Plus, Check, Edit3, Trash2, Users, Receipt, Package, Bot, RefreshCw } from 'lucide-react';
+import {
+  Plus,
+  Check,
+  Edit3,
+  Trash2,
+  Users,
+  Receipt,
+  Package,
+  Bot,
+  RefreshCw,
+  Building2,
+} from 'lucide-react';
 import type { SubscriptionPlan } from '../../types';
 import { useSubscriptionPlans, usePlanMutations } from '../../hooks/useAdminData';
 import { EditPlanModal } from './EditPlanModal';
@@ -15,6 +26,7 @@ export const PlansManager: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!planToDelete?.id) return;
+    if ((planToDelete.companies_count ?? 0) > 0) return;
     try {
       await deletePlan(planToDelete.id);
     } finally {
@@ -45,7 +57,9 @@ export const PlansManager: React.FC = () => {
           </Button>
           <Button
             variant="primary"
-            onClick={() => setIsCreating(true)}
+            onClick={() => {
+              setIsCreating(true);
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
           >
             <Plus size={14} />
@@ -92,17 +106,25 @@ export const PlansManager: React.FC = () => {
                   </span>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => setEditingPlan(plan)}
+                      onClick={() => {
+                        setEditingPlan(plan);
+                      }}
                       className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-blue-600"
                       title="تعديل الباقة"
                     >
                       <Edit3 size={13} />
                     </button>
                     <button
-                      onClick={() => setPlanToDelete(plan)}
-                      disabled={isDeleting}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-rose-500/10 hover:text-rose-600 disabled:opacity-50"
-                      title="حذف الباقة"
+                      onClick={() => {
+                        setPlanToDelete(plan);
+                      }}
+                      disabled={isDeleting || (plan.companies_count ?? 0) > 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-rose-500/10 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      title={
+                        (plan.companies_count ?? 0) > 0
+                          ? `لا يمكن حذف الباقة لوجود ${String(plan.companies_count ?? 0)} منشأة مرتبطة بها حالياً`
+                          : 'حذف الباقة'
+                      }
                     >
                       <Trash2 size={13} />
                     </button>
@@ -119,6 +141,23 @@ export const PlansManager: React.FC = () => {
                   </span>
                   <span className="ms-auto font-mono text-[10px] text-[var(--app-text-secondary)]">
                     ({plan.price_yearly} سنوي)
+                  </span>
+                </div>
+
+                {/* Companies Count Info */}
+                <div className="mt-2.5 flex items-center justify-between rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1 text-[10px]">
+                  <span className="flex items-center gap-1 text-[var(--app-text-secondary)]">
+                    <Building2 size={11} className="text-blue-500" />
+                    <span>المنشآت المشتركة:</span>
+                  </span>
+                  <span className="font-mono font-bold text-[var(--app-text)]">
+                    {(plan.companies_count ?? 0) > 0 ? (
+                      <span className="text-blue-600 dark:text-blue-400">
+                        {plan.companies_count} منشأة
+                      </span>
+                    ) : (
+                      <span className="text-[var(--app-text-secondary)]">لا توجد منشآت</span>
+                    )}
                   </span>
                 </div>
 
@@ -203,12 +242,18 @@ export const PlansManager: React.FC = () => {
       {/* Confirm Delete Modal */}
       <ConfirmModal
         isOpen={!!planToDelete}
-        title={`حذف باقة "${planToDelete?.name_ar || ''}"`}
-        message="هل أنت متأكد من حذف باقة الاشتراك هذه نهائياً؟ في حال كانت الباقة مرتبطة بمنشآت سيرفض النظام الحذف حمايةً لبياناتها — ألغِ ربطها أولاً ثم أعد المحاولة."
+        title={`حذف باقة "${planToDelete?.name_ar ?? ''}"`}
+        message={
+          (planToDelete?.companies_count ?? 0) > 0
+            ? `لا يمكن حذف هذه الباقة نظراً لوجود ${String(planToDelete?.companies_count ?? 0)} منشأة مشتركة بها حالياً. قم بإلغاء أو تعديل اشتراك المنشآت أولاً ثم أعد المحاولة.`
+            : `هل أنت متأكد من حذف باقة "${planToDelete?.name_ar ?? ''}" نهائياً من النظام؟`
+        }
         variant="danger"
         confirmLabel="حذف نهائي"
         isLoading={isDeleting}
-        onClose={() => setPlanToDelete(null)}
+        onClose={() => {
+          setPlanToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
       />
     </div>

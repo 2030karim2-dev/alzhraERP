@@ -3,6 +3,8 @@ import {
   Search,
   Filter,
   CheckCircle2,
+  AlertTriangle,
+  Clock,
   Ban,
   Download,
   Eye,
@@ -15,25 +17,70 @@ import {
   useAdminCompanies,
   useAdminCompaniesCount,
   useCompanyMutations,
+  ADMIN_TABLE_PAGE_SIZE,
+  fetchAllAdminCompanies,
 } from '../../hooks/useAdminData';
 import { CompanyDetailsModal } from './CompanyDetailsModal';
-import {
-  deriveStatusAfterToggle,
-  downloadCsvFile,
-  subscriptionStatusLabel,
-  toCsv,
-} from '../../utils';
+import { companyStatusLabel, deriveStatusAfterToggle, downloadCsvFile, toCsv } from '../../utils';
 import Button from '../../../../ui/base/Button';
 import { useDebounce } from '../../../../lib/hooks/useDebounce';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
+import { useFeedbackStore } from '../../../feedback/store';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = ADMIN_TABLE_PAGE_SIZE;
+
+const CompanyStatusBadge: React.FC<{ company: AdminCompany }> = ({ company }) => {
+  const label = companyStatusLabel(company);
+  if (!company.is_active) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">
+        <Ban size={10} />
+        <span>{label}</span>
+      </span>
+    );
+  }
+
+  if (company.subscription_status === 'past_due') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+        <AlertTriangle size={10} />
+        <span>{label}</span>
+      </span>
+    );
+  }
+
+  if (company.subscription_status === 'cancelled') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">
+        <Ban size={10} />
+        <span>{label}</span>
+      </span>
+    );
+  }
+
+  if (company.subscription_status === 'trial') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">
+        <Clock size={10} />
+        <span>{label}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+      <CheckCircle2 size={10} />
+      <span>{label}</span>
+    </span>
+  );
+};
 
 export const CompaniesTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCompany, setSelectedCompany] = useState<AdminCompany | null>(null);
   const [page, setPage] = useState(1);
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [confirmModalState, setConfirmModalState] = useState<{
     isOpen: boolean;
     title: string;
@@ -70,16 +117,24 @@ export const CompaniesTable: React.FC = () => {
 
   const { data: companies = [], isLoading, isError, refetch } = useAdminCompanies(queryParams);
   const { toggleStatus, isToggling } = useCompanyMutations();
+  const { showToast } = useFeedbackStore();
   const { data: totalCompanies = 0 } = useAdminCompaniesCount({
     search: debouncedSearch.trim() || undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
   const totalPages = Math.max(1, Math.ceil(totalCompanies / PAGE_SIZE));
 
+  // منع البقاء في صفحة فارغة إذا تقلص عدد النتائج (تعليق منشأة مثلاً) دون تغيير الصفحة
+  useEffect(() => {
+    if (!isLoading && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [isLoading, page, totalPages]);
+
   const handleToggleClick = (company: AdminCompany) => {
     const nextActive = !company.is_active;
     const actionLabel = nextActive ? 'إعادة تفعيل' : 'تعليق';
-    // الحالة المحسوبة تطابق منطق الخادم (20260904000001)؛ الخادم هو مصدر الحقيقة
+    // الحالة المحسوبة تطابق منطق الخادم (20260904000001 مع تحسين 20260904000009)؛ الخادم هو مصدر الحقيقة
     const nextStatus = deriveStatusAfterToggle(company, nextActive);
 
     setConfirmModalState({
@@ -106,30 +161,43 @@ export const CompaniesTable: React.FC = () => {
     });
   };
 
-  const handleExportCsv = () => {
-    const header = [
-      'المنشأة',
-      'الرقم الضريبي',
-      'بريد المالك',
-      'الباقة',
-      'الحالة',
-      'المستخدمون',
-      'الفروع',
-      'الفواتير',
-      'تاريخ التسجيل',
-    ];
-    const rows = companies.map(c => [
-      c.name_ar,
-      c.tax_number ?? '',
-      c.owner_email ?? '',
-      c.plan_name ?? '',
-      c.is_active ? subscriptionStatusLabel(c.subscription_status) : 'موقوفة',
-      c.user_count,
-      c.branch_count,
-      c.invoice_count,
-      c.created_at ? new Date(c.created_at).toLocaleDateString('ar-SA') : '',
-    ]);
-    downloadCsvFile(`companies-page-${page}.csv`, toCsv(header, rows));
+  const handleExportCsv = async () => {
+    if (isExportingCsv) return;
+    setIsExportingCsv(true);
+    try {
+      // تصدير كامل: يجلب كل النتائج المطابقة للفلاتر الحالية (لا صفحة العرض فقط)
+      const allCompanies = await fetchAllAdminCompanies({
+        search: debouncedSearch.trim() || undefined,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+      });
+      const header = [
+        'المنشأة',
+        'الرقم الضريبي',
+        'بريد المالك',
+        'الباقة',
+        'الحالة',
+        'المستخدمون',
+        'الفروع',
+        'الفواتير',
+        'تاريخ التسجيل',
+      ];
+      const rows = allCompanies.map(c => [
+        c.name_ar,
+        c.tax_number ?? '',
+        c.owner_email ?? '',
+        c.plan_name ?? '',
+        companyStatusLabel(c),
+        c.user_count,
+        c.branch_count,
+        c.invoice_count,
+        c.created_at ? new Date(c.created_at).toLocaleDateString('ar-SA') : '',
+      ]);
+      downloadCsvFile('companies-all.csv', toCsv(header, rows));
+    } catch {
+      showToast('تعذر تصدير قائمة المنشآت. تحقق من الاتصال وحاول مجدداً.', 'error');
+    } finally {
+      setIsExportingCsv(false);
+    }
   };
 
   return (
@@ -142,7 +210,9 @@ export const CompaniesTable: React.FC = () => {
             type="text"
             placeholder="بحث بالاسم، الرقم الضريبي، بريد المالك..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+            }}
             className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] py-1.5 pe-3 ps-9 text-xs text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] focus:outline-none focus:ring-1 focus:ring-blue-500/30"
           />
         </div>
@@ -152,13 +222,15 @@ export const CompaniesTable: React.FC = () => {
             <Filter size={13} className="text-[var(--app-text-secondary)]" />
             <select
               value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
+              onChange={e => {
+                setStatusFilter(e.target.value);
+              }}
               className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1.5 text-xs text-[var(--app-text)] focus:outline-none"
             >
               <option value="all">كافة الحالات</option>
               <option value="active">نشطة (Active)</option>
               <option value="trial">تجريبية (Trial)</option>
-              <option value="suspended">معلقة (Suspended)</option>
+              <option value="suspended">موقوفة (Suspended)</option>
               <option value="past_due">متأخرة السداد (Past Due)</option>
               <option value="cancelled">ملغاة (Cancelled)</option>
             </select>
@@ -166,12 +238,15 @@ export const CompaniesTable: React.FC = () => {
 
           <Button
             variant="outline"
-            onClick={handleExportCsv}
+            onClick={() => void handleExportCsv()}
+            disabled={isExportingCsv}
             className="flex items-center gap-1 px-2.5 py-1.5 text-xs"
-            title="تصدير نتائج هذه الصفحة CSV"
+            title="تصدير كل المنشآت المطابقة للفلاتر الحالية CSV"
           >
-            <Download size={12} />
-            <span className="hidden sm:inline">تصدير CSV</span>
+            <Download size={12} className={isExportingCsv ? 'animate-pulse' : ''} />
+            <span className="hidden sm:inline">
+              {isExportingCsv ? 'جاري التصدير...' : 'تصدير الكل CSV'}
+            </span>
           </Button>
 
           <Button
@@ -285,24 +360,16 @@ export const CompaniesTable: React.FC = () => {
 
                     {/* Status */}
                     <td className="px-3.5 py-2.5">
-                      {company.is_active ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                          <CheckCircle2 size={10} />
-                          <span>{subscriptionStatusLabel(company.subscription_status)}</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600">
-                          <Ban size={10} />
-                          <span>معلق</span>
-                        </span>
-                      )}
+                      <CompanyStatusBadge company={company} />
                     </td>
 
                     {/* Actions */}
                     <td className="px-3.5 py-2.5 text-left">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => setSelectedCompany(company)}
+                          onClick={() => {
+                            setSelectedCompany(company);
+                          }}
                           className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-blue-600"
                           title="عرض التفاصيل الكاملة"
                         >
@@ -310,7 +377,9 @@ export const CompaniesTable: React.FC = () => {
                         </button>
                         <button
                           disabled={isToggling}
-                          onClick={() => handleToggleClick(company)}
+                          onClick={() => {
+                            handleToggleClick(company);
+                          }}
                           className={`flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                             company.is_active
                               ? 'text-rose-500 hover:bg-rose-500/10'
@@ -338,7 +407,9 @@ export const CompaniesTable: React.FC = () => {
             <Button
               variant="outline"
               disabled={page <= 1 || isLoading}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => {
+                setPage(p => Math.max(1, p - 1));
+              }}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >
               <ChevronRight size={12} />
@@ -348,7 +419,9 @@ export const CompaniesTable: React.FC = () => {
             <Button
               variant="outline"
               disabled={page >= totalPages || isLoading}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => {
+                setPage(p => p + 1);
+              }}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >
               <span>التالي</span>
@@ -376,7 +449,9 @@ export const CompaniesTable: React.FC = () => {
         message={confirmModalState.message}
         variant={confirmModalState.variant}
         isLoading={isToggling}
-        onClose={() => setConfirmModalState(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => {
+          setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+        }}
         onConfirm={confirmModalState.action}
       />
     </div>

@@ -65,6 +65,8 @@ tmp_supabase_test.mjs
 supabase/.temp/
 reports/
 coverage/
+*.pid
+eslint_*.json
 
 # one-off / secret-bearing scripts & credentials
 *.ps1

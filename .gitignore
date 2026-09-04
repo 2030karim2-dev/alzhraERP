@@ -60,6 +60,8 @@ test_stock_structure.mjs
 tmp/
 tsconfig.tsbuildinfo
 tmp_supabase_test.mjs
+*.pid
+eslint_*.json
 
 # AI tool caches (Kilo / Kilocode)
 .kilo/

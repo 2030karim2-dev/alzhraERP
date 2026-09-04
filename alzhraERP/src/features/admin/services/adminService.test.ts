@@ -181,61 +181,207 @@ describe('adminService Unit Tests', () => {
     });
   });
 
-  describe('getHoneypotLogs', () => {
-    it('queries the actual security_alerts table ordered by detected_at DESC', async () => {
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValueOnce({
-          data: [
-            {
-              id: 1,
-              alert_type: 'honeypot_access',
-              severity: 'critical',
-              source_ip: '192.168.1.100',
-              detected_at: '2026-09-03T10:00:00Z',
-            },
-          ],
-          error: null,
-        }),
-      };
+  describe('getSecurityAlerts / getSecurityAlertsCount', () => {
+    it('calls the paginated get_security_alerts_page RPC with defaults', async () => {
+      const mockRows = [
+        {
+          id: 1,
+          alert_type: 'honeypot_access',
+          severity: 'critical',
+          source_ip: '192.168.1.100',
+          detected_at: '2026-09-03T10:00:00Z',
+        },
+      ];
 
-      vi.mocked(supabase.from).mockReturnValueOnce(mockChain as any);
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({
+        data: mockRows,
+        error: null,
+      } as any);
 
-      const logs = await adminService.getHoneypotLogs();
-      expect(supabase.from).toHaveBeenCalledWith('security_alerts');
-      expect(mockChain.order).toHaveBeenCalledWith('detected_at', { ascending: false });
+      const logs = await adminService.getSecurityAlerts();
+      expect(supabase.rpc).toHaveBeenCalledWith('get_security_alerts_page', {
+        p_limit: 50,
+        p_offset: 0,
+        p_resolved: null,
+      });
       expect(logs).toHaveLength(1);
       expect(logs[0].alert_type).toBe('honeypot_access');
     });
+
+    it('passes pagination and resolved filter to get_security_alerts_page', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: [], error: null } as any);
+
+      await adminService.getSecurityAlerts({ limit: 25, offset: 25, resolved: false });
+      expect(supabase.rpc).toHaveBeenCalledWith('get_security_alerts_page', {
+        p_limit: 25,
+        p_offset: 25,
+        p_resolved: false,
+      });
+    });
+
+    it('calls get_security_alerts_count with the resolved filter', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: 7, error: null } as any);
+
+      const count = await adminService.getSecurityAlertsCount(false);
+      expect(supabase.rpc).toHaveBeenCalledWith('get_security_alerts_count', { p_resolved: false });
+      expect(count).toBe(7);
+    });
   });
 
-  describe('getCspReports', () => {
-    it('queries csp_reports ordered by received_at DESC', async () => {
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValueOnce({
-          data: [
-            {
-              id: 1,
-              document_uri: 'https://erp.alzhra.com/dashboard',
-              blocked_uri: 'http://malicious.com/evil.js',
-              violated_directive: 'script-src',
-              received_at: '2026-09-03T11:00:00Z',
-            },
-          ],
-          error: null,
-        }),
-      };
+  describe('getCspReportsPage / getCspReportsCount', () => {
+    it('calls the paginated get_csp_reports_page RPC', async () => {
+      const mockRows = [
+        {
+          id: 1,
+          document_uri: 'https://erp.alzhra.com/dashboard',
+          blocked_uri: 'http://malicious.com/evil.js',
+          violated_directive: 'script-src',
+          received_at: '2026-09-03T11:00:00Z',
+        },
+      ];
 
-      vi.mocked(supabase.from).mockReturnValueOnce(mockChain as any);
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({
+        data: mockRows,
+        error: null,
+      } as any);
 
-      const reports = await adminService.getCspReports();
-      expect(supabase.from).toHaveBeenCalledWith('csp_reports');
-      expect(mockChain.order).toHaveBeenCalledWith('received_at', { ascending: false });
+      const reports = await adminService.getCspReportsPage();
+      expect(supabase.rpc).toHaveBeenCalledWith('get_csp_reports_page', {
+        p_limit: 50,
+        p_offset: 0,
+      });
       expect(reports).toHaveLength(1);
       expect(reports[0].violated_directive).toBe('script-src');
     });
+
+    it('calls get_csp_reports_count', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: 3, error: null } as any);
+
+      const count = await adminService.getCspReportsCount();
+      expect(supabase.rpc).toHaveBeenCalledWith('get_csp_reports_count');
+      expect(count).toBe(3);
+    });
+  });
+});
+
+describe('Full CSV export helpers (exportAll*)', () => {
+  const companyRow = {
+    id: 'comp-1',
+    name_ar: 'شركة النور',
+    name_en: null,
+    tax_number: '1234567890',
+    base_currency: 'SAR',
+    owner_id: null,
+    owner_email: null,
+    phone: null,
+    is_active: true,
+    subscription_status: 'active',
+    trial_ends_at: null,
+    plan_id: null,
+    plan_name: null,
+    user_count: 2,
+    branch_count: 1,
+    invoice_count: 5,
+    created_at: '2026-08-01T00:00:00Z',
+  };
+
+  const userRow = {
+    user_id: 'user-1',
+    email: 'user@example.com',
+    created_at: '2026-08-01T00:00:00Z',
+    is_super_admin: false,
+    companies_count: 1,
+    company_names: ['شركة النور'],
+  };
+
+  const alertRow = {
+    id: 1,
+    detected_at: '2026-09-03T10:00:00Z',
+    alert_type: 'honeypot_access',
+    severity: 'high',
+    user_id: null,
+    company_id: null,
+    source_ip: '1.2.3.4',
+    user_agent: null,
+    details: {},
+    resolved_at: null,
+    resolved_by: null,
+    resolution_notes: null,
+  };
+
+  const cspRow = {
+    id: 1,
+    received_at: '2026-09-03T11:00:00Z',
+    document_uri: 'https://erp.alzhra.com/',
+    blocked_uri: 'http://evil.test/x.js',
+    violated_directive: 'script-src',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('exportAllCompanies pages through until a short page is returned', async () => {
+    const chunk = adminService.EXPORT_LIST_CHUNK;
+    const fullPage = Array.from({ length: chunk }, (_, i) => ({ ...companyRow, id: `c-${i}` }));
+    const tail = [{ ...companyRow, id: 'last' }];
+
+    vi.mocked(supabase.rpc)
+      .mockResolvedValueOnce({ data: fullPage, error: null } as any)
+      .mockResolvedValueOnce({ data: tail, error: null } as any);
+
+    const companies = await adminService.exportAllCompanies({
+      search: '  نور  ',
+      status: 'active',
+    });
+
+    expect(companies).toHaveLength(chunk + 1);
+    expect(supabase.rpc).toHaveBeenNthCalledWith(1, 'get_admin_companies_list', {
+      p_search: 'نور',
+      p_status: 'active',
+      p_limit: chunk,
+      p_offset: 0,
+    });
+    expect(supabase.rpc).toHaveBeenNthCalledWith(2, 'get_admin_companies_list', {
+      p_search: 'نور',
+      p_status: 'active',
+      p_limit: chunk,
+      p_offset: chunk,
+    });
+  });
+
+  it('exportAllUsers maps rows and stops after the first short page', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: [userRow], error: null } as any);
+
+    const users = await adminService.exportAllUsers('noor');
+    expect(users).toHaveLength(1);
+    expect(users[0].company_names).toEqual(['شركة النور']);
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('exportAllSecurityAlerts pages with the server chunk cap (200)', async () => {
+    const chunk = adminService.EXPORT_SECURITY_CHUNK;
+    const fullPage = Array.from({ length: chunk }, (_, i) => ({ ...alertRow, id: i + 1 }));
+    const tail = [{ ...alertRow, id: chunk + 1 }];
+
+    vi.mocked(supabase.rpc)
+      .mockResolvedValueOnce({ data: fullPage, error: null } as any)
+      .mockResolvedValueOnce({ data: tail, error: null } as any);
+
+    const alerts = await adminService.exportAllSecurityAlerts(false);
+    expect(alerts).toHaveLength(chunk + 1);
+    expect(supabase.rpc).toHaveBeenNthCalledWith(2, 'get_security_alerts_page', {
+      p_limit: chunk,
+      p_offset: chunk,
+      p_resolved: false,
+    });
+  });
+
+  it('exportAllCspReports maps rows from a single short page', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: [cspRow], error: null } as any);
+
+    const reports = await adminService.exportAllCspReports();
+    expect(reports).toHaveLength(1);
+    expect(reports[0].violated_directive).toBe('script-src');
   });
 });

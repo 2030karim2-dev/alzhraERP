@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../services/adminService';
-import type { SubscriptionPlan } from '../types';
+import type {
+  AdminCompany,
+  AdminUser,
+  CspReportLog,
+  SecurityAlertLog,
+  SubscriptionPlan,
+} from '../types';
 import { useFeedbackStore } from '../../feedback/store';
 import { parseError } from '../../../core/utils/errorUtils';
 
@@ -62,9 +68,9 @@ export const useCompanyMutations = () => {
       status: string;
     }) => adminService.toggleCompanyStatus(companyId, isActive, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_companies_count'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies_count'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast('تم تحديث حالة المنشأة بنجاح', 'success');
     },
     onError: (err: unknown) => {
@@ -76,8 +82,9 @@ export const useCompanyMutations = () => {
     mutationFn: ({ companyId, days }: { companyId: string; days: number }) =>
       adminService.extendTrial(companyId, days),
     onSuccess: result => {
-      queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies_count'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast(
         `تم تمديد الفترة التجريبية حتى ${new Date(result.trial_ends_at).toLocaleDateString('ar-SA')}`,
         'success'
@@ -92,7 +99,9 @@ export const useCompanyMutations = () => {
     mutationFn: ({ companyId, planId }: { companyId: string; planId: string | null }) =>
       adminService.assignCompanyPlan(companyId, planId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies_count'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast('تم تعيين الباقة للمنشأة بنجاح', 'success');
     },
     onError: (err: unknown) => {
@@ -124,8 +133,8 @@ export const usePlanMutations = () => {
   const saveMutation = useMutation({
     mutationFn: (plan: Partial<SubscriptionPlan>) => adminService.saveSubscriptionPlan(plan),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_subscription_plans'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_subscription_plans'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
       showToast('تم حفظ باقة الاشتراك بنجاح', 'success');
     },
     onError: (err: unknown) => {
@@ -136,8 +145,8 @@ export const usePlanMutations = () => {
   const deleteMutation = useMutation({
     mutationFn: (planId: string) => adminService.deleteSubscriptionPlan(planId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_subscription_plans'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_subscription_plans'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_companies'] });
       showToast('تم حذف باقة الاشتراك بنجاح', 'success');
     },
     onError: (err: unknown) => {
@@ -179,8 +188,8 @@ export const useUserMutations = () => {
     mutationFn: ({ userId, makeSuperAdmin }: { userId: string; makeSuperAdmin: boolean }) =>
       adminService.toggleSuperAdmin(userId, makeSuperAdmin),
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['admin_users'] });
-      queryClient.invalidateQueries({ queryKey: ['is_super_admin'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_users'] });
+      void queryClient.invalidateQueries({ queryKey: ['is_super_admin'] });
       showToast(
         vars.makeSuperAdmin
           ? 'تمت ترقية المستخدم إلى سوبر أدمن بنجاح'
@@ -225,7 +234,7 @@ export const useConfigMutations = () => {
       adminService.updateSystemConfig(key, value),
     onSuccess: () => {
       for (const queryKey of PLATFORM_CONFIG_QUERY_KEYS) {
-        queryClient.invalidateQueries({ queryKey: [...queryKey] });
+        void queryClient.invalidateQueries({ queryKey: [...queryKey] });
       }
       showToast('تم تحديث إعدادات المنصة بنجاح', 'success');
     },
@@ -240,32 +249,81 @@ export const useConfigMutations = () => {
   };
 };
 
-export const useSecurityLogs = () => {
-  const honeypotQuery = useQuery({
-    queryKey: ['admin_honeypot_logs'],
-    queryFn: () => adminService.getHoneypotLogs(),
+/** حجم الصفحة الموحّد لكل جداول الإدارة (منشآت/مستخدمون/سجلات أمان/تقارير CSP). */
+export const ADMIN_TABLE_PAGE_SIZE = 25;
+
+/** اسم متوافق للاستخدامات السابقة — ترقيم صفحات مركز الأمان على الخادم. */
+export const SECURITY_LOGS_PAGE_SIZE = ADMIN_TABLE_PAGE_SIZE;
+
+export type SecurityStatusFilter = 'all' | 'unresolved' | 'resolved';
+
+/** تحويل فلتر حالة الواجهة إلى معامل p_resolved الخادمي */
+const toResolvedParam = (filter: SecurityStatusFilter): boolean | undefined =>
+  filter === 'unresolved' ? false : filter === 'resolved' ? true : undefined;
+
+/**
+ * سجلات مركز الأمان + تقارير CSP.
+ * لكل تبويب صفحته المستقلة: تنبيهات الأمان تستخدم `alertsPage` وتقارير CSP
+ * تستخدم `cspPage` — فلا يزيح التنقل في أحد التبويبين ترقيم/استعلام الآخر.
+ */
+export const useSecurityLogs = (
+  alertsPage: number,
+  statusFilter: SecurityStatusFilter,
+  cspPage: number
+) => {
+  const resolved = toResolvedParam(statusFilter);
+
+  const alertsQuery = useQuery({
+    queryKey: ['admin_security_alerts', alertsPage, statusFilter],
+    queryFn: () =>
+      adminService.getSecurityAlerts({
+        limit: SECURITY_LOGS_PAGE_SIZE,
+        offset: (alertsPage - 1) * SECURITY_LOGS_PAGE_SIZE,
+        resolved,
+      }),
+  });
+
+  const alertsCountQuery = useQuery({
+    queryKey: ['admin_security_alerts_count', statusFilter],
+    queryFn: () => adminService.getSecurityAlertsCount(resolved),
   });
 
   const cspQuery = useQuery({
-    queryKey: ['admin_csp_reports'],
-    queryFn: () => adminService.getCspReports(),
+    queryKey: ['admin_csp_reports', cspPage],
+    queryFn: () =>
+      adminService.getCspReportsPage({
+        limit: SECURITY_LOGS_PAGE_SIZE,
+        offset: (cspPage - 1) * SECURITY_LOGS_PAGE_SIZE,
+      }),
   });
 
-  const toMessage = (err: unknown): string | null =>
-    err instanceof Error ? err.message : err ? String(err) : null;
+  const cspCountQuery = useQuery({
+    queryKey: ['admin_csp_reports_count'],
+    queryFn: () => adminService.getCspReportsCount(),
+  });
+
+  const toMessage = (err: unknown): string | null => {
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'string' && err.trim() !== '') return err;
+    return null;
+  };
 
   return {
-    honeypotLogs: honeypotQuery.data || [],
-    isLoadingHoneypot: honeypotQuery.isLoading,
-    isErrorHoneypot: honeypotQuery.isError,
-    honeypotError: toMessage(honeypotQuery.error),
-    cspReports: cspQuery.data || [],
+    securityAlerts: alertsQuery.data ?? [],
+    securityAlertsTotal: alertsCountQuery.data ?? 0,
+    isLoadingAlerts: alertsQuery.isLoading,
+    isErrorAlerts: alertsQuery.isError,
+    alertsError: toMessage(alertsQuery.error),
+    cspReports: cspQuery.data ?? [],
+    cspTotal: cspCountQuery.data ?? 0,
     isLoadingCsp: cspQuery.isLoading,
     isErrorCsp: cspQuery.isError,
     cspError: toMessage(cspQuery.error),
     refetch: () => {
-      honeypotQuery.refetch();
-      cspQuery.refetch();
+      void alertsQuery.refetch();
+      void alertsCountQuery.refetch();
+      void cspQuery.refetch();
+      void cspCountQuery.refetch();
     },
   };
 };
@@ -278,8 +336,11 @@ export const useSecurityMutations = () => {
     mutationFn: ({ alertId, notes }: { alertId: number | string; notes?: string }) =>
       adminService.resolveSecurityAlert(alertId, notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_honeypot_logs'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
+      // إبطال صريح لقوائم الصفحات وعدادها معاً: بادئة القوائم لا تطابق مفتاح
+      // admin_security_alerts_count (المقطع الأول مختلف) فكان العداد يبقى قديماً.
+      void queryClient.invalidateQueries({ queryKey: ['admin_security_alerts'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_security_alerts_count'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin_platform_metrics'] });
       showToast('تمت معالجة التنبيه الأمني بنجاح', 'success');
     },
     onError: (err: unknown) => {
@@ -292,3 +353,26 @@ export const useSecurityMutations = () => {
     isResolvingAlert: resolveAlertMutation.isPending,
   };
 };
+
+// ---------------------------------------------------------------------------
+// طبقة وصول للتصدير الكامل CSV (تتجاوز ترقيم صفحات الواجهة) — تُستهلك من
+// المكونات عبر هذه الدوال لا عبر الاتصال المباشر بالخدمة.
+// ---------------------------------------------------------------------------
+
+/** كل المنشآت المطابقة للبحث/الحالة (يتجاوز الصفحة المعروضة). */
+export const fetchAllAdminCompanies = (params?: {
+  search?: string | undefined;
+  status?: string | undefined;
+}): Promise<AdminCompany[]> => adminService.exportAllCompanies(params);
+
+/** كل المستخدمين المطابقين للبحث. */
+export const fetchAllAdminUsers = (search?: string): Promise<AdminUser[]> =>
+  adminService.exportAllUsers(search);
+
+/** كل تنبيهات الأمان المطابقة لحالة المعالجة. */
+export const fetchAllAdminSecurityAlerts = (resolved?: boolean): Promise<SecurityAlertLog[]> =>
+  adminService.exportAllSecurityAlerts(resolved);
+
+/** كل تقارير انتهاك سياسة CSP. */
+export const fetchAllAdminCspReports = (): Promise<CspReportLog[]> =>
+  adminService.exportAllCspReports();

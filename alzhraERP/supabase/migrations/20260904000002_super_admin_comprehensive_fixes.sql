@@ -142,6 +142,11 @@ END;
 $$;
 
 -- 4. تحسين دالة تمديد التجربة لترجع التاريخ والحالة الجديدة معاً (extend_company_trial)
+-- ملاحظة حرجة: PostgreSQL يمنع تغيير نوع الإرجاع عبر CREATE OR REPLACE
+-- ("cannot change return type of existing function")، والدالة في الترحيلات
+-- السابقة (20260903000002/3/4 و 20260904000001) تعيد timestamptz بينما هذه
+-- النسخة تعيد jsonb — لذا يجب DROP أولاً وإلا فشلت سلسلة الترحيلات كاملة.
+DROP FUNCTION IF EXISTS public.extend_company_trial(uuid, integer);
 CREATE OR REPLACE FUNCTION public.extend_company_trial(
     p_company_id uuid,
     p_days integer

@@ -6,19 +6,83 @@ import { useAuthStore } from '../../../auth/store';
 import { useSystemConfigs } from '../../hooks/useAdminData';
 import { ROUTES } from '../../../../core/routes/paths';
 
-export const AdminHeader: React.FC = () => {
+interface AdminStatusIndicatorProps {
+  configsLoaded: boolean;
+  isMaintenance: boolean;
+}
+
+const AdminStatusIndicator: React.FC<AdminStatusIndicatorProps> = ({
+  configsLoaded,
+  isMaintenance,
+}) => {
+  if (!configsLoaded) return null;
+
+  if (isMaintenance) {
+    return (
+      <div className="flex animate-pulse items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black text-amber-600 dark:text-amber-400">
+        <AlertTriangle size={12} />
+        <span>وضع الصيانة مفعّل للعامة</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+      <span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-500" />
+      <Activity size={12} />
+      <span>المنصة تعمل بكفاءة تامة</span>
+    </div>
+  );
+};
+
+const AdminHeaderActions: React.FC = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
   const { user } = useAuthStore();
-  const { data: configs } = useSystemConfigs();
 
-  const isMaintenance = configs?.maintenance_mode?.enabled;
+  const handleBackToErp = (): void => {
+    void navigate(ROUTES.DASHBOARD.ROOT);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={handleBackToErp}
+        className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-2.5 py-1.5 text-xs font-bold text-[var(--app-text)] transition-colors hover:bg-[var(--app-surface)] hover:text-blue-600"
+        title="العودة لنظام إدارة المنشأة"
+      >
+        <Layers size={14} />
+        <span className="hidden sm:inline">نظام المنشأة</span>
+        <ArrowLeft size={12} />
+      </button>
+
+      <button
+        onClick={toggleTheme}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface)]"
+        title={theme === 'light' ? 'الوضع الليلي' : 'الوضع النهاري'}
+      >
+        {theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-amber-400" />}
+      </button>
+
+      <div className="bg-[var(--app-surface-hover)]/60 hidden items-center gap-2 rounded-lg border border-[var(--app-border)] px-2.5 py-1 lg:flex">
+        <div className="h-2 w-2 rounded-full bg-indigo-500" />
+        <span className="max-w-[150px] truncate text-[10px] font-bold text-[var(--app-text)]">
+          {user?.email}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export const AdminHeader: React.FC = () => {
+  const { data: configs } = useSystemConfigs();
+  const configsLoaded = configs !== undefined;
+  const isMaintenance = configs?.maintenance_mode.enabled ?? false;
 
   return (
     <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-4 backdrop-blur-md transition-colors">
-      {/* Brand & Badge */}
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400">
           <ShieldCheck size={18} />
         </div>
         <div>
@@ -36,52 +100,11 @@ export const AdminHeader: React.FC = () => {
         </div>
       </div>
 
-      {/* Middle Status Indicators */}
       <div className="hidden items-center gap-3 md:flex">
-        {isMaintenance ? (
-          <div className="flex animate-pulse items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black text-amber-600 dark:text-amber-400">
-            <AlertTriangle size={12} />
-            <span>وضع الصيانة مفعّل للعامة</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
-            <span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-500" />
-            <Activity size={12} />
-            <span>المنصة تعمل بكفاءة تامة</span>
-          </div>
-        )}
+        <AdminStatusIndicator configsLoaded={configsLoaded} isMaintenance={isMaintenance} />
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        {/* Switch back to regular ERP */}
-        <button
-          onClick={() => navigate(ROUTES.DASHBOARD.ROOT)}
-          className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-2.5 py-1.5 text-xs font-bold text-[var(--app-text)] transition-colors hover:bg-[var(--app-surface)] hover:text-blue-600"
-          title="العودة لنظام إدارة المنشأة"
-        >
-          <Layers size={14} />
-          <span className="hidden sm:inline">نظام المنشأة</span>
-          <ArrowLeft size={12} />
-        </button>
-
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface)]"
-          title={theme === 'light' ? 'الوضع الليلي' : 'الوضع النهاري'}
-        >
-          {theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-amber-400" />}
-        </button>
-
-        {/* User Chip */}
-        <div className="bg-[var(--app-surface-hover)]/60 hidden items-center gap-2 rounded-lg border border-[var(--app-border)] px-2.5 py-1 lg:flex">
-          <div className="h-2 w-2 rounded-full bg-indigo-500" />
-          <span className="max-w-[150px] truncate text-[10px] font-bold text-[var(--app-text)]">
-            {user?.email}
-          </span>
-        </div>
-      </div>
+      <AdminHeaderActions />
     </header>
   );
 };

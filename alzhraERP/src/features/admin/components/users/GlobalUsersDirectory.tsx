@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Search, RefreshCw, Crown, ChevronRight, ChevronLeft, Download } from 'lucide-react';
 import type { AdminUser } from '../../types';
-import { useAdminUsers, useAdminUsersCount, useUserMutations } from '../../hooks/useAdminData';
+import {
+  useAdminUsers,
+  useAdminUsersCount,
+  useUserMutations,
+  ADMIN_TABLE_PAGE_SIZE,
+  fetchAllAdminUsers,
+} from '../../hooks/useAdminData';
 import { downloadCsvFile, toCsv } from '../../utils';
 import Button from '../../../../ui/base/Button';
 import { useAuthStore } from '../../../auth/store';
 import { useDebounce } from '../../../../lib/hooks/useDebounce';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
+import { useFeedbackStore } from '../../../feedback/store';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = ADMIN_TABLE_PAGE_SIZE;
 
 export const GlobalUsersDirectory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [targetUserToToggle, setTargetUserToToggle] = useState<AdminUser | null>(null);
   const { user: currentUser } = useAuthStore();
+  const { showToast } = useFeedbackStore();
 
   const debouncedSearch = useDebounce(searchTerm, 400);
 
@@ -37,6 +46,13 @@ export const GlobalUsersDirectory: React.FC = () => {
   const { data: totalUsers = 0 } = useAdminUsersCount(debouncedSearch.trim() || undefined);
   const totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE));
 
+  // منع البقاء في صفحة فارغة إذا تقلص عدد النتائج (سحب صلاحية مثلاً) دون تغيير الصفحة
+  useEffect(() => {
+    if (!isLoading && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [isLoading, page, totalPages]);
+
   const handleConfirmToggle = async () => {
     if (!targetUserToToggle) return;
     const nextState = !targetUserToToggle.is_super_admin;
@@ -50,16 +66,26 @@ export const GlobalUsersDirectory: React.FC = () => {
     }
   };
 
-  const handleExportCsv = () => {
-    const header = ['البريد الإلكتروني', 'سوبر أدمن', 'عدد المنشآت', 'المنشآت', 'تاريخ التسجيل'];
-    const rows = users.map(u => [
-      u.email,
-      u.is_super_admin ? 'نعم' : 'لا',
-      u.companies_count,
-      u.company_names.join(' | '),
-      new Date(u.created_at).toLocaleDateString('ar-SA'),
-    ]);
-    downloadCsvFile(`users-page-${page}.csv`, toCsv(header, rows));
+  const handleExportCsv = async () => {
+    if (isExportingCsv) return;
+    setIsExportingCsv(true);
+    try {
+      // تصدير كامل لكل المستخدمين المطابقين للبحث (لا صفحة العرض فقط)
+      const allUsers = await fetchAllAdminUsers(debouncedSearch.trim() || undefined);
+      const header = ['البريد الإلكتروني', 'سوبر أدمن', 'عدد المنشآت', 'المنشآت', 'تاريخ التسجيل'];
+      const rows = allUsers.map(u => [
+        u.email,
+        u.is_super_admin ? 'نعم' : 'لا',
+        u.companies_count,
+        u.company_names.join(' | '),
+        new Date(u.created_at).toLocaleDateString('ar-SA'),
+      ]);
+      downloadCsvFile('users-all.csv', toCsv(header, rows));
+    } catch {
+      showToast('تعذر تصدير دليل المستخدمين. تحقق من الاتصال وحاول مجدداً.', 'error');
+    } finally {
+      setIsExportingCsv(false);
+    }
   };
 
   return (
@@ -72,7 +98,9 @@ export const GlobalUsersDirectory: React.FC = () => {
             type="text"
             placeholder="بحث بالبريد الإلكتروني..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+            }}
             className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] py-1.5 pe-3 ps-9 text-xs text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] focus:outline-none"
           />
         </div>
@@ -80,12 +108,15 @@ export const GlobalUsersDirectory: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={handleExportCsv}
+            onClick={() => void handleExportCsv()}
+            disabled={isExportingCsv}
             className="flex items-center gap-1 px-2.5 py-1.5 text-xs"
-            title="تصدير نتائج هذه الصفحة CSV"
+            title="تصدير كل المستخدمين المطابقين للبحث CSV"
           >
-            <Download size={12} />
-            <span className="hidden sm:inline">تصدير CSV</span>
+            <Download size={12} className={isExportingCsv ? 'animate-pulse' : ''} />
+            <span className="hidden sm:inline">
+              {isExportingCsv ? 'جاري التصدير...' : 'تصدير الكل CSV'}
+            </span>
           </Button>
           <Button
             variant="outline"
@@ -216,7 +247,9 @@ export const GlobalUsersDirectory: React.FC = () => {
                         ) : (
                           <Button
                             variant={item.is_super_admin ? 'danger' : 'outline'}
-                            onClick={() => setTargetUserToToggle(item)}
+                            onClick={() => {
+                              setTargetUserToToggle(item);
+                            }}
                             disabled={isTogglingSuperAdmin}
                             className="px-2.5 py-1 text-[10px] font-bold"
                           >
@@ -241,7 +274,9 @@ export const GlobalUsersDirectory: React.FC = () => {
             <Button
               variant="outline"
               disabled={page <= 1 || isLoading}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => {
+                setPage(p => Math.max(1, p - 1));
+              }}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >
               <ChevronRight size={12} />
@@ -251,7 +286,9 @@ export const GlobalUsersDirectory: React.FC = () => {
             <Button
               variant="outline"
               disabled={page >= totalPages || isLoading}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => {
+                setPage(p => p + 1);
+              }}
               className="flex items-center gap-1 px-2 py-1 text-[10px]"
             >
               <span>التالي</span>
@@ -275,7 +312,9 @@ export const GlobalUsersDirectory: React.FC = () => {
         variant={targetUserToToggle?.is_super_admin ? 'danger' : 'warning'}
         confirmLabel={targetUserToToggle?.is_super_admin ? 'تأكيد السحب' : 'تأكيد الترقية'}
         isLoading={isTogglingSuperAdmin}
-        onClose={() => setTargetUserToToggle(null)}
+        onClose={() => {
+          setTargetUserToToggle(null);
+        }}
         onConfirm={handleConfirmToggle}
       />
     </div>
