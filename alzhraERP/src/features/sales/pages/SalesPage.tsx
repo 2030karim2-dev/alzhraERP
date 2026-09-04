@@ -10,6 +10,7 @@ import InvoiceDetailsModal from '@/features/sales/components/details/InvoiceDeta
 import { useInvoices, useCreateSalesReturn } from '@/features/sales/hooks/index';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { logger } from '@/core/utils/logger';
+import { formatLocalDate } from '@/core/utils/dateUtils';
 import { useAIPrefillStore } from '@/features/ai/store';
 import { useSalesStore } from '@/features/sales/store';
 
@@ -90,7 +91,7 @@ const SalesPage: React.FC = () => {
         })),
         returnReason: 'مرتجع مبيعات',
         status: 'posted',
-        issueDate: new Date().toISOString().split('T')[0],
+        issueDate: formatLocalDate(),
         currency: invoice.currency_code || invoice.currency || 'SAR',
         exchangeRate: invoice.exchange_rate ?? 1,
         notes: `مرتجع للفاتورة #${invoice.invoice_number || ''}`,

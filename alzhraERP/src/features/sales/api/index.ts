@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { parseError } from '@/core/utils/errorUtils';
+import { formatLocalDate } from '@/core/utils/dateUtils';
 import type { CreateInvoicePayload, InvoiceResponse } from '../types';
 import { logger } from '@/core/utils/logger';
 import type { Invoice, Party } from '@/core/types/supabase-helpers';
@@ -103,8 +104,8 @@ export const salesApi = {
 
     const rpcParams = {
       p_party_id: payload.partyId || null,
-      p_invoice_date: payload.issueDate || new Date().toISOString().split('T')[0],
-      p_due_date: payload.dueDate || new Date().toISOString().split('T')[0],
+      p_invoice_date: payload.issueDate || formatLocalDate(),
+      p_due_date: payload.dueDate || formatLocalDate(),
       p_items: payload.items.map(i => ({
         product_id: i.productId,
         quantity: i.quantity,

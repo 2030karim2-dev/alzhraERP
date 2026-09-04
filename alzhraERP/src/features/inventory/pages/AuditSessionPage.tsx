@@ -154,10 +154,10 @@ const AuditSessionPage: React.FC = () => {
     return { total, counted, pending: total - counted, discrepancies };
   }, [sessionItems, watchedItems]);
 
-  const handleSave = () => {
+  const prepareProgressItems = useCallback((): AuditProgressItem[] => {
     const formItems = getValues('items') || [];
     const sourceList = sessionItems && sessionItems.length > 0 ? sessionItems : data?.items || [];
-    const itemsToSave: AuditProgressItem[] = sourceList.map((item, index) => {
+    return sourceList.map((item, index) => {
       const rawItem = item as Record<string, unknown>;
       const formVal = formItems[index]?.counted_quantity;
       const counted = formVal !== undefined && formVal !== '' ? formVal : rawItem.counted_quantity;
@@ -173,6 +173,10 @@ const AuditSessionPage: React.FC = () => {
       }
       return res;
     });
+  }, [getValues, sessionItems, data?.items]);
+
+  const handleSave = () => {
+    const itemsToSave = prepareProgressItems();
     saveAuditProgress(itemsToSave);
   };
 
@@ -187,26 +191,7 @@ const AuditSessionPage: React.FC = () => {
       }
     }
     if (sessionId) {
-      const formItems = getValues('items') || [];
-      const sourceList = sessionItems && sessionItems.length > 0 ? sessionItems : data?.items || [];
-      const itemsToFinalize: AuditProgressItem[] = sourceList.map((item, index) => {
-        const rawItem = item as Record<string, unknown>;
-        const formVal = formItems[index]?.counted_quantity;
-        const counted =
-          formVal !== undefined && formVal !== '' ? formVal : rawItem.counted_quantity;
-        const res: AuditProgressItem = {
-          product_id: String(rawItem.product_id || rawItem.id || ''),
-          counted_quantity:
-            counted !== null && counted !== undefined && counted !== ''
-              ? Number(counted)
-              : Number(rawItem.counted_quantity ?? 0),
-        };
-        if (typeof rawItem.id === 'string' && rawItem.id.length > 0) {
-          res.id = rawItem.id;
-        }
-        return res;
-      });
-
+      const itemsToFinalize = prepareProgressItems();
       finalizeAudit(
         { sessionId, items: itemsToFinalize },
         {
@@ -356,7 +341,9 @@ const AuditSessionPage: React.FC = () => {
 
     for (let i = 0; i < newProducts.length; i++) {
       const p = newProducts[i];
-      const expectedQuantity = p.stock_quantity || 0;
+      const dist = p.warehouse_distribution?.find(w => w.warehouse_id === warehouseId_val);
+      const expectedQuantity =
+        dist !== undefined ? Number(dist.quantity) || 0 : p.stock_quantity || 0;
       await new Promise<void>(resolve => {
         addItemToAudit(
           { sessionId, productId: p.id, expectedQuantity },

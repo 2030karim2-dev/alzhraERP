@@ -27,42 +27,51 @@ export function useInventorySession({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const isDirtyRef = useRef(false);
   const lastItemsRef = useRef<Array<Record<string, unknown>>>(initialItems);
+  const hasRestoredRef = useRef(false);
 
   // Restore session on mount
   useEffect(() => {
+    if (hasRestoredRef.current) return;
     let mounted = true;
+
     async function restore() {
-      if (!mounted) return;
-      const draft = await inventoryPersistence.restoreSession(sessionId);
-      if (draft && mounted) {
-        // Merge draft quantities into initialItems to preserve full product details
-        const mergedItems = [...initialItems];
+      if (!mounted || hasRestoredRef.current) return;
+      hasRestoredRef.current = true;
+      try {
+        const draft = await inventoryPersistence.restoreSession(sessionId);
+        if (draft && mounted) {
+          // Merge draft quantities into initialItems to preserve full product details
+          const mergedItems = [...initialItems];
 
-        draft.items.forEach(draftItem => {
-          const existingIndex = mergedItems.findIndex(
-            i => (i.product_id || i.id) === draftItem.productId
-          );
+          draft.items.forEach(draftItem => {
+            const existingIndex = mergedItems.findIndex(
+              i => (i.product_id || i.id) === draftItem.productId
+            );
 
-          if (existingIndex >= 0) {
-            mergedItems[existingIndex] = {
-              ...mergedItems[existingIndex],
-              counted_quantity: draftItem.countedQuantity,
-            };
-          } else {
-            // Edge case: item in draft but not in server yet
-            mergedItems.push({
-              product_id: draftItem.productId,
-              counted_quantity: draftItem.countedQuantity,
-            });
-          }
-        });
+            if (existingIndex >= 0) {
+              mergedItems[existingIndex] = {
+                ...mergedItems[existingIndex],
+                counted_quantity: draftItem.countedQuantity,
+              };
+            } else {
+              // Edge case: item in draft but not in server yet
+              mergedItems.push({
+                product_id: draftItem.productId,
+                counted_quantity: draftItem.countedQuantity,
+              });
+            }
+          });
 
-        setItems(mergedItems);
-        lastItemsRef.current = mergedItems;
-        setSaveStatus('saved');
-        showToast('تم استعادة بيانات الجلسة من الحفظ التلقائي', 'info');
+          setItems(mergedItems);
+          lastItemsRef.current = mergedItems;
+          setSaveStatus('saved');
+          showToast('تم استعادة بيانات الجلسة من الحفظ التلقائي', 'info');
+        }
+      } finally {
+        if (mounted) {
+          setIsRestoring(false);
+        }
       }
-      setIsRestoring(false);
     }
 
     // We only want to restore once, but we need initialItems to be loaded first
@@ -70,14 +79,14 @@ export function useInventorySession({
     // We'll run restore once we have items, or after a short delay if it remains empty.
     const timer = setTimeout(
       () => {
-        if (mounted && isRestoring) {
+        if (mounted && !hasRestoredRef.current) {
           restore();
         }
       },
       initialItems.length > 0 ? 0 : 1000
     );
 
-    if (initialItems.length > 0 && isRestoring) {
+    if (initialItems.length > 0 && !hasRestoredRef.current) {
       clearTimeout(timer);
       restore();
     }
@@ -86,7 +95,7 @@ export function useInventorySession({
       mounted = false;
       clearTimeout(timer);
     };
-  }, [sessionId, showToast, initialItems, isRestoring]);
+  }, [sessionId, showToast, initialItems]);
 
   // Subscribe to save status changes
   useEffect(() => {
@@ -118,7 +127,7 @@ export function useInventorySession({
 
   // Auto-save on items change
   useEffect(() => {
-    if (!autoSave) return;
+    if (!autoSave || isRestoring) return;
     if (JSON.stringify(items) === JSON.stringify(lastItemsRef.current)) return;
     isDirtyRef.current = true;
     lastItemsRef.current = items;

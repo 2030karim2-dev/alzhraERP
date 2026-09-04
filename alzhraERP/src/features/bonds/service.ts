@@ -46,7 +46,7 @@ export const bondsService = {
         base_amount: Number(p.amount) || 0,
         currency_code: p.currency_code || 'SAR',
         exchange_rate: p.exchange_rate || 1,
-        type: p.type as BondType,
+        type: (p.type === 'disbursement' ? 'payment' : p.type) as BondType,
         party_name: p.party?.name || '',
         account_name: p.account?.name_ar || p.account?.code || '',
         status: p.status as Bond['status'],

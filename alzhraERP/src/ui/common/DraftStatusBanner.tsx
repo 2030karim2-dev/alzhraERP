@@ -7,11 +7,14 @@ interface DraftStatusBannerProps {
   entityName?: string | undefined;
 }
 
+const hasValidEntity = (name?: string | undefined): boolean =>
+  typeof name === 'string' && name.trim().length > 0;
+
 const DraftBadge: React.FC<{ itemCount: number; entityName?: string | undefined }> = ({
   itemCount,
   entityName,
 }) => {
-  const hasEntity = typeof entityName === 'string' && entityName.trim().length > 0;
+  const hasEntity = hasValidEntity(entityName);
 
   return (
     <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 sm:gap-2">
@@ -93,7 +96,7 @@ export const DraftStatusBanner: React.FC<DraftStatusBannerProps> = ({
   onClearDraft,
   entityName,
 }) => {
-  const hasEntity = typeof entityName === 'string' && entityName.trim().length > 0;
+  const hasEntity = hasValidEntity(entityName);
   if (itemCount === 0 && !hasEntity) {
     return null;
   }

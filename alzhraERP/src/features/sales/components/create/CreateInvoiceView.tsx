@@ -18,6 +18,7 @@ import DraftStatusBanner from '../../../../ui/common/DraftStatusBanner';
 import { useReactToPrint } from 'react-to-print';
 import { logger } from '../../../../core/utils/logger';
 import { createIdempotencyKey } from '../../../../core/utils/idempotency';
+import { formatLocalDate } from '../../../../core/utils/dateUtils';
 
 interface CreateInvoiceViewProps {
   onSuccess: () => void;
@@ -205,7 +206,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   const invoiceForPrint = {
     company: company,
     invoice_number: nextInvoiceNumber || '...',
-    issue_date: new Date().toISOString().split('T')[0],
+    issue_date: formatLocalDate(),
     party_name: selectedCustomer?.name || 'عميل نقدي',
     items: items.filter(i => i.name),
     total_amount: summary.totalAmount,

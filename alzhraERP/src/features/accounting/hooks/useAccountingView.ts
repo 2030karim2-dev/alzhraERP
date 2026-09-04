@@ -1,6 +1,5 @@
 import { useState } from 'react';
-// Fix: Corrected import path to point to the barrel file.
-import type { AccountingView } from '../types/index';
+import type { AccountingView } from '../types';
 import { formatLocalDate, getLocalYearStart } from '../../../core/utils';
 
 export const useAccountingView = () => {

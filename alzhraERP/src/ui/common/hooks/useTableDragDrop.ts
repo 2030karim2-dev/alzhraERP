@@ -20,74 +20,108 @@ export function useTableDragDrop<T>(
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
   const autoScrollRaf = useRef<number | null>(null);
+  const scrollDirectionRef = useRef<-1 | 1 | 0>(0);
 
   useEffect(() => {
     setOrderedData(initialData);
   }, [initialData]);
 
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
-    dragItem.current = index;
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', String(index));
+  const stopAutoScroll = useCallback(() => {
+    scrollDirectionRef.current = 0;
+    if (autoScrollRaf.current !== null) {
+      cancelAnimationFrame(autoScrollRaf.current);
+      autoScrollRaf.current = null;
     }
-    const target = e.currentTarget;
-    setTimeout(() => {
-      target.classList.add('opacity-50');
-    }, 0);
   }, []);
 
-  const handleDragEnter = useCallback((_e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
-    dragOverItem.current = index;
-  }, []);
+  const startAutoScroll = useCallback(
+    (direction: -1 | 1) => {
+      scrollDirectionRef.current = direction;
+      if (autoScrollRaf.current !== null) return;
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
-    e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'move';
-    }
-    dragOverItem.current = index;
-
-    // Auto-scroll the container if dragging near edges
-    if (scrollContainerRef?.current) {
-      const container = scrollContainerRef.current;
-      const rect = container.getBoundingClientRect();
-      const edgeThreshold = 50;
-      const scrollSpeed = 12;
-
-      if (e.clientY < rect.top + edgeThreshold) {
-        if (autoScrollRaf.current === null) {
-          autoScrollRaf.current = requestAnimationFrame(() => {
-            container.scrollTop -= scrollSpeed;
-            autoScrollRaf.current = null;
-          });
+      const step = () => {
+        if (!scrollContainerRef?.current || scrollDirectionRef.current === 0) {
+          autoScrollRaf.current = null;
+          return;
         }
-      } else if (e.clientY > rect.bottom - edgeThreshold) {
-        if (autoScrollRaf.current === null) {
-          autoScrollRaf.current = requestAnimationFrame(() => {
-            container.scrollTop += scrollSpeed;
-            autoScrollRaf.current = null;
-          });
+        scrollContainerRef.current.scrollTop += scrollDirectionRef.current * 12;
+        autoScrollRaf.current = requestAnimationFrame(step);
+      };
+      autoScrollRaf.current = requestAnimationFrame(step);
+    },
+    [scrollContainerRef]
+  );
+
+  useEffect(() => {
+    return () => {
+      stopAutoScroll();
+    };
+  }, [stopAutoScroll]);
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
+      dragItem.current = index;
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(index));
+      }
+      const target = e.currentTarget;
+      setTimeout(() => {
+        if (target) {
+          target.classList.add('opacity-50');
+        }
+      }, 0);
+    },
+    []
+  );
+
+  const handleDragEnter = useCallback(
+    (_e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
+      dragOverItem.current = index;
+    },
+    []
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLTableRowElement>, index: number): void => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+      dragOverItem.current = index;
+
+      // Continuous auto-scroll container when hovering near top/bottom edges
+      if (scrollContainerRef?.current) {
+        const container = scrollContainerRef.current;
+        const rect = container.getBoundingClientRect();
+        const edgeThreshold = 50;
+
+        if (e.clientY < rect.top + edgeThreshold) {
+          startAutoScroll(-1);
+        } else if (e.clientY > rect.bottom - edgeThreshold) {
+          startAutoScroll(1);
+        } else {
+          stopAutoScroll();
         }
       }
-    }
-  }, [scrollContainerRef]);
+    },
+    [scrollContainerRef, startAutoScroll, stopAutoScroll]
+  );
 
-  const handleDragEnd = useCallback((e: React.DragEvent<HTMLTableRowElement>): void => {
-    if (autoScrollRaf.current !== null) {
-      cancelAnimationFrame(autoScrollRaf.current);
-      autoScrollRaf.current = null;
-    }
-    e.currentTarget.classList.remove('opacity-50');
-    dragItem.current = null;
-    dragOverItem.current = null;
-  }, []);
+  const handleDragEnd = useCallback(
+    (e: React.DragEvent<HTMLTableRowElement>): void => {
+      stopAutoScroll();
+      if (e.currentTarget) {
+        e.currentTarget.classList.remove('opacity-50');
+      }
+      dragItem.current = null;
+      dragOverItem.current = null;
+    },
+    [stopAutoScroll]
+  );
 
   const handleDrop = useCallback((): void => {
-    if (autoScrollRaf.current !== null) {
-      cancelAnimationFrame(autoScrollRaf.current);
-      autoScrollRaf.current = null;
-    }
+    stopAutoScroll();
     if (
       dragItem.current === null ||
       dragOverItem.current === null ||
@@ -99,11 +133,10 @@ export function useTableDragDrop<T>(
     newOrderedData.splice(dragOverItem.current, 0, dragged);
     setOrderedData(newOrderedData);
     onOrderChange?.(newOrderedData);
-  }, [orderedData, onOrderChange]);
+  }, [orderedData, onOrderChange, stopAutoScroll]);
 
   return {
     orderedData,
     handlers: { handleDragStart, handleDragEnter, handleDragOver, handleDragEnd, handleDrop },
   };
 }
-

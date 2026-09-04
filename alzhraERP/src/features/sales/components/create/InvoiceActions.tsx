@@ -26,6 +26,7 @@ const InvoiceActions: React.FC<Props> = ({ onSave, onPrint, isSaving }) => {
 
       <Button
         onClick={onPrint}
+        disabled={isSaving}
         variant="outline"
         className="flex-1 rounded-xl border-gray-200 text-xs text-gray-500 hover:text-indigo-600 sm:flex-none sm:text-sm"
         leftIcon={<Printer size={14} />}

@@ -7,9 +7,10 @@ describe('buildIlikeOrFilter', () => {
     expect(filter).toBe('name_ar.ilike."%مكس,123%",sku.ilike."%مكس,123%"');
   });
 
-  it('strips double quotes from user input so it cannot escape the wrapping', () => {
-    const filter = buildIlikeOrFilter(['barcode'], 'foo"bar,baz');
+  it('strips double quotes and backslashes from user input so it cannot escape the wrapping', () => {
+    const filter = buildIlikeOrFilter(['barcode'], 'foo"bar\\,baz\\');
     expect(filter).not.toContain('"foo');
+    expect(filter).not.toContain('\\');
     expect(filter).toBe('barcode.ilike."%foobar,baz%"');
   });
 
@@ -30,8 +31,8 @@ describe('buildEqOrFilter', () => {
     expect(filter).toBe('barcode.eq."123,456",sku.eq."123,456"');
   });
 
-  it('strips double quotes from barcodes', () => {
-    const filter = buildEqOrFilter(['barcode'], '12"3');
-    expect(filter).toBe('barcode.eq."123"');
+  it('strips double quotes and backslashes from barcodes', () => {
+    const filter = buildEqOrFilter(['barcode'], '12"3\\4');
+    expect(filter).toBe('barcode.eq."1234"');
   });
 });

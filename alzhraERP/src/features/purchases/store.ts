@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Product } from '../inventory/types';
 import { useDiscountStore } from '../settings/taxDiscountStore';
 import { convertCurrency } from '../../core/utils/currencyUtils';
+import { formatLocalDate } from '../../core/utils/dateUtils';
 import { logger } from '../../core/utils/logger';
 import { STORAGE_KEYS } from '../../core/constants';
 
@@ -252,7 +253,7 @@ const createMetadataActions = (
       notes: '',
       showDiscount: false,
       invoiceNumber: '',
-      issueDate: new Date().toISOString().split('T')[0],
+      issueDate: formatLocalDate(),
     });
   },
 });
@@ -264,7 +265,7 @@ export const usePurchaseStore = create<PurchaseState>()(
       supplier: null,
       totals: { grandTotal: 0, subTotal: 0, totalDiscount: 0 },
       invoiceNumber: '',
-      issueDate: new Date().toISOString().split('T')[0],
+      issueDate: formatLocalDate(),
       currency: 'SAR',
       exchangeRate: 1,
       warehouseId: '',
