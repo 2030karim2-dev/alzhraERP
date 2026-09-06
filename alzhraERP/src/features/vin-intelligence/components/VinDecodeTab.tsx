@@ -16,7 +16,7 @@ import { preDecodeVin } from '../utils/wmiDecoder';
 import { parseCatalogVehicleText } from '../utils/catalogTextExtractor';
 import type { VinAnalysisRecord, VinDecodeMode, VinDecodeResult, VehicleInfo } from '../types';
 import { VehicleCard, buildManualVehicleInput } from './decode/VehicleCard';
-import { VinManualVehicleForm } from './decode/VinManualVehicleForm';
+import { VinManualVehicleForm, type ManualVehicleDraft } from './decode/VinManualVehicleForm';
 
 interface VinDecodeTabProps {
   isDecoding: boolean;
@@ -55,16 +55,21 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   const [vin, setVin] = useState('');
   const [aiSaveConfirmed, setAiSaveConfirmed] = useState(false);
 
-  // Manual vehicle state (PartSouq / Catalog mode)
-  const [manualMake, setManualMake] = useState('تويوتا');
-  const [manualModel, setManualModel] = useState('كورولا');
-  const [manualYearStart, setManualYearStart] = useState('2001');
-  const [manualYearEnd, setManualYearEnd] = useState('2007');
-  const [manualMarket, setManualMarket] = useState('خليجي');
-  const [manualEngine, setManualEngine] = useState('1.8');
-  const [manualTransmission, setManualTransmission] = useState('تماتيك');
-  const [manualDrive, setManualDrive] = useState('سنجل');
-  const [manualVinOptional, setManualVinOptional] = useState('');
+  // Manual vehicle state (PartSouq / Catalog mode) — كائن واحد بدل 9 useState مفردة
+  const [manualDraft, setManualDraft] = useState<ManualVehicleDraft>({
+    make: 'تويوتا',
+    model: 'كورولا',
+    yearStart: '2001',
+    yearEnd: '2007',
+    market: 'خليجي',
+    engine: '1.8',
+    transmission: 'تماتيك',
+    drive: 'سنجل',
+    vinOptional: '',
+  });
+  const updateManualDraft = (patch: Partial<ManualVehicleDraft>): void => {
+    setManualDraft(prev => ({ ...prev, ...patch }));
+  };
 
   const handleVinChange = (rawInput: string): void => {
     if (
@@ -79,16 +84,17 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
       const parsed = parseCatalogVehicleText(rawInput);
       if (parsed.vin) {
         setVin(parsed.vin);
-        setManualVinOptional(parsed.vin);
+        updateManualDraft({ vinOptional: parsed.vin });
       }
-      if (parsed.makeAr || parsed.make) setManualMake(parsed.makeAr || parsed.make || 'تويوتا');
-      if (parsed.model) setManualModel(parsed.model);
-      if (parsed.yearStart) setManualYearStart(parsed.yearStart);
-      if (parsed.yearEnd) setManualYearEnd(parsed.yearEnd);
-      if (parsed.market) setManualMarket(parsed.market);
-      if (parsed.engine) setManualEngine(parsed.engine);
-      if (parsed.transmission) setManualTransmission(parsed.transmission);
-      if (parsed.drive) setManualDrive(parsed.drive);
+      if (parsed.makeAr || parsed.make)
+        updateManualDraft({ make: parsed.makeAr || parsed.make || 'تويوتا' });
+      if (parsed.model) updateManualDraft({ model: parsed.model });
+      if (parsed.yearStart) updateManualDraft({ yearStart: parsed.yearStart });
+      if (parsed.yearEnd) updateManualDraft({ yearEnd: parsed.yearEnd });
+      if (parsed.market) updateManualDraft({ market: parsed.market });
+      if (parsed.engine) updateManualDraft({ engine: parsed.engine });
+      if (parsed.transmission) updateManualDraft({ transmission: parsed.transmission });
+      if (parsed.drive) updateManualDraft({ drive: parsed.drive });
     } else {
       setVin(rawInput.toUpperCase());
     }
@@ -117,20 +123,20 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
   };
 
   const handleApplyManualVehicle = async (): Promise<void> => {
-    if (!manualMake.trim()) return;
+    if (!manualDraft.make.trim()) return;
     const vehicleData = buildManualVehicleInput({
-      make: manualMake,
-      model: manualModel,
-      yearStart: manualYearStart,
-      yearEnd: manualYearEnd,
-      market: manualMarket,
-      engine: manualEngine,
-      transmission: manualTransmission,
-      drive: manualDrive,
+      make: manualDraft.make,
+      model: manualDraft.model,
+      yearStart: manualDraft.yearStart,
+      yearEnd: manualDraft.yearEnd,
+      market: manualDraft.market,
+      engine: manualDraft.engine,
+      transmission: manualDraft.transmission,
+      drive: manualDraft.drive,
     });
 
     if (onSetManualVehicle) {
-      await onSetManualVehicle(vehicleData, manualVinOptional);
+      await onSetManualVehicle(vehicleData, manualDraft.vinOptional);
       if (onNavigateToExtract) {
         onNavigateToExtract();
       }
@@ -240,24 +246,8 @@ export const VinDecodeTab: React.FC<VinDecodeTabProps> = ({
       ) : (
         /* Mode 2: Manual / PartSouq Vehicle Form */
         <VinManualVehicleForm
-          manualMake={manualMake}
-          setManualMake={setManualMake}
-          manualModel={manualModel}
-          setManualModel={setManualModel}
-          manualYearStart={manualYearStart}
-          setManualYearStart={setManualYearStart}
-          manualYearEnd={manualYearEnd}
-          setManualYearEnd={setManualYearEnd}
-          manualMarket={manualMarket}
-          setManualMarket={setManualMarket}
-          manualEngine={manualEngine}
-          setManualEngine={setManualEngine}
-          manualTransmission={manualTransmission}
-          setManualTransmission={setManualTransmission}
-          manualDrive={manualDrive}
-          setManualDrive={setManualDrive}
-          manualVinOptional={manualVinOptional}
-          setManualVinOptional={setManualVinOptional}
+          draft={manualDraft}
+          onChange={updateManualDraft}
           onApplyManualVehicle={handleApplyManualVehicle}
           isDecoding={isDecoding}
         />

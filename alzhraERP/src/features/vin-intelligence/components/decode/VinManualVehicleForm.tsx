@@ -32,25 +32,22 @@ import {
   type ExtractedCatalogVehicle,
 } from '../../utils/catalogTextExtractor';
 
+/** حقول نموذج إدخال السيارة اليدوي — مجمّعة في كائن واحد بدلاً من 17 prop مفردة. */
+export interface ManualVehicleDraft {
+  make: string;
+  model: string;
+  yearStart: string;
+  yearEnd: string;
+  market: string;
+  engine: string;
+  transmission: string;
+  drive: string;
+  vinOptional: string;
+}
+
 interface VinManualVehicleFormProps {
-  manualMake: string;
-  setManualMake: (v: string) => void;
-  manualModel: string;
-  setManualModel: (v: string) => void;
-  manualYearStart: string;
-  setManualYearStart: (v: string) => void;
-  manualYearEnd: string;
-  setManualYearEnd: (v: string) => void;
-  manualMarket: string;
-  setManualMarket: (v: string) => void;
-  manualEngine: string;
-  setManualEngine: (v: string) => void;
-  manualTransmission: string;
-  setManualTransmission: (v: string) => void;
-  manualDrive: string;
-  setManualDrive: (v: string) => void;
-  manualVinOptional: string;
-  setManualVinOptional: (v: string) => void;
+  draft: ManualVehicleDraft;
+  onChange: (patch: Partial<ManualVehicleDraft>) => void;
   onApplyManualVehicle: () => Promise<void>;
   isDecoding: boolean;
 }
@@ -63,24 +60,8 @@ const YEAR_RANGE_PRESETS = [
 ];
 
 export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
-  manualMake,
-  setManualMake,
-  manualModel,
-  setManualModel,
-  manualYearStart,
-  setManualYearStart,
-  manualYearEnd,
-  setManualYearEnd,
-  manualMarket,
-  setManualMarket,
-  manualEngine,
-  setManualEngine,
-  manualTransmission,
-  setManualTransmission,
-  manualDrive,
-  setManualDrive,
-  manualVinOptional,
-  setManualVinOptional,
+  draft,
+  onChange,
   onApplyManualVehicle,
   isDecoding,
 }) => {
@@ -100,15 +81,17 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
     const data = dataToApply || extractedData;
     if (!data) return;
 
-    if (data.makeAr || data.make) setManualMake(data.makeAr || data.make || '');
-    if (data.model) setManualModel(data.model);
-    if (data.yearStart) setManualYearStart(data.yearStart);
-    if (data.yearEnd) setManualYearEnd(data.yearEnd);
-    if (data.market) setManualMarket(data.market);
-    if (data.engine) setManualEngine(data.engine);
-    if (data.transmission) setManualTransmission(data.transmission);
-    if (data.drive) setManualDrive(data.drive);
-    if (data.vin) setManualVinOptional(data.vin);
+    const patch: Partial<ManualVehicleDraft> = {};
+    if (data.makeAr || data.make) patch.make = data.makeAr || data.make || '';
+    if (data.model) patch.model = data.model;
+    if (data.yearStart) patch.yearStart = data.yearStart;
+    if (data.yearEnd) patch.yearEnd = data.yearEnd;
+    if (data.market) patch.market = data.market;
+    if (data.engine) patch.engine = data.engine;
+    if (data.transmission) patch.transmission = data.transmission;
+    if (data.drive) patch.drive = data.drive;
+    if (data.vin) patch.vinOptional = data.vin;
+    onChange(patch);
   };
 
   const handlePasteFromClipboard = async (): Promise<void> => {
@@ -125,7 +108,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
     }
   };
 
-  const canonicalCurrentMake = useMemo(() => canonicalizeMake(manualMake), [manualMake]);
+  const canonicalCurrentMake = useMemo(() => canonicalizeMake(draft.make), [draft.make]);
 
   const availableModelPresets = useMemo(() => {
     if (!canonicalCurrentMake) return [];
@@ -133,40 +116,40 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
   }, [canonicalCurrentMake]);
 
   const applyPreset = (preset: (typeof QUICK_VEHICLE_PRESETS)[0]): void => {
-    setManualMake(preset.make);
-    setManualModel(preset.model);
-    setManualYearStart(normalizeToEnglishNumbers(preset.yStart));
-    setManualYearEnd(normalizeToEnglishNumbers(preset.yEnd));
-    setManualMarket(preset.market);
-    setManualEngine(normalizeToEnglishNumbers(preset.engine));
-    setManualTransmission(preset.trans);
-    setManualDrive(preset.drive);
+    onChange({ make: preset.make });
+    onChange({ model: preset.model });
+    onChange({ yearStart: normalizeToEnglishNumbers(preset.yStart) });
+    onChange({ yearEnd: normalizeToEnglishNumbers(preset.yEnd) });
+    onChange({ market: preset.market });
+    onChange({ engine: normalizeToEnglishNumbers(preset.engine) });
+    onChange({ transmission: preset.trans });
+    onChange({ drive: preset.drive });
   };
 
   const handleResetForm = (): void => {
-    setManualMake('');
-    setManualModel('');
-    setManualYearStart('');
-    setManualYearEnd('');
-    setManualMarket('خليجي');
-    setManualEngine('');
-    setManualTransmission('تماتيك');
-    setManualDrive('سنجل');
-    setManualVinOptional('');
+    onChange({ make: '' });
+    onChange({ model: '' });
+    onChange({ yearStart: '' });
+    onChange({ yearEnd: '' });
+    onChange({ market: 'خليجي' });
+    onChange({ engine: '' });
+    onChange({ transmission: 'تماتيك' });
+    onChange({ drive: 'سنجل' });
+    onChange({ vinOptional: '' });
   };
 
   // Build live preview object
   const previewData = useMemo(() => {
-    if (!manualMake.trim()) return null;
-    const effMake = canonicalizeMake(manualMake) || manualMake.trim();
-    const effModel = canonicalizeModel(manualModel.trim(), effMake) || manualModel.trim();
+    if (!draft.make.trim()) return null;
+    const effMake = canonicalizeMake(draft.make) || draft.make.trim();
+    const effModel = canonicalizeModel(draft.model.trim(), effMake) || draft.model.trim();
     const arabicNames = getArabicVehicleName({
       make: effMake,
       model: effModel,
     });
 
-    const yStart = parseInt(normalizeToEnglishNumbers(manualYearStart).replace(/\D/g, ''), 10);
-    const yEnd = parseInt(normalizeToEnglishNumbers(manualYearEnd).replace(/\D/g, ''), 10);
+    const yStart = parseInt(normalizeToEnglishNumbers(draft.yearStart).replace(/\D/g, ''), 10);
+    const yEnd = parseInt(normalizeToEnglishNumbers(draft.yearEnd).replace(/\D/g, ''), 10);
 
     let yearsLabel = '';
     if (!isNaN(yStart) && !isNaN(yEnd) && yStart > 0 && yEnd > 0) {
@@ -180,20 +163,20 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
       titleAr: `${arabicNames.makeAr} ${arabicNames.modelAr}`.trim(),
       titleEn: `${effMake} ${effModel}`.trim(),
       yearsLabel,
-      engine: manualEngine ? `${manualEngine}L` : '',
-      market: manualMarket || 'خليجي',
-      trans: manualTransmission || 'تماتيك',
-      drive: manualDrive || 'سنجل',
+      engine: draft.engine ? `${draft.engine}L` : '',
+      market: draft.market || 'خليجي',
+      trans: draft.transmission || 'تماتيك',
+      drive: draft.drive || 'سنجل',
     };
   }, [
-    manualMake,
-    manualModel,
-    manualYearStart,
-    manualYearEnd,
-    manualEngine,
-    manualMarket,
-    manualTransmission,
-    manualDrive,
+    draft.make,
+    draft.model,
+    draft.yearStart,
+    draft.yearEnd,
+    draft.engine,
+    draft.market,
+    draft.transmission,
+    draft.drive,
   ]);
 
   return (
@@ -219,7 +202,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
           </div>
         </div>
 
-        {manualMake && (
+        {draft.make && (
           <button
             type="button"
             onClick={handleResetForm}
@@ -418,8 +401,8 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
         <div className="flex flex-wrap gap-1.5">
           {QUICK_VEHICLE_PRESETS.map(p => {
             const isPresetActive =
-              manualMake.toLowerCase() === p.make.toLowerCase() &&
-              manualModel.toLowerCase() === p.model.toLowerCase();
+              draft.make.toLowerCase() === p.make.toLowerCase() &&
+              draft.model.toLowerCase() === p.model.toLowerCase();
             return (
               <button
                 key={p.label}
@@ -463,14 +446,14 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               {POPULAR_MAKE_OPTIONS.map(mk => {
                 const isSelected =
                   canonicalCurrentMake.toLowerCase() === mk.id.toLowerCase() ||
-                  manualMake.trim().toLowerCase() === mk.label.toLowerCase();
+                  draft.make.trim().toLowerCase() === mk.label.toLowerCase();
                 return (
                   <button
                     key={mk.id}
                     type="button"
                     onClick={() => {
-                      setManualMake(mk.id);
-                      setManualModel('');
+                      onChange({ make: mk.id });
+                      onChange({ model: '' });
                     }}
                     className={cn(
                       'rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all',
@@ -490,9 +473,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
             <input
               type="text"
               placeholder="أو اكتب اسم الماركة يدوياً..."
-              value={manualMake}
+              value={draft.make}
               onChange={e => {
-                setManualMake(e.target.value);
+                onChange({ make: e.target.value });
               }}
               className="h-8.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400"
             />
@@ -510,9 +493,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <span>الموديل / الطراز</span>
                 <span className="text-rose-500">*</span>
               </label>
-              {manualMake && (
+              {draft.make && (
                 <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300">
-                  طرازات {manualMake}
+                  طرازات {draft.make}
                 </span>
               )}
             </div>
@@ -521,14 +504,14 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {availableModelPresets.map(m => {
                   const isSelected =
-                    manualModel.trim().toLowerCase() === m.id.toLowerCase() ||
-                    manualModel.trim().toLowerCase() === m.label.toLowerCase();
+                    draft.model.trim().toLowerCase() === m.id.toLowerCase() ||
+                    draft.model.trim().toLowerCase() === m.label.toLowerCase();
                   return (
                     <button
                       key={m.id}
                       type="button"
                       onClick={() => {
-                        setManualModel(m.id);
+                        onChange({ model: m.id });
                       }}
                       className={cn(
                         'rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all',
@@ -553,9 +536,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
             <input
               type="text"
               placeholder="مثال: Corolla أو كورولا..."
-              value={manualModel}
+              value={draft.model}
               onChange={e => {
-                setManualModel(e.target.value);
+                onChange({ model: e.target.value });
               }}
               className="h-8.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow-xs outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400"
             />
@@ -572,10 +555,10 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <Calendar size={13} className="text-blue-500 dark:text-blue-400" />
               <span className="text-[11px] font-black">سنوات الصنع</span>
             </div>
-            {manualYearStart && (
+            {draft.yearStart && (
               <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
-                {manualYearStart}
-                {manualYearEnd && manualYearEnd !== manualYearStart ? `-${manualYearEnd}` : ''}
+                {draft.yearStart}
+                {draft.yearEnd && draft.yearEnd !== draft.yearStart ? `-${draft.yearEnd}` : ''}
               </span>
             )}
           </div>
@@ -591,12 +574,12 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                   inputMode="numeric"
                   dir="ltr"
                   placeholder="2001"
-                  value={manualYearStart}
+                  value={draft.yearStart}
                   onChange={e => {
                     const val = normalizeToEnglishNumbers(e.target.value)
                       .replace(/\D/g, '')
                       .slice(0, 4);
-                    setManualYearStart(val);
+                    onChange({ yearStart: val });
                   }}
                   className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
                 />
@@ -611,12 +594,12 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                   inputMode="numeric"
                   dir="ltr"
                   placeholder="2007"
-                  value={manualYearEnd}
+                  value={draft.yearEnd}
                   onChange={e => {
                     const val = normalizeToEnglishNumbers(e.target.value)
                       .replace(/\D/g, '')
                       .slice(0, 4);
-                    setManualYearEnd(val);
+                    onChange({ yearEnd: val });
                   }}
                   className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-blue-400"
                 />
@@ -626,14 +609,14 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
             {/* Quick Year Range Chips */}
             <div className="flex flex-wrap gap-1">
               {YEAR_RANGE_PRESETS.map(yr => {
-                const isSelected = manualYearStart === yr.start && manualYearEnd === yr.end;
+                const isSelected = draft.yearStart === yr.start && draft.yearEnd === yr.end;
                 return (
                   <button
                     key={yr.label}
                     type="button"
                     onClick={() => {
-                      setManualYearStart(yr.start);
-                      setManualYearEnd(yr.end);
+                      onChange({ yearStart: yr.start });
+                      onChange({ yearEnd: yr.end });
                     }}
                     className={cn(
                       'rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors',
@@ -658,7 +641,7 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <span className="text-[11px] font-black">المكينة / السعة (L)</span>
             </div>
             <span className="font-mono text-[10px] font-bold text-amber-600 dark:text-amber-300">
-              {manualEngine ? `${manualEngine}L` : 'سعة اللتر'}
+              {draft.engine ? `${draft.engine}L` : 'سعة اللتر'}
             </span>
           </div>
 
@@ -667,12 +650,12 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               type="text"
               dir="ltr"
               placeholder="مثال: 1.8"
-              value={manualEngine}
+              value={draft.engine}
               onChange={e => {
                 const val = normalizeToEnglishNumbers(e.target.value)
                   .replace(/[^\d.]/g, '')
                   .slice(0, 5);
-                setManualEngine(val);
+                onChange({ engine: val });
               }}
               className="h-7.5 mb-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-center font-mono text-xs font-black text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-amber-400"
             />
@@ -683,11 +666,11 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                   key={eng}
                   type="button"
                   onClick={() => {
-                    setManualEngine(eng);
+                    onChange({ engine: eng });
                   }}
                   className={cn(
                     'rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors',
-                    manualEngine === eng
+                    draft.engine === eng
                       ? 'border-amber-500 bg-amber-500 text-white shadow-xs'
                       : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white'
                   )}
@@ -715,11 +698,11 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setManualTransmission('تماتيك');
+                    onChange({ transmission: 'تماتيك' });
                   }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
-                    manualTransmission === 'تماتيك'
+                    draft.transmission === 'تماتيك'
                       ? 'border border-slate-200/60 bg-white text-indigo-600 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-300'
                       : 'text-slate-500 dark:text-slate-400 hover:dark:text-slate-200'
                   )}
@@ -729,11 +712,11 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setManualTransmission('عادي');
+                    onChange({ transmission: 'عادي' });
                   }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
-                    manualTransmission === 'عادي'
+                    draft.transmission === 'عادي'
                       ? 'border border-slate-200/60 bg-white text-indigo-600 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-300'
                       : 'text-slate-500 dark:text-slate-400 hover:dark:text-slate-200'
                   )}
@@ -751,11 +734,11 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setManualDrive('سنجل');
+                    onChange({ drive: 'سنجل' });
                   }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
-                    manualDrive === 'سنجل'
+                    draft.drive === 'سنجل'
                       ? 'border border-slate-200/60 bg-white text-blue-600 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-blue-300'
                       : 'text-slate-500 dark:text-slate-400 hover:dark:text-slate-200'
                   )}
@@ -765,11 +748,11 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setManualDrive('دبل');
+                    onChange({ drive: 'دبل' });
                   }}
                   className={cn(
                     'flex h-6 items-center justify-center rounded py-0.5 text-[10px] font-black transition-all',
-                    manualDrive === 'دبل'
+                    draft.drive === 'دبل'
                       ? 'border border-slate-200/60 bg-white text-emerald-600 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-300'
                       : 'text-slate-500 dark:text-slate-400 hover:dark:text-slate-200'
                   )}
@@ -794,9 +777,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 المواصفات الإقليمية
               </span>
               <select
-                value={manualMarket}
+                value={draft.market}
                 onChange={e => {
-                  setManualMarket(e.target.value);
+                  onChange({ market: e.target.value });
                 }}
                 className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
               >
@@ -826,9 +809,9 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
                 type="text"
                 dir="ltr"
                 placeholder="JT3HN87R... (17 Chars)"
-                value={manualVinOptional}
+                value={draft.vinOptional}
                 onChange={e => {
-                  setManualVinOptional(e.target.value.toUpperCase().trim());
+                  onChange({ vinOptional: e.target.value.toUpperCase().trim() });
                 }}
                 maxLength={17}
                 className="h-7.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs font-bold uppercase tracking-wider text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
@@ -898,10 +881,10 @@ export const VinManualVehicleForm: React.FC<VinManualVehicleFormProps> = ({
               <button
                 type="button"
                 onClick={() => void onApplyManualVehicle()}
-                disabled={isDecoding || !manualMake.trim()}
+                disabled={isDecoding || !draft.make.trim()}
                 className={cn(
                   'flex h-10 w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-5 text-xs font-black text-white shadow-lg transition-all lg:w-auto',
-                  !manualMake.trim()
+                  !draft.make.trim()
                     ? 'cursor-not-allowed bg-slate-300 opacity-60 dark:bg-slate-800'
                     : 'border border-emerald-400/30 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 shadow-emerald-500/25 hover:from-emerald-500 hover:to-teal-600 active:scale-[0.99]'
                 )}
