@@ -82,39 +82,111 @@ export const usePurchaseTableKeyboard = ({
         focusCell(tableRef, row, nextField);
       };
 
-      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-        event.preventDefault();
-        move(
-          Math.max(0, Math.min(itemCount - 1, rowIndex + (event.key === 'ArrowUp' ? -1 : 1))),
-          field
-        );
-        return;
+      const target = event.target as HTMLInputElement;
+      const isReadOnly = target.readOnly;
+      const hasFullSelection =
+        target.selectionStart === 0 && target.selectionEnd === target.value.length;
+      const isAtStart = target.selectionStart === 0 && target.selectionEnd === 0;
+      const isAtEnd =
+        target.selectionStart === target.value.length &&
+        target.selectionEnd === target.value.length;
+      const isEmpty = target.value.trim() === '';
+
+      switch (event.key) {
+        case 'ArrowUp':
+          event.preventDefault();
+          move(Math.max(0, rowIndex - 1), field);
+          break;
+
+        case 'ArrowDown':
+          event.preventDefault();
+          if (rowIndex === itemCount - 1) {
+            addItem();
+            window.setTimeout(() => {
+              move(rowIndex + 1, 'name');
+            }, 60);
+          } else {
+            move(rowIndex + 1, field);
+          }
+          break;
+
+        case 'ArrowLeft':
+          // In RTL layout, moving Left is forward: name -> quantity -> costPrice -> (discount) -> total
+          if (
+            isReadOnly ||
+            hasFullSelection ||
+            isAtEnd ||
+            isEmpty ||
+            event.ctrlKey ||
+            event.altKey
+          ) {
+            event.preventDefault();
+            if (columnIndex < fieldsOrder.length - 1) {
+              move(rowIndex, fieldsOrder[columnIndex + 1]);
+            } else if (rowIndex === itemCount - 1) {
+              addItem();
+              window.setTimeout(() => {
+                move(rowIndex + 1, 'name');
+              }, 60);
+            } else {
+              move(rowIndex + 1, fieldsOrder[0]);
+            }
+          }
+          break;
+
+        case 'ArrowRight':
+          // In RTL layout, moving Right is backward: total -> (discount) -> costPrice -> quantity -> name
+          if (
+            isReadOnly ||
+            hasFullSelection ||
+            isAtStart ||
+            isEmpty ||
+            event.ctrlKey ||
+            event.altKey
+          ) {
+            event.preventDefault();
+            if (columnIndex > 0) {
+              move(rowIndex, fieldsOrder[columnIndex - 1]);
+            } else if (rowIndex > 0) {
+              move(rowIndex - 1, fieldsOrder[fieldsOrder.length - 1]);
+            }
+          }
+          break;
+
+        case 'Enter':
+          event.preventDefault();
+          if (columnIndex < fieldsOrder.length - 1) {
+            move(rowIndex, fieldsOrder[columnIndex + 1]);
+          } else if (rowIndex === itemCount - 1) {
+            addItem();
+            window.setTimeout(() => {
+              move(rowIndex + 1, 'name');
+            }, 60);
+          } else {
+            move(rowIndex + 1, fieldsOrder[0]);
+          }
+          break;
+
+        case 'Tab':
+          event.preventDefault();
+          const nextColumn = event.shiftKey ? columnIndex - 1 : columnIndex + 1;
+          if (nextColumn >= 0 && nextColumn < fieldsOrder.length) {
+            move(rowIndex, fieldsOrder[nextColumn]);
+          } else if (!event.shiftKey && rowIndex === itemCount - 1) {
+            addItem();
+            window.setTimeout(() => {
+              move(rowIndex + 1, fieldsOrder[0]);
+            }, 60);
+          } else if (!event.shiftKey) {
+            move(rowIndex + 1, fieldsOrder[0]);
+          } else if (rowIndex > 0) {
+            move(rowIndex - 1, fieldsOrder[fieldsOrder.length - 1]);
+          }
+          break;
+
+        default:
+          return;
       }
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        if (
-          rowIndex === itemCount - 1 &&
-          (field === 'costPrice' || field === 'total' || field === 'discount')
-        ) {
-          addItem();
-          window.setTimeout(() => {
-            move(rowIndex + 1, 'name');
-          }, 50);
-        } else move(rowIndex + 1, field);
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      event.preventDefault();
-      const nextColumn = event.shiftKey ? columnIndex - 1 : columnIndex + 1;
-      if (nextColumn >= 0 && nextColumn < fieldsOrder.length)
-        move(rowIndex, fieldsOrder[nextColumn]);
-      else if (!event.shiftKey && rowIndex === itemCount - 1) {
-        addItem();
-        window.setTimeout(() => {
-          move(rowIndex + 1, fieldsOrder[0]);
-        }, 50);
-      } else if (!event.shiftKey) move(rowIndex + 1, fieldsOrder[0]);
-      else if (rowIndex > 0) move(rowIndex - 1, fieldsOrder[fieldsOrder.length - 1]);
     },
     [addItem, handleOpenSearch, itemCount, showDiscount, tableRef]
   );

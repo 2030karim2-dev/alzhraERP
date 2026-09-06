@@ -14,6 +14,7 @@ import {
   HandCoins,
   Building2,
   MessageSquare,
+  Scale,
 } from 'lucide-react';
 import type { MenuItem } from './types';
 import { ROUTES } from './routes/paths';
@@ -98,6 +99,13 @@ export const MENU_ITEMS: MenuItem[] = [
     color: 'teal',
   },
   { id: 'pos', labelKey: 'pos', icon: Package, path: ROUTES.DASHBOARD.POS, color: 'pink' },
+  {
+    id: 'daily_reconciliation',
+    labelKey: 'daily_reconciliation',
+    icon: Scale,
+    path: ROUTES.DASHBOARD.DAILY_RECONCILIATION,
+    color: 'emerald',
+  },
   { id: 'vin', labelKey: 'vin_intelligence', icon: Car, path: ROUTES.DASHBOARD.VIN, color: 'blue' },
 
   {

@@ -7,6 +7,7 @@ import { ProductFormData } from '../types';
 import { useMemo } from 'react';
 import { syncStore } from '../../../core/lib/sync-store';
 import { invalidateByPreset } from '../../../lib/invalidation';
+import { normalizeSearch } from '../../../core/utils/search';
 
 export const useProducts = (
   searchTerm: string = '',
@@ -29,8 +30,7 @@ export const useProducts = (
             signal
           )
         : Promise.resolve([]),
-    enabled: (options.enabled !== undefined ? options.enabled : true) && !!companyId,
-    staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent tab-switching lag
+    enabled: options.enabled !== undefined ? options.enabled : !!companyId,
   });
 
   // NOTE: live updates for `products` are handled by the app-wide
@@ -41,34 +41,25 @@ export const useProducts = (
 
   const filteredProducts = useMemo(() => {
     const products = query.data || [];
-    if (!searchTerm) return products;
+    if (!searchTerm.trim()) return products;
 
-    // Normalize Arabic characters for more flexible matching
-    const normalizeArabic = (text: string) => {
-      return text
-        .replace(/[أإآ]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u065F]/g, ''); // Remove Harakat
-    };
-
-    const searchTokens = searchTerm.toLowerCase().split(/\s+/).filter(Boolean).map(normalizeArabic);
+    const searchTokens = normalizeSearch(searchTerm).split(/\s+/).filter(Boolean);
 
     return products.filter(p => {
-      const searchableText = normalizeArabic(
+      const searchableText = normalizeSearch(
         [
           p.name,
           p.name_ar,
           p.sku,
           p.brand,
           p.part_number,
+          p.barcode,
           p.alternative_numbers,
           p.size,
           p.specifications,
         ]
           .filter(Boolean)
           .join(' ')
-          .toLowerCase()
       );
 
       return searchTokens.every(token => searchableText.includes(token));

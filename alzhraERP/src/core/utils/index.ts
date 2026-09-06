@@ -9,9 +9,11 @@ export {
   formatNumber,
   convertToBaseCurrency,
   convertFromBaseCurrency,
+  convertCurrency,
   toBaseCurrency,
   sumInBaseCurrency,
   parseCurrency,
+  parseNumberFlexible,
   calculateExchangeRate,
   CURRENCY_SYMBOLS,
 } from './currencyUtils';
@@ -64,6 +66,15 @@ export type { FinancialSyncOptions } from './querySyncUtils';
 
 // Date utilities
 export { formatLocalDate, getLocalYearStart } from './dateUtils';
+
+// Search and normalization utilities
+export {
+  normalizeArabic,
+  normalizeArabicDigits,
+  normalizeSearch,
+  matchesArabicSearch,
+  filterByArabicSearch,
+} from './search';
 
 // Re-export from parent utils.ts (cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL)
 export { cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL } from '../utils';

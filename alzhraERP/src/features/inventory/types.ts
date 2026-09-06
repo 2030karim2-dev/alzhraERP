@@ -91,6 +91,7 @@ export interface Product {
   stock_quantity: number;
   min_stock_level: number;
   unit: string;
+  barcode?: string | null | undefined;
   image_url?: string | null | undefined;
 
   // Auto Parts Specific Features

@@ -7,6 +7,7 @@ import {
   useNextExpenseNumber,
 } from '../../../hooks';
 import { useCurrencies } from '../../../../settings/hooks';
+import { formatLocalDate } from '../../../../../core/utils/dateUtils';
 
 export const useExpenseForm = (isOpen: boolean) => {
   const { data: categories } = useExpenseCategories();
@@ -19,7 +20,7 @@ export const useExpenseForm = (isOpen: boolean) => {
 
   const form = useForm<ExpenseFormData>({
     defaultValues: {
-      expense_date: new Date().toISOString().split('T')[0],
+      expense_date: formatLocalDate(),
       status: 'posted',
       currency_code: 'SAR',
       exchange_rate: 1,

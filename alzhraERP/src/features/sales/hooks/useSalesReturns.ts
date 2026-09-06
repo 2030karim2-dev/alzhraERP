@@ -12,6 +12,7 @@ import type { Invoice, Party, InvoiceItem } from '../../../core/types/supabase-h
 import type { InvoiceStatus } from '../types';
 import { toReturnPayloadItems } from '../../returns/utils/returnHelpers';
 import type { Json } from '../../../core/database.types';
+import { normalizeSearch } from '../../../core/utils';
 
 export interface SalesReturn {
   id: string;
@@ -131,13 +132,15 @@ export const useSalesReturns = (filters?: {
       let returns = typedData || [];
 
       if (filters?.searchTerm) {
-        const term = filters.searchTerm.toLowerCase();
-        returns = returns.filter(
-          (r: SalesReturnQueryResult) =>
-            (r.invoice_number || '').toLowerCase().includes(term) ||
-            (r.party?.name || '').toLowerCase().includes(term) ||
-            (r.notes || '').toLowerCase().includes(term)
-        );
+        const term = normalizeSearch(filters.searchTerm);
+        if (term) {
+          returns = returns.filter(
+            (r: SalesReturnQueryResult) =>
+              normalizeSearch(r.invoice_number).includes(term) ||
+              normalizeSearch(r.party?.name).includes(term) ||
+              normalizeSearch(r.notes).includes(term)
+          );
+        }
       }
 
       return returns as SalesReturn[];

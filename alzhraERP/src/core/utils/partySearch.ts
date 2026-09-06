@@ -1,9 +1,9 @@
-import { normalizeArabic } from './search';
+import { normalizeArabic, normalizeArabicDigits } from './search';
 import type { Party } from '../../features/parties/types';
 
 /**
  * Normalizes text for search by removing diacritics, unifying hamzas,
- * lowercasing, and trimming whitespace.
+ * converting Arabic digits, lowercasing, and trimming whitespace.
  */
 export const normalizePartySearch = (text?: string | null): string => {
   if (!text) return '';
@@ -11,12 +11,15 @@ export const normalizePartySearch = (text?: string | null): string => {
 };
 
 /**
- * Normalizes phone numbers for search by removing non-digits and common country prefixes.
+ * Normalizes phone numbers for search by converting Arabic digits,
+ * removing non-digits and common country prefixes.
  */
 export const normalizePhoneNumber = (phone?: string | null): string => {
   if (!phone) return '';
+  // Convert Arabic/Persian digits to standard digits first
+  const asciiPhone = normalizeArabicDigits(phone);
   // Remove non-digit characters
-  let digits = phone.replace(/\D/g, '');
+  let digits = asciiPhone.replace(/\D/g, '');
   // Remove leading country codes: 00966, 966, 00967, 967, +...
   if (digits.startsWith('00966')) digits = digits.slice(5);
   else if (digits.startsWith('966')) digits = digits.slice(3);
@@ -47,7 +50,7 @@ export const isSubsequence = (query: string, target: string): boolean => {
 /**
  * Evaluates whether a party matches the given query using smart multi-criteria:
  * 1. Exact and normalized token containment (name, category, email, tax_number).
- * 2. Phone number substring / normalized phone matching.
+ * 2. Phone number substring / normalized phone matching (supporting Arabic digits).
  * 3. Fuzzy scattered character matching (subsequence across words or compacted text).
  */
 export const matchParty = (party: Party, rawQuery: string): { matches: boolean; score: number } => {
@@ -57,22 +60,23 @@ export const matchParty = (party: Party, rawQuery: string): { matches: boolean; 
 
   const cleanQuery = normalizePartySearch(rawQuery);
   const queryTokens = cleanQuery.split(/\s+/).filter(Boolean);
-  const queryPhone = rawQuery.replace(/\D/g, '');
+  const queryPhone = normalizeArabicDigits(rawQuery).replace(/\D/g, '');
 
   const normName = normalizePartySearch(party.name);
   const normCategory = normalizePartySearch(party.category);
   const normEmail = normalizePartySearch(party.email);
   const normTax = normalizePartySearch(party.tax_number);
   const rawPhone = party.phone ?? '';
+  const asciiPhone = normalizeArabicDigits(rawPhone);
   const normPhone = normalizePhoneNumber(rawPhone);
 
-  const searchableFullText = `${normName} ${normCategory} ${normEmail} ${normTax}`;
+  const searchableFullText = `${normName} ${normCategory} ${normEmail} ${normTax} ${asciiPhone}`;
 
   let score = 0;
 
   // 1. Phone matching (highest priority when query is purely or partially numeric)
-  if (queryPhone.length >= 2 && rawPhone.length > 0) {
-    if (rawPhone.includes(queryPhone) || normPhone.includes(queryPhone)) {
+  if (queryPhone.length >= 2 && asciiPhone.length > 0) {
+    if (asciiPhone.includes(queryPhone) || normPhone.includes(queryPhone)) {
       score += 150 + queryPhone.length * 10;
       return { matches: true, score };
     }

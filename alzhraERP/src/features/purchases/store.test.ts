@@ -247,4 +247,21 @@ describe('Purchases Store Logic', () => {
     expect(usePurchaseStore.getState().supplier).toBeNull();
     expect(usePurchaseStore.getState().items[0]?.productId).toBe('');
   });
+
+  it('resets exchangeRate to 1 when currency is SAR and locks manual changes to 1', () => {
+    // Switch to YER and change exchange rate
+    usePurchaseStore.getState().setMetadata('currency', 'YER');
+    usePurchaseStore.getState().setMetadata('exchangeRate', 429.92261);
+    expect(usePurchaseStore.getState().currency).toBe('YER');
+    expect(usePurchaseStore.getState().exchangeRate).toBe(429.92261);
+
+    // Switch back to SAR: exchangeRate must be automatically reset to 1
+    usePurchaseStore.getState().setMetadata('currency', 'SAR');
+    expect(usePurchaseStore.getState().currency).toBe('SAR');
+    expect(usePurchaseStore.getState().exchangeRate).toBe(1);
+
+    // Attempting to set exchangeRate while in SAR must be forced to 1
+    usePurchaseStore.getState().setMetadata('exchangeRate', 500);
+    expect(usePurchaseStore.getState().exchangeRate).toBe(1);
+  });
 });

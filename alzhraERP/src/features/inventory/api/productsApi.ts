@@ -2,6 +2,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import type { TableInsert, TableUpdate } from '@/core/types/supabase-helpers';
 import type { Json } from '../../../core/database.types';
 import type { ProductUOM } from '../types';
+import { normalizeArabic } from '@/core/utils/search';
 
 /** Products CRUD and search */
 export const productsApi = {
@@ -188,10 +189,11 @@ export const productsApi = {
   },
 
   searchProduct: async (companyId: string, term: string) => {
+    const cleanTerm = normalizeArabic(term).trim();
     try {
       const { data, error } = await supabase.rpc('search_inventory_paginated', {
         p_company_id: companyId,
-        p_term: term.trim(),
+        p_term: cleanTerm,
         p_limit: 30,
         p_offset: 0,
         p_sort_key: 'name_ar',
@@ -217,7 +219,7 @@ export const productsApi = {
       // Fall back to direct query on network or RPC errors
     }
 
-    const searchPattern = `%${term.trim()}%`;
+    const searchPattern = `%${cleanTerm}%`;
     return await supabase
       .from('products')
       .select(
@@ -226,7 +228,7 @@ export const productsApi = {
       .eq('company_id', companyId)
       .eq('status', 'active')
       .or(
-        `name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern},alternative_numbers.ilike.${searchPattern},brand.ilike.${searchPattern}`
+        `name_ar.ilike.${searchPattern},sku.ilike.${searchPattern},part_number.ilike.${searchPattern},alternative_numbers.ilike.${searchPattern},brand.ilike.${searchPattern},barcode.ilike.${searchPattern}`
       )
       .order('name_ar')
       .limit(30);
@@ -260,5 +262,77 @@ export const productsApi = {
       .from('product_categories')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
+  },
+
+  /** Fetch distinct non-empty brands recorded in company products for autocomplete */
+  fetchDistinctBrands: async (companyId: string): Promise<string[]> => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('brand')
+      .eq('company_id', companyId)
+      .is('deleted_at', null)
+      .not('brand', 'is', null)
+      .neq('brand', '')
+      .limit(1000);
+
+    if (error) {
+      return [];
+    }
+
+    const brandSet = new Set<string>();
+    data?.forEach(row => {
+      const trimmed = row.brand?.trim();
+      if (trimmed) {
+        brandSet.add(trimmed);
+      }
+    });
+
+    return Array.from(brandSet).sort((a, b) => a.localeCompare(b, 'ar', { sensitivity: 'base' }));
+  },
+
+  /** Search company products by part number or alternative numbers for smart autocomplete/anti-duplication */
+  searchPartNumbers: async (
+    companyId: string,
+    query: string
+  ): Promise<
+    Array<{
+      id: string;
+      name_ar: string;
+      part_number: string | null;
+      alternative_numbers: string | null;
+      brand: string | null;
+      sku: string;
+      sale_price: number | null;
+      purchase_price: number | null;
+    }>
+  > => {
+    const clean = query.trim();
+    if (!clean) return [];
+    const searchPattern = `%${clean}%`;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(
+        'id, name_ar, part_number, alternative_numbers, brand, sku, sale_price, purchase_price'
+      )
+      .eq('company_id', companyId)
+      .is('deleted_at', null)
+      .or(`part_number.ilike.${searchPattern},alternative_numbers.ilike.${searchPattern}`)
+      .limit(8);
+
+    if (error) {
+      return [];
+    }
+
+    return (data || []) as Array<{
+      id: string;
+      name_ar: string;
+      part_number: string | null;
+      alternative_numbers: string | null;
+      brand: string | null;
+      sku: string;
+      sale_price: number | null;
+      purchase_price: number | null;
+    }>;
   },
 };

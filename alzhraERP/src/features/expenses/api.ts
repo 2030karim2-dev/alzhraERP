@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabaseClient';
 import type { Json } from '../../core/database.types';
 import { parseError } from '../../core/utils/errorUtils';
+import { parseNumberFlexible } from '../../core/utils/currencyUtils';
 import type { ExpenseFormData } from './types';
 
 // Typed interfaces for category create payload
@@ -65,15 +66,17 @@ export const expensesApi = {
       p_company_id: companyId,
       p_user_id: userId,
       p_data: {
-        category_id: data.category_id,
-        amount: data.amount,
-        description: data.description,
+        category_id: data.category_id || null,
+        amount: parseNumberFlexible(data.amount),
+        description: data.description?.trim() || 'مصروف نثري',
+        expense_date: data.expense_date,
         date: data.expense_date,
-        payment_method: data.payment_method,
-        ...(data.voucher_number ? { voucher_number: data.voucher_number } : {}),
+        payment_method: data.payment_method || 'cash',
+        ...(data.voucher_number ? { voucher_number: data.voucher_number.trim() } : {}),
+        currency_code: data.currency_code || 'SAR',
         currency: data.currency_code || 'SAR',
-        exchange_rate: data.exchange_rate || 1,
-        ...(data.branch_id ? { branch_id: data.branch_id } : {}),
+        exchange_rate: Number(data.exchange_rate) || 1,
+        branch_id: data.branch_id || null,
       } as unknown as Json,
     });
   },

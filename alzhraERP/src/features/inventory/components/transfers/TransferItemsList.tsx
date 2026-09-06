@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Trash2, Box, PackagePlus } from 'lucide-react';
 import ProductExcelGrid from '../ProductExcelGrid';
 import type { Product } from '../../types';
+import { parseNumberFlexible } from '@/core/utils/currencyUtils';
 
 interface Props {
   items: Array<{ product: Product; qty: number }>;
@@ -57,10 +58,12 @@ const TransferItemsList: React.FC<Props> = ({ items, onRemove, onUpdateQty, from
           <div className="flex items-center justify-center gap-1.5">
             <input
               type="number"
-              min={1}
+              step="any"
+              min={0.001}
               value={row.transfer_qty || 1}
               onChange={e => {
-                const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                const parsed = parseNumberFlexible(e.target.value);
+                const val = Number.isNaN(parsed) || parsed <= 0 ? 1 : parsed;
                 onUpdateQty(row.id, val);
               }}
               onClick={e => {

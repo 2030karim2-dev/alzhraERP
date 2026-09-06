@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShoppingBag, X, Package, Trash2, Send, CheckCircle2 } from 'lucide-react';
-import { formatCurrency } from '../../../../core/utils';
+import { formatCurrency, parseNumberFlexible } from '../../../../core/utils';
 import { calculatePortalLineTotal } from '../../services/quotationCalculator';
 
 export interface DraftItem {
@@ -52,11 +52,12 @@ const RowInputsGrid: React.FC<RowInputsProps> = ({
       <span className="block text-[10px] font-bold text-slate-400">الكمية المتاحة</span>
       <input
         type="number"
-        min="1"
+        step="any"
+        min="0.001"
         value={quantity}
         onChange={e => {
-          const parsed = parseInt(e.target.value, 10);
-          onQtyChange(Number.isNaN(parsed) ? 1 : Math.max(1, parsed));
+          const parsed = parseNumberFlexible(e.target.value);
+          onQtyChange(Number.isNaN(parsed) || parsed <= 0 ? 1 : parsed);
         }}
         className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-white outline-none focus:border-emerald-500"
       />
@@ -66,11 +67,11 @@ const RowInputsGrid: React.FC<RowInputsProps> = ({
       <span className="block text-[10px] font-bold text-slate-400">سعر الوحدة (ر.س)</span>
       <input
         type="number"
-        step="0.01"
+        step="any"
         min="0"
         value={unitPrice}
         onChange={e => {
-          const parsed = parseFloat(e.target.value);
+          const parsed = parseNumberFlexible(e.target.value);
           onPriceChange(Number.isNaN(parsed) ? 0 : parsed);
         }}
         className="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-emerald-400 outline-none focus:border-emerald-500"

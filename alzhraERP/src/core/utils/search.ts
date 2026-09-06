@@ -5,8 +5,21 @@
  */
 
 /**
+ * Converts Eastern Arabic numerals (٠-٩) and Persian numerals (۰-۹) to standard ASCII digits (0-9).
+ */
+export const normalizeArabicDigits = (input?: string | null): string => {
+  if (!input) return '';
+  const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+  const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+  return String(input)
+    .replace(/[٠-٩]/g, d => String(arabicDigits.indexOf(d)))
+    .replace(/[۰-۹]/g, d => String(persianDigits.indexOf(d)));
+};
+
+/**
  * Normalize Arabic characters for more flexible matching:
- * - أإآ → ا
+ * - Eastern Arabic (٠-٩) & Persian (۰-۹) numerals → 0-9
+ * - أإآٱ → ا
  * - ة → ه
  * - ى → ي
  * - ئ → ي
@@ -15,10 +28,10 @@
  * - Normalize Tatweel (ـ)
  * - Normalize various Arabic presentation forms
  */
-export const normalizeArabic = (text: string): string => {
+export const normalizeArabic = (text?: string | null): string => {
   if (!text) return '';
-  return text
-    .replace(/[أإآ]/g, 'ا')
+  return normalizeArabicDigits(text)
+    .replace(/[أإآٱ]/g, 'ا')
     .replace(/ة/g, 'ه')
     .replace(/ى/g, 'ي')
     .replace(/ئ/g, 'ي')
@@ -28,10 +41,11 @@ export const normalizeArabic = (text: string): string => {
 };
 
 /**
- * Normalize and lower-case a string for search comparison.
+ * Normalize and lower-case a string for search comparison, including Arabic numbers conversion.
  */
-export const normalizeSearch = (text: string): string => {
-  return normalizeArabic(text).toLowerCase();
+export const normalizeSearch = (text?: string | null): string => {
+  if (!text) return '';
+  return normalizeArabic(text).toLowerCase().trim();
 };
 
 /**

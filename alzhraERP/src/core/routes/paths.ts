@@ -44,6 +44,7 @@ export const ROUTES = {
     DEBTS_SETTINGS: '/debts/settings',
     SUPPLIER_PORTAL: '/supplier-portal',
     CHAT: '/chat',
+    DAILY_RECONCILIATION: '/daily-reconciliation',
   },
   ADMIN: {
     ROOT: '/admin',

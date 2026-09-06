@@ -83,7 +83,8 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                   <td className="px-3 py-2">
                     <input
                       type="number"
-                      min={1}
+                      step="any"
+                      min={0}
                       value={item.quantity || ''}
                       onChange={e => {
                         updateItem(idx, 'quantity', Number(e.target.value));
@@ -96,7 +97,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                     <input
                       type="number"
                       min={0}
-                      step={0.01}
+                      step="any"
                       value={item.unitPrice || ''}
                       onChange={e => {
                         updateItem(idx, 'unitPrice', Number(e.target.value));
@@ -110,6 +111,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       type="number"
                       min={0}
                       max={100}
+                      step="any"
                       value={item.discountPercent || ''}
                       onChange={e => {
                         updateItem(idx, 'discountPercent', Number(e.target.value));
@@ -121,6 +123,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                   <td className="bg-gray-50/40 px-3 py-2 dark:bg-slate-800/30">
                     <input
                       type="number"
+                      step="any"
                       value={lineTotal !== 0 ? Number(lineTotal.toFixed(2)) : ''}
                       onChange={e => {
                         const newTotal = parseFloat(e.target.value) || 0;

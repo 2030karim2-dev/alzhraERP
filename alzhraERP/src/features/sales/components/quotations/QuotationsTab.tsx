@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { salesQuotationsApi } from '@/features/sales/api/quotationsApi';
 import { useAuthStore } from '@/features/auth/store';
-import { formatCurrency } from '@/core/utils';
+import { formatCurrency, normalizeSearch } from '@/core/utils';
 import type { QuotationStatus } from '@/features/sales/types/quotation';
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
 import CreateQuotationModal from '@/features/sales/components/quotations/CreateQuotationModal';
@@ -101,12 +101,13 @@ export const QuotationsTab: React.FC<Props> = ({ onConvertToInvoice }) => {
   }, [user?.company_id, branchId]);
 
   const filtered = useMemo(() => {
+    const term = normalizeSearch(searchTerm);
     return quotations.filter(q => {
       const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
       const matchesSearch =
-        !searchTerm ||
-        q.quotation_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.party?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        !term ||
+        normalizeSearch(q.quotation_number).includes(term) ||
+        normalizeSearch(q.party?.name).includes(term);
       return matchesStatus && matchesSearch;
     });
   }, [quotations, statusFilter, searchTerm]);

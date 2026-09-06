@@ -21,6 +21,7 @@ import type { POSPaymentResult } from '../components/payment/paymentTypes';
 import { POSHeader } from '../components/layout/POSHeader';
 import { useWarehousesWithBranches } from '../../inventory/hooks/useWarehouseStock';
 import { createIdempotencyKey } from '../../../core/utils/idempotency';
+import { QuickDrawerExpenseModal } from '../../reconciliation/components/QuickDrawerExpenseModal';
 
 const POSPage: React.FC = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -30,6 +31,7 @@ const POSPage: React.FC = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(null);
+  const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
   // [FIX] كانت نافذة الدفع (PaymentModal) كوداً ميتاً — لا تُعرض في أي مكان،
   // فكان البيع يتم بصمت بنقد/مدفوع دون التقاط المبلغ المستلم أو الباقي
   // أو تأكيد صندوق الخزينة. الآن يفتح زر الدفع النافذة.
@@ -174,6 +176,7 @@ const POSPage: React.FC = () => {
         warehouses={warehouses}
         selectedWarehouseId={selectedWarehouseId}
         onWarehouseChange={setSelectedWarehouseId}
+        onOpenQuickExpense={() => setIsQuickExpenseOpen(true)}
       />
 
       <div className="relative flex flex-1 flex-row-reverse overflow-hidden bg-gray-50/50 p-2 dark:bg-slate-950/50 max-md:p-2 md:gap-4 md:p-4 lg:gap-6 lg:p-6">
@@ -309,6 +312,11 @@ const POSPage: React.FC = () => {
           allowedMethods={['cash']}
         />
       )}
+
+      <QuickDrawerExpenseModal
+        isOpen={isQuickExpenseOpen}
+        onClose={() => setIsQuickExpenseOpen(false)}
+      />
     </div>
   );
 };

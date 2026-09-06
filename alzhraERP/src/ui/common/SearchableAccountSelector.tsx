@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Search, ChevronDown, Check, X, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { cn } from '../../core/utils';
+import { cn, normalizeSearch } from '../../core/utils';
 import type { Account } from '../../features/accounting/types/models';
 
 interface SearchableAccountSelectorProps {
@@ -48,14 +48,14 @@ const SearchableAccountSelector: React.FC<SearchableAccountSelectorProps> = ({
   }, [selectedAccount, isOpen]);
 
   const filteredAccounts = useMemo(() => {
-    const s = search.toLowerCase();
+    const s = normalizeSearch(search);
     // If search is exactly the selected item's text, show all (postable) accounts
     const isSearchSelected =
-      selectedAccount && s === `${selectedAccount.code} - ${selectedAccount.name}`.toLowerCase();
-    if (!search.trim() || isSearchSelected) return selectableAccounts;
+      selectedAccount && s === normalizeSearch(`${selectedAccount.code} - ${selectedAccount.name}`);
+    if (!s || isSearchSelected) return selectableAccounts;
 
     return selectableAccounts.filter(
-      a => a.name.toLowerCase().includes(s) || a.code.toLowerCase().includes(s)
+      a => normalizeSearch(a.name).includes(s) || normalizeSearch(a.code).includes(s)
     );
   }, [selectableAccounts, search, selectedAccount]);
 

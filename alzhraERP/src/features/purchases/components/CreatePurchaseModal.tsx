@@ -121,7 +121,11 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   });
   useEffect(() => {
     initializeItems(6);
-    setMetadata('currency', invoiceSettings.default_currency);
+    const defCurrency = invoiceSettings.default_currency || 'SAR';
+    setMetadata('currency', defCurrency);
+    if (defCurrency === 'SAR') {
+      setMetadata('exchangeRate', 1);
+    }
     setMetadata('invoiceType', invoiceSettings.default_invoice_type);
   }, [
     initializeItems,
@@ -187,7 +191,7 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
         paymentMethod: invoiceType,
         cashAccountId: cashboxId,
         currency,
-        exchangeRate,
+        exchangeRate: currency === 'SAR' ? 1 : exchangeRate,
       },
       {
         onSuccess: () => {

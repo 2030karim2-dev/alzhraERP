@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import SalesStats from './SalesStats';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { useInvoices, useDeleteInvoice } from '../../hooks/index';
-import { formatCurrency } from '../../../../core/utils';
+import { formatCurrency, normalizeSearch } from '../../../../core/utils';
 import { Eye, Trash2, ArrowLeftRight, FileSpreadsheet } from 'lucide-react';
 import EmptyState from '../../../../ui/base/EmptyState';
 import PageLoader from '../../../../ui/base/PageLoader';
@@ -61,11 +61,14 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
 
   const filteredData = useMemo(() => {
     if (!invoices) return [];
+    const term = normalizeSearch(searchTerm);
+    if (!term) return invoices as InvoiceListItem[];
+
     // API already filters by type='sale' — no need to re-filter client-side
     return (invoices as InvoiceListItem[]).filter(item => {
       const matchesSearch =
-        (item.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
+        normalizeSearch(item.customerName).includes(term) ||
+        normalizeSearch(item.invoiceNumber).includes(term);
       return matchesSearch;
     });
   }, [invoices, searchTerm]);

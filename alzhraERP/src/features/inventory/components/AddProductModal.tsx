@@ -186,7 +186,7 @@ const AddProductModal: React.FC<Props> = ({
             <Zap size={14} className="text-blue-500" />
             {t('identity_data')}
           </h4>
-          <ProductCoreInfo register={register} errors={errors} />
+          <ProductCoreInfo register={register} errors={errors} setValue={setValue} watch={watch} />
           <SimilarityAdvisor
             isVisible={similarProducts.length > 0}
             similarProducts={similarProducts}

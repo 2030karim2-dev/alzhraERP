@@ -6,6 +6,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { inventoryApi } from '../../inventory/api';
+import { normalizeArabic } from '../../../core/utils/search';
 
 interface UseProductSearchOptions {
   companyId: string;
@@ -41,8 +42,11 @@ export const useProductSearch = (searchTerm: string, options?: UseProductSearchO
     };
   }, [searchTerm, debounceMs]);
 
-  // Normalize the term for consistent caching (strip extra spaces)
-  const normalizedTerm = useMemo(() => debouncedTerm.replace(/\s+/g, ' ').trim(), [debouncedTerm]);
+  // Normalize the term for consistent caching (convert Arabic digits and normalize text)
+  const normalizedTerm = useMemo(
+    () => normalizeArabic(debouncedTerm).replace(/\s+/g, ' ').trim(),
+    [debouncedTerm]
+  );
 
   const queryKey = useMemo(
     () => ['product_search', companyId, normalizedTerm] as const,

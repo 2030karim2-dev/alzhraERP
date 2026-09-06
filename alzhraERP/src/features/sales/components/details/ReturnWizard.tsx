@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { formatCurrency } from '../../../../core/utils';
+import { formatCurrency, parseNumberFlexible } from '../../../../core/utils';
 import type { Invoice, InvoiceItem } from '../../../returns/types';
 
 interface Props {
@@ -100,11 +100,13 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  step="any"
                   min="0"
                   max={item.quantity}
                   value={returnItems[item.id] || 0}
                   onChange={e => {
-                    updateReturnQuantity(item.id, parseInt(e.target.value) || 0);
+                    const parsed = parseNumberFlexible(e.target.value);
+                    updateReturnQuantity(item.id, Number.isNaN(parsed) ? 0 : parsed);
                   }}
                   className="w-16 rounded-lg border border-gray-200 p-2 text-center text-sm font-bold dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 />

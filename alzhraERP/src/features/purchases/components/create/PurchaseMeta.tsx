@@ -15,6 +15,7 @@ import { usePurchaseStore, type SupplierRef } from '../../store';
 import { usePaymentAccounts } from '../../../accounting/hooks/index';
 import { useCurrencies } from '../../../settings/hooks';
 import { useWarehouses } from '../../../inventory/hooks/useWarehouses';
+import { cn } from '../../../../core/utils';
 import type { PaymentAccount } from '../../../accounting/hooks/usePaymentAccounts';
 import type { Warehouse as WarehouseType } from '../../../inventory/types';
 import type { Party } from '../../../parties/types';
@@ -200,35 +201,61 @@ const SupplierHeader: React.FC<SupplierHeaderProps> = ({
 interface ExchangeRateBlockProps {
   exchangeRate: number;
   isDivide: boolean;
+  currency: string;
   onChange: (value: number) => void;
 }
 
 const ExchangeRateBlock: React.FC<ExchangeRateBlockProps> = ({
   exchangeRate,
   isDivide,
+  currency,
   onChange,
-}) => (
-  <div className="relative flex min-w-0 flex-1 flex-col justify-center bg-[var(--app-surface)] p-1.5">
-    <div className="mb-0.5 flex items-center gap-1">
-      <Coins size={10} className="text-amber-500" />
-      <span className="truncate text-[10px] font-bold uppercase leading-none tracking-wider text-amber-500">
-        الصرف {isDivide ? '(÷)' : '(×)'}
-      </span>
+}) => {
+  const isBase = currency === 'SAR';
+  return (
+    <div className="relative flex min-w-0 flex-1 flex-col justify-center bg-[var(--app-surface)] p-1.5">
+      <div className="mb-0.5 flex items-center gap-1">
+        <Coins
+          size={10}
+          className={isBase ? 'text-slate-400 dark:text-slate-500' : 'text-amber-500'}
+        />
+        <span
+          className={cn(
+            'truncate text-[10px] font-bold uppercase leading-none tracking-wider',
+            isBase ? 'text-slate-400 dark:text-slate-500' : 'text-amber-500'
+          )}
+        >
+          الصرف {isBase ? '(أساسي)' : isDivide ? '(÷)' : '(×)'}
+        </span>
+      </div>
+      <input
+        type="number"
+        step="0.00001"
+        disabled={isBase}
+        value={
+          isBase
+            ? '1'
+            : exchangeRate
+              ? isDivide
+                ? parseFloat((1 / exchangeRate).toFixed(5))
+                : exchangeRate
+              : '1'
+        }
+        onChange={event => {
+          if (isBase) return;
+          const value = parseFloat(event.target.value);
+          if (value) onChange(isDivide ? 1 / value : value);
+        }}
+        className={cn(
+          'min-h-4 w-full bg-transparent font-mono text-[11px] font-bold leading-none outline-none max-md:text-[10px]',
+          isBase
+            ? 'cursor-not-allowed text-slate-400 dark:text-slate-500'
+            : 'text-amber-600 dark:text-amber-400'
+        )}
+      />
     </div>
-    <input
-      type="number"
-      step="0.00001"
-      value={
-        exchangeRate ? (isDivide ? parseFloat((1 / exchangeRate).toFixed(5)) : exchangeRate) : ''
-      }
-      onChange={event => {
-        const value = parseFloat(event.target.value);
-        if (value) onChange(isDivide ? 1 / value : value);
-      }}
-      className="min-h-4 w-full bg-transparent font-mono text-[11px] font-bold leading-none text-amber-600 outline-none dark:text-amber-400 max-md:text-[10px]"
-    />
-  </div>
-);
+  );
+};
 
 interface MetadataGridProps {
   issueDate: string;
@@ -298,8 +325,8 @@ const MetadataGrid: React.FC<MetadataGridProps> = ({
       />
     </div>
 
-    {/* شريط 2: المستودع + الصندوق/البنك + العملة وسعر الصرف (3 مربعات بشريط واحد) */}
-    <div className="grid grid-cols-3 divide-x divide-x-reverse divide-blue-100/70 dark:divide-slate-800">
+    {/* شريط 2: المستودع + الصندوق/البنك + العملة + سعر الصرف (4 مربعات بشريط واحد) */}
+    <div className="grid grid-cols-4 divide-x divide-x-reverse divide-blue-100/70 dark:divide-slate-800">
       <MetaBlock
         label="المستودع"
         field="warehouseId"
@@ -318,27 +345,25 @@ const MetadataGrid: React.FC<MetadataGridProps> = ({
         options={paymentAccounts.map(account => ({ id: account.id, label: account.name_ar }))}
         onChange={onChange}
       />
-      {currency !== 'SAR' ? (
-        <ExchangeRateBlock
-          exchangeRate={exchangeRate}
-          isDivide={isDivide}
-          onChange={onRateChange}
-        />
-      ) : (
-        <MetaBlock
-          label="العملة"
-          field="currency"
-          value={currency}
-          icon={Coins}
-          isSelect
-          options={
-            currencies.length > 0
-              ? currencies.map(item => ({ id: item.code, label: item.code }))
-              : [{ id: 'SAR', label: 'SAR' }]
-          }
-          onChange={onChange}
-        />
-      )}
+      <MetaBlock
+        label="العملة"
+        field="currency"
+        value={currency}
+        icon={Coins}
+        isSelect
+        options={
+          currencies.length > 0
+            ? currencies.map(item => ({ id: item.code, label: item.code }))
+            : [{ id: 'SAR', label: 'SAR' }]
+        }
+        onChange={onChange}
+      />
+      <ExchangeRateBlock
+        exchangeRate={exchangeRate}
+        isDivide={isDivide}
+        currency={currency}
+        onChange={onRateChange}
+      />
     </div>
 
     {/* شريط 3: ملاحظات التوريد بشكل شريط مدمج وأنيق */}
@@ -395,8 +420,15 @@ const PurchaseMeta: React.FC = () => {
     const currencyChanged = prevCurrency.current !== currency;
     const rateRows = rates.data ?? [];
     const ratesJustLoaded = !ratesLoaded.current && rateRows.length > 0;
-    if (currencyChanged || ratesJustLoaded)
+
+    if (currency === 'SAR') {
+      if (exchangeRate !== 1) {
+        setMetadata('exchangeRate', 1);
+      }
+    } else if (currencyChanged || ratesJustLoaded) {
       setMetadata('exchangeRate', resolveExchangeRate(currency, exchangeRate, rateRows));
+    }
+
     if (rateRows.length > 0) ratesLoaded.current = true;
     if (currencyChanged) {
       const matchingAccount = findMatchingAccount(paymentAccounts, currency);

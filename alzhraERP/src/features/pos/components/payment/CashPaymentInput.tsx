@@ -32,6 +32,7 @@ export const CashPaymentInput: React.FC<CashPaymentInputProps> = ({
         <input
           ref={inputRef}
           type="number"
+          step="any"
           value={received}
           onChange={e => {
             onReceivedChange(e.target.value);

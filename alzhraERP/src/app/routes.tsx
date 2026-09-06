@@ -21,6 +21,9 @@ const AuditSessionPage = lazy(() => import('../features/inventory/pages/AuditSes
 const QuickAuditPage = lazy(() => import('../features/inventory/pages/QuickAuditPage'));
 
 const POSPage = lazy(() => import('../features/pos/pages/POSPage'));
+const DailyReconciliationPage = lazy(
+  () => import('../features/reconciliation/pages/DailyReconciliationPage')
+);
 const VINPage = lazy(() => import('../features/vin-intelligence/pages/VINPage'));
 const SalesPage = lazy(() => import('../features/sales/pages/SalesPage'));
 const AccountingPage = lazy(() => import('../features/accounting/AccountingPage'));
@@ -240,6 +243,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <FeatureBoundary name="pos">
               <POSPage />
+            </FeatureBoundary>
+          }
+        />
+        <Route
+          path={ROUTES.DASHBOARD.DAILY_RECONCILIATION}
+          element={
+            <FeatureBoundary name="daily-reconciliation">
+              <DailyReconciliationPage />
             </FeatureBoundary>
           }
         />

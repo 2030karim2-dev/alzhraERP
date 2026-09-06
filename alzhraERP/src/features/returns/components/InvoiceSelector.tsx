@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Search, X, ChevronDown, Calendar, User, Banknote } from 'lucide-react';
 import type { Invoice } from '../types';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, normalizeSearch } from '../../../core/utils';
 
 interface InvoiceSelectorProps {
   invoices: Invoice[];
@@ -81,19 +81,19 @@ const InvoiceSelector: React.FC<InvoiceSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredInvoices = useMemo(() => {
-    if (!searchTerm) return invoices;
-    const term = searchTerm.toLowerCase();
+    const term = normalizeSearch(searchTerm);
+    if (!term) return invoices;
     return invoices.filter((invoice): boolean => {
       const matchInvoice =
-        invoice.invoice_number.toLowerCase().includes(term) ||
-        (invoice.party?.name ?? '').toLowerCase().includes(term) ||
-        formatDate(invoice.issue_date).includes(term);
+        normalizeSearch(invoice.invoice_number).includes(term) ||
+        normalizeSearch(invoice.party?.name).includes(term) ||
+        normalizeSearch(formatDate(invoice.issue_date)).includes(term);
 
       const matchItems = invoice.invoice_items?.some(
         (item): boolean =>
-          (item.description ?? '').toLowerCase().includes(term) ||
-          (item.product_id ?? '').toLowerCase().includes(term) ||
-          (item.unit_price?.toString() ?? '').includes(term)
+          normalizeSearch(item.description).includes(term) ||
+          normalizeSearch(item.product_id).includes(term) ||
+          normalizeSearch(item.unit_price?.toString()).includes(term)
       );
 
       return matchInvoice || matchItems === true;

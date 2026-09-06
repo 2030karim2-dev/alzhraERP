@@ -165,6 +165,18 @@ const ITEM_THEMES: Record<string, ItemTheme> = {
     activeItemText: 'text-pink-950 dark:text-pink-100 font-black',
     hoverBadge: 'group-hover:scale-110 group-hover:bg-pink-500/20 dark:group-hover:bg-pink-500/30',
   },
+  daily_reconciliation: {
+    badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+    badgeBorder: 'border-emerald-200/60 dark:border-emerald-800/40',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    activeBadge:
+      'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30 ring-2 ring-emerald-400/30',
+    activeItemBg:
+      'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-800/60',
+    activeItemText: 'text-emerald-950 dark:text-emerald-100 font-black',
+    hoverBadge:
+      'group-hover:scale-110 group-hover:bg-emerald-500/20 dark:group-hover:bg-emerald-500/30',
+  },
   vin: {
     badgeBg: 'bg-sky-500/10 dark:bg-sky-500/15',
     badgeBorder: 'border-sky-200/60 dark:border-sky-800/40',

@@ -18,6 +18,9 @@ export {
   sumInBaseCurrency,
   convertToBaseCurrency,
   convertFromBaseCurrency,
+  convertCurrency,
+  parseCurrency,
+  parseNumberFlexible,
 } from './utils/currencyUtils';
 
 export function formatNumberDisplay(value: number): string {
@@ -27,3 +30,10 @@ export function formatNumberDisplay(value: number): string {
 
 export { formatLocalDate, getLocalYearStart } from './utils/dateUtils';
 export { netUnitPrices } from './utils/invoiceDiscount';
+export {
+  normalizeArabic,
+  normalizeArabicDigits,
+  normalizeSearch,
+  matchesArabicSearch,
+  filterByArabicSearch,
+} from './utils/search';

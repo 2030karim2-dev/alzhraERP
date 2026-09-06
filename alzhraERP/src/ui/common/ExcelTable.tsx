@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { GripVertical } from 'lucide-react';
-import { cn } from '../../core/utils';
+import { cn, normalizeSearch } from '../../core/utils';
 import { useTableKeyboardNavigation } from './useTableKeyboardNavigation';
 import { useTableDragDrop } from './hooks/useTableDragDrop';
 import { useTableSelection } from './hooks/useTableSelection';
@@ -153,7 +153,8 @@ function ExcelTable<T>({
   const processedData = useMemo(() => {
     let items = [...data];
     if (!isMainSearch && searchTermForFilter) {
-      const term = searchTermForFilter.toLowerCase();
+      const term = normalizeSearch(searchTermForFilter);
+      if (!term) return items;
 
       // Helper to recursively extract text from any React element or primitive
       const getStringContent = (val: unknown): string => {
@@ -189,7 +190,7 @@ function ExcelTable<T>({
             const val = col.accessor(item);
             const content = getStringContent(val);
             if (content) {
-              return content.toLowerCase().includes(term);
+              return normalizeSearch(content).includes(term);
             }
           } catch (e) {
             // Ignore errors in custom accessors
@@ -202,7 +203,7 @@ function ExcelTable<T>({
         const deepSearch = (val: unknown): boolean => {
           if (val === null || val === undefined) return false;
           if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
-            return String(val).toLowerCase().includes(term);
+            return normalizeSearch(String(val)).includes(term);
           }
           if (typeof val === 'object') {
             const obj = val as { $$typeof?: unknown; then?: unknown };

@@ -232,9 +232,22 @@ const createMetadataActions = (
       field === 'invoiceType' ||
       field === 'cashboxId' ||
       field === 'notes'
-    )
-      set({ [field]: String(value) });
-    if (field === 'exchangeRate') set({ exchangeRate: Number(value) });
+    ) {
+      if (field === 'currency') {
+        const newCurrency = String(value);
+        if (newCurrency === 'SAR') {
+          set({ currency: 'SAR', exchangeRate: 1 });
+        } else {
+          set({ currency: newCurrency });
+        }
+      } else {
+        set({ [field]: String(value) });
+      }
+    }
+    if (field === 'exchangeRate') {
+      const currentCurrency = get().currency;
+      set({ exchangeRate: currentCurrency === 'SAR' ? 1 : Number(value) });
+    }
   },
   toggleColumn: _field => {
     set(state => ({ showDiscount: !state.showDiscount }));
@@ -294,6 +307,11 @@ export const usePurchaseStore = create<PurchaseState>()(
         notes: state.notes,
         showDiscount: state.showDiscount,
       }),
+      onRehydrateStorage: () => state => {
+        if (state && state.currency === 'SAR') {
+          state.exchangeRate = 1;
+        }
+      },
     }
   )
 );

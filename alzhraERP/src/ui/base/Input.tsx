@@ -12,15 +12,38 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, label, error, icon, onIconClick, variant = 'default', inputRef, ...props },
+    {
+      className,
+      label,
+      error,
+      icon,
+      onIconClick,
+      variant = 'default',
+      inputRef,
+      onKeyDown,
+      step,
+      type,
+      ...props
+    },
     ref
   ) => {
     const isMicro = variant === 'micro';
     const combinedRef = (ref || inputRef) as React.RefObject<HTMLInputElement>;
+    const resolvedStep = type === 'number' && step === undefined ? 'any' : step;
 
-    // Handle keyboard navigation between inputs
+    // Handle keyboard navigation between inputs and decimal comma support for numbers
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (type === 'number' && (e.key === ',' || e.key === '،' || e.key === '٫')) {
+          e.preventDefault();
+          const target = e.currentTarget;
+          if (!target.value.includes('.')) {
+            target.value = target.value + '.';
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          return;
+        }
+
         if (e.key === 'Enter' && !e.shiftKey) {
           // Find next input in the parent form
           const form = combinedRef.current?.closest('form');
@@ -48,8 +71,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             }
           }
         }
+
+        onKeyDown?.(e);
       },
-      [combinedRef]
+      [combinedRef, onKeyDown, type]
     );
 
     return (
@@ -67,6 +92,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           <input
             ref={combinedRef}
+            type={type}
+            step={resolvedStep}
             onKeyDown={handleKeyDown}
             className={cn(
               'w-full rounded-[var(--radius)] border border-[var(--app-border)] bg-[var(--app-bg)]',

@@ -2,6 +2,8 @@ import { expensesApi } from './api';
 import type { Expense, ExpenseFormData, ExpenseCategorySummary, ExpenseStats } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
+import { parseError } from '../../core/utils/errorUtils';
+import { formatLocalDate } from '../../core/utils/dateUtils';
 import { logger } from '../../core/utils/logger';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -70,7 +72,7 @@ export const expensesService = {
   processNewExpense: async (formData: ExpenseFormData, companyId: string, userId: string) => {
     // استدعاء RPC الموحد الذي يقوم بإنشاء السجل والقيد المحاسبي معاً
     const { error } = await expensesApi.createExpenseRPC(companyId, userId, formData);
-    if (error) throw error;
+    if (error) throw parseError(error);
 
     // 🔔 Fire-and-forget notification
     messagingService.notify(companyId, 'expense', {
@@ -78,9 +80,9 @@ export const expensesService = {
       category:
         ((formData as unknown as Record<string, unknown>).categoryName as string) || 'غير مصنف',
       amount: formData.amount || 0,
-      currency: formData.currency_code || 'YER',
+      currency: formData.currency_code || 'SAR',
       description: formData.description || '',
-      date: new Date().toLocaleDateString('en-GB'),
+      date: formatLocalDate(),
     });
 
     return true;

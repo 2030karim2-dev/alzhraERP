@@ -5,6 +5,7 @@ import type { InsertDto } from '../../../core/database.helpers';
 import type { TableUpdate } from '@/core/types/supabase-helpers';
 import { logger } from '../../../core/utils/logger';
 import { parseError } from '../../../core/utils/errorUtils';
+import { normalizeArabic } from '../../../core/utils/search';
 
 interface RawStock {
   quantity?: number | string;
@@ -213,10 +214,11 @@ export const productService = {
    * fallback so product pickers keep working even if the RPC is unavailable.
    */
   searchProducts: async (companyId: string, term: string): Promise<SearchResultProduct[]> => {
+    const cleanTerm = normalizeArabic(term).trim();
     try {
       const { data, error } = await supabase.rpc('search_inventory_paginated', {
         p_company_id: companyId,
-        p_term: term,
+        p_term: cleanTerm,
         p_limit: 50,
         p_offset: 0,
         p_sort_key: 'updated_at',
@@ -224,13 +226,13 @@ export const productService = {
       });
       if (error) {
         logger.warn('inventory', 'searchProducts RPC error, falling back to ILIKE:', error.message);
-        return await searchProductsFallback(companyId, term);
+        return await searchProductsFallback(companyId, cleanTerm);
       }
       return data.map(mapSearchRow);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       logger.warn('inventory', 'searchProducts failed, using fallback:', message);
-      return searchProductsFallback(companyId, term);
+      return searchProductsFallback(companyId, cleanTerm);
     }
   },
 

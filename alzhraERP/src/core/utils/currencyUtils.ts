@@ -129,16 +129,72 @@ export const formatNumber = (value: number): string => {
   return ensureLatinDigits(new Intl.NumberFormat('en-US').format(value));
 };
 
-export const parseCurrency = (currencyString: string): number => {
-  const symbolValues = Object.values(CURRENCY_SYMBOLS);
-  let cleaned = currencyString;
-  for (const sym of symbolValues) {
-    cleaned = cleaned.split(sym).join('');
-  }
-  cleaned = cleaned.replace(/\s/g, '').replace(/,/g, '');
+/**
+ * Parse any numeric input string into a standard float number.
+ * Robustly supports:
+ * - Decimals with dot ("0.50")
+ * - Decimals with comma ("0,50")
+ * - Arabic decimal separator ("0٫50")
+ * - Arabic comma ("0،50")
+ * - Eastern Arabic numerals ("٠.٥٠", "٠٫٥٠")
+ * - Thousand separators ("1,234.50")
+ */
+export const parseNumberFlexible = (value: string | number | null | undefined): number => {
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return isNaN(value) ? 0 : value;
 
-  const parsed = parseFloat(cleaned);
+  let str = ensureLatinDigits(String(value)).trim();
+  // Strip currency symbols and whitespaces
+  for (const sym of Object.values(CURRENCY_SYMBOLS)) {
+    str = str.split(sym).join('');
+  }
+  str = str.replace(/\s/g, '');
+
+  // Convert Arabic decimal separator (٫) and Arabic comma (،) to dot
+  str = str.replace(/[،٫]/g, '.');
+
+  const hasComma = str.includes(',');
+  const hasDot = str.includes('.');
+
+  if (hasComma && hasDot) {
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+    if (lastDot > lastComma) {
+      // e.g. "1,234.50" -> dot is decimal, comma is thousand separator
+      str = str.replace(/,/g, '');
+    } else {
+      // e.g. "1.234,50" -> comma is decimal, dot is thousand separator
+      str = str.replace(/\./g, '').replace(',', '.');
+    }
+  } else if (hasComma) {
+    const commaCount = (str.match(/,/g) || []).length;
+    if (commaCount > 1) {
+      // Multiple commas (e.g. "1,000,000") -> thousand separators
+      str = str.replace(/,/g, '');
+    } else {
+      // Single comma: e.g. "0,50", "12,5", "10,000"
+      const match = str.match(/^(-?\d+),(\d+)$/);
+      if (match) {
+        const [, integerPart, decimalPart] = match;
+        if (decimalPart.length === 3 && integerPart !== '0' && integerPart.length <= 3) {
+          // e.g. "10,000" or "1,000" -> thousand separator
+          str = str.replace(',', '');
+        } else {
+          // e.g. "0,50", "12,5", "0,005" -> decimal separator
+          str = str.replace(',', '.');
+        }
+      } else {
+        str = str.replace(',', '.');
+      }
+    }
+  }
+
+  const parsed = parseFloat(str);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+export const parseCurrency = (currencyString: string): number => {
+  return parseNumberFlexible(currencyString);
 };
 
 export const calculateExchangeRate = (

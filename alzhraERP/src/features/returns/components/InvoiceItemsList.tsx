@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Package, RotateCcw, Search, X } from 'lucide-react';
 import type { InvoiceItem } from '../types';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, parseNumberFlexible } from '../../../core/utils';
 
 interface InvoiceItemsListProps {
   items: InvoiceItem[];
@@ -279,12 +279,14 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                       <div className="flex items-center gap-1">
                         <input
                           type="number"
+                          step="any"
                           min="0"
                           max={maxQty}
                           value={returnQty === 0 ? '' : returnQty}
                           onChange={e => {
                             const rawVal = e.target.value;
-                            const val = Math.min(Math.max(0, parseInt(rawVal) || 0), maxQty);
+                            const parsedVal = rawVal === '' ? 0 : parseNumberFlexible(rawVal);
+                            const val = Math.min(Math.max(0, parsedVal), maxQty);
 
                             if (val > 0 && !isSelected) {
                               onItemSelect(item.id, true, val);

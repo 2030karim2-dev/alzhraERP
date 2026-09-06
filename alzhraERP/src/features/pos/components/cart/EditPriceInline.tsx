@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { useSalesStore } from '../../../../features/sales/store';
-import { convertCurrency } from '../../../../core/utils/currencyUtils';
+import {
+  convertCurrency,
+  parseNumberFlexible,
+  normalizeArabicDigits,
+} from '../../../../core/utils';
 
 export const EditPriceInline: React.FC<{
   productId: string;
@@ -12,7 +16,7 @@ export const EditPriceInline: React.FC<{
   const { items, updateItem, currency, exchangeRate, exchangeOperator } = useSalesStore();
 
   const commit = () => {
-    const num = parseFloat(value);
+    const num = parseNumberFlexible(value);
     if (!isNaN(num) && num >= 0) {
       const idx = items.findIndex(i => i.productId === productId);
       if (idx !== -1) {
@@ -44,11 +48,16 @@ export const EditPriceInline: React.FC<{
       }}
     >
       <input
-        type="number"
+        type="text"
+        inputMode="decimal"
         value={value}
         autoFocus
         onChange={e => {
-          setValue(e.target.value);
+          let raw = normalizeArabicDigits(e.target.value).replace(/[،٫]/g, '.');
+          if (raw.includes(',') && !raw.includes('.')) raw = raw.replace(',', '.');
+          if (raw === '' || raw === '.' || /^\d*\.?\d*$/.test(raw)) {
+            setValue(raw);
+          }
         }}
         onKeyDown={e => {
           if (e.key === 'Enter') commit();

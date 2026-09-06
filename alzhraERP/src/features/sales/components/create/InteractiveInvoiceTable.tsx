@@ -109,13 +109,13 @@ const InteractiveInvoiceTable: React.FC = () => {
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     rowIndex: number,
-    field: keyof SalesCartItem
+    field: keyof SalesCartItem | 'total'
   ) => {
     if (!tableRef.current) return;
 
     if (
       field === 'name' &&
-      (e.key === 'Enter' || (e.key.length === 1 && !e.ctrlKey && !e.metaKey))
+      (e.key === 'Enter' || (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey))
     ) {
       e.preventDefault();
       handleOpenSearch(rowIndex, e.key.length === 1 ? e.key : '');
@@ -129,37 +129,86 @@ const InteractiveInvoiceTable: React.FC = () => {
     const colIndex = navigationFields.indexOf(field);
 
     const moveFocus = (row: number, colField: keyof SalesCartItem | 'total') => {
-      const nextCell =
-        tableRef.current?.querySelector<HTMLInputElement>(
-          `[data-row-index="${row}"][data-col-field="${colField}"]`
-        ) ?? null;
-      nextCell?.focus();
-      if (nextCell) nextCell.select();
+      setTimeout(() => {
+        const nextCell =
+          tableRef.current?.querySelector<HTMLInputElement>(
+            `[data-row-index="${row}"][data-col-field="${colField}"]`
+          ) ?? null;
+        nextCell?.focus();
+        if (nextCell) nextCell.select();
+      }, 20);
     };
+
+    const target = e.target as HTMLInputElement;
+    const isReadOnly = target.readOnly;
+    const hasFullSelection =
+      target.selectionStart === 0 && target.selectionEnd === target.value.length;
+    const isAtStart = target.selectionStart === 0 && target.selectionEnd === 0;
+    const isAtEnd =
+      target.selectionStart === target.value.length && target.selectionEnd === target.value.length;
+    const isEmpty = target.value.trim() === '';
 
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
         moveFocus(Math.max(0, rowIndex - 1), field);
         break;
+
       case 'ArrowDown':
         e.preventDefault();
-        moveFocus(Math.min(items.length - 1, rowIndex + 1), field);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (
-          rowIndex === items.length - 1 &&
-          field === navigationFields[navigationFields.length - 1]
-        ) {
+        if (rowIndex === items.length - 1) {
           addItem();
           setTimeout(() => {
             moveFocus(rowIndex + 1, 'name');
-          }, 50);
+          }, 60);
         } else {
           moveFocus(rowIndex + 1, field);
         }
         break;
+
+      case 'ArrowLeft':
+        // In RTL: Left arrow navigates forward (name -> quantity -> price -> discount -> total)
+        if (isReadOnly || hasFullSelection || isAtEnd || isEmpty || e.ctrlKey || e.altKey) {
+          e.preventDefault();
+          if (colIndex < navigationFields.length - 1) {
+            moveFocus(rowIndex, navigationFields[colIndex + 1]);
+          } else if (rowIndex === items.length - 1) {
+            addItem();
+            setTimeout(() => {
+              moveFocus(rowIndex + 1, 'name');
+            }, 60);
+          } else {
+            moveFocus(rowIndex + 1, navigationFields[0]);
+          }
+        }
+        break;
+
+      case 'ArrowRight':
+        // In RTL: Right arrow navigates backward (total -> discount -> price -> quantity -> name)
+        if (isReadOnly || hasFullSelection || isAtStart || isEmpty || e.ctrlKey || e.altKey) {
+          e.preventDefault();
+          if (colIndex > 0) {
+            moveFocus(rowIndex, navigationFields[colIndex - 1]);
+          } else if (rowIndex > 0) {
+            moveFocus(rowIndex - 1, navigationFields[navigationFields.length - 1]);
+          }
+        }
+        break;
+
+      case 'Enter':
+        e.preventDefault();
+        if (colIndex < navigationFields.length - 1) {
+          moveFocus(rowIndex, navigationFields[colIndex + 1]);
+        } else if (rowIndex === items.length - 1) {
+          addItem();
+          setTimeout(() => {
+            moveFocus(rowIndex + 1, 'name');
+          }, 60);
+        } else {
+          moveFocus(rowIndex + 1, navigationFields[0]);
+        }
+        break;
+
       case 'Tab':
         e.preventDefault();
         const nextColIndex = e.shiftKey ? colIndex - 1 : colIndex + 1;
@@ -169,13 +218,14 @@ const InteractiveInvoiceTable: React.FC = () => {
           addItem();
           setTimeout(() => {
             moveFocus(rowIndex + 1, 'name');
-          }, 50);
+          }, 60);
         } else if (!e.shiftKey) {
           moveFocus(rowIndex + 1, navigationFields[0]);
         } else if (e.shiftKey && rowIndex > 0) {
           moveFocus(rowIndex - 1, navigationFields[navigationFields.length - 1]);
         }
         break;
+
       default:
         return;
     }

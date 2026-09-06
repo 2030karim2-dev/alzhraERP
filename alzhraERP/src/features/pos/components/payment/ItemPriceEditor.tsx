@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 import { useSalesStore } from '../../../sales/store';
-import { convertCurrency } from '../../../../core/utils/currencyUtils';
+import { convertCurrency, parseNumberFlexible } from '../../../../core/utils';
 
 interface ItemPriceEditorProps {
   show: boolean;
@@ -23,11 +23,11 @@ interface CommitPriceEditArgs {
 }
 
 /**
- * [FIX] تثبيت تعديل السعر خارج المكوّن: المُدخل بعملة السلة — basePrice يُشتق
- * عكسياً للعملة الأساس (كان يُكتب بنفس القيمة فيفسد سعر الأساس بعامل سعر
- * الصرف فتعود التعديلات لقيم خاطئة عند أي تغيير عملة لاحق).
+ * Commits a price edit for an item in the cart.
+ * If currency is foreign, computes basePrice using the exchange rate.
+ * Re-exported for unit testing.
  */
-const commitPriceEdit = ({
+export const commitPriceEdit = ({
   raw,
   realIdx,
   currency,
@@ -35,7 +35,7 @@ const commitPriceEdit = ({
   exchangeOperator,
   updateItem,
 }: CommitPriceEditArgs): void => {
-  const v = parseFloat(raw);
+  const v = parseNumberFlexible(raw);
   if (isNaN(v) || v < 0 || realIdx === -1) return;
 
   let basePrice = v;
@@ -78,6 +78,7 @@ const PriceRow: React.FC<PriceRowProps> = ({
       <span className="text-[10px] text-slate-400">سعر:</span>
       <input
         type="number"
+        step="any"
         defaultValue={item.price}
         onBlur={e => {
           commitPriceEdit({

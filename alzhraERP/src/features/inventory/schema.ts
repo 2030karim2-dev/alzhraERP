@@ -1,5 +1,5 @@
-/* eslint-disable */
 import { z } from 'zod';
+import { parseNumberFlexible } from '@/core/utils/currencyUtils';
 
 // Helper for numeric inputs that might come from text fields as strings
 const numericStringOrNumber = z
@@ -7,8 +7,7 @@ const numericStringOrNumber = z
   .transform(val => {
     if (val === null || val === undefined || val === '') return 0;
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
-    const parsed = parseFloat(String(val));
-    return isNaN(parsed) ? 0 : parsed;
+    return parseNumberFlexible(val);
   });
 
 export const productFormSchema = z.object({

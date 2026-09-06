@@ -1,6 +1,8 @@
 import React from 'react';
 import { Search, Trash2 } from 'lucide-react';
 import type { PurchaseInvoiceItem } from '../../store';
+import type { PurchaseNavigationField } from './usePurchaseTableKeyboard';
+import { normalizeArabicDigits } from '@/core/utils';
 
 interface ProductCellProps {
   item: PurchaseInvoiceItem;
@@ -9,7 +11,7 @@ interface ProductCellProps {
   onKeyDown: (
     event: React.KeyboardEvent<HTMLInputElement>,
     index: number,
-    field: keyof PurchaseInvoiceItem
+    field: PurchaseNavigationField
   ) => void;
 }
 
@@ -66,24 +68,49 @@ export const PurchaseNumericCell: React.FC<NumericCellProps> = ({
   className = '',
   onChange,
   onKeyDown,
-}) => (
-  <td className="border-l p-0 dark:border-slate-800">
-    <input
-      type="number"
-      value={value || ''}
-      onChange={event => {
-        onChange(index, field, parseFloat(event.target.value) || 0);
-      }}
-      onKeyDown={event => {
-        onKeyDown(event, index, field);
-      }}
-      data-row-index={index}
-      data-col-field={field}
-      className={`h-full min-h-8 w-full bg-transparent p-2 text-center font-mono text-sm font-bold outline-none max-md:min-h-7 max-md:p-1 md:text-base ${className}`}
-      placeholder={placeholder}
-    />
-  </td>
-);
+}) => {
+  const [localVal, setLocalVal] = React.useState<string>(
+    value !== 0 && value !== undefined && !isNaN(value) ? String(value) : ''
+  );
+
+  React.useEffect(() => {
+    const num = parseFloat(localVal) || 0;
+    if (num !== value) {
+      setLocalVal(value !== 0 && value !== undefined && !isNaN(value) ? String(value) : '');
+    }
+  }, [value]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = normalizeArabicDigits(event.target.value).replace(/[،٫]/g, '.');
+    if (raw.includes(',') && !raw.includes('.')) {
+      raw = raw.replace(',', '.');
+    }
+    if (raw === '' || raw === '-' || raw === '.' || /^-?\d*\.?\d*$/.test(raw)) {
+      setLocalVal(raw);
+      const parsed = parseFloat(raw);
+      onChange(index, field, isNaN(parsed) ? 0 : parsed);
+    }
+  };
+
+  return (
+    <td className="border-l p-0 dark:border-slate-800">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={localVal}
+        onChange={handleChange}
+        onKeyDown={event => {
+          onKeyDown(event, index, field);
+        }}
+        data-row-index={index}
+        data-col-field={field}
+        className={`h-full min-h-8 w-full bg-transparent p-2 text-center font-mono text-sm font-bold outline-none max-md:min-h-7 max-md:p-1 md:text-base ${className}`}
+        placeholder={placeholder}
+        dir="ltr"
+      />
+    </td>
+  );
+};
 
 interface TotalCellProps {
   item: PurchaseInvoiceItem;
@@ -93,7 +120,7 @@ interface TotalCellProps {
   onKeyDown: (
     event: React.KeyboardEvent<HTMLInputElement>,
     index: number,
-    field: keyof PurchaseInvoiceItem
+    field: PurchaseNavigationField
   ) => void;
 }
 
@@ -122,12 +149,15 @@ export const PurchaseTotalCell: React.FC<TotalCellProps> = ({
     <td className="border-l bg-blue-50/50 p-0 dark:border-slate-800 dark:bg-slate-950/30">
       <input
         type="number"
+        step="any"
         value={total !== 0 ? Number(total.toFixed(2)) : ''}
         onChange={event => {
-          handleTotalChange(parseFloat(event.target.value) || 0);
+          let raw = normalizeArabicDigits(event.target.value).replace(/[،٫]/g, '.');
+          if (raw.includes(',') && !raw.includes('.')) raw = raw.replace(',', '.');
+          handleTotalChange(parseFloat(raw) || 0);
         }}
         onKeyDown={event => {
-          onKeyDown(event, index, 'costPrice');
+          onKeyDown(event, index, 'total');
         }}
         data-row-index={index}
         data-col-field="total"

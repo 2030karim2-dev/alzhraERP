@@ -5,6 +5,8 @@ import {
   convertCurrency,
   toBaseCurrency,
   formatCurrency,
+  parseCurrency,
+  parseNumberFlexible,
   ensureLatinDigits,
   CurrencyError,
   CURRENCY_SYMBOLS,
@@ -307,6 +309,51 @@ describe('currencyUtils', () => {
       // حتى لو دخلت أرقام عربية من مصدر خارجي يبقى الناتج إنجليزياً
       expect(formatCurrency(1234.5, 'SAR')).toMatch(/[0-9]/);
       expect(formatCurrency(1234.5, 'SAR')).not.toMatch(/[٠-٩]/);
+    });
+  });
+
+  describe('parseNumberFlexible & parseCurrency', () => {
+    it('handles regular decimals and numbers', () => {
+      expect(parseNumberFlexible(0.5)).toBe(0.5);
+      expect(parseNumberFlexible('0.50')).toBe(0.5);
+      expect(parseNumberFlexible('.5')).toBe(0.5);
+      expect(parseNumberFlexible('150.75')).toBe(150.75);
+    });
+
+    it('handles commas as decimal points (European & Arabic keyboards)', () => {
+      expect(parseNumberFlexible('0,50')).toBe(0.5);
+      expect(parseNumberFlexible('0،50')).toBe(0.5); // Arabic comma U+060C
+      expect(parseNumberFlexible('0٫50')).toBe(0.5); // Arabic decimal separator U+066B
+    });
+
+    it('handles Eastern Arabic & Persian numerals', () => {
+      expect(parseNumberFlexible('٠.٥٠')).toBe(0.5);
+      expect(parseNumberFlexible('٠٫٥٠')).toBe(0.5);
+      expect(parseNumberFlexible('١٢.٥')).toBe(12.5);
+      expect(parseNumberFlexible('۰.۵')).toBe(0.5);
+    });
+
+    it('handles thousand separators alongside decimal separators', () => {
+      expect(parseNumberFlexible('1,234.50')).toBe(1234.5);
+      expect(parseNumberFlexible('1.234,50')).toBe(1234.5);
+      expect(parseNumberFlexible('10,000')).toBe(10000);
+      expect(parseNumberFlexible('10 000,50')).toBe(10000.5);
+    });
+
+    it('handles invalid or empty inputs safely', () => {
+      expect(parseNumberFlexible('')).toBe(0);
+      expect(parseNumberFlexible(null)).toBe(0);
+      expect(parseNumberFlexible(undefined)).toBe(0);
+      expect(parseNumberFlexible('abc')).toBe(0);
+      expect(parseNumberFlexible(NaN)).toBe(0);
+    });
+
+    it('parseCurrency also accepts decimals and commas seamlessly', () => {
+      expect(parseCurrency('0.50')).toBe(0.5);
+      expect(parseCurrency('0,50')).toBe(0.5);
+      expect(parseCurrency('0٫50')).toBe(0.5);
+      expect(parseCurrency('0،50')).toBe(0.5);
+      expect(parseCurrency('1,500.25 SAR')).toBe(1500.25);
     });
   });
 });

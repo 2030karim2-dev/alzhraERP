@@ -23,8 +23,23 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
 
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('ALL');
+
   const selectedParty = parties?.find(p => p.id === selectedPartyId);
   const movements = statement || [];
+
+  const availableCurrencies = React.useMemo(() => {
+    const set = new Set<string>();
+    movements.forEach(m => {
+      if (m.currency) set.add(m.currency);
+    });
+    return Array.from(set);
+  }, [movements]);
+
+  const filteredMovements = React.useMemo(() => {
+    if (selectedCurrency === 'ALL') return movements;
+    return movements.filter(m => m.currency === selectedCurrency);
+  }, [movements, selectedCurrency]);
 
   const columns = [
     {
@@ -69,7 +84,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
       accessor: (row: StatementMovement) =>
         row.debit > 0 ? (
           <span dir="ltr" className="font-bold text-emerald-600">
-            {formatCurrency(row.debit)}
+            {formatCurrency(row.debit, row.currency)}
           </span>
         ) : (
           '-'
@@ -82,7 +97,7 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
       accessor: (row: StatementMovement) =>
         row.credit > 0 ? (
           <span dir="ltr" className="font-bold text-rose-600">
-            {formatCurrency(row.credit)}
+            {formatCurrency(row.credit, row.currency)}
           </span>
         ) : (
           '-'
@@ -97,10 +112,12 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
           dir="ltr"
           className={cn(
             'font-mono font-bold',
-            (row.balance || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'
+            (row.balance || 0) >= 0
+              ? 'text-emerald-700 dark:text-emerald-400'
+              : 'text-rose-700 dark:text-rose-400'
           )}
         >
-          {formatCurrency(row.balance || 0)}
+          {formatCurrency(row.balance || 0, row.currency)}
         </span>
       ),
       width: '150px',
@@ -124,12 +141,15 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
         partyType={partyType}
         parties={parties}
         selectedPartyId={selectedPartyId}
-        onSelectPartyId={setSelectedPartyId}
+        onSelectPartyId={id => {
+          setSelectedPartyId(id);
+          setSelectedCurrency('ALL');
+        }}
         startDate={startDate}
         onStartDateChange={setStartDate}
         endDate={endDate}
         onEndDateChange={setEndDate}
-        statement={movements}
+        statement={filteredMovements}
         companyNameAr={company.nameAr}
       />
 
@@ -144,14 +164,55 @@ const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
               partyName={selectedParty?.name ?? ''}
             />
 
+            {availableCurrencies.length > 1 && (
+              <div className="no-print flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
+                <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400">
+                  تصفية العملة:
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCurrency('ALL');
+                    }}
+                    className={cn(
+                      'rounded-lg px-3 py-1 text-xs font-bold transition-all',
+                      selectedCurrency === 'ALL'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300'
+                    )}
+                  >
+                    جميع العملات
+                  </button>
+                  {availableCurrencies.map(curr => (
+                    <button
+                      key={curr}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCurrency(curr);
+                      }}
+                      className={cn(
+                        'rounded-lg px-3 py-1 text-xs font-bold transition-all',
+                        selectedCurrency === curr
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300'
+                      )}
+                    >
+                      {curr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <ExcelTable
               columns={columns}
-              data={movements}
+              data={filteredMovements}
               title={`كشف حساب: ${selectedParty?.name}`}
               colorTheme={partyType === 'customer' ? 'green' : 'blue'}
             />
 
-            <StatementSummaryCards movements={movements} />
+            <StatementSummaryCards movements={filteredMovements} partyType={partyType} />
           </>
         )
       ) : (
