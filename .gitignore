@@ -28,6 +28,8 @@ import_script.sql
 tsc_errors.log
 tsc_output.txt
 sizes.txt
+sizes.txt
+tmp-verify/
 
 # etc
 .env.production.local

@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
+import { parseError } from '../../../core/utils/errorUtils';
 import { buildIlikeOrFilter } from '../../../core/utils/postgrestFilter';
 import type { Database } from '../../../core/database.types';
 import type {
@@ -764,7 +765,7 @@ export const chatService = {
       });
     } catch (err) {
       logger.error('ChatService', 'Error searching products for sharing', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -806,7 +807,7 @@ export const chatService = {
       }));
     } catch (err) {
       logger.error('ChatService', 'Error searching invoices for sharing', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -844,7 +845,7 @@ export const chatService = {
       }));
     } catch (err) {
       logger.error('ChatService', 'Error searching transfers for sharing', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -867,7 +868,7 @@ export const chatService = {
       return data || [];
     } catch (err) {
       logger.error('ChatService', 'Error searching VINs for sharing', err);
-      return [];
+      throw parseError(err);
     }
   },
 };

@@ -13,6 +13,8 @@ import { chatService } from '../services/chatService';
 import { useAuthStore } from '../../auth/store';
 import type { EntityCardMetadata } from '../types';
 import { formatCurrency } from '../../../core/utils';
+import { parseError } from '../../../core/utils/errorUtils';
+import { useFeedbackStore } from '../../feedback/store';
 
 interface BranchItem {
   id: string;
@@ -40,6 +42,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   const [selectedProductForTransfer, setSelectedProductForTransfer] = useState<any | null>(null);
 
   const companyId = user?.company_id;
+  const { showToast } = useFeedbackStore();
 
   // Load branches
   useEffect(() => {
@@ -74,6 +77,8 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
         }
       } catch (err) {
         setResults([]);
+        // سلامة الرفض: لا نبتلع رفض الخادم (خاصة الصلاحيات) — نُعلم المستخدم برسالة مُفسَّرة
+        showToast(parseError(err).message, 'error');
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +87,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
     return () => {
       clearTimeout(timer);
     };
-  }, [search, activeTab, transferMode, companyId, isOpen]);
+  }, [search, activeTab, transferMode, companyId, isOpen, showToast]);
 
   if (!isOpen) return null;
 
