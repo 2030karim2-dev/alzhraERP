@@ -292,7 +292,7 @@ export const chatService = {
       return formatted;
     } catch (err) {
       logger.error('ChatService', 'Error fetching chat channels', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -410,7 +410,7 @@ export const chatService = {
       return formatted.reverse();
     } catch (err) {
       logger.error('ChatService', 'Error fetching messages', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -698,7 +698,7 @@ export const chatService = {
       }));
     } catch (err) {
       logger.error('ChatService', 'Error fetching company employees', err);
-      return [];
+      throw parseError(err);
     }
   },
 
@@ -716,7 +716,7 @@ export const chatService = {
       return data || [];
     } catch (err) {
       logger.error('ChatService', 'Error fetching company branches', err);
-      return [];
+      throw parseError(err);
     }
   },
 

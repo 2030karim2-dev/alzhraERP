@@ -3,6 +3,8 @@ import { X, User, MessageSquare, Plus, Search, Loader2 } from 'lucide-react';
 import { chatService } from '../services/chatService';
 import { useAuthStore } from '../../auth/store';
 import { useChatStore } from '../stores/chatStore';
+import { parseError } from '../../../core/utils/errorUtils';
+import { useFeedbackStore } from '../../feedback/store';
 
 interface EmployeeItem {
   id: string;
@@ -25,6 +27,7 @@ interface Props {
 export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
   const { setActiveChannel, fetchChannels } = useChatStore();
+  const { showToast } = useFeedbackStore();
 
   const [mode, setMode] = useState<'direct' | 'group'>('direct');
   const [search, setSearch] = useState('');
@@ -54,10 +57,14 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
         setEmployees(emps.filter(e => e.id !== user?.id));
         if (brs) setBranches(brs);
       })
+      .catch((err: unknown) => {
+        // سلامة الرفض: إظهار رفض الخادم (خاصة الصلاحيات) بدلاً من قائمة فارغة صامتة
+        showToast(parseError(err).message, 'error');
+      })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [isOpen, companyId, user?.id]);
+  }, [isOpen, companyId, user?.id, showToast]);
 
   if (!isOpen) return null;
 

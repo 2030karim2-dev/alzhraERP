@@ -15,12 +15,12 @@ interface MockQueryResult {
 }
 
 /** سلسلة استعلام وهمية: كل باني تُعيد السلسلة، و `.limit()` هي النهاية الحالّة. */
-const buildQueryChain = (result: MockQueryResult) => {
+const buildQueryChain = (result: MockQueryResult, terminal = 'limit') => {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-  for (const method of ['select', 'eq', 'or', 'ilike', 'order']) {
+  for (const method of ['select', 'eq', 'or', 'ilike', 'order', 'limit']) {
     chain[method] = vi.fn(() => chain);
   }
-  chain.limit = vi.fn(() => Promise.resolve(result));
+  chain[terminal] = vi.fn(() => Promise.resolve(result));
   return chain;
 };
 
@@ -224,6 +224,92 @@ describe('chatService — بحث مشاركة الكيانات (Entity Share)', 
       vi.spyOn(logger, 'error').mockReturnValue(undefined);
 
       const err = await catchErr(chatService.searchVins('comp-1', 'JT3'));
+
+      expect(err?.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
+    });
+  });
+
+  describe('getCompanyBranches', () => {
+    it('يعيد الفروع عند النجاح', async () => {
+      const chain = buildQueryChain(
+        { data: [{ id: 'b1', name: 'الفرع الرئيسي' }], error: null },
+        'eq'
+      );
+      mockFrom.mockReturnValue(chain);
+
+      const result = await chatService.getCompanyBranches('comp-1');
+
+      expect(mockFrom).toHaveBeenCalledWith('branches');
+      expect(chain.eq).toHaveBeenCalledWith('company_id', 'comp-1');
+      expect(result).toEqual([{ id: 'b1', name: 'الفرع الرئيسي' }]);
+    });
+
+    it('يرمي AppError برسالة الصلاحيات عند 42501 بدلاً من [] صامتة', async () => {
+      mockFrom.mockReturnValue(
+        buildQueryChain(
+          { data: null, error: { code: '42501', message: 'permission denied' } },
+          'eq'
+        )
+      );
+      vi.spyOn(logger, 'error').mockReturnValue(undefined);
+
+      const err = await catchErr(chatService.getCompanyBranches('comp-1'));
+
+      expect(err?.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
+    });
+  });
+
+  describe('getCompanyEmployees', () => {
+    it('يحوّل صفوف الأدوار إلى قائمة موظفين مع اسم الفرع والاحتياطيات', async () => {
+      const chain = buildQueryChain(
+        {
+          data: [
+            {
+              user_id: 'u1',
+              role: 'manager',
+              branch_id: 'b1',
+              branches: { name: 'الفرع الشرقي' },
+              profiles: { id: 'u1', full_name: 'أحمد', avatar_url: null },
+            },
+            {
+              user_id: 'u2',
+              role: 'sales',
+              branch_id: null,
+              branches: null,
+              profiles: null,
+            },
+          ],
+          error: null,
+        },
+        'eq'
+      );
+      mockFrom.mockReturnValue(chain);
+
+      const result = await chatService.getCompanyEmployees('comp-1');
+
+      expect(mockFrom).toHaveBeenCalledWith('user_company_roles');
+      expect(result).toEqual([
+        {
+          id: 'u1',
+          full_name: 'أحمد',
+          avatar_url: null,
+          role: 'manager',
+          branch_name: 'الفرع الشرقي',
+        },
+        { id: 'u2', full_name: 'موظف', avatar_url: null, role: 'sales', branch_name: null },
+      ]);
+    });
+
+    it('يرمي AppError برسالة الصلاحيات عند 42501 بدلاً من [] صامتة', async () => {
+      mockFrom.mockReturnValue(
+        buildQueryChain(
+          { data: null, error: { code: '42501', message: 'permission denied' } },
+          'eq'
+        )
+      );
+      vi.spyOn(logger, 'error').mockReturnValue(undefined);
+
+      const err = await catchErr(chatService.getCompanyEmployees('comp-1'));
 
       expect(err?.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
     });

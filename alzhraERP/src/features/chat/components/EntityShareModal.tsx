@@ -47,10 +47,16 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   // Load branches
   useEffect(() => {
     if (!companyId) return;
-    chatService.getCompanyBranches(companyId).then(data => {
-      if (data) setBranches(data);
-    });
-  }, [companyId]);
+    chatService
+      .getCompanyBranches(companyId)
+      .then(data => {
+        if (data) setBranches(data);
+      })
+      .catch((err: unknown) => {
+        // سلامة الرفض: إظهار رفض الخادم بدلاً من قائمة فروع فارغة صامتة
+        showToast(parseError(err).message, 'error');
+      });
+  }, [companyId, showToast]);
 
   // Search effect
   useEffect(() => {

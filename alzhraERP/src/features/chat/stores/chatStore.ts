@@ -127,36 +127,42 @@ export const useChatStore = create<ChatState>()(
         if (!channelId) return;
 
         const currentMessages = get().messagesByChannel[channelId] || [];
-        if (loadMore) {
-          if (get().isLoadingMoreMessages || !get().hasMoreMessages[channelId]) return;
-          set({ isLoadingMoreMessages: true });
-          const oldestMessage = currentMessages[0];
-          const older = await chatService.getMessages(channelId, 30, oldestMessage?.created_at);
-          set(state => ({
-            messagesByChannel: {
-              ...state.messagesByChannel,
-              [channelId]: [...older, ...(state.messagesByChannel[channelId] || [])],
-            },
-            hasMoreMessages: {
-              ...state.hasMoreMessages,
-              [channelId]: older.length >= 30,
-            },
-            isLoadingMoreMessages: false,
-          }));
-        } else {
-          set({ isLoadingMessages: true });
-          const messages = await chatService.getMessages(channelId, 40);
-          set(state => ({
-            messagesByChannel: {
-              ...state.messagesByChannel,
-              [channelId]: messages,
-            },
-            hasMoreMessages: {
-              ...state.hasMoreMessages,
-              [channelId]: messages.length >= 40,
-            },
-            isLoadingMessages: false,
-          }));
+        try {
+          if (loadMore) {
+            if (get().isLoadingMoreMessages || !get().hasMoreMessages[channelId]) return;
+            set({ isLoadingMoreMessages: true });
+            const oldestMessage = currentMessages[0];
+            const older = await chatService.getMessages(channelId, 30, oldestMessage?.created_at);
+            set(state => ({
+              messagesByChannel: {
+                ...state.messagesByChannel,
+                [channelId]: [...older, ...(state.messagesByChannel[channelId] || [])],
+              },
+              hasMoreMessages: {
+                ...state.hasMoreMessages,
+                [channelId]: older.length >= 30,
+              },
+              isLoadingMoreMessages: false,
+            }));
+          } else {
+            set({ isLoadingMessages: true });
+            const messages = await chatService.getMessages(channelId, 40);
+            set(state => ({
+              messagesByChannel: {
+                ...state.messagesByChannel,
+                [channelId]: messages,
+              },
+              hasMoreMessages: {
+                ...state.hasMoreMessages,
+                [channelId]: messages.length >= 40,
+              },
+              isLoadingMessages: false,
+            }));
+          }
+        } catch (err) {
+          // سلامة الرفض: الخدمة تعيد رمي الرفض المُفسَّر — نسجّله هنا لمنع unhandled rejection
+          logger.error('ChatStore', 'Failed to fetch messages', err);
+          set({ isLoadingMessages: false, isLoadingMoreMessages: false });
         }
       },
 
