@@ -29,7 +29,7 @@ interface PartiesPageProps {
 }
 
 /** Segmented control for party type — navigates between /clients and /suppliers
- *  (URL is the single source of truth — plans/party-routes-tabs-cleanup.md). */
+ *  (URL is the single source of truth — docs/archive/plans/party-routes-tabs-cleanup.md). */
 const PartyTypeSwitcher: React.FC<{
   partyType: PartyType;
   onSwitch: (type: PartyType) => void;
@@ -365,7 +365,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
         />
 
         {/* Type switcher — the URL is the single source of truth
-                    (plans/party-routes-tabs-cleanup.md). */}
+                    (docs/archive/plans/party-routes-tabs-cleanup.md). */}
         <PartyTypeSwitcher
           partyType={partyType}
           onSwitch={type => {
