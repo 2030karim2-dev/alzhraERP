@@ -43,7 +43,7 @@ describe('ExcelCartTable', () => {
   it('renders table headers and row index numbers correctly', () => {
     render(<ExcelCartTable {...defaultProps} />);
 
-    expect(screen.getByText('اسم الصنف')).toBeDefined();
+    expect(screen.getByText('الصنف')).toBeDefined();
     expect(screen.getByText('رقم القطعة')).toBeDefined();
     expect(screen.getByText('الكمية')).toBeDefined();
     expect(screen.getByText('السعر')).toBeDefined();

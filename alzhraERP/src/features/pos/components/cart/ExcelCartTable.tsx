@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Trash2, Plus, Minus, Edit3, Store, AlertTriangle, CornerDownLeft } from 'lucide-react';
-import { cn, formatCurrency, formatNumberDisplay } from '../../../../core/utils';
+import { Trash2, Plus, Minus, Edit3, AlertTriangle, CornerDownLeft } from 'lucide-react';
+import { cn, formatCurrency } from '../../../../core/utils';
+import { useColumnResize } from '../../../../ui/common/hooks/useColumnResize';
 import { EditPriceInline } from './EditPriceInline';
 import type { SalesCartItem } from '../../../sales/store';
 
@@ -28,6 +29,22 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
   const activeCellRef = useRef<HTMLTableCellElement | null>(null);
   const prevItemsLengthRef = useRef(items.length);
 
+  // Column resizing with localStorage persistence
+  const { colWidths, onResizeMouseDown } = useColumnResize({
+    storageKey: 'pos_active_cart_col_widths',
+    defaultWidths: {
+      index: 26,
+      name: 130,
+      partNumber: 75,
+      quantity: 65,
+      price: 60,
+      total: 65,
+      action: 26,
+    },
+    minWidth: 20,
+    isRTL: true,
+  });
+
   // Auto focus the quantity cell when a new item is added
   useEffect(() => {
     if (items.length > prevItemsLengthRef.current && items.length > 0) {
@@ -38,7 +55,7 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
     prevItemsLengthRef.current = items.length;
   }, [items.length, focusedCell.row]);
 
-  // Scroll active cell into view
+  // Scroll active cell into view safely
   useEffect(() => {
     if (typeof activeCellRef.current?.scrollIntoView === 'function') {
       activeCellRef.current.scrollIntoView({
@@ -214,27 +231,74 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
     >
       <div className="custom-scrollbar flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse border border-slate-300 text-right dark:border-slate-700/80">
+          <colgroup>
+            <col style={{ width: colWidths.index ?? 26 }} />
+            <col style={{ width: colWidths.name ?? 130 }} />
+            <col style={{ width: colWidths.partNumber ?? 75 }} />
+            <col style={{ width: colWidths.quantity ?? 65 }} />
+            <col style={{ width: colWidths.price ?? 60 }} />
+            <col style={{ width: colWidths.total ?? 65 }} />
+            <col style={{ width: colWidths.action ?? 26 }} />
+          </colgroup>
           <thead className="sticky top-0 z-20 border-b border-slate-300 bg-slate-100 shadow-xs dark:border-slate-700 dark:bg-slate-800">
-            <tr className="text-[10px] font-bold text-slate-600 dark:text-slate-300 md:text-[11px]">
-              <th className="w-9 select-none border-l border-slate-300 bg-slate-200/70 py-2 text-center dark:border-slate-700 dark:bg-slate-850">
+            <tr className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
+              {/* Col 0: Index Header */}
+              <th className="select-none border-l border-slate-300 bg-slate-200/70 py-1.5 text-center dark:border-slate-700 dark:bg-slate-850">
                 #
               </th>
-              <th className="border-l border-slate-300 px-2 py-2 text-right dark:border-slate-700">
-                اسم الصنف
+
+              {/* Col 1: Name Header (Resizable) */}
+              <th className="relative select-none border-l border-slate-300 px-1.5 py-1.5 text-right dark:border-slate-700">
+                <span className="truncate">الصنف</span>
+                <div
+                  onMouseDown={e => onResizeMouseDown(e, 'name')}
+                  className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
+                  title="اسحب لتغيير العرض"
+                />
               </th>
-              <th className="w-24 border-l border-slate-300 px-1 py-2 text-right dark:border-slate-700">
-                رقم القطعة
+
+              {/* Col 2: Part Number Header (Resizable) */}
+              <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-right dark:border-slate-700">
+                <span className="truncate">رقم القطعة</span>
+                <div
+                  onMouseDown={e => onResizeMouseDown(e, 'partNumber')}
+                  className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
+                  title="اسحب لتغيير العرض"
+                />
               </th>
-              <th className="w-24 border-l border-slate-300 px-1 py-2 text-center dark:border-slate-700">
-                الكمية
+
+              {/* Col 3: Quantity Header (Resizable) */}
+              <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-center dark:border-slate-700">
+                <span>الكمية</span>
+                <div
+                  onMouseDown={e => onResizeMouseDown(e, 'quantity')}
+                  className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
+                  title="اسحب لتغيير العرض"
+                />
               </th>
-              <th className="w-24 border-l border-slate-300 px-1 py-2 text-left dark:border-slate-700">
-                السعر
+
+              {/* Col 4: Price Header (Resizable) */}
+              <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-left dark:border-slate-700">
+                <span>السعر</span>
+                <div
+                  onMouseDown={e => onResizeMouseDown(e, 'price')}
+                  className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
+                  title="اسحب لتغيير العرض"
+                />
               </th>
-              <th className="w-24 border-l border-slate-300 px-1 py-2 text-left dark:border-slate-700">
-                الإجمالي
+
+              {/* Col 5: Total Header (Resizable) */}
+              <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-left dark:border-slate-700">
+                <span>الإجمالي</span>
+                <div
+                  onMouseDown={e => onResizeMouseDown(e, 'total')}
+                  className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
+                  title="اسحب لتغيير العرض"
+                />
               </th>
-              <th className="w-9 py-2 text-center">✕</th>
+
+              {/* Col 6: Actions Header */}
+              <th className="py-1.5 text-center">✕</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700/80">
@@ -253,7 +317,7 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                 <tr
                   key={item.productId}
                   className={cn(
-                    'transition-colors',
+                    'h-7 transition-colors',
                     isRowActive
                       ? 'bg-blue-50/30 dark:bg-blue-950/20'
                       : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30',
@@ -273,79 +337,62 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     {rowIdx + 1}
                   </td>
 
-                  {/* Col 1: Product Name */}
+                  {/* Col 1: Product Name (Compact Single-line) */}
                   <td
                     ref={isCellActive(1) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 1 })}
                     className={cn(
-                      'relative cursor-pointer border-b border-l border-slate-200 p-1.5 align-top dark:border-slate-700/80',
+                      'relative cursor-pointer border-b border-l border-slate-200 px-1.5 py-1 align-middle dark:border-slate-700/80',
                       isCellActive(1) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
                   >
-                    <div className="flex flex-col">
+                    <div className="flex items-center gap-1 overflow-hidden">
+                      {isOverStock && (
+                        <span
+                          title={`الكمية تتجاوز المتاح (${totalAvailable})`}
+                          className="flex shrink-0 items-center"
+                        >
+                          <AlertTriangle size={11} className="text-rose-500" />
+                        </span>
+                      )}
+                      {isLowStock && !isOverStock && (
+                        <span
+                          title={`المتبقي: ${totalAvailable}`}
+                          className="flex shrink-0 items-center"
+                        >
+                          <AlertTriangle size={11} className="text-amber-500" />
+                        </span>
+                      )}
                       <span
-                        className="line-clamp-2 text-xs font-bold leading-snug text-slate-800 dark:text-slate-100"
+                        className="truncate text-[11px] font-bold leading-tight text-slate-800 dark:text-slate-100"
                         title={item.name}
                       >
                         {item.name}
                       </span>
-                      {item.warehouse_distribution && item.warehouse_distribution.length > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {item.warehouse_distribution.map((wd, i) => (
-                            <span
-                              key={i}
-                              className={cn(
-                                'py-0.2 inline-flex items-center gap-0.5 rounded border px-1 text-[10px]',
-                                wd.quantity > 0
-                                  ? 'border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                                  : 'border-rose-200 bg-rose-100 text-rose-600 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
-                              )}
-                            >
-                              <Store size={9} />
-                              <span className="max-w-[65px] truncate">{wd.warehouse_name}</span>
-                              <span className="font-mono font-bold">
-                                ({formatNumberDisplay(wd.quantity)})
-                              </span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {isOverStock && (
-                        <div className="mt-1 flex items-center gap-1 rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-600 dark:border-rose-700 dark:bg-rose-900/20 dark:text-rose-400">
-                          <AlertTriangle size={10} />
-                          <span>يتجاوز المتاح ({totalAvailable})</span>
-                        </div>
-                      )}
-                      {isLowStock && !isOverStock && (
-                        <div className="mt-1 flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                          <AlertTriangle size={10} />
-                          <span>المتبقي: {totalAvailable}</span>
-                        </div>
-                      )}
                     </div>
                     {isCellActive(1) && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-blue-600 dark:bg-blue-500" />
                     )}
                   </td>
 
-                  {/* Col 2: Part Number */}
+                  {/* Col 2: Part Number (Compact) */}
                   <td
                     ref={isCellActive(2) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 2 })}
                     className={cn(
-                      'relative cursor-pointer break-all border-b border-l border-slate-200 p-1.5 align-top font-mono text-xs text-slate-600 dark:border-slate-700/80 dark:text-slate-400',
+                      'relative cursor-pointer border-b border-l border-slate-200 px-1 py-1 align-middle font-mono text-[10px] text-slate-500 dark:border-slate-700/80 dark:text-slate-400',
                       isCellActive(2) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
                   >
-                    <span>{item.partNumber || item.sku || '-'}</span>
+                    <span className="block truncate">{item.partNumber || item.sku || '-'}</span>
                     {isCellActive(2) && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-blue-600 dark:bg-blue-500" />
                     )}
                   </td>
 
-                  {/* Col 3: Quantity (Editable) */}
+                  {/* Col 3: Quantity (Compact & Editable) */}
                   <td
                     ref={isCellActive(3) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 3 })}
@@ -354,13 +401,13 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                       setQtyInputValue(String(item.quantity));
                     }}
                     className={cn(
-                      'relative cursor-pointer border-b border-l border-slate-200 p-1 text-center align-middle dark:border-slate-700/80',
+                      'relative cursor-pointer border-b border-l border-slate-200 px-0.5 py-0.5 text-center align-middle dark:border-slate-700/80',
                       isCellActive(3) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
                   >
                     {editingQtyRow === rowIdx ? (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <input
                           type="number"
                           step="any"
@@ -369,18 +416,18 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                           value={qtyInputValue}
                           onChange={e => setQtyInputValue(e.target.value)}
                           onBlur={() => commitQty(rowIdx)}
-                          className="w-full rounded border border-blue-500 bg-white py-1 text-center font-mono text-xs font-black text-blue-600 shadow-xs outline-none dark:bg-slate-950 dark:text-blue-400"
+                          className="w-full rounded border border-blue-500 bg-white py-0.5 text-center font-mono text-xs font-black text-blue-600 shadow-xs outline-none dark:bg-slate-950 dark:text-blue-400"
                         />
                         <button
                           type="button"
                           onClick={() => commitQty(rowIdx)}
-                          className="p-1 text-emerald-600 hover:text-emerald-700"
+                          className="text-emerald-600 hover:text-emerald-700"
                         >
-                          <CornerDownLeft size={12} />
+                          <CornerDownLeft size={10} />
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-1 px-1">
+                      <div className="flex items-center justify-between gap-0.5">
                         <button
                           type="button"
                           onClick={e => {
@@ -391,12 +438,12 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                               onRemoveClick(item.productId);
                             }
                           }}
-                          className="flex h-6 w-6 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
+                          className="flex h-5 w-5 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
                           title={item.quantity === 1 ? 'حذف' : 'تقليل'}
                         >
-                          {item.quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
+                          {item.quantity === 1 ? <Trash2 size={10} /> : <Minus size={10} />}
                         </button>
-                        <span className="min-w-[24px] font-mono text-xs font-black text-slate-800 dark:text-slate-100">
+                        <span className="min-w-[18px] font-mono text-xs font-black text-slate-800 dark:text-slate-100">
                           {item.quantity}
                         </span>
                         <button
@@ -405,10 +452,10 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                             e.stopPropagation();
                             onUpdateQuantity(item.productId, item.quantity + 1);
                           }}
-                          className="flex h-6 w-6 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
+                          className="flex h-5 w-5 items-center justify-center rounded text-slate-400 transition-colors hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
                           title="زيادة"
                         >
-                          <Plus size={12} />
+                          <Plus size={10} />
                         </button>
                       </div>
                     )}
@@ -417,13 +464,13 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     )}
                   </td>
 
-                  {/* Col 4: Price (Editable) */}
+                  {/* Col 4: Price (Compact & Editable) */}
                   <td
                     ref={isCellActive(4) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 4 })}
                     onDoubleClick={() => setEditingPriceId(item.productId)}
                     className={cn(
-                      'relative cursor-pointer border-b border-l border-slate-200 p-1 text-left align-middle dark:border-slate-700/80',
+                      'relative cursor-pointer border-b border-l border-slate-200 px-1 py-0.5 text-left align-middle dark:border-slate-700/80',
                       isCellActive(4) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
@@ -435,10 +482,10 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                         onDone={() => setEditingPriceId(null)}
                       />
                     ) : (
-                      <div className="flex items-center justify-end gap-1 px-1">
+                      <div className="flex items-center justify-end gap-1">
                         <span
                           dir="ltr"
-                          className="font-mono text-xs font-bold text-slate-700 dark:text-slate-200"
+                          className="truncate font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300"
                         >
                           {formatCurrency(item.price)}
                         </span>
@@ -448,10 +495,10 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                             e.stopPropagation();
                             setEditingPriceId(item.productId);
                           }}
-                          className="p-0.5 text-slate-400 opacity-60 transition-opacity hover:text-blue-600 hover:opacity-100"
+                          className="p-0.5 text-slate-400 opacity-50 transition-opacity hover:text-blue-600 hover:opacity-100"
                           title="تعديل السعر"
                         >
-                          <Edit3 size={11} />
+                          <Edit3 size={10} />
                         </button>
                       </div>
                     )}
@@ -460,19 +507,19 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     )}
                   </td>
 
-                  {/* Col 5: Total */}
+                  {/* Col 5: Total (Compact) */}
                   <td
                     ref={isCellActive(5) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 5 })}
                     className={cn(
-                      'relative cursor-pointer border-b border-l border-slate-200 p-1.5 text-left align-middle dark:border-slate-700/80',
+                      'relative cursor-pointer border-b border-l border-slate-200 px-1 py-0.5 text-left align-middle dark:border-slate-700/80',
                       isCellActive(5) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
                   >
                     <span
                       dir="ltr"
-                      className="block font-mono text-xs font-black text-slate-900 dark:text-slate-100"
+                      className="block truncate font-mono text-[10px] font-black text-slate-900 dark:text-slate-100"
                     >
                       {formatCurrency(item.price * item.quantity)}
                     </span>
@@ -481,12 +528,12 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     )}
                   </td>
 
-                  {/* Col 6: Actions / Delete */}
+                  {/* Col 6: Actions / Delete (Compact) */}
                   <td
                     ref={isCellActive(6) ? activeCellRef : undefined}
                     onClick={() => setFocusedCell({ row: rowIdx, col: 6 })}
                     className={cn(
-                      'relative cursor-pointer border-b border-slate-200 p-1 text-center align-middle dark:border-slate-700/80',
+                      'relative cursor-pointer border-b border-slate-200 py-0.5 text-center align-middle dark:border-slate-700/80',
                       isCellActive(6) &&
                         'z-10 bg-rose-50/50 ring-2 ring-inset ring-rose-500 dark:bg-rose-950/30 dark:ring-rose-400'
                     )}
@@ -497,10 +544,10 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                         e.stopPropagation();
                         onRemoveClick(item.productId);
                       }}
-                      className="mx-auto flex items-center justify-center rounded p-1 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                      className="mx-auto flex h-5 w-5 items-center justify-center rounded text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
                       title="حذف من السلة (Del)"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={11} />
                     </button>
                     {isCellActive(6) && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-rose-500" />
