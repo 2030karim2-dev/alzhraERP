@@ -219,6 +219,13 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
       setQtyInputValue(e.key);
       return;
     }
+
+    // If focused on Price cell and user starts typing a digit
+    if (col === 4 && /^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      setEditingPriceId(currentItem.productId);
+      return;
+    }
   };
 
   return (
@@ -464,11 +471,13 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     )}
                   </td>
 
-                  {/* Col 4: Price (Compact & Editable) */}
+                  {/* Col 4: Price (Compact & Seamless Single-Click Edit) */}
                   <td
                     ref={isCellActive(4) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 4 })}
-                    onDoubleClick={() => setEditingPriceId(item.productId)}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 4 });
+                      setEditingPriceId(item.productId);
+                    }}
                     className={cn(
                       'relative cursor-pointer border-b border-l border-slate-200 px-1 py-0.5 text-left align-middle dark:border-slate-700/80',
                       isCellActive(4) &&
@@ -479,30 +488,28 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                       <EditPriceInline
                         productId={item.productId}
                         currentPrice={item.price}
-                        onDone={() => setEditingPriceId(null)}
+                        onDone={() => {
+                          setEditingPriceId(null);
+                          tableContainerRef.current?.focus();
+                        }}
                       />
                     ) : (
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        className="group/price flex cursor-pointer items-center justify-end gap-1"
+                        title="انقر لتعديل السعر"
+                      >
                         <span
                           dir="ltr"
-                          className="truncate font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300"
+                          className="truncate font-mono text-[10px] font-bold text-slate-700 transition-colors group-hover/price:text-blue-600 dark:text-slate-300 dark:group-hover/price:text-blue-400"
                         >
                           {formatCurrency(item.price)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={e => {
-                            e.stopPropagation();
-                            setEditingPriceId(item.productId);
-                          }}
-                          className="p-0.5 text-slate-400 opacity-50 transition-opacity hover:text-blue-600 hover:opacity-100"
-                          title="تعديل السعر"
-                        >
+                        <span className="p-0.5 text-slate-400 opacity-40 transition-opacity group-hover/price:text-blue-600 group-hover/price:opacity-100">
                           <Edit3 size={10} />
-                        </button>
+                        </span>
                       </div>
                     )}
-                    {isCellActive(4) && (
+                    {isCellActive(4) && editingPriceId !== item.productId && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-blue-600 dark:bg-blue-500" />
                     )}
                   </td>

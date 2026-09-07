@@ -41,17 +41,13 @@ export const EditPriceInline: React.FC<{
   };
 
   return (
-    <div
-      className="mt-0.5 flex items-center gap-1"
-      onClick={e => {
-        e.stopPropagation();
-      }}
-    >
+    <div className="flex w-full items-center gap-0.5" onClick={e => e.stopPropagation()}>
       <input
         type="text"
         inputMode="decimal"
         value={value}
         autoFocus
+        onFocus={e => e.target.select()}
         onChange={e => {
           let raw = normalizeArabicDigits(e.target.value).replace(/[،٫]/g, '.');
           if (raw.includes(',') && !raw.includes('.')) raw = raw.replace(',', '.');
@@ -59,22 +55,39 @@ export const EditPriceInline: React.FC<{
             setValue(raw);
           }
         }}
+        onBlur={commit}
         onKeyDown={e => {
-          if (e.key === 'Enter') commit();
-          if (e.key === 'Escape') onDone();
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commit();
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            onDone();
+          }
         }}
-        className="w-20 rounded-md border border-blue-300 bg-blue-50 px-1.5 py-0.5 font-mono text-xs font-black text-blue-700 outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+        className="w-full min-w-0 rounded border border-blue-400 bg-white px-1 py-0.5 font-mono text-[11px] font-black text-blue-700 outline-none ring-1 ring-blue-500 dark:border-blue-600 dark:bg-slate-900 dark:text-blue-300"
         dir="ltr"
       />
       <button
-        onClick={commit}
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white transition-colors hover:bg-emerald-600"
+        type="button"
+        onMouseDown={e => {
+          e.preventDefault();
+          commit();
+        }}
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-emerald-500 text-white transition-colors hover:bg-emerald-600"
+        title="تأكيد (Enter)"
       >
         <Check size={10} />
       </button>
       <button
-        onClick={onDone}
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-400 text-white transition-colors hover:bg-rose-500"
+        type="button"
+        onMouseDown={e => {
+          e.preventDefault();
+          onDone();
+        }}
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-rose-400 text-white transition-colors hover:bg-rose-500"
+        title="إلغاء (Esc)"
       >
         <X size={10} />
       </button>

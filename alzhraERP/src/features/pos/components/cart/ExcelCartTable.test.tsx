@@ -103,4 +103,22 @@ describe('ExcelCartTable', () => {
     fireEvent.keyDown(container, { key: 'Delete' });
     expect(onRemoveClick).toHaveBeenCalledWith('prod-1');
   });
+
+  it('triggers price edit on a single click of the price cell', () => {
+    const setEditingPriceId = vi.fn();
+    const { container } = render(
+      <ExcelCartTable {...defaultProps} setEditingPriceId={setEditingPriceId} />
+    );
+
+    // Click on row 0 price cell (col index 4, which is the 5th td)
+    const row0 = container.querySelector('tbody tr');
+    const cells = row0?.querySelectorAll('td');
+    const priceCell = cells?.[4];
+    expect(priceCell).toBeDefined();
+
+    if (priceCell) {
+      fireEvent.click(priceCell);
+      expect(setEditingPriceId).toHaveBeenCalledWith('prod-1');
+    }
+  });
 });
