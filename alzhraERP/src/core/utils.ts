@@ -15,6 +15,7 @@ export {
   ensureLatinDigits,
   CURRENCY_SYMBOLS,
   toBaseCurrency,
+  getDefaultExchangeOperator,
   sumInBaseCurrency,
   convertToBaseCurrency,
   convertFromBaseCurrency,

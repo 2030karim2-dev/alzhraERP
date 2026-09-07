@@ -75,6 +75,16 @@ describe('currencyUtils', () => {
         })
       ).toThrow(CurrencyError);
     });
+
+    it('defaults YER to divide operator when exchange_operator is omitted', () => {
+      expect(
+        toBaseCurrency({
+          amount: 15000,
+          currency_code: 'YER',
+          exchange_rate: 415,
+        })
+      ).toBe(36.14);
+    });
   });
   describe('convertToBaseCurrency', () => {
     it('should convert USD to SAR with multiply operator', () => {

@@ -11,6 +11,7 @@ export {
   convertFromBaseCurrency,
   convertCurrency,
   toBaseCurrency,
+  getDefaultExchangeOperator,
   sumInBaseCurrency,
   parseCurrency,
   parseNumberFlexible,

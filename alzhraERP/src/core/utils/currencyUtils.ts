@@ -244,6 +244,18 @@ export function convertCurrency(
   return direction === 'toBase' ? convertToBaseCurrency(params) : convertFromBaseCurrency(params);
 }
 
+/**
+ * Returns the default exchange operator for a currency against the SAR base currency.
+ * Currencies where 1 SAR buys multiple units (such as YER where 1 SAR = 415 YER)
+ * use 'divide' to convert foreign amounts to base currency.
+ */
+export const getDefaultExchangeOperator = (currencyCode?: string | null): 'multiply' | 'divide' => {
+  if (!currencyCode) return 'multiply';
+  const code = currencyCode.toUpperCase().trim();
+  if (code === 'YER') return 'divide';
+  return 'multiply';
+};
+
 export const toBaseCurrency = (entity: {
   amount?: number | null;
   total_amount?: number | null;
@@ -253,7 +265,9 @@ export const toBaseCurrency = (entity: {
 }): number => {
   const amount = Number(entity.amount ?? entity.total_amount ?? 0);
   const exchangeRate = Number(entity.exchange_rate ?? 1);
-  const exchangeOperator = (entity.exchange_operator as 'multiply' | 'divide') || 'multiply';
+  const currencyCode = entity.currency_code || 'SAR';
+  const exchangeOperator =
+    (entity.exchange_operator as 'multiply' | 'divide') || getDefaultExchangeOperator(currencyCode);
 
   if (isNaN(amount)) return 0;
 
@@ -262,7 +276,7 @@ export const toBaseCurrency = (entity: {
   // meaningless — surfacing the error beats showing a wrong financial total.
   return convertToBaseCurrency({
     amount,
-    currencyCode: entity.currency_code || 'SAR',
+    currencyCode,
     exchangeRate,
     exchangeOperator,
   });
