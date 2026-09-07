@@ -28,6 +28,8 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
     setNewCatName,
     handleAddCategory,
     isAddingCategory,
+    isManualRate,
+    handleToggleManualRate,
   } = useExpenseForm(isOpen);
 
   const { register, handleSubmit, watch, setValue } = form;
@@ -89,6 +91,8 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
           currenciesData={currencies.data || []}
           watch={watch}
           setValue={setValue}
+          isManualRate={isManualRate}
+          onToggleManualRate={handleToggleManualRate}
         />
 
         <ExpenseCategorySection

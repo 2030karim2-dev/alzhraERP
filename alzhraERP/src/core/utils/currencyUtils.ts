@@ -292,3 +292,38 @@ export const sumInBaseCurrency = (
 ): number => {
   return items.reduce((sum, item) => sum + toBaseCurrency(item), 0);
 };
+
+/**
+ * Resolves the effective exchange rate for a given currency code.
+ * Intelligently handles inverse stored rates (e.g. 0.002439 or 0.002326) for divide operators,
+ * and falls back to standard market rates when no rate record exists yet.
+ */
+export const resolveAutoExchangeRate = (
+  currencyCode?: string | null,
+  ratesList: Array<{ currency_code: string; rate_to_base: number }> = [],
+  currencyList?: Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
+): number => {
+  if (!currencyCode) return 1;
+  const code = currencyCode.toUpperCase().trim();
+  if (code === 'SAR') return 1;
+
+  const currencyConfig = currencyList?.find(c => c.code.toUpperCase() === code);
+  const operator = currencyConfig?.exchange_operator || getDefaultExchangeOperator(code);
+
+  const rateRow = ratesList.find(r => r.currency_code.toUpperCase() === code);
+  if (rateRow && Number(rateRow.rate_to_base) > 0) {
+    const rawRate = Number(rateRow.rate_to_base);
+    if (operator === 'divide') {
+      // If stored as inverse (e.g. 0.002439 or 0.002326 for 1/market_rate)
+      return rawRate < 1 ? Math.round(1 / rawRate) : rawRate;
+    }
+    return rawRate;
+  }
+
+  // Reliable market defaults when rates are not yet fetched or configured
+  if (code === 'YER') return 410;
+  if (code === 'USD') return 3.75;
+  if (code === 'OMR') return 9.74;
+  if (code === 'CNY') return 0.515;
+  return 1;
+};

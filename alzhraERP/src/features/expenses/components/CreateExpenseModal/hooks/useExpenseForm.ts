@@ -8,6 +8,7 @@ import {
 } from '../../../hooks';
 import { useCurrencies } from '../../../../settings/hooks';
 import { formatLocalDate } from '../../../../../core/utils/dateUtils';
+import { resolveAutoExchangeRate } from '../../../../../core/utils/currencyUtils';
 
 export const useExpenseForm = (isOpen: boolean) => {
   const { data: categories } = useExpenseCategories();
@@ -17,6 +18,7 @@ export const useExpenseForm = (isOpen: boolean) => {
 
   const [newCatMode, setNewCatMode] = useState(false);
   const [newCatName, setNewCatName] = useState('');
+  const [isManualRate, setIsManualRate] = useState(false);
 
   const form = useForm<ExpenseFormData>({
     defaultValues: {
@@ -39,14 +41,38 @@ export const useExpenseForm = (isOpen: boolean) => {
     }
   }, [isOpen, nextVoucher, setValue]);
 
+  // Automatically update exchange rate unless user has manually customized it
   useEffect(() => {
-    if (selectedCurrency === 'SAR') {
-      setValue('exchange_rate', 1);
-    } else {
-      const rate = rates.data?.find((r: any) => r.currency_code === selectedCurrency);
-      if (rate) setValue('exchange_rate', rate.rate_to_base);
+    if (!isManualRate) {
+      const autoRate = resolveAutoExchangeRate(
+        selectedCurrency,
+        (rates.data as any) || [],
+        (currencies.data as any) || []
+      );
+      setValue('exchange_rate', autoRate, { shouldValidate: true });
     }
-  }, [selectedCurrency, rates.data, setValue]);
+  }, [selectedCurrency, rates.data, currencies.data, isManualRate, setValue]);
+
+  // Reset to automatic rate when switching currency or when modal opens
+  useEffect(() => {
+    setIsManualRate(false);
+  }, [selectedCurrency, isOpen]);
+
+  const handleToggleManualRate = () => {
+    setIsManualRate(prev => {
+      const next = !prev;
+      if (!next) {
+        // Resetting back to auto
+        const autoRate = resolveAutoExchangeRate(
+          selectedCurrency,
+          (rates.data as any) || [],
+          (currencies.data as any) || []
+        );
+        setValue('exchange_rate', autoRate, { shouldValidate: true });
+      }
+      return next;
+    });
+  };
 
   const handleAddCategory = () => {
     if (!newCatName.trim()) return;
@@ -68,5 +94,7 @@ export const useExpenseForm = (isOpen: boolean) => {
     setNewCatName,
     handleAddCategory,
     isAddingCategory,
+    isManualRate,
+    handleToggleManualRate,
   };
 };

@@ -10,6 +10,7 @@ import {
   ensureLatinDigits,
   CurrencyError,
   CURRENCY_SYMBOLS,
+  resolveAutoExchangeRate,
   type CurrencyConversionParams,
 } from './currencyUtils';
 
@@ -364,6 +365,42 @@ describe('currencyUtils', () => {
       expect(parseCurrency('0٫50')).toBe(0.5);
       expect(parseCurrency('0،50')).toBe(0.5);
       expect(parseCurrency('1,500.25 SAR')).toBe(1500.25);
+    });
+  });
+
+  describe('resolveAutoExchangeRate', () => {
+    it('returns 1 for SAR', () => {
+      expect(resolveAutoExchangeRate('SAR')).toBe(1);
+      expect(resolveAutoExchangeRate('')).toBe(1);
+      expect(resolveAutoExchangeRate(null)).toBe(1);
+    });
+
+    it('resolves YER inverse rate (1/market_rate) to human divisor rate', () => {
+      // If stored as 0.002439 (which is 1/410)
+      const rates = [{ currency_code: 'YER', rate_to_base: 0.002439 }];
+      expect(resolveAutoExchangeRate('YER', rates)).toBe(410);
+
+      // If stored as 0.002326 (which is 1/430)
+      const rates430 = [{ currency_code: 'YER', rate_to_base: 0.002326 }];
+      expect(resolveAutoExchangeRate('YER', rates430)).toBe(430);
+    });
+
+    it('resolves YER direct rate if already stored as divisor (e.g. 410)', () => {
+      const rates = [{ currency_code: 'YER', rate_to_base: 410 }];
+      expect(resolveAutoExchangeRate('YER', rates)).toBe(410);
+    });
+
+    it('falls back to standard market rate 410 for YER when no rates provided', () => {
+      expect(resolveAutoExchangeRate('YER', [])).toBe(410);
+    });
+
+    it('resolves USD rate correctly with multiply operator', () => {
+      const rates = [{ currency_code: 'USD', rate_to_base: 3.75 }];
+      expect(resolveAutoExchangeRate('USD', rates)).toBe(3.75);
+    });
+
+    it('falls back to 3.75 for USD when no rate configured', () => {
+      expect(resolveAutoExchangeRate('USD', [])).toBe(3.75);
     });
   });
 });
