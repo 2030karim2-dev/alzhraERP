@@ -512,32 +512,6 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
           </tbody>
         </table>
       </div>
-
-      {/* Excel Status & Keyboard Shortcuts Helper Bar */}
-      <div className="flex shrink-0 select-none items-center justify-between border-t border-slate-300 bg-slate-100/90 px-3 py-1.5 text-[10px] font-bold text-slate-500 dark:border-slate-700/80 dark:bg-slate-900 dark:text-slate-400">
-        <div className="flex items-center gap-1.5 font-mono">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span>
-            سطر {focusedCell.row + 1} من {items.length}
-          </span>
-          <span className="text-slate-300 dark:text-slate-700">|</span>
-          <span>{items.reduce((sum, item) => sum + item.quantity, 0)} قطعة</span>
-        </div>
-        <div className="hidden items-center gap-1.5 text-[10px] sm:flex">
-          <span className="rounded bg-slate-200 px-1 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            ↑ ↓ ← → تنقل
-          </span>
-          <span className="rounded bg-slate-200 px-1 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            + / - كمية
-          </span>
-          <span className="rounded bg-slate-200 px-1 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            Enter تعديل
-          </span>
-          <span className="rounded bg-slate-200 px-1 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            Del حذف
-          </span>
-        </div>
-      </div>
     </div>
   );
 };

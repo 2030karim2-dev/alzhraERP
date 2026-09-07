@@ -59,19 +59,22 @@ describe('ExcelCartTable', () => {
   });
 
   it('handles keyboard navigation with ArrowDown and ArrowUp', () => {
-    render(<ExcelCartTable {...defaultProps} />);
+    const { container } = render(<ExcelCartTable {...defaultProps} />);
 
-    const container = screen.getByTestId('excel-cart-container');
-    container.focus();
+    const tableContainer = screen.getByTestId('excel-cart-container');
+    tableContainer.focus();
 
-    // Initial focus on row 0, quantity (col 3)
-    fireEvent.keyDown(container, { key: 'ArrowDown' });
-    // Status text should now indicate row 2
-    expect(screen.getByText(/سطر 2 من 2/)).toBeDefined();
+    // Initial focus on row 0
+    const rowHeaders = container.querySelectorAll('tbody tr td:first-child');
+    expect(rowHeaders[0]?.className).toContain('bg-blue-600');
 
-    // Move back up
-    fireEvent.keyDown(container, { key: 'ArrowUp' });
-    expect(screen.getByText(/سطر 1 من 2/)).toBeDefined();
+    // Move to row 1
+    fireEvent.keyDown(tableContainer, { key: 'ArrowDown' });
+    expect(rowHeaders[1]?.className).toContain('bg-blue-600');
+
+    // Move back up to row 0
+    fireEvent.keyDown(tableContainer, { key: 'ArrowUp' });
+    expect(rowHeaders[0]?.className).toContain('bg-blue-600');
   });
 
   it('handles + and - keys to increment and decrement quantity', () => {
@@ -99,14 +102,5 @@ describe('ExcelCartTable', () => {
 
     fireEvent.keyDown(container, { key: 'Delete' });
     expect(onRemoveClick).toHaveBeenCalledWith('prod-1');
-  });
-
-  it('renders status bar with keyboard shortcut guide', () => {
-    render(<ExcelCartTable {...defaultProps} />);
-
-    expect(screen.getByText(/↑ ↓ ← → تنقل/)).toBeDefined();
-    expect(screen.getByText(/\+ \/ - كمية/)).toBeDefined();
-    expect(screen.getByText(/Enter تعديل/)).toBeDefined();
-    expect(screen.getByText(/Del حذف/)).toBeDefined();
   });
 });
