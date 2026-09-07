@@ -6,11 +6,21 @@
  * Formats a Date object to YYYY-MM-DD using local calendar date parts,
  * preventing UTC day shifts in timezones ahead of UTC (such as GMT+3).
  */
-export const formatLocalDate = (date: Date = new Date()): string => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+export const formatLocalDate = (date?: Date | string | number | null): string => {
+  if (!date) {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) {
+    return '';
+  }
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 };
 
 /**
