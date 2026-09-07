@@ -1,27 +1,47 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../lib/hooks/useTranslation';
-import { DollarSign, Receipt, TrendingDown, ShoppingCart, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import {
+  DollarSign,
+  Receipt,
+  TrendingDown,
+  ShoppingCart,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight,
+} from 'lucide-react';
 import { ROUTES } from '../../core/routes/paths';
 import { cn, formatCurrency } from '../../core/utils';
 
 // Lightweight inline SVG sparkline for stat cards
-const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({ data, color, className }) => {
+const MiniSparkline: React.FC<{ data: number[]; color: string; className?: string }> = ({
+  data,
+  color,
+  className,
+}) => {
   if (!data || data.length < 2) return null;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
   const w = 60;
   const h = 24;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 4) - 2;
-    return `${x},${y}`;
-  }).join(' ');
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * w;
+      const y = h - ((v - min) / range) * (h - 4) - 2;
+      return `${x},${y}`;
+    })
+    .join(' ');
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={className} fill="none">
-      <polyline points={points} stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+      <polyline
+        points={points}
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.7"
+      />
     </svg>
   );
 };
@@ -69,7 +89,11 @@ interface StatsGridProps {
   periodLabel?: string;
 }
 
-const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], periodLabel = 'هذا الشهر' }) => {
+const StatsGrid: React.FC<StatsGridProps> = ({
+  stats = {},
+  sparklineData = [],
+  periodLabel = 'هذا الشهر',
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -78,7 +102,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
     if (trend === undefined || trend === null) return null;
     return {
       value: Math.abs(trend),
-      isPositive: trend >= 0
+      isPositive: trend >= 0,
     };
   };
 
@@ -87,47 +111,51 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
       title: t('total_sales'),
       value: formatDisplayValue(stats?.sales ?? 0),
       icon: DollarSign,
-      colorClass: "text-emerald-600",
-      gradientClass: "from-emerald-500 to-emerald-600",
+      colorClass: 'text-emerald-600',
+      gradientClass: 'from-emerald-500 to-emerald-600',
       path: ROUTES.DASHBOARD.SALES,
-      subtitle: periodLabel
+      subtitle: periodLabel,
     },
     {
       title: t('total_purchases') || 'المشتريات',
       value: formatDisplayValue(stats?.purchases ?? 0),
       icon: ShoppingCart,
-      colorClass: "text-violet-600",
-      gradientClass: "from-violet-500 to-violet-600",
+      colorClass: 'text-violet-600',
+      gradientClass: 'from-violet-500 to-violet-600',
       path: ROUTES.DASHBOARD.PURCHASES || ROUTES.DASHBOARD.ACCOUNTING,
-      subtitle: periodLabel
+      subtitle: periodLabel,
     },
     {
       title: t('total_expenses'),
       value: formatDisplayValue(stats?.expenses ?? 0),
       icon: Receipt,
-      colorClass: "text-rose-600",
-      gradientClass: "from-rose-500 to-rose-600",
+      colorClass: 'text-rose-600',
+      gradientClass: 'from-rose-500 to-rose-600',
       path: ROUTES.DASHBOARD.EXPENSES,
-      subtitle: periodLabel
+      subtitle: periodLabel,
     },
     {
       title: t('total_debts'),
       value: formatDisplayValue(stats?.debts ?? 0),
       icon: TrendingDown,
-      colorClass: "text-amber-600",
-      gradientClass: "from-amber-500 to-amber-600",
-      path: ROUTES.DASHBOARD.ACCOUNTING,
-      subtitle: 'ذمم العملاء — مستحق التحصيل'
+      colorClass: 'text-amber-600',
+      gradientClass: 'from-amber-500 to-amber-600',
+      path: ROUTES.DASHBOARD.DEBTS || ROUTES.DASHBOARD.ACCOUNTING,
+      subtitle: 'ذمم العملاء — مستحق التحصيل',
     },
-    ...(stats?.supplierDebts !== undefined && Number(stats.supplierDebts) > 0 ? [{
-      title: 'مستحقات الموردين',
-      value: formatDisplayValue(stats.supplierDebts),
-      icon: ShoppingCart,
-      colorClass: "text-orange-600",
-      gradientClass: "from-orange-500 to-orange-600",
-      path: ROUTES.DASHBOARD.ACCOUNTING,
-      subtitle: 'ذمم الموردين — مستحقة السداد'
-    }] : []),
+    ...(stats?.supplierDebts !== undefined && Number(stats.supplierDebts) > 0
+      ? [
+          {
+            title: 'مستحقات الموردين',
+            value: formatDisplayValue(stats.supplierDebts),
+            icon: ShoppingCart,
+            colorClass: 'text-orange-600',
+            gradientClass: 'from-orange-500 to-orange-600',
+            path: ROUTES.DASHBOARD.SUPPLIERS || ROUTES.DASHBOARD.ACCOUNTING,
+            subtitle: 'ذمم الموردين — مستحقة السداد',
+          },
+        ]
+      : []),
   ];
 
   // Add profit if available
@@ -136,59 +164,82 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
       title: t('net_profit') || 'صافي الربح',
       value: formatDisplayValue(stats.profit),
       icon: Wallet,
-      colorClass: "text-blue-600",
-      gradientClass: "from-blue-500 to-blue-600",
+      colorClass: 'text-blue-600',
+      gradientClass: 'from-blue-500 to-blue-600',
       path: ROUTES.DASHBOARD.REPORTS,
-      subtitle: periodLabel
+      subtitle: periodLabel,
     });
   }
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-md:gap-3">
-      {statItems.map((item) => {
-        const trendKey = item.title === t('total_sales') ? 'salesTrend' :
-          item.title === (t('total_purchases') || 'المشتريات') ? 'purchasesTrend' :
-            item.title === t('total_expenses') ? 'expensesTrend' :
-              item.title === (t('net_profit') || 'صافي الربح') ? 'profitTrend' :
-                'debtsTrend';
+    <section className="grid grid-cols-2 gap-4 max-md:gap-3 md:grid-cols-4 lg:grid-cols-5">
+      {statItems.map(item => {
+        const trendKey =
+          item.title === t('total_sales')
+            ? 'salesTrend'
+            : item.title === (t('total_purchases') || 'المشتريات')
+              ? 'purchasesTrend'
+              : item.title === t('total_expenses')
+                ? 'expensesTrend'
+                : item.title === (t('net_profit') || 'صافي الربح')
+                  ? 'profitTrend'
+                  : 'debtsTrend';
 
         const trend = getTrend(stats[trendKey as keyof typeof stats] as number);
 
         // Parse numeric value for counter
         // const _numericVal = parseFloat(item.value.replace(/[^0-9.-]/g, '')) || 0;
-        const sparkColor = item.colorClass.replace('text-', '').includes('emerald') ? '#10b981'
-          : item.colorClass.includes('violet') ? '#8b5cf6'
-            : item.colorClass.includes('rose') ? '#f43f5e'
-              : item.colorClass.includes('amber') ? '#f59e0b'
+        const sparkColor = item.colorClass.replace('text-', '').includes('emerald')
+          ? '#10b981'
+          : item.colorClass.includes('violet')
+            ? '#8b5cf6'
+            : item.colorClass.includes('rose')
+              ? '#f43f5e'
+              : item.colorClass.includes('amber')
+                ? '#f59e0b'
                 : '#3b82f6';
 
         return (
           <div
             key={item.title}
             onClick={() => navigate(item.path)}
-            className="cursor-pointer group relative"
+            className="group relative cursor-pointer"
           >
             {/* Ambient Glow */}
-            <div className={cn(
-              "absolute -inset-0.5 rounded-3xl max-md:rounded-xl blur-[12px] opacity-0 group-hover:opacity-40 transition duration-300",
-              item.gradientClass.replace('to-', 'from-')
-            )}></div>
+            <div
+              className={cn(
+                'absolute -inset-0.5 rounded-3xl opacity-0 blur-[12px] transition duration-300 group-hover:opacity-40 max-md:rounded-xl',
+                item.gradientClass.replace('to-', 'from-')
+              )}
+            ></div>
 
-            <div className={cn(
-              "relative overflow-hidden bg-[var(--app-surface)]/80 backdrop-blur-xl border border-[var(--app-border)] p-3 max-md:p-2.5 rounded-3xl max-md:rounded-xl transition-all duration-300",
-              "hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:border-[var(--accent)]/30"
-            )}>
+            <div
+              className={cn(
+                'bg-[var(--app-surface)]/80 relative overflow-hidden rounded-3xl border border-[var(--app-border)] p-3 backdrop-blur-xl transition-all duration-300 max-md:rounded-xl max-md:p-2.5',
+                'hover:border-[var(--accent)]/30 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+              )}
+            >
               {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none">
-                <div className={cn("absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[40px]", item.colorClass.replace('text-', 'bg-'))}></div>
-                <div className={cn("absolute -left-10 -bottom-10 w-24 h-24 rounded-full blur-[30px]", item.colorClass.replace('text-', 'bg-'))}></div>
+              <div className="pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay">
+                <div
+                  className={cn(
+                    'absolute -right-10 -top-10 h-32 w-32 rounded-full blur-[40px]',
+                    item.colorClass.replace('text-', 'bg-')
+                  )}
+                ></div>
+                <div
+                  className={cn(
+                    'absolute -bottom-10 -left-10 h-24 w-24 rounded-full blur-[30px]',
+                    item.colorClass.replace('text-', 'bg-')
+                  )}
+                ></div>
               </div>
 
-              <div className="relative z-10 flex flex-col h-full justify-between gap-4 max-md:gap-2">
+              <div className="relative z-10 flex h-full flex-col justify-between gap-4 max-md:gap-2">
                 {/* Header */}
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-[var(--app-text-secondary)] uppercase tracking-widest leading-none mb-1.5 flex items-center gap-2">
+                    <span className="mb-1.5 flex items-center gap-2 text-[10px] font-bold uppercase leading-none tracking-widest text-[var(--app-text-secondary)]">
                       {item.title}
                     </span>
                     {item.subtitle && (
@@ -197,34 +248,49 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats = {}, sparklineData = [], p
                       </span>
                     )}
                   </div>
-                  <div className={cn(
-                    "p-2.5 max-md:p-2 rounded-2xl max-md:rounded-xl shadow-inner border border-white/5 backdrop-blur-md",
-                    item.gradientClass,
-                    "bg-opacity-20"
-                  )}>
-                    <item.icon size={20} className="text-white max-md:w-4 max-md:h-4 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  <div
+                    className={cn(
+                      'rounded-2xl border border-white/5 p-2.5 shadow-inner backdrop-blur-md max-md:rounded-xl max-md:p-2',
+                      item.gradientClass,
+                      'bg-opacity-20'
+                    )}
+                  >
+                    <item.icon
+                      size={20}
+                      className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] max-md:h-4 max-md:w-4"
+                    />
                   </div>
                 </div>
 
                 {/* Value + Sparkline Row */}
-                <div className="flex items-end justify-between mt-2">
-                  <h3 className="text-lg md:text-xl font-bold text-[var(--app-text)] font-mono tracking-tighter leading-none drop-shadow-md whitespace-nowrap shrink-0">
+                <div className="mt-2 flex items-end justify-between">
+                  <h3 className="shrink-0 whitespace-nowrap font-mono text-lg font-bold leading-none tracking-tighter text-[var(--app-text)] drop-shadow-md md:text-xl">
                     {item.value}
                   </h3>
-                  <MiniSparkline data={sparklineData} color={sparkColor} className="hidden md:block" />
+                  <MiniSparkline
+                    data={sparklineData}
+                    color={sparkColor}
+                    className="hidden md:block"
+                  />
                 </div>
 
                 {/* Trend Badge */}
-                <div className="flex items-center justify-between mt-2">
+                <div className="mt-2 flex items-center justify-between">
                   {trend ? (
-                    <div className={cn(
-                      "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold border backdrop-blur-md",
-                      trend.isPositive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                    )}>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md',
+                        trend.isPositive
+                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                          : 'border-rose-500/20 bg-rose-500/10 text-rose-400'
+                      )}
+                    >
                       {trend.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                       <span>{trend.value.toFixed(1)}%</span>
                     </div>
-                  ) : <div />}
+                  ) : (
+                    <div />
+                  )}
                 </div>
               </div>
             </div>

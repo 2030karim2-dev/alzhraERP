@@ -293,7 +293,11 @@ export function ExcelTableBody<T>({
                       )}
                     />
                   ) : (
-                    <div className="h-full min-h-[36px] w-full p-2">{col.accessor(row)}</div>
+                    <div className="h-full min-h-[36px] w-full p-2">
+                      {(col as any).cell
+                        ? (col as any).cell({ row: { original: row } })
+                        : col.accessor(row)}
+                    </div>
                   )}
                 </td>
               );

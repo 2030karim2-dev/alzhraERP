@@ -3,12 +3,13 @@
 // ============================================
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { inventoryService } from '../service';
+import { inventoryService, type DeleteAuditItemParams } from '../service';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
 import { syncStore } from '../../../core/lib/sync-store';
+import { parseError } from '../../../core/utils/errorUtils';
 
 /** جلب قائمة جلسات الجرد */
 export const useAuditSessions = () => {
@@ -150,7 +151,7 @@ export const useInventoryMutations = () => {
         showToast('تمت المناقلة محلياً (وضع عدم الاتصال).', 'info');
         return;
       }
-      showToast('فشل المناقلة: ' + err.message, 'error');
+      showToast('فشل المناقلة: ' + parseError(err).message, 'error');
     },
   });
 
@@ -177,7 +178,7 @@ export const useInventoryMutations = () => {
         showToast('بدء الجرد محلياً (وضع عدم الاتصال).', 'info');
         return;
       }
-      showToast('فشل بدء الجرد: ' + err.message, 'error');
+      showToast('فشل بدء الجرد: ' + parseError(err).message, 'error');
     },
   });
 
@@ -199,7 +200,7 @@ export const useInventoryMutations = () => {
       showToast('تم إغلاق الجرد وترحيل الفروقات', 'success');
     },
     onError: err => {
-      showToast('فشل إنهاء الجرد: ' + err.message, 'error');
+      showToast('فشل إنهاء الجرد: ' + parseError(err).message, 'error');
       logger.error('useStockAudit', 'Finalize Audit Error:', err);
     },
   });
@@ -236,7 +237,7 @@ export const useInventoryMutations = () => {
       showToast('تم إضافة التسويات السريعة بنجاح', 'success');
     },
     onError: err => {
-      showToast('فشلت التسوية السريعة: ' + err.message, 'error');
+      showToast('فشلت التسوية السريعة: ' + parseError(err).message, 'error');
     },
   });
 
@@ -262,20 +263,12 @@ export const useInventoryMutations = () => {
       await queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
     },
     onError: err => {
-      showToast('فشل إضافة الصنف: ' + err.message, 'error');
+      showToast('فشل إضافة الصنف: ' + parseError(err).message, 'error');
     },
   });
 
   const removeItem = useMutation({
-    mutationFn: (
-      params:
-        | string
-        | {
-            itemId?: string | undefined;
-            sessionId?: string | undefined;
-            productId?: string | undefined;
-          }
-    ) => {
+    mutationFn: (params: DeleteAuditItemParams) => {
       return inventoryService.deleteAuditItem(params);
     },
     onSuccess: async (_, variables) => {
@@ -289,7 +282,7 @@ export const useInventoryMutations = () => {
       showToast('تم إزالة الصنف من الجلسة', 'info');
     },
     onError: err => {
-      showToast('فشل إزالة الصنف: ' + err.message, 'error');
+      showToast('فشل إزالة الصنف: ' + parseError(err).message, 'error');
     },
   });
 
@@ -300,7 +293,7 @@ export const useInventoryMutations = () => {
       showToast('تم حذف جلسة الجرد', 'success');
     },
     onError: err => {
-      showToast('فشل حذف الجلسة: ' + err.message, 'error');
+      showToast('فشل حذف الجلسة: ' + parseError(err).message, 'error');
     },
   });
 

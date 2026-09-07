@@ -1,6 +1,15 @@
 // Audit Service - Handles stock audit operations
 import { supabase } from '../../../lib/supabaseClient';
 import type { TableInsert } from '@/core/types/supabase-helpers';
+import { parseError } from '@/core/utils/errorUtils';
+
+export type DeleteAuditItemParams =
+  | string
+  | {
+      itemId?: string | undefined;
+      sessionId?: string | undefined;
+      productId?: string | undefined;
+    };
 
 interface AuditItemInput {
   id?: string;
@@ -222,52 +231,60 @@ export const auditService = {
     const { error } = await supabase
       .from('audit_items')
       .upsert(updates as unknown as Array<TableInsert<'audit_items'>>);
-    if (error) throw error;
+    if (error) throw parseError(error);
   },
 
   /**
    * Delete an item from an active audit session
    */
-  deleteAuditItem: async (
-    params:
-      | string
-      | {
-          itemId?: string | undefined;
-          sessionId?: string | undefined;
-          productId?: string | undefined;
-        }
-  ): Promise<void> => {
+  deleteAuditItem: async (params: DeleteAuditItemParams): Promise<void> => {
     const itemId = typeof params === 'string' ? params : params.itemId;
     const sessionId = typeof params === 'object' ? params.sessionId : undefined;
     const productId = typeof params === 'object' ? params.productId : undefined;
 
+    if (!itemId && !(sessionId && productId)) {
+      throw new Error('بيانات حذف الصنف غير مكتملة (يتطلب معرف البند أو معرف الجلسة والمنتج)');
+    }
+
     // 1. Try atomic RPC first
     if (sessionId && (itemId || productId)) {
-      const rpcClient = supabase as unknown as {
-        rpc: (
-          fn: string,
-          args: Record<string, unknown>
-        ) => Promise<{ data: unknown; error: { message: string } | null }>;
-      };
-      const { error } = await rpcClient.rpc('delete_audit_session_item', {
-        p_session_id: sessionId,
-        p_item_id: itemId || null,
-        p_product_id: productId || null,
-      });
-      if (!error) return;
+      try {
+        const rpcClient = supabase as unknown as {
+          rpc: (
+            fn: string,
+            args: Record<string, unknown>
+          ) => Promise<{ data: unknown; error: { message: string } | null }>;
+        };
+        const { error } = await rpcClient.rpc('delete_audit_session_item', {
+          p_session_id: sessionId,
+          p_item_id: itemId || null,
+          p_product_id: productId || null,
+        });
+        if (!error) return;
+      } catch {
+        // Fall back to direct delete query
+      }
     }
 
     // 2. Fallback to direct delete query
-    if (itemId) {
-      const { error } = await supabase.from('audit_items').delete().eq('id', itemId);
-      if (error) throw error;
-    } else if (sessionId && productId) {
-      const { error } = await supabase
-        .from('audit_items')
-        .delete()
-        .eq('session_id', sessionId)
-        .eq('product_id', productId);
-      if (error) throw error;
+    try {
+      if (itemId) {
+        let query = supabase.from('audit_items').delete().eq('id', itemId);
+        if (sessionId) {
+          query = query.eq('session_id', sessionId);
+        }
+        const { error } = await query;
+        if (error) throw error;
+      } else if (sessionId && productId) {
+        const { error } = await supabase
+          .from('audit_items')
+          .delete()
+          .eq('session_id', sessionId)
+          .eq('product_id', productId);
+        if (error) throw error;
+      }
+    } catch (err) {
+      throw parseError(err);
     }
   },
 
@@ -281,7 +298,7 @@ export const auditService = {
       .from('audit_sessions')
       .update({ status: 'cancelled' })
       .eq('id', sessionId);
-    if (error) throw error;
+    if (error) throw parseError(error);
   },
 };
 

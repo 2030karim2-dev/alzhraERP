@@ -1,4 +1,5 @@
 import { logger } from '../../../core/utils/logger';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 /**
  * Dashboard API Layer
  * Pure functions for fetching raw data from Supabase
@@ -207,7 +208,7 @@ export const dashboardApi = {
     dateFrom?: string | null,
     dateTo?: string | null
   ) {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = formatLocalDate();
     const effectiveDateTo = dateTo || todayStr;
     const effectiveDateFrom = dateFrom !== undefined ? dateFrom : null;
     const branchParam = branchId ?? undefined;

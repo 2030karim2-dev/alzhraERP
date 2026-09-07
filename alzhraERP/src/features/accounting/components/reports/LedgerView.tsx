@@ -37,39 +37,51 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     { header: 'العميل / المورد', accessor: (row: LedgerEntry) => row.party_name ? <span className="text-xs font-medium text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">{row.party_name}</span> : <span className="text-gray-400">-</span>, className: 'text-right min-w-[150px]' },
     {
       header: 'مدين',
-      accessor: () => null,
-      cell: ({ row }: { row: { original: LedgerEntry } }) => (
+      accessor: (row: LedgerEntry) => (
         <div className="text-left space-y-0.5">
-          <div dir="ltr" className={`font-mono text-xs font-bold ${row.original.debit_amount > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
-            {row.original.debit_amount > 0 ? formatCurrency(row.original.debit_amount) : '-'}
+          <div
+            dir="ltr"
+            className={`font-mono text-xs font-bold ${row.debit_amount > 0 ? 'text-emerald-600' : 'text-gray-400'}`}
+          >
+            {row.debit_amount > 0 ? formatCurrency(row.debit_amount) : '-'}
           </div>
-          {row.original.foreign_amount && row.original.foreign_amount > 0 && Math.abs(row.original.debit_amount - row.original.foreign_amount) > 0.01 && (
+          {row.foreign_amount && row.foreign_amount > 0 && Math.abs(row.debit_amount - row.foreign_amount) > 0.01 ? (
             <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
-              ({formatCurrency(row.original.foreign_amount, row.original.currency_code)})
+              ({formatCurrency(row.foreign_amount, row.currency_code)})
             </div>
-          )}
+          ) : null}
         </div>
       ),
       className: 'w-28',
-      footer: (data: LedgerEntry[]) => <span dir="ltr" className="font-mono text-xs font-bold text-emerald-700">{formatCurrency(data.reduce((sum, row) => sum + row.debit_amount, 0))}</span>
+      footer: (data: LedgerEntry[]) => (
+        <span dir="ltr" className="font-mono text-xs font-bold text-emerald-700">
+          {formatCurrency(data.reduce((sum, row) => sum + row.debit_amount, 0))}
+        </span>
+      ),
     },
     {
       header: 'دائن',
-      accessor: () => null,
-      cell: ({ row }: { row: { original: LedgerEntry } }) => (
+      accessor: (row: LedgerEntry) => (
         <div className="text-left space-y-0.5">
-          <div dir="ltr" className={`font-mono text-xs font-bold ${row.original.credit_amount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
-            {row.original.credit_amount > 0 ? formatCurrency(row.original.credit_amount) : '-'}
+          <div
+            dir="ltr"
+            className={`font-mono text-xs font-bold ${row.credit_amount > 0 ? 'text-red-600' : 'text-gray-400'}`}
+          >
+            {row.credit_amount > 0 ? formatCurrency(row.credit_amount) : '-'}
           </div>
-          {row.original.foreign_amount && row.original.foreign_amount > 0 && Math.abs(row.original.credit_amount - row.original.foreign_amount) > 0.01 && (
+          {row.foreign_amount && row.foreign_amount > 0 && Math.abs(row.credit_amount - row.foreign_amount) > 0.01 ? (
             <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
-              ({formatCurrency(row.original.foreign_amount, row.original.currency_code)})
+              ({formatCurrency(row.foreign_amount, row.currency_code)})
             </div>
-          )}
+          ) : null}
         </div>
       ),
       className: 'w-28',
-      footer: (data: LedgerEntry[]) => <span dir="ltr" className="font-mono text-xs font-bold text-red-700">{formatCurrency(data.reduce((sum, row) => sum + row.credit_amount, 0))}</span>
+      footer: (data: LedgerEntry[]) => (
+        <span dir="ltr" className="font-mono text-xs font-bold text-red-700">
+          {formatCurrency(data.reduce((sum, row) => sum + row.credit_amount, 0))}
+        </span>
+      ),
     },
     {
       header: 'الرصيد',

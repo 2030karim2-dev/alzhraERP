@@ -17,10 +17,10 @@ import {
   Wallet,
 } from 'lucide-react';
 import type { BondFormData, BondType } from '../types';
-// Fix: Corrected import path to point to the barrel file.
 import { useAccounts } from '../../accounting/hooks/index';
 import { useCurrencies } from '../../settings/hooks';
 import { useParties } from '../../parties/hooks';
+import { useFeedbackStore } from '../../feedback/store';
 
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
@@ -35,6 +35,7 @@ interface CreateBondModalProps {
   type: BondType;
   onSubmit: (data: BondFormData) => void;
   isSubmitting: boolean;
+  defaultAccountId?: string | null;
 }
 
 // Micro-Component for Styled Select Inputs
@@ -66,9 +67,11 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
   type,
   onSubmit,
   isSubmitting,
+  defaultAccountId,
 }) => {
   const { data: allAccounts, isLoading: _isLoadingAccounts } = useAccounts();
   const { currencies, rates } = useCurrencies();
+  const { showToast } = useFeedbackStore();
   const [partyQuery, setPartyQuery] = useState('');
 
   const { data: allParties } = useParties(type === 'receipt' ? 'customer' : 'supplier', partyQuery);
@@ -87,6 +90,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
       exchange_rate: 1,
       counterparty_type: type === 'transfer' ? 'account' : 'party',
       payment_method: 'cash',
+      cash_account_id: defaultAccountId || '',
     },
   });
 
@@ -100,17 +104,23 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       idempotencyKeyRef.current = createIdempotencyKey('bond');
+      const targetAccount = defaultAccountId
+        ? allAccounts?.find(a => a.id === defaultAccountId)
+        : undefined;
+      const initialCurrency = targetAccount?.currency_code || 'SAR';
+
       reset({
         type,
         date: formatLocalDate(),
-        currency_code: 'SAR',
+        currency_code: initialCurrency,
         exchange_rate: 1,
         counterparty_type: type === 'transfer' ? 'account' : 'party',
         payment_method: 'cash',
+        cash_account_id: defaultAccountId || '',
       });
       setPartyQuery('');
     }
-  }, [isOpen, type, reset]);
+  }, [isOpen, type, reset, defaultAccountId, allAccounts]);
 
   useEffect(() => {
     if (selectedCurrency === 'SAR') {
@@ -187,6 +197,18 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
       </Button>
       <Button
         onClick={handleSubmit(data => {
+          if (
+            type === 'transfer' &&
+            data.cash_account_id &&
+            data.counterparty_id &&
+            data.cash_account_id === data.counterparty_id
+          ) {
+            showToast(
+              'لا يمكن إجراء تحويل داخلي إلى نفس الحساب (حساب المصدر وحساب الهدف متطابقان)',
+              'error'
+            );
+            return;
+          }
           onSubmit({ ...data, idempotency_key: idempotencyKeyRef.current });
         })}
         isLoading={isSubmitting}

@@ -50,6 +50,8 @@ function parseAiJson<T>(content: string): T | null {
   }
 }
 
+import { getLocalCrossSellSuggestions } from './automotiveCrossSell';
+
 /**
  * Invoke the AI proxy and parse the JSON result. Any failure (disabled flag,
  * missing key, malformed JSON, network) returns null — the caller falls back.
@@ -62,7 +64,7 @@ async function callAI<T>(taskType: string, prompt: string): Promise<T | null> {
     });
     return parseAiJson<T>(content);
   } catch (err) {
-    logger.warn('aiService', `AI ${taskType} failed, using safe fallback`, err);
+    logger.info('aiService', `AI ${taskType} unavailable, applying safe fallback`, err);
     return null;
   }
 }
@@ -216,14 +218,36 @@ export const aiService = {
   },
 
   suggestCrossSell: async (currentItems: string[]): Promise<string[]> => {
-    const result = await callAI<string[]>(
-      'cross_sell',
-      `اقترح منتجات تكميلية (قطع غيار سيارات) للبيع العابر مع عناصر السلة الحالية وأعد JSON array من النصوص فقط: ["اسم منتج", ...]. العناصر الحالية: ${JSON.stringify(currentItems)}`
-    );
-    if (result && Array.isArray(result)) {
-      return result.filter((item): item is string => typeof item === 'string').slice(0, 6);
+    if (!currentItems || currentItems.length === 0) return [];
+
+    // 1. Instant local domain heuristics as strong baseline (<1ms, no network delay)
+    const localRecommendations = getLocalCrossSellSuggestions(currentItems, 6);
+
+    // 2. Query cloud AI for extra dynamic suggestions
+    let aiRecommendations: string[] = [];
+    try {
+      const result = await callAI<string[]>(
+        'cross_sell',
+        `اقترح منتجات تكميلية (قطع غيار سيارات) للبيع العابر مع عناصر السلة الحالية وأعد JSON array من النصوص فقط: ["اسم منتج", ...]. العناصر الحالية: ${JSON.stringify(currentItems)}`
+      );
+      if (result && Array.isArray(result)) {
+        aiRecommendations = result.filter((item): item is string => typeof item === 'string');
+      }
+    } catch {
+      // Quietly fall back to local recommendations
     }
-    return [];
+
+    // 3. Combine unique recommendations prioritizing AI suggestions then filling with local rules
+    const combined: string[] = [];
+    for (const item of [...aiRecommendations, ...localRecommendations]) {
+      const trimmed = item.trim();
+      if (trimmed && !combined.includes(trimmed)) {
+        combined.push(trimmed);
+      }
+      if (combined.length >= 6) break;
+    }
+
+    return combined.length > 0 ? combined : localRecommendations;
   },
 
   rateSuppliers: async (suppliers: unknown[]): Promise<AiData> => {

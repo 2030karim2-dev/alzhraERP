@@ -1,4 +1,5 @@
 import { logger } from '../../core/utils/logger';
+import { formatLocalDate, getLocalYearStart } from '../../core/utils/dateUtils';
 
 import { reportsApi } from './api';
 import type { PartyDebt, ReportsStats } from './types';
@@ -34,10 +35,9 @@ interface MonthlyCashFlow {
 
 // Helper to get current year date range
 const getYearDateRange = () => {
-  const now = new Date();
   return {
-    from: `${now.getFullYear()}-01-01`,
-    to: now.toISOString().split('T')[0],
+    from: getLocalYearStart(),
+    to: formatLocalDate(),
   };
 };
 
@@ -140,7 +140,7 @@ export const reportsService = {
     totalAssets: number;
     totalLiabEquity: number;
   }> => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatLocalDate();
 
     const { data, error } = await supabase.rpc('report_balance_sheet', {
       p_company_id: companyId,
@@ -265,7 +265,7 @@ export const reportsService = {
       .single();
     const baseCurrency = company?.base_currency || 'SAR';
 
-    const [{ data: accounts }, { data: balances }, { data: rates }] = await Promise.all([
+    const [{ data: accounts }, { data: rates }] = await Promise.all([
       supabase
         .from('accounts')
         .select('id, name_ar, currency_code')
@@ -273,7 +273,6 @@ export const reportsService = {
         .is('deleted_at', null)
         .not('currency_code', 'is', null)
         .neq('currency_code', baseCurrency),
-      supabase.from('account_balances').select('account_id, balance').eq('company_id', companyId),
       supabase
         .from('exchange_rates')
         .select('currency_code, rate_to_base')
@@ -281,23 +280,72 @@ export const reportsService = {
         .order('effective_date', { ascending: false }),
     ]);
 
-    const balanceMap = new Map((balances || []).map((b: any) => [b.account_id, Number(b.balance)]));
+    if (!accounts || accounts.length === 0) return [];
+
+    // Fetch journal entry lines for these foreign currency accounts to calculate both:
+    // 1) Foreign currency balance: SUM(foreign_amount)
+    // 2) Book value in base currency: SUM(debit_amount - credit_amount)
+    const { data: lines } = await supabase
+      .from('journal_entry_lines')
+      .select('account_id, debit_amount, credit_amount, foreign_amount, exchange_rate')
+      .eq('company_id', companyId)
+      .is('deleted_at', null)
+      .in(
+        'account_id',
+        accounts.map(a => a.id)
+      );
+
+    const accountDataMap = new Map<
+      string,
+      { foreignBalance: number; bookValueBase: number }
+    >();
+
+    for (const l of (lines || []) as Array<{
+      account_id: string;
+      debit_amount: number | null;
+      credit_amount: number | null;
+      foreign_amount: number | null;
+      exchange_rate: number | null;
+    }>) {
+      const current = accountDataMap.get(l.account_id) || { foreignBalance: 0, bookValueBase: 0 };
+      const debit = Number(l.debit_amount) || 0;
+      const credit = Number(l.credit_amount) || 0;
+      const fAmount = Number(l.foreign_amount) || 0;
+      const exRate = Number(l.exchange_rate) || 1;
+
+      // Calculate foreign movement
+      const fMovement =
+        fAmount > 0
+          ? fAmount
+          : exRate > 1
+            ? Math.abs(debit - credit) * exRate
+            : Math.abs(debit - credit);
+      const sign = debit >= credit ? 1 : -1;
+
+      current.foreignBalance += sign * fMovement;
+      current.bookValueBase += debit - credit;
+      accountDataMap.set(l.account_id, current);
+    }
+
     const rateMap = new Map(
       (rates || []).map((r: any) => [r.currency_code, Number(r.rate_to_base)])
     );
 
-    return (accounts || []).map((a: any): CurrencyAccount => {
-      const balance = Math.abs(balanceMap.get(a.id) || 0);
+    return accounts.map((a: any): CurrencyAccount => {
+      const accData = accountDataMap.get(a.id) || { foreignBalance: 0, bookValueBase: 0 };
+      const foreignBalance = Math.abs(accData.foreignBalance);
       const rate = rateMap.get(a.currency_code);
-      // Calculate unrealized gain: balance converted at current rate vs base
-      // If no exchange rate found, show 0 for gain
-      const unrealizedGain = rate ? balance * rate - balance : 0;
+
+      // Current market value in base currency = foreignBalance * current rate_to_base
+      // Unrealized gain = current market value - book value
+      const currentMarketValue = rate ? foreignBalance * rate : accData.bookValueBase;
+      const unrealizedGain = rate ? currentMarketValue - Math.abs(accData.bookValueBase) : 0;
 
       return {
         id: a.id,
         name: a.name_ar,
         currency_code: a.currency_code,
-        balance,
+        balance: foreignBalance,
         unrealizedGain: Math.round(unrealizedGain * 100) / 100,
       };
     });

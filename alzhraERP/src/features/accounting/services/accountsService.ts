@@ -3,6 +3,7 @@ import { accountsApi } from '../api/accountsApi';
 // Fix: Added missing supabase import
 import { supabase } from '../../../lib/supabaseClient';
 import { parseError } from '../../../core/utils/errorUtils';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 // دليل الحسابات الافتراضي (بالريال السعودي) — يستخدمه seedDefaultAccounts
 const DEFAULT_CHART_OF_ACCOUNTS: Array<{
@@ -47,12 +48,11 @@ export const accountsService = {
     // route by account metadata (id/code/type) skip it entirely.
     const balanceMap = new Map<string, number>();
     if (options?.includeBalances) {
-      const now = new Date();
       const { data: balances, error: balancesError } = await supabase.rpc(
         'report_account_balances',
         {
           p_company_id: companyId,
-          p_as_of_date: now.toISOString().split('T')[0],
+          p_as_of_date: formatLocalDate(),
         }
       );
       // Fail loudly rather than silently zeroing every account balance.

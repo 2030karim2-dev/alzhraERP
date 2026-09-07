@@ -4,9 +4,13 @@ import { Scale, Search } from 'lucide-react';
 // Fix: Corrected import path to point to the barrel file.
 import { useAccounts, useJournalMutation } from '../../hooks/index';
 import { formatCurrency } from '../../../../core/utils';
+import { formatLocalDate } from '../../../../core/utils/dateUtils';
+import { SOX_BALANCE_TOLERANCE } from '../../../../core/utils/decimalUtils/constants';
 import Modal from '../../../../ui/base/Modal';
 import Button from '../../../../ui/base/Button';
 import Spinner from '../../../../ui/base/Spinner';
+
+const BALANCE_TOLERANCE = Number(SOX_BALANCE_TOLERANCE.toString());
 
 interface OpeningBalancesModalProps {
   isOpen: boolean;
@@ -31,7 +35,7 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
 
   const { control, register, handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: formatLocalDate(),
       lines: [],
     },
   });
@@ -63,7 +67,7 @@ const OpeningBalancesModal: React.FC<OpeningBalancesModalProps> = ({ isOpen, onC
   );
 
   const difference = totals.debit_amount - totals.credit_amount;
-  const isBalanced = Math.abs(difference) < 0.01;
+  const isBalanced = Math.abs(difference) < BALANCE_TOLERANCE;
 
   const onSubmit = (data: FormData) => {
     const filteredLines = data.lines

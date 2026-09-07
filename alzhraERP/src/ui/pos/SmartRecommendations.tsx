@@ -16,20 +16,40 @@ interface Props {
 }
 
 const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
+  const queryKey = React.useMemo(
+    () => [
+      'pos_ai_suggestions',
+      cartItems
+        .map(i => i.productId)
+        .sort()
+        .join(','),
+    ],
+    [cartItems]
+  );
+
   const { data: suggestions, isLoading } = useQuery({
-    queryKey: ['pos_ai_suggestions', cartItems.map(i => i.productId)],
-    queryFn: () => aiService.suggestCrossSell(cartItems.map(item => item.productName || item.name || item.productId)),
+    queryKey,
+    queryFn: () =>
+      aiService.suggestCrossSell(
+        cartItems.map(item => item.productName || item.name || item.productId)
+      ),
     enabled: cartItems.length > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   if (cartItems.length === 0) return null;
 
   return (
-    <div className="p-3 bg-blue-600 rounded-[1.5rem] text-white shadow-xl shadow-blue-500/20 relative overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in slide-in-from-bottom-4 relative overflow-hidden rounded-[1.5rem] bg-blue-600 p-3 text-white shadow-xl shadow-blue-500/20 duration-500">
       <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={14} className="text-amber-300 animate-pulse" />
-          <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-100">توصيات ذكاء الزهراء</h4>
+        <div className="mb-3 flex items-center gap-2">
+          <Sparkles size={14} className="animate-pulse text-amber-300" />
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-100">
+            توصيات ذكاء الزهراء
+          </h4>
         </div>
 
         {isLoading ? (
@@ -42,11 +62,13 @@ const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
             {suggestions?.map((item, idx) => (
               <button
                 key={idx}
-                onClick={() => { onAdd(item); }}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all flex items-center gap-1.5 active:scale-95 group"
+                onClick={() => {
+                  onAdd(item);
+                }}
+                className="group flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold transition-all hover:bg-white/20 active:scale-95"
               >
                 <span>{item}</span>
-                <Plus size={10} className="group-hover:rotate-90 transition-transform" />
+                <Plus size={10} className="transition-transform group-hover:rotate-90" />
               </button>
             ))}
             {(!suggestions || suggestions.length === 0) && (
@@ -56,7 +78,7 @@ const SmartRecommendations: React.FC<Props> = ({ cartItems, onAdd }) => {
         )}
       </div>
 
-      <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+      <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-white/5 blur-2xl"></div>
     </div>
   );
 };

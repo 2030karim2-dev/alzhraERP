@@ -23,7 +23,8 @@ import type { Json } from '@/core/database.types';
 import { productService } from './services/productService';
 import { warehouseService } from './services/warehouseService';
 import { transferService } from './services/transferService';
-import { auditService } from './services/auditService';
+import { auditService, type DeleteAuditItemParams } from './services/auditService';
+export type { DeleteAuditItemParams };
 import { categoryService } from './services/categoryService';
 import { analyticsService } from './services/analyticsService';
 
@@ -147,15 +148,7 @@ export const inventoryService = {
     return auditService.saveAuditProgress(items);
   },
 
-  deleteAuditItem: async (
-    params:
-      | string
-      | {
-          itemId?: string | undefined;
-          sessionId?: string | undefined;
-          productId?: string | undefined;
-        }
-  ) => {
+  deleteAuditItem: async (params: DeleteAuditItemParams) => {
     return auditService.deleteAuditItem(params);
   },
 

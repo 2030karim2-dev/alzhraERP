@@ -1,6 +1,7 @@
 import type { TrialBalanceItem, LedgerEntry } from '../types/index';
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
+import { formatLocalDate, getLocalYearStart } from '../../../core/utils/dateUtils';
 
 interface LedgerRpcLine {
   entry_date: string | undefined;
@@ -161,9 +162,8 @@ export const reportService = {
     fromDate?: string,
     toDate?: string
   ): Promise<TrialBalanceItem[]> => {
-    const now = new Date();
-    const from = fromDate || `${now.getFullYear()}-01-01`;
-    const to = toDate || now.toISOString().split('T')[0];
+    const from = fromDate || getLocalYearStart();
+    const to = toDate || formatLocalDate();
 
     const { data, error } = await supabase.rpc('report_trial_balance', {
       p_company_id: companyId,
@@ -196,9 +196,8 @@ export const reportService = {
     fromDate?: string,
     toDate?: string
   ) => {
-    const now = new Date();
-    const from = fromDate || `${now.getFullYear()}-01-01`;
-    const to = toDate || now.toISOString().split('T')[0];
+    const from = fromDate || getLocalYearStart();
+    const to = toDate || formatLocalDate();
 
     // ── P&L ──────────────────────────────────────────────────────────────
     // Preferred: per-account breakdown via report_profit_loss_detailed
@@ -311,14 +310,14 @@ export const reportService = {
     const assetRow = bsData.find(r => r.type === 'asset');
     const liabilityRow = bsData.find(r => r.type === 'liability');
     const equityRow = bsData.find(r => r.type === 'equity');
+    const retainedRow = bsData.find(r => r.type === 'retained_earnings');
 
     const equityFromServer = Number(equityRow?.amount) || 0;
     const totalAssets = Number(assetRow?.amount) || 0;
     const totalLiabilities = Number(liabilityRow?.amount) || 0;
-    // حقوق الملكية تُعرض منفصلة عن بند صافي أرباح/خسائر الفترة، لكن إجمالي
-    // الميزانية يجب أن يشمل صافي الربح حتى يتحقق التوازن:
-    //   الأصول = الخصوم + حقوق الملكية + صافي الربح
-    const totalEquity = equityFromServer + netIncome;
+    // إذا كان الخادم يرجع بند retained_earnings فإن equityRow يشمل أرباح الفترة سلفاً
+    const totalEquity = retainedRow ? equityFromServer : equityFromServer + netIncome;
+    const baseEquity = retainedRow ? equityFromServer - netIncome : equityFromServer;
 
     const assetTBI: TrialBalanceItem[] = assetRow
       ? [
@@ -356,8 +355,8 @@ export const reportService = {
             name: equityRow.category,
             type: 'equity',
             total_debit: 0,
-            total_credit: equityFromServer,
-            net_balance: equityFromServer,
+            total_credit: baseEquity,
+            net_balance: baseEquity,
             currency_code: 'SAR',
           },
         ]
