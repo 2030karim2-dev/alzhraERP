@@ -20,7 +20,7 @@ export const ADHAN_RECITERS: AdhanReciterInfo[] = [
     desc: 'صوت شجي مهيب من مكة المكرمة',
     urls: [
       'https://cdn.islamic.network/adhan/makkah.mp3',
-      'https://ia800301.us.archive.org/15/items/AdhanMakkah/Adhan_Makkah.mp3',
+      'https://archive.org/download/AdhanMakkah/Adhan_Makkah.mp3',
     ],
   },
   {
@@ -28,27 +28,27 @@ export const ADHAN_RECITERS: AdhanReciterInfo[] = [
     name: 'أذان المسجد النبوي الشريف',
     desc: 'أذان المدينة المنورة الندي',
     urls: [
-      'https://ia800204.us.archive.org/11/items/AdhanMadinah/Adhan_Madinah.mp3',
       'https://cdn.islamic.network/adhan/madina.mp3',
+      'https://archive.org/download/AdhanMadinah/Adhan_Madinah.mp3',
     ],
   },
   {
     id: 'quds',
     name: 'أذان المسجد الأقصى المبارك',
     desc: 'تسجيل خاشع من القدس الشريف',
-    urls: ['https://ia800304.us.archive.org/21/items/AdhanAlAqsa/Adhan_AlAqsa.mp3'],
+    urls: ['https://archive.org/download/AdhanAlAqsa/Adhan_AlAqsa.mp3'],
   },
   {
     id: 'abdulbasit',
     name: 'أذان الشيخ عبد الباسط عبد الصمد',
     desc: 'أداء صوتي تاريخي خالد',
-    urls: ['https://ia800303.us.archive.org/3/items/AdhanAbdulBasit/Adhan_Abdulbasit.mp3'],
+    urls: ['https://archive.org/download/AdhanAbdulBasit/Adhan_Abdulbasit.mp3'],
   },
   {
     id: 'takbeerat',
     name: 'تكبيرات الأذان (الله أكبر - مختصر)',
     desc: 'تكبيرات الأذان الأولى فقط',
-    urls: ['https://ia800301.us.archive.org/15/items/AdhanMakkah/Adhan_Takbeerat.mp3'],
+    urls: ['https://archive.org/download/AdhanMakkah/Adhan_Takbeerat.mp3'],
   },
   {
     id: 'synth',
@@ -282,7 +282,7 @@ export async function playAdhanSound(options: PlayAdhanOptions = {}): Promise<vo
   for (const url of urls) {
     try {
       const audio = new Audio(url);
-      audio.crossOrigin = 'anonymous';
+      audio.preload = 'auto';
       audio.volume = Math.max(0.1, Math.min(1.0, volume));
 
       // Handle preview mode (play first 15 seconds)
