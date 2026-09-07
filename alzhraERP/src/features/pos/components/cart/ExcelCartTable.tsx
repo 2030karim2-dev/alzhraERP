@@ -1,16 +1,106 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Trash2, Plus, Minus, Edit3, AlertTriangle, CornerDownLeft } from 'lucide-react';
-import { cn, formatCurrency } from '../../../../core/utils';
+import { Trash2, Plus, Minus, AlertTriangle, CornerDownLeft } from 'lucide-react';
+import {
+  cn,
+  formatCurrency,
+  normalizeArabicDigits,
+  parseNumberFlexible,
+  convertCurrency,
+} from '../../../../core/utils';
 import { useColumnResize } from '../../../../ui/common/hooks/useColumnResize';
-import { EditPriceInline } from './EditPriceInline';
-import type { SalesCartItem } from '../../../sales/store';
+import { useSalesStore, type SalesCartItem } from '../../../sales/store';
+
+interface PriceCellInputProps {
+  productId: string;
+  price: number;
+  rowIndex: number;
+  onFocus: () => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+}
+
+const PriceCellInput: React.FC<PriceCellInputProps> = React.memo(
+  ({ productId, price, rowIndex, onFocus, onKeyDown }) => {
+    const { items, updateItem, currency, exchangeRate, exchangeOperator } = useSalesStore();
+    const [localVal, setLocalVal] = useState<string>(
+      price !== 0 && !isNaN(price) ? String(price) : ''
+    );
+    const isFocusedRef = useRef(false);
+
+    useEffect(() => {
+      if (!isFocusedRef.current) {
+        setLocalVal(price !== 0 && !isNaN(price) ? String(price) : '');
+      }
+    }, [price]);
+
+    const commitPrice = useCallback(
+      (val: string) => {
+        const num = parseNumberFlexible(val);
+        if (!isNaN(num) && num >= 0) {
+          const idx = items.findIndex(i => i.productId === productId);
+          if (idx !== -1) {
+            let basePrice = num;
+            if (currency !== 'SAR') {
+              try {
+                basePrice = convertCurrency(num, exchangeRate, 'toBase', exchangeOperator);
+              } catch {
+                return;
+              }
+            }
+            updateItem(idx, 'price', num);
+            updateItem(idx, 'basePrice', basePrice);
+          }
+        } else {
+          setLocalVal(price !== 0 && !isNaN(price) ? String(price) : '');
+        }
+      },
+      [currency, exchangeOperator, exchangeRate, items, productId, updateItem, price]
+    );
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      let raw = normalizeArabicDigits(e.target.value).replace(/[،٫]/g, '.');
+      if (raw.includes(',') && !raw.includes('.')) raw = raw.replace(',', '.');
+      if (raw === '' || raw === '.' || /^\d*\.?\d*$/.test(raw)) {
+        setLocalVal(raw);
+        const parsed = parseFloat(raw);
+        if (!isNaN(parsed) && parsed >= 0) {
+          commitPrice(raw);
+        }
+      }
+    };
+
+    return (
+      <input
+        type="text"
+        inputMode="decimal"
+        value={localVal}
+        onFocus={e => {
+          isFocusedRef.current = true;
+          onFocus();
+          e.target.select();
+        }}
+        onBlur={() => {
+          isFocusedRef.current = false;
+          commitPrice(localVal);
+        }}
+        onChange={handleChange}
+        onKeyDown={onKeyDown}
+        data-row-index={rowIndex}
+        data-col-field="price"
+        className="h-full w-full bg-transparent px-1 py-0.5 text-left font-mono text-[11px] font-bold text-slate-800 outline-none transition-colors hover:bg-slate-100/60 focus:bg-blue-50/80 focus:text-blue-700 dark:text-slate-100 dark:hover:bg-slate-800/60 dark:focus:bg-blue-950/40 dark:focus:text-blue-300"
+        placeholder="0.00"
+        dir="ltr"
+      />
+    );
+  }
+);
+PriceCellInput.displayName = 'PriceCellInput';
 
 interface ExcelCartTableProps {
   items: SalesCartItem[];
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveClick: (productId: string) => void;
-  editingPriceId: string | null;
-  setEditingPriceId: (id: string | null) => void;
+  editingPriceId?: string | null;
+  setEditingPriceId?: (id: string | null) => void;
 }
 
 export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
@@ -203,7 +293,11 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
         return;
       }
       if (col === 4) {
-        setEditingPriceId(currentItem.productId);
+        const priceInput = tableContainerRef.current?.querySelector<HTMLInputElement>(
+          `input[data-row-index="${row}"][data-col-field="price"]`
+        );
+        priceInput?.focus();
+        priceInput?.select();
         return;
       }
       if (col === 6) {
@@ -223,10 +317,46 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
     // If focused on Price cell and user starts typing a digit
     if (col === 4 && /^[0-9]$/.test(e.key)) {
       e.preventDefault();
-      setEditingPriceId(currentItem.productId);
+      const priceInput = tableContainerRef.current?.querySelector<HTMLInputElement>(
+        `input[data-row-index="${row}"][data-col-field="price"]`
+      );
+      if (priceInput) {
+        priceInput.focus();
+        priceInput.select();
+      }
       return;
     }
   };
+
+  const handlePriceInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, row: number) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        if (row < items.length - 1) {
+          setFocusedCell({ row: row + 1, col: 4 });
+          const nextInput = tableContainerRef.current?.querySelector<HTMLInputElement>(
+            `input[data-row-index="${row + 1}"][data-col-field="price"]`
+          );
+          nextInput?.focus();
+          nextInput?.select();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (row > 0) {
+          setFocusedCell({ row: row - 1, col: 4 });
+          const prevInput = tableContainerRef.current?.querySelector<HTMLInputElement>(
+            `input[data-row-index="${row - 1}"][data-col-field="price"]`
+          );
+          prevInput?.focus();
+          prevInput?.select();
+        }
+      } else if (e.key === 'Escape') {
+        e.currentTarget.blur();
+        tableContainerRef.current?.focus();
+      }
+    },
+    [items.length]
+  );
 
   return (
     <div
@@ -471,45 +601,30 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     )}
                   </td>
 
-                  {/* Col 4: Price (Compact & Seamless Single-Click Edit) */}
+                  {/* Col 4: Price (Natural Excel Input like Sales Invoice) */}
                   <td
                     ref={isCellActive(4) ? activeCellRef : undefined}
                     onClick={() => {
                       setFocusedCell({ row: rowIdx, col: 4 });
-                      setEditingPriceId(item.productId);
+                      setEditingPriceId?.(item.productId);
                     }}
                     className={cn(
-                      'relative cursor-pointer border-b border-l border-slate-200 px-1 py-0.5 text-left align-middle dark:border-slate-700/80',
+                      'relative border-b border-l border-slate-200 p-0 text-left align-middle dark:border-slate-700/80',
                       isCellActive(4) &&
                         'z-10 bg-blue-50/50 ring-2 ring-inset ring-blue-600 dark:bg-blue-900/20 dark:ring-blue-500'
                     )}
                   >
-                    {editingPriceId === item.productId ? (
-                      <EditPriceInline
-                        productId={item.productId}
-                        currentPrice={item.price}
-                        onDone={() => {
-                          setEditingPriceId(null);
-                          tableContainerRef.current?.focus();
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className="group/price flex cursor-pointer items-center justify-end gap-1"
-                        title="انقر لتعديل السعر"
-                      >
-                        <span
-                          dir="ltr"
-                          className="truncate font-mono text-[10px] font-bold text-slate-700 transition-colors group-hover/price:text-blue-600 dark:text-slate-300 dark:group-hover/price:text-blue-400"
-                        >
-                          {formatCurrency(item.price)}
-                        </span>
-                        <span className="p-0.5 text-slate-400 opacity-40 transition-opacity group-hover/price:text-blue-600 group-hover/price:opacity-100">
-                          <Edit3 size={10} />
-                        </span>
-                      </div>
-                    )}
-                    {isCellActive(4) && editingPriceId !== item.productId && (
+                    <PriceCellInput
+                      productId={item.productId}
+                      price={item.price}
+                      rowIndex={rowIdx}
+                      onFocus={() => {
+                        setFocusedCell({ row: rowIdx, col: 4 });
+                        setEditingPriceId?.(item.productId);
+                      }}
+                      onKeyDown={e => handlePriceInputKeyDown(e, rowIdx)}
+                    />
+                    {isCellActive(4) && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-blue-600 dark:bg-blue-500" />
                     )}
                   </td>
