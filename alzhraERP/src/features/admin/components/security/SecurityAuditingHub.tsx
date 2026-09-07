@@ -7,13 +7,10 @@ import {
   Lock,
   Terminal,
   Activity,
-  AlertCircle,
   CheckCircle2,
   Filter,
   Check,
   Download,
-  ChevronRight,
-  ChevronLeft,
 } from 'lucide-react';
 import {
   useSecurityLogs,
@@ -24,6 +21,7 @@ import {
 import type { SecurityAlertLog } from '../../types';
 import { ResolveAlertDialog } from './ResolveAlertDialog';
 import { exportAlertsCsv, exportCspReportsCsv } from './securityCsvExport';
+import { AdminTableShell } from '../shared/AdminTableShell';
 import Button from '../../../../ui/base/Button';
 import { useFeedbackStore } from '../../../feedback/store';
 
@@ -116,7 +114,6 @@ export const SecurityAuditingHub: React.FC = () => {
       setIsExportingLogs(false);
     }
   };
-
   return (
     <div className="space-y-4">
       {/* Top Banner & Posture Indicators */}
@@ -125,11 +122,9 @@ export const SecurityAuditingHub: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <ShieldAlert size={16} className="text-rose-500" />
-              <h2 className="text-xs font-black text-[var(--app-text)]">
-                مركز الأمان والتنبيهات (Security Alerts Hub)
-              </h2>
+              <h2 className="text-xs font-black text-[var(--app-text)]">مركز الأمان والتنبيهات</h2>
             </div>
-            <p className="mt-0.5 text-[10px] text-[var(--app-text-secondary)]">
+            <p className="mt-0.5 text-[11px] text-[var(--app-text-secondary)]">
               سجلّات تنبيهات أمان المنصة (مصيدة Honeypot + Rate-limit + حظر تلقائي) وتقارير انتهاك
               سياسة أمان المتصفح (CSP).
             </p>
@@ -179,11 +174,8 @@ export const SecurityAuditingHub: React.FC = () => {
             <span>جدار تقارير المتصفح CSP</span>
           </div>
         </div>
-      </div>
-
-      {/* Sub-tabs & Filter Bar */}
-      <div className="flex flex-col gap-2 border-b border-[var(--app-border)] pb-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
+        {/* Subtabs Switcher */}
+        <div className="mt-3 flex items-center gap-1.5 border-t border-[var(--app-border)] pt-3">
           <button
             onClick={() => {
               setActiveSubTab('honeypot');
@@ -195,9 +187,8 @@ export const SecurityAuditingHub: React.FC = () => {
             }`}
           >
             <ShieldAlert size={14} />
-            <span>سجلات الأمان والتنبيهات ({securityAlertsTotal})</span>
+            <span>سجلات الأمان ({securityAlertsTotal})</span>
           </button>
-
           <button
             onClick={() => {
               setActiveSubTab('csp');
@@ -209,276 +200,169 @@ export const SecurityAuditingHub: React.FC = () => {
             }`}
           >
             <AlertTriangle size={14} />
-            <span>تقارير انتهاك سياسة المتصفح CSP ({cspTotal})</span>
+            <span>تقارير CSP ({cspTotal})</span>
           </button>
         </div>
-
-        {activeSubTab === 'honeypot' && (
-          <div className="flex items-center gap-1.5 self-end sm:self-auto">
-            <Filter size={12} className="text-[var(--app-text-secondary)]" />
-            <select
-              value={statusFilter}
-              onChange={e => {
-                setStatusFilter(e.target.value as 'all' | 'unresolved' | 'resolved');
-              }}
-              className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-1 text-xs text-[var(--app-text)] focus:outline-none"
-            >
-              <option value="all">كافة التنبيهات</option>
-              <option value="unresolved">النشطة (غير المعالجة)</option>
-              <option value="resolved">المعالجة (المغلقة)</option>
-            </select>
-          </div>
-        )}
       </div>
 
-      {/* Tables */}
-      {activeSubTab === 'honeypot' ? (
-        <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className="border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[10px] font-black uppercase text-[var(--app-text-secondary)]">
-                  <th className="px-3.5 py-2.5">المستوى</th>
-                  <th className="px-3.5 py-2.5">نوع التنبيه</th>
-                  <th className="px-3.5 py-2.5 font-mono">عنوان IP المهاجم</th>
-                  <th className="px-3.5 py-2.5">تفاصيل الهجوم</th>
-                  <th className="px-3.5 py-2.5 font-mono">التوقيت</th>
-                  <th className="px-3.5 py-2.5 text-center">حالة التنبيه</th>
-                  <th className="px-3.5 py-2.5 text-left">إجراء</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--app-border)]">
-                {isLoadingAlerts ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="py-10 text-center text-xs text-[var(--app-text-secondary)]"
-                    >
-                      جاري فحص سجلات الأمان...
-                    </td>
-                  </tr>
-                ) : isErrorAlerts ? (
-                  <tr>
-                    <td colSpan={7} className="py-10 text-center text-xs font-bold text-rose-500">
-                      <div className="flex items-center justify-center gap-2">
-                        <AlertCircle size={16} />
-                        <span>تعذر استرجاع سجلات الأمان: {alertsError || 'خطأ في الاتصال'}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : securityAlerts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="py-10 text-center text-xs font-bold text-emerald-600"
-                    >
-                      ✓ لا توجد سجلات مطابقة لمعيار العرض.
-                    </td>
-                  </tr>
-                ) : (
-                  securityAlerts.map(log => (
-                    <tr
-                      key={log.id}
-                      className="hover:bg-[var(--app-surface-hover)]/60 transition-colors"
-                    >
-                      <td className="px-3.5 py-2.5">
-                        <span
-                          className={`rounded-md border px-2 py-0.5 text-[10px] font-black uppercase ${getSeverityBadge(log.severity)}`}
-                        >
-                          {log.severity || 'CRITICAL'}
-                        </span>
-                      </td>
-                      <td className="px-3.5 py-2.5 font-mono text-[11px] font-bold text-[var(--app-text)]">
-                        {log.alert_type}
-                      </td>
-                      <td className="px-3.5 py-2.5 font-mono text-[11px] text-[var(--app-text-secondary)]">
-                        {log.source_ip || 'غير معروف'}
-                      </td>
-                      <td className="max-w-xs truncate px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
-                        {JSON.stringify(log.details || {})}
-                      </td>
-                      <td className="px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
-                        {new Date(log.detected_at).toLocaleString('ar-SA')}
-                      </td>
-                      <td className="px-3.5 py-2.5 text-center">
-                        {log.resolved_at ? (
-                          <span
-                            className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600"
-                            title={
-                              log.resolution_notes
-                                ? `ملاحظات: ${log.resolution_notes}`
-                                : 'تمت المعالجة'
-                            }
-                          >
-                            <CheckCircle2 size={10} />
-                            <span>معالج</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
-                            <AlertTriangle size={10} />
-                            <span>نشط</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3.5 py-2.5 text-left">
-                        {!log.resolved_at ? (
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedAlertToResolve(log);
-                            }}
-                            className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-emerald-600 hover:bg-emerald-500/10"
-                          >
-                            <Check size={11} />
-                            <span>معالجة</span>
-                          </Button>
-                        ) : (
-                          <span className="text-[10px] text-[var(--app-text-secondary)]">
-                            {new Date(log.resolved_at).toLocaleDateString('ar-SA')}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          <div className="flex items-center justify-between border-t border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3.5 py-2 text-xs">
-            <span className="text-[10px] text-[var(--app-text-secondary)]">
-              عرض {securityAlerts.length} من {securityAlertsTotal} تنبيه (صفحة {alertsPage} من{' '}
-              {alertsTotalPages})
-            </span>
+      {activeSubTab === 'honeypot' && (
+        <AdminTableShell
+          columns={[
+            { label: 'المستوى' },
+            { label: 'نوع التنبيه' },
+            { label: 'عنوان IP المهاجم' },
+            { label: 'تفاصيل الهجوم' },
+            { label: 'التوقيت' },
+            { label: 'حالة التنبيه', align: 'center' },
+            { label: 'إجراء', align: 'left' },
+          ]}
+          hasRows={securityAlerts.length > 0}
+          loading={isLoadingAlerts}
+          error={isErrorAlerts}
+          errorMessage={`تعذر تحميل تنبيهات الأمان: ${alertsError || 'خطأ في الاتصال'}`}
+          emptyMessage="لا توجد تنبيهات أمنية مطابقة للفلتر المحدد."
+          pagination={{
+            page: alertsPage,
+            totalPages: alertsTotalPages,
+            itemCount: securityAlerts.length,
+            totalItems: securityAlertsTotal,
+            itemLabel: 'تنبيه',
+            isLoading: isLoadingAlerts,
+            onPrev: () => {
+              setAlertsPage(p => Math.max(1, p - 1));
+            },
+            onNext: () => {
+              setAlertsPage(p => p + 1);
+            },
+          }}
+          actions={
             <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                disabled={alertsPage <= 1 || isLoadingAlerts}
-                onClick={() => {
-                  setAlertsPage(p => Math.max(1, p - 1));
+              <Filter size={12} className="text-[var(--app-text-secondary)]" />
+              <select
+                value={statusFilter}
+                onChange={e => {
+                  setStatusFilter(e.target.value as 'all' | 'unresolved' | 'resolved');
                 }}
-                className="flex items-center gap-1 px-2 py-1 text-[10px]"
+                aria-label="تصفية حسب حالة المعالجة"
+                className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-1 text-xs text-[var(--app-text)] focus:outline-none"
               >
-                <ChevronRight size={12} />
-                <span>السابق</span>
-              </Button>
-              <span className="px-2 text-[10px] font-bold text-[var(--app-text)]">
-                {alertsPage}
-              </span>
-              <Button
-                variant="outline"
-                disabled={alertsPage >= alertsTotalPages || isLoadingAlerts}
-                onClick={() => {
-                  setAlertsPage(p => p + 1);
-                }}
-                className="flex items-center gap-1 px-2 py-1 text-[10px]"
-              >
-                <span>التالي</span>
-                <ChevronLeft size={12} />
-              </Button>
+                <option value="all">كافة التنبيهات</option>
+                <option value="unresolved">النشطة (غير المعالجة)</option>
+                <option value="resolved">المعالجة (المغلقة)</option>
+              </select>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className="border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[10px] font-black uppercase text-[var(--app-text-secondary)]">
-                  <th className="px-3.5 py-2.5">الصفحة المستهدفة</th>
-                  <th className="px-3.5 py-2.5">المورد المحظور (Blocked URI)</th>
-                  <th className="px-3.5 py-2.5">القاعدة المنتهكة</th>
-                  <th className="px-3.5 py-2.5 font-mono">التوقيت</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--app-border)]">
-                {isLoadingCsp ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="py-10 text-center text-xs text-[var(--app-text-secondary)]"
-                    >
-                      جاري تحميل تقارير CSP...
-                    </td>
-                  </tr>
-                ) : isErrorCsp ? (
-                  <tr>
-                    <td colSpan={4} className="py-10 text-center text-xs font-bold text-rose-500">
-                      <div className="flex items-center justify-center gap-2">
-                        <AlertCircle size={16} />
-                        <span>تعذر تحميل تقارير الـ CSP: {cspError || 'خطأ في الاتصال'}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : cspReports.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="py-10 text-center text-xs font-bold text-emerald-600"
-                    >
-                      ✓ لا توجد انتهاكات لسياسة أمان المحتوى (CSP).
-                    </td>
-                  </tr>
+          }
+        >
+          {securityAlerts.map(log => (
+            <tr key={log.id} className="hover:bg-[var(--app-surface-hover)]/60 transition-colors">
+              <td className="px-3.5 py-2.5">
+                <span
+                  className={`rounded-md border px-2 py-0.5 text-[10px] font-black uppercase ${getSeverityBadge(log.severity)}`}
+                >
+                  {log.severity || 'CRITICAL'}
+                </span>
+              </td>
+              <td className="px-3.5 py-2.5 font-mono text-[11px] font-bold text-[var(--app-text)]">
+                {log.alert_type}
+              </td>
+              <td className="px-3.5 py-2.5 font-mono text-[11px] text-[var(--app-text-secondary)]">
+                {log.source_ip || 'غير معروف'}
+              </td>
+              <td className="max-w-xs truncate px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
+                {JSON.stringify(log.details || {})}
+              </td>
+              <td className="px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
+                {new Date(log.detected_at).toLocaleString('ar-SA')}
+              </td>
+              <td className="px-3.5 py-2.5 text-center">
+                {log.resolved_at ? (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600"
+                    title={
+                      log.resolution_notes ? `ملاحظات: ${log.resolution_notes}` : 'تمت المعالجة'
+                    }
+                  >
+                    <CheckCircle2 size={10} />
+                    <span>معالج</span>
+                  </span>
                 ) : (
-                  cspReports.map(report => (
-                    <tr
-                      key={report.id}
-                      className="hover:bg-[var(--app-surface-hover)]/60 transition-colors"
-                    >
-                      <td className="px-3.5 py-2.5 font-mono text-[11px] text-[var(--app-text)]">
-                        {report.document_uri || '—'}
-                      </td>
-                      <td className="px-3.5 py-2.5 font-mono text-[11px] text-amber-600">
-                        {report.blocked_uri || '—'}
-                      </td>
-                      <td className="px-3.5 py-2.5 font-bold text-[var(--app-text-secondary)]">
-                        {report.violated_directive || '—'}
-                      </td>
-                      <td className="px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
-                        {report.received_at
-                          ? new Date(report.received_at).toLocaleString('ar-SA')
-                          : '—'}
-                      </td>
-                    </tr>
-                  ))
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                    <AlertTriangle size={10} />
+                    <span>نشط</span>
+                  </span>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </td>
+              <td className="px-3.5 py-2.5 text-left">
+                {!log.resolved_at ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedAlertToResolve(log);
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-600 hover:bg-emerald-500/10"
+                  >
+                    <Check size={11} />
+                    <span>معالجة</span>
+                  </Button>
+                ) : (
+                  <span className="text-[10px] text-[var(--app-text-secondary)]">
+                    {new Date(log.resolved_at).toLocaleDateString('ar-SA')}
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </AdminTableShell>
+      )}
 
-          {/* Pagination Footer */}
-          <div className="flex items-center justify-between border-t border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3.5 py-2 text-xs">
-            <span className="text-[10px] text-[var(--app-text-secondary)]">
-              عرض {cspReports.length} من {cspTotal} تقرير (صفحة {cspPage} من {cspTotalPages})
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                disabled={cspPage <= 1 || isLoadingCsp}
-                onClick={() => {
-                  setCspPage(p => Math.max(1, p - 1));
-                }}
-                className="flex items-center gap-1 px-2 py-1 text-[10px]"
-              >
-                <ChevronRight size={12} />
-                <span>السابق</span>
-              </Button>
-              <span className="px-2 text-[10px] font-bold text-[var(--app-text)]">{cspPage}</span>
-              <Button
-                variant="outline"
-                disabled={cspPage >= cspTotalPages || isLoadingCsp}
-                onClick={() => {
-                  setCspPage(p => p + 1);
-                }}
-                className="flex items-center gap-1 px-2 py-1 text-[10px]"
-              >
-                <span>التالي</span>
-                <ChevronLeft size={12} />
-              </Button>
-            </div>
-          </div>
-        </div>
+      {activeSubTab === 'csp' && (
+        <AdminTableShell
+          columns={[
+            { label: 'الصفحة المستهدفة' },
+            { label: 'المورد المحظور (Blocked URI)' },
+            { label: 'القاعدة المنتهكة' },
+            { label: 'التوقيت' },
+          ]}
+          hasRows={cspReports.length > 0}
+          loading={isLoadingCsp}
+          error={isErrorCsp}
+          errorMessage={`تعذر تحميل تقارير الـ CSP: ${cspError || 'خطأ في الاتصال'}`}
+          emptyMessage="لا توجد انتهاكات لسياسة أمان المحتوى (CSP)."
+          pagination={{
+            page: cspPage,
+            totalPages: cspTotalPages,
+            itemCount: cspReports.length,
+            totalItems: cspTotal,
+            itemLabel: 'تقرير',
+            isLoading: isLoadingCsp,
+            onPrev: () => {
+              setCspPage(p => Math.max(1, p - 1));
+            },
+            onNext: () => {
+              setCspPage(p => p + 1);
+            },
+          }}
+        >
+          {cspReports.map(report => (
+            <tr
+              key={report.id}
+              className="hover:bg-[var(--app-surface-hover)]/60 transition-colors"
+            >
+              <td className="px-3.5 py-2.5 font-mono text-[11px] text-[var(--app-text)]">
+                {report.document_uri || '—'}
+              </td>
+              <td className="px-3.5 py-2.5 font-mono text-[11px] text-amber-600">
+                {report.blocked_uri || '—'}
+              </td>
+              <td className="px-3.5 py-2.5 font-bold text-[var(--app-text-secondary)]">
+                {report.violated_directive || '—'}
+              </td>
+              <td className="px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
+                {report.received_at ? new Date(report.received_at).toLocaleString('ar-SA') : '—'}
+              </td>
+            </tr>
+          ))}
+        </AdminTableShell>
       )}
 
       {/* Resolve Alert Modal */}

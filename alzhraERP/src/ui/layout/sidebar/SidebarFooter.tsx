@@ -1,11 +1,13 @@
 import React from 'react';
-import { LogOut, GitBranch } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LogOut, GitBranch, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '../../../features/auth/store';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
-import { useLogout } from '../../../features/auth/hooks';
+import { useLogout, useIsSuperAdmin } from '../../../features/auth/hooks';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
 import BranchSwitcher from '../../../features/branches/components/BranchSwitcher';
 import { cn } from '../../../core/utils';
+import { ROUTES } from '../../../core/routes/paths';
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -15,6 +17,8 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
   const { user } = useAuthStore();
   const { t } = useTranslation();
   const { logout: performLogout, isLoggingOut } = useLogout();
+  const { data: isSuperAdmin } = useIsSuperAdmin();
+  const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
 
   const initial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U';
@@ -43,6 +47,24 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({ isCollapsed }) => {
             </span>
           )}
         </div>
+      )}
+
+      {/* Super Admin — إدارة المنصة (يظهر للسوبر أدمن فقط) */}
+      {isSuperAdmin === true && (
+        <button
+          onClick={() => {
+            void navigate(ROUTES.ADMIN.ROOT);
+          }}
+          className={cn(
+            'flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 transition-colors hover:bg-rose-500/20 dark:text-rose-400',
+            isCollapsed ? 'mx-auto h-10 w-10 justify-center p-0' : 'px-3 py-1.5'
+          )}
+          title="مركز تحكم المنصة (Super Admin)"
+          aria-label="مركز تحكم المنصة"
+        >
+          <ShieldCheck size={14} className="shrink-0" />
+          {!isCollapsed && <span className="truncate text-xs font-black">إدارة المنصة</span>}
+        </button>
       )}
 
       {/* User Info + Logout */}

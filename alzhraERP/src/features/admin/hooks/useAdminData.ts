@@ -354,6 +354,27 @@ export const useSecurityMutations = () => {
   };
 };
 
+/**
+ * عدد السوبر أدمنز الحاليين — يُحتسب من دليل المستخدمين الكامل (بدون RPC جديد).
+ *
+ * الغرض التشغيلي: إنذار «سوبر أدمن وحيد» — فقدان الوصول للحساب الوحيد يترك المنصة
+ * بلا إدارة ويلزم تدخل DBA (بذر seed_super_admins.sql يدوياً).
+ *
+ * ⚠ عند نمو المنصة لأعداد كبيرة: استبدل الجلب الكامل بـ RPC مخصص
+ * (مثل get_super_admins_count) بدل تحميل كل المستخدمين — القرار الحالي مقبول
+ * لأن الاستدعاء محصور بشاشة الإدارة ويُخزَّن 60 ثانية.
+ */
+export const useSuperAdminCount = () => {
+  return useQuery({
+    queryKey: ['admin_super_admins_count'],
+    queryFn: async (): Promise<number> => {
+      const users = await adminService.exportAllUsers();
+      return users.filter(user => user.is_super_admin).length;
+    },
+    staleTime: 60_000,
+  });
+};
+
 // ---------------------------------------------------------------------------
 // طبقة وصول للتصدير الكامل CSV (تتجاوز ترقيم صفحات الواجهة) — تُستهلك من
 // المكونات عبر هذه الدوال لا عبر الاتصال المباشر بالخدمة.

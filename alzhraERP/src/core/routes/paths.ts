@@ -48,6 +48,19 @@ export const ROUTES = {
   },
   ADMIN: {
     ROOT: '/admin',
+    // تبويبات مركز التحكم — عناوين كاملة قابلة للمشاركة (deep-linkable).
+    // تتطابق مع المسار الفرعي الاختياري `:tab?` في routes.tsx، والنظرة العامة
+    // هي المسار الجذر `/admin`.
+    DASHBOARD: '/admin/',
+    COMPANIES: '/admin/companies',
+    SUBSCRIPTIONS: '/admin/subscriptions',
+    USERS: '/admin/users',
+    TELEMETRY: '/admin/telemetry',
+    SECURITY: '/admin/security',
+    SETTINGS: '/admin/settings',
+    // المسارات الفرعية ضمن تبويب الأمان (بناءً على الحالة فقط — لا تُستضاف في URL).
+    SECURITY_HONEYPOT: '/admin/security/honeypot',
+    SECURITY_CSP: '/admin/security/csp',
   },
   PUBLIC: {
     SUPPLIER_PORTAL: '/portal/supplier/:token',

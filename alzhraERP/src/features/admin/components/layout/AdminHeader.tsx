@@ -88,14 +88,14 @@ export const AdminHeader: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-black tracking-tight text-[var(--app-text)]">
-              Al-Zahra Platform Cockpit
+              مركز تحكم المنصة
             </h1>
             <span className="rounded-md border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-black text-rose-500">
               Super Admin
             </span>
           </div>
           <p className="text-[10px] font-bold text-[var(--app-text-secondary)]">
-            مركز التحكم والعمليات العليا للمنصة
+            Al-Zahra Smart ERP — عمليات المنصة العليا
           </p>
         </div>
       </div>

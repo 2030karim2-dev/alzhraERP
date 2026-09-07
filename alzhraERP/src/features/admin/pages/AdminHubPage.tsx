@@ -1,15 +1,7 @@
-import React, { useState } from 'react';
-import {
-  Building2,
-  BarChart3,
-  CreditCard,
-  Users,
-  Activity,
-  ShieldAlert,
-  Settings,
-  RefreshCw,
-} from 'lucide-react';
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AdminHeader } from '../components/layout/AdminHeader';
+import { AdminTabs } from '../components/layout/AdminTabs';
 import { MetricsOverview } from '../components/dashboard/MetricsOverview';
 import { CompaniesTable } from '../components/companies/CompaniesTable';
 import { PlansManager } from '../components/subscriptions/PlansManager';
@@ -18,10 +10,23 @@ import { TelemetryCenter } from '../components/telemetry/TelemetryCenter';
 import { SecurityAuditingHub } from '../components/security/SecurityAuditingHub';
 import { SystemPlatformSettings } from '../components/settings/SystemPlatformSettings';
 import { usePlatformMetrics } from '../hooks/useAdminData';
+import { ROUTES } from '../../../core/routes/paths';
+import { ADMIN_TAB_ITEM, resolveAdminTab } from '../components/layout/adminTabsMeta';
 import type { AdminTab } from '../types';
 
+/**
+ * AdminHubPage — مركز تحكم المنصة (Super Admin).
+ *
+ * التنقل مُستضاف في URL (مسار فرعي اختياري بعد /admin) بدل حالة محلية، فيصبح:
+ *  - كل تبويب له رابط قابل للمشاركة (deep-linkable).
+ *  - أزرار Back/Forward في المتصفح تعمل بشكل صحيح.
+ *  - إعادة تحميل الصفحة لا تفقد الموضع الحالي.
+ */
 export const AdminHubPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const navigate = useNavigate();
+  const { tab: tabParam } = useParams();
+  const activeTab = resolveAdminTab(tabParam);
+
   const {
     data: metrics,
     isLoading: isMetricsLoading,
@@ -29,35 +34,10 @@ export const AdminHubPage: React.FC = () => {
     refetch: refetchMetrics,
   } = usePlatformMetrics();
 
-  const tabs: Array<{
-    id: AdminTab;
-    label: string;
-    icon: React.ReactNode;
-    badge?: number | string | undefined;
-  }> = [
-    { id: 'overview', label: 'نظرة عامة', icon: <BarChart3 size={14} /> },
-    {
-      id: 'companies',
-      label: 'المنشآت والشركات',
-      icon: <Building2 size={14} />,
-      badge: metrics?.total_companies,
-    },
-    { id: 'subscriptions', label: 'باقات الاشتراك', icon: <CreditCard size={14} /> },
-    {
-      id: 'users',
-      label: 'دليل المستخدمين',
-      icon: <Users size={14} />,
-      badge: metrics?.total_users,
-    },
-    { id: 'telemetry', label: 'مراقبة الخدمات والـ AI', icon: <Activity size={14} /> },
-    {
-      id: 'security',
-      label: 'الأمان والتنبيهات',
-      icon: <ShieldAlert size={14} />,
-      badge: metrics?.honeypot_alerts ? `${metrics.honeypot_alerts}` : undefined,
-    },
-    { id: 'settings', label: 'إعدادات المنصة والصيانة', icon: <Settings size={14} /> },
-  ];
+  const handleNavigate = (nextTab: AdminTab): void => {
+    if (nextTab === activeTab) return;
+    void navigate(ROUTES.ADMIN.ROOT + ADMIN_TAB_ITEM[nextTab].pathSuffix);
+  };
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--app-text)] transition-colors">
@@ -66,62 +46,24 @@ export const AdminHubPage: React.FC = () => {
 
       {/* Main Container */}
       <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-5">
-        {/* Navigation Tabs Bar */}
-        <div className="scrollbar-none flex items-center justify-between overflow-x-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-1.5 shadow-xs">
-          <div className="flex min-w-max items-center gap-1">
-            {tabs.map(tab => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                  }}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]'
-                  }`}
-                >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                  {tab.badge !== undefined && (
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                        isActive
-                          ? 'bg-white/20 text-white'
-                          : 'border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text-secondary)]'
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => refetchMetrics()}
-            className="hidden items-center gap-1 px-2 text-[10px] font-bold text-[var(--app-text-secondary)] hover:text-blue-500 lg:flex"
-            title="تحديث الإحصائيات العامة"
-          >
-            <RefreshCw size={11} className={isMetricsLoading ? 'animate-spin' : ''} />
-            <span>تحديث</span>
-          </button>
-        </div>
+        {/* Navigation Tabs Bar — تُحدَّد من الـ URL وتوجّه عبر الـ URL */}
+        <AdminTabs
+          activeTab={activeTab}
+          metrics={metrics}
+          isMetricsLoading={isMetricsLoading}
+          onNavigate={handleNavigate}
+          onRefresh={() => refetchMetrics()}
+        />
 
         {/* Tab Content Display */}
-        <div className="animate-in fade-in duration-200">
+        <div className="animate-in fade-in duration-200" key={activeTab}>
           {activeTab === 'overview' && (
             <MetricsOverview
               metrics={metrics}
               isLoading={isMetricsLoading}
               isError={isMetricsError}
               onRetry={() => refetchMetrics()}
-              onNavigateTab={tab => {
-                setActiveTab(tab);
-              }}
+              onNavigateTab={handleNavigate}
             />
           )}
 

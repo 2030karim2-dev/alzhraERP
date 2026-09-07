@@ -14,6 +14,7 @@ import {
 import type { SubscriptionPlan } from '../../types';
 import { useSubscriptionPlans, usePlanMutations } from '../../hooks/useAdminData';
 import { EditPlanModal } from './EditPlanModal';
+import { AdminPageHeader } from '../shared/AdminPageHeader';
 import Button from '../../../../ui/base/Button';
 import { ConfirmModal } from '../../../../ui/base/ConfirmModal';
 
@@ -36,37 +37,33 @@ export const PlansManager: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3 shadow-xs">
-        <div>
-          <h2 className="text-xs font-black text-[var(--app-text)]">
-            باقات وخطط الاشتراك في المنصة
-          </h2>
-          <p className="text-[10px] text-[var(--app-text-secondary)]">
-            تحكم في أسعار الباقات، حدود المستخدمين، الحصص الشهرية، وميزات كل خطة.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            className="px-2.5 py-1.5 text-xs"
-            title="تحديث"
-          >
-            <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setIsCreating(true);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
-          >
-            <Plus size={14} />
-            <span>إضافة باقة جديدة</span>
-          </Button>
-        </div>
-      </div>
+      {/* Header Bar — ترويسة موحّدة */}
+      <AdminPageHeader
+        title="باقات وخطط الاشتراك في المنصة"
+        subtitle="تحكم في أسعار الباقات، حدود المستخدمين، الحصص الشهرية، وميزات كل خطة."
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              className="px-2.5 py-1.5 text-xs"
+              title="تحديث"
+            >
+              <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setIsCreating(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+            >
+              <Plus size={14} />
+              <span>إضافة باقة جديدة</span>
+            </Button>
+          </>
+        }
+      />
 
       {/* Plans Grid */}
       {isLoading ? (

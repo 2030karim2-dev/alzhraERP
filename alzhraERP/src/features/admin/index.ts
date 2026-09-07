@@ -1,5 +1,10 @@
 export { default as AdminHubPage } from './pages/AdminHubPage';
 export { SuperAdminGuard } from './components/SuperAdminGuard';
 export { MaintenanceGuard } from './components/MaintenanceGuard';
+export { AdminTabs } from './components/layout/AdminTabs';
+export { AdminPageHeader } from './components/shared/AdminPageHeader';
+export { AdminTableShell } from './components/shared/AdminTableShell';
+export { AdminPagination } from './components/shared/AdminPagination';
+export { AdminSearchBox } from './components/shared/AdminSearchBox';
 export * from './types';
 export * from './utils';

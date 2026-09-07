@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../lib/themeStore';
 import { MENU_ITEMS } from '../../core/constants';
 import { useTranslation } from '../../lib/hooks/useTranslation';
-import { Sun, Moon } from 'lucide-react';
+import { useIsSuperAdmin } from '../auth/hooks';
+import { ROUTES } from '../../core/routes/paths';
+import { Sun, Moon, ShieldCheck } from 'lucide-react';
 // FIX: Add missing import for 'React' to resolve error when using React.FC.
 import type React from 'react';
 
@@ -28,6 +30,8 @@ export const GlobalCommandRegistrar: React.FC = () => {
   const { t } = useTranslation();
   const { setMode } = useThemeStore();
   const { closePalette } = useCommandPalette();
+  const registerActions = useCommandPaletteStore(state => state.registerActions);
+  const { data: isSuperAdmin } = useIsSuperAdmin();
 
   const navActions: CommandAction[] = MENU_ITEMS.map(item => ({
     id: `nav-${item.id}`,
@@ -66,7 +70,31 @@ export const GlobalCommandRegistrar: React.FC = () => {
     },
   ];
 
-  useRegisterCommands([...navActions, ...themeActions]);
+  // إدراج أمر الوصول لمركز تحكم المنصة عند التحقق من صلاحية السوبر أدمن.
+  // الفحص غير متزامن (React Query)، لذا نعيد التسجيل بحسب اكتمال الفحص؛
+  // registerActions يزيل التكرار بالمعرّف فلا تتكرر الأوامر عند إعادة التشغيل.
+  const adminAction: CommandAction[] =
+    isSuperAdmin === true
+      ? [
+          {
+            id: 'nav-admin-platform',
+            title: 'مركز تحكم المنصة (Super Admin)',
+            section: 'Actions',
+            icon: ShieldCheck,
+            keywords: 'admin platform super ادارة المنصة سوبر أدمن',
+            onSelect: () => {
+              navigate(ROUTES.ADMIN.ROOT);
+              closePalette();
+            },
+          },
+        ]
+      : [];
+
+  useEffect(() => {
+    registerActions([...navActions, ...themeActions, ...adminAction]);
+    // يتغير محتوى القائمة عند اكتمال فحص السوبر أدمن فقط (لا تغيير في nav/theme الثابتة).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuperAdmin]);
 
   return null; // This component does not render anything
 };

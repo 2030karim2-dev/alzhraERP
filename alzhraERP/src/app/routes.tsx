@@ -177,8 +177,10 @@ export const AppRoutes: React.FC = () => {
       />
 
       {/* Super Admin Platform Cockpit (Protected by SuperAdminGuard) */}
+      {/* `:tab?` مسار فرعي اختياري يحدد التبويب النشط من الـ URL (deep-linking)،
+          بينما يبقى الحُرّاس وFeatureBoundary يغلّفان المسار كاملاً. */}
       <Route
-        path={ROUTES.ADMIN.ROOT}
+        path={`${ROUTES.ADMIN.ROOT}/:tab?`}
         element={
           <SuperAdminGuard>
             <FeatureBoundary name="super-admin">
@@ -187,7 +189,11 @@ export const AppRoutes: React.FC = () => {
           </SuperAdminGuard>
         }
       />
-      <Route path="/admin/*" element={<Navigate to={ROUTES.ADMIN.ROOT} replace />} />
+      {/* المسارات العميقة داخل تبويب الأمان تُعاد لعنوان التبويب الرئيسي (تُدار داخلياً بالحالة). */}
+      <Route
+        path={ROUTES.ADMIN.ROOT + '/*'}
+        element={<Navigate to={ROUTES.ADMIN.ROOT} replace />}
+      />
 
       {/* Protected App Routes */}
       <Route

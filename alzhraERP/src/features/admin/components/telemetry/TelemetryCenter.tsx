@@ -12,6 +12,7 @@ import {
 import type { PlatformMetrics } from '../../types';
 import { useServiceTelemetry } from '../../hooks/useAdminData';
 import { calcCacheHitRate } from '../../utils';
+import { AdminPageHeader } from '../shared/AdminPageHeader';
 import Button from '../../../../ui/base/Button';
 
 interface TelemetryCenterProps {
@@ -27,30 +28,24 @@ export const TelemetryCenter: React.FC<TelemetryCenterProps> = ({ metrics }) => 
 
   return (
     <div className="space-y-4">
-      {/* Top Banner */}
-      <div className="flex flex-col gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xs font-black text-[var(--app-text)]">
-            مركز مراقبة واستهلاك الخدمات التقنية (Platform Telemetry)
-          </h2>
-          <p className="text-[10px] text-[var(--app-text-secondary)]">
-            بطاقة الحالة العامة للخدمات التقنية: إحصاءات الذكاء الاصطناعي، رسائل المحادثات، تحليلات
-            VIN المحفوظة، وسجلات أسعار الموردين تُقرأ مباشرة من قاعدة البيانات؛ باقي الأسطر معلومات
-            وصفية للمنصة.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => {
-            void refetch();
-          }}
-          disabled={isFetching}
-          className="flex items-center gap-1.5 self-start px-2.5 py-1 text-xs sm:self-auto"
-        >
-          <RefreshCw size={12} className={isFetching ? 'animate-spin text-blue-500' : ''} />
-          <span>تحديث المقاييس</span>
-        </Button>
-      </div>
+      {/* Top Banner — ترويسة موحّدة */}
+      <AdminPageHeader
+        title="مركز مراقبة واستهلاك الخدمات التقنية"
+        subtitle="بطاقة الحالة العامة للخدمات التقنية: إحصاءات الذكاء الاصطناعي، رسائل المحادثات، تحليلات VIN المحفوظة، وسجلات أسعار الموردين تُقرأ مباشرة من قاعدة البيانات."
+        actions={
+          <Button
+            variant="outline"
+            onClick={() => {
+              void refetch();
+            }}
+            disabled={isFetching}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
+          >
+            <RefreshCw size={12} className={isFetching ? 'animate-spin text-blue-500' : ''} />
+            <span>تحديث المقاييس</span>
+          </Button>
+        }
+      />
 
       {/* Services Grid */}
       <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-3">
