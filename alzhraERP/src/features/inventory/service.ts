@@ -147,8 +147,16 @@ export const inventoryService = {
     return auditService.saveAuditProgress(items);
   },
 
-  deleteAuditItem: async (itemId: string) => {
-    return auditService.deleteAuditItem(itemId);
+  deleteAuditItem: async (
+    params:
+      | string
+      | {
+          itemId?: string | undefined;
+          sessionId?: string | undefined;
+          productId?: string | undefined;
+        }
+  ) => {
+    return auditService.deleteAuditItem(params);
   },
 
   deleteAuditSession: async (sessionId: string) => {

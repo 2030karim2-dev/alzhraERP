@@ -267,13 +267,25 @@ export const useInventoryMutations = () => {
   });
 
   const removeItem = useMutation({
-    mutationFn: (itemId: string) => {
-      return inventoryService.deleteAuditItem(itemId);
+    mutationFn: (
+      params:
+        | string
+        | {
+            itemId?: string | undefined;
+            sessionId?: string | undefined;
+            productId?: string | undefined;
+          }
+    ) => {
+      return inventoryService.deleteAuditItem(params);
     },
-    onSuccess: async () => {
-      // Invalidate specific session caches (not all sessions)
+    onSuccess: async (_, variables) => {
+      const sessId = typeof variables === 'object' ? variables.sessionId : undefined;
       await queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
-      await queryClient.invalidateQueries({ queryKey: ['audit_session'] });
+      if (sessId) {
+        await queryClient.invalidateQueries({ queryKey: ['audit_session', sessId] });
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['audit_session'] });
+      }
       showToast('تم إزالة الصنف من الجلسة', 'info');
     },
     onError: err => {

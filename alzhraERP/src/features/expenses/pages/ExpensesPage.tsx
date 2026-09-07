@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Receipt, Plus, BarChart3
-} from 'lucide-react';
+import { Receipt, Plus, BarChart3 } from 'lucide-react';
 
 import CreateExpenseModal from '../components/CreateExpenseModal';
 import { useExpensesData, useExpenseActions } from '../hooks';
@@ -39,20 +37,24 @@ const ExpensesPage: React.FC = () => {
     week: t('week'),
     month: t('month'),
     quarter: t('quarter'),
-    year: t('year')
+    year: t('year'),
   };
 
   const headerActions = (
     <div className="flex items-center gap-2">
       <Button
-        onClick={() => { setViewType(viewType === 'list' ? 'analytics' : 'list'); }}
+        onClick={() => {
+          setViewType(viewType === 'list' ? 'analytics' : 'list');
+        }}
         variant="outline"
         size="sm"
       >
         {viewType === 'list' ? t('analytics_view') : t('list_view')}
       </Button>
       <Button
-        onClick={() => { setIsModalOpen(true); }}
+        onClick={() => {
+          setIsModalOpen(true);
+        }}
         variant="danger"
         size="sm"
         leftIcon={<Plus size={14} />}
@@ -65,29 +67,34 @@ const ExpensesPage: React.FC = () => {
   // Analytics View
   if (viewType === 'analytics') {
     return (
-      <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 font-cairo">
+      <div className="font-cairo flex h-full flex-col bg-[#f8fafc] dark:bg-slate-950">
         <MicroHeader
           title={t('expenses_analytics_title')}
           icon={BarChart3}
           iconColor="text-rose-600"
           actions={
             <div className="flex items-center gap-2">
-              <div className="flex bg-[var(--app-surface)] p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+              <div className="flex rounded-lg border border-slate-200 bg-[var(--app-surface)] p-1 dark:border-slate-800">
                 {(['today', 'week', 'month', 'quarter', 'year'] as PeriodType[]).map(p => (
                   <button
                     key={p}
-                    onClick={() => { setPeriod(p); }}
-                    className={`px-3 py-1 text-xs font-bold rounded transition-all ${period === p
-                      ? 'bg-rose-600 text-white'
-                      : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
+                    onClick={() => {
+                      setPeriod(p);
+                    }}
+                    className={`rounded px-3 py-1 text-xs font-bold transition-all ${
+                      period === p
+                        ? 'bg-rose-600 text-white'
+                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
                   >
                     {periodLabels[p]}
                   </button>
                 ))}
               </div>
               <Button
-                onClick={() => { setViewType('list'); }}
+                onClick={() => {
+                  setViewType('list');
+                }}
                 variant="outline"
                 size="sm"
               >
@@ -106,7 +113,7 @@ const ExpensesPage: React.FC = () => {
 
   // Original List View
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 font-cairo">
+    <div className="font-cairo flex h-full flex-col bg-[#f8fafc] dark:bg-slate-950">
       <MicroHeader
         title={t('expenses_management_title')}
         icon={Receipt}
@@ -117,19 +124,27 @@ const ExpensesPage: React.FC = () => {
         onSearchChange={setSearchTerm}
       />
 
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 custom-scrollbar">
-        <ExpensesListView 
-          expenses={expenses || []} 
-          isLoading={isLoading} 
-          stats={stats} 
+      <div className="custom-scrollbar flex-1 overflow-y-auto px-4 pb-28 pt-4">
+        <ExpensesListView
+          expenses={expenses || []}
+          isLoading={isLoading}
+          stats={stats}
           onDelete={deleteExpense}
         />
       </div>
 
       <CreateExpenseModal
         isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); }}
-        onSubmit={createExpense}
+        onClose={() => {
+          setIsModalOpen(false);
+        }}
+        onSubmit={data => {
+          createExpense(data, {
+            onSuccess: () => {
+              setIsModalOpen(false);
+            },
+          });
+        }}
         isSubmitting={isCreating}
       />
     </div>

@@ -58,7 +58,23 @@ export const auditService = {
     companyId: string,
     userId: string
   ) => {
-    // Fetch session warehouse_id to get accurate warehouse-specific stock
+    try {
+      const rpc = supabase.rpc as unknown as (
+        fn: string,
+        params: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: unknown }>;
+      const { data: rpcData, error: rpcError } = await rpc('add_audit_session_item', {
+        p_session_id: sessionId,
+        p_product_id: productId,
+      });
+      if (!rpcError && rpcData) {
+        return rpcData as Record<string, unknown>;
+      }
+    } catch {
+      // fallback to legacy path below
+    }
+
+    // Fallback: Fetch session warehouse_id to get accurate warehouse-specific stock
     const { data: session } = await supabase
       .from('audit_sessions')
       .select('warehouse_id')
@@ -77,7 +93,7 @@ export const auditService = {
       if (stockData) {
         calculatedExpectedQuantity = Number(stockData.quantity) || 0;
       } else {
-        calculatedExpectedQuantity = 0; // fallback to 0 if no stock in this warehouse
+        calculatedExpectedQuantity = 0;
       }
     }
 
@@ -212,9 +228,47 @@ export const auditService = {
   /**
    * Delete an item from an active audit session
    */
-  deleteAuditItem: async (itemId: string) => {
-    const { error } = await supabase.from('audit_items').delete().eq('id', itemId);
-    if (error) throw error;
+  deleteAuditItem: async (
+    params:
+      | string
+      | {
+          itemId?: string | undefined;
+          sessionId?: string | undefined;
+          productId?: string | undefined;
+        }
+  ): Promise<void> => {
+    const itemId = typeof params === 'string' ? params : params.itemId;
+    const sessionId = typeof params === 'object' ? params.sessionId : undefined;
+    const productId = typeof params === 'object' ? params.productId : undefined;
+
+    // 1. Try atomic RPC first
+    if (sessionId && (itemId || productId)) {
+      const rpcClient = supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      };
+      const { error } = await rpcClient.rpc('delete_audit_session_item', {
+        p_session_id: sessionId,
+        p_item_id: itemId || null,
+        p_product_id: productId || null,
+      });
+      if (!error) return;
+    }
+
+    // 2. Fallback to direct delete query
+    if (itemId) {
+      const { error } = await supabase.from('audit_items').delete().eq('id', itemId);
+      if (error) throw error;
+    } else if (sessionId && productId) {
+      const { error } = await supabase
+        .from('audit_items')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('product_id', productId);
+      if (error) throw error;
+    }
   },
 
   /**

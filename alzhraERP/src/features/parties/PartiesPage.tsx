@@ -1,22 +1,21 @@
-import React, { useMemo, useState } from 'react';
-import { Users, UserPlus, FileText, LayoutGrid, Edit, Trash2, History, Globe } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, UserPlus, FileText, LayoutGrid } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useParties, usePartyMutations, usePartiesView } from './hooks';
 import type { Party, PartyView, PartyType, PartyFormData } from './types';
 import { useAIPrefillStore } from '../ai/store';
 import MicroHeader from '../../ui/base/MicroHeader';
-import PartiesStats from './components/PartiesStats';
-import ExcelTable from '../../ui/common/ExcelTable';
-import type { Column } from '../../ui/common/ExcelTable';
 import PartyModal from './components/PartyModal';
 import StatementView from './components/StatementView';
 import CategoriesView from './components/CategoriesView';
 import CustomerTimelineModal from './components/customers/CustomerTimelineModal';
 import SupplierPortalShareModal from './components/SupplierPortalShareModal';
+import PartyTypeSwitcher from './components/PartyTypeSwitcher';
+import PartiesListView from './components/PartiesListView';
+import { usePartiesColumns } from './hooks/usePartiesColumns';
 import Button from '../../ui/base/Button';
-import Avatar from '../../ui/base/Avatar';
-import { formatCurrency, cn } from '../../core/utils';
+import { cn } from '../../core/utils';
 import { ROUTES } from '../../core/routes/paths';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import FullscreenContainer from '../../ui/base/FullscreenContainer';
@@ -27,44 +26,6 @@ interface PartiesPageProps {
   icon?: LucideIcon;
   iconColor?: string;
 }
-
-/** Segmented control for party type — navigates between /clients and /suppliers
- *  (URL is the single source of truth — docs/archive/plans/party-routes-tabs-cleanup.md). */
-const PartyTypeSwitcher: React.FC<{
-  partyType: PartyType;
-  onSwitch: (type: PartyType) => void;
-}> = ({ partyType, onSwitch }) => {
-  const { t } = useTranslation();
-  return (
-    <div
-      className="flex items-center gap-1 px-2 pt-3 md:px-4"
-      role="tablist"
-      aria-label="العملاء والموردون"
-    >
-      {(['customer', 'supplier'] as PartyType[]).map(type => (
-        <button
-          key={type}
-          type="button"
-          role="tab"
-          aria-selected={partyType === type}
-          onClick={() => {
-            onSwitch(type);
-          }}
-          className={cn(
-            'rounded-lg px-4 py-1.5 text-xs font-bold transition-all',
-            partyType === type
-              ? type === 'customer'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-blue-600 text-white shadow-sm'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-          )}
-        >
-          {type === 'customer' ? t('customers') : t('suppliers')}
-        </button>
-      ))}
-    </div>
-  );
-};
 
 const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconColor }) => {
   const navigate = useNavigate();
@@ -86,11 +47,9 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   const { data: parties, isLoading, stats } = useParties(partyType, searchTerm);
   const { saveParty, deleteParty, isSaving } = usePartyMutations(partyType);
 
-  // Timeline modal state
+  // Modal states
   const [selectedCustomer, setSelectedCustomer] = useState<Party | null>(null);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
-
-  // Supplier Portal Share Modal State
   const [selectedSupplierForPortal, setSelectedSupplierForPortal] = useState<Party | null>(null);
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
 
@@ -116,165 +75,19 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   const displayIconColor =
     iconColor || (partyType === 'customer' ? 'text-emerald-600' : 'text-blue-600');
 
-  const columns: Array<Column<Party>> = useMemo(
-    () => [
-      {
-        header: t('name'),
-        accessor: (row: Party) => (
-          <div className="flex items-center gap-3">
-            <Avatar name={row.name} size="sm" />
-            <div className="flex translate-y-[1px] flex-col items-start">
-              <span className="font-bold leading-tight text-gray-900 dark:text-white">
-                {row.name}
-              </span>
-              {row.email && (
-                <span className="text-[10px] font-medium text-gray-400">{row.email}</span>
-              )}
-            </div>
-          </div>
-        ),
-        accessorKey: 'name',
-        sortKey: 'name',
-        align: 'right',
-      },
-      {
-        header: t('phone'),
-        accessor: (row: Party) => (
-          <span dir="ltr" className="font-mono text-xs text-slate-500">
-            {row.phone || '---'}
-          </span>
-        ),
-        accessorKey: 'phone',
-        width: '140px',
-        align: 'center',
-      },
-      {
-        header: t('category'),
-        accessor: (row: Party) => (
-          <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-            {row.category || t('general')}
-          </span>
-        ),
-        accessorKey: 'category',
-        width: '100px',
-        align: 'center',
-      },
-      {
-        header: t('status'),
-        accessor: (row: Party) => (
-          <span
-            className={cn(
-              'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
-              row.status === 'active'
-                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30'
-                : 'bg-rose-50 text-rose-600 dark:bg-rose-900/30'
-            )}
-          >
-            {row.status === 'active' ? t('active') : t('blocked')}
-          </span>
-        ),
-        accessorKey: 'status',
-        width: '80px',
-        align: 'center',
-      },
-      {
-        header: t('balance'),
-        accessor: (row: Party) => {
-          const currencies = row.balances_by_currency?.filter(c => c.balance !== 0) || [];
-          if (currencies.length > 0) {
-            return (
-              <div className="flex flex-col items-center gap-1">
-                {currencies.map(c => (
-                  <span
-                    key={c.currency}
-                    dir="ltr"
-                    className={cn(
-                      'rounded-md px-2 py-0.5 font-mono text-xs font-bold tracking-tighter',
-                      c.balance > 0
-                        ? 'border border-emerald-200/60 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-400'
-                        : 'border border-rose-200/60 bg-rose-50 text-rose-700 dark:border-rose-800/40 dark:bg-rose-950/40 dark:text-rose-400'
-                    )}
-                  >
-                    {formatCurrency(c.balance, c.currency)}
-                  </span>
-                ))}
-              </div>
-            );
-          }
-          const val = Number(row.balance);
-          return (
-            <span
-              dir="ltr"
-              className={cn(
-                'font-mono text-sm font-bold tracking-tighter',
-                val === 0 ? 'text-gray-400' : val > 0 ? 'text-emerald-600' : 'text-rose-600'
-              )}
-            >
-              {formatCurrency(val)}
-            </span>
-          );
-        },
-        accessorKey: 'balance',
-        sortKey: 'balance',
-        width: '140px',
-        align: 'center',
-      },
-      {
-        header: t('actions'),
-        accessor: (row: Party) => (
-          <div className="flex items-center justify-center gap-1">
-            {partyType === 'supplier' && (
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedSupplierForPortal(row);
-                  setIsPortalModalOpen(true);
-                }}
-                className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                title="رابط بوابة المورد"
-              >
-                <Globe size={14} />
-              </button>
-            )}
-            {partyType === 'customer' && (
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  setSelectedCustomer(row);
-                  setIsTimelineOpen(true);
-                }}
-                className="rounded-lg p-1.5 text-purple-600 transition-colors hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                title="تاريخ العميل"
-              >
-                <History size={14} />
-              </button>
-            )}
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                handleEdit(row);
-              }}
-              className="rounded-lg p-1.5 text-blue-600 transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            >
-              <Edit size={14} />
-            </button>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                if (window.confirm(t('confirm_delete'))) deleteParty(row.id);
-              }}
-              className="rounded-lg p-1.5 text-rose-600 transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/20"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        ),
-        width: partyType === 'customer' ? '120px' : '120px',
-        align: 'center',
-      },
-    ],
-    [t, partyType, handleEdit, deleteParty]
-  );
+  const columns = usePartiesColumns({
+    partyType,
+    onEdit: handleEdit,
+    onDelete: deleteParty,
+    onOpenTimeline: party => {
+      setSelectedCustomer(party);
+      setIsTimelineOpen(true);
+    },
+    onOpenPortal: party => {
+      setSelectedSupplierForPortal(party);
+      setIsPortalModalOpen(true);
+    },
+  });
 
   const headerActions = (
     <div className="flex items-center gap-2">
@@ -301,23 +114,14 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
     switch (activeView) {
       case 'list':
         return (
-          <div className="animate-in fade-in space-y-4 duration-500">
-            <PartiesStats stats={stats} type={partyType} />
-
-            <div className="flex min-h-[480px] flex-1 flex-col overflow-hidden rounded-xl border border-gray-100 bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
-              <ExcelTable
-                columns={columns}
-                data={parties || []}
-                colorTheme={partyType === 'customer' ? 'blue' : 'indigo'}
-                isRTL={true}
-                showSearch={false}
-                isLoading={isLoading}
-                onRowDoubleClick={row => {
-                  handleEdit(row);
-                }}
-              />
-            </div>
-          </div>
+          <PartiesListView
+            partyType={partyType}
+            parties={parties}
+            isLoading={isLoading}
+            stats={stats}
+            columns={columns}
+            onEdit={handleEdit}
+          />
         );
       case 'statements':
         return <StatementView partyType={partyType} />;
@@ -364,8 +168,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
           }}
         />
 
-        {/* Type switcher — the URL is the single source of truth
-                    (docs/archive/plans/party-routes-tabs-cleanup.md). */}
+        {/* Type switcher — the URL is the single source of truth */}
         <PartyTypeSwitcher
           partyType={partyType}
           onSwitch={type => {
@@ -390,7 +193,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSubmit={data => {
-            const payload: { data: PartyFormData; id?: string } = { data: data };
+            const payload: { data: PartyFormData; id?: string } = { data };
             if (editingParty?.id) {
               payload.id = editingParty.id;
             }

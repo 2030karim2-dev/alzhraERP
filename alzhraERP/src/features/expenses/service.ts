@@ -71,8 +71,30 @@ export const expensesService = {
 
   processNewExpense: async (formData: ExpenseFormData, companyId: string, userId: string) => {
     // استدعاء RPC الموحد الذي يقوم بإنشاء السجل والقيد المحاسبي معاً
-    const { error } = await expensesApi.createExpenseRPC(companyId, userId, formData);
-    if (error) throw parseError(error);
+    const { data: rpcData, error } = await expensesApi.createExpenseRPC(
+      companyId,
+      userId,
+      formData
+    );
+    if (error) {
+      // Log full error for dev debugging
+      if (import.meta.env.DEV) {
+        console.error('[ExpenseService] commit_expense_v2 error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          sentPayload: { companyId, formData },
+        });
+      }
+      throw parseError(error);
+    }
+    // Sanity-check: RPC returned falsy or error-shaped result
+    if (!rpcData) {
+      if (import.meta.env.DEV) {
+        console.warn('[ExpenseService] commit_expense_v2 returned empty result');
+      }
+    }
 
     // 🔔 Fire-and-forget notification
     messagingService.notify(companyId, 'expense', {

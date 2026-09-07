@@ -1,9 +1,20 @@
 import React, { useState, useMemo } from 'react';
-import { ClipboardCheck, Plus, Loader2, CheckCircle2, Activity, Clock, Zap, Trash2, CircleCheckBig } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Plus,
+  Loader2,
+  CheckCircle2,
+  Activity,
+  Clock,
+  Zap,
+  Trash2,
+  CircleCheckBig,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StartAuditModal from './StartAuditModal';
 import { useAuditSessions, useInventoryMutations } from '../hooks/useInventoryManagement';
 import { cn } from '../../../core/utils';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 const StockAuditView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +36,9 @@ const StockAuditView: React.FC = () => {
     }
   };
 
-  const cancelDelete = () => { setDeleteTarget(null); };
+  const cancelDelete = () => {
+    setDeleteTarget(null);
+  };
 
   const stats = useMemo(() => {
     if (!audits) return { total: 0, active: 0, completed: 0 };
@@ -45,172 +58,215 @@ const StockAuditView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 flex flex-col h-full font-cairo">
-
+    <div className="font-cairo flex h-full flex-col space-y-4">
       {/* ── Stats Row ── */}
-      <div className="grid grid-cols-3 gap-3 max-md:gap-1.5 shrink-0">
-        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 max-md:p-1.5 flex items-center gap-3 max-md:gap-1.5 shadow-sm">
-          <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg shrink-0">
+      <div className="grid shrink-0 grid-cols-3 gap-3 max-md:gap-1.5">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[var(--app-surface)] p-3 shadow-sm dark:border-slate-800 max-md:gap-1.5 max-md:p-1.5">
+          <div className="shrink-0 rounded-lg bg-blue-50 p-2 dark:bg-blue-900/30">
             <ClipboardCheck size={16} className="text-blue-600 dark:text-blue-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase">إجمالي الجلسات</p>
-            <p className="text-xl max-md:text-lg font-black text-gray-900 dark:text-white leading-none mt-0.5">{stats.total}</p>
+            <p className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-500">
+              إجمالي الجلسات
+            </p>
+            <p className="mt-0.5 text-xl font-black leading-none text-gray-900 dark:text-white max-md:text-lg">
+              {stats.total}
+            </p>
           </div>
         </div>
-        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
-          <div className="p-2 max-md:p-1 bg-amber-50 dark:bg-amber-900/30 rounded-lg shrink-0">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[var(--app-surface)] p-3 shadow-sm dark:border-slate-800">
+          <div className="shrink-0 rounded-lg bg-amber-50 p-2 dark:bg-amber-900/30 max-md:p-1">
             <Activity size={16} className="text-amber-600 dark:text-amber-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase">جلسات نشطة</p>
-            <p className="text-xl max-md:text-lg font-black text-amber-600 dark:text-amber-400 leading-none mt-0.5">{stats.active}</p>
+            <p className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-500">
+              جلسات نشطة
+            </p>
+            <p className="mt-0.5 text-xl font-black leading-none text-amber-600 dark:text-amber-400 max-md:text-lg">
+              {stats.active}
+            </p>
           </div>
         </div>
-        <div className="bg-[var(--app-surface)] rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center gap-3 shadow-sm">
-          <div className="p-2 max-md:p-1 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg shrink-0">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[var(--app-surface)] p-3 shadow-sm dark:border-slate-800">
+          <div className="shrink-0 rounded-lg bg-emerald-50 p-2 dark:bg-emerald-900/30 max-md:p-1">
             <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase">مكتملة</p>
-            <p className="text-xl max-md:text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none mt-0.5">{stats.completed}</p>
+            <p className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-500">
+              مكتملة
+            </p>
+            <p className="mt-0.5 text-xl font-black leading-none text-emerald-600 dark:text-emerald-400 max-md:text-lg">
+              {stats.completed}
+            </p>
           </div>
         </div>
       </div>
 
       {/* ── Action Buttons ── */}
-      <div className="grid grid-cols-2 gap-3 max-md:gap-1.5 shrink-0">
+      <div className="grid shrink-0 grid-cols-2 gap-3 max-md:gap-1.5">
         <button
-          onClick={() => { setIsModalOpen(true); }}
-          className="bg-[var(--app-surface)] border-2 border-dashed border-blue-300 dark:border-blue-800 rounded-xl p-3.5 max-md:p-2.5 text-blue-600 dark:text-blue-400 flex items-center justify-center gap-2 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all active:scale-95 shadow-sm group"
+          onClick={() => {
+            setIsModalOpen(true);
+          }}
+          className="group flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-300 bg-[var(--app-surface)] p-3.5 text-blue-600 shadow-sm transition-all hover:bg-blue-50/60 active:scale-95 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20 max-md:p-2.5"
         >
-          <div className="p-1 bg-blue-100 dark:bg-blue-900/40 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="rounded-lg bg-blue-100 p-1 transition-transform group-hover:scale-110 dark:bg-blue-900/40">
             <Plus size={14} strokeWidth={3} />
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest">جلسة جرد ميداني</p>
-            <p className="text-[10px] text-gray-400 font-medium">إحصاء يدوي مفصّل</p>
+            <p className="text-[10px] font-medium text-gray-400">إحصاء يدوي مفصّل</p>
           </div>
         </button>
 
         <button
           onClick={() => navigate('/inventory/quick-audit')}
-          className="bg-gradient-to-l from-emerald-500 to-teal-400 text-white rounded-xl p-3.5 max-md:p-2.5 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-emerald-500/25 transition-all active:scale-95 shadow-md group"
+          className="group flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-emerald-500 to-teal-400 p-3.5 text-white shadow-md transition-all hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 max-md:p-2.5"
         >
-          <div className="p-1 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="rounded-lg bg-white/20 p-1 transition-transform group-hover:scale-110">
             <Zap size={14} strokeWidth={3} />
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest">جرد سريع</p>
-            <p className="text-[10px] text-emerald-100 font-medium">تسوية مخزون فورية</p>
+            <p className="text-[10px] font-medium text-emerald-100">تسوية مخزون فورية</p>
           </div>
         </button>
       </div>
 
       {/* ── Sessions List ── */}
-      <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar min-h-0 pb-2">
-        {(!audits || audits.length === 0) ? (
+      <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pb-2">
+        {!audits || audits.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="p-4 bg-gray-100 dark:bg-slate-800 rounded-2xl mb-4">
-              <ClipboardCheck size={32} className="text-gray-400 dark:text-slate-500" strokeWidth={1.5} />
+            <div className="mb-4 rounded-2xl bg-gray-100 p-4 dark:bg-slate-800">
+              <ClipboardCheck
+                size={32}
+                className="text-gray-400 dark:text-slate-500"
+                strokeWidth={1.5}
+              />
             </div>
-            <h3 className="font-bold text-gray-600 dark:text-slate-400 text-sm max-md:text-xs">لا توجد جلسات جرد</h3>
-            <p className="text-xs text-gray-400 dark:text-slate-600 mt-1 max-w-xs">
+            <h3 className="text-sm font-bold text-gray-600 dark:text-slate-400 max-md:text-xs">
+              لا توجد جلسات جرد
+            </h3>
+            <p className="mt-1 max-w-xs text-xs text-gray-400 dark:text-slate-600">
               أنشئ جلسة جرد ميداني جديدة أو استخدم الجرد السريع للبدء
             </p>
           </div>
         ) : (
-          audits.filter((ad: any) => ad.status !== 'cancelled').map((ad: any) => {
-            const isCompleted = ad.status === 'completed';
-            const progress = ad.progress ?? 0;
-            const isDeletingThis = deleteTarget?.id === ad.id;
-            return (
-              <div
-                key={ad.id}
-                className={cn(
-                  "w-full bg-[var(--app-surface)] rounded-xl border p-3.5 max-md:p-2.5 hover:shadow-md transition-all group flex items-stretch gap-2.5",
-                  isCompleted
-                    ? "border-slate-200 dark:border-slate-800"
-                    : "border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700",
-                  deleteTarget?.id === ad.id && "border-rose-300 dark:border-rose-700 bg-rose-50/50 dark:bg-rose-900/10"
-                )}
-              >
-                {/* Session content — clickable */}
-                <button
-                  onClick={() => navigate(`/inventory/audit/${ad.id}`)}
-                  className="flex-1 text-right min-w-0"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={cn(
-                      "text-[10px] font-black px-2 py-0.5 rounded-full uppercase flex items-center gap-1",
-                      isCompleted
-                        ? "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                        : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                    )}>
-                      {isCompleted ? <CircleCheckBig size={9} /> : <Activity size={9} className="animate-pulse" />}
-                      {isCompleted ? 'مكتملة' : 'نشطة'}
-                    </span>
-                    {ad.accuracy && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                        دقة {ad.accuracy}%
-                      </span>
-                    )}
-                    <span className="text-[10px] text-gray-400 dark:text-slate-600 flex items-center gap-1 mr-auto">
-                      <Clock size={9} /> {new Date(ad.created_at).toLocaleDateString('ar-SA-u-nu-latn')}
-                    </span>
-                  </div>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm max-md:text-[13px] truncate leading-tight">{ad.title}</p>
-                  {ad.warehouse_name && (
-                    <p className="text-[10px] text-gray-400 dark:text-slate-600 truncate mt-0.5">{ad.warehouse_name}</p>
-                  )}
-
-                  {/* Progress Bar */}
-                  {progress > 0 && (
-                    <div className="mt-2">
-                      <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1">
-                        <span>التقدم</span>
-                        <span>{progress}%</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full transition-all",
-                            isCompleted
-                              ? "bg-emerald-500"
-                              : progress > 50 ? "bg-blue-500" : "bg-amber-500"
-                          )}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </button>
-
-                {/* Delete button */}
-                <button
-                  onClick={(e) => { handleDeleteClick(e, ad); }}
-                  disabled={isDeletingSession}
+          audits
+            .filter((ad: any) => ad.status !== 'cancelled')
+            .map((ad: any) => {
+              const isCompleted = ad.status === 'completed';
+              const progress = ad.progress ?? 0;
+              const isDeletingThis = deleteTarget?.id === ad.id;
+              return (
+                <div
+                  key={ad.id}
                   className={cn(
-                    "self-center shrink-0 rounded-lg p-2 max-md:p-1.5 border transition-all",
-                    isDeletingThis
-                      ? "bg-rose-600 text-white border-rose-600"
-                      : "bg-white dark:bg-slate-800 text-gray-400 border-gray-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                    'group flex w-full items-stretch gap-2.5 rounded-xl border bg-[var(--app-surface)] p-3.5 transition-all hover:shadow-md max-md:p-2.5',
+                    isCompleted
+                      ? 'border-slate-200 dark:border-slate-800'
+                      : 'border-blue-100 hover:border-blue-300 dark:border-blue-900/30 dark:hover:border-blue-700',
+                    deleteTarget?.id === ad.id &&
+                      'border-rose-300 bg-rose-50/50 dark:border-rose-700 dark:bg-rose-900/10'
                   )}
-                  title="حذف الجلسة"
                 >
-                  {isDeletingSession && isDeletingThis ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Trash2 size={14} />
+                  {/* Session content — clickable */}
+                  <button
+                    onClick={() => navigate(`/inventory/audit/${ad.id}`)}
+                    className="min-w-0 flex-1 text-right"
+                  >
+                    <div className="mb-1 flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
+                          isCompleted
+                            ? 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400'
+                        )}
+                      >
+                        {isCompleted ? (
+                          <CircleCheckBig size={9} />
+                        ) : (
+                          <Activity size={9} className="animate-pulse" />
+                        )}
+                        {isCompleted ? 'مكتملة' : 'نشطة'}
+                      </span>
+                      {ad.accuracy && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          دقة {ad.accuracy}%
+                        </span>
+                      )}
+                      <span className="mr-auto flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-600">
+                        <Clock size={9} /> {formatLocalDate(ad.created_at)}
+                      </span>
+                    </div>
+                    <p className="truncate text-sm font-bold leading-tight text-gray-900 dark:text-white max-md:text-[13px]">
+                      {ad.title}
+                    </p>
+                    {ad.warehouse_name && (
+                      <p className="mt-0.5 truncate text-[10px] text-gray-400 dark:text-slate-600">
+                        {ad.warehouse_name}
+                      </p>
+                    )}
+
+                    {/* Progress Bar */}
+                    {progress > 0 && (
+                      <div className="mt-2">
+                        <div className="mb-1 flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>التقدم</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
+                          <div
+                            className={cn(
+                              'h-full rounded-full transition-all',
+                              isCompleted
+                                ? 'bg-emerald-500'
+                                : progress > 50
+                                  ? 'bg-blue-500'
+                                  : 'bg-amber-500'
+                            )}
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Delete button - only for active/in-progress sessions to protect finalized audit trail */}
+                  {!isCompleted && (
+                    <button
+                      onClick={e => {
+                        handleDeleteClick(e, ad);
+                      }}
+                      disabled={isDeletingSession}
+                      className={cn(
+                        'shrink-0 self-center rounded-lg border p-2 transition-all max-md:p-1.5',
+                        isDeletingThis
+                          ? 'border-rose-600 bg-rose-600 text-white'
+                          : 'border-gray-200 bg-white text-gray-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-rose-700 dark:hover:bg-rose-900/20'
+                      )}
+                      title="حذف الجلسة"
+                    >
+                      {isDeletingSession && isDeletingThis ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                    </button>
                   )}
-                </button>
-              </div>
-            );
-          })
+                </div>
+              );
+            })
         )}
       </div>
 
-      <StartAuditModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); }} />
+      <StartAuditModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+        }}
+      />
 
       {/* ── Delete Confirmation Dialog ── */}
       {deleteTarget && (
@@ -219,32 +275,39 @@ const StockAuditView: React.FC = () => {
           onClick={cancelDelete}
         >
           <div
-            className="w-full max-w-sm bg-[var(--app-surface)] rounded-t-2xl border-t border-gray-200 dark:border-slate-800 p-5 shadow-2xl"
-            onClick={(e) => { e.stopPropagation(); }}
+            className="w-full max-w-sm rounded-t-2xl border-t border-gray-200 bg-[var(--app-surface)] p-5 shadow-2xl dark:border-slate-800"
+            onClick={e => {
+              e.stopPropagation();
+            }}
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="rounded-xl bg-rose-100 p-2.5 dark:bg-rose-900/30">
                 <Trash2 size={18} className="text-rose-600 dark:text-rose-400" strokeWidth={2.2} />
               </div>
               <div className="min-w-0">
-                <h3 className="font-black text-gray-900 dark:text-white text-base truncate">حذف جلسة الجرد</h3>
-                <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">{deleteTarget.title}</p>
+                <h3 className="truncate text-base font-black text-gray-900 dark:text-white">
+                  حذف جلسة الجرد
+                </h3>
+                <p className="truncate text-[11px] text-gray-400 dark:text-slate-500">
+                  {deleteTarget.title}
+                </p>
               </div>
             </div>
-            <p className="text-[13px] text-gray-500 dark:text-slate-400 mb-4 leading-relaxed">
-              هل أنت متأكد من حذف هذه الجلسة؟ لا يمكن التراجع عن هذا الإجراء وستُحذف جميع بيانات الجرد المرتبطة بها.
+            <p className="mb-4 text-[13px] leading-relaxed text-gray-500 dark:text-slate-400">
+              هل أنت متأكد من حذف هذه الجلسة؟ لا يمكن التراجع عن هذا الإجراء وستُحذف جميع بيانات
+              الجرد المرتبطة بها.
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={cancelDelete}
-                className="rounded-xl py-2.5 px-4 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 إلغاء
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={isDeletingSession}
-                className="rounded-xl py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                className="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-60"
               >
                 {isDeletingSession ? <Loader2 size={15} className="animate-spin" /> : null}
                 حذف نهائي

@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Filter,
   Check,
-  X,
   Download,
   ChevronRight,
   ChevronLeft,
@@ -20,12 +19,11 @@ import {
   useSecurityLogs,
   useSecurityMutations,
   SECURITY_LOGS_PAGE_SIZE,
-  fetchAllAdminCspReports,
-  fetchAllAdminSecurityAlerts,
   type SecurityStatusFilter,
 } from '../../hooks/useAdminData';
-import { downloadCsvFile, toCsv } from '../../utils';
 import type { SecurityAlertLog } from '../../types';
+import { ResolveAlertDialog } from './ResolveAlertDialog';
+import { exportAlertsCsv, exportCspReportsCsv } from './securityCsvExport';
 import Button from '../../../../ui/base/Button';
 import { useFeedbackStore } from '../../../feedback/store';
 
@@ -37,7 +35,6 @@ export const SecurityAuditingHub: React.FC = () => {
   const [selectedAlertToResolve, setSelectedAlertToResolve] = useState<SecurityAlertLog | null>(
     null
   );
-  const [resolutionNotes, setResolutionNotes] = useState('');
   const [isExportingLogs, setIsExportingLogs] = useState(false);
 
   const {
@@ -91,16 +88,14 @@ export const SecurityAuditingHub: React.FC = () => {
     }
   };
 
-  const handleConfirmResolve = async () => {
+  const handleConfirmResolve = async (notes: string): Promise<void> => {
     if (!selectedAlertToResolve) return;
     try {
-      const trimmedNotes = resolutionNotes.trim();
       await resolveAlert({
         alertId: selectedAlertToResolve.id,
-        ...(trimmedNotes ? { notes: trimmedNotes } : {}),
+        ...(notes ? { notes } : {}),
       });
       setSelectedAlertToResolve(null);
-      setResolutionNotes('');
     } catch {
       // Error handled by mutation hook toast
     }
@@ -110,63 +105,11 @@ export const SecurityAuditingHub: React.FC = () => {
     if (isExportingLogs) return;
     setIsExportingLogs(true);
     try {
-      const stamp = new Date().toISOString().slice(0, 10);
-
       if (activeSubTab === 'csp') {
-        // تصدير كامل لتقارير CSP (تجاوز الصفحة المعروضة — حد 200 خادمياً/استدعاء)
-        const allReports = await fetchAllAdminCspReports();
-        const header = [
-          'معرف التقرير',
-          'الصفحة المستهدفة',
-          'المورد المحظور',
-          'القاعدة المنتهكة',
-          'توقيت الاستلام',
-        ];
-        const rows = allReports.map(report => [
-          report.id,
-          report.document_uri ?? '',
-          report.blocked_uri ?? '',
-          report.violated_directive ?? '',
-          report.received_at ? new Date(report.received_at).toLocaleString('ar-SA') : '',
-        ]);
-        downloadCsvFile(`csp-reports-all-${stamp}.csv`, toCsv(header, rows));
+        await exportCspReportsCsv();
         return;
       }
-
-      const resolved =
-        statusFilter === 'unresolved' ? false : statusFilter === 'resolved' ? true : undefined;
-      const allAlerts = await fetchAllAdminSecurityAlerts(resolved);
-      const header = [
-        'معرف التنبيه',
-        'المستوى',
-        'نوع التنبيه',
-        'عنوان IP',
-        'وكيل المستخدم',
-        'معرف المستخدم',
-        'معرف المنشأة',
-        'التفاصيل الفنية',
-        'وقت الاكتشاف',
-        'تمت المعالجة',
-        'تاريخ المعالجة',
-        'المسؤول عن المعالجة',
-        'ملاحظات المعالجة',
-      ];
-      const rows = allAlerts.map(log => [
-        log.id,
-        log.severity,
-        log.alert_type,
-        log.source_ip ?? '',
-        log.user_agent ?? '',
-        log.user_id ?? '',
-        log.company_id ?? '',
-        JSON.stringify(log.details ?? {}),
-        new Date(log.detected_at).toLocaleString('ar-SA'),
-        log.resolved_at ? 'نعم' : 'لا',
-        log.resolved_at ? new Date(log.resolved_at).toLocaleString('ar-SA') : '',
-        log.resolved_by ?? '',
-        log.resolution_notes ?? '',
-      ]);
-      downloadCsvFile(`security-alerts-all-${stamp}.csv`, toCsv(header, rows));
+      await exportAlertsCsv(statusFilter);
     } catch {
       showToast('تعذر تصدير سجلات الأمان. تحقق من الاتصال وحاول مجدداً.', 'error');
     } finally {
@@ -383,7 +326,6 @@ export const SecurityAuditingHub: React.FC = () => {
                             variant="outline"
                             onClick={() => {
                               setSelectedAlertToResolve(log);
-                              setResolutionNotes('');
                             }}
                             className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-emerald-600 hover:bg-emerald-500/10"
                           >
@@ -541,75 +483,14 @@ export const SecurityAuditingHub: React.FC = () => {
 
       {/* Resolve Alert Modal */}
       {selectedAlertToResolve && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm duration-200">
-          <div className="animate-in zoom-in-95 w-full max-w-md overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl duration-200">
-            <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] px-5 py-3.5">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-500" />
-                <h3 className="text-xs font-black text-[var(--app-text)]">
-                  تأكيد معالجة التنبيه الأمني #{selectedAlertToResolve.id}
-                </h3>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedAlertToResolve(null);
-                }}
-                className="rounded-lg p-1 text-[var(--app-text-secondary)] hover:bg-[var(--app-surface)]"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            <div className="space-y-3 p-5 text-xs">
-              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[var(--app-text)]">
-                    {selectedAlertToResolve.alert_type}
-                  </span>
-                  <span className="font-mono text-[10px] text-[var(--app-text-secondary)]">
-                    IP: {selectedAlertToResolve.source_ip || 'غير معروف'}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[10px] font-bold text-[var(--app-text-secondary)]">
-                  ملاحظات وإجراءات المعالجة (اختياري):
-                </label>
-                <textarea
-                  rows={3}
-                  value={resolutionNotes}
-                  onChange={e => {
-                    setResolutionNotes(e.target.value);
-                  }}
-                  placeholder="مثال: تم حظر عنوان IP على مستوى جدار الحماية، وتبين أن المحاولة مجرد فحص عشوائي..."
-                  className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 text-xs text-[var(--app-text)] focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedAlertToResolve(null);
-                  }}
-                  disabled={isResolvingAlert}
-                  className="px-3 py-1.5 text-xs"
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleConfirmResolve}
-                  disabled={isResolvingAlert}
-                  className="px-4 py-1.5 text-xs font-bold"
-                >
-                  {isResolvingAlert ? 'جاري المعالجة...' : 'تأكيد المعالجة'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ResolveAlertDialog
+          alert={selectedAlertToResolve}
+          isResolving={isResolvingAlert}
+          onClose={() => {
+            setSelectedAlertToResolve(null);
+          }}
+          onConfirm={handleConfirmResolve}
+        />
       )}
     </div>
   );

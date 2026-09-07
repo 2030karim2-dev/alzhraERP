@@ -281,6 +281,8 @@ describe('productService.searchProducts — RPC مع بديل ILIKE', () => {
         part_number: '90915',
         brand: 'T',
         size: null,
+        stock_quantity: 0,
+        warehouse_distribution: [],
       },
     ]);
     expect(mockFrom).not.toHaveBeenCalled();

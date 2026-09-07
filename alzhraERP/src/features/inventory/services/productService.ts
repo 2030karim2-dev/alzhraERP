@@ -48,6 +48,8 @@ export interface SearchResultProduct {
   sku?: string | null;
   brand?: string | null;
   size?: string | null;
+  warehouse_distribution?: Array<{ warehouse_id: string; quantity: number }>;
+  stock_quantity?: number;
 }
 
 /** Raw row fields consumed by `mapSearchRow` (subset shared by RPC + table fallback). */
@@ -58,10 +60,18 @@ interface SearchRow {
   part_number?: string | null;
   brand?: string | null;
   size?: string | null;
+  stock?: unknown;
 }
 
-/** Maps a raw product row to the minimal search-result shape used by dropdowns/pickers. */
+/** Maps a raw product row to the search-result shape used by dropdowns/pickers. */
 function mapSearchRow(row: SearchRow): SearchResultProduct {
+  const stockList = Array.isArray(row.stock) ? row.stock : [];
+  const distribution = stockList.map(s => ({
+    warehouse_id: s.warehouse_id,
+    quantity: Number(s.quantity) || 0,
+  }));
+  const totalStock = distribution.reduce((sum, s) => sum + s.quantity, 0);
+
   return {
     id: row.id,
     name: row.name_ar ?? '',
@@ -70,6 +80,8 @@ function mapSearchRow(row: SearchRow): SearchResultProduct {
     part_number: row.part_number ?? null,
     brand: row.brand ?? null,
     size: row.size ?? null,
+    warehouse_distribution: distribution,
+    stock_quantity: totalStock,
   };
 }
 
@@ -84,7 +96,9 @@ async function searchProductsFallback(
 ): Promise<SearchResultProduct[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('id, name_ar, sku, part_number, brand, size')
+    .select(
+      'id, name_ar, sku, part_number, brand, size, stock:product_stock(warehouse_id, quantity)'
+    )
     .eq('company_id', companyId)
     .eq('status', 'active')
     .or(
@@ -95,7 +109,7 @@ async function searchProductsFallback(
     .limit(limit);
 
   if (error) return [];
-  return data.map(mapSearchRow);
+  return (data as unknown as SearchRow[]).map(mapSearchRow);
 }
 
 let isSimilarProductsRpcAvailable = true;
@@ -228,7 +242,7 @@ export const productService = {
         logger.warn('inventory', 'searchProducts RPC error, falling back to ILIKE:', error.message);
         return await searchProductsFallback(companyId, cleanTerm);
       }
-      return data.map(mapSearchRow);
+      return (data as unknown as SearchRow[]).map(mapSearchRow);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       logger.warn('inventory', 'searchProducts failed, using fallback:', message);

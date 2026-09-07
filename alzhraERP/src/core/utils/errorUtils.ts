@@ -135,6 +135,21 @@ export const parseError = (error: unknown): AppError => {
       if (/[\u0600-\u06FF]/.test(rawMessage)) {
         return makeAppError(code, rawMessage, 'medium');
       }
+      // Known internal RPC error prefixes — extract the Arabic part after the colon
+      const rpcPrefixMap: Record<string, string> = {
+        invalid_amount: 'مبلغ المصروف يجب أن يكون أكبر من الصفر.',
+        account_not_postable:
+          'حساب التكاليف المحدد غير قابل للترحيل المباشر. يرجى مراجعة دليل الحسابات.',
+        account_inactive: 'الحساب المالي المستخدم غير نشط. يرجى التواصل مع المحاسب.',
+        company_id_required: 'معرف المنشأة مطلوب.',
+        access_denied: 'عذراً، لا تمتلك صلاحية تنفيذ هذه العملية.',
+        fiscal_year_not_found: 'لا توجد سنة مالية مفتوحة تشمل تاريخ المصروف.',
+      };
+      for (const [prefix, msg] of Object.entries(rpcPrefixMap)) {
+        if (rawMessage.startsWith(prefix + ':') || rawMessage === prefix) {
+          return makeAppError(prefix.toUpperCase(), msg, 'medium');
+        }
+      }
       // Log the actual error for debugging but don't expose internals to users
       if (import.meta.env.DEV) {
         console.error('[ErrorUtils] Unhandled error:', code, rawMessage);

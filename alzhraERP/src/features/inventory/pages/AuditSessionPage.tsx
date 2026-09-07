@@ -11,7 +11,7 @@ import { useInventorySession } from '../hooks/useInventorySession';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
 import AuditStats from '../components/audit/AuditStats';
-import AuditItemsTable from '../components/audit/AuditItemsTable';
+import AuditItemsTable, { type AuditItemTarget } from '../components/audit/AuditItemsTable';
 import { AuditCategoryFilterBar } from '../components/audit/AuditCategoryFilterBar';
 import { AuditSessionSearchDropdown } from '../components/audit/AuditSessionSearchDropdown';
 import { useForm } from 'react-hook-form';
@@ -19,7 +19,6 @@ import { useDebounce } from 'use-debounce';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import type { Product } from '../types';
-import { logger } from '../../../core/utils/logger';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
 interface AuditProgressItem {
@@ -49,12 +48,15 @@ const AuditSessionPage: React.FC = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [debouncedFilter] = useDebounce(filter, 300);
   const [showResults, setShowResults] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<AuditItemTarget | null>(null);
   const [isBulkAdding, setIsBulkAdding] = useState(false);
   const [, setBulkProgress] = useState({ current: 0, total: 0 });
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
+
+  const isCompleted = data?.session?.status === 'completed';
 
   const {
     items: sessionItems,
@@ -69,6 +71,7 @@ const AuditSessionPage: React.FC = () => {
       ? { warehouseId: (data.session as { warehouse_id?: string }).warehouse_id! }
       : {}),
     initialItems: data?.items ?? [],
+    isCompleted,
   });
 
   const { register, reset, getValues } = useForm({
@@ -77,33 +80,35 @@ const AuditSessionPage: React.FC = () => {
   });
 
   const lastSyncedRef = useRef<string>('');
-  const isInitialMount = useRef(true);
+  const hasLoadedServerItemsRef = useRef(false);
 
-  // On initial mount, load server items into form (only once)
+  // Sync server items to form on load
   useEffect(() => {
-    if (isInitialMount.current && data?.items && data.items.length > 0) {
+    if (data?.items && data.items.length > 0 && !hasLoadedServerItemsRef.current) {
+      hasLoadedServerItemsRef.current = true;
       const serialized = JSON.stringify(data.items);
       lastSyncedRef.current = serialized;
       reset({ items: data.items });
-      isInitialMount.current = false;
-    } else if (isInitialMount.current) {
-      isInitialMount.current = false;
+      if (!isCompleted) {
+        updateItems(data.items);
+      }
     }
-  }, [data?.items, reset]);
+  }, [data?.items, isCompleted, reset, updateItems]);
 
-  // When sessionItems change (from useInventorySession), sync to form
+  // When sessionItems change (from useInventorySession), sync to form if not completed
   useEffect(() => {
-    if (!isInitialMount.current && sessionItems.length > 0) {
+    if (!isCompleted && sessionItems.length > 0) {
       const serialized = JSON.stringify(sessionItems);
       if (serialized !== lastSyncedRef.current) {
         lastSyncedRef.current = serialized;
         reset({ items: sessionItems });
       }
     }
-  }, [sessionItems, reset]);
+  }, [sessionItems, isCompleted, reset]);
 
   // Periodically sync form → session
   const handleSaveProgress = useCallback(() => {
+    if (isCompleted) return;
     const formItems = getValues('items');
     if (formItems && formItems.length > 0) {
       const serialized = JSON.stringify(formItems);
@@ -112,10 +117,11 @@ const AuditSessionPage: React.FC = () => {
         updateItems(formItems);
       }
     }
-  }, [getValues, updateItems]);
+  }, [getValues, isCompleted, updateItems]);
 
   // On page unload, force-save current form state
   useEffect(() => {
+    if (isCompleted) return;
     const handleBeforeUnload = () => {
       const formItems = getValues('items');
       if (formItems && formItems.length > 0) {
@@ -126,25 +132,31 @@ const AuditSessionPage: React.FC = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [getValues, updateItems]);
+  }, [getValues, isCompleted, updateItems]);
 
-  // When server data updates (realtime), merge with local state
+  // When server data updates (realtime), merge with local state if not completed
   useEffect(() => {
-    if (data?.items && data.items.length > 0 && !isInitialMount.current) {
+    if (!isCompleted && data?.items && data.items.length > 0 && hasLoadedServerItemsRef.current) {
       mergeWithServer(data.items);
     }
-  }, [data?.items, mergeWithServer]);
+  }, [data?.items, isCompleted, mergeWithServer]);
 
   const watchedItems = getValues('items');
 
+  const displayItems = useMemo(() => {
+    if (isCompleted) {
+      return data?.items || [];
+    }
+    return sessionItems.length > 0 ? sessionItems : watchedItems;
+  }, [isCompleted, data?.items, sessionItems, watchedItems]);
+
   const stats = useMemo(() => {
-    const sourceItems = sessionItems.length > 0 ? sessionItems : watchedItems;
-    const total = sourceItems.length;
-    const counted = sourceItems.filter(
+    const total = displayItems.length;
+    const counted = displayItems.filter(
       i =>
         i.counted_quantity !== null && i.counted_quantity !== undefined && i.counted_quantity !== ''
     ).length;
-    const discrepancies = sourceItems.filter(i => {
+    const discrepancies = displayItems.filter(i => {
       const diff =
         i.counted_quantity !== null && i.counted_quantity !== undefined && i.counted_quantity !== ''
           ? Number(i.counted_quantity) - Number(i.expected_quantity)
@@ -152,17 +164,19 @@ const AuditSessionPage: React.FC = () => {
       return diff !== 0;
     }).length;
     return { total, counted, pending: total - counted, discrepancies };
-  }, [sessionItems, watchedItems]);
+  }, [displayItems]);
 
   const prepareProgressItems = useCallback((): AuditProgressItem[] => {
     const formItems = getValues('items') || [];
-    const sourceList = sessionItems && sessionItems.length > 0 ? sessionItems : data?.items || [];
-    return sourceList.map((item, index) => {
+    const sourceList = displayItems.length > 0 ? displayItems : data?.items || [];
+    return sourceList.map(item => {
       const rawItem = item as Record<string, unknown>;
-      const formVal = formItems[index]?.counted_quantity;
+      const targetProductId = String(rawItem.product_id || rawItem.id || '');
+      const matched = formItems.find(f => String(f.product_id || f.id || '') === targetProductId);
+      const formVal = matched?.counted_quantity;
       const counted = formVal !== undefined && formVal !== '' ? formVal : rawItem.counted_quantity;
       const res: AuditProgressItem = {
-        product_id: String(rawItem.product_id || rawItem.id || ''),
+        product_id: targetProductId,
         counted_quantity:
           counted !== null && counted !== undefined && counted !== ''
             ? Number(counted)
@@ -173,23 +187,14 @@ const AuditSessionPage: React.FC = () => {
       }
       return res;
     });
-  }, [getValues, sessionItems, data?.items]);
+  }, [displayItems, data?.items, getValues]);
 
   const handleSave = () => {
     const itemsToSave = prepareProgressItems();
     saveAuditProgress(itemsToSave);
   };
 
-  const handleFinalize = () => {
-    if (stats.pending > 0) {
-      if (
-        !window.confirm(
-          `تنبيه: يوجد ${stats.pending} صنف لم يتم جرده. هل تريد المتابعة وإغلاق الجلسة؟`
-        )
-      ) {
-        return;
-      }
-    }
+  const executeFinalize = () => {
     if (sessionId) {
       const itemsToFinalize = prepareProgressItems();
       finalizeAudit(
@@ -197,11 +202,20 @@ const AuditSessionPage: React.FC = () => {
         {
           onSuccess: () => {
             clearSession();
+            setShowFinalizeConfirm(false);
             navigate('/inventory');
           },
         }
       );
     }
+  };
+
+  const handleFinalize = () => {
+    if (stats.pending > 0) {
+      setShowFinalizeConfirm(true);
+      return;
+    }
+    executeFinalize();
   };
 
   const handleScan = (barcode: string) => {
@@ -230,72 +244,99 @@ const AuditSessionPage: React.FC = () => {
 
     if (!sessionId) return;
 
-    let fullProduct = product;
-    if (!fullProduct.warehouse_distribution) {
-      try {
-        const { inventoryService } = await import('../service');
-        const res = await inventoryService.getProductById(product.id);
-        if (res && res.data) {
-          const mapped = (
-            await import('./../services/productService')
-          ).productService.mapRawProducts(
-            [res.data],
-            (data?.session as { warehouse_id?: string })?.warehouse_id
-          );
-          if (mapped && mapped.length > 0) {
-            fullProduct = mapped[0];
-          }
-        }
-      } catch (e) {
-        logger.error('AuditSessionPage', 'Failed to fetch full product details', e);
-      }
-    }
-
+    const warehouseId = (data?.session as { warehouse_id?: string })?.warehouse_id;
     let expectedQuantity = 0;
-    const warehouseId = data?.session?.warehouse_id;
-    if (fullProduct.warehouse_distribution) {
-      const stockInfo = fullProduct.warehouse_distribution.find(
-        w => w.warehouse_id === warehouseId
-      );
+    if (product.warehouse_distribution) {
+      const stockInfo = product.warehouse_distribution.find(w => w.warehouse_id === warehouseId);
       if (stockInfo) {
         expectedQuantity = Number(stockInfo.quantity) || 0;
-      } else if (warehouseId && fullProduct.warehouse_distribution.length > 0) {
-        expectedQuantity = 0;
-      } else {
-        expectedQuantity = Number(fullProduct.stock_quantity) || 0;
       }
-    } else if (warehouseId && fullProduct.stock_quantity !== undefined) {
-      expectedQuantity = Number(fullProduct.stock_quantity) || 0;
+    } else if (product.stock_quantity !== undefined) {
+      expectedQuantity = Number(product.stock_quantity) || 0;
     }
+
+    // Optimistic addition for instant UI response (no 30-second delay)
+    const optimisticItem = {
+      product_id: product.id,
+      expected_quantity: expectedQuantity,
+      counted_quantity: null,
+      products: {
+        id: product.id,
+        name: product.name_ar || product.name || 'بدون اسم',
+        name_ar: product.name_ar || product.name || 'بدون اسم',
+        sku: product.sku || '---',
+        part_number: product.part_number || null,
+        brand: product.brand || null,
+        size: product.size || null,
+        category: (product as unknown as { category?: string }).category || 'عام',
+      },
+    };
+
+    const newItems = [optimisticItem, ...currentItems];
+    lastSyncedRef.current = JSON.stringify(newItems);
+    reset({ items: newItems });
+    updateItems(newItems);
+    setFilter('');
+    setShowResults(false);
 
     addItemToAudit(
       { sessionId, productId: product.id, expectedQuantity },
       {
-        onSuccess: () => {
-          setFilter('');
-          setShowResults(false);
+        onSuccess: (res: unknown) => {
+          const realId = (res as { id?: string })?.id;
+          if (realId) {
+            const current = getValues('items');
+            const updated = current.map(item =>
+              (item.product_id || (item as { products?: { id?: string } }).products?.id) ===
+              product.id
+                ? { ...item, id: realId, audit_item_id: realId }
+                : item
+            );
+            lastSyncedRef.current = JSON.stringify(updated);
+            reset({ items: updated });
+            updateItems(updated);
+          }
+        },
+        onError: () => {
+          const reverted = getValues('items').filter(i => i.product_id !== product.id);
+          lastSyncedRef.current = JSON.stringify(reverted);
+          reset({ items: reverted });
+          updateItems(reverted);
         },
       }
     );
   };
 
   const confirmRemoveItem = () => {
-    if (itemToDelete) {
-      removeItemFromAudit(itemToDelete, {
-        onSuccess: () => {
-          setItemToDelete(null);
-          const current = getValues('items');
-          const filtered = current.filter(
-            i =>
-              i.id !== itemToDelete &&
-              i.product_id !== itemToDelete &&
-              i.audit_item_id !== itemToDelete
-          );
-          lastSyncedRef.current = JSON.stringify(filtered);
-          reset({ items: filtered });
-          updateItems(filtered);
+    if (itemToDelete && sessionId) {
+      const targetId = itemToDelete.id;
+      const targetProductId = itemToDelete.productId;
+
+      const current = getValues('items');
+      const filtered = current.filter(
+        i =>
+          (!targetId || (i.id !== targetId && i.audit_item_id !== targetId)) &&
+          (!targetProductId || i.product_id !== targetProductId)
+      );
+      lastSyncedRef.current = JSON.stringify(filtered);
+      reset({ items: filtered });
+      updateItems(filtered);
+      setItemToDelete(null);
+
+      removeItemFromAudit(
+        {
+          ...(targetId ? { itemId: targetId } : {}),
+          productId: targetProductId,
+          sessionId,
         },
-      });
+        {
+          onError: () => {
+            lastSyncedRef.current = JSON.stringify(current);
+            reset({ items: current });
+            updateItems(current);
+          },
+        }
+      );
     }
   };
 
@@ -479,11 +520,11 @@ const AuditSessionPage: React.FC = () => {
           />
 
           <AuditItemsTable
-            items={sessionItems.length > 0 ? sessionItems : watchedItems}
+            items={displayItems}
             register={register}
             filter={debouncedFilter}
             category={selectedCategory}
-            isCompleted={session?.status === 'completed'}
+            isCompleted={isCompleted}
             onRemoveItem={setItemToDelete}
             onSave={handleSaveProgress}
           />
@@ -506,7 +547,11 @@ const AuditSessionPage: React.FC = () => {
         }}
         onConfirm={confirmRemoveItem}
         title="إزالة الصنف من الجرد"
-        message="هل أنت متأكد من رغبتك في إزالة هذا الصنف من جلسة الجرد الميدانية الحالية؟"
+        message={
+          itemToDelete?.name
+            ? `هل أنت متأكد من رغبتك في إزالة "${itemToDelete.name}" من جلسة الجرد الميدانية الحالية؟`
+            : 'هل أنت متأكد من رغبتك في إزالة هذا الصنف من جلسة الجرد الميدانية الحالية؟'
+        }
         variant="danger"
         confirmLabel="نعم، إزالة الصنف"
         isLoading={isRemovingItem}
@@ -522,6 +567,19 @@ const AuditSessionPage: React.FC = () => {
         message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً. هذه العملية قد تستغرق بعض الوقت. هل تريد المتابعة؟"
         variant="warning"
         confirmLabel="نعم، أضف كل المنتجات"
+      />
+
+      <ConfirmModal
+        isOpen={showFinalizeConfirm}
+        onClose={() => {
+          setShowFinalizeConfirm(false);
+        }}
+        onConfirm={executeFinalize}
+        title="إنهاء واعتماد الجرد"
+        message={`تنبيه: يوجد ${stats.pending} صنف لم يتم جرده بعد. عند الاعتماد سيتم ترحيل الفروقات المخزنية نهائياً وإغلاق الجلسة. هل تريد المتابعة؟`}
+        variant="warning"
+        confirmLabel="نعم، اعتماد وإنهاء الجرد"
+        isLoading={isFinalizing}
       />
     </div>
   );

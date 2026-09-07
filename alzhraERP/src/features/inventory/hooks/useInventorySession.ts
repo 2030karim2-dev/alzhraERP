@@ -13,6 +13,7 @@ interface UseInventorySessionProps {
   warehouseId?: string;
   initialItems: Array<Record<string, unknown>>;
   autoSave?: boolean;
+  isCompleted?: boolean;
 }
 
 export function useInventorySession({
@@ -20,22 +21,37 @@ export function useInventorySession({
   warehouseId,
   initialItems,
   autoSave = true,
+  isCompleted = false,
 }: UseInventorySessionProps) {
   const { showToast } = useFeedbackStore();
   const [items, setItems] = useState<Array<Record<string, unknown>>>(initialItems);
-  const [isRestoring, setIsRestoring] = useState(true);
+  const [isRestoring, setIsRestoring] = useState(!isCompleted);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const isDirtyRef = useRef(false);
   const lastItemsRef = useRef<Array<Record<string, unknown>>>(initialItems);
   const hasRestoredRef = useRef(false);
 
-  // Restore session on mount
+  // Sync initialItems when server data finishes loading
   useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      if (isCompleted || items.length === 0) {
+        setItems(initialItems);
+        lastItemsRef.current = initialItems;
+      }
+    }
+  }, [initialItems, isCompleted, items.length]);
+
+  // Restore session on mount (only for active sessions, never for completed)
+  useEffect(() => {
+    if (isCompleted) {
+      setIsRestoring(false);
+      return;
+    }
     if (hasRestoredRef.current) return;
     let mounted = true;
 
     async function restore() {
-      if (!mounted || hasRestoredRef.current) return;
+      if (!mounted || hasRestoredRef.current || isCompleted) return;
       hasRestoredRef.current = true;
       try {
         const draft = await inventoryPersistence.restoreSession(sessionId);
@@ -127,19 +143,19 @@ export function useInventorySession({
 
   // Auto-save on items change
   useEffect(() => {
-    if (!autoSave || isRestoring) return;
+    if (!autoSave || isRestoring || isCompleted) return;
     if (JSON.stringify(items) === JSON.stringify(lastItemsRef.current)) return;
     isDirtyRef.current = true;
     lastItemsRef.current = items;
     const draft = buildDraft(items);
     inventoryPersistence.scheduleLocalSave(draft);
     inventoryPersistence.saveToServer(draft);
-  }, [items, autoSave, buildDraft]);
+  }, [items, autoSave, isRestoring, isCompleted, buildDraft]);
 
   // Force save on page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (isDirtyRef.current) {
+      if (isDirtyRef.current && !isCompleted) {
         const draft = buildDraft(items);
         inventoryPersistence.forceSave(draft);
       }
