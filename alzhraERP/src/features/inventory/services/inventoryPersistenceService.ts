@@ -178,9 +178,10 @@ class InventoryPersistenceService {
   }
 
   /**
-   * Clear session data from all storage layers
+   * Clear session data from all storage layers.
+   * Optionally removes the server-side draft to prevent stale restores after finalization.
    */
-  clearSession() {
+  clearSession(sessionId?: string) {
     if (this.saveDebounceTimer) {
       clearTimeout(this.saveDebounceTimer);
       this.saveDebounceTimer = null;
@@ -195,6 +196,24 @@ class InventoryPersistenceService {
 
     this.lastServerSave = 0;
     this.setStatus('idle');
+
+    // Also remove server-side draft so re-entering a completed session
+    // doesn't trigger a stale "restored from autosave" message.
+    if (sessionId) {
+      void this.clearServerDraft(sessionId);
+    }
+  }
+
+  /**
+   * Delete the server-side draft for a session (called after finalization).
+   */
+  async clearServerDraft(sessionId: string): Promise<void> {
+    try {
+      const { supabase } = await import('../../../lib/supabaseClient');
+      await supabase.from('inventory_session_drafts').delete().eq('session_id', sessionId);
+    } catch (error) {
+      logger.error('inventoryPersistenceService', 'Failed to clear server draft:', error);
+    }
   }
 
   /**

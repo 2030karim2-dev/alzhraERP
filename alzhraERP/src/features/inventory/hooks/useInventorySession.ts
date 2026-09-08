@@ -31,10 +31,15 @@ export function useInventorySession({
   const lastItemsRef = useRef<Array<Record<string, unknown>>>(initialItems);
   const hasRestoredRef = useRef(false);
 
-  // Sync initialItems when server data finishes loading
+  // Sync initialItems when server data finishes loading.
+  // IMPORTANT: Only run before restoration is complete to avoid overwriting
+  // user-entered quantities that were saved in the sessionStorage / server draft.
   useEffect(() => {
     if (initialItems && initialItems.length > 0) {
-      if (isCompleted || items.length === 0) {
+      // For completed sessions always show server data.
+      // For active sessions only seed the state if restoration hasn't happened yet,
+      // so that a saved draft is never wiped by the server baseline.
+      if (isCompleted || (items.length === 0 && !hasRestoredRef.current)) {
         setItems(initialItems);
         lastItemsRef.current = initialItems;
       }
@@ -190,8 +195,11 @@ export function useInventorySession({
     setItems([]);
     lastItemsRef.current = [];
     isDirtyRef.current = false;
-    inventoryPersistence.clearSession();
-  }, []);
+    hasRestoredRef.current = false;
+    // Pass sessionId so the server draft is also deleted, preventing
+    // a stale "restored from autosave" on re-entry of a completed session.
+    inventoryPersistence.clearSession(sessionId);
+  }, [sessionId]);
   const mergeWithServer = useCallback((serverItems: Array<Record<string, unknown>>) => {
     setItems(prev => {
       const merged = [...prev];

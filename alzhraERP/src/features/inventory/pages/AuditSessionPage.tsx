@@ -82,18 +82,20 @@ const AuditSessionPage: React.FC = () => {
   const lastSyncedRef = useRef<string>('');
   const hasLoadedServerItemsRef = useRef(false);
 
-  // Sync server items to form on load
+  // Sync server items to form on load.
+  // NOTE: We only reset the *form* here (not sessionItems) so that a saved draft
+  // restored by useInventorySession is never overwritten by the server baseline.
+  // useInventorySession handles merging draft quantities over these baseline values.
   useEffect(() => {
     if (data?.items && data.items.length > 0 && !hasLoadedServerItemsRef.current) {
       hasLoadedServerItemsRef.current = true;
       const serialized = JSON.stringify(data.items);
       lastSyncedRef.current = serialized;
       reset({ items: data.items });
-      if (!isCompleted) {
-        updateItems(data.items);
-      }
+      // Do NOT call updateItems(data.items) here — that would overwrite the
+      // draft quantities restored by useInventorySession with zero-baseline values.
     }
-  }, [data?.items, isCompleted, reset, updateItems]);
+  }, [data?.items, reset]);
 
   // When sessionItems change (from useInventorySession), sync to form if not completed
   useEffect(() => {
@@ -134,12 +136,19 @@ const AuditSessionPage: React.FC = () => {
     };
   }, [getValues, isCompleted, updateItems]);
 
-  // When server data updates (realtime), merge with local state if not completed
+  // When server data updates (realtime), merge with local state if not completed.
+  // Guard with !isRestoring so we don't race against the draft restoration in useInventorySession.
   useEffect(() => {
-    if (!isCompleted && data?.items && data.items.length > 0 && hasLoadedServerItemsRef.current) {
+    if (
+      !isCompleted &&
+      !isRestoring &&
+      data?.items &&
+      data.items.length > 0 &&
+      hasLoadedServerItemsRef.current
+    ) {
       mergeWithServer(data.items);
     }
-  }, [data?.items, isCompleted, mergeWithServer]);
+  }, [data?.items, isCompleted, isRestoring, mergeWithServer]);
 
   const watchedItems = getValues('items');
 
