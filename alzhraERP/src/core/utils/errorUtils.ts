@@ -150,6 +150,30 @@ export const parseError = (error: unknown): AppError => {
           return makeAppError(prefix.toUpperCase(), msg, 'medium');
         }
       }
+
+      // معالجة أخطاء المخزون والأسعار الصادرة من دوال البيع والشراء
+      if (
+        lowerMsg.includes('below minimum allowed') ||
+        (lowerMsg.includes('price') && lowerMsg.includes('minimum'))
+      ) {
+        return makeAppError(
+          code,
+          'سعر البيع المدخل أقل من الحد الأدنى المسموح به لهذا الصنف.',
+          'medium',
+          'تعديل السعر'
+        );
+      }
+      if (lowerMsg.includes('insufficient stock') || lowerMsg.includes('no stock record found')) {
+        return makeAppError(
+          code,
+          'الكمية المطلوبة غير متوفرة في المستودع لهذا الصنف (الرصيد غير كافٍ).',
+          'medium',
+          'إدارة المخزون'
+        );
+      }
+      if (lowerMsg.includes('invoice must have at least one item')) {
+        return makeAppError(code, 'يجب أن تحتوي الفاتورة على صنف واحد على الأقل.', 'low');
+      }
       // Log the actual error for debugging but don't expose internals to users
       if (import.meta.env.DEV) {
         console.error('[ErrorUtils] Unhandled error:', code, rawMessage);

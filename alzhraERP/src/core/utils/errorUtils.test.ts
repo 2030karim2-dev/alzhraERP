@@ -76,4 +76,28 @@ describe('parseError', () => {
     expect(arabic.message).toBe('لا يوجد مستودع للفرع');
     expect(arabic.code).toBe('P0001');
   });
+
+  it('should translate stock and minimum price RPC errors to helpful Arabic', () => {
+    const priceErr = parseError({
+      code: 'P0001',
+      message: 'Price (50) below minimum allowed (65.61100) for product 89ba18c2',
+    });
+    expect(priceErr.message).toBe('سعر البيع المدخل أقل من الحد الأدنى المسموح به لهذا الصنف.');
+
+    const stockErr = parseError({
+      code: 'P0001',
+      message: 'Insufficient stock for product 89ba18c2. Available: 0, Requested: 1',
+    });
+    expect(stockErr.message).toBe(
+      'الكمية المطلوبة غير متوفرة في المستودع لهذا الصنف (الرصيد غير كافٍ).'
+    );
+
+    const noStockErr = parseError({
+      code: 'P0001',
+      message: 'No stock record found for product 89ba18c2 in warehouse',
+    });
+    expect(noStockErr.message).toBe(
+      'الكمية المطلوبة غير متوفرة في المستودع لهذا الصنف (الرصيد غير كافٍ).'
+    );
+  });
 });
