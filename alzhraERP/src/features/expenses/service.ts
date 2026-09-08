@@ -136,14 +136,17 @@ export const expensesService = {
 
   // Legacy: Used when expenses list is already loaded in memory
   calculateStats: (expenses: Expense[]): ExpenseStats => {
-    const totalExpenses = expenses.reduce((sum, e) => sum + safeToBase(e), 0);
-    const paidExpenses = expenses
+    // Exclude voided expenses from all stats — they are accounting reversals and
+    // should not inflate totals, paid amounts, or category counts.
+    const active = expenses.filter(e => e.status !== 'void');
+    const totalExpenses = active.reduce((sum, e) => sum + safeToBase(e), 0);
+    const paidExpenses = active
       .filter(e => e.status === 'paid' || e.status === 'posted')
       .reduce((sum, e) => sum + safeToBase(e), 0);
-    const pendingExpenses = expenses
+    const pendingExpenses = active
       .filter(e => e.status === 'draft')
       .reduce((sum, e) => sum + safeToBase(e), 0);
-    const categoriesCount = new Set(expenses.map(e => e.category_id)).size;
+    const categoriesCount = new Set(active.map(e => e.category_id)).size;
 
     return {
       totalExpenses,
