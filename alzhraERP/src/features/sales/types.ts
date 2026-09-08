@@ -95,4 +95,5 @@ export interface InvoiceListItem {
   matchedItems?: MatchedInvoiceItem[];
   partyPhone?: string | null;
   notes?: string | null;
+  totalMatchingCount?: number | undefined;
 }

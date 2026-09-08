@@ -42,39 +42,64 @@ const MobilePurchaseList = ({
 }): React.ReactElement => (
   <div className="grid grid-cols-1 gap-2 md:hidden">
     {data.map(item => (
-      <MicroListItem
+      <div
         key={item.id}
-        icon={item.type === 'purchase_return' ? ArrowLeftRight : ShoppingCart}
-        iconColorClass={item.type === 'purchase_return' ? 'text-rose-500' : 'text-blue-500'}
-        title={getSupplierName(item)}
-        subtitle={`#${item.invoice_number ?? ''} | ${item.issue_date}`}
-        onClick={() => {
-          onView(item.id);
-        }}
-        tags={[
-          {
-            label: item.status === 'paid' ? 'مدفوع' : item.status === 'posted' ? 'مرحّل' : 'مسودة',
-            color: item.status === 'paid' ? 'emerald' : item.status === 'posted' ? 'blue' : 'slate',
-          },
-        ]}
-        actions={
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
-              <button className="p-1 text-gray-500 hover:text-blue-600">
-                <Printer size={16} />
-              </button>
-              <p dir="ltr" className="font-mono text-sm font-bold">
-                {formatCurrency(item.total_amount, item.currency_code ?? undefined)}
-              </p>
+        className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]"
+      >
+        <MicroListItem
+          icon={item.type === 'purchase_return' ? ArrowLeftRight : ShoppingCart}
+          iconColorClass={item.type === 'purchase_return' ? 'text-rose-500' : 'text-blue-500'}
+          title={getSupplierName(item)}
+          subtitle={`#${item.invoice_number ?? ''} | ${item.issue_date}`}
+          onClick={() => {
+            onView(item.id);
+          }}
+          tags={[
+            {
+              label:
+                item.status === 'paid' ? 'مدفوع' : item.status === 'posted' ? 'مرحّل' : 'مسودة',
+              color:
+                item.status === 'paid' ? 'emerald' : item.status === 'posted' ? 'blue' : 'slate',
+            },
+          ]}
+          actions={
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                <button className="p-1 text-gray-500 hover:text-blue-600">
+                  <Printer size={16} />
+                </button>
+                <p dir="ltr" className="font-mono text-sm font-bold">
+                  {formatCurrency(item.total_amount, item.currency_code ?? undefined)}
+                </p>
+              </div>
+              {hasForeignCurrency(item) && (
+                <p dir="ltr" className="text-xs font-bold text-blue-500">
+                  {formatCurrency(getBaseAmount(item))}
+                </p>
+              )}
             </div>
-            {hasForeignCurrency(item) && (
-              <p dir="ltr" className="text-xs font-bold text-blue-500">
-                {formatCurrency(getBaseAmount(item))}
-              </p>
-            )}
+          }
+        />
+        {item.matched_items && item.matched_items.length > 0 && (
+          <div className="border-[var(--app-border)]/50 bg-[var(--app-bg)]/50 flex flex-wrap gap-1 border-t px-3 py-1.5">
+            {item.matched_items.map(m => (
+              <span
+                key={m.id}
+                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                  m.is_direct_match
+                    ? 'bg-blue-100 text-blue-800 ring-1 ring-blue-500/30 dark:bg-blue-950/40 dark:text-blue-300'
+                    : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                <Package size={10} className="shrink-0 text-blue-600 dark:text-blue-400" />
+                <span>{m.product_name}</span>
+                {m.part_number && <span className="font-mono opacity-80">({m.part_number})</span>}
+                <span className="font-mono font-bold">×{m.quantity}</span>
+              </span>
+            ))}
           </div>
-        }
-      />
+        )}
+      </div>
     ))}
   </div>
 );

@@ -189,6 +189,7 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
             paymentMethodFilter={paymentMethodFilter}
             onPaymentMethodFilterChange={onPaymentMethodFilterChange}
             totalMatches={data.length}
+            totalMatchingCount={(data[0] as any)?.total_matching_count || data.length}
             isLoading={isLoading}
             onResetFilters={onResetFilters}
             scopeLabel="purchases"

@@ -361,6 +361,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodFilterChange={setPaymentMethodFilter}
         totalMatches={displayData.length}
+        totalMatchingCount={displayData[0]?.totalMatchingCount || displayData.length}
         isLoading={isLoading}
         onResetFilters={handleResetFilters}
         scopeLabel="sales"

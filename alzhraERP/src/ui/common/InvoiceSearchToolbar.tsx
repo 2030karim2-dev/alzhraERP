@@ -21,6 +21,7 @@ interface InvoiceSearchToolbarProps {
   paymentMethodFilter?: string | undefined;
   onPaymentMethodFilterChange?: ((method: string) => void) | undefined;
   totalMatches?: number | undefined;
+  totalMatchingCount?: number | undefined;
   isLoading?: boolean | undefined;
   onResetFilters: () => void;
   scopeLabel?: 'sales' | 'purchases' | undefined;
@@ -29,7 +30,7 @@ interface InvoiceSearchToolbarProps {
 const PRESETS: Array<{ id: DatePreset; label: string }> = [
   { id: 'all', label: 'كل الفترات' },
   { id: 'today', label: 'اليوم' },
-  { id: 'this_week', label: 'هذا الأسبوع' },
+  { id: 'this_week', label: 'آخر 7 أيام' },
   { id: 'this_month', label: 'هذا الشهر' },
   { id: 'last_month', label: 'الشهر الماضي' },
   { id: 'last_3_months', label: 'آخر 3 أشهر' },
@@ -51,6 +52,7 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
   paymentMethodFilter = 'all',
   onPaymentMethodFilterChange,
   totalMatches,
+  totalMatchingCount,
   isLoading = false,
   onResetFilters,
   scopeLabel = 'sales',
@@ -183,7 +185,9 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
         <div className="flex items-center gap-2">
           {typeof totalMatches === 'number' && (
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-              {totalMatches} فاتورة
+              {totalMatchingCount && totalMatchingCount > totalMatches
+                ? `عرض ${totalMatches} من أصل ${totalMatchingCount} فاتورة`
+                : `${totalMatches} فاتورة`}
             </span>
           )}
         </div>
