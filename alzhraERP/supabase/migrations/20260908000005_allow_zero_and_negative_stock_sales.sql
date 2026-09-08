@@ -130,6 +130,9 @@ BEGIN
   -- دور المستخدم للتحقق من صلاحية تجاوز الأسعار
   SELECT role INTO v_user_role FROM public.user_company_roles 
   WHERE user_id = v_user_id AND company_id = v_company_id LIMIT 1;
+  IF v_user_role IS NULL THEN
+    SELECT role INTO v_user_role FROM public.user_profiles WHERE id = v_user_id;
+  END IF;
 
   IF p_idempotency_key IS NOT NULL THEN
     SELECT id INTO v_invoice_id FROM public.invoices
@@ -217,7 +220,7 @@ BEGIN
 
   v_is_cash := coalesce(p_payment_type, 'cash') <> 'credit';
 
-  -- === PHASE 3: CREATE INVOICE AS DRAFT (To allow items insertion before posting trigger) ===
+  -- === PHASE 3: CREATE INVOICE AS DRAFT (Initial paid_amount is 0 to avoid check constraint conflict with update_invoice_totals_from_items trigger) ===
   INSERT INTO public.invoices (
     company_id, invoice_number, party_id, issue_date, due_date,
     total_amount, tax_amount, discount_amount, payment_method, payment_account_id, status, notes, type,
@@ -227,7 +230,7 @@ BEGIN
     v_total_amount + v_total_tax, v_total_tax, v_total_discount, p_payment_type, p_payment_account_id,
     'draft', p_notes, 'sale',
     v_user_id, p_currency_code, p_exchange_rate, p_idempotency_key, p_branch_id,
-    CASE WHEN v_is_cash THEN v_total_amount + v_total_tax ELSE 0 END
+    0
   ) RETURNING id INTO v_invoice_id;
 
   -- === PHASE 4: CREATE INVOICE ITEMS + ATOMIC STOCK UPSERT ===
@@ -283,7 +286,8 @@ BEGIN
 
   -- === PHASE 5: POST INVOICE (Triggers fn_auto_post_invoice_journal with full items & COGS) ===
   UPDATE public.invoices
-  SET status = CASE WHEN v_is_cash THEN 'paid' ELSE 'posted' END
+  SET status = CASE WHEN v_is_cash THEN 'paid' ELSE 'posted' END,
+      paid_amount = CASE WHEN v_is_cash THEN total_amount ELSE 0 END
   WHERE id = v_invoice_id;
 
   RETURN v_invoice_id;
