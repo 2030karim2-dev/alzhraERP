@@ -31,22 +31,77 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
   const selectedAccount = accounts?.find(a => a.id === effectiveAccountId);
 
   const columns = [
-    { header: 'التاريخ', accessor: (row: LedgerEntry) => <span dir="ltr" className="font-mono text-xs">{row.date}</span>, width: 'w-24' },
-    { header: 'رقم القيد', accessor: (row: LedgerEntry) => row.entry_number > 0 ? <span dir="ltr" className="font-mono text-xs text-blue-600 hover:underline cursor-pointer">#{formatNumberDisplay(row.entry_number)}</span> : '-', width: 'w-24' },
-    { header: 'البيان', accessor: (row: LedgerEntry) => <span className="text-xs font-semibold">{row.description}</span>, className: 'text-right min-w-[200px]' },
-    { header: 'العميل / المورد', accessor: (row: LedgerEntry) => row.party_name ? <span className="text-xs font-medium text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">{row.party_name}</span> : <span className="text-gray-400">-</span>, className: 'text-right min-w-[150px]' },
+    {
+      header: 'التاريخ',
+      accessor: (row: LedgerEntry) => (
+        <span dir="ltr" className="font-mono text-xs">
+          {row.date}
+        </span>
+      ),
+      width: 'w-24',
+    },
+    {
+      header: 'رقم القيد',
+      accessor: (row: LedgerEntry) =>
+        row.entry_number > 0 ? (
+          <span
+            dir="ltr"
+            className="cursor-pointer font-mono text-xs text-blue-600 hover:underline"
+          >
+            #{formatNumberDisplay(row.entry_number)}
+          </span>
+        ) : (
+          '-'
+        ),
+      width: 'w-24',
+    },
+    {
+      header: 'البيان',
+      accessor: (row: LedgerEntry) => {
+        const isReversal =
+          row.reference_type?.includes('void') ||
+          row.reference_type?.includes('return') ||
+          row.description.includes('عكس');
+
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold">{row.description}</span>
+            {isReversal && (
+              <span className="inline-flex items-center rounded border border-amber-200/60 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-300">
+                قيد عكسي
+              </span>
+            )}
+          </div>
+        );
+      },
+      className: 'text-right min-w-[200px]',
+    },
+    {
+      header: 'العميل / المورد',
+      accessor: (row: LedgerEntry) =>
+        row.party_name ? (
+          <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+            {row.party_name}
+          </span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        ),
+      className: 'text-right min-w-[150px]',
+    },
     {
       header: 'مدين',
       accessor: (row: LedgerEntry) => (
-        <div className="text-left space-y-0.5">
+        <div className="space-y-0.5 text-left">
           <div
             dir="ltr"
             className={`font-mono text-xs font-bold ${row.debit_amount > 0 ? 'text-emerald-600' : 'text-gray-400'}`}
           >
             {row.debit_amount > 0 ? formatCurrency(row.debit_amount) : '-'}
           </div>
-          {row.foreign_amount && row.foreign_amount > 0 && Math.abs(row.debit_amount - row.foreign_amount) > 0.01 ? (
-            <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
+          {row.foreign_amount &&
+          row.foreign_amount > 0 &&
+          Math.abs(row.debit_amount - row.foreign_amount) > 0.01 ? (
+            <div dir="ltr" className="font-mono text-[10px] text-gray-400">
               ({formatCurrency(row.foreign_amount, row.currency_code)})
             </div>
           ) : null}
@@ -62,15 +117,17 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
     {
       header: 'دائن',
       accessor: (row: LedgerEntry) => (
-        <div className="text-left space-y-0.5">
+        <div className="space-y-0.5 text-left">
           <div
             dir="ltr"
             className={`font-mono text-xs font-bold ${row.credit_amount > 0 ? 'text-red-600' : 'text-gray-400'}`}
           >
             {row.credit_amount > 0 ? formatCurrency(row.credit_amount) : '-'}
           </div>
-          {row.foreign_amount && row.foreign_amount > 0 && Math.abs(row.credit_amount - row.foreign_amount) > 0.01 ? (
-            <div dir="ltr" className="text-[10px] text-gray-400 font-mono">
+          {row.foreign_amount &&
+          row.foreign_amount > 0 &&
+          Math.abs(row.credit_amount - row.foreign_amount) > 0.01 ? (
+            <div dir="ltr" className="font-mono text-[10px] text-gray-400">
               ({formatCurrency(row.foreign_amount, row.currency_code)})
             </div>
           ) : null}
@@ -88,25 +145,32 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
       accessor: (row: LedgerEntry) => {
         // get_account_ledger returns a sign-normalised running balance; the
         // label depends on the account nature (asset/expense vs credit-normal)
-        const { label: balanceLabel, isCredit } = getLedgerBalanceLabel(row.balance, row.accountType);
+        const { label: balanceLabel, isCredit } = getLedgerBalanceLabel(
+          row.balance,
+          row.accountType
+        );
         return (
           <div className="text-left">
-            <span className={`flex items-center  max-md:gap-1 text-xs font-bold ${isCredit ? 'text-red-600' : 'text-blue-600'}`}>
+            <span
+              className={`flex items-center text-xs font-bold max-md:gap-1 ${isCredit ? 'text-red-600' : 'text-blue-600'}`}
+            >
               <span>{balanceLabel}</span>
-              <span dir="ltr" className="font-mono">{formatCurrency(Math.abs(row.balance))}</span>
+              <span dir="ltr" className="font-mono">
+                {formatCurrency(Math.abs(row.balance))}
+              </span>
             </span>
           </div>
         );
       },
-      className: 'w-28 bg-gray-50/50 dark:bg-slate-800/50'
+      className: 'w-28 bg-gray-50/50 dark:bg-slate-800/50',
     },
   ];
 
   return (
-    <div className="space-y-4 print-area h-full flex flex-col">
+    <div className="print-area flex h-full flex-col space-y-4">
       {/* Show dropdown only if explicitly requested and no account is forced */}
       {showAccountSelector && !accountId && (
-        <div className="bg-[var(--app-surface)] border border-[var(--app-border)] p-2 max-md:p-1 flex items-center gap-3 max-md:gap-2 no-print shadow-sm">
+        <div className="no-print flex items-center gap-3 border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-sm max-md:gap-2 max-md:p-1">
           <SearchableAccountSelector
             accounts={accounts || []}
             selectedId={internalAccountId}
@@ -128,9 +192,11 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
 
       {effectiveAccountId ? (
         isLoading ? (
-          <div className="flex-1 flex items-center justify-center p-12 max-md:p-5"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
+          <div className="flex flex-1 items-center justify-center p-12 max-md:p-5">
+            <Loader2 className="animate-spin text-blue-600" size={32} />
+          </div>
         ) : (
-          <div className="flex-1 min-h-[480px] flex flex-col overflow-hidden border border-[var(--app-border)] shadow-sm">
+          <div className="flex min-h-[480px] flex-1 flex-col overflow-hidden border border-[var(--app-border)] shadow-sm">
             <ExcelTable
               columns={columns}
               data={ledger || []}
@@ -141,7 +207,7 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
         )
       ) : (
         !accountId && (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-1 items-center justify-center">
             <EmptyState
               icon={FileText}
               title="دفتر الأستاذ العام"

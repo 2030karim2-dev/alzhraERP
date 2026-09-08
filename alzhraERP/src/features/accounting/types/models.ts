@@ -3,7 +3,15 @@
 export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
 export type JournalStatus = 'posted' | 'draft' | 'void';
 export type AccountingView =
-  'overview' | 'journal' | 'ledger' | 'income' | 'balance_sheet' | 'accounts' | 'treasury';
+  | 'overview'
+  | 'journal'
+  | 'ledger'
+  | 'income'
+  | 'balance_sheet'
+  | 'accounts'
+  | 'treasury'
+  | 'assets'
+  | 'vat_return';
 
 export interface Account {
   id: string;

@@ -13,6 +13,8 @@ import {
   LayoutDashboard,
   RefreshCw,
   Wallet,
+  Building2,
+  Percent,
 } from 'lucide-react';
 import MicroHeader from '../../ui/base/MicroHeader';
 import PageLoader from '../../ui/base/PageLoader';
@@ -39,6 +41,8 @@ const REFRESH_KEYS: readonly string[] = [
     'audit_journals',
     'cashboxes',
     'exchange_companies',
+    'fixed_assets',
+    'vat_return_report',
   ]),
 ];
 
@@ -50,6 +54,8 @@ const TreasuryView = lazy(() => import('./components/treasury/TreasuryView'));
 const LedgerView = lazy(() => import('./components/reports/LedgerView'));
 const IncomeStatement = lazy(() => import('./components/reports/IncomeStatement'));
 const BalanceSheet = lazy(() => import('./components/reports/BalanceSheet'));
+const FixedAssetsView = lazy(() => import('./components/assets/FixedAssetsView'));
+const VatReturnView = lazy(() => import('./components/reports/VatReturnView'));
 const AddJournalEntryModal = lazy(() => import('./components/journals/AddJournalEntryModal'));
 
 const AccountingPage: React.FC = () => {
@@ -98,6 +104,8 @@ const AccountingPage: React.FC = () => {
     { id: 'income', label: t('income_statement'), icon: FileText },
     { id: 'balance_sheet', label: t('balance_sheet_report'), icon: Landmark },
     { id: 'accounts', label: t('chart_of_accounts'), icon: Layers },
+    { id: 'assets', label: 'الأصول الثابتة', icon: Building2 },
+    { id: 'vat_return', label: 'الإقرار الضريبي', icon: Percent },
   ];
 
   const headerActions = (
@@ -123,7 +131,9 @@ const AccountingPage: React.FC = () => {
   );
 
   const dateFilterRow = useMemo(() => {
-    const showDateFilter = ['ledger', 'income', 'balance_sheet', 'treasury'].includes(activeView);
+    const showDateFilter = ['ledger', 'income', 'balance_sheet', 'treasury', 'vat_return'].includes(
+      activeView
+    );
     if (!showDateFilter) return undefined;
 
     return (
@@ -184,6 +194,10 @@ const AccountingPage: React.FC = () => {
         return <IncomeStatement dateRange={dateRange} />;
       case 'balance_sheet':
         return <BalanceSheet dateRange={dateRange} />;
+      case 'assets':
+        return <FixedAssetsView />;
+      case 'vat_return':
+        return <VatReturnView dateRange={dateRange} />;
       default:
         return <AccountingOverview />;
     }

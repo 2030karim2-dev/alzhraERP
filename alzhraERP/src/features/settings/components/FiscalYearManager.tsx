@@ -7,13 +7,15 @@ import { useFeedbackStore } from '../../feedback/store';
 import MicroListItem from '../../../ui/common/MicroListItem';
 import Button from '../../../ui/base/Button';
 import FiscalYearModal from './financial/FiscalYearModal';
+import FiscalYearClosingModal from './financial/FiscalYearClosingModal';
 
 const FiscalYearManager: React.FC = () => {
   const { data: years, isLoading } = useFiscalYears();
-  const { addFiscalYear, closeFiscalYear, isAdding } = useFiscalYearMutations();
+  const { addFiscalYear, closeFiscalYear, isAdding, isClosing } = useFiscalYearMutations();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [closingYear, setClosingYear] = useState<any | null>(null);
 
   const handleAdd = (data: any) => {
     addFiscalYear(data, {
@@ -23,18 +25,22 @@ const FiscalYearManager: React.FC = () => {
     });
   };
 
-  const handleClose = (id: string) => {
+  const handleOpenCloseWizard = (year: any) => {
     try {
       assertOwner(user);
-      if (
-        window.confirm('تحذير: إغلاق السنة المالية عملية لا يمكن التراجع عنها. هل تريد المتابعة؟')
-      ) {
-        closeFiscalYear(id);
-      }
+      setClosingYear(year);
     } catch (error: unknown) {
       const err = error as Error;
-      showToast(err.message || 'فشل إغلاق السنة المالية', 'error');
+      showToast(err.message || 'عذراً، لا تملك صلاحية إغلاق السنة المالية', 'error');
     }
+  };
+
+  const handleConfirmClose = (id: string) => {
+    closeFiscalYear(id, {
+      onSuccess: () => {
+        setClosingYear(null);
+      },
+    });
   };
 
   if (isLoading)
@@ -74,10 +80,10 @@ const FiscalYearManager: React.FC = () => {
                 <button
                   onClick={e => {
                     e.stopPropagation();
-                    handleClose(year.id);
+                    handleOpenCloseWizard(year);
                   }}
                   className="rounded-lg p-1 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 max-md:p-1.5"
-                  title="إغلاق السنة"
+                  title="معالج إغلاق السنة المالية"
                 >
                   <ShieldAlert size={14} />
                 </button>
@@ -94,6 +100,14 @@ const FiscalYearManager: React.FC = () => {
         }}
         onSave={handleAdd}
         isSaving={isAdding}
+      />
+
+      <FiscalYearClosingModal
+        isOpen={!!closingYear}
+        onClose={() => setClosingYear(null)}
+        onConfirm={handleConfirmClose}
+        fiscalYear={closingYear}
+        isLoading={isClosing}
       />
     </div>
   );

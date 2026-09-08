@@ -117,4 +117,25 @@ export const treasuryApi = {
     if (error) throw parseError(error);
     return data;
   },
+
+  /**
+   * إعادة تقييم العملة الأجنبية للصندوق وتوليد قيد التسوية الآلي
+   */
+  revalueForeignCurrency: async (params: {
+    companyId: string;
+    accountId: string;
+    closingRate: number;
+    operator?: 'multiply' | 'divide';
+    periodDate?: string;
+  }) => {
+    const { data, error } = await supabase.rpc('fn_revalue_foreign_currency' as any, {
+      p_company_id: params.companyId,
+      p_account_id: params.accountId,
+      p_closing_rate: params.closingRate,
+      p_operator: params.operator || 'multiply',
+      p_period_date: params.periodDate,
+    });
+    if (error) throw parseError(error);
+    return data;
+  },
 };

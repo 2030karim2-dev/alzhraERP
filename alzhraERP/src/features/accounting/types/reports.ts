@@ -13,6 +13,8 @@ export interface LedgerEntry {
   foreign_amount?: number;
   party_id?: string;
   party_name?: string;
+  reference_type?: string;
+  reference_id?: string;
 }
 
 export interface TrialBalanceItem {

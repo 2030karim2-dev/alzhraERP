@@ -72,10 +72,38 @@ export const useTreasuryMutations = () => {
     },
   });
 
+  const revalueCurrency = useMutation({
+    mutationFn: (params: {
+      accountId: string;
+      closingRate: number;
+      operator?: 'multiply' | 'divide';
+      periodDate?: string;
+    }) => {
+      if (!user?.company_id) throw new Error('No Company ID');
+      return treasuryApi.revalueForeignCurrency({
+        companyId: user.company_id,
+        ...params,
+      });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['cashboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['financials'] });
+      queryClient.invalidateQueries({ queryKey: ['trial_balance'] });
+      showToast(data?.message || 'تمت إعادة تقييم العملة وإثبات قيد الفروق بنجاح', 'success');
+    },
+    onError: (err: Error) => {
+      showToast(err.message, 'error');
+    },
+  });
+
   return {
     createCashbox: createCashbox.mutate,
     isCreatingCashbox: createCashbox.isPending,
     createExchangeCompany: createExchangeCompany.mutate,
     isCreatingExchange: createExchangeCompany.isPending,
+    revalueCurrency: revalueCurrency.mutateAsync,
+    isRevaluing: revalueCurrency.isPending,
   };
 };

@@ -1,13 +1,20 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Printer } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Printer, Coins } from 'lucide-react';
 import Button from '../../../../ui/base/Button';
 
 interface Props {
   onAction: (action: 'receipt' | 'payment' | 'transfer') => void;
   onPrint: () => void;
+  showRevalue?: boolean;
+  onRevalue?: () => void;
 }
 
-const TreasuryActions: React.FC<Props> = ({ onAction, onPrint }) => {
+const TreasuryActions: React.FC<Props> = ({
+  onAction,
+  onPrint,
+  showRevalue = false,
+  onRevalue,
+}) => {
   return (
     <div className="mb-4 flex flex-wrap gap-2">
       <Button
@@ -40,6 +47,17 @@ const TreasuryActions: React.FC<Props> = ({ onAction, onPrint }) => {
       >
         تحويل داخلي
       </Button>
+      {showRevalue && onRevalue && (
+        <Button
+          onClick={onRevalue}
+          variant="secondary"
+          className="border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-300"
+          leftIcon={<Coins size={15} className="text-purple-600" />}
+          title="إعادة تقييم فروق العملة الدورية"
+        >
+          تقييم العملة
+        </Button>
+      )}
       <Button onClick={onPrint} variant="secondary" aria-label="طباعة" className="px-3">
         <Printer size={18} />
       </Button>

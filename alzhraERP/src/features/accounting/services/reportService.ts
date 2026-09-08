@@ -17,6 +17,8 @@ interface LedgerRpcLine {
   foreign_amount: number | undefined;
   party_id: string | undefined;
   party_name: string | undefined;
+  reference_type?: string | undefined;
+  reference_id?: string | undefined;
 }
 
 interface LedgerRpcResult {
@@ -53,6 +55,8 @@ const toLedgerResult = (value: unknown): LedgerRpcResult => {
       branch_id: typeof line.branch_id === 'string' ? line.branch_id : undefined,
       party_id: typeof line.party_id === 'string' ? line.party_id : undefined,
       party_name: typeof line.party_name === 'string' ? line.party_name : undefined,
+      reference_type: typeof line.reference_type === 'string' ? line.reference_type : undefined,
+      reference_id: typeof line.reference_id === 'string' ? line.reference_id : undefined,
     })),
   };
 };
@@ -132,6 +136,8 @@ export const reportService = {
       ...(line.branch_id != null ? { branch_id: line.branch_id } : {}),
       ...(line.party_id ? { party_id: line.party_id } : {}),
       ...(line.party_name ? { party_name: line.party_name } : {}),
+      ...(line.reference_type ? { reference_type: line.reference_type } : {}),
+      ...(line.reference_id ? { reference_id: line.reference_id } : {}),
     }));
 
     // عرض الرصيد الافتتاحي (الأرصدة قبل تاريخ البداية) كسطر أول في كشف الحساب
@@ -404,5 +410,27 @@ export const reportService = {
       expenses: Number(d.expenses) || 0,
       monthIndex: d.month_index,
     }));
+  },
+
+  getVatReturnReport: async (companyId: string, startDate: string, endDate: string) => {
+    const { data, error } = await supabase.rpc('fn_get_vat_return_report' as any, {
+      p_company_id: companyId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+    if (error) throw error;
+    return data as {
+      success: boolean;
+      start_date: string;
+      end_date: string;
+      sales: { taxable_amount: number; tax_amount: number };
+      purchases: { taxable_amount: number; tax_amount: number };
+      net_vat_payable: number;
+      vat_account_summary: {
+        total_credits: number;
+        total_debits: number;
+        net_balance: number;
+      };
+    };
   },
 };

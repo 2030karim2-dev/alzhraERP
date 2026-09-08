@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { accountingService } from '../services/index';
 import { reportsApi } from '../api/reportsApi';
@@ -11,10 +10,11 @@ export const useLedger = (accountId: string | null, fromDate?: string, toDate?: 
 
   return useQuery({
     queryKey: ['ledger', user?.company_id, branchId, accountId, fromDate, toDate],
-    queryFn: () => (user?.company_id && accountId)
-      ? accountingService.getLedger(user.company_id, accountId, branchId, fromDate, toDate)
-      : Promise.resolve([]),
-    enabled: !!user?.company_id && !!accountId
+    queryFn: () =>
+      user?.company_id && accountId
+        ? accountingService.getLedger(user.company_id, accountId, branchId, fromDate, toDate)
+        : Promise.resolve([]),
+    enabled: !!user?.company_id && !!accountId,
   });
 };
 
@@ -23,10 +23,11 @@ export const useTrialBalance = (fromDate?: string, toDate?: string) => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['trial_balance', user?.company_id, branchId, fromDate, toDate],
-    queryFn: () => user?.company_id
-      ? accountingService.getTrialBalance(user.company_id, branchId, fromDate, toDate)
-      : Promise.resolve([]),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id
+        ? accountingService.getTrialBalance(user.company_id, branchId, fromDate, toDate)
+        : Promise.resolve([]),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -35,10 +36,11 @@ export const useFinancials = (fromDate?: string, toDate?: string) => {
   const { branchId } = useBranchFilter();
   return useQuery({
     queryKey: ['financials', user?.company_id, branchId, fromDate, toDate],
-    queryFn: () => user?.company_id
-      ? accountingService.getFinancials(user.company_id, branchId, fromDate, toDate)
-      : Promise.resolve(null),
-    enabled: !!user?.company_id
+    queryFn: () =>
+      user?.company_id
+        ? accountingService.getFinancials(user.company_id, branchId, fromDate, toDate)
+        : Promise.resolve(null),
+    enabled: !!user?.company_id,
   });
 };
 
@@ -53,6 +55,18 @@ export const useAuditJournals = (enabled: boolean) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.company_id && enabled
+    enabled: !!user?.company_id && enabled,
   });
-};
+};
+
+export const useVatReturnReport = (fromDate?: string, toDate?: string) => {
+  const { user } = useAuthStore();
+  return useQuery({
+    queryKey: ['vat_return_report', user?.company_id, fromDate, toDate],
+    queryFn: () =>
+      user?.company_id && fromDate && toDate
+        ? accountingService.getVatReturnReport(user.company_id, fromDate, toDate)
+        : Promise.resolve(null),
+    enabled: !!user?.company_id && !!fromDate && !!toDate,
+  });
+};

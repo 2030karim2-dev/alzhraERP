@@ -175,6 +175,7 @@ export const useFiscalYearMutations = () => {
     addFiscalYear: addFiscalYear.mutate,
     closeFiscalYear: closeFiscalYear.mutate,
     isAdding: addFiscalYear.isPending,
+    isClosing: closeFiscalYear.isPending,
   };
 };
 

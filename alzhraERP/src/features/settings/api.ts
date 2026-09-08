@@ -210,7 +210,9 @@ export const settingsApi = {
   },
 
   closeFiscalYear: async (id: string) => {
-    return await supabase.from('fiscal_years').update({ is_closed: true }).eq('id', id);
+    return await supabase.rpc('fn_close_fiscal_year' as any, {
+      p_fiscal_year_id: id,
+    });
   },
 
   /**

@@ -116,10 +116,15 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => {
-              if (window.confirm('حذف هذا المصروف؟')) onDelete(row.id);
+              if (
+                window.confirm(
+                  'هل أنت متأكد من إلغاء هذا المصروف؟ سيتم إيقاف المصروف وإنشاء قيد عكسي لتسوية الحسابات تلقائياً.'
+                )
+              )
+                onDelete(row.id);
             }}
             className="p-1.5 text-gray-300 transition-colors hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
-            title="حذف"
+            title="إلغاء المصروف وعكس قيده"
           >
             <Trash2 size={16} />
           </button>

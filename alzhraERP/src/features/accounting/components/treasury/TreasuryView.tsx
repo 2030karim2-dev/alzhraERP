@@ -6,8 +6,10 @@ import TreasuryActions from './TreasuryActions';
 import EmptyState from '../../../../ui/base/EmptyState';
 import { Wallet, Info, ArrowLeft } from 'lucide-react';
 import CreateBondModal from '../../../bonds/components/CreateBondModal';
+import FxRevaluationModal from './FxRevaluationModal';
 import { useBondMutation } from '../../../bonds/hooks';
 import { useAccounts } from '../../hooks/index';
+import { useTreasuryMutations } from '../../hooks/useTreasury';
 import type { BondType } from '../../../bonds/types';
 
 interface Props {
@@ -17,10 +19,12 @@ interface Props {
 const TreasuryView: React.FC<Props> = ({ dateRange }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRevalueModalOpen, setIsRevalueModalOpen] = useState(false);
   const [activeAction, setActiveAction] = useState<BondType>('receipt');
 
   const { data: accounts } = useAccounts();
   const bondMutation = useBondMutation();
+  const { revalueCurrency, isRevaluing } = useTreasuryMutations();
 
   // Auto-select the first operational leaf cashbox (e.g. 101001) by default
   useEffect(() => {
@@ -123,7 +127,14 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
               /* Quick Actions (only available for operational accounts) */
               <div className="border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
                 <h3 className="mb-4 text-base font-bold text-[var(--app-text)]">إجراءات سريعة</h3>
-                <TreasuryActions onAction={handleAction} onPrint={handlePrint} />
+                <TreasuryActions
+                  onAction={handleAction}
+                  onPrint={handlePrint}
+                  showRevalue={
+                    !!(selectedAccount?.currency_code && selectedAccount.currency_code !== 'SAR')
+                  }
+                  onRevalue={() => setIsRevalueModalOpen(true)}
+                />
               </div>
             )}
 
@@ -152,6 +163,16 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
         onSubmit={handleBondSubmit}
         isSubmitting={bondMutation.isPending}
         defaultAccountId={selectedAccountId}
+      />
+
+      <FxRevaluationModal
+        isOpen={isRevalueModalOpen}
+        onClose={() => setIsRevalueModalOpen(false)}
+        account={selectedAccount || null}
+        onSubmit={async params => {
+          await revalueCurrency(params);
+        }}
+        isSubmitting={isRevaluing}
       />
     </div>
   );

@@ -115,7 +115,7 @@ export const useExpenseActions = () => {
     mutationFn: (id: string) => expensesService.deleteExpense(id),
     onSuccess: () => {
       invalidateByPreset(queryClient, 'expense');
-      showToast('تم إلغاء المصروف بنجاح', 'success');
+      showToast('تم إلغاء المصروف وإنشاء القيد العكسي بنجاح', 'success');
     },
     onError: (error: Error) => {
       showToast(error.message, 'error');
