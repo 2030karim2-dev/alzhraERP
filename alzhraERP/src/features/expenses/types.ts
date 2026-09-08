@@ -1,4 +1,3 @@
-
 export type ExpenseStatus = 'draft' | 'posted' | 'paid' | 'void';
 
 export interface ExpenseCategory {
@@ -19,6 +18,8 @@ export interface Expense {
   amount: number;
   currency_code: string;
   exchange_rate: number;
+  /** عامل التحويل من supported_currencies: 'divide' للريال اليمني، 'multiply' لغيره */
+  exchange_operator?: string | null;
   expense_date: string;
   status: ExpenseStatus;
   payment_method: 'cash' | 'bank' | 'credit';
