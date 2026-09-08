@@ -16,6 +16,7 @@ import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
 import { supabase } from '../../../lib/supabaseClient';
 import { type DashboardPeriod, getPeriodDates } from '../types';
+import { formatCurrency } from '../../../core/utils/currencyUtils';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -67,16 +68,22 @@ interface RawDashboardData {
   // Real data feeds (added via dashboardApi): recent activity + overdue alerts
   recentInvoices: Array<{
     id: string;
+    invoice_number?: string | null;
     type?: string | null;
     issue_date: string;
+    created_at?: string | null;
     total_amount?: number | null;
+    currency_code?: string | null;
     parties?: { name?: string | null } | null;
   }>;
   recentExpenses: Array<{
     id: string;
+    voucher_number?: string | null;
     expense_date: string;
+    created_at?: string | null;
     description?: string | null;
     amount?: number | null;
+    currency_code?: string | null;
     expense_categories?: { name?: string | null } | null;
   }>;
   overdueInvoices: Array<{ id: string; partyName?: string; daysOverdue?: number }>;
@@ -99,30 +106,60 @@ const buildRecentActivities = (
   const items: RecentActivityItem[] = [
     ...(invoices || []).map(inv => {
       const meta = INVOICE_ACTIVITY_META[inv.type ?? ''] ?? { title: 'فاتورة', color: 'gray' };
+      const amount = toNumber(inv.total_amount);
+      const currency = inv.currency_code || 'SAR';
+      const formattedAmount = formatCurrency(amount, currency);
+      const partyName = inv.parties?.name?.trim();
+      const invoiceNum = inv.invoice_number ? `#${inv.invoice_number}` : '';
+      const title = invoiceNum ? `${meta.title} (${invoiceNum})` : meta.title;
+      const desc = partyName ? `${formattedAmount} • ${partyName}` : formattedAmount;
+
       return {
         id: inv.id,
         type: inv.type ?? 'invoice',
-        title: meta.title,
-        desc: `${toNumber(inv.total_amount).toLocaleString('en-US')} ر.س — ${inv.parties?.name ?? 'غير محدد'}`,
+        title,
+        desc,
+        amount,
+        currency_code: currency,
+        ...(inv.invoice_number ? { reference_number: inv.invoice_number } : {}),
         date: inv.issue_date,
-        time: inv.issue_date,
+        time: inv.created_at || inv.issue_date,
         color: meta.color,
       };
     }),
-    ...(expenses || []).map(exp => ({
-      id: exp.id,
-      type: 'expense',
-      title: `مصروف: ${exp.description || exp.expense_categories?.name || 'غير محدد'}`,
-      desc: `${toNumber(exp.amount).toLocaleString('en-US')} ر.س`,
-      date: exp.expense_date,
-      time: exp.expense_date,
-      color: 'rose',
-    })),
+    ...(expenses || []).map(exp => {
+      const amount = toNumber(exp.amount);
+      const currency = exp.currency_code || 'SAR';
+      const formattedAmount = formatCurrency(amount, currency);
+      const categoryOrDesc = exp.description || exp.expense_categories?.name || 'غير محدد';
+      const voucherNum = exp.voucher_number ? `#${exp.voucher_number}` : '';
+      const title = voucherNum
+        ? `مصروف (${voucherNum}): ${categoryOrDesc}`
+        : `مصروف: ${categoryOrDesc}`;
+
+      return {
+        id: exp.id,
+        type: 'expense',
+        title,
+        desc: formattedAmount,
+        amount,
+        currency_code: currency,
+        ...(exp.voucher_number ? { reference_number: exp.voucher_number } : {}),
+        date: exp.expense_date,
+        time: exp.created_at || exp.expense_date,
+        color: 'rose',
+      };
+    }),
   ];
+
   return items
-    .filter(item => !!item.time)
-    .sort((a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime())
-    .slice(0, 6);
+    .filter(item => Boolean(item.time || item.date))
+    .sort((a, b) => {
+      const timeA = new Date(a.time || a.date).getTime();
+      const timeB = new Date(b.time || b.date).getTime();
+      return timeB - timeA;
+    })
+    .slice(0, 8);
 };
 
 // ------------------------------------------

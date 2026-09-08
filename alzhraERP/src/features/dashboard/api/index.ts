@@ -145,18 +145,24 @@ interface RawCategoryDatum {
 
 interface RawRecentInvoice {
   id: string;
+  invoice_number?: string | null;
   type?: string | null;
   issue_date: string;
+  created_at?: string | null;
   party_id?: string | null;
   total_amount?: number | null;
+  currency_code?: string | null;
   parties?: { name?: string | null } | null;
 }
 
 interface RawRecentExpense {
   id: string;
+  voucher_number?: string | null;
   expense_date: string;
+  created_at?: string | null;
   description?: string | null;
   amount?: number | null;
+  currency_code?: string | null;
   expense_categories?: { name?: string | null } | null;
 }
 
@@ -309,27 +315,31 @@ export const dashboardApi = {
       (() => {
         let q = supabase
           .from('invoices')
-          .select('id, type, issue_date, total_amount, party_id, parties(name)')
+          .select(
+            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
+          )
           .eq('company_id', companyId)
           .is('deleted_at', null)
           .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
         if (branchParam !== undefined) {
           q = q.eq('branch_id', branchParam);
         }
-        return q.order('issue_date', { ascending: false }).limit(5).abortSignal(activeSignal);
+        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
       })(),
 
       // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped
       (() => {
         let q = supabase
           .from('expenses')
-          .select('id, expense_date, description, amount, expense_categories(name)')
+          .select(
+            'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories(name)'
+          )
           .eq('company_id', companyId)
           .is('deleted_at', null);
         if (branchParam !== undefined) {
           q = q.eq('branch_id', branchParam);
         }
-        return q.order('expense_date', { ascending: false }).limit(3).abortSignal(activeSignal);
+        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
       })(),
 
       // 9. Debt follow-up engine (overdue parties → dashboard alerts)
