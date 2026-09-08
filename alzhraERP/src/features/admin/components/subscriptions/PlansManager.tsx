@@ -85,28 +85,29 @@ export const PlansManager: React.FC = () => {
           {plans.map(plan => (
             <div
               key={plan.id}
-              className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-xs transition-shadow hover:shadow-md"
+              className="hover:border-[var(--app-text-secondary)]/30 relative flex flex-col justify-between overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-xs transition-colors"
             >
-              {/* Top Accent Bar */}
+              {/* Top Accent Indicator */}
               <div
                 className="absolute inset-x-0 top-0 h-1"
                 style={{ backgroundColor: plan.color || '#3B82F6' }}
               />
 
               <div>
-                <div className="flex items-center justify-between">
-                  <span
-                    className="rounded-md px-2 py-0.5 text-[10px] font-black text-white"
-                    style={{ backgroundColor: plan.color || '#3B82F6' }}
-                  >
-                    {plan.name_ar}
-                  </span>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: plan.color || '#3B82F6' }}
+                    />
+                    <h3 className="text-xs font-bold text-[var(--app-text)]">{plan.name_ar}</h3>
+                  </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => {
                         setEditingPlan(plan);
                       }}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-blue-600"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]"
                       title="تعديل الباقة"
                     >
                       <Edit3 size={13} />
@@ -129,22 +130,22 @@ export const PlansManager: React.FC = () => {
                 </div>
 
                 {/* Price */}
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-mono text-2xl font-black text-[var(--app-text)]">
+                <div className="mt-3 flex items-baseline gap-1.5 border-b border-[var(--app-border)] pb-3">
+                  <span className="font-mono text-2xl font-bold text-[var(--app-text)]">
                     {plan.price_monthly}
                   </span>
-                  <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
+                  <span className="text-[11px] font-medium text-[var(--app-text-secondary)]">
                     ر.س / شهرياً
                   </span>
-                  <span className="ms-auto font-mono text-[10px] text-[var(--app-text-secondary)]">
-                    ({plan.price_yearly} سنوي)
+                  <span className="ms-auto font-mono text-[11px] text-[var(--app-text-secondary)]">
+                    ({plan.price_yearly} ر.س سنوي)
                   </span>
                 </div>
 
                 {/* Companies Count Info */}
-                <div className="mt-2.5 flex items-center justify-between rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1 text-[10px]">
-                  <span className="flex items-center gap-1 text-[var(--app-text-secondary)]">
-                    <Building2 size={11} className="text-blue-500" />
+                <div className="mt-3 flex items-center justify-between rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 py-1.5 text-[11px]">
+                  <span className="flex items-center gap-1.5 text-[var(--app-text-secondary)]">
+                    <Building2 size={13} />
                     <span>المنشآت المشتركة:</span>
                   </span>
                   <span className="font-mono font-bold text-[var(--app-text)]">
@@ -153,33 +154,33 @@ export const PlansManager: React.FC = () => {
                         {plan.companies_count} منشأة
                       </span>
                     ) : (
-                      <span className="text-[var(--app-text-secondary)]">لا توجد منشآت</span>
+                      <span className="text-[var(--app-text-secondary)]">0 منشأة</span>
                     )}
                   </span>
                 </div>
 
                 {/* Quotas */}
-                <div className="bg-[var(--app-surface-hover)]/60 mt-3.5 grid grid-cols-2 gap-2 rounded-xl p-2.5 text-[10px]">
+                <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-[var(--app-surface-hover)] p-2.5 text-[11px]">
                   <div className="flex items-center gap-1.5 text-[var(--app-text)]">
-                    <Users size={12} className="text-indigo-500" />
+                    <Users size={13} className="text-[var(--app-text-secondary)]" />
                     <span>
-                      مستخدمين: <strong>{plan.max_users}</strong>
+                      المستخدمين: <strong>{plan.max_users}</strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[var(--app-text)]">
-                    <Receipt size={12} className="text-emerald-500" />
+                    <Receipt size={13} className="text-[var(--app-text-secondary)]" />
                     <span>
-                      فواتير: <strong>{plan.max_invoices_monthly}</strong>
+                      الفواتير: <strong>{plan.max_invoices_monthly}</strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[var(--app-text)]">
-                    <Package size={12} className="text-blue-500" />
+                    <Package size={13} className="text-[var(--app-text-secondary)]" />
                     <span>
-                      أصناف: <strong>{plan.max_products}</strong>
+                      الأصناف: <strong>{plan.max_products}</strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[var(--app-text)]">
-                    <Bot size={12} className="text-purple-500" />
+                    <Bot size={13} className="text-[var(--app-text-secondary)]" />
                     <span>
                       AI Tokens: <strong>{plan.ai_tokens_monthly}</strong>
                     </span>
@@ -188,25 +189,31 @@ export const PlansManager: React.FC = () => {
 
                 {/* Features List */}
                 <div className="mt-3 space-y-1.5">
-                  <span className="text-[10px] font-black uppercase text-[var(--app-text-secondary)]">
+                  <span className="text-[10px] font-bold uppercase text-[var(--app-text-secondary)]">
                     الميزات المتضمنة:
                   </span>
                   <ul className="space-y-1 text-xs">
-                    {(plan.features || []).map((feat, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center gap-1.5 text-[11px] text-[var(--app-text)]"
-                      >
-                        <Check size={12} className="flex-shrink-0 text-emerald-500" />
-                        <span>{feat}</span>
+                    {(plan.features || []).length > 0 ? (
+                      (plan.features || []).map((feat, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-1.5 text-[11px] text-[var(--app-text)]"
+                        >
+                          <Check size={12} className="flex-shrink-0 text-emerald-600" />
+                          <span>{feat}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-[11px] text-[var(--app-text-secondary)]">
+                        لا توجد ميزات مخصصة إضافية
                       </li>
-                    ))}
+                    )}
                   </ul>
                 </div>
               </div>
 
               {/* Status */}
-              <div className="mt-4 flex items-center justify-between border-t border-[var(--app-border)] pt-3 text-[10px]">
+              <div className="mt-4 flex items-center justify-between border-t border-[var(--app-border)] pt-3 text-[11px]">
                 <span
                   className={
                     plan.is_active ? 'font-bold text-emerald-600' : 'font-bold text-rose-500'
@@ -214,7 +221,9 @@ export const PlansManager: React.FC = () => {
                 >
                   {plan.is_active ? '● الباقة مفعلة' : '○ الباقة مخفية'}
                 </span>
-                <span className="text-[var(--app-text-secondary)]">الترتيب: {plan.sort_order}</span>
+                <span className="font-mono text-[10px] text-[var(--app-text-secondary)]">
+                  الترتيب: {plan.sort_order}
+                </span>
               </div>
             </div>
           ))}

@@ -129,6 +129,16 @@ export const adminService = {
   },
 
   /**
+   * فحص زمن استجابة قاعدة البيانات (Round-trip latency in ms)
+   */
+  async pingDatabase(): Promise<number> {
+    const start = performance.now();
+    const { error } = await supabase.from('system_platform_configs').select('key').limit(1);
+    if (error) throw error;
+    return Math.round(performance.now() - start);
+  },
+
+  /**
    * جلب قائمة الشركات المشتركة مع فلترة وبحث
    */
   async getCompanies(params?: {

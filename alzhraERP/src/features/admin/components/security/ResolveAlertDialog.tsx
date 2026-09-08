@@ -49,9 +49,23 @@ export const ResolveAlertDialog: React.FC<ResolveAlertDialogProps> = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-[10px] font-bold text-[var(--app-text-secondary)]">
-              ملاحظات وإجراءات المعالجة (اختياري):
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-[10px] font-bold text-[var(--app-text-secondary)]">
+                ملاحظات وإجراءات المعالجة (اختياري):
+              </label>
+              <div className="flex gap-1">
+                {['فحص عشوائي تم احتواؤه', 'تم حظر الـ IP', 'مصدر موثوق ومعتمد'].map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setNotes(preset)}
+                    className="rounded border border-[var(--app-border)] bg-[var(--app-surface)] px-1.5 py-0.5 text-[10px] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-blue-500"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
             <textarea
               rows={3}
               value={notes}

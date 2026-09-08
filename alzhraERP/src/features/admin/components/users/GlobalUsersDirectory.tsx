@@ -93,7 +93,7 @@ export const GlobalUsersDirectory: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      {/* إنذار تشغيلي: سوبر أدمن وحيد — فقدان الحساب الوحيد يترك المنصة بلا إدارة */}
+      {/* إنذار تشغيلي: سوبر أدمن وحيد، فقدان الحساب الوحيد يترك المنصة بلا إدارة */}
       {superAdminCount === 1 && (
         <div
           className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-amber-700 dark:text-amber-400"
@@ -104,9 +104,9 @@ export const GlobalUsersDirectory: React.FC = () => {
             <p className="text-xs font-black">يوجد سوبر أدمن وحيد في المنصة</p>
             <p className="mt-0.5 text-[11px] leading-relaxed">
               لا يمكن سحب صلاحيتك عن نفسك (محمية خادمياً)، لكن{' '}
-              <strong className="font-black">فقدان الوصول للحساب الوحيد</strong> (كلمة مرور/سرقة)
-              يترك المنصة بلا إدارة ويتطلب تدخل DBA. أنشئ حساباً احتياطياً ثانياً موثوقاً عبر «ترقية
-              لسوبر أدمن» أدناه.
+              <strong className="font-black">فقدان الوصول للحساب الوحيد</strong> (كلمة مرور أو فقدان
+              الجهاز) يترك المنصة بلا إدارة ويتطلب تدخلاً يدوياً. أنشئ حساباً احتياطياً ثانياً
+              موثوقاً عبر «ترقية لسوبر أدمن» أدناه.
             </p>
           </div>
         </div>
@@ -180,7 +180,7 @@ export const GlobalUsersDirectory: React.FC = () => {
                     className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
                       item.is_super_admin
                         ? 'border border-rose-500/20 bg-rose-500/10 text-rose-600'
-                        : 'bg-indigo-500/10 text-indigo-600'
+                        : 'border border-[var(--app-border)] bg-[var(--app-surface-hover)] text-[var(--app-text)]'
                     }`}
                   >
                     {item.email.charAt(0).toUpperCase()}

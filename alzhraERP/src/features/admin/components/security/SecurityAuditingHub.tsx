@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   ShieldAlert,
-  ShieldCheck,
   RefreshCw,
   AlertTriangle,
-  Lock,
-  Terminal,
-  Activity,
   CheckCircle2,
   Filter,
   Check,
@@ -114,92 +110,114 @@ export const SecurityAuditingHub: React.FC = () => {
       setIsExportingLogs(false);
     }
   };
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredAlerts = searchTerm.trim()
+    ? securityAlerts.filter(
+        a =>
+          a.alert_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          a.source_ip?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          JSON.stringify(a.details || {})
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      )
+    : securityAlerts;
+
+  const filteredCsp = searchTerm.trim()
+    ? cspReports.filter(
+        c =>
+          c.document_uri?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.blocked_uri?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.violated_directive?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : cspReports;
+
   return (
-    <div className="space-y-4">
-      {/* Top Banner & Posture Indicators */}
+    <div className="space-y-3">
+      {/* Top Posture & Controls Shell */}
       <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs">
-        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-2.5 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
               <ShieldAlert size={16} className="text-rose-500" />
               <h2 className="text-xs font-black text-[var(--app-text)]">مركز الأمان والتنبيهات</h2>
             </div>
             <p className="mt-0.5 text-[11px] text-[var(--app-text-secondary)]">
-              سجلّات تنبيهات أمان المنصة (مصيدة Honeypot + Rate-limit + حظر تلقائي) وتقارير انتهاك
-              سياسة أمان المتصفح (CSP).
+              سجلات تنبيهات الأمان (مصيدة Honeypot، حماية Rate-limit، وحظر تلقائي) وتقارير سياسة
+              أمان المتصفح CSP.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               onClick={() => void handleExportActive()}
               disabled={isExportingLogs}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-              title="تصدير كل السجلات المطابقة (لا صفحة العرض فقط)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs"
+              title="تصدير كل السجلات المطابقة CSV"
             >
               <Download size={12} className={isExportingLogs ? 'animate-pulse' : ''} />
-              <span>{isExportingLogs ? 'جاري التصدير...' : 'تصدير الكل CSV'}</span>
+              <span className="hidden sm:inline">
+                {isExportingLogs ? 'جاري التصدير...' : 'تصدير CSV'}
+              </span>
             </Button>
             <Button
               variant="outline"
               onClick={refetch}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs"
+              title="تحديث السجلات"
             >
               <RefreshCw
                 size={12}
                 className={isLoadingAlerts || isLoadingCsp ? 'animate-spin' : ''}
               />
-              <span>تحديث السجلات</span>
+              <span>تحديث</span>
             </Button>
           </div>
         </div>
 
-        {/* Security Pillars */}
-        <div className="mt-3 grid grid-cols-2 gap-2.5 border-t border-[var(--app-border)] pt-3 md:grid-cols-4">
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-            <ShieldCheck size={14} />
-            <span>عزل RLS متعدد المستأجرين</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-            <Lock size={14} />
-            <span>مصيدة الـ Honeypot نشطة</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-            <Activity size={14} />
-            <span>حماية معدل الطلب (Rate Limit)</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-            <Terminal size={14} />
-            <span>جدار تقارير المتصفح CSP</span>
-          </div>
+        {/* Security Posture Status Strip — High-density, no bloated cards */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--app-border)] pt-2.5 text-[11px] text-[var(--app-text-secondary)]">
+          <span className="flex items-center gap-1.5 font-bold text-[var(--app-text)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            عزل RLS متعدد المستأجرين
+          </span>
+          <span className="flex items-center gap-1.5 font-bold text-[var(--app-text)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            مصيدة Honeypot نشطة
+          </span>
+          <span className="flex items-center gap-1.5 font-bold text-[var(--app-text)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            معدل الطلب (Rate Limit)
+          </span>
+          <span className="flex items-center gap-1.5 font-bold text-[var(--app-text)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            حماية CSP للمتصفح
+          </span>
         </div>
-        {/* Subtabs Switcher */}
-        <div className="mt-3 flex items-center gap-1.5 border-t border-[var(--app-border)] pt-3">
+
+        {/* Subtabs Switcher — Calm, Monochromatic */}
+        <div className="mt-2.5 flex items-center gap-1 border-t border-[var(--app-border)] pt-2.5">
           <button
-            onClick={() => {
-              setActiveSubTab('honeypot');
-            }}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+            onClick={() => setActiveSubTab('honeypot')}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
               activeSubTab === 'honeypot'
-                ? 'bg-rose-500 text-white shadow-xs'
+                ? 'bg-blue-600 text-white'
                 : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
             }`}
           >
-            <ShieldAlert size={14} />
+            <ShieldAlert size={13} />
             <span>سجلات الأمان ({securityAlertsTotal})</span>
           </button>
           <button
-            onClick={() => {
-              setActiveSubTab('csp');
-            }}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+            onClick={() => setActiveSubTab('csp')}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
               activeSubTab === 'csp'
-                ? 'bg-amber-500 text-white shadow-xs'
+                ? 'bg-blue-600 text-white'
                 : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
             }`}
           >
-            <AlertTriangle size={14} />
+            <AlertTriangle size={13} />
             <span>تقارير CSP ({cspTotal})</span>
           </button>
         </div>
@@ -216,15 +234,18 @@ export const SecurityAuditingHub: React.FC = () => {
             { label: 'حالة التنبيه', align: 'center' },
             { label: 'إجراء', align: 'left' },
           ]}
-          hasRows={securityAlerts.length > 0}
+          hasRows={filteredAlerts.length > 0}
           loading={isLoadingAlerts}
           error={isErrorAlerts}
           errorMessage={`تعذر تحميل تنبيهات الأمان: ${alertsError || 'خطأ في الاتصال'}`}
           emptyMessage="لا توجد تنبيهات أمنية مطابقة للفلتر المحدد."
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="بحث بـ IP أو نوع التنبيه..."
           pagination={{
             page: alertsPage,
             totalPages: alertsTotalPages,
-            itemCount: securityAlerts.length,
+            itemCount: filteredAlerts.length,
             totalItems: securityAlertsTotal,
             itemLabel: 'تنبيه',
             isLoading: isLoadingAlerts,
@@ -253,7 +274,7 @@ export const SecurityAuditingHub: React.FC = () => {
             </div>
           }
         >
-          {securityAlerts.map(log => (
+          {filteredAlerts.map(log => (
             <tr key={log.id} className="hover:bg-[var(--app-surface-hover)]/60 transition-colors">
               <td className="px-3.5 py-2.5">
                 <span
@@ -323,15 +344,18 @@ export const SecurityAuditingHub: React.FC = () => {
             { label: 'القاعدة المنتهكة' },
             { label: 'التوقيت' },
           ]}
-          hasRows={cspReports.length > 0}
+          hasRows={filteredCsp.length > 0}
           loading={isLoadingCsp}
           error={isErrorCsp}
           errorMessage={`تعذر تحميل تقارير الـ CSP: ${cspError || 'خطأ في الاتصال'}`}
           emptyMessage="لا توجد انتهاكات لسياسة أمان المحتوى (CSP)."
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="بحث في تقارير CSP..."
           pagination={{
             page: cspPage,
             totalPages: cspTotalPages,
-            itemCount: cspReports.length,
+            itemCount: filteredCsp.length,
             totalItems: cspTotal,
             itemLabel: 'تقرير',
             isLoading: isLoadingCsp,
@@ -343,22 +367,22 @@ export const SecurityAuditingHub: React.FC = () => {
             },
           }}
         >
-          {cspReports.map(report => (
+          {filteredCsp.map(report => (
             <tr
               key={report.id}
               className="hover:bg-[var(--app-surface-hover)]/60 transition-colors"
             >
               <td className="px-3.5 py-2.5 font-mono text-[11px] text-[var(--app-text)]">
-                {report.document_uri || '—'}
+                {report.document_uri || '-'}
               </td>
               <td className="px-3.5 py-2.5 font-mono text-[11px] text-amber-600">
-                {report.blocked_uri || '—'}
+                {report.blocked_uri || '-'}
               </td>
               <td className="px-3.5 py-2.5 font-bold text-[var(--app-text-secondary)]">
-                {report.violated_directive || '—'}
+                {report.violated_directive || '-'}
               </td>
               <td className="px-3.5 py-2.5 font-mono text-[10px] text-[var(--app-text-secondary)]">
-                {report.received_at ? new Date(report.received_at).toLocaleString('ar-SA') : '—'}
+                {report.received_at ? new Date(report.received_at).toLocaleString('ar-SA') : '-'}
               </td>
             </tr>
           ))}

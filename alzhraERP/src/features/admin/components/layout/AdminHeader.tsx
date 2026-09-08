@@ -27,10 +27,10 @@ const AdminStatusIndicator: React.FC<AdminStatusIndicatorProps> = ({
   }
 
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
-      <span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-500" />
+    <div className="flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
       <Activity size={12} />
-      <span>المنصة تعمل بكفاءة تامة</span>
+      <span>النظام يعمل بكفاءة</span>
     </div>
   );
 };
@@ -64,9 +64,9 @@ const AdminHeaderActions: React.FC = () => {
         {theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-amber-400" />}
       </button>
 
-      <div className="bg-[var(--app-surface-hover)]/60 hidden items-center gap-2 rounded-lg border border-[var(--app-border)] px-2.5 py-1 lg:flex">
-        <div className="h-2 w-2 rounded-full bg-indigo-500" />
-        <span className="max-w-[150px] truncate text-[10px] font-bold text-[var(--app-text)]">
+      <div className="hidden items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-2.5 py-1 lg:flex">
+        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+        <span className="max-w-[150px] truncate text-[11px] font-bold text-[var(--app-text)]">
           {user?.email}
         </span>
       </div>
@@ -90,12 +90,12 @@ export const AdminHeader: React.FC = () => {
             <h1 className="text-sm font-black tracking-tight text-[var(--app-text)]">
               مركز تحكم المنصة
             </h1>
-            <span className="rounded-md border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-black text-rose-500">
+            <span className="rounded-md border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold text-rose-500">
               Super Admin
             </span>
           </div>
-          <p className="text-[10px] font-bold text-[var(--app-text-secondary)]">
-            Al-Zahra Smart ERP — عمليات المنصة العليا
+          <p className="text-[11px] text-[var(--app-text-secondary)]">
+            Al-Zahra Smart ERP: عمليات المنصة العليا
           </p>
         </div>
       </div>
