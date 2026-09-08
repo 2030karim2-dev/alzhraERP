@@ -158,14 +158,15 @@ const StatsGrid: React.FC<StatsGridProps> = ({
       : []),
   ];
 
-  // Add profit if available
+  // Add profit/loss if available
   if (stats?.profit !== undefined && stats?.profit !== null) {
+    const isLoss = Number(stats.profit) < 0;
     statItems.splice(2, 0, {
-      title: t('net_profit') || 'صافي الربح',
+      title: isLoss ? t('net_loss') || 'صافي الخسارة' : t('net_profit') || 'صافي الربح',
       value: formatDisplayValue(stats.profit),
-      icon: Wallet,
-      colorClass: 'text-blue-600',
-      gradientClass: 'from-blue-500 to-blue-600',
+      icon: isLoss ? TrendingDown : Wallet,
+      colorClass: isLoss ? 'text-rose-600' : 'text-emerald-600',
+      gradientClass: isLoss ? 'from-rose-500 to-rose-600' : 'from-emerald-500 to-emerald-600',
       path: ROUTES.DASHBOARD.REPORTS,
       subtitle: periodLabel,
     });
@@ -181,7 +182,8 @@ const StatsGrid: React.FC<StatsGridProps> = ({
               ? 'purchasesTrend'
               : item.title === t('total_expenses')
                 ? 'expensesTrend'
-                : item.title === (t('net_profit') || 'صافي الربح')
+                : item.title === (t('net_profit') || 'صافي الربح') ||
+                    item.title === (t('net_loss') || 'صافي الخسارة')
                   ? 'profitTrend'
                   : 'debtsTrend';
 
@@ -264,7 +266,14 @@ const StatsGrid: React.FC<StatsGridProps> = ({
 
                 {/* Value + Sparkline Row */}
                 <div className="mt-2 flex items-end justify-between">
-                  <h3 className="shrink-0 whitespace-nowrap font-mono text-lg font-bold leading-none tracking-tighter text-[var(--app-text)] drop-shadow-md md:text-xl">
+                  <h3
+                    className={cn(
+                      'shrink-0 whitespace-nowrap font-mono text-lg font-bold leading-none tracking-tighter drop-shadow-md md:text-xl',
+                      item.title === (t('net_loss') || 'صافي الخسارة')
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : 'text-[var(--app-text)]'
+                    )}
+                  >
                     {item.value}
                   </h3>
                   <MiniSparkline
