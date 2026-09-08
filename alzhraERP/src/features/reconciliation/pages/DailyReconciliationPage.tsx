@@ -12,15 +12,17 @@ import {
   Check,
   Loader2,
   Coins,
-  TrendingUp,
   CreditCard,
   Banknote,
+  MinusCircle,
+  PlusCircle,
+  Calculator,
 } from 'lucide-react';
 import { formatLocalDate } from '../../../core/utils/dateUtils';
+import { formatCurrency } from '../../../core/utils';
 import { useAuthStore } from '../../auth/store';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import Button from '../../../ui/base/Button';
-import Card from '../../../ui/base/Card';
 import {
   useDailyDrawerSummary,
   useCommitDailyReconciliation,
@@ -36,6 +38,7 @@ import { CashDropAndFloatCard } from '../components/CashDropAndFloatCard';
 import { WhatsAppShareButton } from '../components/WhatsAppShareButton';
 import { ReconciliationPrintModal } from '../components/ReconciliationPrintModal';
 import { CardTerminalInputCard } from '../components/CardTerminalInputCard';
+import { ReconciliationHistoryModal } from '../components/ReconciliationHistoryModal';
 
 const DailyReconciliationPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -44,24 +47,30 @@ const DailyReconciliationPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(() => formatLocalDate());
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // Form states
+  const [countMode, setCountMode] = useState<'denominations' | 'quick'>('quick');
   const [cashCounts, setCashCounts] = useState<CashDenominationCounts>({});
+  const [manualCashTotal, setManualCashTotal] = useState<number>(0);
   const [actualCard, setActualCard] = useState<number>(0);
   const [cardTerminalRef, setCardTerminalRef] = useState<string>('');
   const [floatRetained, setFloatRetained] = useState<number>(300);
   const [varianceReason, setVarianceReason] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
+  const currency = 'SAR';
+
   const { data: summary, isLoading, isError, refetch } = useDailyDrawerSummary(selectedDate);
   const { mutate: commitReconciliation, isPending: isCommitting } = useCommitDailyReconciliation();
-  const { data: historyList } = useReconciliationHistory(15);
+  const { data: historyList, isLoading: isHistoryLoading } = useReconciliationHistory(30);
   const isSubmittingRef = useRef(false);
 
   // Reset form state when date changes to prevent stale data from previous day
   useEffect(() => {
     setCashCounts({});
+    setManualCashTotal(0);
+    setCountMode('quick');
     setActualCard(0);
     setCardTerminalRef('');
     setFloatRetained(300);
@@ -73,7 +82,16 @@ const DailyReconciliationPage: React.FC = () => {
   useEffect(() => {
     if (summary?.existing_reconciliation) {
       const rec = summary.existing_reconciliation;
-      setCashCounts(rec.cash_denominations || {});
+      const denoms = rec.cash_denominations || {};
+      setCashCounts(denoms);
+      const counted =
+        rec.actual_cash_counted ?? reconciliationService.calculateDenominationsTotal(denoms);
+      setManualCashTotal(counted);
+      if (Object.keys(denoms).length > 0) {
+        setCountMode('denominations');
+      } else {
+        setCountMode('quick');
+      }
       setActualCard(rec.card_terminal_receipt_total || 0);
       setFloatRetained(rec.float_retained_for_tomorrow || 300);
       setVarianceReason(rec.variance_reason || '');
@@ -84,7 +102,8 @@ const DailyReconciliationPage: React.FC = () => {
     }
   }, [summary]);
 
-  const actualCashCounted = reconciliationService.calculateDenominationsTotal(cashCounts);
+  const denomCalculatedTotal = reconciliationService.calculateDenominationsTotal(cashCounts);
+  const actualCashCounted = countMode === 'denominations' ? denomCalculatedTotal : manualCashTotal;
   const expectedCash = summary?.expected_cash_in_drawer ?? 0;
   const cashVarianceInfo = reconciliationService.calculateVariance(actualCashCounted, expectedCash);
 
@@ -98,7 +117,10 @@ const DailyReconciliationPage: React.FC = () => {
     if (!user?.company_id) return;
     if (isSubmittingRef.current) return;
     if (actualCashCounted === 0 && expectedCash > 0) {
-      if (!confirm('الكاش الفعلي المدخل هو 0 ر.س، هل أنت متأكد من المتابعة؟')) return;
+      if (
+        !confirm(`الكاش الفعلي المدخل هو ${formatCurrency(0, currency)}، هل أنت متأكد من المتابعة؟`)
+      )
+        return;
     }
 
     isSubmittingRef.current = true;
@@ -109,7 +131,7 @@ const DailyReconciliationPage: React.FC = () => {
         branch_id: branchId,
         opening_float: summary?.opening_float ?? 0,
         actual_cash_counted: actualCashCounted,
-        cash_denominations: cashCounts,
+        cash_denominations: countMode === 'denominations' ? cashCounts : {},
         card_terminal_receipt_total: actualCard,
         float_retained_for_tomorrow: floatRetained,
         cash_handed_to_owner: cashToOwner,
@@ -125,38 +147,38 @@ const DailyReconciliationPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5 p-4 sm:p-6">
-      {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
+      {/* 1. Top Header */}
+      <div className="flex flex-col gap-4 border-b border-[var(--app-border)] pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] text-emerald-600 shadow-sm dark:text-emerald-400">
             <Scale className="h-6 w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-[var(--app-text)]">
+              <h1 className="text-lg font-black text-[var(--app-text)] sm:text-xl">
                 المطابقة اليومية وإقفال الصندوق
               </h1>
               {isAlreadyClosed ? (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <Lock className="h-3 w-3" />
                   مقفلة ومعتمدة
                 </span>
               ) : (
-                <span className="flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                <span className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
                   <Unlock className="h-3 w-3" />
                   يومية نشطة
                 </span>
               )}
             </div>
             <p className="text-xs text-[var(--app-text-secondary)]">
-              جرد درج النقدية، مطابقة أجهزة الشبكة، وفرز مبيعات الموظفين
+              جرد درج النقدية، مطابقة تقرير ماكينة الشبكة، وتوريد الصافي للخزينة
               {branchName ? ` • ${branchName}` : ''}
             </p>
           </div>
         </div>
 
-        {/* Action controls */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Date Selector */}
           <div className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-card-bg)] px-2.5 py-1.5 shadow-sm">
@@ -173,20 +195,20 @@ const DailyReconciliationPage: React.FC = () => {
             type="button"
             variant="secondary"
             onClick={() => setIsExpenseModalOpen(true)}
-            className="gap-1 text-xs font-bold text-amber-700 dark:text-amber-300"
+            className="gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400"
           >
             <Coffee className="h-4 w-4 text-amber-500" />
-            مصروف درج سريع
+            <span>مصروف درج</span>
           </Button>
 
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setShowHistory(!showHistory)}
-            className="gap-1 text-xs font-bold"
+            onClick={() => setIsHistoryModalOpen(true)}
+            className="gap-1.5 text-xs font-bold"
           >
             <History className="h-4 w-4" />
-            {showHistory ? 'إخفاء الأرشيف' : 'سجل المطابقات'}
+            <span>سجل الأيام السابقة</span>
           </Button>
 
           {summary && (
@@ -195,10 +217,10 @@ const DailyReconciliationPage: React.FC = () => {
                 type="button"
                 variant="secondary"
                 onClick={() => setIsPrintModalOpen(true)}
-                className="gap-1 text-xs font-bold"
+                className="gap-1.5 text-xs font-bold"
               >
                 <Printer className="h-4 w-4" />
-                طباعة الإيصال
+                <span>طباعة الإيصال</span>
               </Button>
 
               <WhatsAppShareButton
@@ -207,82 +229,21 @@ const DailyReconciliationPage: React.FC = () => {
                 actualCard={actualCard}
                 floatRetained={floatRetained}
                 cashToOwner={cashToOwner}
-                shopName={user?.company_name || 'محل الزهراء'}
+                shopName={user?.company_name || 'مؤسسة الزهراء'}
               />
             </>
           )}
         </div>
       </div>
 
-      {/* History Slide-in Table */}
-      {showHistory && (
-        <Card className="border-dashed p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--app-text)]">
-            <History className="h-4 w-4 text-blue-500" />
-            سجل إقفالات الأيام السابقة
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className="border-b border-[var(--app-border)] text-[var(--app-text-secondary)]">
-                  <th className="py-2">التاريخ</th>
-                  <th>إجمالي المبيعات</th>
-                  <th>كاش الدرج</th>
-                  <th>فارق الكاش</th>
-                  <th>فارق الشبكة</th>
-                  <th>المسلم للمالك</th>
-                  <th>الحالة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(historyList || []).map(row => (
-                  <tr
-                    key={row.id}
-                    onClick={() => {
-                      setSelectedDate(row.reconciliation_date);
-                      setShowHistory(false);
-                    }}
-                    className="cursor-pointer border-b border-[var(--app-border)] hover:bg-[var(--app-hover)]"
-                  >
-                    <td className="py-2 font-bold text-blue-600">{row.reconciliation_date}</td>
-                    <td>{row.total_sales.toLocaleString('ar-SA')} ر.س</td>
-                    <td>{row.actual_cash_counted.toLocaleString('ar-SA')} ر.س</td>
-                    <td
-                      className={
-                        row.cash_variance === 0
-                          ? 'font-bold text-emerald-600'
-                          : row.cash_variance > 0
-                            ? 'font-bold text-amber-600'
-                            : 'font-bold text-red-600'
-                      }
-                    >
-                      {row.cash_variance > 0 ? `+${row.cash_variance}` : row.cash_variance} ر.س
-                    </td>
-                    <td>{row.card_variance === 0 ? '✓ مطابق' : `${row.card_variance} ر.س`}</td>
-                    <td className="font-bold text-emerald-600">
-                      {row.cash_handed_to_owner.toLocaleString('ar-SA')} ر.س
-                    </td>
-                    <td>
-                      <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                        معتمد
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {/* Loading state */}
+      {/* 2. Content Loading & Error Handling */}
       {isLoading ? (
-        <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] text-[var(--app-text-secondary)]">
+        <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] text-[var(--app-text-secondary)]">
           <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          <p className="text-xs">جاري تجميع حركات الصندوق ومبيعات اليوم...</p>
+          <p className="text-xs font-semibold">جاري جرد الصندوق وتجميع مبيعات اليومية...</p>
         </div>
       ) : isError ? (
-        <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-center text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400">
+        <div className="flex h-44 flex-col items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-center text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400">
           <AlertTriangle className="h-6 w-6 text-red-500" />
           <p className="text-xs font-bold">تعذر استرجاع بيانات الصندوق لليوم المحدد</p>
           <Button variant="ghost" onClick={() => refetch()} className="text-xs">
@@ -291,113 +252,117 @@ const DailyReconciliationPage: React.FC = () => {
         </div>
       ) : summary ? (
         <>
-          {/* Top KPI Metrics */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {/* Total Sales */}
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-3.5 shadow-sm">
-              <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
-                <span>إجمالي مبيعات اليوم</span>
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
+          {/* Phase 1: Expected Drawer Balance Ledger Strip */}
+          <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between border-b border-[var(--app-border)] pb-2.5">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-xs font-black text-[var(--app-text)]">
+                  الحالة الدفترية للصندوق (معادلة الدرج المحاسبية)
+                </h3>
               </div>
-              <div className="mt-2 text-lg font-black text-[var(--app-text)]">
-                {summary.total_sales.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
-              </div>
-              <div className="flex flex-wrap items-center gap-1 text-[10px] text-[var(--app-text-secondary)]">
-                <span>
-                  {summary.employee_breakdown.reduce((s, e) => s + e.invoice_count, 0)} فاتورة
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-[var(--app-text-secondary)]">إجمالي المبيعات الشامل:</span>
+                <span className="font-black text-[var(--app-text)]">
+                  {formatCurrency(summary.total_sales, currency)}
                 </span>
-                {summary.credit_sales != null && summary.credit_sales > 0 && (
-                  <span className="font-semibold text-purple-600 dark:text-purple-400">
-                    ({summary.credit_sales.toLocaleString('ar-SA')} ر.س آجل)
-                  </span>
-                )}
               </div>
             </div>
 
-            {/* Cash Sales */}
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-3.5 shadow-sm">
-              <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
-                <span>مبيعات الكاش</span>
-                <Banknote className="h-4 w-4 text-emerald-500" />
+            {/* Arithmetic Flow Breakdown */}
+            <div className="grid grid-cols-2 gap-3 text-right sm:grid-cols-3 lg:grid-cols-5">
+              {/* 1. Opening Float */}
+              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5">
+                <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
+                  <span>عهدة بداية الصباح</span>
+                  <Coins className="h-3.5 w-3.5 text-indigo-500" />
+                </div>
+                <div className="mt-1 text-sm font-black text-indigo-600 dark:text-indigo-400">
+                  {formatCurrency(summary.opening_float, currency)}
+                </div>
+                <span className="text-[10px] text-[var(--app-text-secondary)]">
+                  فكة مرحلة من الأمس
+                </span>
               </div>
-              <div className="mt-2 text-lg font-black text-emerald-600 dark:text-emerald-400">
-                {summary.cash_sales.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
-              </div>
-              <div className="flex flex-wrap items-center gap-1 text-[10px] text-[var(--app-text-secondary)]">
-                <span>نقدية فواتير</span>
-                {Boolean(summary.cash_receipts && summary.cash_receipts > 0) && (
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    (+{summary.cash_receipts} قبض)
-                  </span>
-                )}
-                {Boolean(summary.cash_disbursements && summary.cash_disbursements > 0) && (
-                  <span className="font-bold text-red-600 dark:text-red-400">
-                    (-{summary.cash_disbursements} صرف)
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* Card Sales */}
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-3.5 shadow-sm">
-              <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
-                <span>عمليات الشبكة (مدى)</span>
-                <CreditCard className="h-4 w-4 text-blue-500" />
+              {/* 2. Cash Inflow */}
+              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5">
+                <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
+                  <span>+ مقبوضات الكاش</span>
+                  <PlusCircle className="h-3.5 w-3.5 text-emerald-500" />
+                </div>
+                <div className="mt-1 text-sm font-black text-emerald-600 dark:text-emerald-400">
+                  {formatCurrency(summary.cash_sales + (summary.cash_receipts || 0), currency)}
+                </div>
+                <span className="text-[10px] text-[var(--app-text-secondary)]">
+                  {summary.cash_receipts
+                    ? `مبيعات + قبض (${formatCurrency(summary.cash_receipts, currency)})`
+                    : 'مبيعات نقدية'}
+                </span>
               </div>
-              <div className="mt-2 text-lg font-black text-blue-600 dark:text-blue-400">
-                {summary.card_sales.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
-              </div>
-              <span className="text-[10px] text-[var(--app-text-secondary)]">إيداع بنكي مباشر</span>
-            </div>
 
-            {/* Petty Cash Out */}
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-3.5 shadow-sm">
-              <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
-                <span>مصروفات الدرج</span>
-                <Coffee className="h-4 w-4 text-amber-500" />
+              {/* 3. Cash Outflow (Expenses & Disbursements) */}
+              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5">
+                <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
+                  <span>- مصروفات الدرج</span>
+                  <MinusCircle className="h-3.5 w-3.5 text-amber-500" />
+                </div>
+                <div className="mt-1 text-sm font-black text-amber-600 dark:text-amber-400">
+                  {formatCurrency(
+                    summary.petty_expenses_cash + (summary.cash_disbursements || 0),
+                    currency
+                  )}
+                </div>
+                <span className="text-[10px] text-[var(--app-text-secondary)]">نثريات مخصومة</span>
               </div>
-              <div className="mt-2 text-lg font-black text-amber-600 dark:text-amber-400">
-                {summary.petty_expenses_cash.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}{' '}
-                ر.س
-              </div>
-              <span className="text-[10px] text-amber-700/80 dark:text-amber-300/80">
-                نثريات مخصومة
-              </span>
-            </div>
 
-            {/* Opening Float */}
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card-bg)] p-3.5 shadow-sm">
-              <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
-                <span>عهدة فكة الصباح</span>
-                <Coins className="h-4 w-4 text-indigo-500" />
+              {/* 4. POS Terminal Expected */}
+              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5">
+                <div className="flex items-center justify-between text-[11px] text-[var(--app-text-secondary)]">
+                  <span>مبيعات الشبكة (مدى)</span>
+                  <CreditCard className="h-3.5 w-3.5 text-cyan-500" />
+                </div>
+                <div className="mt-1 text-sm font-black text-cyan-600 dark:text-cyan-400">
+                  {formatCurrency(summary.card_sales, currency)}
+                </div>
+                <span className="text-[10px] text-[var(--app-text-secondary)]">
+                  إيداع بنكي مباشر
+                </span>
               </div>
-              <div className="mt-2 text-lg font-black text-indigo-600 dark:text-indigo-400">
-                {summary.opening_float.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
+
+              {/* 5. Expected Cash in Drawer Result */}
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2.5 dark:bg-emerald-950/20">
+                <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+                  <span>= المتوقع بالدرج</span>
+                  <Banknote className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="mt-1 text-base font-black text-emerald-600 dark:text-emerald-400">
+                  {formatCurrency(expectedCash, currency)}
+                </div>
+                <span className="text-[10px] text-[var(--app-text-secondary)]">
+                  الرصيد الدفتري المطلوب
+                </span>
               </div>
-              <span className="text-[10px] text-[var(--app-text-secondary)]">
-                مرحلة من إقفال الأمس
-              </span>
             </div>
           </div>
 
-          {/* Section: Employee Breakdown */}
-          <EmployeeSalesBreakdownCard
-            breakdown={summary.employee_breakdown}
-            totalSales={summary.total_sales}
-          />
-
-          {/* Section: Reconciliation Core (Denominations + Terminal + Drop) */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-            {/* Denomination Counter (7 Cols) */}
+          {/* Phase 2: Physical Count (Cash Counter + Card Terminal) */}
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+            {/* Cash Counter (7 Cols) */}
             <div className="lg:col-span-7">
               <DenominationTouchCounter
                 counts={cashCounts}
                 onChange={setCashCounts}
+                manualTotal={manualCashTotal}
+                onManualTotalChange={setManualCashTotal}
+                countMode={countMode}
+                onCountModeChange={setCountMode}
+                currency={currency}
                 disabled={isLocked}
               />
             </div>
 
-            {/* Terminal Input + Float & Drop (5 Cols) */}
+            {/* Terminal Input + Float Retained (5 Cols) */}
             <div className="flex flex-col gap-4 lg:col-span-5">
               <CardTerminalInputCard
                 expectedCard={summary.expected_card_terminal}
@@ -405,6 +370,7 @@ const DailyReconciliationPage: React.FC = () => {
                 onActualCardChange={setActualCard}
                 terminalRef={cardTerminalRef}
                 onTerminalRefChange={setCardTerminalRef}
+                currency={currency}
                 disabled={isLocked}
               />
 
@@ -413,12 +379,13 @@ const DailyReconciliationPage: React.FC = () => {
                 floatRetained={floatRetained}
                 onFloatRetainedChange={setFloatRetained}
                 cashToOwner={cashToOwner}
+                currency={currency}
                 disabled={isLocked}
               />
             </div>
           </div>
 
-          {/* Variance & Settlement Action Banner */}
+          {/* Phase 3: Final Settlement Banner & Drawer Lock Action */}
           <div
             className={`rounded-xl border p-4 shadow-sm transition-colors ${
               cashVarianceInfo.status === 'balanced'
@@ -435,7 +402,7 @@ const DailyReconciliationPage: React.FC = () => {
                     cashVarianceInfo.status === 'balanced'
                       ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                       : cashVarianceInfo.status === 'surplus'
-                        ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                        ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
                         : 'bg-red-500/20 text-red-600 dark:text-red-400'
                   }`}
                 >
@@ -452,8 +419,8 @@ const DailyReconciliationPage: React.FC = () => {
                       {cashVarianceInfo.status === 'balanced'
                         ? 'الدرج متطابق تماماً بنسبة 100%'
                         : cashVarianceInfo.status === 'surplus'
-                          ? `يوجد فائض في الدرج (+${cashVarianceInfo.variance.toFixed(2)} ر.س)`
-                          : `يوجد عجز في الدرج (${cashVarianceInfo.variance.toFixed(2)} ر.س)`}
+                          ? `يوجد فائض بالدرج (+${formatCurrency(cashVarianceInfo.variance, currency)})`
+                          : `يوجد عجز بالدرج (${formatCurrency(cashVarianceInfo.variance, currency)})`}
                     </h4>
                     {cashVarianceInfo.isWithinTolerance &&
                       cashVarianceInfo.status !== 'balanced' && (
@@ -463,14 +430,23 @@ const DailyReconciliationPage: React.FC = () => {
                       )}
                   </div>
                   <p className="mt-0.5 text-xs text-[var(--app-text-secondary)]">
-                    الكاش المتوقع بالدرج:{' '}
-                    <strong>{expectedCash.toLocaleString('ar-SA')} ر.س</strong> | الكاش الفعلي
-                    المعدود: <strong>{actualCashCounted.toLocaleString('ar-SA')} ر.س</strong>
+                    المتوقع بالدرج:{' '}
+                    <strong className="text-[var(--app-text)]">
+                      {formatCurrency(expectedCash, currency)}
+                    </strong>{' '}
+                    | الكاش الفعلي المعدود:{' '}
+                    <strong className="text-[var(--app-text)]">
+                      {formatCurrency(actualCashCounted, currency)}
+                    </strong>{' '}
+                    | الصافي للمالك:{' '}
+                    <strong className="text-emerald-600 dark:text-emerald-400">
+                      {formatCurrency(cashToOwner, currency)}
+                    </strong>
                   </p>
                 </div>
               </div>
 
-              {/* Commit Button */}
+              {/* Commit Action Button */}
               <div>
                 {isAlreadyClosed ? (
                   <div className="flex items-center gap-2">
@@ -495,7 +471,7 @@ const DailyReconciliationPage: React.FC = () => {
                     variant="primary"
                     onClick={handleCommit}
                     disabled={isCommitting}
-                    className="h-11 bg-gradient-to-tr from-emerald-600 to-teal-600 px-6 text-sm font-black text-white shadow-md shadow-emerald-500/30 hover:from-emerald-700 hover:to-teal-700"
+                    className="h-10 bg-emerald-600 px-5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
                   >
                     {isCommitting ? (
                       <>
@@ -530,17 +506,24 @@ const DailyReconciliationPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Phase 4: Collapsible Employee Breakdown */}
+          <EmployeeSalesBreakdownCard
+            breakdown={summary.employee_breakdown}
+            totalSales={summary.total_sales}
+            currency={currency}
+            defaultExpanded={false}
+          />
         </>
       ) : null}
 
-      {/* Quick Petty Cash Modal */}
+      {/* Modals */}
       <QuickDrawerExpenseModal
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}
         selectedDate={selectedDate}
       />
 
-      {/* Print Receipt Modal */}
       {summary && (
         <ReconciliationPrintModal
           isOpen={isPrintModalOpen}
@@ -553,6 +536,15 @@ const DailyReconciliationPage: React.FC = () => {
           shopName={user?.company_name || 'مؤسسة الزهراء'}
         />
       )}
+
+      <ReconciliationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onSelectDate={date => setSelectedDate(date)}
+        historyList={historyList}
+        isLoading={isHistoryLoading}
+        currency={currency}
+      />
     </div>
   );
 };

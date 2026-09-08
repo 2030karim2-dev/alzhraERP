@@ -9,7 +9,7 @@ export const STANDARD_DENOMINATIONS = [
   { value: 10, label: '10 ر.س' },
   { value: 5, label: '5 ر.س' },
   { value: 1, label: '1 ر.س' },
-  { value: 0.5, label: 'نصف ريال' },
+  { value: 0.5, label: '0.5 ر.س' },
 ] as const;
 
 export const DEFAULT_TOLERANCE_SAR = 10;
