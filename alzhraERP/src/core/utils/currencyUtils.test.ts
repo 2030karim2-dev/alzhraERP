@@ -86,6 +86,16 @@ describe('currencyUtils', () => {
         })
       ).toBe(36.14);
     });
+
+    it('safely handles fractional inverse rate (e.g. 0.002439 for 1/410) with divide operator', () => {
+      expect(
+        toBaseCurrency({
+          amount: 53000,
+          currency_code: 'YER',
+          exchange_rate: 0.002439,
+        })
+      ).toBe(129.27);
+    });
   });
   describe('convertToBaseCurrency', () => {
     it('should convert USD to SAR with multiply operator', () => {

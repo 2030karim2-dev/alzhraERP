@@ -57,7 +57,12 @@ export const convertToBaseCurrency = (params: CurrencyConversionParams): number 
     return amount;
   }
 
-  const converted = exchangeOperator === 'divide' ? amount / exchangeRate : amount * exchangeRate;
+  // إذا كان المعامل 'divide' وسعر الصرف كسري أصغر من 1 (مثل 0.002439 = 1/410)،
+  // فالقسمة المباشرة ستضخم المبلغ أضعافاً مضاعفة بملايين، لذا نعتمد مقلوب الكسر كقاسم حقيقي.
+  const effectiveRate =
+    exchangeOperator === 'divide' && exchangeRate < 1 ? 1 / exchangeRate : exchangeRate;
+
+  const converted = exchangeOperator === 'divide' ? amount / effectiveRate : amount * effectiveRate;
 
   return Math.round((converted + Number.EPSILON) * 100) / 100;
 };
@@ -78,7 +83,10 @@ export const convertFromBaseCurrency = (params: CurrencyConversionParams): numbe
     return amount;
   }
 
-  const converted = exchangeOperator === 'divide' ? amount * exchangeRate : amount / exchangeRate;
+  const effectiveRate =
+    exchangeOperator === 'divide' && exchangeRate < 1 ? 1 / exchangeRate : exchangeRate;
+
+  const converted = exchangeOperator === 'divide' ? amount * effectiveRate : amount / effectiveRate;
 
   return Math.round((converted + Number.EPSILON) * 100) / 100;
 };
