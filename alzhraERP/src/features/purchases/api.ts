@@ -3,6 +3,7 @@ import { parseError } from '../../core/utils/errorUtils';
 import type { CreatePurchaseDTO, SupplierPaymentData } from './types';
 import type { Json } from '../../core/database.types';
 import { treasuryApi } from '../accounting/api/treasuryApi';
+import type { SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
 
 type PurchaseItem = CreatePurchaseDTO['items'][number];
 interface PurchaseItemPayload {
@@ -132,6 +133,37 @@ export const purchasesApi = {
       .is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
     return query.order('issue_date', { ascending: false });
+  },
+
+  searchPurchasesAdvanced: async (
+    companyId: string,
+    params: {
+      type?: string | undefined;
+      query?: string | undefined;
+      dateFrom?: string | undefined;
+      dateTo?: string | undefined;
+      status?: string | undefined;
+      paymentMethod?: string | undefined;
+      branchId?: string | null | undefined;
+      limit?: number | undefined;
+      offset?: number | undefined;
+    }
+  ): Promise<SearchInvoiceResultRow[]> => {
+    const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
+      p_company_id: companyId,
+      p_type: params.type ?? 'purchase',
+      p_query: params.query && params.query.trim() ? params.query.trim() : null,
+      p_date_from: params.dateFrom || null,
+      p_date_to: params.dateTo || null,
+      p_status: params.status || null,
+      p_payment_method: params.paymentMethod || null,
+      p_branch_id: params.branchId || null,
+      p_limit: params.limit ?? 50,
+      p_offset: params.offset ?? 0,
+    });
+
+    if (error) throw asError(parseError(error));
+    return (data || []) as unknown as SearchInvoiceResultRow[];
   },
 
   getPurchaseDetails: async (purchaseId: string) => {

@@ -90,6 +90,62 @@ export const salesService = {
     }
   },
 
+  searchSalesInvoices: async (
+    companyId: string,
+    params: {
+      query?: string | undefined;
+      dateFrom?: string | undefined;
+      dateTo?: string | undefined;
+      status?: string | undefined;
+      paymentMethod?: string | undefined;
+      branchId?: string | null | undefined;
+      type?: string | undefined;
+      page?: number | undefined;
+      limit?: number | undefined;
+    }
+  ) => {
+    try {
+      const page = params.page ?? 0;
+      const limit = params.limit ?? 50;
+      const offset = page * limit;
+
+      const rows = await salesApi.searchInvoicesAdvanced(companyId, {
+        type: params.type ?? 'sale',
+        query: params.query,
+        dateFrom: params.dateFrom,
+        dateTo: params.dateTo,
+        status: params.status,
+        paymentMethod: params.paymentMethod,
+        branchId: params.branchId,
+        limit,
+        offset,
+      });
+
+      return rows.map(r => ({
+        id: r.id,
+        invoiceNumber: r.invoice_number,
+        customerName: r.party_name || CASH_CUSTOMER_LABEL,
+        partyPhone: r.party_phone,
+        date: new Date(r.issue_date).toLocaleDateString('en-GB'),
+        total: Number(r.total_amount) || 0,
+        baseTotal: safeBaseTotal(r.total_amount, r.currency_code, r.exchange_rate),
+        status: r.status as any,
+        type: r.type as any,
+        paymentMethod: r.payment_method,
+        currencyCode: r.currency_code || 'SAR',
+        exchangeRate: Number(r.exchange_rate) || 1,
+        itemCount: Number(r.item_count) || 0,
+        referenceInvoiceId: r.reference_invoice_id,
+        matchedItems: Array.isArray(r.matched_items) ? r.matched_items : [],
+        notes: r.notes,
+        totalMatchingCount: Number(r.total_matching_count) || 0,
+      }));
+    } catch (error) {
+      logger.error('SalesService', 'Failed to search sales invoices', { companyId, error });
+      throw error;
+    }
+  },
+
   processNewSale: async (companyId: string, userId: string, payload: CreateInvoiceDTO) => {
     // H6: Validate items before sending to RPC
     assertValid(

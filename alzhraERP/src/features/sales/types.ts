@@ -76,6 +76,9 @@ export interface InvoiceResponse {
   status: string;
 }
 
+import type { MatchedInvoiceItem } from '@/core/types/invoiceSearch';
+export type { MatchedInvoiceItem };
+
 export interface InvoiceListItem {
   id: string;
   invoiceNumber: string;
@@ -89,4 +92,7 @@ export interface InvoiceListItem {
   currencyCode: string;
   exchangeRate: number;
   baseTotal: number;
+  matchedItems?: MatchedInvoiceItem[];
+  partyPhone?: string | null;
+  notes?: string | null;
 }

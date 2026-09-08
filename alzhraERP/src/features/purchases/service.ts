@@ -98,6 +98,68 @@ export const purchasesService = {
     return data;
   },
 
+  searchPurchases: async (
+    companyId: string,
+    params: {
+      query?: string | undefined;
+      dateFrom?: string | undefined;
+      dateTo?: string | undefined;
+      status?: string | undefined;
+      paymentMethod?: string | undefined;
+      branchId?: string | null | undefined;
+      type?: string | undefined;
+      page?: number | undefined;
+      limit?: number | undefined;
+    }
+  ) => {
+    const page = params.page ?? 0;
+    const limit = params.limit ?? 50;
+    const offset = page * limit;
+
+    const rows = await purchasesApi.searchPurchasesAdvanced(companyId, {
+      type: params.type,
+      query: params.query,
+      dateFrom: params.dateFrom,
+      dateTo: params.dateTo,
+      status: params.status,
+      paymentMethod: params.paymentMethod,
+      branchId: params.branchId,
+      limit,
+      offset,
+    });
+
+    return rows.map(r => ({
+      id: r.id,
+      invoice_number: r.invoice_number,
+      party: r.party_name ? { name: r.party_name } : null,
+      party_phone: r.party_phone,
+
+      issue_date: r.issue_date,
+      total_amount: Number(r.total_amount) || 0,
+      currency_code: r.currency_code,
+      exchange_rate: Number(r.exchange_rate) || 1,
+      status: r.status,
+      type: r.type,
+      payment_method: r.payment_method,
+      notes: r.notes,
+      reference_invoice_id: r.reference_invoice_id,
+      return_reason: null as string | null,
+      created_at: r.issue_date,
+      invoice_items: [] as Array<{
+        id: string;
+        cost_price: number;
+        quantity: number;
+        unit_price: number;
+        total: number;
+        description: string | null;
+      }>,
+
+      item_count: Number(r.item_count) || 0,
+      matched_items: Array.isArray(r.matched_items) ? r.matched_items : [],
+      total_matching_count: Number(r.total_matching_count) || 0,
+    }));
+  },
+
   processPurchase: async (data: CreatePurchaseDTO, companyId: string, userId: string) => {
     assertValid(
       validatePurchasePayload({

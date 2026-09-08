@@ -8,16 +8,51 @@ import type { CreateInvoiceDTO } from '../types';
 
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
 
-export const useInvoices = () => {
+export interface UseInvoicesOptions {
+  searchTerm?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  status?: string | undefined;
+  paymentMethod?: string | undefined;
+  type?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export const useInvoices = (options?: UseInvoicesOptions) => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
+
+  const isSearchMode = Boolean(
+    (options?.searchTerm && options.searchTerm.trim() !== '') ||
+    options?.dateFrom ||
+    options?.dateTo ||
+    options?.status ||
+    options?.paymentMethod
+  );
+
   return useQuery({
-    queryKey: ['invoices', companyId, branchId],
-    queryFn: () =>
-      companyId ? salesService.fetchSalesLog(companyId, 0, branchId) : Promise.resolve([]),
+    queryKey: ['invoices', companyId, branchId, options],
+    queryFn: () => {
+      if (!companyId) return Promise.resolve([]);
+      if (isSearchMode) {
+        return salesService.searchSalesInvoices(companyId, {
+          query: options?.searchTerm,
+          dateFrom: options?.dateFrom,
+          dateTo: options?.dateTo,
+          status: options?.status,
+          paymentMethod: options?.paymentMethod,
+          type: options?.type ?? 'sale',
+          branchId,
+          page: options?.page ?? 0,
+          limit: options?.limit ?? 50,
+        });
+      }
+      return salesService.fetchSalesLog(companyId, options?.page ?? 0, branchId);
+    },
     enabled: !!companyId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: isSearchMode ? 30 * 1000 : 5 * 60 * 1000,
   });
 };
 

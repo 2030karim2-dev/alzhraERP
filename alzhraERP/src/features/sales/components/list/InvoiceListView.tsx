@@ -1,14 +1,17 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import SalesStats from './SalesStats';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { useInvoices, useDeleteInvoice } from '../../hooks/index';
-import { formatCurrency, normalizeSearch } from '../../../../core/utils';
-import { Eye, Trash2, ArrowLeftRight, FileSpreadsheet } from 'lucide-react';
+import { formatCurrency } from '../../../../core/utils';
+
+import { Eye, Trash2, ArrowLeftRight, FileSpreadsheet, Package } from 'lucide-react';
 import EmptyState from '../../../../ui/base/EmptyState';
 import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 import type { InvoiceListItem, InvoiceType } from '../../types';
 import { useFeedbackStore } from '../../../feedback/store';
+import InvoiceSearchToolbar from '../../../../ui/common/InvoiceSearchToolbar';
+import type { DatePreset } from '@/core/types/invoiceSearch';
 
 interface InvoiceListViewProps {
   viewType: InvoiceType;
@@ -55,23 +58,56 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   searchTerm,
   onViewDetails,
 }) => {
-  const { data: invoices, isLoading, error, refetch } = useInvoices();
+  const [internalSearch, setInternalSearch] = useState(searchTerm || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm || '');
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [dateFrom, setDateFrom] = useState<string | undefined>();
+  const [dateTo, setDateTo] = useState<string | undefined>();
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+
+  useEffect(() => {
+    if (searchTerm !== undefined && searchTerm !== internalSearch) {
+      setInternalSearch(searchTerm);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(internalSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [internalSearch]);
+
+  const searchParams = useMemo(
+    () => ({
+      searchTerm: debouncedSearch,
+      dateFrom,
+      dateTo,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      paymentMethod: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+      type: viewType,
+    }),
+    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, viewType]
+  );
+
+  const { data: invoices, isLoading, error, refetch } = useInvoices(searchParams);
   const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
   const { showToast } = useFeedbackStore();
 
-  const filteredData = useMemo(() => {
-    if (!invoices) return [];
-    const term = normalizeSearch(searchTerm);
-    if (!term) return invoices as InvoiceListItem[];
+  const handleResetFilters = useCallback(() => {
+    setInternalSearch('');
+    setDebouncedSearch('');
+    setDatePreset('all');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setStatusFilter('all');
+    setPaymentMethodFilter('all');
+  }, []);
 
-    // API already filters by type='sale' — no need to re-filter client-side
-    return (invoices as InvoiceListItem[]).filter(item => {
-      const matchesSearch =
-        normalizeSearch(item.customerName).includes(term) ||
-        normalizeSearch(item.invoiceNumber).includes(term);
-      return matchesSearch;
-    });
-  }, [invoices, searchTerm]);
+  const displayData = useMemo(() => {
+    return (invoices as InvoiceListItem[]) || [];
+  }, [invoices]);
 
   const handleViewDetails = useCallback(
     (id: string) => {
@@ -156,9 +192,42 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         header: 'العميل',
         accessorKey: 'customerName' as keyof InvoiceListItem,
         accessor: (row: InvoiceListItem) => (
-          <span className="font-bold text-gray-800 dark:text-slate-100">{row.customerName}</span>
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-gray-800 dark:text-slate-100">{row.customerName}</span>
+            {row.partyPhone && (
+              <span className="font-mono text-[10px] text-gray-500 dark:text-slate-400">
+                {row.partyPhone}
+              </span>
+            )}
+            {row.matchedItems && row.matchedItems.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {row.matchedItems.map(item => (
+                  <span
+                    key={item.id}
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      item.is_direct_match
+                        ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300'
+                        : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300'
+                    }`}
+                    title={`السعر: ${item.unit_price} | الكمية: ${item.quantity}${item.part_number ? ` | رقم القطعة: ${item.part_number}` : ''}`}
+                  >
+                    <Package
+                      size={10}
+                      className="shrink-0 text-emerald-600 dark:text-emerald-400"
+                    />
+                    <span>{item.product_name}</span>
+                    {item.part_number && (
+                      <span className="font-mono opacity-80">({item.part_number})</span>
+                    )}
+                    <span className="font-mono font-bold">×{item.quantity}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         ),
       },
+
       {
         header: 'التاريخ',
         accessorKey: 'date' as keyof InvoiceListItem,
@@ -270,32 +339,55 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
     [handleViewDetails, handleDelete, handleShareExcel, isDeleting]
   );
 
-  if (isLoading) return <PageLoader />;
-  if (error)
-    return <ErrorDisplay error={error?.message || 'فشل في تحميل البيانات'} onRetry={refetch} />;
-  if (filteredData.length === 0) {
-    return (
-      <EmptyState
-        title="لا توجد فواتير"
-        description="لم يتم العثور على سجلات مطابقة لمعايير البحث."
-      />
-    );
-  }
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col space-y-3">
       {viewType === 'sale' && <SalesStats />}
-      <div className="flex min-h-[480px] flex-1 flex-col overflow-hidden rounded-2xl border bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
-        <ExcelTable
-          columns={columns}
-          data={filteredData.map(item => ({
-            ...item,
-            invoiceNumber: item.invoiceNumber || '',
-            paymentMethod: item.paymentMethod || 'cash',
-          }))}
-          colorTheme={viewType === 'sale' ? 'blue' : 'orange'}
+
+      <InvoiceSearchToolbar
+        searchTerm={internalSearch}
+        onSearchChange={setInternalSearch}
+        datePreset={datePreset}
+        onDatePresetChange={(preset, range) => {
+          setDatePreset(preset);
+          setDateFrom(range.from);
+          setDateTo(range.to);
+        }}
+        dateFrom={dateFrom}
+        onDateFromChange={setDateFrom}
+        dateTo={dateTo}
+        onDateToChange={setDateTo}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        paymentMethodFilter={paymentMethodFilter}
+        onPaymentMethodFilterChange={setPaymentMethodFilter}
+        totalMatches={displayData.length}
+        isLoading={isLoading}
+        onResetFilters={handleResetFilters}
+        scopeLabel="sales"
+      />
+
+      {error ? (
+        <ErrorDisplay error={error?.message || 'فشل في تحميل البيانات'} onRetry={refetch} />
+      ) : isLoading ? (
+        <PageLoader />
+      ) : displayData.length > 0 ? (
+        <div className="flex min-h-[480px] flex-1 flex-col overflow-hidden rounded-2xl border bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
+          <ExcelTable
+            columns={columns}
+            data={displayData.map(item => ({
+              ...item,
+              invoiceNumber: item.invoiceNumber || '',
+              paymentMethod: item.paymentMethod || 'cash',
+            }))}
+            colorTheme={viewType === 'sale' ? 'blue' : 'orange'}
+          />
+        </div>
+      ) : (
+        <EmptyState
+          title="لا توجد فواتير"
+          description="لم يتم العثور على أي فواتير أو قطع مطابقة لمعايير البحث المحددة."
         />
-      </div>
+      )}
     </div>
   );
 };

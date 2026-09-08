@@ -5,6 +5,7 @@ import type { CreateInvoicePayload, InvoiceResponse } from '../types';
 import { logger } from '@/core/utils/logger';
 import type { Invoice, Party } from '@/core/types/supabase-helpers';
 import { salesQuotationsApi } from './quotationsApi';
+import type { SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
 
 // Re-export quotations API
 export { salesQuotationsApi };
@@ -82,6 +83,37 @@ export const salesApi = {
     const { data, error } = await query;
     if (error) throw parseError(error);
     return data as unknown as InvoiceWithParty[];
+  },
+
+  searchInvoicesAdvanced: async (
+    companyId: string,
+    params: {
+      type?: string | undefined;
+      query?: string | undefined;
+      dateFrom?: string | undefined;
+      dateTo?: string | undefined;
+      status?: string | undefined;
+      paymentMethod?: string | undefined;
+      branchId?: string | null | undefined;
+      limit?: number | undefined;
+      offset?: number | undefined;
+    }
+  ): Promise<SearchInvoiceResultRow[]> => {
+    const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
+      p_company_id: companyId,
+      p_type: params.type ?? 'sale',
+      p_query: params.query && params.query.trim() ? params.query.trim() : null,
+      p_date_from: params.dateFrom || null,
+      p_date_to: params.dateTo || null,
+      p_status: params.status || null,
+      p_payment_method: params.paymentMethod || null,
+      p_branch_id: params.branchId || null,
+      p_limit: params.limit ?? 50,
+      p_offset: params.offset ?? 0,
+    });
+
+    if (error) throw parseError(error);
+    return (data || []) as unknown as SearchInvoiceResultRow[];
   },
 
   commitInvoiceRPC: async (

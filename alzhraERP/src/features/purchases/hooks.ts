@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { purchasesService } from './service';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
@@ -18,19 +24,53 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
   return fallback;
 };
 
-// Fix: Added missing usePurchases hook to fetch purchase history
-export const usePurchases = (): UseQueryResult<PurchaseList> => {
+export interface UsePurchasesOptions {
+  searchTerm?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  status?: string | undefined;
+  paymentMethod?: string | undefined;
+  type?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+// Fix: Enhanced usePurchases hook to support server-side historical search across items/products/dates
+export const usePurchases = (options?: UsePurchasesOptions): UseQueryResult<PurchaseList> => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
   const { branchId } = useBranchFilter();
   const hasCompany = companyId !== undefined && companyId !== '';
+
+  const isSearchMode = Boolean(
+    (options?.searchTerm && options.searchTerm.trim() !== '') ||
+    options?.dateFrom ||
+    options?.dateTo ||
+    options?.status ||
+    options?.paymentMethod
+  );
+
   return useQuery({
-    queryKey: ['purchases', companyId, branchId],
-    queryFn: (): Promise<PurchaseList> => {
+    queryKey: ['purchases', companyId, branchId, options],
+    queryFn: () => {
       if (!hasCompany) return Promise.resolve([]);
+      if (isSearchMode) {
+        return purchasesService.searchPurchases(companyId, {
+          query: options?.searchTerm,
+          dateFrom: options?.dateFrom,
+          dateTo: options?.dateTo,
+          status: options?.status,
+          paymentMethod: options?.paymentMethod,
+          type: options?.type,
+          branchId,
+          page: options?.page ?? 0,
+          limit: options?.limit ?? 50,
+        });
+      }
       return purchasesService.getPurchases(companyId, branchId);
     },
     enabled: hasCompany,
+    staleTime: isSearchMode ? 30 * 1000 : 5 * 60 * 1000,
   });
 };
 
@@ -51,10 +91,14 @@ export const usePurchaseStats = (): UseQueryResult<PurchaseStats | null> => {
 };
 
 // Fix: Added missing usePurchaseDetails hook for viewing a single invoice
-export const usePurchaseDetails = (purchaseId: string | null): UseQueryResult<Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null> => {
+export const usePurchaseDetails = (
+  purchaseId: string | null
+): UseQueryResult<Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null> => {
   return useQuery({
     queryKey: ['purchase_details', purchaseId],
-    queryFn: async (): Promise<Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null> => {
+    queryFn: async (): Promise<
+      Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null
+    > => {
       if (purchaseId === null || purchaseId === '') return null;
       const { data, error } = await purchasesApi.getPurchaseDetails(purchaseId);
       if (error) throw error;
@@ -64,7 +108,11 @@ export const usePurchaseDetails = (purchaseId: string | null): UseQueryResult<Aw
   });
 };
 
-export const useCreatePurchase = (): UseMutationResult<Awaited<ReturnType<typeof purchasesService.processPurchase>>, Error, CreatePurchaseDTO> => {
+export const useCreatePurchase = (): UseMutationResult<
+  Awaited<ReturnType<typeof purchasesService.processPurchase>>,
+  Error,
+  CreatePurchaseDTO
+> => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
@@ -72,10 +120,13 @@ export const useCreatePurchase = (): UseMutationResult<Awaited<ReturnType<typeof
   const { branchId } = useBranchFilter();
 
   return useMutation({
-    mutationFn: async (data: CreatePurchaseDTO): Promise<Awaited<ReturnType<typeof purchasesService.processPurchase>>> => {
+    mutationFn: async (
+      data: CreatePurchaseDTO
+    ): Promise<Awaited<ReturnType<typeof purchasesService.processPurchase>>> => {
       const companyId = user?.company_id;
       const userId = user?.id;
-      if (companyId === undefined || companyId === '' || userId === undefined || userId === '') throw new Error("Authentication failed");
+      if (companyId === undefined || companyId === '' || userId === undefined || userId === '')
+        throw new Error('Authentication failed');
 
       // نرسل الفاتورة بحالة 'posted' لتفعيل الـ Trigger المخزني والمحاسبي في SQL
       return purchasesService.processPurchase({ ...data, branchId }, companyId, userId);
@@ -88,27 +139,37 @@ export const useCreatePurchase = (): UseMutationResult<Awaited<ReturnType<typeof
       if (!isOnline || getErrorMessage(err, '').includes('Failed to fetch')) {
         void syncStore.enqueue({
           mutationKey: ['purchases', 'create'],
-          variables: { ...variables, company_id: user?.company_id, user_id: user?.id }
+          variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
         });
-        showToast("تم حفظ فاتورة المشتريات محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.", 'info');
+        showToast(
+          'تم حفظ فاتورة المشتريات محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.',
+          'info'
+        );
         return;
       }
-      showToast(getErrorMessage(err, "فشل توريد الفاتورة"), 'error');
-    }
+      showToast(getErrorMessage(err, 'فشل توريد الفاتورة'), 'error');
+    },
   });
 };
 
 // Fix: Added missing useCreatePayment hook for supplier payments
-export const useCreatePayment = (): UseMutationResult<Awaited<ReturnType<typeof purchasesApi.createSupplierPayment>>, Error, CreatePaymentDTO> => {
+export const useCreatePayment = (): UseMutationResult<
+  Awaited<ReturnType<typeof purchasesApi.createSupplierPayment>>,
+  Error,
+  CreatePaymentDTO
+> => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
   const { isOnline } = useNetworkStatus();
   return useMutation({
-    mutationFn: async (data: CreatePaymentDTO): Promise<Awaited<ReturnType<typeof purchasesApi.createSupplierPayment>>> => {
+    mutationFn: async (
+      data: CreatePaymentDTO
+    ): Promise<Awaited<ReturnType<typeof purchasesApi.createSupplierPayment>>> => {
       const companyId = user?.company_id;
       const userId = user?.id;
-      if (companyId === undefined || companyId === '' || userId === undefined || userId === '') throw new Error("Authentication failed");
+      if (companyId === undefined || companyId === '' || userId === undefined || userId === '')
+        throw new Error('Authentication failed');
       return purchasesApi.createSupplierPayment(data, companyId, userId);
     },
     onSuccess: (): void => {
@@ -119,13 +180,13 @@ export const useCreatePayment = (): UseMutationResult<Awaited<ReturnType<typeof 
       if (!isOnline || getErrorMessage(err, '').includes('Failed to fetch')) {
         void syncStore.enqueue({
           mutationKey: ['purchases', 'payment'],
-          variables: { ...variables, company_id: user?.company_id, user_id: user?.id }
+          variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
         });
-        showToast("تم حفظ السند محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.", 'info');
+        showToast('تم حفظ السند محلياً (وضع عدم الاتصال). سيتم المزامنة تلقائياً.', 'info');
         return;
       }
-      showToast(getErrorMessage(err, "فشل تسجيل السند"), 'error')
-    }
+      showToast(getErrorMessage(err, 'فشل تسجيل السند'), 'error');
+    },
   });
 };
 
@@ -135,7 +196,10 @@ export const usePurchasesAnalytics = (): UseQueryResult<PurchaseAnalytics | null
   const companyId = user?.company_id;
   return useQuery({
     queryKey: ['purchases_analytics', companyId],
-    queryFn: (): Promise<PurchaseAnalytics | null> => companyId !== undefined && companyId !== '' ? purchasesService.getAnalytics(companyId) : Promise.resolve(null),
+    queryFn: (): Promise<PurchaseAnalytics | null> =>
+      companyId !== undefined && companyId !== ''
+        ? purchasesService.getAnalytics(companyId)
+        : Promise.resolve(null),
     enabled: companyId !== undefined && companyId !== '',
   });
 };
@@ -161,6 +225,6 @@ export const useDeletePurchase = (): UseMutationResult<string, unknown, string> 
     },
     onError: (error: unknown): void => {
       showToast(getErrorMessage(error, 'فشل في حذف فاتورة الشراء'), 'error');
-    }
+    },
   });
 };

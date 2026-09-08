@@ -27,7 +27,10 @@ import type { AuthUser } from '../../auth/types';
 import PurchaseReturnsView from '../components/Returns/PurchaseReturnsView';
 import PurchaseQuotationsTab from '../components/quotations/PurchaseQuotationsTab';
 import { useAIPrefillStore } from '../../ai/store';
+
 import type { AIEntityItem } from '../../ai/core/types';
+import InvoiceSearchToolbar from '../../../ui/common/InvoiceSearchToolbar';
+import type { DatePreset } from '@/core/types/invoiceSearch';
 
 type PurchaseTab = 'create' | 'list' | 'returns' | 'analytics' | 'smart_import' | 'quotations';
 type AuthUserState = AuthUser | null;
@@ -113,6 +116,22 @@ interface PageContentProps {
   data: PurchaseRows;
   isLoading: boolean;
   searchTerm: string;
+  onSearchChange: (val: string) => void;
+  datePreset: DatePreset;
+  onDatePresetChange: (
+    preset: DatePreset,
+    range: { from?: string | undefined; to?: string | undefined }
+  ) => void;
+  dateFrom?: string | undefined;
+  onDateFromChange?: ((val: string) => void) | undefined;
+  dateTo?: string | undefined;
+  onDateToChange?: ((val: string) => void) | undefined;
+  statusFilter?: string | undefined;
+  onStatusFilterChange?: ((val: string) => void) | undefined;
+  paymentMethodFilter?: string | undefined;
+  onPaymentMethodFilterChange?: ((val: string) => void) | undefined;
+  onResetFilters: () => void;
+
   setViewInvoiceId: React.Dispatch<React.SetStateAction<string | null>>;
   setActiveTab: React.Dispatch<React.SetStateAction<PurchaseTab>>;
   handleSmartImportConfirm: (data: {
@@ -126,6 +145,18 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
   data,
   isLoading,
   searchTerm,
+  onSearchChange,
+  datePreset,
+  onDatePresetChange,
+  dateFrom,
+  onDateFromChange,
+  dateTo,
+  onDateToChange,
+  statusFilter,
+  onStatusFilterChange,
+  paymentMethodFilter,
+  onPaymentMethodFilterChange,
+  onResetFilters,
   setViewInvoiceId,
   setActiveTab,
   handleSmartImportConfirm,
@@ -142,7 +173,30 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
     case 'smart_import':
       return <SmartImportView mode="invoice" onConfirm={handleSmartImportConfirm} />;
     case 'list':
-      return <PurchasesTable data={data} isLoading={isLoading} onView={setViewInvoiceId} />;
+      return (
+        <div className="flex min-h-0 flex-1 flex-col space-y-3">
+          <InvoiceSearchToolbar
+            searchTerm={searchTerm}
+            onSearchChange={onSearchChange}
+            datePreset={datePreset}
+            onDatePresetChange={onDatePresetChange}
+            dateFrom={dateFrom}
+            onDateFromChange={onDateFromChange}
+            dateTo={dateTo}
+            onDateToChange={onDateToChange}
+            statusFilter={statusFilter}
+            onStatusFilterChange={onStatusFilterChange}
+            paymentMethodFilter={paymentMethodFilter}
+            onPaymentMethodFilterChange={onPaymentMethodFilterChange}
+            totalMatches={data.length}
+            isLoading={isLoading}
+            onResetFilters={onResetFilters}
+            scopeLabel="purchases"
+          />
+          <PurchasesTable data={data} isLoading={isLoading} onView={setViewInvoiceId} />
+        </div>
+      );
+
     case 'returns':
       return <PurchaseReturnsView searchTerm={searchTerm} onViewDetails={setViewInvoiceId} />;
     case 'quotations':
@@ -166,11 +220,48 @@ const PurchasesPage: React.FC = () => {
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [dateFrom, setDateFrom] = useState<string | undefined>();
+  const [dateTo, setDateTo] = useState<string | undefined>();
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { data: allPurchases = [], isLoading } = usePurchases();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const searchParams = useMemo(
+    () => ({
+      searchTerm: debouncedSearch,
+      dateFrom,
+      dateTo,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      paymentMethod: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+      type: activeTab === 'returns' ? 'purchase_return' : 'purchase',
+    }),
+    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, activeTab]
+  );
+
+  const { data: allPurchases = [], isLoading } = usePurchases(searchParams);
   const { bulkLoadItems, setMetadata, setSupplier } = usePurchaseStore();
   usePurchasePrefill(setActiveTab);
+
+  const handleResetFilters = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setDatePreset('all');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setStatusFilter('all');
+    setPaymentMethodFilter('all');
+  }, []);
+
   const handleSmartImportConfirm = useCallback(
     (data: { items: ExtractedItem[]; supplierName?: string; currency?: string }): void => {
       bulkLoadItems(data.items);
@@ -182,20 +273,11 @@ const PurchasesPage: React.FC = () => {
     },
     [bulkLoadItems, setActiveTab, setMetadata, setSupplier]
   );
-  const filteredData = useMemo(
-    () =>
-      allPurchases.filter(item => {
-        if (activeTab === 'returns' && item.type !== 'purchase_return') return false;
-        if (activeTab === 'list' && item.type !== 'purchase') return false;
-        if (searchTerm === '') return true;
-        const term = searchTerm.toLowerCase();
-        return (
-          (item.invoice_number ?? '').toLowerCase().includes(term) ||
-          (item.party?.name ?? '').toLowerCase().includes(term)
-        );
-      }),
-    [activeTab, allPurchases, searchTerm]
-  );
+
+  const filteredData = useMemo(() => {
+    return (allPurchases as PurchaseRows) || [];
+  }, [allPurchases]);
+
   const TABS = [
     { id: 'list', label: t('purchases_log'), icon: History },
     { id: 'create', label: t('new_invoice'), icon: Plus },
@@ -252,6 +334,22 @@ const PurchasesPage: React.FC = () => {
               data={filteredData}
               isLoading={isLoading}
               searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              datePreset={datePreset}
+              onDatePresetChange={(preset, range) => {
+                setDatePreset(preset);
+                setDateFrom(range.from);
+                setDateTo(range.to);
+              }}
+              dateFrom={dateFrom}
+              onDateFromChange={setDateFrom}
+              dateTo={dateTo}
+              onDateToChange={setDateTo}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              paymentMethodFilter={paymentMethodFilter}
+              onPaymentMethodFilterChange={setPaymentMethodFilter}
+              onResetFilters={handleResetFilters}
               setViewInvoiceId={setViewInvoiceId}
               setActiveTab={setActiveTab}
               handleSmartImportConfirm={handleSmartImportConfirm}
