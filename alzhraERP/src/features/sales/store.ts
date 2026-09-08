@@ -43,6 +43,7 @@ interface SalesState {
   exchangeOperator: 'multiply' | 'divide';
   warehouseId: string;
   cashboxId: string;
+  paidAmount: number;
   showDiscount: boolean;
   notes: string;
 
@@ -129,6 +130,7 @@ export const useSalesStore = create<SalesState>()(
       warehouseId: '',
       // [FIX] cashboxId فارغ بدلاً من 'box_1' الوهمي - يُعيّن تلقائياً من InvoiceMeta عند التحميل
       cashboxId: '',
+      paidAmount: 0,
       showDiscount: false,
       notes: '',
 
@@ -349,6 +351,7 @@ export const useSalesStore = create<SalesState>()(
           exchangeOperator: 'multiply',
           warehouseId: '',
           cashboxId: '',
+          paidAmount: 0,
           showDiscount: false,
           notes: '',
         }));
@@ -366,6 +369,7 @@ export const useSalesStore = create<SalesState>()(
         exchangeOperator: state.exchangeOperator,
         warehouseId: state.warehouseId,
         cashboxId: state.cashboxId,
+        paidAmount: state.paidAmount,
         showDiscount: state.showDiscount,
         notes: state.notes,
       }),

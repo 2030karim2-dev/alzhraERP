@@ -1,6 +1,6 @@
 import type { Database } from '../../core/database.types';
 
-export type PartyType = 'customer' | 'supplier';
+export type PartyType = 'customer' | 'supplier' | 'both' | 'all';
 export type PartyStatus = 'active' | 'blocked';
 export type PartyView = 'list' | 'statements' | 'categories';
 

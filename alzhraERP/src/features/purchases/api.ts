@@ -31,6 +31,7 @@ interface PurchaseRpcParams {
   p_due_date?: string;
   p_notes?: string;
   p_branch_id?: string;
+  p_paid_amount?: number;
 }
 interface PurchaseReturnRpcParams {
   p_company_id: string;
@@ -80,7 +81,7 @@ const buildPurchaseParams = (
   userId: string,
   data: CreatePurchaseDTO
 ): PurchaseRpcParams => {
-  const paymentAccountId = data.paymentMethod === 'cash' ? data.cashAccountId : data.bankAccountId;
+  const paymentAccountId = data.cashAccountId || data.bankAccountId;
   return {
     p_company_id: companyId,
     p_user_id: userId,
@@ -95,6 +96,7 @@ const buildPurchaseParams = (
     p_payment_method: data.paymentMethod,
     ...(hasText(paymentAccountId) ? { p_payment_account_id: paymentAccountId } : {}),
     ...(hasText(data.branchId) ? { p_branch_id: data.branchId } : {}),
+    p_paid_amount: Number(data.paidAmount) || 0,
   };
 };
 

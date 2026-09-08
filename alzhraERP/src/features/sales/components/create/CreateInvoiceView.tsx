@@ -19,6 +19,9 @@ import { useReactToPrint } from 'react-to-print';
 import { logger } from '../../../../core/utils/logger';
 import { createIdempotencyKey } from '../../../../core/utils/idempotency';
 import { formatLocalDate } from '../../../../core/utils/dateUtils';
+import { usePaymentAccounts } from '../../../accounting/hooks/index';
+import { useWarehouses } from '../../../inventory/hooks/useInventoryManagement';
+import { InvoiceConfirmationModal } from '../../../../ui/common/InvoiceConfirmationModal';
 
 interface CreateInvoiceViewProps {
   onSuccess: () => void;
@@ -39,9 +42,11 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
     resetCart,
     invoiceType,
     cashboxId,
+    paidAmount,
     warehouseId,
     currency,
     exchangeRate,
+    exchangeOperator,
     notes,
     setMetadata,
     setCustomer,
@@ -49,6 +54,10 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
   const { mutate: createInvoice, isPending } = useCreateInvoice();
   const { invoice: invoiceSettings } = useSettingsStore();
   const { showToast } = useFeedbackStore();
+  const { data: paymentAccounts } = usePaymentAccounts();
+  const { data: rawWarehouses } = useWarehouses();
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [targetStatus, setTargetStatus] = React.useState<InvoiceStatus>('paid');
 
   // Ref للطباعة
   const printRef = useRef<HTMLDivElement>(null);
@@ -164,6 +173,29 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
       return;
     }
 
+    // تحقق من الدفعة النقدية للآجل
+    if (
+      invoiceType === 'credit' &&
+      ((paidAmount || 0) > summary.totalAmount || (paidAmount || 0) < 0)
+    ) {
+      showToast('مبلغ الدفعة المسددة غير صالح؛ يجب أن يكون بين صفر وإجمالي الفاتورة', 'error');
+      return;
+    }
+
+    if (invoiceType === 'credit' && (paidAmount || 0) > 0 && !cashboxId) {
+      showToast('يرجى اختيار حساب الصندوق / البنك لاستلام الدفعة النقدية', 'warning');
+      return;
+    }
+
+    setTargetStatus(status);
+    setShowConfirmModal(true);
+  };
+
+  const executeSave = (statusToSave: InvoiceStatus) => {
+    const validItems = items.filter(
+      item => item.productId && item.name && item.quantity > 0 && item.price > 0
+    );
+
     createInvoice(
       {
         partyId: selectedCustomer?.id || null,
@@ -176,27 +208,26 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
           unitPrice: item.price,
           costPrice: item.costPrice || 0,
           warehouseId,
-          // [FIX #3] maxStock من بيانات المنتج الحقيقية لا قيمة ثابتة
           maxStock: item.warehouse_distribution
             ? item.warehouse_distribution.reduce((sum, w) => sum + w.quantity, 0)
             : 9999,
         })),
         discount: summary.discountAmount,
         ...(notes.trim() ? { notes: notes.trim() } : {}),
-        status: status,
+        status: statusToSave,
         type: 'sale' as const,
         paymentMethod: invoiceType,
         treasuryAccountId: cashboxId,
         currency: currency || 'SAR',
         exchangeRate: currency === 'SAR' ? 1 : exchangeRate || 1,
+        paidAmount: invoiceType === 'credit' ? paidAmount || 0 : 0,
         idempotencyKey: invoiceIdempotencyKeyRef.current,
       },
       {
         onSuccess: () => {
+          setShowConfirmModal(false);
           resetCart();
           onSuccess();
-          // نية جديدة = مفتاح جديد (الإبقاء على المفتاح عند الفشل يسمح بإعادة
-          // المحاولة بأمان دون إنشاء فاتورة مكررة).
           invoiceIdempotencyKeyRef.current = createIdempotencyKey('sale');
         },
       }
@@ -262,6 +293,42 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
           <PrintableInvoice invoice={invoiceForPrint} />
         </div>
       </div>
+
+      {/* Interactive Confirmation Modal */}
+      <InvoiceConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={() => executeSave(targetStatus)}
+        isSubmitting={isPending}
+        mode="sale"
+        invoiceNumber={nextInvoiceNumber || undefined}
+        partyName={selectedCustomer?.name || 'عميل نقدي'}
+        invoiceType={invoiceType}
+        currency={currency || 'SAR'}
+        exchangeRate={currency === 'SAR' ? 1 : exchangeRate || 1}
+        exchangeOperator={exchangeOperator}
+        cashboxName={paymentAccounts?.find(acc => acc.id === cashboxId)?.name_ar}
+        warehouseName={
+          (rawWarehouses as Array<{ id: string; name_ar: string }> | undefined)?.find(
+            w => w.id === warehouseId
+          )?.name_ar
+        }
+        items={items
+          .filter(item => item.productId && item.name && item.quantity > 0 && item.price > 0)
+          .map(item => ({
+            name: item.name,
+            sku: item.sku,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.quantity * item.price,
+          }))}
+        subtotal={summary.subtotal}
+        discount={summary.discountAmount}
+        tax={0}
+        total={summary.totalAmount}
+        paidAmount={invoiceType === 'credit' ? paidAmount : undefined}
+        notes={notes}
+      />
     </>
   );
 };

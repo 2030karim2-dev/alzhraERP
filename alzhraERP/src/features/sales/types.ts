@@ -39,6 +39,7 @@ export interface CreateInvoicePayload {
   discount?: number;
   currency?: string;
   exchangeRate?: number;
+  paidAmount?: number;
   // Return-specific fields
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
@@ -59,6 +60,7 @@ export interface CreateInvoiceDTO {
   treasuryAccountId?: string;
   currency?: string;
   exchangeRate?: number;
+  paidAmount?: number;
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
   branchId?: string | null;

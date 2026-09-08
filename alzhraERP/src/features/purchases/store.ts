@@ -35,6 +35,7 @@ interface PurchaseState {
   warehouseId: string;
   invoiceType: 'cash' | 'credit';
   cashboxId: string;
+  paidAmount: number;
   notes: string;
   showDiscount: boolean;
   initializeItems: (count: number) => void;
@@ -248,6 +249,9 @@ const createMetadataActions = (
       const currentCurrency = get().currency;
       set({ exchangeRate: currentCurrency === 'SAR' ? 1 : Number(value) });
     }
+    if (field === 'paidAmount') {
+      set({ paidAmount: Math.max(0, readNumber(value)) });
+    }
   },
   toggleColumn: _field => {
     set(state => ({ showDiscount: !state.showDiscount }));
@@ -263,6 +267,7 @@ const createMetadataActions = (
       warehouseId: '',
       invoiceType: 'cash',
       cashboxId: '',
+      paidAmount: 0,
       notes: '',
       showDiscount: false,
       invoiceNumber: '',
@@ -284,6 +289,7 @@ export const usePurchaseStore = create<PurchaseState>()(
       warehouseId: '',
       invoiceType: 'cash',
       cashboxId: '',
+      paidAmount: 0,
       notes: '',
       showDiscount: false,
       ...createItemActions(set, get),
@@ -301,9 +307,10 @@ export const usePurchaseStore = create<PurchaseState>()(
         issueDate: state.issueDate,
         currency: state.currency,
         exchangeRate: state.exchangeRate,
-        warehouseId: state.warehouseId,
+        paidAmount: state.paidAmount,
         invoiceType: state.invoiceType,
         cashboxId: state.cashboxId,
+        warehouseId: state.warehouseId,
         notes: state.notes,
         showDiscount: state.showDiscount,
       }),

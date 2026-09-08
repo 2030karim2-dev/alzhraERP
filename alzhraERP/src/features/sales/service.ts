@@ -108,20 +108,21 @@ export const salesService = {
     }
 
     // Strict multi-currency and payment method resolution:
-    // - Credit (آجل): undefined -> debits AR (1100)
-    // - Cash (نقداً): resolved strictly to currency cashbox (SAR -> صندوق الريال السعودي, YER -> صندوق الريال اليمني)
+    // - Credit (آجل) without down payment: undefined -> debits AR (1100)
+    // - Cash (نقداً) or Credit with down payment: resolved strictly to currency cashbox
     let finalTreasuryAccountId: string | undefined = undefined;
-    if (payload.paymentMethod !== 'credit') {
+    const hasCashDeposit =
+      payload.paymentMethod !== 'credit' || Boolean(payload.paidAmount && payload.paidAmount > 0);
+    if (hasCashDeposit) {
       const accounts = await accountsService.getAccounts(companyId);
       finalTreasuryAccountId = resolveStrictPaymentAccount(
         accounts as unknown as RoutableAccount[],
-        payload.paymentMethod || 'cash',
+        payload.paymentMethod !== 'credit' ? payload.paymentMethod || 'cash' : 'cash',
         payload.currency || 'SAR',
         payload.treasuryAccountId
       );
-      // [AUDIT-FIX] لا تُوجَّه عملية نقدية بلا حساب مطابق بصمت إلى أول صندوق
-      // (كان ذلك يُودع عملة أجنبية في صندوق SAR). نوقف العملية برسالة واضحة.
-      if (!finalTreasuryAccountId) {
+      // لا تُوجَّه عملية نقدية أو دفعة مقدمة بلا حساب مطابق بصمت
+      if (!finalTreasuryAccountId && payload.paymentMethod !== 'credit') {
         throw new Error(
           'لم يُعثر على حساب صندوق/بنك مطابق لعملة الفاتورة — اختر الحساب يدوياً ثم أعد المحاولة'
         );

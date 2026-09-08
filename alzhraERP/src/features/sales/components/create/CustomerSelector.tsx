@@ -8,13 +8,48 @@ interface Props {
   compact?: boolean;
 }
 
+/** شارة ملونة تُظهر نوع الطرف (عميل / مورد / كلاهما) */
+const PartyTypeBadge: React.FC<{ type: string }> = ({ type }) => {
+  if (type === 'customer') {
+    return (
+      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
+        عميل
+      </span>
+    );
+  }
+  if (type === 'supplier') {
+    return (
+      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+        مورد
+      </span>
+    );
+  }
+  return (
+    <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+      عميل+مورد
+    </span>
+  );
+};
+
 const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
   const { selectedCustomer, setCustomer } = useSalesStore();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const { data: filteredCustomers, isLoading } = useParties('customer', query);
+  // ★ نجلب جميع الأطراف (عملاء وموردين) – الفواتير الآجلة قد تكون لأي طرف
+  const { data: filteredCustomers, isLoading } = useParties('all', query);
+  // نبني خريطة id→type لمعرفة نوع الطرف المحدد
+  const partyTypeMap = React.useMemo(() => {
+    const m = new Map<string, string>();
+    (filteredCustomers ?? []).forEach((p: { id: string; type?: string }) => {
+      if (p.type) m.set(p.id, p.type);
+    });
+    return m;
+  }, [filteredCustomers]);
+  const selectedPartyType = selectedCustomer
+    ? (partyTypeMap.get(selectedCustomer.id) ?? 'customer')
+    : 'customer';
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -28,7 +63,12 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
     };
   }, []);
 
-  const handleSelect = (customer: { id: string; name: string; phone?: string | null }) => {
+  const handleSelect = (customer: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    type?: string;
+  }) => {
     setCustomer({
       id: customer.id,
       name: customer.name,
@@ -90,9 +130,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                 >
                   {selectedCustomer.name}
                 </p>
-                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
-                  عميل
-                </span>
+                <PartyTypeBadge type={selectedPartyType} />
               </div>
               {!compact && selectedCustomer.phone && (
                 <div className="mt-0.5 flex items-center gap-1 font-mono text-[10px] text-slate-500 dark:text-slate-400">
@@ -141,7 +179,11 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
               setIsOpen(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder={compact ? 'بحث عميل...' : 'ابحث بالاسم، الهاتف، أو السجل المدني للعميل...'}
+            placeholder={
+              compact
+                ? 'بحث عميل/مورد...'
+                : 'ابحث بالاسم أو الهاتف (عملاء، موردين، موظفين، أصحاب إيجار...)'
+            }
             className={cn(
               'w-full rounded-xl border border-slate-300 bg-white font-bold text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100',
               compact
@@ -158,13 +200,13 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             <div className="animate-in fade-in slide-in-from-top-1 absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
               {isLoading ? (
                 <div className="p-3 text-center text-xs font-bold text-slate-400">
-                  جاري البحث في قاعدة العملاء...
+                  جاري البحث...
                 </div>
               ) : filteredCustomers && filteredCustomers.length > 0 ? (
                 <ul className="custom-scrollbar max-h-64 overflow-y-auto">
                   {filteredCustomers.map(
                     (
-                      customer: { id: string; name: string; phone?: string | null },
+                      customer: { id: string; name: string; phone?: string | null; type?: string },
                       idx: number
                     ) => {
                       const isHighlighted = idx === highlightedIndex;
@@ -184,8 +226,13 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
                               : 'text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
                           )}
                         >
-                          <div className="flex flex-col">
-                            <p className="text-xs font-bold">{customer.name}</p>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-bold">{customer.name}</p>
+                              {!isHighlighted && customer.type && (
+                                <PartyTypeBadge type={customer.type} />
+                              )}
+                            </div>
                             {customer.phone && (
                               <p
                                 dir="ltr"

@@ -99,20 +99,27 @@ export const purchasesService = {
   },
 
   processPurchase: async (data: CreatePurchaseDTO, companyId: string, userId: string) => {
-    assertValid(validatePurchasePayload({
-      items: data.items.map(i => ({ productId: i.productId, quantity: i.quantity, costPrice: i.costPrice })),
-      issueDate: data.issueDate,
-    }));
+    assertValid(
+      validatePurchasePayload({
+        items: data.items.map(i => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          costPrice: i.costPrice,
+        })),
+        issueDate: data.issueDate,
+      })
+    );
 
     // Strict multi-currency and payment method resolution:
-    // - Credit (آجل): undefined -> credits AP (2100)
+    // - Credit (آجل): credits AP (2100). If paidAmount > 0, cashAccountId is also resolved to fund down payment
     // - Cash (نقداً): resolved strictly to currency cashbox (SAR -> صندوق الريال السعودي, YER -> صندوق الريال اليمني)
     let finalCashAccountId = data.cashAccountId;
-    if (data.paymentMethod !== 'credit') {
+    const hasPartialPayment = (data.paidAmount ?? 0) > 0;
+    if (data.paymentMethod !== 'credit' || hasPartialPayment) {
       const accounts = await accountsService.getAccounts(companyId);
       finalCashAccountId = resolveStrictPaymentAccount(
         accounts as unknown as RoutableAccount[],
-        data.paymentMethod || 'cash',
+        'cash',
         data.currency || 'SAR',
         data.cashAccountId
       );
@@ -120,8 +127,10 @@ export const purchasesService = {
 
     const enhancedData: CreatePurchaseDTO = {
       ...data,
-      cashAccountId: data.paymentMethod === 'credit' ? undefined : finalCashAccountId,
-      bankAccountId: data.paymentMethod === 'credit' ? undefined : data.bankAccountId
+      cashAccountId:
+        data.paymentMethod === 'credit' && !hasPartialPayment ? undefined : finalCashAccountId,
+      bankAccountId:
+        data.paymentMethod === 'credit' && !hasPartialPayment ? undefined : data.bankAccountId,
     };
 
     const result = await purchasesApi.createPurchaseRPC(companyId, userId, enhancedData);
@@ -129,7 +138,10 @@ export const purchasesService = {
     {
       const typedResult = result as unknown as PurchaseInvoiceResponse;
       // Include per-line discounts so notifications match the screen total.
-      const totalAmount = data.items.reduce((sum, item) => sum + Math.max(0, item.quantity * item.costPrice - (item.discount ?? 0)), 0);
+      const totalAmount = data.items.reduce(
+        (sum, item) => sum + Math.max(0, item.quantity * item.costPrice - (item.discount ?? 0)),
+        0
+      );
 
       // Fire-and-forget verification: warns if the RPC did not create the
       // journal entry (never blocks the save flow).
@@ -138,18 +150,23 @@ export const purchasesService = {
         data,
         companyId,
         userId,
-        totalAmount,
+        totalAmount
       );
 
-      messagingService.notify(companyId, 'purchase', {
-        invoiceNumber: typedResult.invoice_number,
-        supplierName: 'مورد',
-        amount: totalAmount,
-        currency: data.currency ?? 'YER',
-        date: new Date().toLocaleDateString('en-GB'),
-        paymentMethod: data.paymentMethod,
-        itemCount: data.items.length,
-      }, typedResult.id);
+      messagingService.notify(
+        companyId,
+        'purchase',
+        {
+          invoiceNumber: typedResult.invoice_number,
+          supplierName: 'مورد',
+          amount: totalAmount,
+          currency: data.currency ?? 'YER',
+          date: new Date().toLocaleDateString('en-GB'),
+          paymentMethod: data.paymentMethod,
+          itemCount: data.items.length,
+        },
+        typedResult.id
+      );
     }
 
     return result;
@@ -161,7 +178,9 @@ export const purchasesService = {
   getStats: async (companyId: string, branchId?: string | null) => {
     const { data, error } = await supabase.rpc('get_purchase_stats', {
       p_company_id: companyId,
-      ...(branchId !== undefined && branchId !== null && branchId !== '' ? { p_branch_id: branchId } : {}),
+      ...(branchId !== undefined && branchId !== null && branchId !== ''
+        ? { p_branch_id: branchId }
+        : {}),
     });
     if (error) {
       logger.error('PurchaseService', 'Error fetching purchase stats', { companyId, error });
@@ -180,7 +199,9 @@ export const purchasesService = {
   getAnalytics: async (companyId: string, branchId?: string | null) => {
     const { data, error } = await supabase.rpc('get_purchase_stats', {
       p_company_id: companyId,
-      ...(branchId !== undefined && branchId !== null && branchId !== '' ? { p_branch_id: branchId } : {}),
+      ...(branchId !== undefined && branchId !== null && branchId !== ''
+        ? { p_branch_id: branchId }
+        : {}),
     });
     if (error) {
       logger.error('PurchaseService', 'Error fetching purchase analytics', { companyId, error });
@@ -208,12 +229,9 @@ export const purchasesService = {
     }
 
     const returns = data.filter(isPurchaseReturn);
-    const totalReturns = returns.reduce(
-      (sum, purchase) => sum + safeToBase(purchase),
-      0,
-    );
+    const totalReturns = returns.reduce((sum, purchase) => sum + safeToBase(purchase), 0);
     const pendingCount = returns.filter(
-      purchase => purchase.status === 'draft' || purchase.status === 'pending',
+      purchase => purchase.status === 'draft' || purchase.status === 'pending'
     ).length;
 
     return {

@@ -124,6 +124,9 @@ export const salesApi = {
       p_exchange_rate: payload.exchangeRate || 1,
       p_idempotency_key: idempotencyKey,
       ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
+      ...(payload.paidAmount !== undefined
+        ? { p_paid_amount: Number(payload.paidAmount) || 0 }
+        : {}),
     };
 
     const { data: result, error } = await supabase.rpc('commit_sales_invoice_v2', rpcParams);

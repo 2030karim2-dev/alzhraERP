@@ -45,11 +45,13 @@ async function fetchPartyCurrencies(
 
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType) => {
+    // 'all' → جلب جميع الأطراف بغض النظر عن النوع (عملاء وموردين)
+    const typeFilter = type === 'all' ? ['customer', 'supplier', 'both'] : [type, 'both'];
     const { data: partiesData, error: partiesError } = await supabase
       .from('parties')
       .select('*, party_categories(id, name)')
       .eq('company_id', companyId)
-      .in('type', [type, 'both'])
+      .in('type', typeFilter)
       .is('deleted_at', null)
       .order('name', { ascending: true });
 
@@ -130,11 +132,13 @@ export const partiesApi = {
   search: async (companyId: string, type: PartyType, query: string) => {
     const sanitized = query.replace(/[%_\\*()]/g, '');
     if (!sanitized.trim()) return { data: [], error: null };
+    // 'all' → البحث في جميع الأطراف؛ غير ذلك نشمل 'both' أيضاً
+    const typeFilter = type === 'all' ? ['customer', 'supplier', 'both'] : [type, 'both'];
     return await supabase
       .from('parties')
       .select('*')
       .eq('company_id', companyId)
-      .eq('type', type)
+      .in('type', typeFilter)
       .is('deleted_at', null)
       .textSearch('search_vector', sanitized, {
         config: 'simple',

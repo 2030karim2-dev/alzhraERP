@@ -1,4 +1,3 @@
-
 export interface PurchaseStats {
   invoiceCount: number;
   totalPurchases: number;
@@ -34,6 +33,7 @@ export interface CreatePurchaseDTO {
   bankAccountId?: string | undefined;
   currency?: string | undefined;
   exchangeRate?: number | undefined;
+  paidAmount?: number | undefined;
   // Return-specific fields
   referenceInvoiceId?: string | null | undefined;
   returnReason?: string | null | undefined;

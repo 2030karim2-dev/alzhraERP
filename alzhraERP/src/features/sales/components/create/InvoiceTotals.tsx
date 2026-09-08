@@ -2,7 +2,7 @@ import React from 'react';
 import { useSalesStore } from '../../store';
 import { useDiscountStore } from '../../../settings/taxDiscountStore';
 import { formatCurrency, cn } from '../../../../core/utils';
-import { Wallet } from 'lucide-react';
+import { Wallet, HandCoins } from 'lucide-react';
 
 interface InvoiceTotalsProps {
   notes: string;
@@ -95,13 +95,89 @@ const NetTotalDisplay: React.FC<{ totalAmount: number; currency: string }> = ({
 );
 
 const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) => {
-  const { summary, currency } = useSalesStore();
+  const { summary, currency, invoiceType, paidAmount, setMetadata } = useSalesStore();
   const { discountEnabled } = useDiscountStore();
 
   return (
     <div className="rounded-b-2xl border-t-2 border-gray-100 bg-[var(--app-surface)] dark:border-slate-800">
       <div className="flex flex-col items-stretch justify-between md:flex-row">
         <NotesSection notes={notes} onNotesChange={onNotesChange} />
+
+        {/* Partial Payment Section for Credit Invoices */}
+        {invoiceType === 'credit' && (
+          <div className="flex-1 border-t border-slate-200 p-2.5 dark:border-slate-800 md:border-r md:border-t-0 md:p-4">
+            <div className="flex flex-col gap-2 rounded-xl border border-amber-200/80 bg-amber-50/50 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                  <HandCoins size={14} className="text-amber-600 dark:text-amber-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    دفعة نقدية مقدماً (اختياري للآجل)
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                  المتبقي آجل:{' '}
+                  {formatCurrency(Math.max(0, summary.totalAmount - (paidAmount || 0)), currency)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max={summary.totalAmount}
+                    step="any"
+                    placeholder="0.00"
+                    value={paidAmount > 0 ? paidAmount : ''}
+                    onChange={e => {
+                      const val = parseFloat(e.target.value);
+                      setMetadata('paidAmount', isNaN(val) || val < 0 ? 0 : val);
+                    }}
+                    className="w-full rounded-lg border border-amber-300/80 bg-white px-2.5 py-1.5 font-mono text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-amber-700/60 dark:bg-slate-900 dark:text-slate-100"
+                  />
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                    {currency}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setMetadata('paidAmount', summary.totalAmount)}
+                    className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
+                  >
+                    كامل
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMetadata('paidAmount', Math.round((summary.totalAmount / 2) * 100) / 100)
+                    }
+                    className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
+                  >
+                    50%
+                  </button>
+                  {paidAmount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setMetadata('paidAmount', 0)}
+                      className="rounded-md bg-rose-100 px-2 py-1.5 text-[10px] font-bold text-rose-700 transition-colors hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300"
+                    >
+                      إلغاء
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {paidAmount > summary.totalAmount && (
+                <span className="text-[10px] font-bold text-rose-600">
+                  * تنبيه: مبلغ الدفعة أكبر من إجمالي الفاتورة (
+                  {formatCurrency(summary.totalAmount, currency)})
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex w-full flex-col border-t border-slate-200 dark:border-slate-800 md:w-80 md:border-l md:border-t-0">
           <TotalsBreakdown

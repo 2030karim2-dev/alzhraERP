@@ -20,6 +20,11 @@ import { useWarehouses } from '../../../inventory/hooks/useInventoryManagement';
 import { useCurrencies } from '../../../settings/hooks';
 import CustomerSelector from './CustomerSelector';
 import { cn } from '../../../../core/utils';
+import { formatLocalDate } from '../../../../core/utils/dateUtils';
+import {
+  resolveAutoExchangeRate,
+  getDefaultExchangeOperator,
+} from '../../../../core/utils/currencyUtils';
 
 interface Props {
   invoiceNumber?: string;
@@ -69,18 +74,20 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
         setMetadata('exchangeRate', 1);
         setMetadata('exchangeOperator', 'multiply');
       } else {
-        const rateObj = (
-          rates.data as Array<{ currency_code: string; rate_to_base: number }>
-        )?.find(r => r.currency_code === currency);
-        if (rateObj) {
-          setMetadata('exchangeRate', rateObj.rate_to_base);
-          const currencyConfig = (
-            currencies.data as Array<{ code: string; exchange_operator: string }>
-          )?.find(c => c.code === currency);
-          if (currencyConfig) {
-            setMetadata('exchangeOperator', currencyConfig.exchange_operator);
-          }
-        }
+        const autoRate = resolveAutoExchangeRate(
+          currency,
+          rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+          currencies.data as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
+        );
+        setMetadata('exchangeRate', autoRate);
+        const currencyConfig = (
+          currencies.data as Array<{ code: string; exchange_operator: string }>
+        )?.find(c => c.code === currency);
+        setMetadata(
+          'exchangeOperator',
+          (currencyConfig?.exchange_operator as 'multiply' | 'divide') ||
+            getDefaultExchangeOperator(currency)
+        );
       }
     }
 
@@ -137,7 +144,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
     setMetadata,
   ]);
 
-  const date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+  const date = formatLocalDate(); // YYYY-MM-DD local timezone
 
   // Find currently selected treasury account
   const selectedAccount = useMemo(() => {
@@ -260,7 +267,56 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
               <select
                 value={currency || 'SAR'}
                 onChange={e => {
-                  setMetadata('currency', e.target.value);
+                  const newCurr = e.target.value;
+                  prevCurrency.current = newCurr;
+                  setMetadata('currency', newCurr);
+
+                  if (newCurr === 'SAR') {
+                    setMetadata('exchangeRate', 1);
+                    setMetadata('exchangeOperator', 'multiply');
+                  } else {
+                    const autoRate = resolveAutoExchangeRate(
+                      newCurr,
+                      (rates.data as Array<{ currency_code: string; rate_to_base: number }>) ?? [],
+                      currencies.data as Array<{
+                        code: string;
+                        exchange_operator?: 'multiply' | 'divide';
+                      }>
+                    );
+                    setMetadata('exchangeRate', autoRate);
+                    const currencyConfig = (
+                      currencies.data as Array<{ code: string; exchange_operator: string }>
+                    )?.find(c => c.code === newCurr);
+                    setMetadata(
+                      'exchangeOperator',
+                      (currencyConfig?.exchange_operator as 'multiply' | 'divide') ||
+                        getDefaultExchangeOperator(newCurr)
+                    );
+                  }
+
+                  if (paymentAccounts && paymentAccounts.length > 0) {
+                    const normalizedCurrency = (newCurr || 'SAR').toUpperCase();
+                    const searchTerms = [
+                      normalizedCurrency,
+                      ...(normalizedCurrency === 'SAR'
+                        ? ['سعودي', 'ريال سعودي']
+                        : normalizedCurrency === 'YER'
+                          ? ['يمني', 'ريال يمني']
+                          : []),
+                    ];
+                    const matchingAccount = paymentAccounts.find(acc => {
+                      const accCurrency = (acc.currency_code ?? '').toUpperCase();
+                      const currencyMatches =
+                        accCurrency !== '' && accCurrency === normalizedCurrency;
+                      const searchableText = `${acc.name_ar} ${acc.code ?? ''}`.toLowerCase();
+                      const keywordMatches = searchTerms.some(term =>
+                        searchableText.includes(term.toLowerCase())
+                      );
+                      return currencyMatches || keywordMatches;
+                    });
+
+                    setMetadata('cashboxId', matchingAccount ? matchingAccount.id : '');
+                  }
                 }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
@@ -287,15 +343,15 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                   currency === 'SAR'
                     ? 1
                     : exchangeRate
-                      ? exchangeOperator === 'divide'
-                        ? parseFloat((1 / exchangeRate).toFixed(5))
+                      ? exchangeOperator === 'divide' && exchangeRate < 1
+                        ? Math.round(1 / exchangeRate)
                         : exchangeRate
                       : 1
                 }
                 onChange={e => {
                   const val = parseFloat(e.target.value);
                   if (!val) return;
-                  setMetadata('exchangeRate', exchangeOperator === 'divide' ? 1 / val : val);
+                  setMetadata('exchangeRate', val);
                 }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />

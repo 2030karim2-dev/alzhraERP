@@ -16,6 +16,10 @@ import { usePaymentAccounts } from '../../../accounting/hooks/index';
 import { useCurrencies } from '../../../settings/hooks';
 import { useWarehouses } from '../../../inventory/hooks/useWarehouses';
 import { cn } from '../../../../core/utils';
+import {
+  resolveAutoExchangeRate,
+  getDefaultExchangeOperator,
+} from '../../../../core/utils/currencyUtils';
 import type { PaymentAccount } from '../../../accounting/hooks/usePaymentAccounts';
 import type { Warehouse as WarehouseType } from '../../../inventory/types';
 import type { Party } from '../../../parties/types';
@@ -41,26 +45,21 @@ const findMatchingAccount = (
   accounts: PaymentAccount[],
   currency: string
 ): PaymentAccount | undefined => {
-  const terms = currency === 'SAR' ? ['SAR', 'سعودي', 'ريال سعودي'] : ['YER', 'يمني', 'ريال يمني'];
-  return accounts.find(
-    account =>
-      account.currency_code === currency ||
-      terms.some(term => account.name_ar.toLowerCase().includes(term.toLowerCase()))
-  );
+  const norm = (currency || 'SAR').toUpperCase();
+  const terms =
+    norm === 'SAR'
+      ? ['SAR', 'سعودي', 'ريال سعودي']
+      : norm === 'YER'
+        ? ['YER', 'يمني', 'ريال يمني']
+        : [norm];
+  return accounts.find(account => {
+    const accCurr = (account.currency_code ?? '').toUpperCase();
+    const currencyMatches = accCurr !== '' && accCurr === norm;
+    const searchable = `${account.name_ar} ${account.code ?? ''}`.toLowerCase();
+    const termMatches = terms.some(term => searchable.includes(term.toLowerCase()));
+    return currencyMatches || termMatches;
+  });
 };
-
-interface ExchangeRateRow {
-  currency_code: string;
-  rate_to_base: number;
-}
-const resolveExchangeRate = (
-  currency: string,
-  currentRate: number,
-  rates: readonly ExchangeRateRow[]
-): number =>
-  currency === 'SAR'
-    ? 1
-    : (rates.find(rate => rate.currency_code === currency)?.rate_to_base ?? currentRate);
 
 interface MetaBlockProps {
   label: string;
@@ -236,15 +235,15 @@ const ExchangeRateBlock: React.FC<ExchangeRateBlockProps> = ({
           isBase
             ? '1'
             : exchangeRate
-              ? isDivide
-                ? parseFloat((1 / exchangeRate).toFixed(5))
+              ? isDivide && exchangeRate < 1
+                ? Math.round(1 / exchangeRate)
                 : exchangeRate
               : '1'
         }
         onChange={event => {
           if (isBase) return;
           const value = parseFloat(event.target.value);
-          if (value) onChange(isDivide ? 1 / value : value);
+          if (value) onChange(value);
         }}
         className={cn(
           'min-h-4 w-full bg-transparent font-mono text-[11px] font-bold leading-none outline-none max-md:text-[10px]',
@@ -426,7 +425,12 @@ const PurchaseMeta: React.FC = () => {
         setMetadata('exchangeRate', 1);
       }
     } else if (currencyChanged || ratesJustLoaded) {
-      setMetadata('exchangeRate', resolveExchangeRate(currency, exchangeRate, rateRows));
+      const autoRate = resolveAutoExchangeRate(
+        currency,
+        rateRows as Array<{ currency_code: string; rate_to_base: number }>,
+        currencyRows as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
+      );
+      setMetadata('exchangeRate', autoRate);
     }
 
     if (rateRows.length > 0) ratesLoaded.current = true;
@@ -435,9 +439,35 @@ const PurchaseMeta: React.FC = () => {
       if (matchingAccount !== undefined) setMetadata('cashboxId', matchingAccount.id);
     }
     prevCurrency.current = currency;
-  }, [currency, paymentAccounts, rates.data, exchangeRate, setMetadata]);
+  }, [currency, paymentAccounts, rates.data, currencyRows, exchangeRate, setMetadata]);
+
+  const handleMetadataChange = (field: string, value: string) => {
+    setMetadata(field, value);
+    if (field === 'currency') {
+      const newCurr = value;
+      prevCurrency.current = newCurr;
+      if (newCurr === 'SAR') {
+        setMetadata('exchangeRate', 1);
+      } else {
+        const autoRate = resolveAutoExchangeRate(
+          newCurr,
+          (rates.data ?? []) as Array<{ currency_code: string; rate_to_base: number }>,
+          currencyRows as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
+        );
+        setMetadata('exchangeRate', autoRate);
+      }
+      const matching = findMatchingAccount(paymentAccounts, newCurr);
+      if (matching !== undefined) {
+        setMetadata('cashboxId', matching.id);
+      }
+    }
+  };
 
   const currencyObj = currencyRows.find(item => item.code === currency);
+  const isDivide =
+    currencyObj?.exchange_operator === 'divide' ||
+    getDefaultExchangeOperator(currency) === 'divide';
+
   return (
     <div className="flex flex-col border-b bg-blue-50/20 dark:border-slate-800 dark:bg-slate-950/20">
       <SupplierHeader
@@ -457,12 +487,12 @@ const PurchaseMeta: React.FC = () => {
         warehouseId={warehouseId}
         currency={currency}
         exchangeRate={exchangeRate}
-        isDivide={currencyObj?.exchange_operator === 'divide'}
+        isDivide={isDivide}
         notes={notes}
         paymentAccounts={paymentAccounts}
         warehouses={warehouseRows}
         currencies={currencyRows}
-        onChange={setMetadata}
+        onChange={handleMetadataChange}
         onRateChange={value => {
           setMetadata('exchangeRate', value);
         }}
