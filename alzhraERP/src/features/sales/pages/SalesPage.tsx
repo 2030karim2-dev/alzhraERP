@@ -80,10 +80,10 @@ const SalesPage: React.FC = () => {
     try {
       await createSalesReturn.mutateAsync({
         invoiceId: invoice.id,
-        partyId: invoice.party?.id || invoice.party_id || '',
+        partyId: invoice.party?.id || invoice.party_id || undefined,
         paymentMethod: invoice.payment_method || 'cash',
         items: items.map(item => ({
-          productId: item.product_id || item.productId || item.id,
+          productId: item.product_id || item.productId || (item.product?.id ?? item.id),
           name: item.description || item.name || item.product?.name_ar || 'صنف مرتجع',
           quantity: Number(item.quantity ?? item.returnQuantity ?? 1),
           unitPrice: Number(item.unit_price ?? item.unitPrice ?? 0),

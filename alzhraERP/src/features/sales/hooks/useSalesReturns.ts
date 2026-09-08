@@ -13,6 +13,7 @@ import type { InvoiceStatus } from '../types';
 import { toReturnPayloadItems } from '../../returns/utils/returnHelpers';
 import type { Json } from '../../../core/database.types';
 import { normalizeSearch } from '../../../core/utils';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 export interface SalesReturn {
   id: string;
@@ -201,15 +202,15 @@ export const useCreateSalesReturn = () => {
   return useMutation({
     mutationFn: async (data: {
       invoiceId: string;
-      partyId: string;
-      paymentMethod?: string;
+      partyId?: string | null | undefined;
+      paymentMethod?: string | undefined;
       items: any[];
-      returnReason?: string;
-      status?: string;
-      notes?: string;
-      issueDate?: string;
-      currency?: string;
-      exchangeRate?: number;
+      returnReason?: string | undefined;
+      status?: string | undefined;
+      notes?: string | undefined;
+      issueDate?: string | undefined;
+      currency?: string | undefined;
+      exchangeRate?: number | undefined;
     }) => {
       if (!user?.company_id || !user?.id) {
         throw new Error('Missing authentication context');
@@ -217,13 +218,15 @@ export const useCreateSalesReturn = () => {
 
       const { data: result, error } = await supabase.rpc('process_sales_return', {
         p_invoice_id: data.invoiceId,
-        p_party_id: data.partyId,
+        p_party_id: (data.partyId && data.partyId.trim() !== ''
+          ? data.partyId
+          : null) as unknown as string,
         p_payment_method: data.paymentMethod || 'cash',
         p_items: toReturnPayloadItems(data.items ?? []) as unknown as Json,
         p_return_reason: data.returnReason || '',
         p_status: data.status || 'posted',
         p_notes: data.notes || '',
-        p_issue_date: data.issueDate || new Date().toISOString().split('T')[0],
+        p_issue_date: data.issueDate || formatLocalDate(),
         p_currency_code: data.currency || 'SAR',
         p_exchange_rate: data.exchangeRate || 1,
         p_company_id: user.company_id,
