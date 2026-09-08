@@ -44,6 +44,8 @@ const PartyModal: React.FC<PartyModalProps> = ({
   const { save: saveCategory, isSaving: isSavingCategory } = useCategoryMutations(partyType);
 
   useEffect(() => {
+    const effectiveType: PartyFormData['type'] =
+      partyType === 'all' ? 'customer' : (partyType as PartyFormData['type']);
     if (isOpen) {
       if (initialData) {
         reset({
@@ -52,13 +54,13 @@ const PartyModal: React.FC<PartyModalProps> = ({
           email: initialData.email || '',
           tax_number: initialData.tax_number || '',
           address: initialData.address || '',
-          type: partyType,
+          type: (initialData.type as PartyFormData['type']) || effectiveType,
           status: initialData.status || 'active',
           category_id: initialData.category_id || '',
         });
       } else if (prefillData) {
         reset({
-          type: partyType,
+          type: (prefillData.type as PartyFormData['type']) || effectiveType,
           name: prefillData.name || '',
           phone: prefillData.phone || '',
           email: prefillData.email || '',
@@ -69,7 +71,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
         });
       } else {
         reset({
-          type: partyType,
+          type: effectiveType,
           name: '',
           phone: '',
           email: '',
@@ -80,7 +82,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
         });
       }
     }
-  }, [isOpen, initialData, reset, partyType]);
+  }, [isOpen, initialData, prefillData, partyType, reset]);
 
   const entityType = partyType === 'customer' ? t('customer') : t('supplier');
   const title = initialData

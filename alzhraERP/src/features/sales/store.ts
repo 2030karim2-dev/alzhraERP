@@ -35,7 +35,7 @@ export interface SalesSummary {
 
 interface SalesState {
   items: SalesCartItem[];
-  selectedCustomer: { id: string; name: string; phone?: string } | null;
+  selectedCustomer: { id: string; name: string; phone?: string; type?: string } | null;
   summary: SalesSummary;
   invoiceType: 'cash' | 'credit';
   currency: string;
@@ -56,7 +56,9 @@ interface SalesState {
   addProductToCart: (product: Product) => void;
   removeItem: (idOrIndex: number | string) => void;
   calculateTotals: () => void;
-  setCustomer: (customer: { id: string; name: string; phone?: string } | null) => void;
+  setCustomer: (
+    customer: { id: string; name: string; phone?: string; type?: string } | null
+  ) => void;
   setMetadata: (field: string, value: string | boolean | null | number) => void;
   toggleColumn: (field: 'showDiscount') => void;
   resetCart: () => void;

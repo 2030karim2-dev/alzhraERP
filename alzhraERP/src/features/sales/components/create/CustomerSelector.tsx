@@ -47,9 +47,10 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
     });
     return m;
   }, [filteredCustomers]);
-  const selectedPartyType = selectedCustomer
-    ? (partyTypeMap.get(selectedCustomer.id) ?? 'customer')
-    : 'customer';
+  const selectedPartyType =
+    selectedCustomer?.type ||
+    (selectedCustomer ? partyTypeMap.get(selectedCustomer.id) : undefined) ||
+    'customer';
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -73,6 +74,7 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
       id: customer.id,
       name: customer.name,
       ...(customer.phone ? { phone: customer.phone } : {}),
+      type: customer.type || 'customer',
     });
     setQuery('');
     setIsOpen(false);

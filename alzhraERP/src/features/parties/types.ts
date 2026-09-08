@@ -17,7 +17,7 @@ export type Party = Database['public']['Tables']['parties']['Row'] & {
 
 export interface PartyFormData {
   name: string;
-  type: PartyType;
+  type: 'customer' | 'supplier' | 'both';
   phone?: string;
   email?: string;
   tax_number?: string;

@@ -98,6 +98,7 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
               id: generalCustomer.id,
               name: generalCustomer.name,
               phone: generalCustomer.phone || '',
+              type: 'customer',
             });
           }
         } catch (error) {

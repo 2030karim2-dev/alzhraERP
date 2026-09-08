@@ -62,7 +62,7 @@ export const partiesApi = {
       .from('party_balances')
       .select('party_id, balance, type')
       .eq('company_id', companyId)
-      .eq('type', type);
+      .in('type', typeFilter);
 
     const balancesMap = new Map();
     if (balancesError === null) {
