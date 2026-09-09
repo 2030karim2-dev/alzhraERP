@@ -190,7 +190,7 @@ export const reportsApi = {
     return await supabase
       .from('invoices')
       .select(
-        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties(name, type)'
+        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties(name, type), currency_code, exchange_rate'
       )
       .eq('company_id', companyId)
       .eq('type', 'sale')
@@ -206,7 +206,8 @@ export const reportsApi = {
         'id, invoice_number, issue_date, total_amount, status, type, party_id, parties(name), exchange_rate, currency_code'
       )
       .eq('company_id', companyId)
-      .in('type', ['sale', 'sale_return'])
+      .in('type', ['sale', 'sale_return', 'return_sale'])
+      .neq('status', 'void')
       .is('deleted_at', null)
       .gte('issue_date', fromDateISO)
       .order('issue_date', { ascending: false });
@@ -224,7 +225,11 @@ export const reportsApi = {
       )
       .eq('journal.company_id', companyId)
       .eq('journal.status', 'posted')
+      .is('deleted_at', null)
+      .is('journal.deleted_at', null)
       .eq('account.type', 'expense')
+      .neq('account.code', '5100')
+      .not('account.code', 'like', '51%')
       .gte('journal.entry_date', fromDateISO);
   },
 };

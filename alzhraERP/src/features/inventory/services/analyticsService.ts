@@ -189,13 +189,20 @@ export const analyticsService = {
       const qty = (item.quantity as number) || 0;
       const rev = (item.total as number) || 0;
       const products = item.products as
-        { cost_price?: number; name_ar?: string; sku?: string } | undefined;
-      const unitCost = products?.cost_price || 0;
+        | { cost_price?: number; purchase_price?: number; name_ar?: string; sku?: string }
+        | undefined;
+      const productInfo = allProducts.find(p => p.id === pid);
+      const unitCost = Number(
+        products?.cost_price || products?.purchase_price || productInfo?.cost_price || 0
+      );
       const cost = unitCost * qty;
 
       // Handle Returns (negative qty/rev)
       const invoices = item.invoices as { type?: string; issue_date?: string } | undefined;
-      const multiplier = invoices?.type === 'sale_return' ? -1 : 1;
+      const isReturn = ['sale_return', 'return_sale', 'sales_return'].includes(
+        invoices?.type || ''
+      );
+      const multiplier = isReturn ? -1 : 1;
       const adjustedQty = qty * multiplier;
       const adjustedRev = rev * multiplier;
       const adjustedCost = cost * multiplier;

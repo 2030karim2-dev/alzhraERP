@@ -1,20 +1,25 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { aiPartLookupApi, type AIPartLookupResult } from '../api/aiPartLookupApi';
 import { useFeedbackStore } from '../../feedback/store';
+import { useAuthStore } from '../../auth/store';
 
 /**
  * Hook for AI-powered part number lookup.
  * Uses the ai-part-lookup Edge Function to scrape real auto parts websites.
+ * Cache is scoped per company_id for strict multi-tenancy isolation.
  */
 export const useAIPartLookup = (partNumber?: string | null) => {
   const { showToast } = useFeedbackStore();
+  const companyId = useAuthStore(s => s.user?.company_id);
 
-  // Check cache first (passive query)
+  // Check cache first (passive query) — scoped to this company
   const cachedQuery = useQuery({
-    queryKey: ['ai_part_lookup_cache', partNumber],
+    queryKey: ['ai_part_lookup_cache', partNumber, companyId],
     queryFn: () =>
-      partNumber ? aiPartLookupApi.getCachedResults(partNumber) : Promise.resolve(null),
-    enabled: !!partNumber && partNumber.length >= 3,
+      partNumber
+        ? aiPartLookupApi.getCachedResults(partNumber, companyId ?? undefined)
+        : Promise.resolve(null),
+    enabled: !!partNumber && partNumber.length >= 3 && !!companyId,
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 

@@ -13,12 +13,7 @@ import { QuotationBuilderDrawer } from '../components/QuotationBuilderDrawer';
 import { ExcelImportModal } from '../components/ExcelImportModal';
 import { VendorComparisonModal } from '../components/VendorComparisonModal';
 import { QuotationHistoryModal } from '../components/QuotationHistoryModal';
-import type {
-  VendorProductItem,
-  VendorRFQ,
-  VendorQuotation,
-  QuotationItemDraft,
-} from '../types';
+import type { VendorProductItem, VendorRFQ, VendorQuotation, QuotationItemDraft } from '../types';
 
 export const SupplierPortalPage: React.FC = () => {
   const user = useAuthStore(state => state.user);
@@ -36,13 +31,18 @@ export const SupplierPortalPage: React.FC = () => {
   const [isQuotationDrawerOpen, setIsQuotationDrawerOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
-  const [historyQuotation, setHistoryQuotation] = useState<{ id: string; number: string } | null>(null);
+  const [historyQuotation, setHistoryQuotation] = useState<{ id: string; number: string } | null>(
+    null
+  );
   const [quotationDraftItems, setQuotationDraftItems] = useState<QuotationItemDraft[]>([]);
   const [activeQuotationId, setActiveQuotationId] = useState<string | undefined>(undefined);
 
   // Fetch Data
   const fetchData = useCallback(async () => {
-    if (!companyId) return;
+    if (!companyId) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
 
     try {
@@ -132,6 +132,10 @@ export const SupplierPortalPage: React.FC = () => {
     terms: string | null;
     notes: string | null;
   }) => {
+    if (!companyId) {
+      showToast('لا يمكن إتمام العملية لعدم تحديد الشركة النشطة', 'error');
+      return;
+    }
     try {
       const quoteId = activeQuotationId || crypto.randomUUID();
       await supplierPortalService.submitQuotationRevision({
@@ -179,11 +183,13 @@ export const SupplierPortalPage: React.FC = () => {
   const totalQuotationsValue = quotations.reduce((sum, q) => sum + q.total_amount, 0);
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-4 space-y-3.5 overflow-y-auto">
+    <div className="flex h-full flex-col space-y-3.5 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950">
       {/* Top Header */}
       <PortalHeader
         isLoading={isLoading}
-        onOpenComparisonModal={() => { setIsComparisonModalOpen(true); }}
+        onOpenComparisonModal={() => {
+          setIsComparisonModalOpen(true);
+        }}
         onOpenNewQuotationDrawer={() => {
           setQuotationDraftItems([]);
           setActiveQuotationId(undefined);
@@ -202,49 +208,55 @@ export const SupplierPortalPage: React.FC = () => {
       />
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-1.5">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5 dark:border-slate-800">
         <button
           type="button"
-          onClick={() => { setActiveTab('products'); }}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          onClick={() => {
+            setActiveTab('products');
+          }}
+          className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
             activeTab === 'products'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
+          <Layers className="h-3.5 w-3.5" />
           <span>كتالوج المنتجات ({products.length})</span>
         </button>
 
         <button
           type="button"
-          onClick={() => { setActiveTab('rfqs'); }}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          onClick={() => {
+            setActiveTab('rfqs');
+          }}
+          className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
             activeTab === 'rfqs'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
-          <Send className="w-3.5 h-3.5" />
+          <Send className="h-3.5 w-3.5" />
           <span>طلبات التسعير ({rfqs.length})</span>
         </button>
 
         <button
           type="button"
-          onClick={() => { setActiveTab('quotations'); }}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          onClick={() => {
+            setActiveTab('quotations');
+          }}
+          className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors ${
             activeTab === 'quotations'
               ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-[var(--app-surface)] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-[var(--app-surface)] text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
-          <FileText className="w-3.5 h-3.5" />
+          <FileText className="h-3.5 w-3.5" />
           <span>عروض الأسعار والمراجعات ({quotations.length})</span>
         </button>
       </div>
 
       {/* Tab Panels */}
-      <div className="flex-1 min-h-[460px]">
+      <div className="min-h-[460px] flex-1">
         {activeTab === 'products' && (
           <ProductsTab
             products={products}
@@ -253,22 +265,23 @@ export const SupplierPortalPage: React.FC = () => {
             onSelectionChange={setSelectedProductIds}
             onCreateQuotation={handleOpenQuotationFromSelection}
             onExportExcel={handleExportCatalogExcel}
-            onOpenImport={() => { setIsImportModalOpen(true); }}
+            onOpenImport={() => {
+              setIsImportModalOpen(true);
+            }}
             isLoading={isLoading}
           />
         )}
 
         {activeTab === 'rfqs' && (
-          <RFQsTab
-            rfqs={rfqs}
-            onOpenQuotationFromRFQ={handleOpenQuotationFromRFQ}
-          />
+          <RFQsTab rfqs={rfqs} onOpenQuotationFromRFQ={handleOpenQuotationFromRFQ} />
         )}
 
         {activeTab === 'quotations' && (
           <QuotationsTab
             quotations={quotations}
-            onOpenHistory={(id, num) => { setHistoryQuotation({ id, number: num }); }}
+            onOpenHistory={(id, num) => {
+              setHistoryQuotation({ id, number: num });
+            }}
             onEditQuotation={quote => {
               setQuotationDraftItems(quote.items);
               setActiveQuotationId(quote.quotation_id);
@@ -281,7 +294,9 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Quotation Builder Drawer */}
       <QuotationBuilderDrawer
         isOpen={isQuotationDrawerOpen}
-        onClose={() => { setIsQuotationDrawerOpen(false); }}
+        onClose={() => {
+          setIsQuotationDrawerOpen(false);
+        }}
         initialItems={quotationDraftItems}
         allProducts={products}
         companyName={user?.company_name || 'Al-Zahra Smart ERP'}
@@ -293,7 +308,9 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Excel Import Modal */}
       <ExcelImportModal
         isOpen={isImportModalOpen}
-        onClose={() => { setIsImportModalOpen(false); }}
+        onClose={() => {
+          setIsImportModalOpen(false);
+        }}
         allProducts={products}
         onImportComplete={items => {
           setQuotationDraftItems(items);
@@ -305,7 +322,9 @@ export const SupplierPortalPage: React.FC = () => {
       {/* Vendor Comparison Matrix Modal */}
       <VendorComparisonModal
         isOpen={isComparisonModalOpen}
-        onClose={() => { setIsComparisonModalOpen(false); }}
+        onClose={() => {
+          setIsComparisonModalOpen(false);
+        }}
         quotations={quotations}
         companyId={companyId}
         onConvertedSuccessfully={po => {
@@ -318,7 +337,9 @@ export const SupplierPortalPage: React.FC = () => {
       {historyQuotation && (
         <QuotationHistoryModal
           isOpen={!!historyQuotation}
-          onClose={() => { setHistoryQuotation(null); }}
+          onClose={() => {
+            setHistoryQuotation(null);
+          }}
           quotationId={historyQuotation.id}
           quotationNumber={historyQuotation.number}
         />

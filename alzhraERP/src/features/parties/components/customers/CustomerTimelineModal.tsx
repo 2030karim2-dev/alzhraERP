@@ -29,16 +29,16 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
 
   // Fetch customer activities
   const { data: activities = [], isLoading: activitiesLoading } = useQuery({
-    queryKey: ['customer-activities', customer?.id],
+    queryKey: ['customer-activities', customer?.company_id, customer?.id],
     queryFn: () => customerApi.getCustomerActivities(customer!.id),
-    enabled: !!customer?.id && isOpen,
+    enabled: !!customer?.id && !!customer?.company_id && isOpen,
   });
 
   // Fetch customer notes
   const { data: notes = [], isLoading: notesLoading } = useQuery({
-    queryKey: ['customer-notes', customer?.id],
+    queryKey: ['customer-notes', customer?.company_id, customer?.id],
     queryFn: () => customerApi.getCustomerNotes(customer!.id),
-    enabled: !!customer?.id && isOpen,
+    enabled: !!customer?.id && !!customer?.company_id && isOpen,
   });
 
   // Add activity mutation
@@ -50,7 +50,9 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
         companyId: customer!.company_id,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-activities', customer?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['customer-activities', customer?.company_id, customer?.id],
+      });
       setIsAddActivityOpen(false);
     },
   });
@@ -59,7 +61,9 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
   const completeActivityMutation = useMutation({
     mutationFn: (id: string) => customerApi.completeActivity(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-activities', customer?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['customer-activities', customer?.company_id, customer?.id],
+      });
     },
   });
 
@@ -67,7 +71,9 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
   const deleteActivityMutation = useMutation({
     mutationFn: (id: string) => customerApi.deleteActivity(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-activities', customer?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['customer-activities', customer?.company_id, customer?.id],
+      });
     },
   });
 
@@ -81,7 +87,9 @@ export const CustomerTimelineModal: React.FC<CustomerTimelineModalProps> = ({
         companyId: customer!.company_id,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-notes', customer?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['customer-notes', customer?.company_id, customer?.id],
+      });
     },
   });
 

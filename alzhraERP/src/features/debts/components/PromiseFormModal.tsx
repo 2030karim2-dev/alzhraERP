@@ -6,6 +6,7 @@ import { useCurrencies } from '../../settings/hooks';
 import { useDebtMutations } from '../hooks/useDebtMutations';
 import type { PaymentPromise } from '../types';
 import type { Party } from '../../parties/types';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 interface PromiseFormModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ interface PromiseFormState {
   notes: string;
 }
 
-const todayISO = (): string => new Date().toISOString().slice(0, 10);
+const todayISO = (): string => formatLocalDate();
 
 const inputClass =
   'w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:opacity-60';
@@ -34,7 +35,7 @@ const FieldLabel: React.FC<{ htmlFor: string; children: React.ReactNode }> = ({
 }) => (
   <label
     htmlFor={htmlFor}
-    className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5"
+    className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-gray-500"
   >
     {children}
   </label>
@@ -50,9 +51,7 @@ const PartyField: React.FC<{
   <div>
     <FieldLabel htmlFor={id}>العميل * (بحث ذكي بالاسم أو الهاتف)</FieldLabel>
     {disabled ? (
-      <div className={inputClass}>
-        {parties.find((p) => p.id === value)?.name || 'العميل المحدد'}
-      </div>
+      <div className={inputClass}>{parties.find(p => p.id === value)?.name || 'العميل المحدد'}</div>
     ) : (
       <SmartPartySelect
         partyType="customer"
@@ -72,7 +71,15 @@ const MoneyFields: React.FC<{
   currencies: Array<{ code: string; name_ar: string }> | null;
   onAmountChange: (value: string) => void;
   onCurrencyChange: (value: string) => void;
-}> = ({ amountId, currencyId, amount, currencyCode, currencies, onAmountChange, onCurrencyChange }) => (
+}> = ({
+  amountId,
+  currencyId,
+  amount,
+  currencyCode,
+  currencies,
+  onAmountChange,
+  onCurrencyChange,
+}) => (
   <div className="grid grid-cols-2 gap-3">
     <div>
       <FieldLabel htmlFor={amountId}>المبلغ *</FieldLabel>
@@ -82,7 +89,7 @@ const MoneyFields: React.FC<{
         min="0.01"
         step="0.01"
         value={amount}
-        onChange={(e) => {
+        onChange={e => {
           onAmountChange(e.target.value);
         }}
         placeholder="0.00"
@@ -94,12 +101,12 @@ const MoneyFields: React.FC<{
       <select
         id={currencyId}
         value={currencyCode}
-        onChange={(e) => {
+        onChange={e => {
           onCurrencyChange(e.target.value);
         }}
         className={inputClass}
       >
-        {currencies?.map((c) => (
+        {currencies?.map(c => (
           <option key={c.code} value={c.code}>
             {c.code} — {c.name_ar}
           </option>
@@ -120,7 +127,7 @@ const DateField: React.FC<{
       id={id}
       type="date"
       value={value}
-      onChange={(e) => {
+      onChange={e => {
         onChange(e.target.value);
       }}
       className={inputClass}
@@ -138,7 +145,7 @@ const NotesField: React.FC<{
     <textarea
       id={id}
       value={value}
-      onChange={(e) => {
+      onChange={e => {
         onChange(e.target.value);
       }}
       rows={2}
@@ -183,7 +190,7 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
   if (!isOpen) return null;
 
   const set = <K extends keyof PromiseFormState>(key: K, value: PromiseFormState[K]): void => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = (): void => {
@@ -206,39 +213,42 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
     onClose();
   };
 
-  const selectedPartyName = parties?.find((p) => p.id === form.party_id)?.name ?? partyName ?? '';
-  const currencyOptions = (currencies.data as Array<{ code: string; name_ar: string }> | null) ?? null;
+  const selectedPartyName = parties?.find(p => p.id === form.party_id)?.name ?? partyName ?? '';
+  const currencyOptions =
+    (currencies.data as Array<{ code: string; name_ar: string }> | null) ?? null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-[var(--app-surface)] rounded-2xl shadow-2xl w-full max-w-md max-md:mx-2 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 max-md:p-2.5 border-b border-gray-200 dark:border-slate-800">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[var(--app-surface)] shadow-2xl max-md:mx-2">
+        <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-slate-800 max-md:p-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-amber-500 text-white rounded-xl shadow-lg shadow-amber-500/20">
+            <div className="rounded-xl bg-amber-500 p-2 text-white shadow-lg shadow-amber-500/20">
               <Handshake size={16} />
             </div>
             <div>
-              <h3 className="font-bold text-sm">{promise ? 'تعديل الوعد' : 'وعد سداد جديد'}</h3>
-              {selectedPartyName ? <p className="text-[10px] text-gray-500">{selectedPartyName}</p> : null}
+              <h3 className="text-sm font-bold">{promise ? 'تعديل الوعد' : 'وعد سداد جديد'}</h3>
+              {selectedPartyName ? (
+                <p className="text-[10px] text-gray-500">{selectedPartyName}</p>
+              ) : null}
             </div>
           </div>
           <button
             onClick={() => {
               onClose();
             }}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-4 max-md:p-2.5 space-y-4 max-md:space-y-2.5">
+        <div className="space-y-4 p-4 max-md:space-y-2.5 max-md:p-2.5">
           <PartyField
             id="promise-party"
             value={form.party_id}
             disabled={!!partyId || !!promise}
-            parties={(parties ?? [])}
-            onChange={(v) => {
+            parties={parties ?? []}
+            onChange={v => {
               set('party_id', v);
             }}
           />
@@ -248,42 +258,44 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
             amount={form.amount}
             currencyCode={form.currency_code}
             currencies={currencyOptions}
-            onAmountChange={(v) => {
+            onAmountChange={v => {
               set('amount', v);
             }}
-            onCurrencyChange={(v) => {
+            onCurrencyChange={v => {
               set('currency_code', v);
             }}
           />
           <DateField
             id="promise-date"
             value={form.promise_date}
-            onChange={(v) => {
+            onChange={v => {
               set('promise_date', v);
             }}
           />
           <NotesField
             id="promise-notes"
             value={form.notes}
-            onChange={(v) => {
+            onChange={v => {
               set('notes', v);
             }}
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2 p-4 max-md:p-2.5 border-t border-gray-200 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-2 border-t border-gray-200 p-4 dark:border-slate-800 max-md:p-2.5">
           <button
             onClick={() => {
               onClose();
             }}
-            className="px-4 max-md:px-2.5 py-2 max-md:py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className="rounded-xl px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 max-md:px-2.5 max-md:py-1.5"
           >
             إلغاء
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!form.party_id || !(Number(form.amount) > 0) || !form.promise_date || isSaving}
-            className="px-4 max-md:px-2.5 py-2 max-md:py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              !form.party_id || !(Number(form.amount) > 0) || !form.promise_date || isSaving
+            }
+            className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 max-md:px-2.5 max-md:py-1.5"
           >
             {promise ? 'حفظ التعديل' : 'تسجيل الوعد'}
           </button>
@@ -294,4 +306,3 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
 };
 
 export default PromiseFormModal;
-

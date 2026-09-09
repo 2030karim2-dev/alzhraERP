@@ -11,6 +11,7 @@ import {
   saveWorkbookToFile,
 } from './excelExporterBase';
 import type { ExcelMergeRange } from './excelExporterBase';
+import { formatLocalDate } from './dateUtils';
 
 interface ReturnExcelData {
   companyName: string;
@@ -172,7 +173,7 @@ export const exportReturnsToExcel = async (data: ReturnExcelData): Promise<void>
 
   const sheetName = isSales ? 'مرتجعات المبيعات' : 'مرتجعات المشتريات';
   appendSheetToWorkbook(XLSX, wb, ws, sheetName);
-  await saveWorkbookToFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  await saveWorkbookToFile(wb, `${title}_${formatLocalDate()}.xlsx`);
 };
 
 const buildSingleReturnRows = (

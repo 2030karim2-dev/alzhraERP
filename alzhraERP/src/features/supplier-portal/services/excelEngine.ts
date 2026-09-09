@@ -1,4 +1,5 @@
 import { normalizeOem } from '../../../core/utils/oemNormalization';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 import type {
   VendorProductItem,
   QuotationItemDraft,
@@ -246,7 +247,7 @@ export const exportQuotationToExcel = async (
 
   XLSX.utils.book_append_sheet(wb, ws, 'عرض السعر');
 
-  const filename = `${options.quotationNumber || 'Quotation'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const filename = `${options.quotationNumber || 'Quotation'}_${formatLocalDate()}.xlsx`;
   XLSX.writeFile(wb, filename);
 };
 
@@ -349,7 +350,7 @@ export const exportProductCatalogToExcel = async (
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'كتالوج المنتجات');
-  XLSX.writeFile(wb, `Product_Catalog_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(wb, `Product_Catalog_${formatLocalDate()}.xlsx`);
 };
 
 /**

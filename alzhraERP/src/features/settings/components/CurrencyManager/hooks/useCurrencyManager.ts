@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCurrencyMutation } from '../../../hooks';
 import { useFeedbackStore } from '../../../../feedback/store';
+import { formatLocalDate } from '@/core/utils/dateUtils';
 
 export const useCurrencyManager = () => {
   const { setRate, addCurrency, deleteCurrency, refreshRates, isSaving } = useCurrencyMutation();
@@ -27,7 +28,7 @@ export const useCurrencyManager = () => {
       {
         currency_code: code,
         rate_to_base: newRateValue,
-        effective_date: new Date().toISOString().split('T')[0],
+        effective_date: formatLocalDate(),
       },
       {
         onSuccess: () => {

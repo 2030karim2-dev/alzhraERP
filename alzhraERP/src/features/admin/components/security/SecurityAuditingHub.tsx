@@ -24,6 +24,7 @@ import { useFeedbackStore } from '../../../feedback/store';
 export const SecurityAuditingHub: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'honeypot' | 'csp'>('honeypot');
   const [statusFilter, setStatusFilter] = useState<SecurityStatusFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [alertsPage, setAlertsPage] = useState(1);
   const [cspPage, setCspPage] = useState(1);
   const [selectedAlertToResolve, setSelectedAlertToResolve] = useState<SecurityAlertLog | null>(
@@ -51,10 +52,10 @@ export const SecurityAuditingHub: React.FC = () => {
   const alertsTotalPages = Math.max(1, Math.ceil(securityAlertsTotal / SECURITY_LOGS_PAGE_SIZE));
   const cspTotalPages = Math.max(1, Math.ceil(cspTotal / SECURITY_LOGS_PAGE_SIZE));
 
-  // إعادة الضبط إلى الصفحة الأولى عند تغيير فلتر حالة المعالجة
+  // إعادة الضبط إلى الصفحة الأولى عند تغيير فلتر حالة المعالجة أو مصطلح البحث
   useEffect(() => {
     setAlertsPage(1);
-  }, [statusFilter]);
+  }, [statusFilter, searchTerm]);
 
   // منع البقاء في صفحة فارغة إذا تقلص عدد النتائج
   useEffect(() => {
@@ -110,7 +111,6 @@ export const SecurityAuditingHub: React.FC = () => {
       setIsExportingLogs(false);
     }
   };
-  const [searchTerm, setSearchTerm] = useState('');
 
   const filteredAlerts = searchTerm.trim()
     ? securityAlerts.filter(

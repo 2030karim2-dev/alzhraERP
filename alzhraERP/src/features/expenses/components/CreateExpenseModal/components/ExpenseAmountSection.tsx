@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Sparkles, Edit3 } from 'lucide-react';
+import { Sparkles, Edit3, AlertTriangle } from 'lucide-react';
 import type { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
 import type { ExpenseFormData } from '../../../types';
 import { convertToBaseCurrency, cn } from '../../../../../core/utils';
@@ -32,21 +32,50 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({
     <div className="flex flex-col gap-4 border-b bg-[var(--app-surface)] p-5 dark:border-slate-800">
       <div className="flex flex-row items-end gap-4">
         <div className="flex-1">
-          <label className="mb-1.5 block px-1 text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400">
-            المبلغ المطلوب صرفه
-          </label>
+          <div className="mb-1.5 flex items-center justify-between px-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400">
+              المبلغ المطلوب صرفه
+            </label>
+            <span
+              className={cn(
+                'rounded px-1.5 py-0.5 font-mono text-[10px] font-black',
+                selectedCurrency === 'YER'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+              )}
+            >
+              العملة الحالية:{' '}
+              {selectedCurrency === 'YER'
+                ? 'ريال يمني (YER)'
+                : selectedCurrency === 'SAR'
+                  ? 'ريال سعودي (SAR)'
+                  : selectedCurrency}
+            </span>
+          </div>
           <div className="relative">
             <input
               type="number"
               step="0.01"
               {...register('amount', { required: true, min: 0.01, valueAsNumber: true })}
-              className="w-full rounded-xl border-2 border-rose-100 bg-white px-4 py-3 font-mono text-2xl font-bold text-rose-600 outline-none transition-all focus:border-rose-500 dark:border-rose-900/30 dark:bg-slate-950 dark:text-rose-400"
+              className="w-full rounded-xl border-2 border-rose-100 bg-white px-4 py-3 pl-24 font-mono text-2xl font-bold text-rose-600 outline-none transition-all focus:border-rose-500 dark:border-rose-900/30 dark:bg-slate-950 dark:text-rose-400"
               placeholder="0.00"
             />
-            <DollarSign
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-300"
-              size={20}
-            />
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+              <span
+                className={cn(
+                  'rounded-md px-2 py-1 text-xs font-black tracking-wider shadow-xs',
+                  selectedCurrency === 'YER'
+                    ? 'border border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'border border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                )}
+              >
+                {selectedCurrency === 'YER'
+                  ? 'ر.ي'
+                  : selectedCurrency === 'SAR'
+                    ? 'ر.س'
+                    : selectedCurrency}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -134,6 +163,29 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({
             }).toFixed(2)}{' '}
             SAR
           </span>
+        </div>
+      )}
+
+      {selectedCurrency === 'SAR' && Number(amount) >= 500 && (
+        <div className="animate-in fade-in slide-in-from-top-1 flex flex-col items-start justify-between gap-3 rounded-xl border-2 border-rose-300 bg-rose-50 p-3 dark:border-rose-900/60 dark:bg-rose-950/60 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="shrink-0 text-rose-600" size={20} />
+            <div>
+              <p className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                تنبيه انتباه: المبلغ المدخل هو ({Number(amount).toLocaleString('en-US')} ريال سعودي)
+              </p>
+              <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                هل تقصد {Number(amount).toLocaleString('en-US')} ريال يمني (YER)؟
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setValue('currency_code', 'YER', { shouldValidate: true })}
+            className="shrink-0 cursor-pointer rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-rose-700 active:scale-95"
+          >
+            تحويل إلى ريال يمني (YER)
+          </button>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import { Plus, Eye, RotateCcw, FileText } from 'lucide-react';
 import { usePurchaseReturns, usePurchaseReturnsStats } from '../../hooks/usePurchaseReturns';
 import Button from '../../../../ui/base/Button';
 import { exportToPDF } from '../../../../core/utils/pdfExporter';
+import { formatLocalDate } from '../../../../core/utils/dateUtils';
 import { AdvancedReturnModal } from '../../../returns/components/AdvancedReturnModal';
 import { useReturnsListView, type ReturnsListRow } from '../../../returns/hooks/useReturnsListView';
 import { ReturnsStatsHeader } from '../../../returns/components/view/ReturnsStatsHeader';
@@ -275,10 +276,7 @@ const PurchaseReturnsView: React.FC<PurchaseReturnsViewProps> = ({
   }, [propSearchTerm, setLocalSearchTerm]);
   const handlePrint = async (): Promise<void> => {
     if (printRef.current === null) return;
-    await exportToPDF(
-      printRef.current,
-      `مرتجعات_المشتريات_${new Date().toISOString().split('T')[0]}`
-    );
+    await exportToPDF(printRef.current, `مرتجعات_المشتريات_${formatLocalDate()}`);
   };
   return (
     <div className="animate-in fade-in space-y-3 pt-2 duration-300" ref={printRef}>

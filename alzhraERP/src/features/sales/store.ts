@@ -290,10 +290,13 @@ export const useSalesStore = create<SalesState>()(
             discountAmount += lineDiscount;
           });
 
-          const totalAmount = subtotal - discountAmount;
+          // تقريب مالي صارم لمنع كسور الفاصلة العائمة (مثل 0.30000000000000004)
+          const roundedSubtotal = Math.round(subtotal * 100) / 100;
+          const roundedDiscount = Math.round(discountAmount * 100) / 100;
+          const totalAmount = Math.round((roundedSubtotal - roundedDiscount) * 100) / 100;
 
           return {
-            summary: { subtotal, discountAmount, totalAmount },
+            summary: { subtotal: roundedSubtotal, discountAmount: roundedDiscount, totalAmount },
           };
         });
       },

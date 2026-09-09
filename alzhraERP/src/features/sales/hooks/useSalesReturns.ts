@@ -155,7 +155,7 @@ export const useSalesReturnsStats = () => {
   const { user } = useAuthStore();
 
   return useQuery({
-    queryKey: ['sales-returns-stats'],
+    queryKey: ['sales-returns-stats', user?.company_id],
     queryFn: async () => {
       if (!user?.company_id) {
         return { returnCount: 0, totalReturns: 0, avgReturn: 0, pendingCount: 0 };

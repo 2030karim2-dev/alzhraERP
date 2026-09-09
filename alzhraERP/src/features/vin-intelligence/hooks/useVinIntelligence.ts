@@ -156,10 +156,12 @@ export function useVinIntelligence(companyId?: string, userId?: string): UseVinI
   });
 
   const linkedQuery = useQuery({
-    queryKey: ['vin', 'linked', vehicle?.id],
+    queryKey: ['vin', 'linked', companyId, vehicle?.id],
     queryFn: () =>
-      vehicle?.id != null ? vinService.listLinkedProducts(vehicle.id) : Promise.resolve([]),
-    enabled: vehicle?.id != null,
+      companyId != null && vehicle?.id != null
+        ? vinService.listLinkedProducts(vehicle.id, companyId)
+        : Promise.resolve([]),
+    enabled: companyId != null && vehicle?.id != null,
   });
 
   const historyQuery = useQuery({
@@ -253,8 +255,9 @@ export function useVinIntelligence(companyId?: string, userId?: string): UseVinI
   });
 
   const loadLinkedProducts = useCallback(
-    (vehicleId: string): Promise<VehicleProductLink[]> => vinService.listLinkedProducts(vehicleId),
-    []
+    (vehicleId: string): Promise<VehicleProductLink[]> =>
+      vinService.listLinkedProducts(vehicleId, companyId ?? undefined),
+    [companyId]
   );
 
   const reset = useCallback(() => {

@@ -129,8 +129,8 @@ export const vinService = {
     await vinApi.deleteVinAnalysis(id);
   },
 
-  async listLinkedProducts(vehicleId: string): Promise<VehicleProductLink[]> {
-    return vinApi.listVehicleProducts(vehicleId);
+  async listLinkedProducts(vehicleId: string, companyId?: string): Promise<VehicleProductLink[]> {
+    return vinApi.listVehicleProducts(vehicleId, companyId);
   },
 
   /** Manually link an existing inventory product to a vehicle */

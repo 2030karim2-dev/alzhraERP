@@ -146,8 +146,11 @@ export const vinApi = {
   },
 
   // ── vehicle_products (vehicle ↔ product links) ───────────
-  listVehicleProducts: async (vehicleId: string): Promise<VehicleProductLink[]> => {
-    const { data, error } = await supabase
+  listVehicleProducts: async (
+    vehicleId: string,
+    companyId?: string
+  ): Promise<VehicleProductLink[]> => {
+    let query = supabase
       .from('vehicle_products')
       .select(
         `
@@ -175,12 +178,19 @@ export const vinApi = {
       )
       .eq('vehicle_id', vehicleId);
 
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       logger.warn('VinAPI', 'listVehicleProducts with join failed, retrying flat select', error);
-      const { data: flatData, error: flatErr } = await supabase
-        .from('vehicle_products')
-        .select('*')
-        .eq('vehicle_id', vehicleId);
+      let flatQuery = supabase.from('vehicle_products').select('*').eq('vehicle_id', vehicleId);
+      if (companyId) {
+        flatQuery = flatQuery.eq('company_id', companyId);
+      }
+      const { data: flatData, error: flatErr } = await flatQuery;
       if (flatErr) throw flatErr;
       return (flatData ?? []) as unknown as VehicleProductLink[];
     }

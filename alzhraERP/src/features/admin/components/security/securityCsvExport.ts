@@ -4,10 +4,11 @@ import {
   type SecurityStatusFilter,
 } from '../../hooks/useAdminData';
 import { downloadCsvFile, toCsv } from '../../utils';
+import { formatLocalDate } from '../../../../core/utils/dateUtils';
 
 /** يصدّر كل تقارير CSP (تجاوز الصفحة المعروضة — حد 200 خادمياً/استدعاء). */
 export const exportCspReportsCsv = async (): Promise<void> => {
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = formatLocalDate();
   const allReports = await fetchAllAdminCspReports();
   const header = [
     'معرف التقرير',
@@ -28,7 +29,7 @@ export const exportCspReportsCsv = async (): Promise<void> => {
 
 /** يصدّر كل تنبيهات الأمان وفق فلتر حالة المعالجة (الكل/قيد المعالجة/المعالجة). */
 export const exportAlertsCsv = async (statusFilter: SecurityStatusFilter): Promise<void> => {
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = formatLocalDate();
   const resolved =
     statusFilter === 'unresolved' ? false : statusFilter === 'resolved' ? true : undefined;
   const allAlerts = await fetchAllAdminSecurityAlerts(resolved);

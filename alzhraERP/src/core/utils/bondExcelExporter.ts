@@ -13,6 +13,7 @@ import {
   saveWorkbookToFile,
   workbookToBlob,
 } from './excelExporterBase';
+import { formatLocalDate } from './dateUtils';
 import type { ExcelMergeRange, XlsxWorkbook } from './excelExporterBase';
 
 interface CompanyInfo {
@@ -207,5 +208,5 @@ export const exportBondsListToExcel = async (
   });
 
   appendSheetToWorkbook(XLSX, wb, ws, listTitle);
-  await saveWorkbookToFile(wb, `${listTitle}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  await saveWorkbookToFile(wb, `${listTitle}_${formatLocalDate()}.xlsx`);
 };

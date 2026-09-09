@@ -64,7 +64,7 @@ export const useAuditSession = (sessionId: string | undefined) => {
     queryFn: () =>
       sessionId
         ? inventoryService.getAuditSessionDetails(sessionId)
-        : Promise.reject('No session ID'),
+        : Promise.reject(new Error('No session ID')),
     enabled: !!sessionId,
   });
 

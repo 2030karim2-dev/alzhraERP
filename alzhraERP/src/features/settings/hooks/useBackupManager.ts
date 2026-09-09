@@ -4,6 +4,7 @@ import { settingsService } from '../service';
 import type { AutoBackupConfig } from '../types.ts';
 import { useFeedbackStore } from '../../feedback/store';
 import { GoogleDriveService } from '../services/googleDriveService';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 export const useBackupManager = () => {
   const { exportData, importData } = useBackupActions();
@@ -36,7 +37,7 @@ export const useBackupManager = () => {
       showToast('جاري تجهيز بيانات النظام...', 'info');
       const data = await settingsService.exportSystemData();
       showToast('جاري الرفع إلى Google Drive...', 'info');
-      const fileName = `AlZahra_Backup_${new Date().toISOString().split('T')[0]}`;
+      const fileName = `AlZahra_Backup_${formatLocalDate()}`;
       await GoogleDriveService.uploadJSONFile(fileName, data, token);
       showToast('تم الرفع إلى حسابك في جوجل درايف بنجاح', 'success');
     } catch (error: unknown) {

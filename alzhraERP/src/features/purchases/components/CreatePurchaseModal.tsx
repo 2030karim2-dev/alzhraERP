@@ -289,7 +289,7 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
   ]);
 
   const executeConfirm = useCallback((): void => {
-    if (!supplier) return;
+    if (!supplier || isPending) return;
     const validItems = items.filter(
       item => item.productId !== '' && item.quantity > 0 && item.costPrice > 0
     );
@@ -297,9 +297,7 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
     createPurchase(
       {
         supplierId: supplier.id,
-        invoiceNumber: hasText(invoiceNumber)
-          ? invoiceNumber
-          : `PUR-${String(Date.now()).slice(-6)}`,
+        invoiceNumber: hasText(invoiceNumber) ? invoiceNumber : '',
         issueDate,
         items: validItems.map(item => ({
           productId: item.productId,

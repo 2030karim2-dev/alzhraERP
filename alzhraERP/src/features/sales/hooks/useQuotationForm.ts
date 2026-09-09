@@ -3,6 +3,7 @@ import type { Product } from '@/features/inventory/types';
 import { salesQuotationsApi } from '@/features/sales/api';
 import { useBranchFilter } from '@/features/branches/hooks/useBranchFilter';
 import { logger } from '../../../core/utils/logger';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 export interface ItemRow {
   productId: string;
@@ -31,7 +32,7 @@ export const useQuotationForm = (
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const { branchId } = useBranchFilter();
 
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [issueDate, setIssueDate] = useState(() => formatLocalDate());
   const [validDays, setValidDays] = useState(7);
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [terms, setTerms] = useState('');
@@ -53,16 +54,21 @@ export const useQuotationForm = (
   });
 
   const validUntil = useMemo(() => {
-    const d = new Date(issueDate);
-    d.setDate(d.getDate() + validDays);
-    return d.toISOString().split('T')[0];
+    const parts = (issueDate || formatLocalDate()).split('-').map(Number);
+    const d = new Date(parts[0] || 2000, (parts[1] || 1) - 1, (parts[2] || 1) + validDays);
+    return formatLocalDate(d);
   }, [issueDate, validDays]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
-      return sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100);
+      const line =
+        (Number(item.quantity) || 0) *
+        (Number(item.unitPrice) || 0) *
+        (1 - (Number(item.discountPercent) || 0) / 100);
+      return sum + line;
     }, 0);
-    return { subtotal, total: subtotal };
+    const rounded = Math.round(subtotal * 100) / 100;
+    return { subtotal: rounded, total: rounded };
   }, [items]);
 
   const updateItem = (index: number, field: keyof ItemRow, value: string | number) => {

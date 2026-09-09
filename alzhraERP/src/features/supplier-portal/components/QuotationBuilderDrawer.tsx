@@ -11,6 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 import { calculateQuotationItem, calculateQuotationTotals } from '../services/quotationCalculator';
 import { exportQuotationToExcel } from '../services/excelEngine';
 import { generateQuotationPDF } from '../services/pdfEngine';
@@ -64,7 +65,7 @@ export const QuotationBuilderDrawer: React.FC<Props> = ({
   const [validityDate, setValidityDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
-    return d.toISOString().slice(0, 10);
+    return formatLocalDate(d);
   });
   const [terms, setTerms] = useState<string>(
     'الأسعار شاملة التوصيل والضمان. سداد آجل خلال 30 يوم من تاريخ الفاتورة.'

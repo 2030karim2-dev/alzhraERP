@@ -160,11 +160,13 @@ export const expensesService = {
     const map: Record<string, number> = {};
     const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-    expenses.forEach(exp => {
-      const cat = exp.category_name || 'أخرى';
-      const baseAmount = safeToBase(exp);
-      map[cat] = (map[cat] || 0) + baseAmount;
-    });
+    expenses
+      .filter(exp => exp.status !== 'void')
+      .forEach(exp => {
+        const cat = exp.category_name || 'أخرى';
+        const baseAmount = safeToBase(exp);
+        map[cat] = (map[cat] || 0) + baseAmount;
+      });
 
     return Object.entries(map).map(([name, value], index) => ({
       name,

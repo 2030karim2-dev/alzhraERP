@@ -45,17 +45,21 @@ const ProfitLossView: React.FC = () => {
     );
   }
 
-  const isProfit = data?.netProfit! >= 0;
+  const isProfit = (data?.netProfit ?? 0) >= 0;
   const totalRevenues =
-    data?.revenues.reduce(
-      (s: number, r: { netBalance: number }) => s + Math.abs(r.netBalance),
-      0
-    ) || 0;
+    typeof data?.totalRevenues === 'number'
+      ? data.totalRevenues
+      : data?.revenues.reduce(
+          (s: number, r: { netBalance: number }) => s + (Number(r.netBalance) || 0),
+          0
+        ) || 0;
   const totalExpenses =
-    data?.expenses.reduce(
-      (s: number, r: { netBalance: number }) => s + Math.abs(r.netBalance),
-      0
-    ) || 0;
+    typeof data?.totalExpenses === 'number'
+      ? data.totalExpenses
+      : data?.expenses.reduce(
+          (s: number, r: { netBalance: number }) => s + (Number(r.netBalance) || 0),
+          0
+        ) || 0;
 
   const displayedRevenues = showAllRevenues ? data?.revenues : data?.revenues.slice(0, 5);
   const displayedExpenses = showAllExpenses ? data?.expenses : data?.expenses.slice(0, 5);
@@ -187,10 +191,17 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                     {rev.name}
                   </span>
                 </div>
+                {/* [FIX] لا Math.abs هنا — net_balance للإيرادات = credit - debit (موجب طبيعياً).
+                     Math.abs كان يحوّل القيود العكسية السالبة إلى مبالغ مضافة وهو خطأ محاسبي. */}
                 <span
                   dir="ltr"
-                  className="font-mono text-[11px] font-bold text-slate-800 dark:text-slate-100 md:text-xs"
+                  className={`font-mono text-[11px] font-bold md:text-xs ${
+                    rev.netBalance < 0
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-slate-800 dark:text-slate-100'
+                  }`}
                 >
+                  {rev.netBalance < 0 ? '-' : ''}
                   {formatCurrency(Math.abs(rev.netBalance))}
                 </span>
               </div>
@@ -248,11 +259,20 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
                     {exp.name}
                   </span>
                 </div>
+                {/* [FIX] لا Math.abs هنا — net_balance للمصروفات = debit - credit (موجب طبيعياً).
+                     Math.abs كان يحوّل القيود العكسية السالبة (تسويات دائنة) إلى مبالغ مضافة
+                     مما يضاعف المصروفات ظاهرياً. القيمة السالبة تعني مصروفاً مرتجعاً. */}
                 <span
                   dir="ltr"
-                  className="font-mono text-[11px] font-bold text-slate-800 dark:text-slate-100 md:text-xs"
+                  className={`font-mono text-[11px] font-bold md:text-xs ${
+                    exp.netBalance < 0
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-rose-700 dark:text-rose-400'
+                  }`}
                 >
+                  {exp.netBalance < 0 ? '(' : ''}
                   {formatCurrency(Math.abs(exp.netBalance))}
+                  {exp.netBalance < 0 ? ')' : ''}
                 </span>
               </div>
             ))}

@@ -2,81 +2,87 @@ import { supabase } from '../../../lib/supabaseClient';
 
 /** Analytics and reporting functions */
 export const analyticsApi = {
-    getInventoryAnalytics: async (companyId: string, from?: string, to?: string) => {
-        let query = supabase.from('invoice_items')
-            .select(`
+  getInventoryAnalytics: async (companyId: string, from?: string, to?: string) => {
+    let query = supabase
+      .from('invoice_items')
+      .select(
+        `
         quantity,
         unit_price,
         total,
         product_id,
-        products!inner(id, name_ar, sku, purchase_price),
+        products!inner(id, name_ar, sku, purchase_price, cost_price),
         invoices!inner(id, issue_date, type, status)
-      `)
-            .eq('invoices.company_id', companyId)
-            .neq('invoices.status', 'void')
-            .in('invoices.type', ['sale', 'sale_return']);
+      `
+      )
+      .eq('invoices.company_id', companyId)
+      .neq('invoices.status', 'void')
+      .in('invoices.type', ['sale', 'sale_return', 'return_sale', 'sales_return']);
 
-        if (from) {
-            query = query.gte('invoices.issue_date', from);
-        }
-        if (to) {
-            const toDate = new Date(to);
-            toDate.setHours(23, 59, 59, 999);
-            query = query.lte('invoices.issue_date', toDate.toISOString());
-        }
+    if (from) {
+      query = query.gte('invoices.issue_date', from);
+    }
+    if (to) {
+      query = query.lte('invoices.issue_date', to);
+    }
 
-        return await query;
-    },
+    return await query;
+  },
 
-    getDeadStock: async (companyId: string, daysThreshold: number) => {
-        return await supabase.rpc('get_dead_stock', { p_company_id: companyId, days_threshold: daysThreshold });
-    },
+  getDeadStock: async (companyId: string, daysThreshold: number) => {
+    return await supabase.rpc('get_dead_stock', {
+      p_company_id: companyId,
+      days_threshold: daysThreshold,
+    });
+  },
 
-    getProductAnalytics: async (productId: string) => {
-        const { data, error } = await supabase
-            .from('invoice_items')
-            .select(`
+  getProductAnalytics: async (productId: string) => {
+    const { data, error } = await supabase
+      .from('invoice_items')
+      .select(
+        `
                 quantity,
                 total,
                 invoices!inner(issue_date, type, status)
-            `)
-            .eq('product_id', productId)
-            .neq('invoices.status', 'void');
+            `
+      )
+      .eq('product_id', productId)
+      .neq('invoices.status', 'void');
 
-        if (error) return { data: null, error };
+    if (error) return { data: null, error };
 
-        const rows = (data || []) as Array<{
-            quantity?: number | null;
-            total?: number | null;
-            invoices?: { issue_date?: string | null; type?: string | null } | null;
-        }>;
+    const rows = (data || []) as Array<{
+      quantity?: number | null;
+      total?: number | null;
+      invoices?: { issue_date?: string | null; type?: string | null } | null;
+    }>;
 
-        let totalQuantitySold = 0;
-        let totalRevenue = 0;
-        let lastSaleDate: string | null = null;
+    let totalQuantitySold = 0;
+    let totalRevenue = 0;
+    let lastSaleDate: string | null = null;
 
-        rows.forEach((row) => {
-            const multiplier = row.invoices?.type === 'sale_return' ? -1 : 1;
-            totalQuantitySold += (Number(row.quantity) || 0) * multiplier;
-            totalRevenue += (Number(row.total) || 0) * multiplier;
+    rows.forEach(row => {
+      const multiplier = row.invoices?.type === 'sale_return' ? -1 : 1;
+      totalQuantitySold += (Number(row.quantity) || 0) * multiplier;
+      totalRevenue += (Number(row.total) || 0) * multiplier;
 
-            if (row.invoices?.issue_date && (!lastSaleDate || row.invoices.issue_date > lastSaleDate)) {
-                lastSaleDate = row.invoices.issue_date;
-            }
-        });
+      if (row.invoices?.issue_date && (!lastSaleDate || row.invoices.issue_date > lastSaleDate)) {
+        lastSaleDate = row.invoices.issue_date;
+      }
+    });
 
-        return {
-            data: {
-                total_quantity_sold: totalQuantitySold,
-                total_revenue: totalRevenue,
-                transaction_count: rows.length,
-                last_sale_date: lastSaleDate,
-            },
-            error: null,
-        };
-    },
+    return {
+      data: {
+        total_quantity_sold: totalQuantitySold,
+        total_revenue: totalRevenue,
+        transaction_count: rows.length,
+        last_sale_date: lastSaleDate,
+      },
+      error: null,
+    };
+  },
 
-    getLowStockProducts: async (companyId: string) => {
-        return await supabase.rpc('get_low_stock_products', { p_company_id: companyId });
-    },
+  getLowStockProducts: async (companyId: string) => {
+    return await supabase.rpc('get_low_stock_products', { p_company_id: companyId });
+  },
 };

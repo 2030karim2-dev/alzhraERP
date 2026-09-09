@@ -205,14 +205,19 @@ const createCalculationActions = (set: PurchaseStoreSet): PurchaseCalculationAct
     set(state => {
       let subTotal = 0;
       let totalDiscount = 0;
-      const grandTotal = state.items.reduce((acc, item) => {
+      let rawGrandTotal = 0;
+      state.items.forEach(item => {
         const sub = item.quantity * item.costPrice;
         const discount = discountEnabled && state.showDiscount ? item.discount : 0;
         subTotal += sub;
         totalDiscount += discount;
-        return acc + sub - discount;
-      }, 0);
-      return { totals: { grandTotal, subTotal, totalDiscount } };
+        rawGrandTotal += sub - discount;
+      });
+      // تقريب مالي صارم لمنع كسور الفاصلة العائمة
+      const grandTotal = Math.round(rawGrandTotal * 100) / 100;
+      const roundedSubTotal = Math.round(subTotal * 100) / 100;
+      const roundedDiscount = Math.round(totalDiscount * 100) / 100;
+      return { totals: { grandTotal, subTotal: roundedSubTotal, totalDiscount: roundedDiscount } };
     });
   },
 });

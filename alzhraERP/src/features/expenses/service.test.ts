@@ -85,4 +85,28 @@ describe('expensesService.getCategoryBreakdown', () => {
     const breakdown = expensesService.getCategoryBreakdown(expenses);
     expect(breakdown.find(b => b.name === 'أخرى')?.value).toBe(10);
   });
+
+  it('strictly excludes void expenses from category breakdown', () => {
+    const expenses = [
+      makeExpense({ id: '1', category_name: 'رواتب', amount: 100, status: 'posted' }),
+      makeExpense({ id: '2', category_name: 'رواتب', amount: 50, status: 'void' }),
+    ];
+    const breakdown = expensesService.getCategoryBreakdown(expenses);
+    expect(breakdown.find(b => b.name === 'رواتب')?.value).toBe(100);
+  });
+
+  it('correctly normalizes YER expenses using divide operator (410 rate)', () => {
+    const expenses = [
+      makeExpense({
+        id: '1',
+        category_name: 'مصاريف عمال',
+        amount: 4100,
+        currency_code: 'YER',
+        exchange_rate: 410,
+        status: 'posted',
+      }),
+    ];
+    const stats = expensesService.calculateStats(expenses);
+    expect(stats.totalExpenses).toBe(10); // 4100 / 410 = 10 SAR, NOT 4100 SAR!
+  });
 });

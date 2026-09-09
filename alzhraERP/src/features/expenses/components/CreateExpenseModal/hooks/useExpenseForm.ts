@@ -10,6 +10,19 @@ import { useCurrencies } from '../../../../settings/hooks';
 import { formatLocalDate } from '../../../../../core/utils/dateUtils';
 import { resolveAutoExchangeRate } from '../../../../../core/utils/currencyUtils';
 
+const LAST_EXPENSE_CURRENCY_KEY = 'alzhra_last_expense_currency';
+
+const getInitialExpenseCurrency = (): string => {
+  try {
+    const saved = localStorage.getItem(LAST_EXPENSE_CURRENCY_KEY);
+    if (saved) return saved;
+  } catch {
+    // Ignore localStorage errors
+  }
+  // التفضيل الافتراضي للريال اليمني للمصروفات النثرية التشغيلية اليومية
+  return 'YER';
+};
+
 export const useExpenseForm = (isOpen: boolean) => {
   const { data: categories } = useExpenseCategories();
   const { data: nextVoucher } = useNextExpenseNumber();
@@ -20,11 +33,13 @@ export const useExpenseForm = (isOpen: boolean) => {
   const [newCatName, setNewCatName] = useState('');
   const [isManualRate, setIsManualRate] = useState(false);
 
+  const initialCurrency = getInitialExpenseCurrency();
+
   const form = useForm<ExpenseFormData>({
     defaultValues: {
       expense_date: formatLocalDate(),
       status: 'posted',
-      currency_code: 'SAR',
+      currency_code: initialCurrency,
       exchange_rate: 1,
       payment_method: 'cash',
       is_recurring: false,
@@ -34,12 +49,29 @@ export const useExpenseForm = (isOpen: boolean) => {
   const { watch, setValue } = form;
   const selectedCurrency = watch('currency_code');
 
-  // Auto-fill voucher number when modal opens
+  // حفظ آخر عملة اختارها المستخدم تلقائياً
   useEffect(() => {
-    if (isOpen && nextVoucher) {
-      setValue('voucher_number', nextVoucher);
+    if (selectedCurrency) {
+      try {
+        localStorage.setItem(LAST_EXPENSE_CURRENCY_KEY, selectedCurrency);
+      } catch {
+        // Ignore localStorage errors
+      }
     }
-  }, [isOpen, nextVoucher, setValue]);
+  }, [selectedCurrency]);
+
+  // Auto-fill voucher number and preferred currency when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (nextVoucher) {
+        setValue('voucher_number', nextVoucher);
+      }
+      const savedCur = getInitialExpenseCurrency();
+      if (savedCur && form.getValues('currency_code') !== savedCur) {
+        setValue('currency_code', savedCur, { shouldValidate: true });
+      }
+    }
+  }, [isOpen, nextVoucher, setValue, form]);
 
   // Automatically update exchange rate unless user has manually customized it
   useEffect(() => {

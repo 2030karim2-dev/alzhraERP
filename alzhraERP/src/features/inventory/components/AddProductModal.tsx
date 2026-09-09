@@ -101,7 +101,7 @@ const AddProductModal: React.FC<Props> = ({
           location: initialData.location || '',
         });
       } else {
-        const autoSku = `AZ-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        const autoSku = `AZ-${Date.now().toString(36).slice(-4).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         reset({
           name: '',
           sku: autoSku,

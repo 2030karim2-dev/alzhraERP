@@ -6,6 +6,7 @@
 
 import { loadXLSX, sanitizeFileName } from '../../../core/utils/excelExporterBase';
 import type { XlsxCell, XlsxSheet } from '../../../core/utils/excelExporterBase';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 const getCell = (sheet: XlsxSheet, ref: string): XlsxCell | undefined => {
   // ref متغير ديناميكي وفق مواصفات xlsx — الوصول المقصود هنا غير قابل للفهرسة الثابتة.
@@ -312,7 +313,7 @@ export const exportStatementToExcel = async (
     const XLSX = await loadXLSX();
     const wb = await generateStatementExcelWorkbook(company, partyName, data, options);
     const safeName = sanitizeFileName(partyName);
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = formatLocalDate();
     XLSX.writeFile(wb, `كشف_حساب_${safeName}_${dateStr}.xlsx`);
   } catch (err) {
     throw new Error('فشل تصدير كشف الحساب إلى Excel');

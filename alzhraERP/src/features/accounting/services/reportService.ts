@@ -33,6 +33,9 @@ interface TrialBalanceRpcRow {
   total_debit: number;
   total_credit: number;
   balance: number;
+  // [NEW] علامة COGS من report_profit_loss_detailed (5100/51%)
+  // القيمة الافتراضية false للتوافق مع report_trial_balance الذي لا يحتوي هذا الحقل
+  is_cogs?: boolean;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -83,6 +86,8 @@ const toTrialBalanceRows = (value: unknown): TrialBalanceRpcRow[] => {
         total_debit: row.total_debit,
         total_credit: row.total_credit,
         balance: row.balance,
+        // استيعاب حقل is_cogs الجديد من report_profit_loss_detailed
+        is_cogs: typeof row.is_cogs === 'boolean' ? row.is_cogs : false,
       },
     ];
   });
@@ -218,8 +223,12 @@ export const reportService = {
       type: row.account_type,
       total_debit: row.total_debit,
       total_credit: row.total_credit,
+      // [FIX] لا ABS() — sign convention: expense=debit-credit، revenue=credit-debit
+      // سالب = قيد عكسي يُطرح لا يُجمع
       net_balance: row.balance,
       currency_code: 'SAR',
+      // exactOptionalPropertyTypes: نُدرج is_cogs فقط عند وجود قيمة صريحة
+      ...(typeof row.is_cogs === 'boolean' ? { is_cogs: row.is_cogs } : {}),
     });
 
     let revenueTBI: TrialBalanceItem[];
@@ -243,6 +252,9 @@ export const reportService = {
       revenueTBI = rows.filter(r => r.account_type === 'revenue').map(toPnlItem);
       expenseTBI = rows.filter(r => r.account_type === 'expense').map(toPnlItem);
       totalRevenue = revenueTBI.reduce((sum, item) => sum + item.net_balance, 0);
+      // [FIX] totalExpense = كامل المصاريف بما فيها COGS لحساب صافي الربح الصحيح.
+      // لا Math.abs — القيم السالبة (قيود عكسية) تُطرح لا تُجمع.
+      // sign convention: net_balance = debit - credit (موجب = مصروف طبيعي)
       totalExpense = expenseTBI.reduce((sum, item) => sum + item.net_balance, 0);
       netIncome = totalRevenue - totalExpense;
     } else {

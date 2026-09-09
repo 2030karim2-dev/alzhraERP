@@ -161,6 +161,12 @@ export type Permission =
   | 'debts:read'
   | 'debts:manage'
   | 'debts:remind'
+  | 'bonds:create'
+  | 'bonds:read'
+  | 'bonds:update'
+  | 'bonds:delete'
+  | 'pos:use'
+  | 'branches:manage'
   // Commission / incentive module (Phase 3) — prefix incentive:* to match RPCs
   | 'incentive:manage_plans'
   | 'incentive:calculate_period'

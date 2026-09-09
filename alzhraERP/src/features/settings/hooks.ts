@@ -7,6 +7,7 @@ import type { AuthUser } from '../auth/types';
 import { useFeedbackStore } from '../feedback/store';
 import { assertOwner } from '../../core/hooks/usePermission';
 import { logger } from '../../core/utils/logger';
+import { formatLocalDate } from '../../core/utils/dateUtils';
 import type {
   CompanyFormData,
   WarehouseFormData,
@@ -269,7 +270,7 @@ export const useBackupActions = () => {
       showToast('جاري تجهيز النسخة الاحتياطية...', 'info');
       const data = await settingsService.exportSystemData();
 
-      const fileName = `AlZahra_Backup_${new Date().toISOString().split('T')[0]}`;
+      const fileName = `AlZahra_Backup_${formatLocalDate()}`;
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

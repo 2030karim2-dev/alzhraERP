@@ -24,8 +24,20 @@ export interface TrialBalanceItem {
   type: string;
   total_debit: number;
   total_credit: number;
+  /**
+   * اتفاقية الإشارات (SIGN CONVENTION — لا يُغيَّر هذا):
+   *   revenue: net_balance = credit - debit  (موجب = إيراد طبيعي)
+   *   expense: net_balance = debit - credit  (موجب = مصروف طبيعي)
+   *   قيمة سالبة = قيد عكسي → تُطرح من الإجمالي لا تُجمع إليه
+   *
+   * ⚠️ يُمنع استخدام Math.abs() على net_balance في أي مكون واجهة
+   *    لأنه يحوّل القيود العكسية إلى مبالغ مضافة ويضاعف الأرقام.
+   *    استخدم الإشارة للتلوين فقط: negative → عرض باللون الأخضر (استرداد).
+   */
   net_balance: number;
   currency_code: string;
+  /** علامة COGS من report_profit_loss_detailed — الكود 5100 أو يبدأ بـ 51 */
+  is_cogs?: boolean;
 }
 
 export interface FinancialReportItem {

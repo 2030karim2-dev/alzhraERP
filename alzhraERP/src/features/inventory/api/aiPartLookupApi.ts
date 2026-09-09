@@ -116,16 +116,31 @@ export const aiPartLookupApi = {
 
   /**
    * Get cached results for a part number (no external call).
+   * Respects company_id isolation: returns company-specific cache OR global cache entries.
    */
-  async getCachedResults(partNumber: string): Promise<AIPartLookupResult | null> {
+  async getCachedResults(
+    partNumber: string,
+    companyId?: string
+  ): Promise<AIPartLookupResult | null> {
     const cleanPN = partNumber.trim().toUpperCase();
-    const { data } = await supabase
+
+    // Build query: match by part_number and (company_id match OR is_global=true)
+    let query = supabase
       .from('ai_part_lookup_cache')
       .select('*')
       .eq('part_number', cleanPN)
       .gt('expires_at', new Date().toISOString())
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+
+    if (companyId) {
+      // Prefer company-specific cache; fall back to global
+      query = query.or(`company_id.eq.${companyId},is_global.eq.true`);
+    } else {
+      // No company context: only serve global entries
+      query = query.eq('is_global', true);
+    }
+
+    const { data } = await query.maybeSingle();
 
     if (!data) return null;
 
