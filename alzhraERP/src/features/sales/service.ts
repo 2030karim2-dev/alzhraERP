@@ -1,6 +1,7 @@
 import { salesApi } from './api/index';
 import type { CreateInvoiceDTO } from './types';
 import { messagingService } from '../notifications/messagingService';
+import { notificationService } from '../notifications/service';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
 import { netUnitPrices } from '../../core/utils/invoiceDiscount';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
@@ -231,6 +232,15 @@ export const salesService = {
           itemCount: payload.items?.length || 0,
         },
         typedResult.id
+      );
+
+      // In-App Notification
+      notificationService.notifySale(
+        companyId,
+        typedResult.invoice_number || '',
+        payload.customerName,
+        itemsTotal,
+        payload.currency || 'SAR'
       );
     }
 

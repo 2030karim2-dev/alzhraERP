@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Settings,
   Building,
@@ -14,6 +15,7 @@ import {
   User,
   GitBranch,
   Moon,
+  Bell,
 } from 'lucide-react';
 import CompanyProfile from './components/CompanyProfile';
 import BranchManager from './components/branches/BranchManager';
@@ -43,7 +45,20 @@ interface MenuGroup {
 }
 
 const SettingsPage: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as SettingsSection | null;
+
+  const [activeSection, setActiveSection] = useState<SettingsSection>(() => {
+    if (tabParam) return tabParam;
+    return 'profile';
+  });
+
+  useEffect(() => {
+    if (tabParam && tabParam !== activeSection) {
+      setActiveSection(tabParam);
+    }
+  }, [tabParam, activeSection]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { t } = useTranslation();
@@ -87,6 +102,13 @@ const SettingsPage: React.FC = () => {
           icon: Moon,
           desc: t('dhikr_desc'),
           color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30',
+        },
+        {
+          id: 'notifications',
+          label: 'الإشعارات والتنبيهات',
+          icon: Bell,
+          desc: 'إعدادات إشعارات سطح المكتب والنغمات وتنبيهات الأقسام',
+          color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30',
         },
       ],
     },
@@ -194,6 +216,8 @@ const SettingsPage: React.FC = () => {
         );
       case 'dhikr':
         return <DhikrSettings />;
+      case 'notifications':
+        return <NotificationSettings />;
       case 'invoice':
         return (
           <div className="space-y-8">

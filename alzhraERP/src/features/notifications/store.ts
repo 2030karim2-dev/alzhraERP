@@ -2,16 +2,32 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { logger } from '../../core/utils/logger';
 import { showDesktopNotification } from './desktopNotificationService';
+import type {
+  NotificationType,
+  NotificationCategory,
+  NotificationPriority,
+} from './components/notificationConfig';
+
+export interface AppNotificationAction {
+  label: string;
+  link?: string;
+  onClick?: () => void;
+  isPrimary?: boolean;
+}
 
 export interface AppNotification {
   id: string;
   companyId: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: NotificationType;
+  category?: NotificationCategory | undefined;
+  priority?: NotificationPriority | undefined;
+  tag?: string | undefined;
   timestamp: number;
   isRead: boolean;
-  link?: string;
+  link?: string | undefined;
+  actions?: AppNotificationAction[] | undefined;
 }
 
 interface NotificationState {
@@ -31,10 +47,12 @@ interface NotificationState {
 // Sound notification system
 interface SoundState {
   isSoundEnabled: boolean;
+  volume: number;
   hasUserInteracted: boolean;
   toggleSound: () => void;
+  setVolume: (vol: number) => void;
   setUserInteracted: () => void;
-  playNotificationSound: () => Promise<void>;
+  playNotificationSound: (priority?: NotificationPriority, force?: boolean) => Promise<void>;
 }
 
 // ─── Shared AudioContext (typed — no `any` casts) ────────────────────────
@@ -49,6 +67,7 @@ interface WindowWithWebkitAudio {
 
 /** Single shared context reused across notifications to avoid leaking audio device handles. */
 let sharedAudioContext: AudioContext | null = null;
+let lastSoundPlayedAt = 0;
 
 const getAudioContextCtor = (): AudioContextCtor | null => {
   if (typeof window === 'undefined') return null;
@@ -77,6 +96,23 @@ const ensureAudioContext = async (): Promise<AudioContext | null> => {
   return sharedAudioContext.state === 'running' ? sharedAudioContext : null;
 };
 
+const PREFS_STORAGE_KEY = 'alzhra:notification_prefs';
+function isCategoryEnabled(category?: NotificationCategory): boolean {
+  if (!category) return true;
+  try {
+    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) return true;
+    const prefs = JSON.parse(raw);
+    if (category === 'inventory' && prefs.stock === false) return false;
+    if (category === 'debt' && prefs.debt === false) return false;
+    if (category === 'sales' && prefs.sales === false) return false;
+    if (category === 'system' && prefs.system === false) return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
@@ -91,16 +127,54 @@ export const useNotificationStore = create<NotificationState>()(
           logger.warn('Notifications', 'addNotification called without companyId — skipping');
           return;
         }
+
+        // Gate by user preferences if category is set
+        if (notification.category && !isCategoryEnabled(notification.category)) {
+          logger.debug(
+            'Notifications',
+            `Skipping notification of muted category: ${notification.category}`
+          );
+          return;
+        }
+
+        // Deduplication check by tag: update existing unread notification instead of creating duplicate
+        if (notification.tag) {
+          const existingIndex = get().notifications.findIndex(
+            n => n.companyId === notification.companyId && n.tag === notification.tag && !n.isRead
+          );
+          if (existingIndex !== -1) {
+            set(state => {
+              const updated = [...state.notifications];
+              updated[existingIndex] = {
+                ...updated[existingIndex],
+                title: notification.title,
+                message: notification.message,
+                timestamp: Date.now(),
+                actions: notification.actions ?? updated[existingIndex].actions,
+                link: notification.link ?? updated[existingIndex].link,
+                type: notification.type,
+                priority: notification.priority ?? updated[existingIndex].priority,
+              };
+              return { notifications: updated };
+            });
+            return;
+          }
+        }
+
         const newNotif: AppNotification = {
           ...notification,
           id: Math.random().toString(36).substring(2, 9),
           timestamp: Date.now(),
           isRead: false,
         };
-        set(state => ({
-          notifications: [newNotif, ...state.notifications].slice(0, 100), // Keep last 100
-          unreadCount: state.notifications.filter(n => !n.isRead).length + 1,
-        }));
+
+        set(state => {
+          const updatedNotifs = [newNotif, ...state.notifications].slice(0, 100);
+          return {
+            notifications: updatedNotifs,
+            unreadCount: updatedNotifs.filter(n => !n.isRead).length,
+          };
+        });
 
         // Show native Desktop / Windows Toast Notification above all apps
         if (get().desktopEnabled) {
@@ -108,14 +182,15 @@ export const useNotificationStore = create<NotificationState>()(
             title: notification.title,
             body: notification.message,
             link: notification.link,
-            requireInteraction: true,
+            tag: notification.tag,
+            requireInteraction: notification.priority === 'urgent',
           });
         }
 
         // Play sound if enabled and user has interacted
         const soundStore = useSoundStore.getState();
         if (soundStore.isSoundEnabled) {
-          soundStore.playNotificationSound();
+          soundStore.playNotificationSound(notification.priority);
         }
       },
 
@@ -140,14 +215,17 @@ export const useNotificationStore = create<NotificationState>()(
       },
 
       markAllAsRead: (companyId?: string) => {
-        set(state => ({
-          notifications: state.notifications.map(n =>
+        set(state => {
+          const updated = state.notifications.map(n =>
             !companyId || n.companyId === companyId ? { ...n, isRead: true } : n
-          ),
-          unreadCount: companyId
-            ? state.notifications.filter(n => n.companyId !== companyId && !n.isRead).length
-            : 0,
-        }));
+          );
+          return {
+            notifications: updated,
+            unreadCount: companyId
+              ? updated.filter(n => n.companyId !== companyId && !n.isRead).length
+              : 0,
+          };
+        });
       },
 
       deleteNotification: id => {
@@ -161,14 +239,15 @@ export const useNotificationStore = create<NotificationState>()(
       },
 
       clearAll: (companyId?: string) =>
-        set(state => ({
-          notifications: companyId
+        set(state => {
+          const filtered = companyId
             ? state.notifications.filter(n => n.companyId !== companyId)
-            : [],
-          unreadCount: companyId
-            ? state.notifications.filter(n => n.companyId !== companyId && !n.isRead).length
-            : 0,
-        })),
+            : [];
+          return {
+            notifications: filtered,
+            unreadCount: filtered.filter(n => !n.isRead).length,
+          };
+        }),
     }),
     { name: 'al-zahra-notifications' }
   )
@@ -178,12 +257,12 @@ export const useSoundStore = create<SoundState>()(
   persist(
     (set, get) => ({
       isSoundEnabled: true,
+      volume: 0.6,
       hasUserInteracted: false,
 
       toggleSound: () => {
         set(state => {
           const newValue = !state.isSoundEnabled;
-          // Mark user as interacted when they toggle sound
           if (!state.hasUserInteracted) {
             return { isSoundEnabled: newValue, hasUserInteracted: true };
           }
@@ -191,25 +270,44 @@ export const useSoundStore = create<SoundState>()(
         });
       },
 
+      setVolume: (volume: number) => {
+        set({ volume: Math.max(0, Math.min(1, volume)) });
+      },
+
       setUserInteracted: () => set({ hasUserInteracted: true }),
 
-      playNotificationSound: async () => {
+      playNotificationSound: async (priority = 'normal', force = false) => {
         const state = get();
-        // Don't even try if sound is disabled or no interaction yet
-        if (!state.isSoundEnabled || !state.hasUserInteracted) return;
+        if (!state.isSoundEnabled) return;
 
-        // Modern browsers explicit gesture check to prevent harsh console warnings
+        // Sound throttling: avoid overlapping chimes within 2 seconds unless forced
+        const nowMs = Date.now();
+        if (!force && nowMs - lastSoundPlayedAt < 2000) {
+          return;
+        }
+        lastSoundPlayedAt = nowMs;
+
+        // Auto-mark user interaction when explicit sound test is called
+        if (force && !state.hasUserInteracted) {
+          set({ hasUserInteracted: true });
+        } else if (!state.hasUserInteracted) {
+          return;
+        }
+
+        // Modern browsers explicit gesture check
         if (typeof navigator !== 'undefined' && 'userActivation' in navigator) {
           const nav = navigator as unknown as UserActivationShim;
-          if (!nav.userActivation?.hasBeenActive) return;
+          if (!nav.userActivation?.hasBeenActive && !force) return;
         }
 
         try {
-          // Reuse a single lazily-initialized context — creating a new
-          // AudioContext per notification accumulates undisposed audio
-          // contexts and consumes memory/audio-device handles.
           const audioContext = await ensureAudioContext();
           if (!audioContext) return;
+
+          const vol = state.volume ?? 0.6;
+          const now = audioContext.currentTime;
+
+          const isUrgent = priority === 'urgent' || priority === 'high';
 
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
@@ -217,32 +315,31 @@ export const useSoundStore = create<SoundState>()(
           oscillator.connect(gainNode);
           gainNode.connect(audioContext.destination);
 
-          // Create a gentle, modern notification sound (two-tone chime)
-          const now = audioContext.currentTime;
+          // Tone configuration based on priority
+          const primaryFreq = isUrgent ? 1046.5 : 987.77; // C6 or B5
+          const dropFreq = isUrgent ? 880.0 : 880.0;
+          const peakGain = 0.08 * vol;
 
-          // First tone (higher)
-          oscillator.frequency.setValueAtTime(987.77, now); // B5
-          oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+          oscillator.frequency.setValueAtTime(primaryFreq, now);
+          oscillator.frequency.exponentialRampToValueAtTime(dropFreq, now + 0.08);
 
-          // Gentle envelope
           gainNode.gain.setValueAtTime(0, now);
-          gainNode.gain.linearRampToValueAtTime(0.08, now + 0.02);
+          gainNode.gain.linearRampToValueAtTime(peakGain, now + 0.02);
           gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
           oscillator.start(now);
           oscillator.stop(now + 0.15);
 
-          // Release the graph resources when the tone finishes.
           oscillator.onended = () => {
             try {
               oscillator.disconnect();
               gainNode.disconnect();
             } catch {
-              /* already disconnected */
+              /* noop */
             }
           };
 
-          // Second tone (lower, slightly delayed for harmony)
+          // Second harmonic chime
           setTimeout(() => {
             try {
               const osc2 = audioContext.createOscillator();
@@ -250,9 +347,10 @@ export const useSoundStore = create<SoundState>()(
               osc2.connect(gain2);
               gain2.connect(audioContext.destination);
 
-              osc2.frequency.setValueAtTime(783.99, audioContext.currentTime); // G5
+              const secondFreq = isUrgent ? 1318.51 : 783.99; // E6 or G5
+              osc2.frequency.setValueAtTime(secondFreq, audioContext.currentTime);
               gain2.gain.setValueAtTime(0, audioContext.currentTime);
-              gain2.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.02);
+              gain2.gain.linearRampToValueAtTime(0.06 * vol, audioContext.currentTime + 0.02);
               gain2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
 
               osc2.start(audioContext.currentTime);
@@ -262,15 +360,14 @@ export const useSoundStore = create<SoundState>()(
                   osc2.disconnect();
                   gain2.disconnect();
                 } catch {
-                  /* already disconnected */
+                  /* noop */
                 }
               };
             } catch {
-              // Ignore — the primary tone already played.
+              /* ignore */
             }
-          }, 60);
+          }, 65);
         } catch (error) {
-          // Silently fail if audio can't be played
           logger.warn('Notifications', 'Audio playback prevented by browser policy');
         }
       },

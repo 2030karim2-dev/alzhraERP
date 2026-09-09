@@ -1,6 +1,7 @@
 import { bondsApi } from './api';
 import type { Bond, BondType, BondFormData } from './types';
 import { messagingService } from '../notifications/messagingService';
+import { notificationService } from '../notifications/service';
 
 // Raw shape returned by the Supabase join query in bondsApi.getBonds
 interface RawPaymentRow {
@@ -74,6 +75,16 @@ export const bondsService = {
           date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
         },
         resultObj.id as string
+      );
+
+      // In-App Notification
+      notificationService.notifyBond(
+        companyId,
+        (resultObj.payment_number as string) || '',
+        data.type === 'receipt' ? 'receipt' : 'payment',
+        data.amount || 0,
+        data.currency_code || 'SAR',
+        data.description || undefined
       );
     }
 

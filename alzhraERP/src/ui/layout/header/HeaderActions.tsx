@@ -79,10 +79,16 @@ const HeaderActions: React.FC = () => {
     }
 
     function handleClickOutside(event: MouseEvent) {
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const notifPortal = document.getElementById('alzhra-notification-portal');
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(target) &&
+        (!notifPortal || !notifPortal.contains(target))
+      ) {
         setIsNotifOpen(false);
       }
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+      if (profileRef.current && !profileRef.current.contains(target)) {
         setIsProfileOpen(false);
       }
     }

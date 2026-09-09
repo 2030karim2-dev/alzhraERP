@@ -7,9 +7,11 @@ import {
   Save,
   Monitor,
   Volume2,
+  Volume1,
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  Music,
 } from 'lucide-react';
 import { useFeedbackStore } from '../../../feedback/store';
 import { useNotificationStore, useSoundStore } from '../../../notifications/store';
@@ -55,7 +57,7 @@ const loadPrefs = (): NotificationPrefs => {
 const NotificationSettings: React.FC = () => {
   const { showToast } = useFeedbackStore();
   const { desktopEnabled, setDesktopEnabled } = useNotificationStore();
-  const { isSoundEnabled, toggleSound } = useSoundStore();
+  const { isSoundEnabled, toggleSound, volume, setVolume, playNotificationSound } = useSoundStore();
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [prefs, setPrefs] = useState<NotificationPrefs>(loadPrefs);
@@ -86,6 +88,14 @@ const NotificationSettings: React.FC = () => {
     }
   };
 
+  const handlePlayTone = (priority: 'normal' | 'urgent') => {
+    void playNotificationSound(priority, true);
+    showToast(
+      priority === 'urgent' ? 'تم تشغيل نغمة التنبيه العاجل' : 'تم تشغيل النغمة اللطيفة',
+      'info'
+    );
+  };
+
   const handleSave = () => {
     setIsSaving(true);
     setTimeout(() => {
@@ -96,7 +106,7 @@ const NotificationSettings: React.FC = () => {
         // ignore quota errors
       }
       showToast('تم حفظ تفضيلات الإشعارات بنجاح', 'success');
-    }, 300);
+    }, 250);
   };
 
   const settings = [
@@ -117,21 +127,21 @@ const NotificationSettings: React.FC = () => {
     {
       id: 'debt',
       title: 'مواعيد الديون والمستحقات',
-      desc: 'تذكير باستحقاق ديون العملاء والتسديدات',
+      desc: 'تذكير باستحقاق ديون العملاء وتجاوز السقوف الائتمانية',
       icon: ShieldAlert,
       color: 'text-rose-500',
     },
     {
       id: 'system',
       title: 'تحديثات النظام والأمان',
-      desc: 'حول النسخ الاحتياطي والصيانة والترقيات',
+      desc: 'حول المزامنة والصيانة والعمليات الرئيسية',
       icon: Bell,
       color: 'text-blue-500',
     },
     {
       id: 'marketing',
       title: 'نصائح ذكاء الأعمال والتقارير',
-      desc: 'تحليلات أسبوعية للأداء والمبيعات',
+      desc: 'تحليلات دورية للمبيعات والمؤشرات المالية',
       icon: MessageSquare,
       color: 'text-purple-500',
     },
@@ -144,42 +154,42 @@ const NotificationSettings: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 max-md:text-lg">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 md:text-2xl">
             مركز الإشعارات والتنبيهات
           </h2>
-          <p className="mt-1 text-xs font-bold uppercase text-gray-400">
-            إدارة إشعارات سطح المكتب والنوافذ المنبثقة
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+            تخصيص سلوك إشعارات سطح المكتب والنغمات الصوتية وتنبيهات الأقسام
           </p>
         </div>
         <Button
           onClick={handleSave}
           isLoading={isSaving}
-          className="rounded-xl px-6"
+          className="rounded-xl px-5"
           leftIcon={<Save size={16} />}
         >
-          حفظ
+          حفظ التفضيلات
         </Button>
       </div>
 
       {/* Primary Desktop OS Notifications Card */}
-      <div className="rounded-[2rem] border border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/80 dark:to-indigo-950/20">
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/50 p-4 shadow-xs dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/80 dark:to-indigo-950/20 md:p-5">
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
-              <Monitor size={24} />
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
+              <Monitor size={22} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 md:text-base">
                   إشعارات سطح المكتب (Windows / Mac)
                 </h3>
                 {permission === 'granted' ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
                     <CheckCircle2 size={12} />
                     مفعلة وتظهر فوق كل البرامج
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
                     <AlertCircle size={12} />
                     تحتاج إذن المتصفح
                   </span>
@@ -197,7 +207,7 @@ const NotificationSettings: React.FC = () => {
               <Button
                 variant="primary"
                 onClick={handleRequestPermission}
-                className="rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-sm hover:bg-indigo-700"
+                className="rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-indigo-700"
               >
                 السماح بالإشعارات الآن 🔔
               </Button>
@@ -207,7 +217,7 @@ const NotificationSettings: React.FC = () => {
               variant="outline"
               onClick={handleTestNotification}
               isLoading={isTesting}
-              className="rounded-xl border-indigo-200 bg-white px-4 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-300"
+              className="rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-300"
             >
               إرسال إشعار تجريبي 🚀
             </Button>
@@ -230,13 +240,13 @@ const NotificationSettings: React.FC = () => {
 
           <div className="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-800/60">
             <div className="flex items-center gap-2">
-              <Volume2 size={16} className="text-slate-500" />
+              <Volume2 size={16} className="shrink-0 text-slate-500" />
               <div>
                 <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                   الأصوات التنبيهية
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  تشغيل رنين خفيف عند وصول الإشعار
+                  تشغيل رنين ثنائي هادئ عند وصول الإشعار
                 </span>
               </div>
             </div>
@@ -245,9 +255,68 @@ const NotificationSettings: React.FC = () => {
         </div>
       </div>
 
+      {/* Audio Sound & Tone Controls Card */}
+      <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-xs md:p-5">
+        <div className="mb-3 flex items-center justify-between gap-2 border-b border-[var(--app-border)] pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Music size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">
+                التحكم بنغمات الصوت ومستوى الرنين
+              </h3>
+              <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                ضبط شدة الصوت وتجربة النغمات مباشرة عبر مكبر الصوت
+              </p>
+            </div>
+          </div>
+
+          {/* Tone Preview Buttons */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handlePlayTone('normal')}
+              className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+            >
+              <span>نغمة لطيفة</span>
+              <Volume1 size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePlayTone('urgent')}
+              className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300"
+            >
+              <span>نغمة عاجلة</span>
+              <Volume2 size={13} />
+            </button>
+          </div>
+        </div>
+
+        {/* Volume Slider */}
+        <div className="flex items-center gap-4 pt-1">
+          <Volume2 size={16} className="shrink-0 text-gray-400" />
+          <div className="flex flex-1 items-center gap-3">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={e => setVolume(parseFloat(e.target.value))}
+              className="w-full cursor-pointer accent-blue-600"
+              aria-label="مستوى صوت الإشعارات"
+            />
+            <span className="w-10 text-center text-xs font-bold text-gray-700 dark:text-slate-300">
+              {Math.round(volume * 100)}%
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Category Notification Preferences */}
-      <div className="divide-y overflow-hidden rounded-[2rem] border bg-[var(--app-surface)] shadow-sm dark:divide-slate-800 dark:border-slate-800">
-        <div className="bg-slate-50/60 px-5 py-3 dark:bg-slate-800/40">
+      <div className="divide-y overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-xs dark:divide-slate-800">
+        <div className="border-b border-[var(--app-border)] bg-slate-50/60 px-4 py-2.5 dark:bg-slate-800/40">
           <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
             تخصيص أقسام الإشعارات المستلمة:
           </span>
@@ -263,7 +332,13 @@ const NotificationSettings: React.FC = () => {
               <ToggleSwitch
                 checked={prefs[item.id as keyof typeof prefs]}
                 onChange={checked => {
-                  setPrefs({ ...prefs, [item.id as keyof typeof prefs]: checked });
+                  const updated = { ...prefs, [item.id as keyof typeof prefs]: checked };
+                  setPrefs(updated);
+                  try {
+                    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(updated));
+                  } catch {
+                    /* ignore */
+                  }
                 }}
               />
             }

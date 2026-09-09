@@ -1,18 +1,26 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useNotificationStore, type AppNotification } from '../store';
 import { useAuthStore } from '../../auth/store';
 import { useI18nStore } from '../../../lib/i18nStore';
 import { cn } from '../../../core/utils';
-import { Bell, Check, Trash2, X, ExternalLink, Volume2, VolumeX } from 'lucide-react';
+import { Bell, Trash2, X, ExternalLink, Volume2, VolumeX, CheckCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSoundStore } from '../store';
 import NotificationItem from './NotificationItem';
+import {
+  getDesktopNotificationPermission,
+  requestDesktopNotificationPermission,
+  sendTestDesktopNotification,
+  isDesktopNotificationSupported,
+} from '../desktopNotificationService';
 import { createPortal } from 'react-dom';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
+
+type TabType = 'all' | 'unread' | 'urgent';
 
 const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
   const { dir } = useI18nStore();
@@ -23,16 +31,23 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
     markAllAsRead,
     clearAll,
     deleteNotification,
+    setDesktopEnabled,
   } = useNotificationStore();
   const { user } = useAuthStore();
   const companyId = user?.company_id || '';
-  const { isSoundEnabled, toggleSound } = useSoundStore();
+  const { isSoundEnabled, toggleSound, playNotificationSound } = useSoundStore();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
+  const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+  const [desktopPerm, setDesktopPerm] = useState<NotificationPermission>(() =>
+    getDesktopNotificationPermission()
+  );
+
   // Company-scoped notifications
-  const notifications = useMemo(
+  const allNotifications = useMemo(
     () => getCompanyNotifications(companyId),
     [getCompanyNotifications, companyId]
   );
@@ -41,11 +56,31 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
     [getCompanyUnreadCount, companyId]
   );
 
+  const urgentCount = useMemo(
+    () =>
+      allNotifications.filter(
+        n => !n.isRead && (n.type === 'warning' || n.type === 'error' || n.priority === 'urgent')
+      ).length,
+    [allNotifications]
+  );
+
+  // Filtered notifications based on active tab
+  const filteredNotifications = useMemo(() => {
+    if (activeTab === 'unread') {
+      return allNotifications.filter(n => !n.isRead);
+    }
+    if (activeTab === 'urgent') {
+      return allNotifications.filter(
+        n => n.type === 'warning' || n.type === 'error' || n.priority === 'urgent'
+      );
+    }
+    return allNotifications;
+  }, [allNotifications, activeTab]);
+
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isOpen) return;
-
       if (e.key === 'Escape') {
         onClose();
       }
@@ -65,6 +100,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
     if (isOpen && firstFocusableRef.current) {
       setTimeout(() => firstFocusableRef.current?.focus(), 100);
     }
+    if (!isOpen) {
+      setIsConfirmingClear(false);
+    }
   }, [isOpen]);
 
   const handleNotificationClick = (notif: AppNotification) => {
@@ -75,14 +113,21 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleActionClick = (notifId: string, link?: string) => {
+    markAsRead(notifId);
+    if (link) {
+      navigate(link);
+      onClose();
+    }
+  };
+
   const handleMarkAllRead = () => {
     markAllAsRead(companyId);
   };
 
-  const handleClearAll = () => {
-    if (notifications.length > 0 && window.confirm('هل أنت متأكد من حذف جميع الإشعارات؟')) {
-      clearAll(companyId);
-    }
+  const handleExecuteClearAll = () => {
+    clearAll(companyId);
+    setIsConfirmingClear(false);
   };
 
   const handleDeleteNotification = (e: React.MouseEvent, id: string) => {
@@ -90,16 +135,22 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
     deleteNotification(id);
   };
 
-  const unreadNotifications = notifications.filter(n => !n.isRead);
-  const readNotifications = notifications.filter(n => n.isRead);
+  const handleEnableDesktop = async () => {
+    const res = await requestDesktopNotificationPermission();
+    setDesktopPerm(res);
+    if (res === 'granted') {
+      setDesktopEnabled(true);
+      void sendTestDesktopNotification();
+    }
+  };
 
   if (!isOpen) return null;
 
   return createPortal(
-    <>
+    <div id="alzhra-notification-portal">
       {/* Backdrop for mobile */}
       <div
-        className="animate-in fade-in fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm duration-300 md:hidden"
+        className="animate-in fade-in backdrop-blur-xs fixed inset-0 z-[9998] bg-black/25 duration-200 md:hidden"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -107,9 +158,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
       <div
         ref={dropdownRef}
         className={cn(
-          'fixed left-4 right-4 top-16 z-[9999] max-h-[80vh] md:top-[56px] md:max-h-[600px] md:w-[420px]',
-          'rounded-2xl bg-[var(--app-surface)] shadow-2xl shadow-black/20 dark:shadow-black/50',
-          'overflow-hidden border border-[var(--app-border)]',
+          'fixed left-3 right-3 top-16 z-[9999] max-h-[82vh] md:top-[54px] md:max-h-[620px] md:w-[440px]',
+          'rounded-2xl bg-[var(--app-surface)] shadow-2xl shadow-black/25 dark:shadow-black/60',
+          'flex flex-col overflow-hidden border border-[var(--app-border)]',
           'animate-in slide-in-from-top-2 fade-in zoom-in-95 duration-200 ease-out',
           dir === 'rtl'
             ? 'md:left-4 md:right-auto md:origin-top-left'
@@ -120,15 +171,26 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
         aria-modal="true"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-gradient-to-l from-gray-50/80 to-white px-4 py-3 backdrop-blur-xl dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20">
-              <Bell size={18} className="text-white" />
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--app-border)] bg-gray-50/70 px-4 py-3 backdrop-blur-md dark:bg-slate-900/80">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-md shadow-blue-500/20">
+              <Bell size={17} className="text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white">الإشعارات</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold text-gray-900 dark:text-white md:text-sm">
+                  الإشعارات
+                </h3>
+                {unreadCount > 0 && (
+                  <span className="py-0.2 rounded-full bg-blue-600 px-1.5 text-[10px] font-black text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
               <p className="text-[10px] text-gray-500 dark:text-slate-400">
-                {unreadCount > 0 ? `${unreadCount} إشعار جديد` : 'لا توجد إشعارات جديدة'}
+                {unreadCount > 0
+                  ? `${unreadCount} إشعار جديد بحاجة للمتابعة`
+                  : 'جميع التنبيهات محدثة'}
               </p>
             </div>
           </div>
@@ -137,10 +199,15 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
             {/* Sound Toggle */}
             <button
               ref={firstFocusableRef}
-              onClick={toggleSound}
-              className="rounded-xl p-2 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              title={isSoundEnabled ? 'تعطيل صوت الإشعارات' : 'تفعيل صوت الإشعارات'}
-              aria-label={isSoundEnabled ? 'تعطيل صوت الإشعارات' : 'تفعيل صوت الإشعارات'}
+              onClick={() => {
+                toggleSound();
+                if (!isSoundEnabled) {
+                  void playNotificationSound('normal', true);
+                }
+              }}
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-200/60 hover:text-gray-700 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              title={isSoundEnabled ? 'تعطيل نغمة التنبيه' : 'تفعيل نغمة التنبيه'}
+              aria-label={isSoundEnabled ? 'تعطيل نغمة التنبيه' : 'تفعيل نغمة التنبيه'}
             >
               {isSoundEnabled ? (
                 <Volume2 size={16} className="text-emerald-500" />
@@ -153,30 +220,30 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="rounded-xl p-2 text-emerald-500 transition-all duration-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:hover:bg-emerald-900/20"
+                className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50 focus:outline-none dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                 title="تحديد الكل كمقروء"
                 aria-label="تحديد الكل كمقروء"
               >
-                <Check size={16} />
+                <CheckCheck size={16} />
               </button>
             )}
 
-            {/* Clear all */}
-            {notifications.length > 0 && (
+            {/* Clear all trigger */}
+            {allNotifications.length > 0 && (
               <button
-                onClick={handleClearAll}
-                className="rounded-xl p-2 text-rose-500 transition-all duration-200 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500/30 dark:hover:bg-rose-900/20"
+                onClick={() => setIsConfirmingClear(true)}
+                className="rounded-lg p-1.5 text-rose-500 transition-colors hover:bg-rose-50 focus:outline-none dark:hover:bg-rose-950/30"
                 title="حذف جميع الإشعارات"
                 aria-label="حذف جميع الإشعارات"
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
               </button>
             )}
 
             {/* Close button */}
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-200/60 hover:text-gray-700 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               aria-label="إغلاق"
             >
               <X size={16} />
@@ -184,112 +251,153 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Desktop Notification Quick Activation Bar */}
-        {typeof window !== 'undefined' &&
-          'Notification' in window &&
-          Notification.permission !== 'granted' && (
-            <div className="flex items-center justify-between gap-2 border-b border-indigo-100 bg-indigo-50/90 px-4 py-2 dark:border-indigo-900/60 dark:bg-indigo-950/60">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">🔔</span>
-                <span className="text-[11px] font-bold text-indigo-900 dark:text-indigo-200">
-                  تفعيل الإشعارات فوق سطح المكتب لجميع البرامج
-                </span>
-              </div>
+        {/* Inline Clear Confirmation Bar */}
+        {isConfirmingClear && (
+          <div className="animate-in slide-in-from-top-1 flex items-center justify-between gap-2 border-b border-rose-200 bg-rose-50 px-4 py-2.5 duration-150 dark:border-rose-900/60 dark:bg-rose-950/50">
+            <span className="text-xs font-bold text-rose-800 dark:text-rose-200">
+              هل أنت متأكد من مسح جميع الإشعارات؟
+            </span>
+            <div className="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
-                onClick={async () => {
-                  await Notification.requestPermission();
-                  window.location.reload();
-                }}
-                className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs transition-colors hover:bg-indigo-700"
+                onClick={handleExecuteClearAll}
+                className="rounded bg-rose-600 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-rose-700"
               >
-                تفعيل الآن ✓
+                نعم، احذف
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingClear(false)}
+                className="rounded bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+              >
+                إلغاء
               </button>
             </div>
-          )}
+          </div>
+        )}
 
-        {/* Notifications List */}
-        <div className="custom-scrollbar max-h-[calc(80vh-80px)] overflow-y-auto md:max-h-[480px]">
-          {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-              <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-gray-100 to-gray-50 shadow-inner dark:from-slate-800 dark:to-slate-900">
-                <Bell size={32} className="text-gray-300 dark:text-slate-600" />
+        {/* Quick Filter Tabs */}
+        <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-[var(--app-border)] bg-gray-50/40 px-3 py-1.5 dark:bg-slate-900/40">
+          <button
+            type="button"
+            onClick={() => setActiveTab('all')}
+            className={cn(
+              'whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
+              activeTab === 'all'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800'
+            )}
+          >
+            الكل ({allNotifications.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('unread')}
+            className={cn(
+              'flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
+              activeTab === 'unread'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800'
+            )}
+          >
+            <span>غير مقروء</span>
+            {unreadCount > 0 && (
+              <span className="py-0.2 rounded-full bg-blue-100 px-1.5 text-[10px] font-black text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('urgent')}
+            className={cn(
+              'flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
+              activeTab === 'urgent'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800'
+            )}
+          >
+            <span>تنبيهات هامة</span>
+            {urgentCount > 0 && (
+              <span className="py-0.2 rounded-full bg-amber-100 px-1.5 text-[10px] font-black text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                {urgentCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Desktop Notification Quick Activation Bar */}
+        {isDesktopNotificationSupported() && desktopPerm !== 'granted' && (
+          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-indigo-100 bg-indigo-50/90 px-3 py-2 dark:border-indigo-900/50 dark:bg-indigo-950/60">
+            <div className="flex items-center gap-2">
+              <span className="text-xs">🔔</span>
+              <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                تفعيل التنبيه فوق جميع تطبيقات سطح المكتب
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleEnableDesktop}
+              className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-bold text-white shadow-xs transition-colors hover:bg-indigo-700"
+            >
+              تفعيل الآن ✓
+            </button>
+          </div>
+        )}
+
+        {/* Notifications Scroll List */}
+        <div className="custom-scrollbar flex-1 overflow-y-auto">
+          {filteredNotifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-500">
+                <Bell size={28} />
               </div>
-              <h4 className="mb-1 text-sm font-bold text-gray-700 dark:text-slate-300">
-                لا توجد إشعارات
+              <h4 className="text-xs font-bold text-gray-800 dark:text-slate-200 md:text-sm">
+                {activeTab === 'unread'
+                  ? 'لا توجد إشعارات غير مقروءة'
+                  : activeTab === 'urgent'
+                    ? 'لا توجد تنبيهات هامة حالياً'
+                    : 'سجل الإشعارات فارغ'}
               </h4>
-              <p className="max-w-[200px] text-xs text-gray-400 dark:text-slate-500">
-                ستظهر هنا الإشعارات الجديدة عند وصولها
+              <p className="mt-1 max-w-[220px] text-xs text-gray-500 dark:text-slate-400">
+                ستظهر التنبيهات الدورية وعمليات النظام فور حدوثها
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50 dark:divide-slate-800/50">
-              {/* Unread Notifications Section */}
-              {unreadNotifications.length > 0 && (
-                <div className="bg-blue-50/30 dark:bg-blue-900/5">
-                  <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                    إشعارات جديدة ({unreadNotifications.length})
-                  </div>
-                  {unreadNotifications.map(notif => (
-                    <NotificationItem
-                      key={notif.id}
-                      notif={notif}
-                      onClick={() => {
-                        handleNotificationClick(notif);
-                      }}
-                      onDelete={e => {
-                        handleDeleteNotification(e, notif.id);
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Read Notifications Section */}
-              {readNotifications.length > 0 && (
-                <div>
-                  {unreadNotifications.length > 0 && (
-                    <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                      مقروءة سابقاً
-                    </div>
-                  )}
-                  {readNotifications.map(notif => (
-                    <NotificationItem
-                      key={notif.id}
-                      notif={notif}
-                      onClick={() => {
-                        handleNotificationClick(notif);
-                      }}
-                      onDelete={e => {
-                        handleDeleteNotification(e, notif.id);
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+            <div>
+              {filteredNotifications.map(notif => (
+                <NotificationItem
+                  key={notif.id}
+                  notif={notif}
+                  onClick={() => handleNotificationClick(notif)}
+                  onDelete={e => handleDeleteNotification(e, notif.id)}
+                  onActionClick={link => handleActionClick(notif.id, link)}
+                />
+              ))}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        {notifications.length > 0 && (
-          <div className="sticky bottom-0 border-t border-gray-100 bg-gray-50/80 px-4 py-3 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/80">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 dark:text-slate-400">
-                {notifications.length} إشعار
-              </span>
-              <button
-                onClick={() => navigate('/settings')}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-blue-600 transition-colors hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                إعدادات الإشعارات
-                <ExternalLink size={12} />
-              </button>
-            </div>
+        <div className="shrink-0 border-t border-[var(--app-border)] bg-gray-50/90 px-4 py-2.5 backdrop-blur-md dark:bg-slate-900/90">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+              {allNotifications.length} إشعار مسجل
+            </span>
+            <button
+              onClick={() => {
+                navigate('/settings?tab=notifications');
+                onClose();
+              }}
+              className="flex items-center gap-1 font-bold text-blue-600 transition-colors hover:text-blue-700 focus:outline-none dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <span>إعدادات الإشعارات</span>
+              <ExternalLink size={12} />
+            </button>
           </div>
-        )}
+        </div>
       </div>
-    </>,
+    </div>,
     document.body
   );
 };
