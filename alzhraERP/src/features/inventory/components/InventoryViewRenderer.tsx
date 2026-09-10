@@ -71,6 +71,8 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
           handleEdit={handleEdit}
           deleteProduct={deleteProduct}
           onMaximizeProduct={onMaximizeProduct}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
         />
       );
 

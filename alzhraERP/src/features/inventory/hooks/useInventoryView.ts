@@ -35,13 +35,13 @@ export const useInventoryView = () => {
 
   const setSearchTerm = (term: string) => {
     setSearchTermState(term);
+    const nextParams = new URLSearchParams(searchParams);
     if (term) {
-      setSearchParams({ search: term }, { replace: true });
+      nextParams.set('search', term);
     } else {
-      const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('search');
-      setSearchParams(nextParams, { replace: true });
     }
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleEdit = (product: Product) => {

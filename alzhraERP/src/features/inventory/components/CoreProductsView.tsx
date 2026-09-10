@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Star, AlertTriangle, CheckCircle2, PackageX, Layers } from 'lucide-react';
 import ProductExcelGrid from './ProductExcelGrid';
 import ProductDetailPane from './ProductDetailPane';
@@ -15,6 +15,8 @@ interface CoreProductsViewProps {
   handleEdit: (product: Product) => void;
   deleteProduct: (id: string) => void;
   onMaximizeProduct?: (() => void) | undefined;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
 }
 
 type CoreFilterMode = 'core_only' | 'critical_stock' | 'out_of_stock' | 'all_inventory';
@@ -26,9 +28,12 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
   handleEdit,
   deleteProduct,
   onMaximizeProduct,
+  searchTerm: propSearchTerm,
+  onSearchChange: propOnSearchChange,
 }) => {
   const [filterMode, setFilterMode] = useState<CoreFilterMode>('core_only');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [localSearchTerm, setLocalSearchTerm] = useState(propSearchTerm || '');
+  const activeSearch = propSearchTerm !== undefined ? propSearchTerm : localSearchTerm;
   const [pageSize, setPageSize] = useState(50);
   const { toggleCoreProduct } = useProductMutations();
 
@@ -46,12 +51,22 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
     goToPage,
   } = useProductsPaginated({
     pageSize,
-    initialSearch: searchTerm,
+    initialSearch: activeSearch,
     isCore: queryIsCore,
   });
 
+  useEffect(() => {
+    if (propSearchTerm !== undefined) {
+      setLocalSearchTerm(propSearchTerm);
+      handleSearchChange(propSearchTerm);
+    }
+  }, [propSearchTerm, handleSearchChange]);
+
   const onSearch = (value: string) => {
-    setSearchTerm(value);
+    setLocalSearchTerm(value);
+    if (propOnSearchChange) {
+      propOnSearchChange(value);
+    }
     handleSearchChange(value);
   };
 
@@ -266,7 +281,7 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
                 onDelete={deleteProduct}
                 onViewDetails={setSelectedProduct}
                 onEdit={handleEdit}
-                searchValue={searchTerm}
+                searchValue={activeSearch}
                 onSearchChange={onSearch}
                 onToggleCore={handleToggleCore}
                 title={
@@ -301,7 +316,7 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
               onDelete={deleteProduct}
               onViewDetails={setSelectedProduct}
               onEdit={handleEdit}
-              searchValue={searchTerm}
+              searchValue={activeSearch}
               onSearchChange={onSearch}
               onToggleCore={handleToggleCore}
               title="الأصناف الاستراتيجية"

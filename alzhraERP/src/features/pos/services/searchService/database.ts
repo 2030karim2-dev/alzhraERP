@@ -103,6 +103,7 @@ export async function searchDatabase(
       p_offset: 0,
       p_sort_key: 'updated_at',
       p_sort_dir: 'desc',
+      p_is_core: null,
     });
 
     if (error) {

@@ -90,11 +90,22 @@ export function useProductSelectionTable({
           p_sort_key: sqlSortKey,
           p_sort_dir: sqlSortDir,
           ...(effectiveBranchId ? { p_branch_id: effectiveBranchId } : {}),
+          p_is_core: null,
         });
 
         if (error) {
           logger.warn('useProductSelectionTable', 'RPC search error, falling back:', error.message);
-          return await productService.getProducts(companyId, 1, 500);
+          const fallbackProds = await productService.getProducts(companyId, 1, 500);
+          const q = submittedQuery.trim().toLowerCase();
+          if (!q) return fallbackProds;
+          return fallbackProds.filter(
+            p =>
+              p.name.toLowerCase().includes(q) ||
+              p.name_ar.toLowerCase().includes(q) ||
+              p.sku?.toLowerCase().includes(q) ||
+              p.part_number?.toLowerCase().includes(q) ||
+              p.barcode?.toLowerCase().includes(q)
+          );
         }
 
         return productService.mapRawProducts(data ?? []);
