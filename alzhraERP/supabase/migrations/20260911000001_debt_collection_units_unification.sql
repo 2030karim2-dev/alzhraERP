@@ -100,7 +100,26 @@ DECLARE
   v_debit_base numeric;
   v_credit_base numeric;
   v_foreign_val numeric;
+  v_has_rows boolean;
 BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.journal_entry_lines jel
+    JOIN public.journal_entries je ON je.id = jel.journal_entry_id
+    WHERE je.deleted_at IS NULL
+      AND jel.deleted_at IS NULL
+      AND (jel.foreign_amount IS NULL OR jel.foreign_amount = 0)
+      AND jel.currency_code IS NOT NULL
+      AND UPPER(TRIM(jel.currency_code)) <> 'SAR'
+      AND je.reference_type IN ('receipt_bond', 'payment_bond', 'disbursement', 'transfer_bond', 'internal_transfer')
+  ) INTO v_has_rows;
+
+  IF NOT v_has_rows THEN
+    RETURN;
+  END IF;
+
+  ALTER TABLE public.journal_entry_lines DISABLE TRIGGER trg_journal_entry_lines_immutability;
+
   FOR v_row IN
     SELECT
       jel.id,
@@ -115,6 +134,7 @@ BEGIN
       AND (jel.foreign_amount IS NULL OR jel.foreign_amount = 0)
       AND jel.currency_code IS NOT NULL
       AND UPPER(TRIM(jel.currency_code)) <> 'SAR'
+      AND je.reference_type IN ('receipt_bond', 'payment_bond', 'disbursement', 'transfer_bond', 'internal_transfer')
   LOOP
     v_foreign_val  := GREATEST(COALESCE(v_row.debit_amount, 0), COALESCE(v_row.credit_amount, 0));
     v_debit_base   := public.fn_to_base_amount(v_row.currency_code, v_row.debit_amount, v_row.exchange_rate);
@@ -127,6 +147,8 @@ BEGIN
         updated_at = NOW()
     WHERE id = v_row.id;
   END LOOP;
+
+  ALTER TABLE public.journal_entry_lines ENABLE TRIGGER trg_journal_entry_lines_immutability;
 END $$;
 -- ─────────────────────────────────────────────────────────────
 -- 3) fn_auto_post_payment_journal — توحيد الوحدات + دعم 'both'
@@ -234,18 +256,18 @@ end if;
       values (v_je_id, new.account_id, new.company_id, new.branch_id, 0, v_base_amount, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'صرف من خزينة - ' || coalesce(new.payment_number,''), new.party_id);
     end if;
 
-  elsif v_party_type = 'supplier' or (v_party_type = 'both' and new.type = 'disbursement') then
+  elsif v_party_type = 'supplier' or (v_party_type = 'both' and new.type in ('disbursement', 'payment')) then
     if v_acc_ap is null then
       raise exception 'auto_post_failed: حساب AP(2100) غير موجود للشركة % - يجب إنشاؤه قبل إصدار سند %', new.company_id, new.payment_number;
     end if;
     insert into journal_entries (company_id, branch_id, entry_date, reference_type, reference_id, description, status, created_by)
     values (new.company_id, new.branch_id, new.payment_date,
-      case when new.type = 'disbursement' then 'payment_bond' else 'receipt_bond' end, new.id,
-      'ترحيل تلقائي - ' || (case when new.type='disbursement' then 'سند صرف لمورد ' else 'سند قبض/تحصيل من مورد ' end) || coalesce(new.payment_number,''),
+      case when new.type in ('disbursement', 'payment') then 'payment_bond' else 'receipt_bond' end, new.id,
+      'ترحيل تلقائي - ' || (case when new.type in ('disbursement', 'payment') then 'سند صرف لمورد ' else 'سند قبض/تحصيل من مورد ' end) || coalesce(new.payment_number,''),
       'draft', new.created_by)
     returning id into v_je_id;
 
-    if new.type = 'disbursement' then
+    if new.type in ('disbursement', 'payment') then
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, foreign_amount, currency_code, exchange_rate, description, party_id)
       values (v_je_id, v_acc_ap, new.company_id, new.branch_id, v_base_amount, 0, new.amount, new.currency_code, coalesce(new.exchange_rate,1), 'تخفيض دائنون - ' || coalesce(new.payment_number,''), new.party_id);
       insert into journal_entry_lines (journal_entry_id, account_id, company_id, branch_id, debit_amount, credit_amount, foreign_amount, currency_code, exchange_rate, description, party_id)
@@ -311,7 +333,7 @@ BEGIN
 
   v_effective_rate := COALESCE(NULLIF(p_exchange_rate, 0), 1.0);
   v_foreign_amount := COALESCE(NULLIF(p_foreign_amount, 0), p_amount);
-  v_base_amount    := ROUND(v_foreign_amount * v_effective_rate, 4);
+  v_base_amount    := public.fn_to_base_amount(p_currency_code, v_foreign_amount, v_effective_rate);
   IF p_currency_code = (SELECT base_currency FROM companies WHERE id = p_company_id LIMIT 1) THEN
     v_base_amount := v_foreign_amount; v_effective_rate := 1.0;
   END IF;
@@ -395,11 +417,6 @@ IF p_invoice_id IS NOT NULL THEN
     IF v_alloc_amount > 0 THEN
       INSERT INTO payment_allocations(payment_id, invoice_id, amount, company_id)
       VALUES (v_payment_id, p_invoice_id, v_alloc_amount, p_company_id) ON CONFLICT DO NOTHING;
-
-      UPDATE invoices
-      SET paid_amount = COALESCE(paid_amount, 0) + v_alloc_amount,
-          updated_at = now()
-      WHERE id = p_invoice_id AND company_id = p_company_id;
     END IF;
   END IF;
 

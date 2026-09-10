@@ -115,55 +115,6 @@ BEGIN
   v_val := public.fn_to_base_amount('YER', 555, 0);
   ASSERT ABS(v_val - 555) < 0.001, 'T1 FAIL: zero rate = ' || v_val::text;
 
-  -- ═══ T2: receipt bond journal units (YER 30,000 @ 410) ═══
-  -- Same-currency allocation → paid_amount updated by 30,000
-  PERFORM public.create_financial_bond(
-    v_company, 'receipt', 30000, 'YER', 410, 30000, DATE '2026-06-10',
-    v_cash, v_customer, 'party', 'تحصيل اختبار', v_inv_yer, v_uid
-  );
-
-  SELECT paid_amount INTO v_val FROM public.invoices WHERE id = v_inv_yer;
-  ASSERT ABS(v_val - 30000) < 0.001, 'T3 FAIL: paid_amount = ' || COALESCE(v_val::text, 'NULL');
-
-  -- The bond journal line must be in BASE currency (30000 / 410) with
-  -- foreign_amount = 30000 preserved.
-  SELECT jel.debit_amount INTO v_val
-  FROM public.journal_entry_lines jel
-  JOIN public.journal_entries je ON je.id = jel.journal_entry_id
-  JOIN public.accounts a ON a.id = jel.account_id
-  WHERE je.company_id = v_company AND je.reference_type = 'receipt_bond'
-    AND je.deleted_at IS NULL AND jel.deleted_at IS NULL
-    AND a.code = '1100';
-  ASSERT ABS(v_val - 73.1707) < 0.01, 'T2 FAIL: bond AR base debit = ' || COALESCE(v_val::text, 'NULL');
-
-  SELECT jel.foreign_amount INTO v_val
-  FROM public.journal_entry_lines jel
-  JOIN public.journal_entries je ON je.id = jel.journal_entry_id
-  JOIN public.accounts a ON a.id = jel.account_id
-  WHERE je.company_id = v_company AND je.reference_type = 'receipt_bond'
-    AND je.deleted_at IS NULL AND jel.deleted_at IS NULL
-    AND a.code = '1100';
-  ASSERT ABS(v_val - 30000) < 0.001, 'T2 FAIL: bond AR foreign = ' || COALESCE(v_val::text, 'NULL');
-
-  -- Cross-currency allocation (YER bond → SAR invoice) must raise
-  BEGIN
-    PERFORM public.create_financial_bond(
-      v_company, 'receipt', 100, 'YER', 410, 100, DATE '2026-06-11',
-      v_cash, v_customer, 'party', 'cross-currency', v_inv_sar, v_uid
-    );
-    RAISE EXCEPTION 'T3 FAIL: cross-currency allocation did not raise';
-  EXCEPTION
-    WHEN OTHERS THEN
-      v_txt := SQLERRM;
-      IF v_txt LIKE '%did not raise%' THEN
-        RAISE;
-      END IF;
-      -- The guard message mentions the mismatch — accept any raise
-      IF v_txt NOT LIKE '%تختلف%' AND v_txt NOT LIKE '%عملة%' THEN
-        RAISE EXCEPTION 'T3 FAIL: unexpected error: %', v_txt;
-      END IF;
-  END;
-
   -- ── Invoices ──────────────────────────────────────────────────────────
   INSERT INTO public.invoices(
     company_id, party_id, invoice_number, type, status, total_amount, subtotal,
@@ -200,13 +151,63 @@ BEGIN
     v_company, v_supplier, 'T-USD-0004', 'purchase', 'posted', 100, 100,
     0, 0, DATE '2026-06-04', DATE '2026-07-04', 'credit', 'USD', 3.75, 0, v_uid
   ) RETURNING id INTO v_inv_usd;
+
+  -- ═══ T2: receipt bond journal units (YER 30,000 @ 410) ═══
+  -- Same-currency allocation → paid_amount updated by 30,000
+  PERFORM public.create_financial_bond(
+    v_company, 'receipt', 30000, 'YER', 410, 30000, DATE '2026-06-10',
+    v_cash, v_customer, 'party', 'تحصيل اختبار', v_inv_yer, v_uid
+  );
+
+  SELECT paid_amount INTO v_val FROM public.invoices WHERE id = v_inv_yer;
+  ASSERT ABS(v_val - 30000) < 0.001, 'T3 FAIL: paid_amount = ' || COALESCE(v_val::text, 'NULL');
+
+  -- The bond journal line must be in BASE currency (30000 / 410) with
+  -- foreign_amount = 30000 preserved.
+  SELECT jel.credit_amount INTO v_val
+  FROM public.journal_entry_lines jel
+  JOIN public.journal_entries je ON je.id = jel.journal_entry_id
+  JOIN public.accounts a ON a.id = jel.account_id
+  WHERE je.company_id = v_company AND je.reference_type = 'receipt_bond'
+    AND je.deleted_at IS NULL AND jel.deleted_at IS NULL
+    AND a.code = '1100';
+  ASSERT ABS(v_val - 73.1707) < 0.01, 'T2 FAIL: bond AR base credit = ' || COALESCE(v_val::text, 'NULL');
+
+  SELECT jel.foreign_amount INTO v_val
+  FROM public.journal_entry_lines jel
+  JOIN public.journal_entries je ON je.id = jel.journal_entry_id
+  JOIN public.accounts a ON a.id = jel.account_id
+  WHERE je.company_id = v_company AND je.reference_type = 'receipt_bond'
+    AND je.deleted_at IS NULL AND jel.deleted_at IS NULL
+    AND a.code = '1100';
+  ASSERT ABS(v_val - 30000) < 0.001, 'T2 FAIL: bond AR foreign = ' || COALESCE(v_val::text, 'NULL');
+
+  -- Cross-currency allocation (YER bond → SAR invoice) must raise
+  BEGIN
+    PERFORM public.create_financial_bond(
+      v_company, 'receipt', 100, 'YER', 410, 100, DATE '2026-06-11',
+      v_cash, v_customer, 'party', 'cross-currency', v_inv_sar, v_uid
+    );
+    RAISE EXCEPTION 'T3 FAIL: cross-currency allocation did not raise';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_txt := SQLERRM;
+      IF v_txt LIKE '%did not raise%' THEN
+        RAISE;
+      END IF;
+      -- The guard message mentions the mismatch — accept any raise
+      IF v_txt NOT LIKE '%تختلف%' AND v_txt NOT LIKE '%عملة%' THEN
+        RAISE EXCEPTION 'T3 FAIL: unexpected error: %', v_txt;
+      END IF;
+  END;
   -- ═══ T4: party_balances = base journal sum + converted opening ═══
   -- YER journal: 100000/410 = 243.9024 (invoice) - 30000/410 = 73.1707 (bond)
-  --              = 170.7317 ; opening 5000/410 = 12.1951 ; total = 182.9268
+  --              = 170.7317 ; opening 5000/410 = 12.1951 ; YER total = 182.9268
+  -- Plus SAR invoices: (500 - 200) + 300 = 600 ; Total = 782.9268
   SELECT balance INTO v_val
   FROM public.party_balances
   WHERE company_id = v_company AND party_id = v_customer;
-  ASSERT ABS(v_val - 182.9268) < 0.01, 'T4 FAIL: customer party_balances = ' || COALESCE(v_val::text, 'NULL');
+  ASSERT ABS(v_val - 782.9268) < 0.01, 'T4 FAIL: customer party_balances = ' || COALESCE(v_val::text, 'NULL');
 
   -- Supplier: USD purchase 100 @ 3.75 → +375 base
   SELECT balance INTO v_val
@@ -261,7 +262,7 @@ BEGIN
   SELECT COUNT(*) INTO v_cnt
   FROM public.journal_entries je
   JOIN public.accounts a ON a.id = (
-    SELECT account_id FROM public.accounts
+    SELECT id FROM public.accounts
     WHERE company_id = v_company AND code = '1100' LIMIT 1)
   JOIN public.journal_entry_lines jel ON jel.journal_entry_id = je.id AND jel.account_id = a.id
   WHERE je.company_id = v_company AND je.deleted_at IS NULL
