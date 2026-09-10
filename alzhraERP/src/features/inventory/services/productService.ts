@@ -235,7 +235,11 @@ export const productService = {
    * Uses the paginated search RPC (granted to `authenticated`) with an ILIKE
    * fallback so product pickers keep working even if the RPC is unavailable.
    */
-  searchProducts: async (companyId: string, term: string): Promise<SearchResultProduct[]> => {
+  searchProducts: async (
+    companyId: string,
+    term: string,
+    branchId?: string | null
+  ): Promise<SearchResultProduct[]> => {
     const cleanTerm = normalizeArabic(term).trim();
     try {
       const { data, error } = await supabase.rpc('search_inventory_paginated', {
@@ -245,6 +249,7 @@ export const productService = {
         p_offset: 0,
         p_sort_key: 'updated_at',
         p_sort_dir: 'desc',
+        ...(branchId ? { p_branch_id: branchId } : {}),
         p_is_core: null,
       });
       if (error) {

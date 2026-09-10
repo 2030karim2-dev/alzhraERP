@@ -147,9 +147,15 @@ export const inventoryService = {
   },
 
   saveAuditProgress: async (
-    items: Array<{ id?: string; product_id: string; counted_quantity: number }>
+    payload:
+      | {
+          sessionId?: string;
+          items: Array<{ id?: string; product_id: string; counted_quantity: number }>;
+        }
+      | Array<{ id?: string; product_id: string; counted_quantity: number }>,
+    sessionId?: string
   ) => {
-    return auditService.saveAuditProgress(items);
+    return auditService.saveAuditProgress(payload, sessionId);
   },
 
   deleteAuditItem: async (params: DeleteAuditItemParams) => {

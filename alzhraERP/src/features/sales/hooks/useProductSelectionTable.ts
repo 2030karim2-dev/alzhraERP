@@ -59,6 +59,7 @@ export function useProductSelectionTable({
       case 'name':
         return 'name_ar';
       case 'part_number':
+        return 'part_number';
       case 'sku':
         return 'sku';
       default:

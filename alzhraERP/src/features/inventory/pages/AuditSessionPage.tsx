@@ -7,6 +7,7 @@ import {
   useInventoryCategories,
 } from '../hooks/useInventoryManagement';
 import { useSearchProducts } from '../hooks/useProducts';
+import { inventoryService } from '../service';
 import { useInventorySession } from '../hooks/useInventorySession';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
@@ -83,72 +84,30 @@ const AuditSessionPage: React.FC = () => {
   const hasLoadedServerItemsRef = useRef(false);
 
   // Sync server items to form on load.
-  // NOTE: We only reset the *form* here (not sessionItems) so that a saved draft
-  // restored by useInventorySession is never overwritten by the server baseline.
-  // useInventorySession handles merging draft quantities over these baseline values.
+  // Preserves draft quantities if already restored from local storage.
   useEffect(() => {
     if (data?.items && data.items.length > 0 && !hasLoadedServerItemsRef.current) {
       hasLoadedServerItemsRef.current = true;
-      const serialized = JSON.stringify(data.items);
+      const itemsToReset =
+        sessionItems.length > 0
+          ? data.items.map(serverItem => {
+              const serverProductId =
+                (serverItem as Record<string, unknown>).product_id ||
+                (serverItem as Record<string, unknown>).id;
+              const local = sessionItems.find(s => (s.product_id || s.id) === serverProductId);
+              return local &&
+                local.counted_quantity !== null &&
+                local.counted_quantity !== undefined
+                ? { ...serverItem, counted_quantity: local.counted_quantity }
+                : serverItem;
+            })
+          : data.items;
+
+      const serialized = JSON.stringify(itemsToReset);
       lastSyncedRef.current = serialized;
-      reset({ items: data.items });
-      // Do NOT call updateItems(data.items) here — that would overwrite the
-      // draft quantities restored by useInventorySession with zero-baseline values.
+      reset({ items: itemsToReset });
     }
-  }, [data?.items, reset]);
-
-  // When sessionItems change (from useInventorySession), sync to form if not completed
-  useEffect(() => {
-    if (!isCompleted && sessionItems.length > 0) {
-      const serialized = JSON.stringify(sessionItems);
-      if (serialized !== lastSyncedRef.current) {
-        lastSyncedRef.current = serialized;
-        reset({ items: sessionItems });
-      }
-    }
-  }, [sessionItems, isCompleted, reset]);
-
-  // Periodically sync form → session
-  const handleSaveProgress = useCallback(() => {
-    if (isCompleted) return;
-    const formItems = getValues('items');
-    if (formItems && formItems.length > 0) {
-      const serialized = JSON.stringify(formItems);
-      if (serialized !== lastSyncedRef.current) {
-        lastSyncedRef.current = serialized;
-        updateItems(formItems);
-      }
-    }
-  }, [getValues, isCompleted, updateItems]);
-
-  // On page unload, force-save current form state
-  useEffect(() => {
-    if (isCompleted) return;
-    const handleBeforeUnload = () => {
-      const formItems = getValues('items');
-      if (formItems && formItems.length > 0) {
-        updateItems(formItems);
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [getValues, isCompleted, updateItems]);
-
-  // When server data updates (realtime), merge with local state if not completed.
-  // Guard with !isRestoring so we don't race against the draft restoration in useInventorySession.
-  useEffect(() => {
-    if (
-      !isCompleted &&
-      !isRestoring &&
-      data?.items &&
-      data.items.length > 0 &&
-      hasLoadedServerItemsRef.current
-    ) {
-      mergeWithServer(data.items);
-    }
-  }, [data?.items, isCompleted, isRestoring, mergeWithServer]);
+  }, [data?.items, sessionItems, reset]);
 
   const watchedItems = getValues('items');
 
@@ -198,9 +157,77 @@ const AuditSessionPage: React.FC = () => {
     });
   }, [displayItems, data?.items, getValues]);
 
+  // When sessionItems change (from useInventorySession), sync to form if not completed
+  useEffect(() => {
+    if (!isCompleted && sessionItems.length > 0) {
+      const serialized = JSON.stringify(sessionItems);
+      if (serialized !== lastSyncedRef.current) {
+        lastSyncedRef.current = serialized;
+        reset({ items: sessionItems });
+      }
+    }
+  }, [sessionItems, isCompleted, reset]);
+
+  // Periodically sync form → session
+  const handleSaveProgress = useCallback(() => {
+    if (isCompleted) return;
+    const formItems = getValues('items');
+    if (formItems && formItems.length > 0) {
+      const serialized = JSON.stringify(formItems);
+      if (serialized !== lastSyncedRef.current) {
+        lastSyncedRef.current = serialized;
+        updateItems(formItems);
+      }
+    }
+  }, [getValues, isCompleted, updateItems]);
+
+  // On page unload or SPA unmount, force-save current form state
+  useEffect(() => {
+    if (isCompleted) return;
+    const handleBeforeUnload = () => {
+      const formItems = getValues('items');
+      if (formItems && formItems.length > 0) {
+        updateItems(formItems);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // SPA Navigation unmount save: update session draft and trigger database save
+      const formItems = getValues('items');
+      if (formItems && formItems.length > 0) {
+        updateItems(formItems);
+        if (sessionId) {
+          const itemsToSave = prepareProgressItems();
+          if (itemsToSave.length > 0) {
+            void inventoryService.saveAuditProgress({ sessionId, items: itemsToSave });
+          }
+        }
+      }
+    };
+  }, [getValues, isCompleted, updateItems, sessionId, prepareProgressItems]);
+
+  // When server data updates (realtime), merge with local state if not completed.
+  // Guard with !isRestoring so we don't race against the draft restoration in useInventorySession.
+  useEffect(() => {
+    if (
+      !isCompleted &&
+      !isRestoring &&
+      data?.items &&
+      data.items.length > 0 &&
+      hasLoadedServerItemsRef.current
+    ) {
+      mergeWithServer(data.items);
+    }
+  }, [data?.items, isCompleted, isRestoring, mergeWithServer]);
+
   const handleSave = () => {
     const itemsToSave = prepareProgressItems();
-    saveAuditProgress(itemsToSave);
+    if (sessionId) {
+      saveAuditProgress({ sessionId, items: itemsToSave });
+    } else {
+      saveAuditProgress(itemsToSave);
+    }
   };
 
   const executeFinalize = () => {
@@ -381,13 +408,14 @@ const AuditSessionPage: React.FC = () => {
     setBulkProgress({ current: 0, total: newProducts.length });
 
     if (currentItems.length > 0)
-      saveAuditProgress(
-        currentItems as unknown as Array<{
+      saveAuditProgress({
+        sessionId,
+        items: currentItems as unknown as Array<{
           id?: string;
           product_id: string;
           counted_quantity: number;
-        }>
-      );
+        }>,
+      });
 
     for (let i = 0; i < newProducts.length; i++) {
       const p = newProducts[i];

@@ -115,7 +115,7 @@ BEGIN
   v_val := public.fn_to_base_amount('YER', 555, 0);
   ASSERT ABS(v_val - 555) < 0.001, 'T1 FAIL: zero rate = ' || v_val::text;
 
-  -- ── Invoices ──────────────────────────────────────────────────────────
+  -- ── Invoices ──────────────────────────────────────────────────────────────
   INSERT INTO public.invoices(
     company_id, party_id, invoice_number, type, status, total_amount, subtotal,
     tax_amount, discount_amount, issue_date, due_date, payment_method,

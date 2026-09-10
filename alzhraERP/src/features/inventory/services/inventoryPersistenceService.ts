@@ -54,6 +54,36 @@ class InventoryPersistenceService {
     };
   }
 
+  private getStorageKey(sessionId: string): string {
+    return sessionId ? `inventory_session_draft_${sessionId}` : STORAGE_KEY;
+  }
+
+  /**
+   * Synchronous immediate save to sessionStorage (for page unmount / navigation)
+   */
+  saveLocalSync(draft: InventorySessionDraft) {
+    if (this.saveDebounceTimer) {
+      clearTimeout(this.saveDebounceTimer);
+      this.saveDebounceTimer = null;
+    }
+
+    try {
+      const serialized = JSON.stringify({
+        ...draft,
+        lastSavedAt: Date.now(),
+      });
+      sessionStorage.setItem(this.getStorageKey(draft.sessionId), serialized);
+      sessionStorage.setItem(STORAGE_KEY, serialized);
+      this.setStatus('saved');
+    } catch (error) {
+      logger.error(
+        'inventoryPersistenceService',
+        'Failed to save synchronously to sessionStorage:',
+        error
+      );
+    }
+  }
+
   /**
    * Debounced save to sessionStorage
    */
@@ -68,6 +98,7 @@ class InventoryPersistenceService {
           ...draft,
           lastSavedAt: Date.now(),
         });
+        sessionStorage.setItem(this.getStorageKey(draft.sessionId), serialized);
         sessionStorage.setItem(STORAGE_KEY, serialized);
         this.setStatus('saved');
       } catch (error) {
@@ -116,6 +147,7 @@ class InventoryPersistenceService {
         isDirty: false,
         lastSavedAt: now,
       };
+      sessionStorage.setItem(this.getStorageKey(draft.sessionId), JSON.stringify(updatedDraft));
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDraft));
 
       return true;
@@ -130,8 +162,18 @@ class InventoryPersistenceService {
    * Restore session from sessionStorage or server
    */
   async restoreSession(sessionId: string): Promise<InventorySessionDraft | null> {
-    // 1. Try sessionStorage first (fastest, no network)
+    // 1. Try session-specific sessionStorage first (fastest, no network)
     try {
+      const specificKeyData = sessionStorage.getItem(this.getStorageKey(sessionId));
+      if (specificKeyData) {
+        const parsed = JSON.parse(specificKeyData) as InventorySessionDraft;
+        if (parsed.sessionId === sessionId) {
+          this.setStatus('saved');
+          return parsed;
+        }
+      }
+
+      // Fallback to legacy single key
       const localData = sessionStorage.getItem(STORAGE_KEY);
       if (localData) {
         const parsed = JSON.parse(localData) as InventorySessionDraft;
@@ -188,6 +230,10 @@ class InventoryPersistenceService {
     }
 
     try {
+      if (sessionId) {
+        sessionStorage.removeItem(this.getStorageKey(sessionId));
+        localStorage.removeItem(this.getStorageKey(sessionId));
+      }
       sessionStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(STORAGE_KEY);
     } catch (error) {

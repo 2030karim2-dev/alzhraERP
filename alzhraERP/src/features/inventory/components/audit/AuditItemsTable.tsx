@@ -204,6 +204,7 @@ const AuditItemsTable: React.FC<Props> = ({
                       </div>
                     ) : (
                       <input
+                        key={`qty-${field.id || field.audit_item_id || field.product_id}-${field.counted_quantity ?? 'empty'}`}
                         type="number"
                         defaultValue={field.counted_quantity ?? ''}
                         {...register(`items.${field.index}.counted_quantity`, {
@@ -212,6 +213,11 @@ const AuditItemsTable: React.FC<Props> = ({
                             if (onSave) onSave();
                           },
                         })}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
                         className="h-10 w-full rounded-lg border border-emerald-200 bg-white text-center font-mono text-base font-black text-gray-900 shadow-sm outline-none transition-all focus:border-emerald-500 dark:border-emerald-900/50 dark:bg-slate-950 dark:text-white sm:h-14 sm:rounded-xl sm:text-2xl"
                         placeholder="0"
                       />

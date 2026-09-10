@@ -1,6 +1,5 @@
 // Audit Service - Handles stock audit operations
 import { supabase } from '../../../lib/supabaseClient';
-import type { TableInsert } from '@/core/types/supabase-helpers';
 import { parseError } from '@/core/utils/errorUtils';
 
 export type DeleteAuditItemParams =
@@ -214,24 +213,90 @@ export const auditService = {
   },
 
   /**
-   * Save audit progress
+   * Save audit progress (intermediate counts) using atomic RPC or safe UPDATE
    */
-  saveAuditProgress: async (items: AuditItemInput[]) => {
-    const updates = (items || [])
+  saveAuditProgress: async (
+    payload: { sessionId?: string; items: AuditItemInput[] } | AuditItemInput[],
+    explicitSessionId?: string
+  ) => {
+    let items: AuditItemInput[] = [];
+    let sessionId: string | undefined = explicitSessionId;
+
+    if (Array.isArray(payload)) {
+      items = payload;
+    } else if (payload && typeof payload === 'object') {
+      items = payload.items || [];
+      sessionId = payload.sessionId || explicitSessionId;
+    }
+
+    if (!items || items.length === 0) return;
+
+    // Normalize items payload
+    const normalizedItems = items
       .map(i => {
         let qty: number | string | null = i.counted_quantity;
         if (typeof qty === 'string' && qty === '') qty = null;
+        if (typeof qty === 'string' && !isNaN(Number(qty))) qty = Number(qty);
+        if (typeof qty === 'number' && isNaN(qty)) qty = null;
         return {
-          id: i.id,
+          id: i.id || undefined,
+          product_id: i.product_id,
           counted_quantity: qty,
         };
       })
-      .filter(i => !!i.id);
-    if (updates.length === 0) return;
-    const { error } = await supabase
-      .from('audit_items')
-      .upsert(updates as unknown as Array<TableInsert<'audit_items'>>);
-    if (error) throw parseError(error);
+      .filter(i => !!i.id || !!i.product_id);
+
+    if (normalizedItems.length === 0) return;
+
+    // 1. Try atomic PostgreSQL RPC save_audit_progress first if sessionId is available
+    if (sessionId) {
+      try {
+        const rpcClient = supabase as unknown as {
+          rpc: (
+            fn: string,
+            params: Record<string, unknown>
+          ) => Promise<{ data: unknown; error: unknown }>;
+        };
+        const { data, error } = await rpcClient.rpc('save_audit_progress', {
+          p_session_id: sessionId,
+          p_items: normalizedItems,
+        });
+
+        if (!error) {
+          return data;
+        }
+      } catch {
+        // Fall back to direct update below
+      }
+    }
+
+    // 2. Resilient fallback: direct UPDATE on existing audit_items rows (never upsert without required columns)
+    const updatePromises = normalizedItems.map(async item => {
+      if (item.id) {
+        return supabase
+          .from('audit_items')
+          .update({
+            counted_quantity: item.counted_quantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', item.id);
+      } else if (sessionId && item.product_id) {
+        return supabase
+          .from('audit_items')
+          .update({
+            counted_quantity: item.counted_quantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('session_id', sessionId)
+          .eq('product_id', item.product_id);
+      }
+      return Promise.resolve({ error: null });
+    });
+
+    const results = await Promise.all(updatePromises);
+    const firstError = results.find(r => r && r.error)?.error;
+    if (firstError) throw parseError(firstError);
+    return;
   },
 
   /**

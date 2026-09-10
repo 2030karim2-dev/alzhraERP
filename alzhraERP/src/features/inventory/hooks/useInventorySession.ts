@@ -61,8 +61,9 @@ export function useInventorySession({
       try {
         const draft = await inventoryPersistence.restoreSession(sessionId);
         if (draft && mounted) {
-          // Merge draft quantities into initialItems to preserve full product details
-          const mergedItems = [...initialItems];
+          // Merge draft quantities into base list (prefer initialItems if available, else current items)
+          const baseList = initialItems.length > 0 ? initialItems : items;
+          const mergedItems = [...baseList];
 
           draft.items.forEach(draftItem => {
             const existingIndex = mergedItems.findIndex(
@@ -70,10 +71,12 @@ export function useInventorySession({
             );
 
             if (existingIndex >= 0) {
-              mergedItems[existingIndex] = {
-                ...mergedItems[existingIndex],
-                counted_quantity: draftItem.countedQuantity,
-              };
+              if (draftItem.countedQuantity !== null && draftItem.countedQuantity !== undefined) {
+                mergedItems[existingIndex] = {
+                  ...mergedItems[existingIndex],
+                  counted_quantity: draftItem.countedQuantity,
+                };
+              }
             } else {
               // Edge case: item in draft but not in server yet
               mergedItems.push({
@@ -116,7 +119,7 @@ export function useInventorySession({
       mounted = false;
       clearTimeout(timer);
     };
-  }, [sessionId, showToast, initialItems]);
+  }, [sessionId, showToast, initialItems, items, isCompleted]);
 
   // Subscribe to save status changes
   useEffect(() => {
@@ -157,7 +160,7 @@ export function useInventorySession({
     inventoryPersistence.saveToServer(draft);
   }, [items, autoSave, isRestoring, isCompleted, buildDraft]);
 
-  // Force save on page unload
+  // Force save on page unload and on component unmount
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (isDirtyRef.current && !isCompleted) {
@@ -168,8 +171,14 @@ export function useInventorySession({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Synchronously preserve local draft on SPA navigation unmount
+      if (isDirtyRef.current && !isCompleted) {
+        const draft = buildDraft(items);
+        inventoryPersistence.saveLocalSync(draft);
+        void inventoryPersistence.saveToServer(draft);
+      }
     };
-  }, [items, buildDraft]);
+  }, [items, buildDraft, isCompleted]);
 
   const updateItems = useCallback((newItems: Array<Record<string, unknown>>) => {
     setItems(newItems);

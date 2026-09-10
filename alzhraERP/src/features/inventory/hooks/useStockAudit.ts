@@ -206,12 +206,27 @@ export const useInventoryMutations = () => {
   });
 
   const saveProgress = useMutation({
-    mutationFn: (items: Parameters<typeof inventoryService.saveAuditProgress>[0]) =>
-      inventoryService.saveAuditProgress(items),
-    onSuccess: () => {
-      showToast('تم حفظ التقدم', 'info', { hideAfter: 2000 });
+    mutationFn: (
+      payload:
+        | { sessionId?: string; items: Parameters<typeof inventoryService.saveAuditProgress>[0] }
+        | Parameters<typeof inventoryService.saveAuditProgress>[0]
+    ) => {
+      if (payload && !Array.isArray(payload) && 'items' in payload) {
+        return inventoryService.saveAuditProgress(payload.items, payload.sessionId);
+      }
+      return inventoryService.saveAuditProgress(payload);
     },
-    onError: (err, items) => {
+    onSuccess: async (_, variables) => {
+      const sessId =
+        variables && !Array.isArray(variables) && 'sessionId' in variables
+          ? (variables as { sessionId?: string }).sessionId
+          : undefined;
+      if (sessId) {
+        await queryClient.invalidateQueries({ queryKey: ['audit_session', sessId] });
+      }
+      showToast('تم حفظ التقدم بنجاح', 'success', { hideAfter: 2000 });
+    },
+    onError: (err, variables) => {
       if (
         !navigator.onLine ||
         err.message?.includes('Failed to fetch') ||
@@ -219,10 +234,13 @@ export const useInventoryMutations = () => {
       ) {
         void syncStore.enqueue({
           mutationKey: ['inventory', 'save_audit_progress'],
-          variables: { items },
+          variables: { variables },
         });
+        showToast('تم حفظ التقدم محلياً (وضع عدم الاتصال)', 'info');
         return;
       }
+      showToast('فشل حفظ التقدم: ' + parseError(err).message, 'error');
+      logger.error('useStockAudit', 'Save Progress Error:', err);
     },
   });
 
