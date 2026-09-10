@@ -8240,6 +8240,7 @@ export type Database = {
           has_core_charge: boolean | null
           id: string
           image_url: string | null
+          is_core: boolean
           is_kit: boolean | null
           location: string | null
           min_stock_level: number
@@ -8271,6 +8272,7 @@ export type Database = {
           has_core_charge?: boolean | null
           id?: string
           image_url?: string | null
+          is_core?: boolean
           is_kit?: boolean | null
           location?: string | null
           min_stock_level?: number
@@ -8302,6 +8304,7 @@ export type Database = {
           has_core_charge?: boolean | null
           id?: string
           image_url?: string | null
+          is_core?: boolean
           is_kit?: boolean | null
           location?: string | null
           min_stock_level?: number
@@ -13349,6 +13352,7 @@ export type Database = {
         Args: {
           p_branch_id?: string
           p_company_id: string
+          p_is_core?: boolean | null
           p_limit: number
           p_offset: number
           p_sort_dir: string
@@ -13366,6 +13370,7 @@ export type Database = {
           description: string
           id: string
           image_url: string
+          is_core: boolean
           min_stock_level: number
           name_ar: string
           part_number: string

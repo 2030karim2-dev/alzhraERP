@@ -56,7 +56,8 @@ const AddProductModal: React.FC<Props> = ({
     defaultValues: {
       unit: 'piece',
       category: '',
-      min_stock_level: 5,
+      min_stock_level: 0,
+      is_core: false,
     },
   });
 
@@ -89,7 +90,8 @@ const AddProductModal: React.FC<Props> = ({
           image_url: initialData.image_url || null,
           cost_price: initialData.cost_price ?? initialData.purchase_price ?? '',
           selling_price: initialData.selling_price ?? initialData.sale_price ?? '',
-          min_stock_level: initialData.min_stock_level ?? 5,
+          min_stock_level: initialData.min_stock_level ?? 0,
+          is_core: Boolean(initialData.is_core),
           stock_quantity: initialData.stock_quantity ?? 0,
           unit: normalizedUnit,
           category:
@@ -113,7 +115,8 @@ const AddProductModal: React.FC<Props> = ({
           image_url: null,
           cost_price: '',
           selling_price: '',
-          min_stock_level: 5,
+          min_stock_level: 0,
+          is_core: false,
           stock_quantity: 0,
           unit: 'piece',
           category: '',

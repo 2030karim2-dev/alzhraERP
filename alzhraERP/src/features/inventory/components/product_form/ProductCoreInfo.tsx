@@ -123,7 +123,7 @@ const ProductCoreInfo: React.FC<Props> = ({ register, errors, setValue, watch })
           )}
         </div>
 
-        {/* Core charge option removed because is_core is not in the database schema yet */}
+        {/* Note: is_core field is in ProductStockInfo tab (checkbox for strategic product designation) */}
       </div>
     </div>
   );

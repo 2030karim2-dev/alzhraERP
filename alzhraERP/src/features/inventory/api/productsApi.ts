@@ -28,6 +28,7 @@ export const productsApi = {
                 min_stock_level,
                 unit,
                 image_url,
+                is_core,
                 alternative_numbers,
                 barcode,
                 created_at,
@@ -334,5 +335,18 @@ export const productsApi = {
       sale_price: number | null;
       purchase_price: number | null;
     }>;
+  },
+
+  toggleCoreProduct: async (id: string, isCore: boolean) => {
+    return await supabase
+      .from('products')
+      .update({ is_core: isCore })
+      .eq('id', id)
+      .select()
+      .single();
+  },
+
+  bulkSetCoreProducts: async (ids: string[], isCore: boolean) => {
+    return await supabase.from('products').update({ is_core: isCore }).in('id', ids);
   },
 };

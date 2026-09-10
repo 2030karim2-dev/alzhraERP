@@ -27,6 +27,7 @@ interface RawProduct {
   purchase_price?: number | string;
   sale_price?: number | string;
   min_stock_level?: number | string;
+  is_core?: boolean;
   unit?: string;
   image_url?: string | null;
   alternative_numbers?: string | null;
@@ -173,6 +174,7 @@ export const productService = {
           selling_price: Number(prod.sale_price) || 0,
           stock_quantity: totalStock,
           min_stock_level: Number(prod.min_stock_level) || 0,
+          is_core: Boolean(prod.is_core),
           unit: prod.unit || 'pcs',
           uoms: (prod.uoms || []).map(u => ({
             id: u.id,
@@ -192,7 +194,13 @@ export const productService = {
             return uniqueWarehouses || shelfLocation || '—';
           })(),
           created_at: prod.created_at || new Date().toISOString(),
-          isLowStock: totalStock <= (Number(prod.min_stock_level) || 5),
+          isLowStock: (() => {
+            const minLevel = Number(prod.min_stock_level) || 0;
+            if (prod.is_core) {
+              return minLevel > 0 ? totalStock <= minLevel : totalStock <= 3;
+            }
+            return minLevel > 0 && totalStock <= minLevel;
+          })(),
           warehouse_distribution: stockList.map((s: RawStock) => ({
             warehouse_id: s.warehouse_id,
             warehouse_name: s.warehouses?.name_ar || 'مستودع',
@@ -336,7 +344,8 @@ export const productService = {
       sku: trimmedSku || `SKU-${Date.now()}`,
       sale_price: Number(data.selling_price) || 0,
       purchase_price: Number(data.cost_price) || 0,
-      min_stock_level: Number(data.min_stock_level) || 5,
+      min_stock_level: Number(data.min_stock_level) || 0,
+      is_core: Boolean(data.is_core),
       unit: data.unit || 'piece',
       part_number: trimmedPartNo || null,
       brand: trimmedBrand || null,
@@ -479,14 +488,14 @@ export const productService = {
     }
 
     try {
-      const payload: TableUpdate<'products'> = {
-        name_ar: trimmedName || 'صنف',
-        sale_price: Number(data.selling_price) || 0,
-        purchase_price: Number(data.cost_price) || 0,
-        min_stock_level: Number(data.min_stock_level) || 0,
-        unit: data.unit || 'piece',
-      };
+      const payload: TableUpdate<'products'> = {};
 
+      if (trimmedName) payload.name_ar = trimmedName;
+      if (data.selling_price !== undefined) payload.sale_price = Number(data.selling_price) || 0;
+      if (data.cost_price !== undefined) payload.purchase_price = Number(data.cost_price) || 0;
+      if (data.min_stock_level !== undefined)
+        payload.min_stock_level = Number(data.min_stock_level) || 0;
+      if (data.unit !== undefined) payload.unit = data.unit || 'piece';
       if (trimmedSku) payload.sku = trimmedSku;
       if (data.part_number !== undefined) payload.part_number = trimmedPartNo || null;
       if (data.brand !== undefined) payload.brand = trimmedBrand || null;
@@ -497,7 +506,10 @@ export const productService = {
         payload.alternative_numbers = data.alternative_numbers || null;
       if (data.barcode !== undefined) payload.barcode = trimmedBarcode || null;
       if (data.location !== undefined) payload.location = data.location || null;
-      payload.category_id = data.category && data.category.length === 36 ? data.category : null;
+      if (data.is_core !== undefined) payload.is_core = Boolean(data.is_core);
+      if (data.category !== undefined) {
+        payload.category_id = data.category && data.category.length === 36 ? data.category : null;
+      }
 
       logger.debug('ProductService', `Sending update payload to API`, payload);
       const { data: product, error } = await inventoryApi.updateProduct(id, payload);
@@ -645,6 +657,23 @@ export const productService = {
     } catch {
       return [];
     }
+  },
+
+  /**
+   * Toggle is_core status for a product (backbone/strategic product)
+   */
+  toggleCoreProduct: async (id: string, isCore: boolean) => {
+    const { data, error } = await inventoryApi.toggleCoreProduct(id, isCore);
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Bulk set is_core status for multiple products
+   */
+  bulkSetCoreProducts: async (ids: string[], isCore: boolean) => {
+    const { error } = await inventoryApi.bulkSetCoreProducts(ids, isCore);
+    if (error) throw error;
   },
 };
 

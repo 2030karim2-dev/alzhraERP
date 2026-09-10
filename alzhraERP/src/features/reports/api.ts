@@ -195,7 +195,7 @@ export const reportsApi = {
       .eq('company_id', companyId)
       .eq('type', 'sale')
       .is('deleted_at', null)
-      .in('status', ['posted', 'partially_paid'])
+      .in('status', ['posted', 'confirmed', 'partially_paid'])
       .order('due_date', { ascending: true });
   },
 

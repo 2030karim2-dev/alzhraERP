@@ -6,7 +6,8 @@ export type InventoryView =
   | 'low-stock'
   | 'transfers'
   | 'audit'
-  | 'analysis';
+  | 'analysis'
+  | 'core_products';
 
 /** سجل توافق منتج مع مركبة (VIN / طراز) */
 export interface CarCompatibility {
@@ -98,6 +99,7 @@ export interface Product {
   is_kit?: boolean | undefined;
   has_core_charge?: boolean | undefined;
   core_charge_amount?: number | undefined;
+  is_core?: boolean | undefined;
 
   // Analytics (Computed/RPC)
   total_sales_qty?: number | undefined;

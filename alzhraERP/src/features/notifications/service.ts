@@ -12,38 +12,60 @@ export const notificationService = {
     const { addNotification } = useNotificationStore.getState();
 
     try {
-      // 1. Check Low Stock Items
+      // 1. Check Strategic (Core) Backbone Products & Custom Low Stock Thresholds
       const { data: products } = await inventoryApi.getProducts(companyId);
-      const lowStockItems = products?.filter((p: any) => {
-        const stock = (p.product_stock || []).reduce(
-          (acc: number, curr: any) => acc + (curr.quantity || 0),
+      const lowStockItems = (products || []).filter((p: any) => {
+        const stockList = Array.isArray(p.stock)
+          ? p.stock
+          : Array.isArray(p.product_stock)
+            ? p.product_stock
+            : [];
+        const stock = stockList.reduce(
+          (acc: number, curr: any) => acc + (Number(curr.quantity) || 0),
           0
         );
-        return stock <= (p.min_stock_level ?? 5);
+
+        const isCore = Boolean(p.is_core);
+        const configuredMin = Number(p.min_stock_level) || 0;
+
+        // Core products alert when approaching exhaustion (configured threshold or <= 3 pieces)
+        if (isCore) {
+          const threshold = configuredMin > 0 ? configuredMin : 3;
+          return stock <= threshold;
+        }
+
+        // Standard products ONLY alert if the user explicitly set a positive threshold
+        return configuredMin > 0 && stock <= configuredMin;
       });
 
       if (lowStockItems && lowStockItems.length > 0) {
+        const coreAlerts = lowStockItems.filter((item: any) => Boolean(item.is_core));
         const sampleNames = lowStockItems
           .slice(0, 3)
-          .map((item: any) => item.name || item.name_ar)
+          .map((item: any) => item.name_ar || item.name)
           .filter(Boolean)
           .join('، ');
 
         const previewText = sampleNames ? ` (أبرزها: ${sampleNames})` : '';
+        const isCoreFocused = coreAlerts.length > 0;
 
         addNotification({
           companyId,
           tag: 'low_stock_summary',
           category: 'inventory',
-          priority: 'high',
-          title: 'تنبيه مخزون حرج',
-          message: `يوجد ${lowStockItems.length} صنف وصل للحد الأدنى أو نفد${previewText}. يرجى مراجعة المخزون لإعادة الطلب.`,
+          priority: isCoreFocused ? 'high' : 'normal',
+          title: isCoreFocused
+            ? 'تنبيه أصناف استراتيجية (العمود الفقري)'
+            : 'تنبيه انخفاض المخزون للحد الأدنى',
+          message: isCoreFocused
+            ? `يوجد ${coreAlerts.length} صنف استراتيجي قارب على النفاذ أو نفد${previewText}. يرجى تأمين الكميات لتفادي توقف المبيعات.`
+            : `يوجد ${lowStockItems.length} صنف وصل للحد الأدنى المحدد${previewText}.`,
           type: 'warning',
-          link: '/inventory?view=low-stock',
+          link: isCoreFocused ? '/inventory?tab=core_products' : '/inventory?tab=products',
           actions: [
             {
-              label: 'مراجعة النواقص',
-              link: '/inventory?view=low-stock',
+              label: isCoreFocused ? 'مراجعة الأصناف الاستراتيجية' : 'مراجعة المخزون',
+              link: isCoreFocused ? '/inventory?tab=core_products' : '/inventory?tab=products',
               isPrimary: true,
             },
           ],

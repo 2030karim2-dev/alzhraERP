@@ -63,6 +63,10 @@ export const inventoryService = {
     return productService.updateProduct(id, data, companyId);
   },
 
+  toggleCoreProduct: async (id: string, isCore: boolean) => {
+    return productService.toggleCoreProduct(id, isCore);
+  },
+
   deleteProduct: async (id: string) => {
     return productService.deleteProduct(id);
   },

@@ -4,6 +4,7 @@ import StockAuditView from './StockAuditView';
 import WarehousesView from './WarehousesView';
 import AuditLogView from './AuditLogView';
 import CategoriesManagementView from './CategoriesManagementView';
+import CoreProductsView from './CoreProductsView';
 import ProductExcelGrid from './ProductExcelGrid';
 import ProductMicroCard from './ProductMicroCard';
 import ProductDetailPane from './ProductDetailPane';
@@ -58,6 +59,18 @@ const InventoryViewRenderer: React.FC<InventoryViewRendererProps> = ({
             setActiveView('products');
             setSearchTerm(catName);
           }}
+        />
+      );
+
+    case 'core_products':
+      return (
+        <CoreProductsView
+          isDesktop={isDesktop}
+          selectedProduct={selectedProduct}
+          setSelectedProduct={setSelectedProduct}
+          handleEdit={handleEdit}
+          deleteProduct={deleteProduct}
+          onMaximizeProduct={onMaximizeProduct}
         />
       );
 

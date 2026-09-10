@@ -40,6 +40,7 @@ export interface UseProductsPaginatedOptions {
   initialSearch?: string;
   sortKey?: string;
   sortDir?: 'asc' | 'desc';
+  isCore?: boolean | undefined;
 }
 
 // ── Query key factory ────────────────────────────────────────────────────────
@@ -51,8 +52,20 @@ export const productsPageKey = (
   search: string,
   sortKey: string,
   sortDir: string,
-  branchId?: string | null
-) => ['products_paginated', companyId, page, pageSize, search, sortKey, sortDir, branchId] as const;
+  branchId?: string | null,
+  isCore?: boolean | null
+) =>
+  [
+    'products_paginated',
+    companyId,
+    page,
+    pageSize,
+    search,
+    sortKey,
+    sortDir,
+    branchId,
+    isCore,
+  ] as const;
 
 // ── Main hook ────────────────────────────────────────────────────────────────
 
@@ -63,6 +76,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
     initialSearch = '',
     sortKey = 'updated_at',
     sortDir = 'desc',
+    isCore,
   } = options;
 
   const { user } = useAuthStore();
@@ -99,7 +113,8 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
     debouncedSearch,
     sortKey,
     sortDir,
-    branchId
+    branchId,
+    isCore ?? null
   );
 
   const query = useQuery<ProductsPage>({
@@ -116,6 +131,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
         p_offset: from,
         p_sort_key: sortKey,
         p_sort_dir: sortDir,
+        ...(isCore !== undefined ? { p_is_core: isCore } : {}),
         ...(branchId ? { p_branch_id: branchId } : {}),
       });
       if (error) throw error;
@@ -142,7 +158,8 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
       debouncedSearch,
       sortKey,
       sortDir,
-      branchId
+      branchId,
+      isCore ?? null
     );
     void queryClient.prefetchQuery({
       queryKey: nextKey,
@@ -156,6 +173,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
           p_offset: from,
           p_sort_key: sortKey,
           p_sort_dir: sortDir,
+          ...(isCore !== undefined ? { p_is_core: isCore } : {}),
           ...(branchId ? { p_branch_id: branchId } : {}),
         });
         if (error) throw error;

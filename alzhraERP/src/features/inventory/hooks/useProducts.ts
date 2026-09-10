@@ -204,11 +204,32 @@ export const useProductMutations = () => {
     },
   });
 
+  const toggleCoreProduct = useMutation({
+    mutationFn: async ({ id, isCore }: { id: string; isCore: boolean }) => {
+      return inventoryService.toggleCoreProduct(id, isCore);
+    },
+    onSuccess: (_, { isCore }) => {
+      invalidateByPreset(queryClient, 'inventory');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
+      showToast(
+        isCore
+          ? 'تم تمييز الصنف كصنف استراتيجي (العمود الفقري)'
+          : 'تم إزالة التمييز الاستراتيجي عن الصنف',
+        'success'
+      );
+    },
+    onError: (err: any) => {
+      showToast(err?.message || 'تعذر تحديث حالة الصنف الاستراتيجي', 'error');
+    },
+  });
+
   return {
     // Fix: Changed to `mutateAsync` to allow chaining callbacks for component-specific logic like closing a modal.
     saveProduct: saveProduct.mutateAsync,
     deleteProduct: deleteProduct.mutateAsync,
     bulkDeleteProducts: bulkDeleteProducts.mutateAsync,
+    toggleCoreProduct: toggleCoreProduct.mutateAsync,
     isSaving: saveProduct.isPending,
     isDeleting: deleteProduct.isPending || bulkDeleteProducts.isPending,
   };

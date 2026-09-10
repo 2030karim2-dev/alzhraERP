@@ -27,8 +27,8 @@ describe('reportsApi.getDebtAgingInvoices', () => {
     expect(selectArg).toContain('issue_date');
     expect(eqCompany).toHaveBeenCalledWith('company_id', 'c1');
     expect(eqType).toHaveBeenCalledWith('type', 'sale');
-    // Partially paid invoices MUST be included in the aging report.
-    expect(inFilter).toHaveBeenCalledWith('status', ['posted', 'partially_paid']);
+    // Confirmed and partially paid invoices MUST be included in the aging report.
+    expect(inFilter).toHaveBeenCalledWith('status', ['posted', 'confirmed', 'partially_paid']);
     // Ordering follows the DUE date, not the issue date.
     expect(order).toHaveBeenCalledWith('due_date', { ascending: true });
     expect(result.error).toBeNull();
