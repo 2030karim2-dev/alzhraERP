@@ -51,7 +51,7 @@ export const purchaseQuotationsApi = {
     supabase
       .from('quotations')
       .select(
-        'id, quotation_number, type, status, party_id, issue_date, valid_until, total_amount, currency_code, rfq_group_id, created_at, party:party_id(name), quotation_items(id)'
+        'id, quotation_number, type, status, party_id, issue_date, valid_until, total_amount, currency_code, rfq_group_id, created_at, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total, product:product_id(size, part_number, sku, brand, name_ar))'
       )
       .eq('company_id', companyId)
       .eq('type', 'purchase')
@@ -62,7 +62,7 @@ export const purchaseQuotationsApi = {
     supabase
       .from('quotations')
       .select(
-        '*, party:party_id(id, name, phone, email), quotation_items(*, product:product_id(name_ar, sku, part_number))'
+        '*, party:party_id(id, name, phone, email), quotation_items(*, product:product_id(name_ar, sku, part_number, size, brand))'
       )
       .eq('id', quotationId)
       .single(),
@@ -124,7 +124,7 @@ export const purchaseQuotationsApi = {
     supabase
       .from('quotations')
       .select(
-        'id, quotation_number, status, total_amount, delivery_terms, payment_terms, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total)'
+        'id, quotation_number, status, total_amount, currency_code, delivery_terms, payment_terms, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total, product:product_id(size, part_number, sku, brand, name_ar))'
       )
       .eq('rfq_group_id', rfqGroupId)
       .is('deleted_at', null)

@@ -32,6 +32,7 @@ interface Props {
 interface ItemRow {
   productId: string;
   description: string;
+  size?: string;
   quantity: number;
   unitPrice: number;
   discountPercent: number;
@@ -257,6 +258,18 @@ const ItemRowView = ({
           </button>
         </div>
       </td>
+      <td className="w-24 px-3 py-2">
+        <input
+          aria-label={`قياس/مقاس البند ${String(index + 1)}`}
+          type="text"
+          placeholder="—"
+          value={item.size ?? ''}
+          onChange={event => {
+            onUpdate(index, 'size', event.target.value);
+          }}
+          className="w-full border-0 bg-transparent text-center font-mono text-xs text-gray-800 placeholder-gray-300 outline-none dark:text-gray-200 dark:placeholder-gray-600"
+        />
+      </td>
       <td className="px-3 py-2">
         <input
           aria-label={`كمية البند ${String(index + 1)}`}
@@ -330,6 +343,7 @@ const ItemTable = ({
           <tr className="border-b border-gray-100 dark:border-slate-800">
             <th className="w-8 px-3 py-2 text-right text-xs font-medium text-gray-500">#</th>
             <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">الوصف</th>
+            <th className="w-24 px-3 py-2 text-center text-xs font-medium text-gray-500">القياس</th>
             <th className="w-20 px-3 py-2 text-right text-xs font-medium text-gray-500">الكمية</th>
             <th className="w-28 px-3 py-2 text-right text-xs font-medium text-gray-500">
               سعر الوحدة
@@ -434,7 +448,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
   const [paymentTerms, setPaymentTerms] = useState('');
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<ItemRow[]>([
-    { productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+    { productId: '', description: '', size: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
   ]);
   const [productModal, setProductModal] = useState<ProductModalState>({
     isOpen: false,
@@ -458,7 +472,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
   const addItem = (): void => {
     setItems(previous => [
       ...previous,
-      { productId: '', description: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+      { productId: '', description: '', size: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
     ]);
   };
   const removeItem = (index: number): void => {
@@ -476,6 +490,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
               ...item,
               productId: product.id,
               description: product.name,
+              size: product.size ?? '',
               unitPrice: product.cost_price,
             }
           : item
