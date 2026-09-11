@@ -696,7 +696,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
               description: product.name,
               partNumber: (product as { part_number?: string }).part_number ?? '',
               size: product.size ?? '',
-              unitPrice: product.purchase_price || 0,
+              unitPrice: product.purchase_price || product.cost_price || 0,
             }
           : item
       )

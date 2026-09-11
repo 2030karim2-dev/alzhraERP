@@ -14,6 +14,7 @@ import { purchaseQuotationsApi } from '../../api/quotationsApi';
 import { formatCurrency } from '../../../../core/utils';
 import { usePurchaseStore } from '../../store';
 import { useAuthStore } from '../../../auth/store';
+import { useCurrencies } from '../../../settings/hooks';
 import { logger } from '../../../../core/utils/logger';
 
 interface Props {
@@ -70,14 +71,26 @@ export const DEFAULT_EXCHANGE_RATES_TO_SAR: Record<string, number> = {
   GBP: 4.8,
 };
 
-export const getRateToSAR = (currencyCode: string, quotationRate?: number | null): number => {
+export const getRateToSAR = (
+  currencyCode: string,
+  quotationRate?: number | null,
+  dynamicRatesMap?: Map<string, number>
+): number => {
   if (quotationRate && quotationRate > 0) {
     if (currencyCode === 'YER' && quotationRate > 1) {
       return 1 / quotationRate;
     }
     return quotationRate;
   }
-  return DEFAULT_EXCHANGE_RATES_TO_SAR[currencyCode.toUpperCase()] ?? 1;
+  const code = currencyCode.toUpperCase();
+  const tenantRate = dynamicRatesMap?.get(code);
+  if (tenantRate && tenantRate > 0) {
+    if (code === 'YER' && tenantRate > 1) {
+      return 1 / tenantRate;
+    }
+    return tenantRate;
+  }
+  return DEFAULT_EXCHANGE_RATES_TO_SAR[code] ?? 1;
 };
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
@@ -136,7 +149,8 @@ const normalizeSuppliers = (value: unknown): SupplierData[] =>
 
 const buildComparison = (
   suppliers: SupplierData[],
-  normalizeCurrency: boolean
+  normalizeCurrency: boolean,
+  dynamicRatesMap?: Map<string, number>
 ): ComparisonResult | null => {
   if (suppliers.length === 0) return null;
   const descriptions = [
@@ -152,7 +166,7 @@ const buildComparison = (
 
   const normalizedTotals = new Map<string, number>();
   suppliers.forEach(supplier => {
-    const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate);
+    const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate, dynamicRatesMap);
     normalizedTotals.set(supplier.id, supplier.total_amount * rate);
   });
 
@@ -167,7 +181,7 @@ const buildComparison = (
       if (item.size && !itemSize) itemSize = item.size;
       if (item.part_number && !itemPartNumber) itemPartNumber = item.part_number;
       if (item.quantity > 0) itemQty = item.quantity;
-      const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate);
+      const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate, dynamicRatesMap);
       return [
         {
           id: supplier.id,
@@ -292,6 +306,7 @@ const PriceCell = ({
   currencyCode,
   exchangeRate,
   normalizeCurrency,
+  dynamicRatesMap,
 }: {
   item: QuotationItem | undefined;
   priceRange: PriceRange | undefined;
@@ -299,9 +314,10 @@ const PriceCell = ({
   currencyCode: string;
   exchangeRate?: number | null | undefined;
   normalizeCurrency: boolean;
+  dynamicRatesMap?: Map<string, number> | undefined;
 }): React.ReactElement => {
   if (item === undefined) return <span className="text-gray-300 dark:text-slate-600">—</span>;
-  const rate = getRateToSAR(currencyCode, exchangeRate);
+  const rate = getRateToSAR(currencyCode, exchangeRate, dynamicRatesMap);
   const isCheapest = priceRange?.minSupplier === supplierId;
   const normalizedUnitPrice = item.unit_price * rate;
   const isMostExpensive = normalizeCurrency
@@ -384,12 +400,14 @@ const ComparisonTable = ({
   comparison,
   actionLoading,
   normalizeCurrency,
+  dynamicRatesMap,
   onConvert,
 }: {
   suppliers: SupplierData[];
   comparison: ComparisonResult;
   actionLoading: string | null;
   normalizeCurrency: boolean;
+  dynamicRatesMap?: Map<string, number> | undefined;
   onConvert: (id: string) => Promise<void>;
 }): React.ReactElement => (
   <div className="scroll-x-hint-surface overflow-x-auto">
@@ -463,6 +481,7 @@ const ComparisonTable = ({
                     currencyCode={supplier.currency_code}
                     exchangeRate={supplier.exchange_rate}
                     normalizeCurrency={normalizeCurrency}
+                    dynamicRatesMap={dynamicRatesMap}
                   />
                 </td>
               ))}
@@ -473,6 +492,7 @@ const ComparisonTable = ({
           suppliers={suppliers}
           comparison={comparison}
           normalizeCurrency={normalizeCurrency}
+          dynamicRatesMap={dynamicRatesMap}
         />
         <tr className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/10 dark:to-indigo-900/10">
           <td className="sticky right-0 z-10 bg-violet-50 px-4 py-4 font-bold text-violet-700 dark:bg-violet-900/10 dark:text-violet-400">
@@ -499,10 +519,12 @@ const SummaryRows = ({
   suppliers,
   comparison,
   normalizeCurrency,
+  dynamicRatesMap,
 }: {
   suppliers: SupplierData[];
   comparison: ComparisonResult;
   normalizeCurrency: boolean;
+  dynamicRatesMap?: Map<string, number> | undefined;
 }): React.ReactElement => (
   <>
     <tr className="border-t-2 border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-800/30">
@@ -512,7 +534,7 @@ const SummaryRows = ({
       <td className="bg-gray-50 px-3 py-3 dark:bg-slate-800/30"></td>
       {suppliers.map(supplier => {
         const isCheapest = supplier.id === comparison.cheapestId;
-        const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate);
+        const rate = getRateToSAR(supplier.currency_code, supplier.exchange_rate, dynamicRatesMap);
         const normalizedTotal =
           comparison.normalizedTotals.get(supplier.id) ?? supplier.total_amount * rate;
         const isForeign = supplier.currency_code.toUpperCase() !== 'SAR';
@@ -574,11 +596,13 @@ const RecommendationsBar = ({
   cheapestId,
   isMixedCurrencies,
   normalizeCurrency,
+  dynamicRatesMap,
 }: {
   suppliers: SupplierData[];
   cheapestId: string;
   isMixedCurrencies: boolean;
   normalizeCurrency: boolean;
+  dynamicRatesMap?: Map<string, number> | undefined;
 }): React.ReactElement => {
   const cheapest = suppliers.find(supplier => supplier.id === cheapestId);
   const uniformCurrency = !isMixedCurrencies ? suppliers[0]?.currency_code || 'SAR' : null;
@@ -592,7 +616,7 @@ const RecommendationsBar = ({
     diffCurrency = uniformCurrency ?? 'SAR';
   } else if (isMixedCurrencies && normalizeCurrency && suppliers.length >= 2) {
     const normalizedTotals = suppliers.map(
-      s => s.total_amount * getRateToSAR(s.currency_code, s.exchange_rate)
+      s => s.total_amount * getRateToSAR(s.currency_code, s.exchange_rate, dynamicRatesMap)
     );
     difference = Math.max(...normalizedTotals) - Math.min(...normalizedTotals);
     diffCurrency = 'SAR';
@@ -657,6 +681,21 @@ const QuotationComparisonView: React.FC<Props> = ({ rfqGroupId, onClose, onConve
   const [expanded, setExpanded] = useState(true);
   const [normalizeCurrency, setNormalizeCurrency] = useState(true);
   const { user } = useAuthStore();
+  const { rates } = useCurrencies();
+
+  const dynamicRatesMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (Array.isArray(rates.data)) {
+      for (const r of rates.data) {
+        const code = String(r.currency_code ?? '').toUpperCase();
+        const rate = Number(r.rate_to_base);
+        if (code && !map.has(code) && !isNaN(rate) && rate > 0) {
+          map.set(code, rate);
+        }
+      }
+    }
+    return map;
+  }, [rates.data]);
 
   const fetchComparison = useCallback(async (): Promise<void> => {
     if (rfqGroupId === '' || !user?.company_id) return;
@@ -675,8 +714,8 @@ const QuotationComparisonView: React.FC<Props> = ({ rfqGroupId, onClose, onConve
   }, [fetchComparison]);
 
   const comparison = useMemo(
-    () => buildComparison(suppliers, normalizeCurrency),
-    [suppliers, normalizeCurrency]
+    () => buildComparison(suppliers, normalizeCurrency, dynamicRatesMap),
+    [suppliers, normalizeCurrency, dynamicRatesMap]
   );
 
   const handleConvertToPurchase = async (quotationId: string): Promise<void> => {
@@ -764,6 +803,7 @@ const QuotationComparisonView: React.FC<Props> = ({ rfqGroupId, onClose, onConve
             comparison={comparison}
             actionLoading={actionLoading}
             normalizeCurrency={normalizeCurrency}
+            dynamicRatesMap={dynamicRatesMap}
             onConvert={handleConvertToPurchase}
           />
           <RecommendationsBar
@@ -771,6 +811,7 @@ const QuotationComparisonView: React.FC<Props> = ({ rfqGroupId, onClose, onConve
             cheapestId={comparison.cheapestId}
             isMixedCurrencies={comparison.isMixedCurrencies}
             normalizeCurrency={normalizeCurrency}
+            dynamicRatesMap={dynamicRatesMap}
           />
         </>
       )}

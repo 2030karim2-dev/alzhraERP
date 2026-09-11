@@ -7,7 +7,7 @@ import openpyxl
 import os
 import shutil
 
-DOWNLOADS_DIR = r"C:\Users\seens\Downloads"
+DOWNLOADS_DIR = os.environ.get("DOWNLOADS_DIR", os.path.expanduser("~/Downloads"))
 
 def remediate_auto_belts():
     filepath = os.path.join(DOWNLOADS_DIR, "auto_belts_inventory_updated.xlsx")

@@ -268,8 +268,8 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                 </div>
                 <div className="text-center">
                   <h3 className="text-xl font-bold">جاري الاستخراج الذكي للأصناف...</h3>
-                  <p className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-                    Processing brands and part numbers
+                  <p className="mt-2 text-xs font-bold text-gray-400">
+                    جاري معالجة الماركات وأرقام القطع...
                   </p>
                 </div>
               </div>
@@ -304,30 +304,30 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                 <Sparkles size={14} />
               </div>
               <div>
-                <h3 className="text-[10px] font-black uppercase tracking-tight">مراجعة البيانات</h3>
+                <h3 className="text-xs font-bold uppercase tracking-tight">مراجعة البيانات</h3>
                 <div className="flex items-center gap-2">
-                  <User size={8} className="text-blue-400" />
+                  <User size={12} className="text-blue-400" />
                   <input
                     value={detectedSupplier}
                     onChange={e => {
                       setDetectedSupplier(e.target.value);
                     }}
                     placeholder="المورد..."
-                    className="w-32 border-none bg-transparent text-[10px] font-black text-gray-300 outline-none focus:text-white"
+                    className="w-36 border-none bg-transparent text-xs font-bold text-gray-200 outline-none focus:text-white"
                   />
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <div className="flex items-center rounded-lg border border-slate-700 bg-slate-800 px-2 py-1">
-                <DollarSign size={10} className="text-emerald-400" />
+              <div className="flex items-center rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1">
+                <DollarSign size={12} className="text-emerald-400" />
                 <select
                   value={detectedCurrency}
                   onChange={e => {
                     setDetectedCurrency(e.target.value);
                   }}
-                  className="cursor-pointer appearance-none bg-transparent text-[10px] font-black text-white outline-none"
+                  className="cursor-pointer appearance-none bg-transparent text-xs font-bold text-white outline-none"
                 >
                   {currencies.data?.map((c: { code: string }) => (
                     <option key={c.code} value={c.code}>
@@ -336,14 +336,14 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
                   ))}
                 </select>
               </div>
-              <div className="flex items-center rounded-lg border border-slate-700 bg-slate-800 px-2 py-1">
-                <Warehouse size={10} className="text-blue-400" />
+              <div className="flex items-center rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1">
+                <Warehouse size={12} className="text-blue-400" />
                 <select
                   value={selectedWarehouseId}
                   onChange={e => {
                     setSelectedWarehouseId(e.target.value);
                   }}
-                  className="max-w-[80px] cursor-pointer appearance-none bg-transparent text-[10px] font-black text-white outline-none"
+                  className="max-w-[110px] cursor-pointer appearance-none bg-transparent text-xs font-bold text-white outline-none"
                 >
                   {warehouses?.map((w: any) => (
                     <option key={w.id} value={w.id}>
@@ -366,19 +366,21 @@ const SmartImportView: React.FC<Props> = ({ mode, onConfirm }) => {
               showSearch={true}
               emptyMessage="لم يتم استخراج أي أصناف. يرجى رفع صورة فاتورة واضحة."
               onCellUpdate={async (rowIndex: number, accessorKey: string, value: any) => {
-                const updated = [...extractedItems];
-                const key = accessorKey as keyof ExtractedItem;
-                if (
-                  key === 'quantity' ||
-                  key === 'stock_quantity' ||
-                  key === 'unitPrice' ||
-                  key === 'cost_price'
-                ) {
-                  (updated[rowIndex] as any)[key] = parseFloat(value) || 0;
-                } else {
-                  (updated[rowIndex] as any)[key] = value;
-                }
-                setExtractedItems(updated);
+                setExtractedItems(prev => {
+                  const updated = [...prev];
+                  const key = accessorKey as keyof ExtractedItem;
+                  if (
+                    key === 'quantity' ||
+                    key === 'stock_quantity' ||
+                    key === 'unitPrice' ||
+                    key === 'cost_price'
+                  ) {
+                    (updated[rowIndex] as any)[key] = parseFloat(value) || 0;
+                  } else {
+                    (updated[rowIndex] as any)[key] = value;
+                  }
+                  return updated;
+                });
               }}
             />
           </div>

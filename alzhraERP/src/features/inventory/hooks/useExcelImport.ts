@@ -99,24 +99,69 @@ export const detectImportConflicts = async (
 
     if (barcodesToCheck.length > 0 || skusToCheck.length > 0) {
       try {
-        let query = supabase
-          .from('products')
-          .select('id, name_ar, sku, barcode, part_number, brand')
-          .eq('company_id', companyId)
-          .is('deleted_at', null);
+        const chunkArray = <T>(arr: T[], size: number): T[][] => {
+          const chunks: T[][] = [];
+          for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+          }
+          return chunks;
+        };
 
-        if (barcodesToCheck.length > 0 && barcodesToCheck.length <= 100) {
-          query = query.in('barcode', barcodesToCheck);
+        const foundProducts: Array<{
+          id: string;
+          name_ar: string;
+          sku?: string | null;
+          barcode?: string | null;
+          part_number?: string | null;
+          brand?: string | null;
+        }> = [];
+
+        // Check barcodes in chunks of 50
+        const barcodeChunks = chunkArray(barcodesToCheck, 50);
+        for (const chunk of barcodeChunks) {
+          const { data } = await supabase
+            .from('products')
+            .select('id, name_ar, sku, barcode, part_number, brand')
+            .eq('company_id', companyId)
+            .is('deleted_at', null)
+            .in('barcode', chunk);
+          if (data && data.length > 0) {
+            foundProducts.push(...data);
+          }
         }
 
-        const { data: dbProducts } = await query;
-        if (dbProducts && dbProducts.length > 0) {
-          const dbBarcodeMap = new Map(dbProducts.map(p => [p.barcode, p]));
-          const dbSkuMap = new Map(dbProducts.map(p => [p.sku, p]));
+        // Check SKUs in chunks of 50
+        const skuChunks = chunkArray(skusToCheck, 50);
+        for (const chunk of skuChunks) {
+          const { data } = await supabase
+            .from('products')
+            .select('id, name_ar, sku, barcode, part_number, brand')
+            .eq('company_id', companyId)
+            .is('deleted_at', null)
+            .in('sku', chunk);
+          if (data && data.length > 0) {
+            foundProducts.push(...data);
+          }
+        }
+
+        if (foundProducts.length > 0) {
+          const dbBarcodeMap = new Map<string, (typeof foundProducts)[0]>();
+          const dbSkuMap = new Map<string, (typeof foundProducts)[0]>();
+
+          foundProducts.forEach(p => {
+            if (p.barcode && String(p.barcode).trim()) {
+              dbBarcodeMap.set(String(p.barcode).trim(), p);
+            }
+            if (p.sku && String(p.sku).trim()) {
+              dbSkuMap.set(String(p.sku).trim().toUpperCase(), p);
+            }
+          });
 
           rows.forEach((row, idx) => {
             const barcode = String(row.barcode || '').trim();
-            const sku = String(row.sku || '').trim();
+            const sku = String(row.sku || '')
+              .trim()
+              .toUpperCase();
 
             if (barcode && dbBarcodeMap.has(barcode)) {
               const existing = dbBarcodeMap.get(barcode)!;

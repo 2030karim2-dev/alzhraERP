@@ -76,9 +76,16 @@ const ReportSection: React.FC<ReportSectionProps> = ({
             </div>
             <span
               dir="ltr"
-              className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100"
+              className={cn(
+                'font-mono text-xs font-bold',
+                item.netBalance < 0
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-slate-800 dark:text-slate-100'
+              )}
             >
-              {formatCurrency(Math.abs(item.netBalance))}
+              {item.netBalance < 0
+                ? `(${formatCurrency(Math.abs(item.netBalance))})`
+                : formatCurrency(item.netBalance)}
             </span>
           </div>
         ))}
@@ -96,7 +103,7 @@ const ReportSection: React.FC<ReportSectionProps> = ({
                 : 'text-emerald-600 dark:text-emerald-400'
           )}
         >
-          {formatCurrency(total)}
+          {total < 0 ? `(${formatCurrency(Math.abs(total))})` : formatCurrency(total)}
         </span>
       </div>
     </div>
@@ -123,6 +130,9 @@ const BalanceSheetView: React.FC = () => {
   const { assets, liabilities, equity, totalAssets, totalLiabEquity } = data;
   const isBalanced = Math.abs(totalAssets - totalLiabEquity) < 1;
   const reportDate = formatLocalDate(new Date());
+
+  const totalLiabilities = liabilities.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0);
+  const totalEquity = equity.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-[1400px] space-y-4 pb-6 duration-700">
@@ -161,7 +171,7 @@ const BalanceSheetView: React.FC = () => {
             eventType="balance_sheet"
             title="مشاركة الميزانية العمومية"
             className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-700"
-            message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(Math.abs(liabilities.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0)))}\n🏛️ حقوق الملكية: ${formatCurrency(Math.abs(equity.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0)))}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${reportDate}`}
+            message={`🏦 الميزانية العمومية (المركز المالي) - الزهراء سمارت\n━━━━━━━━━━━━━━\n💼 إجمالي الأصول: ${formatCurrency(totalAssets)}\n📋 إجمالي الخصوم: ${formatCurrency(totalLiabilities)}\n🏛️ حقوق الملكية: ${totalEquity < 0 ? `(${formatCurrency(Math.abs(totalEquity))})` : formatCurrency(totalEquity)}\n${isBalanced ? '✅ الميزانية متزنة' : `❌ غير متزنة - الفرق: ${formatCurrency(Math.abs(totalAssets - totalLiabEquity))}`}\n📅 التاريخ: ${reportDate}`}
           />
         </div>
       </div>
@@ -182,14 +192,14 @@ const BalanceSheetView: React.FC = () => {
             title="الالتزامات والخصوم"
             icon={Scale}
             items={liabilities}
-            total={Math.abs(liabilities.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0))}
+            total={totalLiabilities}
             color="rose"
           />
           <ReportSection
             title="حقوق الملكية والأرباح"
             icon={Layers}
             items={equity}
-            total={Math.abs(equity.reduce((s: number, a: BalanceItem) => s + a.netBalance, 0))}
+            total={totalEquity}
             color="emerald"
           />
         </div>
