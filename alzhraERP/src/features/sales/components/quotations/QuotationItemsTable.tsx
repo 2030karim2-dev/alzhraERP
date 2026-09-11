@@ -5,6 +5,7 @@ import { formatCurrency } from '../../../../core/utils';
 
 interface QuotationItemsTableProps {
   items: ItemRow[];
+  currencyCode?: string;
   addItem: () => void;
   removeItem: (index: number) => void;
   updateItem: (index: number, field: keyof ItemRow, value: string | number) => void;
@@ -13,6 +14,7 @@ interface QuotationItemsTableProps {
 
 const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
   items,
+  currencyCode = 'SAR',
   addItem,
   removeItem,
   updateItem,
@@ -147,7 +149,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       min={0}
                       value={item.quantity || ''}
                       onChange={e => {
-                        updateItem(idx, 'quantity', Number(e.target.value));
+                        updateItem(idx, 'quantity', Math.max(0, Number(e.target.value) || 0));
                       }}
                       placeholder="0"
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-gray-900 placeholder-gray-300 outline-none dark:text-white"
@@ -162,7 +164,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       step="any"
                       value={item.unitPrice || ''}
                       onChange={e => {
-                        updateItem(idx, 'unitPrice', Number(e.target.value));
+                        updateItem(idx, 'unitPrice', Math.max(0, Number(e.target.value) || 0));
                       }}
                       placeholder="0.00"
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-emerald-600 placeholder-gray-300 outline-none dark:text-emerald-400"
@@ -178,7 +180,8 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                       step="any"
                       value={item.discountPercent || ''}
                       onChange={e => {
-                        updateItem(idx, 'discountPercent', Number(e.target.value));
+                        const raw = Number(e.target.value);
+                        updateItem(idx, 'discountPercent', Math.min(100, Math.max(0, raw || 0)));
                       }}
                       placeholder="0"
                       className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-rose-500 placeholder-gray-300 outline-none"
@@ -191,7 +194,7 @@ const QuotationItemsTable: React.FC<QuotationItemsTableProps> = ({
                     dir="ltr"
                   >
                     {lineTotal > 0 ? (
-                      formatCurrency(lineTotal)
+                      formatCurrency(lineTotal, currencyCode)
                     ) : (
                       <span className="text-gray-300">—</span>
                     )}

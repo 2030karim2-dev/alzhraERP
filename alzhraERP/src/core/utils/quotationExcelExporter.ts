@@ -22,6 +22,7 @@ interface QuotationExcelData {
   validUntil?: string;
   customerName: string;
   issuedBy: string;
+  currency?: string;
   items: Array<{
     name: string;
     quantity: number;
@@ -39,6 +40,7 @@ const buildQuotationRows = (
   data: QuotationExcelData
 ): { rows: unknown[][]; summaryStartRow: number } => {
   const rows: unknown[][] = [];
+  const curr = data.currency || 'SAR';
 
   // --- Header Section ---
   rows.push([data.companyName]);
@@ -50,12 +52,12 @@ const buildQuotationRows = (
 
   // --- Meta Info Section ---
   rows.push(['العميل:', data.customerName, '', 'رقم عرض السعر:', data.quotationNumber]);
-  rows.push(['التاريخ:', data.issueDate, '', 'صالح حتى:', data.validUntil ?? '---']);
-  rows.push(['صدر بواسطة:', data.issuedBy, '', '', '']);
+  rows.push(['التاريخ:', data.issueDate, '', 'العملة:', curr]);
+  rows.push(['صالح حتى:', data.validUntil ?? '---', '', 'صدر بواسطة:', data.issuedBy]);
   rows.push([]);
 
   // --- Table Header ---
-  rows.push(['#', 'وصف السلعة / الخدمة', 'الكمية', 'سعر الوحدة', 'الإجمالي']);
+  rows.push(['#', 'وصف السلعة / الخدمة', 'الكمية', `سعر الوحدة (${curr})`, `الإجمالي (${curr})`]);
 
   // --- Data Rows ---
   data.items.forEach((item, i) => {
@@ -65,8 +67,8 @@ const buildQuotationRows = (
   // --- Footer Summary ---
   rows.push([]);
   const summaryStartRow = rows.length;
-  rows.push(['', '', '', 'المجموع الفرعي:', data.subtotal || 0]);
-  rows.push(['', '', '', 'الإجمالي المستحق:', data.totalAmount || 0]);
+  rows.push(['', '', '', `المجموع الفرعي (${curr}):`, data.subtotal || 0]);
+  rows.push(['', '', '', `الإجمالي المستحق (${curr}):`, data.totalAmount || 0]);
 
   if (hasNotes(data.notes)) {
     rows.push([]);

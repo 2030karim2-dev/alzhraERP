@@ -65,8 +65,10 @@ interface SupplierSectionProps {
   onSelect: (supplier: SupplierOption) => void;
   onClear: () => void;
   issueDate: string;
+  currencyCode: string;
   deliveryTerms: string;
   onIssueDateChange: (value: string) => void;
+  onCurrencyChange: (value: string) => void;
   onDeliveryTermsChange: (value: string) => void;
 }
 
@@ -81,11 +83,13 @@ const SupplierSection = ({
   onSelect,
   onClear,
   issueDate,
+  currencyCode,
   deliveryTerms,
   onIssueDateChange,
+  onCurrencyChange,
   onDeliveryTermsChange,
 }: SupplierSectionProps): React.ReactElement => (
-  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <div className="space-y-1.5">
       <label
         htmlFor="quotation-supplier"
@@ -202,6 +206,28 @@ const SupplierSection = ({
     </div>
     <div className="space-y-1.5">
       <label
+        htmlFor="quotation-currency"
+        className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-400"
+      >
+        <DollarSign size={12} /> العملة
+      </label>
+      <select
+        id="quotation-currency"
+        value={currencyCode}
+        onChange={event => {
+          onCurrencyChange(event.target.value);
+        }}
+        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 dark:border-slate-700 dark:bg-slate-800"
+      >
+        <option value="SAR">ريال سعودي (SAR)</option>
+        <option value="YER">ريال يمني (YER)</option>
+        <option value="USD">دولار أمريكي (USD)</option>
+        <option value="CNY">يوان صيني (CNY)</option>
+        <option value="OMR">ريال عماني (OMR)</option>
+      </select>
+    </div>
+    <div className="space-y-1.5">
+      <label
         htmlFor="quotation-delivery-terms"
         className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-400"
       >
@@ -222,6 +248,7 @@ const SupplierSection = ({
 
 interface ItemTableProps {
   items: ItemRow[];
+  currencyCode: string;
   productModal: ProductModalState;
   onAdd: () => void;
   onRemove: (index: number) => void;
@@ -233,6 +260,7 @@ const ItemRowView = ({
   item,
   index,
   itemCount,
+  currencyCode,
   onRemove,
   onUpdate,
   onSearch,
@@ -240,6 +268,7 @@ const ItemRowView = ({
   item: ItemRow;
   index: number;
   itemCount: number;
+  currencyCode: string;
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof ItemRow, value: string | number) => void;
   onSearch: (index: number, query?: string) => void;
@@ -342,7 +371,8 @@ const ItemRowView = ({
           step="any"
           value={item.discountPercent || ''}
           onChange={event => {
-            onUpdate(index, 'discountPercent', Number(event.target.value));
+            const raw = Number(event.target.value);
+            onUpdate(index, 'discountPercent', Math.min(100, Math.max(0, raw || 0)));
           }}
           placeholder="0"
           className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-rose-500 placeholder-gray-300 outline-none"
@@ -352,7 +382,11 @@ const ItemRowView = ({
         className="border-l border-gray-100 bg-gray-50/60 px-2 py-1.5 text-center font-mono text-sm font-bold text-gray-800 dark:border-slate-700/60 dark:bg-slate-800/40 dark:text-gray-200"
         dir="ltr"
       >
-        {lineTotal > 0 ? formatCurrency(lineTotal) : <span className="text-gray-300">—</span>}
+        {lineTotal > 0 ? (
+          formatCurrency(lineTotal, currencyCode)
+        ) : (
+          <span className="text-gray-300">—</span>
+        )}
       </td>
       <td className="px-1 py-1.5">
         <button
@@ -373,6 +407,7 @@ const ItemRowView = ({
 
 const ItemTable = ({
   items,
+  currencyCode,
   onAdd,
   onRemove,
   onUpdate,
@@ -433,6 +468,7 @@ const ItemTable = ({
               item={item}
               index={index}
               itemCount={items.length}
+              currencyCode={currencyCode}
               onRemove={onRemove}
               onUpdate={onUpdate}
               onSearch={onSearch}
@@ -493,14 +529,20 @@ const TermsSection = ({
   </div>
 );
 
-const Totals = ({ total }: { total: number }): React.ReactElement => (
+const Totals = ({
+  total,
+  currencyCode,
+}: {
+  total: number;
+  currencyCode: string;
+}): React.ReactElement => (
   <div className="flex items-center justify-between border-t border-violet-100 bg-gradient-to-r from-violet-50 to-purple-50 p-4 dark:border-violet-800/30 dark:from-violet-900/20 dark:to-purple-900/20">
     <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400">
       <DollarSign size={18} />
       <span className="text-sm font-bold">إجمالي عرض المورد</span>
     </div>
     <span className="font-mono text-2xl font-bold text-violet-700 dark:text-violet-300" dir="ltr">
-      {formatCurrency(total)}
+      {formatCurrency(total, currencyCode)}
     </span>
   </div>
 );
@@ -511,6 +553,7 @@ interface PurchaseDraft {
   partyName: string | null;
   partyPhone: string | null;
   issueDate: string;
+  currencyCode?: string;
   deliveryTerms: string;
   paymentTerms: string;
   notes: string;
@@ -585,6 +628,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
     partyQuery
   );
   const [issueDate, setIssueDate] = useState(() => savedDraft?.issueDate ?? formatLocalDate());
+  const [currencyCode, setCurrencyCode] = useState<string>(() => savedDraft?.currencyCode ?? 'SAR');
   const [deliveryTerms, setDeliveryTerms] = useState(() => savedDraft?.deliveryTerms ?? '');
   const [paymentTerms, setPaymentTerms] = useState(() => savedDraft?.paymentTerms ?? '');
   const [notes, setNotes] = useState(() => savedDraft?.notes ?? '');
@@ -652,7 +696,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
               description: product.name,
               partNumber: (product as { part_number?: string }).part_number ?? '',
               size: product.size ?? '',
-              unitPrice: product.cost_price,
+              unitPrice: product.purchase_price || 0,
             }
           : item
       )
@@ -660,7 +704,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
     setProductModal(previous => ({ ...previous, isOpen: false }));
   };
 
-  // ─── Auto-save draft ───────────────────────────────────────────────────────
+  // ─── Auto-save draft on changes ───────────────────────────────────────────
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scheduleSave = useCallback(() => {
     if (!draftKey) return;
@@ -676,12 +720,13 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
         partyName: selectedParty?.name ?? null,
         partyPhone: selectedParty?.phone ?? null,
         issueDate,
+        currencyCode,
         deliveryTerms,
         paymentTerms,
         notes,
       });
     }, 800);
-  }, [draftKey, items, selectedParty, issueDate, deliveryTerms, paymentTerms, notes]);
+  }, [draftKey, items, selectedParty, issueDate, currencyCode, deliveryTerms, paymentTerms, notes]);
 
   useEffect(() => {
     scheduleSave();
@@ -700,6 +745,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
     setSelectedParty(null);
     setPartyQuery('');
     setIssueDate(formatLocalDate());
+    setCurrencyCode('SAR');
     setDeliveryTerms('');
     setPaymentTerms('');
     setNotes('');
@@ -730,6 +776,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
       await purchaseQuotationsApi.createQuotation(user.company_id, user.id, {
         partyId: selectedParty?.id ?? null,
         issueDate,
+        currencyCode,
         items: validItems,
         notes: notes.trim() !== '' ? notes : undefined,
         deliveryTerms: deliveryTerms.trim() !== '' ? deliveryTerms : undefined,
@@ -817,19 +864,22 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
             setSelectedParty(null);
           }}
           issueDate={issueDate}
+          currencyCode={currencyCode}
           deliveryTerms={deliveryTerms}
           onIssueDateChange={setIssueDate}
+          onCurrencyChange={setCurrencyCode}
           onDeliveryTermsChange={setDeliveryTerms}
         />
         <ItemTable
           items={items}
+          currencyCode={currencyCode}
           productModal={productModal}
           onAdd={addItem}
           onRemove={removeItem}
           onUpdate={updateItem}
           onSearch={openProductSearch}
         />
-        <Totals total={totals.total} />
+        <Totals total={totals.total} currencyCode={currencyCode} />
         <TermsSection
           paymentTerms={paymentTerms}
           notes={notes}

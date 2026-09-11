@@ -6,17 +6,36 @@ export function useTableSelection<T>(
   onSelectionChange?: (selectedIds: Set<string>) => void,
   getRowId?: (row: T) => string
 ) {
+  const resolveId = (row: T, idx: number): string => {
+    if (getRowId) return getRowId(row);
+    const rowObj = row as Record<string, unknown> | null;
+    return (rowObj?.id as string) ?? String(idx);
+  };
+
+  const isAllVisibleSelected =
+    orderedData.length > 0 &&
+    orderedData.every((row, idx) => selectedRowIds.has(resolveId(row, idx)));
+
+  const hasSomeVisibleSelected =
+    orderedData.length > 0 &&
+    orderedData.some((row, idx) => selectedRowIds.has(resolveId(row, idx)));
+
   const toggleAllSelection = () => {
-    if (!onSelectionChange || !getRowId) return;
-    if (selectedRowIds.size === orderedData.length && orderedData.length > 0) {
-      // Deselect all
-      onSelectionChange(new Set());
+    if (!onSelectionChange) return;
+    const newSet = new Set(selectedRowIds);
+
+    if (isAllVisibleSelected) {
+      // Deselect all visible on this page
+      orderedData.forEach((row, idx) => {
+        newSet.delete(resolveId(row, idx));
+      });
     } else {
-      // Select all visible
-      const newSet = new Set(selectedRowIds);
-      orderedData.forEach(row => newSet.add(getRowId(row)));
-      onSelectionChange(newSet);
+      // Select all visible on this page
+      orderedData.forEach((row, idx) => {
+        newSet.add(resolveId(row, idx));
+      });
     }
+    onSelectionChange(newSet);
   };
 
   const toggleRowSelection = (id: string, e: React.MouseEvent) => {
@@ -31,5 +50,10 @@ export function useTableSelection<T>(
     onSelectionChange(newSet);
   };
 
-  return { toggleAllSelection, toggleRowSelection };
+  return {
+    toggleAllSelection,
+    toggleRowSelection,
+    isAllVisibleSelected,
+    hasSomeVisibleSelected,
+  };
 }

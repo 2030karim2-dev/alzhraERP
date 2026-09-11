@@ -16,60 +16,54 @@ const ReturnsFilterBar: React.FC<Props> = ({
   handlePrint,
 }) => {
   return (
-    <div className="bg-[var(--app-surface)]/50 relative overflow-visible rounded-xl border border-slate-200/80 shadow-sm dark:border-slate-800 max-md:p-4 sm:rounded-2xl sm:p-6 md:p-10">
-      <div className="mb-4 flex flex-col max-md:gap-4 sm:mb-6 sm:gap-6 md:mb-10">
+    <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-sm sm:p-4">
+      <div className="mb-3.5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <div className="mb-1 flex items-center max-md:gap-2 sm:mb-2 sm:gap-3">
-            <div className="h-4 w-1.5 rounded-full bg-rose-500 sm:h-6 sm:w-2" />
-            <h3 className="text-lg font-black tracking-tight text-slate-800 dark:text-white sm:text-xl md:text-2xl">
-              تحليل المرتجعات الذكي
+          <div className="mb-0.5 flex items-center gap-2">
+            <div className="h-4 w-1.5 rounded-full bg-rose-500" />
+            <h3 className="text-base font-bold tracking-tight text-slate-800 dark:text-white">
+              تحليل المرتجعات
             </h3>
           </div>
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-            تحليل المرتجعات
+          <p className="text-[10px] font-semibold text-slate-400">
+            تصفية حركات مرتجعات المبيعات والمشتريات
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center max-md:gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleExportExcel}
-            className="group flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 active:scale-95 max-md:gap-2 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm md:px-6"
+            className="flex min-h-[36px] items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
           >
-            <FileSpreadsheet size={14} className="sm:hidden" />
-            <FileSpreadsheet size={16} className="hidden sm:block" />
-            <span className="hidden sm:inline">تصدير البيانات</span>
-            <span className="sm:hidden">تصدير</span>
+            <FileSpreadsheet size={14} />
+            <span>تصدير إكسل</span>
           </button>
           <button
             onClick={handlePrint}
-            className="group flex min-h-[44px] items-center rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 max-md:gap-2 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm md:px-6"
+            className="flex min-h-[36px] items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
-            <Printer size={14} className="sm:hidden" />
-            <Printer size={16} className="hidden sm:block" />
-            <span className="hidden sm:inline">طباعة التقرير</span>
-            <span className="sm:hidden">طباعة</span>
+            <Printer size={14} />
+            <span>طباعة</span>
           </button>
         </div>
       </div>
 
-      {/* Highly Functional Filter Grid */}
-      <div className="grid grid-cols-1 max-md:gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
+      {/* Filter Grid */}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Period Filter */}
-        <div className="space-y-3">
-          <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            النطاق الزمني
-          </label>
-          <div className="group relative">
+        <div>
+          <label className="mb-1 block text-[10px] font-bold text-slate-400">النطاق الزمني</label>
+          <div className="relative">
             <Calendar
-              size={18}
-              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-rose-500"
+              size={14}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <select
               value={filters.dateRange}
               onChange={e => {
                 setFilters({ ...filters, dateRange: e.target.value as DateRange });
               }}
-              className="min-h-[44px] w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-10 text-xs font-bold shadow-inner outline-none transition-all focus:border-rose-500 dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-white sm:pr-12 sm:text-sm"
+              className="min-h-[36px] w-full appearance-none rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] py-1.5 pl-3 pr-8 text-xs font-bold outline-none transition-colors focus:border-rose-500 dark:text-white"
             >
               <option value="today">اليوم</option>
               <option value="week">آخر 7 أيام</option>
@@ -81,21 +75,19 @@ const ReturnsFilterBar: React.FC<Props> = ({
         </div>
 
         {/* Flow Type Filter */}
-        <div className="space-y-3">
-          <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            نوع التدفق
-          </label>
-          <div className="group relative">
+        <div>
+          <label className="mb-1 block text-[10px] font-bold text-slate-400">نوع التدفق</label>
+          <div className="relative">
             <Filter
-              size={18}
-              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-rose-500"
+              size={14}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <select
               value={filters.type}
               onChange={e => {
                 setFilters({ ...filters, type: e.target.value as ReturnsType });
               }}
-              className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-4 pr-12 text-sm font-bold shadow-inner outline-none transition-all focus:border-rose-500 dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-white max-md:rounded-xl"
+              className="min-h-[36px] w-full appearance-none rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] py-1.5 pl-3 pr-8 text-xs font-bold outline-none transition-colors focus:border-rose-500 dark:text-white"
             >
               <option value="all">كافة التدفقات</option>
               <option value="sales">مرتجعات المبيعات</option>
@@ -105,16 +97,14 @@ const ReturnsFilterBar: React.FC<Props> = ({
         </div>
 
         {/* Status Filter */}
-        <div className="space-y-3">
-          <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            الحالة الإدارية
-          </label>
+        <div>
+          <label className="mb-1 block text-[10px] font-bold text-slate-400">الحالة</label>
           <select
             value={filters.status}
             onChange={e => {
               setFilters({ ...filters, status: e.target.value });
             }}
-            className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-6 py-3.5 text-sm font-bold shadow-inner outline-none transition-all focus:border-rose-500 dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-white max-md:rounded-xl max-md:px-3"
+            className="min-h-[36px] w-full appearance-none rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3 py-1.5 text-xs font-bold outline-none transition-colors focus:border-rose-500 dark:text-white"
           >
             <option value="all">جميع الحالات</option>
             <option value="draft">مسودة</option>
@@ -125,16 +115,14 @@ const ReturnsFilterBar: React.FC<Props> = ({
         </div>
 
         {/* Causation Filter */}
-        <div className="space-y-3">
-          <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            سبب الاسترجاع
-          </label>
+        <div>
+          <label className="mb-1 block text-[10px] font-bold text-slate-400">سبب الإرجاع</label>
           <select
             value={filters.reason}
             onChange={e => {
               setFilters({ ...filters, reason: e.target.value });
             }}
-            className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-6 py-3.5 text-sm font-bold shadow-inner outline-none transition-all focus:border-rose-500 dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-white max-md:rounded-xl max-md:px-3"
+            className="min-h-[36px] w-full appearance-none rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-3 py-1.5 text-xs font-bold outline-none transition-colors focus:border-rose-500 dark:text-white"
           >
             <option value="all">جميع المسببات</option>
             <option value="defective">منتج تالف</option>
@@ -150,31 +138,27 @@ const ReturnsFilterBar: React.FC<Props> = ({
 
       {/* Dynamic Custom Date Picker */}
       {filters.dateRange === 'custom' && (
-        <div className="animate-in slide-in-from-top-4 mt-8 grid grid-cols-2 gap-6 rounded-3xl border border-slate-100 bg-slate-50 p-6 duration-500 dark:border-slate-700/50 dark:bg-slate-800/40 max-md:mt-3 max-md:gap-3 max-md:rounded-xl max-md:p-3">
-          <div className="space-y-2">
-            <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              من تاريخ
-            </label>
+        <div className="animate-in slide-in-from-top-2 mt-3 grid grid-cols-2 gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-3">
+          <div>
+            <label className="mb-1 block text-[10px] font-bold text-slate-400">من تاريخ</label>
             <input
               type="date"
               value={filters.startDate || ''}
               onChange={e => {
                 setFilters({ ...filters, startDate: e.target.value });
               }}
-              className="w-full rounded-xl border border-slate-200 bg-[var(--app-surface)] px-5 py-3 font-mono text-xs font-bold outline-none transition-all focus:border-rose-500 dark:border-slate-700 dark:text-white"
+              className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 font-mono text-xs font-bold outline-none focus:border-rose-500 dark:text-white"
             />
           </div>
-          <div className="space-y-2">
-            <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              إلى تاريخ
-            </label>
+          <div>
+            <label className="mb-1 block text-[10px] font-bold text-slate-400">إلى تاريخ</label>
             <input
               type="date"
               value={filters.endDate || ''}
               onChange={e => {
                 setFilters({ ...filters, endDate: e.target.value });
               }}
-              className="w-full rounded-xl border border-slate-200 bg-[var(--app-surface)] px-5 py-3 font-mono text-xs font-bold outline-none transition-all focus:border-rose-500 dark:border-slate-700 dark:text-white"
+              className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 font-mono text-xs font-bold outline-none focus:border-rose-500 dark:text-white"
             />
           </div>
         </div>

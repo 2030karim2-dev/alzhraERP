@@ -137,7 +137,7 @@ export const exportQuotationToExcel = async (
     { v: 'مدة التوريد (أيام):', s: metaLabelStyle },
     { v: `${Math.max(0, options.deliveryDays || 0)} يوم`, s: metaValueStyle },
     { v: 'تاريخ المستند:', s: metaLabelStyle },
-    { v: new Date().toLocaleDateString('ar-SA-u-nu-latn'), s: metaValueStyle },
+    { v: formatLocalDate(), s: metaValueStyle },
   ]);
   wsData.push([]); // Empty row
 
@@ -385,11 +385,26 @@ export const parseQuotationExcel = async (
   for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
     const row = rawRows[i];
     if (row && Array.isArray(row)) {
-      const rowText = row.join(' ').toLowerCase();
-      if (
-        (rowText.includes('سعر') || rowText.includes('price')) &&
-        (rowText.includes('كمية') || rowText.includes('qty') || rowText.includes('quantity'))
-      ) {
+      const rowText = row
+        .map(cell =>
+          String(cell || '')
+            .toLowerCase()
+            .replace(/[\u064B-\u065F]/g, '')
+        )
+        .join(' ');
+      const hasPrice =
+        rowText.includes('سعر') ||
+        rowText.includes('price') ||
+        rowText.includes('cost') ||
+        rowText.includes('تكلفة') ||
+        rowText.includes('تكلفه');
+      const hasQty =
+        rowText.includes('كمية') ||
+        rowText.includes('كميه') ||
+        rowText.includes('العدد') ||
+        rowText.includes('qty') ||
+        rowText.includes('quantity');
+      if (hasPrice && hasQty) {
         headerIndex = i;
         break;
       }
@@ -403,16 +418,28 @@ export const parseQuotationExcel = async (
   const headers = rawRows[headerIndex].map((h: any) => String(h || '').trim());
   const dataRows = rawRows.slice(headerIndex + 1);
 
-  // Column Index Mappers
+  // Column Index Mappers with Arabic normalization
   const findCol = (keywords: string[]) =>
-    headers.findIndex((h: string) => keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
+    headers.findIndex((h: string) => {
+      const normalizedH = h
+        .toLowerCase()
+        .replace(/[\u064B-\u065F]/g, '')
+        .replace(/ة/g, 'ه');
+      return keywords.some(k => {
+        const normalizedK = k
+          .toLowerCase()
+          .replace(/[\u064B-\u065F]/g, '')
+          .replace(/ة/g, 'ه');
+        return normalizedH.includes(normalizedK);
+      });
+    });
 
   const idCol = findCol(['معرف', 'product_id', 'id']);
   const nameCol = findCol(['اسم', 'name', 'product', 'item', 'وصف', 'description']);
   const oemCol = findCol(['oem', 'رقم القطعة', 'part_number', 'part number', 'part']);
   const skuCol = findCol(['sku', 'كود', 'vendor_sku']);
-  const qtyCol = findCol(['كمية', 'qty', 'quantity']);
-  const priceCol = findCol(['سعر', 'price', 'unit_price', 'cost']);
+  const qtyCol = findCol(['كمية', 'qty', 'quantity', 'عدد']);
+  const priceCol = findCol(['سعر', 'price', 'unit_price', 'cost', 'تكلفة']);
   const discCol = findCol(['خصم', 'discount', 'discount%']);
   const taxCol = findCol(['ضريبة', 'tax', 'vat']);
   const availCol = findCol(['توفر', 'availability', 'حالة']);
@@ -493,7 +520,7 @@ export const parseQuotationExcel = async (
       availability: validAvailability,
       leadTimeDays: leadCol >= 0 ? Number(r[leadCol]) || 0 : 0,
       warrantyDays: warrantyCol >= 0 ? Number(r[warrantyCol]) || 0 : 0,
-      matchStatus: matchedProduct ? 'matched' : parsedPrice <= 0 ? 'invalid_price' : 'unmatched',
+      matchStatus: parsedPrice <= 0 ? 'invalid_price' : matchedProduct ? 'matched' : 'unmatched',
     };
     if (rowOem) rowObj.rawPartNumber = rowOem;
     if (rowSku) rowObj.rawVendorSku = rowSku;

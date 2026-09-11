@@ -117,7 +117,7 @@ const invoiceColumn = {
       </span>
     </div>
   ),
-  width: 'w-40',
+  width: '160px',
 };
 const dateColumn = {
   header: 'التاريخ',
@@ -126,7 +126,7 @@ const dateColumn = {
       {row.issue_date}
     </span>
   ),
-  width: 'w-32',
+  width: '130px',
 };
 const supplierColumn = {
   header: 'المورد',
@@ -173,7 +173,7 @@ const paymentColumn = {
       {row.payment_method === 'cash' ? 'نقدي' : 'أجل'}
     </span>
   ),
-  width: 'w-24',
+  width: '100px',
   className: 'text-center',
 };
 const totalColumn = {
@@ -208,7 +208,7 @@ const statusColumn = {
       </span>
     );
   },
-  width: 'w-24',
+  width: '100px',
   className: 'text-center',
 };
 
@@ -256,7 +256,7 @@ const actionColumn = (
       </div>
     );
   },
-  width: 'w-24',
+  width: '100px',
   className: 'text-center',
 });
 

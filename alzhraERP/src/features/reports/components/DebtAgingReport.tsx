@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { reportsApi } from '../api';
-import { formatCurrency, toBaseCurrency } from '../../../core/utils';
+import { formatCurrency, toBaseCurrency, formatLocalDate } from '../../../core/utils';
 import { Clock, AlertTriangle, Users, ShieldCheck } from 'lucide-react';
 import StatCard from '../../../ui/common/StatCard';
 import ExcelTable from '../../../ui/common/ExcelTable';
@@ -146,11 +146,9 @@ const DebtAgingReport: React.FC = () => {
         header: 'العميل',
         accessor: (row: AgingPartyRow) => (
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-gray-800 dark:text-slate-100">
-              {row.name}
-            </span>
-            <span className="text-[10px] text-gray-400">
-              أقدم استحقاق: {row.oldestDate?.split('T')[0]}
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{row.name}</span>
+            <span className="text-[11px] text-slate-400">
+              أقدم استحقاق: {row.oldestDate ? formatLocalDate(row.oldestDate) : '—'}
             </span>
           </div>
         ),
@@ -159,11 +157,14 @@ const DebtAgingReport: React.FC = () => {
         header: 'حالية',
         accessor: (row: AgingPartyRow) =>
           row.current > 0 ? (
-            <span dir="ltr" className="font-mono text-[10px] font-bold text-emerald-600">
+            <span
+              dir="ltr"
+              className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400"
+            >
               {formatCurrency(row.current)}
             </span>
           ) : (
-            <span className="text-gray-300">—</span>
+            <span className="text-gray-300 dark:text-gray-600">—</span>
           ),
         width: '100px',
         align: 'center' as const,
@@ -172,11 +173,14 @@ const DebtAgingReport: React.FC = () => {
         header: '31-60',
         accessor: (row: AgingPartyRow) =>
           row.days30 > 0 ? (
-            <span dir="ltr" className="font-mono text-[10px] font-bold text-amber-600">
+            <span
+              dir="ltr"
+              className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400"
+            >
               {formatCurrency(row.days30)}
             </span>
           ) : (
-            <span className="text-gray-300">—</span>
+            <span className="text-gray-300 dark:text-gray-600">—</span>
           ),
         width: '100px',
         align: 'center' as const,
@@ -185,11 +189,14 @@ const DebtAgingReport: React.FC = () => {
         header: '61-90',
         accessor: (row: AgingPartyRow) =>
           row.days60 > 0 ? (
-            <span dir="ltr" className="font-mono text-[10px] font-bold text-orange-600">
+            <span
+              dir="ltr"
+              className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400"
+            >
               {formatCurrency(row.days60)}
             </span>
           ) : (
-            <span className="text-gray-300">—</span>
+            <span className="text-gray-300 dark:text-gray-600">—</span>
           ),
         width: '100px',
         align: 'center' as const,
@@ -200,12 +207,12 @@ const DebtAgingReport: React.FC = () => {
           row.days90 > 0 ? (
             <span
               dir="ltr"
-              className="rounded bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-600 dark:bg-rose-950/30"
+              className="rounded-md bg-rose-50 px-2 py-0.5 font-mono text-xs font-bold text-rose-600 dark:bg-rose-950/40 dark:text-rose-400"
             >
               {formatCurrency(row.days90)}
             </span>
           ) : (
-            <span className="text-gray-300">—</span>
+            <span className="text-gray-300 dark:text-gray-600">—</span>
           ),
         width: '100px',
         align: 'center' as const,
@@ -215,7 +222,7 @@ const DebtAgingReport: React.FC = () => {
         accessor: (row: AgingPartyRow) => (
           <span
             dir="ltr"
-            className="font-mono text-[10px] font-bold text-gray-800 dark:text-slate-100"
+            className="font-mono text-xs font-bold text-slate-800 dark:text-slate-100"
           >
             {formatCurrency(row.total)}
           </span>
@@ -229,7 +236,7 @@ const DebtAgingReport: React.FC = () => {
 
   if (isLoading)
     return (
-      <div className="animate-pulse p-10 text-center text-sm text-slate-400 max-md:p-5">
+      <div className="animate-pulse p-10 text-center text-sm text-slate-400">
         جاري تحليل أعمار الديون...
       </div>
     );
@@ -237,10 +244,10 @@ const DebtAgingReport: React.FC = () => {
   const hasData = data && data.partiesList && data.partiesList.length > 0;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-3 duration-500">
+    <div className="animate-in fade-in space-y-4 duration-500">
       {/* Header */}
       <MobileSectionTitle
-        title="تقرير أعمار الديون (Aging Report)"
+        title="تقرير أعمار الديون"
         icon={<Clock size={16} className="text-amber-600" />}
       />
 
@@ -280,9 +287,9 @@ const DebtAgingReport: React.FC = () => {
 
       {/* Alert for critical debts */}
       {(data?.criticalCount || 0) > 0 && (
-        <div className="flex items-center rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/20 max-md:gap-3 max-md:p-3 sm:p-4">
-          <AlertTriangle size={16} className="flex-shrink-0 text-rose-600" />
-          <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 sm:text-xs">
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3.5 dark:border-rose-900/50 dark:bg-rose-950/20 sm:p-4">
+          <AlertTriangle size={18} className="flex-shrink-0 text-rose-600 dark:text-rose-400" />
+          <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
             ⚠️ يوجد {data?.criticalCount} عميل لديهم ديون متأخرة أكثر من 90 يوم بإجمالي{' '}
             {formatCurrency(data?.agingBuckets.days90 || 0)}
           </span>
@@ -300,7 +307,7 @@ const DebtAgingReport: React.FC = () => {
       {/* Chart */}
       {hasData && (data?.chartData || []).some(d => d.value > 0) && (
         <MobileCard padding="sm">
-          <h4 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:mb-3 sm:text-xs">
+          <h4 className="mb-2 text-xs font-bold text-slate-700 dark:text-slate-300">
             توزيع الديون حسب العمر
           </h4>
           <div className="h-[180px] w-full sm:h-[200px]">
@@ -309,10 +316,10 @@ const DebtAgingReport: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 9 }}
+                  tick={{ fontSize: 10 }}
                   tickFormatter={v => `${(v / 1000).toFixed(0)}k`}
                 />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 9 }} width={100} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={100} />
                 <Tooltip
                   formatter={value => [formatCurrency(Number(value) || 0), 'المبلغ']}
                   contentStyle={{ fontSize: 11, borderRadius: 8 }}
@@ -330,16 +337,16 @@ const DebtAgingReport: React.FC = () => {
 
       {/* Table */}
       {hasData && (
-        <MobileCard padding="none">
-          <div className="flex items-center justify-between border-b bg-amber-50/50 dark:border-slate-800 dark:bg-amber-950/20 max-md:p-3 sm:p-4">
-            <h4 className="flex items-center text-[10px] font-bold uppercase text-amber-600 max-md:gap-2 sm:text-xs">
-              <Clock size={12} /> تفصيل أعمار الديون حسب العميل ({data?.partiesList.length || 0})
+        <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-amber-500/5 p-3 dark:bg-amber-950/20 sm:p-4">
+            <h4 className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+              <Clock size={15} /> تفصيل أعمار الديون حسب العميل ({data?.partiesList.length || 0})
             </h4>
             <ShareButton
               size="sm"
               eventType="debt_aging"
               title="مشاركة تقرير أعمار الديون"
-              message={`⏰ تقرير أعمار الديون\n━━━━━━━━━━━━━━\n💰 الإجمالي: ${formatCurrency(data?.totalOutstanding || 0)}\n✅ حالية: ${formatCurrency(data?.agingBuckets.current || 0)}\n⚠️ متأخرة (31-60): ${formatCurrency(data?.agingBuckets.days30 || 0)}\n🟠 متأخرة (61-90): ${formatCurrency(data?.agingBuckets.days60 || 0)}\n🔴 حرجة (90+): ${formatCurrency(data?.agingBuckets.days90 || 0)}`}
+              message={`⏰ تقرير أعمار الديون\n━━━━━━━━━━━━━━\n💰 الإجمالي: ${formatCurrency(data?.totalOutstanding || 0)}\n✅ حالية: ${formatCurrency(data?.agingBuckets.current || 0)}\n⚠️ متأخرة (31-60): ${formatCurrency(data?.agingBuckets.days30 || 0)}\n🟠 متأخرة (61-90): ${formatCurrency(data?.agingBuckets.days60 || 0)}\n🔴 حرجة (90+): ${formatCurrency(data?.agingBuckets.days90 || 0)}\n📅 التاريخ: ${formatLocalDate(new Date())}`}
             />
           </div>
           <div className="overflow-x-auto">
@@ -350,7 +357,7 @@ const DebtAgingReport: React.FC = () => {
               isRTL
             />
           </div>
-        </MobileCard>
+        </div>
       )}
     </div>
   );

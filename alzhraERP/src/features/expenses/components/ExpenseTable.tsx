@@ -39,7 +39,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
           </span>
         );
       },
-      width: 'w-24',
+      width: '100px',
       sortKey: 'voucher_number',
     },
     {
@@ -62,7 +62,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
           <span dir="ltr">{row.expense_date}</span>
         </div>
       ),
-      width: 'w-32',
+      width: '130px',
       sortKey: 'expense_date',
     },
     {
@@ -107,7 +107,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
           {row.status === 'paid' ? 'مدفوع' : row.status === 'posted' ? 'مرحل' : 'مسودة'}
         </span>
       ),
-      width: 'w-24',
+      width: '100px',
       className: 'text-center',
     },
     {
@@ -130,7 +130,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
           </button>
         </div>
       ),
-      width: 'w-16',
+      width: '80px',
       className: 'text-center',
     },
   ];

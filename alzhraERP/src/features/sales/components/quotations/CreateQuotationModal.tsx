@@ -1,5 +1,16 @@
 import React from 'react';
-import { FileText, Save, Loader2, Calendar, User, Search, Check, X, RotateCcw } from 'lucide-react';
+import {
+  FileText,
+  Save,
+  Loader2,
+  Calendar,
+  User,
+  Search,
+  Check,
+  X,
+  RotateCcw,
+  DollarSign,
+} from 'lucide-react';
 import Modal from '@/ui/base/Modal';
 import { useAuthStore } from '@/features/auth/store';
 import { useParties } from '@/features/parties/hooks';
@@ -39,6 +50,8 @@ const CreateQuotationModal: React.FC<Props> = ({
     setIsPartyDropdownOpen,
     issueDate,
     setIssueDate,
+    currencyCode,
+    setCurrencyCode,
     validDays,
     setValidDays,
     notes,
@@ -245,6 +258,24 @@ const CreateQuotationModal: React.FC<Props> = ({
           </div>
           <div className="space-y-1.5">
             <label className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-400">
+              <DollarSign size={12} /> العملة
+            </label>
+            <select
+              value={currencyCode}
+              onChange={e => {
+                setCurrencyCode(e.target.value);
+              }}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
+            >
+              <option value="SAR">ريال سعودي (SAR)</option>
+              <option value="YER">ريال يمني (YER)</option>
+              <option value="USD">دولار أمريكي (USD)</option>
+              <option value="CNY">يوان صيني (CNY)</option>
+              <option value="OMR">ريال عماني (OMR)</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-400">
               <Calendar size={12} /> صالح لمدة
             </label>
             <div className="flex items-center gap-2">
@@ -268,6 +299,7 @@ const CreateQuotationModal: React.FC<Props> = ({
         {/* Items Table Section */}
         <QuotationItemsTable
           items={items}
+          currencyCode={currencyCode}
           addItem={addItem}
           removeItem={removeItem}
           updateItem={updateItem}
@@ -275,7 +307,7 @@ const CreateQuotationModal: React.FC<Props> = ({
         />
 
         {/* Totals Section */}
-        <QuotationTotals total={totals.total} />
+        <QuotationTotals total={totals.total} currencyCode={currencyCode} />
 
         {/* Terms & Notes */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

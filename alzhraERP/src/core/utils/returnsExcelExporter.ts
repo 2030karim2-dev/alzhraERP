@@ -92,7 +92,7 @@ const buildReturnsListFullRows = (
   rows.push([data.companyName]);
   rows.push([title]);
   rows.push([]);
-  rows.push(['تاريخ التقرير:', new Date().toLocaleDateString('en-GB')]);
+  rows.push(['تاريخ التقرير:', formatLocalDate()]);
   rows.push([]);
 
   // Table headers

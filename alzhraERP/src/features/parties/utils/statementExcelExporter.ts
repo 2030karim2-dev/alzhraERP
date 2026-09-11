@@ -54,7 +54,7 @@ export const generateStatementExcelWorkbook = async (
   const rows: any[][] = [];
 
   const currency = options.currencyCode || 'SAR';
-  const todayFormatted = new Date().toLocaleDateString('en-GB');
+  const todayFormatted = formatLocalDate();
   const dateRangeText =
     options.dateFrom && options.dateTo
       ? `الفترة من: ${options.dateFrom} إلى: ${options.dateTo}`
@@ -64,7 +64,7 @@ export const generateStatementExcelWorkbook = async (
   rows.push([company.name_ar || 'منظومة الزهراء المحاسبية']); // Row 0
   rows.push(['كشف حساب مالي تفصيلي | STATEMENT OF ACCOUNT']); // Row 1
   rows.push([
-    `${company.address ? `📍 ${company.address}  |  ` : ''}${company.phone ? `📞 هاتف: ${company.phone}  |  ` : ''}${company.tax_number ? `الرقم الضريبي: ${company.tax_number}` : ''}`,
+    `${company.address ? `العنوان: ${company.address}  |  ` : ''}${company.phone ? `هاتف: ${company.phone}  |  ` : ''}${company.tax_number ? `الرقم الضريبي: ${company.tax_number}` : ''}`,
   ]); // Row 2
   rows.push([]); // Row 3 (Spacer)
 

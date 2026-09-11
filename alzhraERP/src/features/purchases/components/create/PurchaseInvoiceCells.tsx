@@ -85,10 +85,12 @@ export const PurchaseNumericCell: React.FC<NumericCellProps> = ({
     if (raw.includes(',') && !raw.includes('.')) {
       raw = raw.replace(',', '.');
     }
-    if (raw === '' || raw === '-' || raw === '.' || /^-?\d*\.?\d*$/.test(raw)) {
+    // منع القيم السالبة لحقول الكمية والتكلفة والخصم
+    if (raw === '' || raw === '.' || /^\d*\.?\d*$/.test(raw)) {
       setLocalVal(raw);
       const parsed = parseFloat(raw);
-      onChange(index, field, isNaN(parsed) ? 0 : parsed);
+      const clamped = isNaN(parsed) ? 0 : Math.max(0, parsed);
+      onChange(index, field, clamped);
     }
   };
 

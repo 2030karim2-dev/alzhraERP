@@ -61,11 +61,14 @@ const PriceCellInput: React.FC<PriceCellInputProps> = React.memo(
       if (raw.includes(',') && !raw.includes('.')) raw = raw.replace(',', '.');
       if (raw === '' || raw === '.' || /^\d*\.?\d*$/.test(raw)) {
         setLocalVal(raw);
-        const parsed = parseFloat(raw);
-        if (!isNaN(parsed) && parsed >= 0) {
-          commitPrice(raw);
-        }
       }
+    };
+
+    const handleKeyDownInternal = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        commitPrice(localVal);
+      }
+      onKeyDown(e);
     };
 
     return (
@@ -83,7 +86,7 @@ const PriceCellInput: React.FC<PriceCellInputProps> = React.memo(
           commitPrice(localVal);
         }}
         onChange={handleChange}
-        onKeyDown={onKeyDown}
+        onKeyDown={handleKeyDownInternal}
         data-row-index={rowIndex}
         data-col-field="price"
         className="h-full w-full bg-transparent px-1 py-0.5 text-left font-mono text-[11px] font-bold text-slate-800 outline-none transition-colors hover:bg-slate-100/60 focus:bg-blue-50/80 focus:text-blue-700 dark:text-slate-100 dark:hover:bg-slate-800/60 dark:focus:bg-blue-950/40 dark:focus:text-blue-300"

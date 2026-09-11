@@ -140,7 +140,7 @@ const DailySalesReport: React.FC = () => {
       {
         header: 'رقم الفاتورة',
         accessor: (row: DailyInvoiceRow) => (
-          <span className="text-[10px] font-bold text-gray-800 dark:text-slate-100">
+          <span className="text-xs font-bold text-gray-800 dark:text-slate-100">
             {row.invoice_number || '---'}
           </span>
         ),
@@ -149,7 +149,7 @@ const DailySalesReport: React.FC = () => {
       {
         header: 'التاريخ',
         accessor: (row: DailyInvoiceRow) => (
-          <span className="font-mono text-[10px] text-gray-500">
+          <span className="font-mono text-xs text-gray-500">
             {row.issue_date?.split('T')[0] || row.issue_date}
           </span>
         ),
@@ -158,7 +158,7 @@ const DailySalesReport: React.FC = () => {
       {
         header: 'العميل',
         accessor: (row: DailyInvoiceRow) => (
-          <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">
+          <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">
             {row.parties?.name || '---'}
           </span>
         ),
@@ -193,7 +193,7 @@ const DailySalesReport: React.FC = () => {
               <span
                 dir="ltr"
                 className={cn(
-                  'font-mono text-[10px] font-bold',
+                  'font-mono text-xs font-bold',
                   isPositive
                     ? 'text-emerald-700 dark:text-emerald-400'
                     : 'text-rose-700 dark:text-rose-400'
@@ -347,8 +347,8 @@ const DailySalesReport: React.FC = () => {
               >
                 <BarChart data={data?.dailyData || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={v => v.slice(5)} />
-                  <YAxis tick={{ fontSize: 9 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={v => v.slice(5)} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                   <Tooltip
                     formatter={value => [formatCurrency(Number(value) || 0), 'المبيعات']}
                     labelFormatter={label => `التاريخ: ${label}`}

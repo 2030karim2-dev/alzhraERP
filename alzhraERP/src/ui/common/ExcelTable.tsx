@@ -11,6 +11,7 @@ import { ExcelTablePagination } from './ExcelTablePagination';
 import FullscreenContainer from '../base/FullscreenContainer';
 import ExcelTableToolbar from './ExcelTableToolbar';
 import { EXCEL_TABLE_THEMES, type ExcelTableColorTheme } from './excelTableThemes';
+import { exportToCSV } from '../../lib/exportUtils';
 
 export interface Column<T> {
   header: string;
@@ -41,7 +42,8 @@ interface ExcelTableProps<T> {
   onRowDoubleClick?: ((row: T) => void) | undefined;
   onOrderChange?: ((reorderedData: T[]) => void) | undefined;
   onCellUpdate?:
-    ((rowIndex: number, accessorKey: string, value: unknown) => void | Promise<void>) | undefined;
+    | ((rowIndex: number, accessorKey: string, value: unknown, item?: T) => void | Promise<void>)
+    | undefined;
   enablePagination?: boolean;
   pageSize?: number;
   enableSelection?: boolean;
@@ -132,8 +134,13 @@ function ExcelTable<T>({
     const out: Record<string, number> = {};
     columns.forEach((col, idx) => {
       if (col.width) {
-        const parsed = parseInt(col.width, 10);
-        if (!Number.isNaN(parsed)) out[String(idx)] = parsed;
+        const twMatch = col.width.match(/^w-(\d+)$/);
+        if (twMatch) {
+          out[String(idx)] = parseInt(twMatch[1], 10) * 4;
+        } else {
+          const parsed = parseInt(col.width, 10);
+          if (!Number.isNaN(parsed)) out[String(idx)] = parsed;
+        }
       }
     });
     return out;
@@ -220,14 +227,33 @@ function ExcelTable<T>({
       });
     }
     if (sortConfig) {
+      const getNestedValue = (obj: unknown, path: string): unknown => {
+        if (!obj || typeof obj !== 'object') return undefined;
+        if (path in obj) return (obj as Record<string, unknown>)[path];
+        return path.split('.').reduce((acc: unknown, part) => {
+          return acc && typeof acc === 'object'
+            ? (acc as Record<string, unknown>)[part]
+            : undefined;
+        }, obj);
+      };
+
       items.sort((a, b) => {
-        const aVal = (a as Record<string, unknown>)[sortConfig.key];
-        const bVal = (b as Record<string, unknown>)[sortConfig.key];
+        const aVal = getNestedValue(a, sortConfig.key);
+        const bVal = getNestedValue(b, sortConfig.key);
 
         // Handle undefined/null cases
         if (aVal === bVal) return 0;
         if (aVal === undefined || aVal === null) return sortConfig.direction === 'asc' ? 1 : -1;
         if (bVal === undefined || bVal === null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          const comp = aVal.localeCompare(bVal, 'ar', { numeric: true, sensitivity: 'base' });
+          return sortConfig.direction === 'asc' ? comp : -comp;
+        }
+
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
 
         return sortConfig.direction === 'asc' ? (aVal > bVal ? 1 : -1) : aVal < bVal ? 1 : -1;
       });
@@ -253,12 +279,8 @@ function ExcelTable<T>({
     orderedData,
     handlers: { handleDragStart, handleDragEnter, handleDragOver, handleDragEnd, handleDrop },
   } = useTableDragDrop(paginatedData, onOrderChange, tableRef);
-  const { toggleAllSelection, toggleRowSelection } = useTableSelection(
-    orderedData,
-    selectedRowIds,
-    onSelectionChange,
-    getRowId
-  );
+  const { toggleAllSelection, toggleRowSelection, isAllVisibleSelected, hasSomeVisibleSelected } =
+    useTableSelection(orderedData, selectedRowIds, onSelectionChange, getRowId);
 
   const {
     focusedCell,
@@ -442,6 +464,32 @@ function ExcelTable<T>({
     }
   };
 
+  const handleExport = useCallback(() => {
+    if (onExport) {
+      onExport();
+      return;
+    }
+    if (processedData.length === 0) return;
+    const exportHeaders = columns
+      .map(c => c.header)
+      .filter(h => typeof h === 'string' && h.trim() !== '');
+    const exportRows = processedData.map(row => {
+      const obj: Record<string, unknown> = {};
+      columns.forEach(col => {
+        if (!col.header || typeof col.header !== 'string' || col.header.trim() === '') return;
+        if (col.accessorKey) {
+          obj[col.header] = (row as Record<string, unknown>)[String(col.accessorKey)] ?? '';
+        } else {
+          const val = col.accessor(row);
+          obj[col.header] = typeof val === 'string' || typeof val === 'number' ? val : '';
+        }
+      });
+      return obj;
+    });
+    const safeTitle = title?.trim() ? title.replace(/\s+/g, '_') : 'Table_Export';
+    exportToCSV(exportRows, safeTitle, exportHeaders);
+  }, [onExport, processedData, columns, title]);
+
   return (
     <FullscreenContainer
       isMaximized={isZoomed}
@@ -462,7 +510,7 @@ function ExcelTable<T>({
           internalSearch={effectiveSearch}
           setInternalSearch={isMainSearch ? onSearchChange : setInternalSearch}
           isRTL={isRTL}
-          onExport={onExport}
+          onExport={onExport ?? handleExport}
           enableResize={enableResize}
           handleResetSize={handleResetSize}
           isZoomed={isZoomed}
@@ -598,6 +646,8 @@ function ExcelTable<T>({
                 enableSelection={enableSelection}
                 orderedDataLength={orderedData.length}
                 selectedRowIdsSize={selectedRowIds.size}
+                isAllSelected={isAllVisibleSelected}
+                isPartiallySelected={hasSomeVisibleSelected}
                 toggleAllSelection={toggleAllSelection}
                 columnWidths={colWidths}
                 handleSort={handleSort}
@@ -645,7 +695,12 @@ function ExcelTable<T>({
               {columns.some(c => c.footer) && (
                 <tfoot className="border-t-2 border-[var(--app-border)] bg-[var(--app-bg)]">
                   <tr>
-                    <td className="border-r border-[var(--app-border)] p-2"></td>
+                    {enableSelection && (
+                      <td className="border-r border-[var(--app-border)] p-2"></td>
+                    )}
+                    <td className="border-r border-[var(--app-border)] p-2 text-center text-[10px] font-bold text-[var(--app-text-secondary)]">
+                      الإجمالي
+                    </td>
                     {columns.map((col, idx) => (
                       <td
                         key={idx}
@@ -654,7 +709,12 @@ function ExcelTable<T>({
                           col.className
                         )}
                       >
-                        {col.footer ? col.footer(orderedData) : ''}
+                        {col.footer
+                          ? (col.footer as (pageData: T[], fullData: T[]) => React.ReactNode)(
+                              orderedData,
+                              processedData
+                            )
+                          : ''}
                       </td>
                     ))}
                   </tr>

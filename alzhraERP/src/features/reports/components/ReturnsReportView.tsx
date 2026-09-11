@@ -42,8 +42,8 @@ const ReturnsReportView: React.FC = () => {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-6 space-y-4 pb-20 duration-1000 sm:space-y-6">
-      {/* Premium Command Center: Intelligence & Controls */}
+    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-4 pb-6 duration-700 sm:space-y-5">
+      {/* Command Center: Filters & Export */}
       <ReturnsFilterBar
         filters={filters}
         setFilters={setFilters}
@@ -51,49 +51,49 @@ const ReturnsReportView: React.FC = () => {
         handlePrint={handlePrint}
       />
 
-      {/* Intelligence Grid: Core Metrics */}
+      {/* Core Metrics Grid */}
       <ReturnsStatsGrid stats={stats} />
 
-      {/* Insight Tabs Architecture */}
-      <div className="no-scrollbar flex w-full overflow-x-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] max-md:p-1 sm:w-fit sm:self-center sm:rounded-[1.5rem] sm:p-1.5">
+      {/* Tabs Navigation */}
+      <div className="no-scrollbar flex w-full overflow-x-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-1 sm:w-fit sm:self-center">
         <button
           onClick={() => {
             setReportView('overview');
           }}
           className={cn(
-            'min-h-[40px] whitespace-nowrap rounded-lg px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-500 sm:min-h-[44px] sm:rounded-[1.5rem] sm:px-6 sm:py-3 sm:text-xs md:px-8',
+            'min-h-[36px] whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition-all sm:min-h-[38px] sm:px-5',
             reportView === 'overview'
-              ? 'scale-105 bg-[var(--app-surface)] text-[var(--accent)] shadow-xl'
-              : 'text-[var(--app-text-secondary)] opacity-60 hover:text-[var(--app-text)] hover:opacity-100'
+              ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
+              : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'
           )}
         >
-          Overview
+          نظرة عامة
         </button>
         <button
           onClick={() => {
             setReportView('sales');
           }}
           className={cn(
-            'min-h-[40px] whitespace-nowrap rounded-lg px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-500 sm:min-h-[44px] sm:rounded-[1.5rem] sm:px-6 sm:py-3 sm:text-xs md:px-8',
+            'min-h-[36px] whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition-all sm:min-h-[38px] sm:px-5',
             reportView === 'sales'
-              ? 'scale-105 bg-[var(--app-surface)] text-rose-600 shadow-xl dark:text-rose-400'
-              : 'text-[var(--app-text-secondary)] opacity-60 hover:text-[var(--app-text)] hover:opacity-100'
+              ? 'bg-[var(--app-surface)] text-rose-600 shadow-sm dark:text-rose-400'
+              : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'
           )}
         >
-          Sales Returns
+          مرتجعات المبيعات
         </button>
         <button
           onClick={() => {
             setReportView('purchase');
           }}
           className={cn(
-            'min-h-[40px] whitespace-nowrap rounded-lg px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-500 sm:min-h-[44px] sm:rounded-[1.5rem] sm:px-6 sm:py-3 sm:text-xs md:px-8',
+            'min-h-[36px] whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition-all sm:min-h-[38px] sm:px-5',
             reportView === 'purchase'
-              ? 'scale-105 bg-[var(--app-surface)] text-emerald-600 shadow-xl dark:text-emerald-400'
-              : 'text-[var(--app-text-secondary)] opacity-60 hover:text-[var(--app-text)] hover:opacity-100'
+              ? 'bg-[var(--app-surface)] text-emerald-600 shadow-sm dark:text-emerald-400'
+              : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'
           )}
         >
-          Purchase Returns
+          مرتجعات المشتريات
         </button>
       </div>
 

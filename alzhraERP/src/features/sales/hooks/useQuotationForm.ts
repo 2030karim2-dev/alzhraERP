@@ -22,6 +22,7 @@ interface DraftState {
   partyName: string | null;
   partyPhone: string | null;
   issueDate: string;
+  currencyCode?: string;
   validDays: number;
   notes: string;
   terms: string;
@@ -86,6 +87,7 @@ export const useQuotationForm = (
   const { branchId } = useBranchFilter();
 
   const [issueDate, setIssueDate] = useState(() => savedDraft?.issueDate ?? formatLocalDate());
+  const [currencyCode, setCurrencyCode] = useState<string>(() => savedDraft?.currencyCode ?? 'SAR');
   const [validDays, setValidDays] = useState(() => savedDraft?.validDays ?? 7);
   const [notes, setNotes] = useState(() => savedDraft?.notes ?? (initialData?.notes || ''));
   const [terms, setTerms] = useState(() => savedDraft?.terms ?? '');
@@ -145,6 +147,7 @@ export const useQuotationForm = (
         partyName: selectedParty?.name ?? null,
         partyPhone: selectedParty?.phone ?? null,
         issueDate,
+        currencyCode,
         validDays,
         notes,
         terms,
@@ -152,7 +155,17 @@ export const useQuotationForm = (
       };
       draftStorage.save(draftKey, draft);
     }, 800); // debounce 800ms
-  }, [draftKey, items, selectedParty, issueDate, validDays, notes, terms, paymentTerms]);
+  }, [
+    draftKey,
+    items,
+    selectedParty,
+    issueDate,
+    currencyCode,
+    validDays,
+    notes,
+    terms,
+    paymentTerms,
+  ]);
 
   useEffect(() => {
     scheduleDraftSave();
@@ -237,6 +250,7 @@ export const useQuotationForm = (
     setSelectedParty(null);
     setPartyQuery('');
     setIssueDate(formatLocalDate());
+    setCurrencyCode('SAR');
     setValidDays(7);
     setNotes('');
     setTerms('');
@@ -270,6 +284,7 @@ export const useQuotationForm = (
         partyId: selectedParty?.id || null,
         issueDate,
         validUntil,
+        currencyCode,
         items: validItems,
         notes: notes || undefined,
         termsAndConditions: terms || undefined,
@@ -298,6 +313,8 @@ export const useQuotationForm = (
     setIsPartyDropdownOpen,
     issueDate,
     setIssueDate,
+    currencyCode,
+    setCurrencyCode,
     validDays,
     setValidDays,
     notes,

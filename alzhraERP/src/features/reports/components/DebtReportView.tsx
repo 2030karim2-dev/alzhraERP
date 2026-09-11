@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { useDebtReport } from '../hooks';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, formatLocalDate } from '../../../core/utils';
 import { TrendingUp, TrendingDown, Users } from 'lucide-react';
 import ShareButton from '../../../ui/common/ShareButton';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
-import { MobileCard, ResponsiveGrid } from './MobileComponents';
+import { ResponsiveGrid } from './MobileComponents';
 
 /** صف ذمة (عميل/مورد) في تقرير الديون. */
 interface DebtRow {
@@ -18,117 +17,188 @@ interface DebtRow {
 const DebtReportView: React.FC = () => {
   const { data, isLoading } = useDebtReport();
 
-  if (isLoading) return (
-    <div className="flex flex-col items-center justify-center p-20  max-md:p-6   max-md:gap-4">
-      <div className="w-16 h-16 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
-      <p className="text-slate-400 font-bold tracking-widest animate-pulse uppercase text-[10px]">جاري مراجعة ذمم العملاء والموردين...</p>
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 p-12">
+        <div className="border-3 h-10 w-10 animate-spin rounded-full border-slate-200 border-t-blue-500" />
+        <p className="text-xs font-bold tracking-wider text-slate-400">
+          جاري مراجعة ذمم العملاء والموردين...
+        </p>
+      </div>
+    );
 
-  const receivables = data?.debts.filter(d => d.type === 'customer' && d.remaining_amount > 0) || [];
+  const receivables =
+    data?.debts.filter(d => d.type === 'customer' && d.remaining_amount > 0) || [];
   const payables = data?.debts.filter(d => d.type === 'supplier' && d.remaining_amount < 0) || [];
   const netPosition = (data?.summary?.receivables || 0) - (data?.summary?.payables || 0);
   // report_debts returns base-currency amounts → format with the base currency.
   const baseCurrency = data?.summary.currency || 'SAR';
 
   const columns = [
-    { header: 'الجهة المالية', accessor: (row: DebtRow) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
     {
-      header: 'الفئة', accessor: (row: DebtRow) => (
-        <span className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight", row.type === 'customer' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-600 border border-blue-500/20')}>
+      header: 'الجهة المالية',
+      accessor: (row: DebtRow) => (
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-100">{row.name}</span>
+      ),
+    },
+    {
+      header: 'الفئة',
+      accessor: (row: DebtRow) => (
+        <span
+          className={cn(
+            'inline-block rounded-md px-2 py-0.5 text-xs font-bold',
+            row.type === 'customer'
+              ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+          )}
+        >
           {row.type === 'customer' ? 'عميل' : 'مورد'}
         </span>
-      ), width: '100px', align: 'center' as const
+      ),
+      width: '100px',
+      align: 'center' as const,
     },
-    { header: 'الرصيد المتبقي', accessor: (row: DebtRow) => <span dir="ltr" className={cn("font-bold font-mono text-sm px-4 py-1.5 rounded-2xl max-md:rounded-xl", row.remaining_amount > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 ring-1 ring-emerald-500/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 ring-1 ring-rose-500/20')}>{formatCurrency(Math.abs(row.remaining_amount), baseCurrency)}</span>, className: 'text-left' },
+    {
+      header: 'الرصيد المتبقي',
+      accessor: (row: DebtRow) => (
+        <span
+          dir="ltr"
+          className={cn(
+            'inline-block rounded-md px-2.5 py-1 font-mono text-xs font-bold',
+            row.remaining_amount > 0
+              ? 'border border-emerald-500/20 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
+              : 'border border-rose-500/20 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
+          )}
+        >
+          {formatCurrency(Math.abs(row.remaining_amount), baseCurrency)}
+        </span>
+      ),
+      className: 'text-left',
+    },
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-20">
-
-      {/* High-Impact Summary Grid */}
+    <div className="animate-in fade-in space-y-4 duration-500">
+      {/* Summary Grid */}
       <ResponsiveGrid cols={3}>
-        <MobileCard padding="lg" className="bg-emerald-500/5 dark:bg-emerald-950/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0   max-md:p-3 sm:p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
-            <TrendingUp size={60} className="text-emerald-500" />
+        {/* Receivables Card */}
+        <div className="relative overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5">
+          <div className="mb-2 flex items-center justify-between sm:mb-3">
+            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+              إجمالي مستحقات العملاء
+            </span>
+            <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+              <TrendingUp size={16} />
+            </div>
           </div>
-          <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-wider mb-2 sm:mb-3">إجمالي مديونيات العملاء</p>
-          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
+          <h3
+            dir="ltr"
+            className="font-mono text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl"
+          >
             {formatCurrency(data?.summary.receivables || 0, baseCurrency)}
           </h3>
-          <div className="flex items-center   max-md:gap-2 text-[10px] text-slate-400 font-bold mt-2">
-            <Users size={12} />
+          <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <Users size={13} />
             <span>{receivables.length} مطالبة نشطة</span>
           </div>
-        </MobileCard>
+        </div>
 
-        <MobileCard padding="lg" className="bg-rose-500/5 dark:bg-rose-950/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0   max-md:p-3 sm:p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
-            <TrendingDown size={60} className="text-rose-500" />
+        {/* Payables Card */}
+        <div className="relative overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5">
+          <div className="mb-2 flex items-center justify-between sm:mb-3">
+            <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+              ديون مستحقة للموردين
+            </span>
+            <div className="rounded-lg bg-rose-500/10 p-2 text-rose-600 dark:text-rose-400">
+              <TrendingDown size={16} />
+            </div>
           </div>
-          <p className="text-[10px] font-bold text-rose-600/80 uppercase tracking-wider mb-2 sm:mb-3">ديون مستحقة للموردين</p>
-          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tighter italic">
+          <h3
+            dir="ltr"
+            className="font-mono text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl"
+          >
             {formatCurrency(data?.summary.payables || 0, baseCurrency)}
           </h3>
-          <div className="flex items-center   max-md:gap-2 text-[10px] text-slate-400 font-bold mt-2">
-            <Users size={12} />
+          <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <Users size={13} />
             <span>{payables.length} فاتورة التزام</span>
           </div>
-        </MobileCard>
+        </div>
 
-        <MobileCard padding="lg" className={cn("relative overflow-hidden group", netPosition >= 0 ? "bg-blue-500 text-white" : "bg-slate-900 text-white")}>
-          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-all duration-1000" />
-          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-2 sm:mb-3">صافي المركز المالي</p>
-          <h3 dir="ltr" className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tighter italic">
-            {formatCurrency(Math.abs(netPosition), baseCurrency)}
-          </h3>
-          <div className="flex items-center   max-md:gap-2 mt-2 sm:mt-3">
-            <span className={cn("px-2 sm:px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white/20 backdrop-blur-md border border-white/10")}>
+        {/* Net Position Card */}
+        <div
+          className={cn(
+            'relative overflow-hidden rounded-xl border p-4 sm:p-5',
+            netPosition >= 0
+              ? 'border-blue-700 bg-blue-600 text-white dark:border-blue-600'
+              : 'border-slate-800 bg-slate-900 text-white'
+          )}
+        >
+          <div className="mb-2 flex items-center justify-between sm:mb-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">
+              صافي المركز المالي
+            </span>
+            <span className="rounded-md border border-white/20 bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase">
               {netPosition >= 0 ? 'فائض مستحق' : 'عجز ملتزم'}
             </span>
+          </div>
+          <h3
+            dir="ltr"
+            className="font-mono text-xl font-bold tracking-tight text-white sm:text-2xl"
+          >
+            {formatCurrency(Math.abs(netPosition), baseCurrency)}
+          </h3>
+          <div className="mt-2 flex items-center justify-between pt-1">
+            <span className="text-xs text-blue-100">
+              {netPosition >= 0 ? 'رصيد لصالح المنشأة' : 'التزامات قائمة على المنشأة'}
+            </span>
             <ShareButton
-              size="md"
+              size="sm"
               eventType="debt_report"
               title="مشاركة المركز"
-              className="bg-white/20 hover:bg-white/30 text-white rounded-xl   max-md:p-2 sm:p-2.5 transition-all"
-              message={`📊 تقرير المركز المالي - الزهراء سمارت\n━━━━━━━━━━━━━━\n✅ مستحقات (عملاء): ${formatCurrency(data?.summary.receivables || 0, baseCurrency)}\n🔴 التزامات (موردين): ${formatCurrency(data?.summary.payables || 0, baseCurrency)}\n📊 صافي المركز: ${formatCurrency(Math.abs(netPosition), baseCurrency)} ${netPosition >= 0 ? '(لصالحك)' : '(عليك)'}`}
+              className="rounded-lg bg-white/20 px-2.5 py-1 text-xs text-white transition-all hover:bg-white/30"
+              message={`📊 تقرير المركز المالي - الزهراء سمارت\n━━━━━━━━━━━━━━\n✅ مستحقات (عملاء): ${formatCurrency(data?.summary.receivables || 0, baseCurrency)}\n🔴 التزامات (موردين): ${formatCurrency(data?.summary.payables || 0, baseCurrency)}\n📊 صافي المركز: ${formatCurrency(Math.abs(netPosition), baseCurrency)} ${netPosition >= 0 ? '(لصالحك)' : '(عليك)'}\n📅 التاريخ: ${formatLocalDate(new Date())}`}
             />
           </div>
-        </MobileCard>
+        </div>
       </ResponsiveGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2   max-md:gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Receivables Details */}
-        <MobileCard padding="none">
-          <div className="  max-md:p-3 sm:p-4 lg:p-6 flex items-center justify-between border-b dark:border-slate-800">
-            <h4 className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex items-center   max-md:gap-2 sm:gap-3">
-              <div className="  max-md:p-2 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20">
-                <TrendingUp size={16} />
+        <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--app-border)] p-3.5 sm:p-4">
+            <h4 className="flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-white">
+              <div className="rounded-lg bg-emerald-500/10 p-1.5 text-emerald-600 dark:text-emerald-400">
+                <TrendingUp size={15} />
               </div>
               كشف مستحقات العملاء
             </h4>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{receivables.length} عميل</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {receivables.length} عميل
+            </span>
           </div>
           <div className="overflow-x-auto">
             <ExcelTable columns={columns} data={receivables} colorTheme="green" />
           </div>
-        </MobileCard>
+        </div>
 
         {/* Payables Details */}
-        <MobileCard padding="none">
-          <div className="  max-md:p-3 sm:p-4 lg:p-6 flex items-center justify-between border-b dark:border-slate-800">
-            <h4 className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex items-center   max-md:gap-2 sm:gap-3">
-              <div className="  max-md:p-2 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-500/20">
-                <TrendingDown size={16} />
+        <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--app-border)] p-3.5 sm:p-4">
+            <h4 className="flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-white">
+              <div className="rounded-lg bg-rose-500/10 p-1.5 text-rose-600 dark:text-rose-400">
+                <TrendingDown size={15} />
               </div>
               كشف التزامات الموردين
             </h4>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{payables.length} مورد</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {payables.length} مورد
+            </span>
           </div>
           <div className="overflow-x-auto">
             <ExcelTable columns={columns} data={payables} colorTheme="orange" />
           </div>
-        </MobileCard>
+        </div>
       </div>
     </div>
   );

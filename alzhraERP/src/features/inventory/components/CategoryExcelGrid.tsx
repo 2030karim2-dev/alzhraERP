@@ -56,7 +56,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
         </div>
       ),
       className: 'text-center',
-      width: 'w-32',
+      width: '130px',
       sortKey: 'productsCount',
     },
     {
@@ -70,7 +70,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
         </div>
       ),
       className: 'text-center',
-      width: 'w-32',
+      width: '130px',
       sortKey: 'totalStock',
     },
     {
@@ -87,7 +87,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
         </div>
       ),
       className: 'text-left',
-      width: 'w-40',
+      width: '160px',
       sortKey: 'totalValue',
     },
     {
@@ -114,7 +114,7 @@ const CategoryExcelGrid: React.FC<Props> = ({ categories, onFilterProduct }) => 
           </button>
         </div>
       ),
-      width: 'w-24',
+      width: '100px',
       className: 'text-center',
     },
   ];

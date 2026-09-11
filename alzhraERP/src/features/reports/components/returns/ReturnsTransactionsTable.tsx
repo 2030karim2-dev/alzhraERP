@@ -47,25 +47,21 @@ const ReturnsTransactionsTable: React.FC<Props> = ({
   };
 
   return (
-    <div className="glass-panel bento-item mt-8 overflow-hidden border-none bg-white/40 shadow-2xl backdrop-blur-3xl dark:bg-slate-900/40 max-md:mt-3">
-      <div className="flex items-center justify-between border-b border-slate-200/50 bg-slate-50/50 p-8 dark:border-slate-700/50 dark:bg-slate-800/50 max-md:p-4">
+    <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+      <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface-hover)] p-3.5 sm:p-4">
         <div>
-          <h4 className="mb-1 text-sm font-black uppercase tracking-tighter text-slate-800 dark:text-white">
+          <h4 className="text-sm font-bold text-slate-800 dark:text-white">
             {reportView === 'overview'
               ? 'سجل العمليات التفصيلي'
               : reportView === 'sales'
                 ? 'سجل مرتجعات المبيعات'
                 : 'سجل مرتجعات المشتريات'}
           </h4>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            Granular Transactional Intelligence Ledger
-          </p>
+          <p className="text-[10px] font-semibold text-slate-400">بيانات حركات الإرجاع المسجلة</p>
         </div>
-        <div className="flex items-center max-md:gap-3">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            Active Records:
-          </span>
-          <span className="rounded-full bg-rose-500/10 px-3 py-1 text-[10px] font-black text-rose-600">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-slate-400">عدد الحركات:</span>
+          <span className="rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-bold text-rose-600">
             {reportView === 'overview'
               ? filteredSalesReturns.length + filteredPurchaseReturns.length
               : reportView === 'sales'
@@ -78,31 +74,31 @@ const ReturnsTransactionsTable: React.FC<Props> = ({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-right">
           <thead>
-            <tr className="bg-slate-100/50 dark:bg-slate-800/80">
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                الرقم المرجعي
+            <tr className="border-b border-[var(--app-border)] bg-[var(--app-surface-hover)]">
+              <th className="px-3.5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                رقم المرجع
               </th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                طابع التاريخ
+              <th className="px-3.5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                التاريخ
               </th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                {type === 'purchase' ? 'المورد المؤسسي' : 'العميل المستفيد'}
+              <th className="px-3.5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                {type === 'purchase' ? 'المورد' : 'العميل'}
               </th>
-              <th className="px-8 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
+              <th className="px-3.5 py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-300">
                 الفاتورة الأصلية
               </th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                تحليل العلة
+              <th className="px-3.5 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                سبب الإرجاع
               </th>
-              <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                التدفق المالي
+              <th className="px-3.5 py-2.5 text-left text-xs font-bold text-slate-600 dark:text-slate-300">
+                المبلغ الإجمالي
               </th>
-              <th className="px-8 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 max-md:px-3">
-                الوضع الحالي
+              <th className="px-3.5 py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                الحالة
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+          <tbody className="divide-y divide-[var(--app-border)]">
             {(reportView === 'overview'
               ? [...filteredSalesReturns, ...filteredPurchaseReturns]
               : reportView === 'sales'
@@ -111,46 +107,43 @@ const ReturnsTransactionsTable: React.FC<Props> = ({
             )
               .slice(0, 20)
               .map((item, index) => (
-                <tr
-                  key={index}
-                  className="group transition-all duration-300 hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                >
-                  <td className="px-8 py-5 max-md:px-3">
-                    <span className="text-sm font-black tracking-tighter text-slate-800 transition-colors group-hover:text-blue-500 dark:text-white">
+                <tr key={index} className="transition-colors hover:bg-[var(--app-surface-hover)]">
+                  <td className="px-3.5 py-2.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-white">
                       {item.invoice_number}
                     </span>
                   </td>
-                  <td className="px-8 py-5 font-mono text-sm font-bold text-slate-500 max-md:px-3">
-                    {item.issue_date || 'N/A'}
+                  <td className="px-3.5 py-2.5 font-mono text-xs text-slate-500">
+                    {item.issue_date || '—'}
                   </td>
-                  <td className="px-8 py-5 text-sm font-black text-slate-700 dark:text-slate-300 max-md:px-3">
-                    {item.party?.name || '-'}
+                  <td className="px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    {item.party?.name || '—'}
                   </td>
-                  <td className="px-8 py-5 text-center max-md:px-3">
-                    <span className="rounded-lg border border-slate-200/50 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 dark:border-slate-700/50 dark:bg-slate-900">
-                      {item.reference_invoice?.invoice_number || 'Internal'}
+                  <td className="px-3.5 py-2.5 text-center">
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                      {item.reference_invoice?.invoice_number || 'داخلي'}
                     </span>
                   </td>
-                  <td className="px-8 py-5 text-sm font-bold text-slate-600 dark:text-slate-400 max-md:px-3">
+                  <td className="px-3.5 py-2.5 text-xs text-slate-600 dark:text-slate-400">
                     {getReasonText(item.return_reason ?? '')}
                   </td>
-                  <td className="px-8 py-5 text-left max-md:px-3">
-                    <span className="font-mono text-base font-black tracking-tighter text-slate-800 dark:text-white">
+                  <td className="px-3.5 py-2.5 text-left">
+                    <span className="font-mono text-xs font-bold text-slate-800 dark:text-white">
                       {formatCurrency(Number(item.total_amount) || 0)}
                     </span>
                   </td>
-                  <td className="px-8 py-5 text-center max-md:px-3">
+                  <td className="px-3.5 py-2.5 text-center">
                     <span
-                      className={`rounded-xl px-4 py-1.5 text-[10px] font-black uppercase tracking-widest ${getStatusColor(item.status ?? '')}`}
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${getStatusColor(item.status ?? '')}`}
                     >
                       {item.status === 'draft'
-                        ? 'Draft'
+                        ? 'مسودة'
                         : item.status === 'posted'
-                          ? 'Verified'
+                          ? 'مرحّل'
                           : item.status === 'paid'
-                            ? 'Settled'
+                            ? 'مدفوع'
                             : item.status === 'cancelled'
-                              ? 'Void'
+                              ? 'ملغي'
                               : item.status}
                     </span>
                   </td>
@@ -166,15 +159,15 @@ const ReturnsTransactionsTable: React.FC<Props> = ({
           ? filteredSalesReturns
           : filteredPurchaseReturns
       ).length > 20 && (
-        <div className="border-t border-slate-200/50 bg-slate-50/30 p-8 text-center dark:border-slate-700/50 dark:bg-slate-900/30 max-md:p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            Showing limited view (Top 20 of{' '}
+        <div className="border-t border-[var(--app-border)] bg-[var(--app-surface-hover)] p-3 text-center">
+          <p className="text-xs font-semibold text-slate-400">
+            عرض أول 20 حركة من إجمالي{' '}
             {reportView === 'overview'
               ? filteredSalesReturns.length + filteredPurchaseReturns.length
               : reportView === 'sales'
                 ? filteredSalesReturns.length
                 : filteredPurchaseReturns.length}{' '}
-            intelligence nodes)
+            حركة مسجلة
           </p>
         </div>
       )}

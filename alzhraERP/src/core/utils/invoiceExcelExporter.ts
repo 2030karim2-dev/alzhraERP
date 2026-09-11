@@ -21,6 +21,7 @@ interface InvoiceExcelData {
   issueDate: string;
   customerName: string;
   issuedBy: string;
+  currency?: string;
   items: Array<{
     name: string;
     quantity: number;
@@ -33,6 +34,7 @@ interface InvoiceExcelData {
 
 const buildInvoiceRows = (data: InvoiceExcelData): unknown[][] => {
   const rows: unknown[][] = [];
+  const curr = data.currency || 'SAR';
 
   // --- Header Section ---
   rows.push([data.companyName]);
@@ -44,11 +46,12 @@ const buildInvoiceRows = (data: InvoiceExcelData): unknown[][] => {
 
   // --- Meta Info Section ---
   rows.push(['العميل:', data.customerName, '', 'رقم الفاتورة:', data.invoiceNumber]);
-  rows.push(['التاريخ:', data.issueDate, '', 'صدرت بواسطة:', data.issuedBy]);
+  rows.push(['التاريخ:', data.issueDate, '', 'العملة:', curr]);
+  rows.push(['صدرت بواسطة:', data.issuedBy, '', '', '']);
   rows.push([]);
 
   // --- Table Header ---
-  rows.push(['#', 'وصف السلعة / الخدمة', 'الكمية', 'سعر الوحدة', 'الإجمالي']);
+  rows.push(['#', 'وصف السلعة / الخدمة', 'الكمية', `سعر الوحدة (${curr})`, `الإجمالي (${curr})`]);
 
   // --- Data Rows ---
   data.items.forEach((item, i) => {
@@ -57,8 +60,8 @@ const buildInvoiceRows = (data: InvoiceExcelData): unknown[][] => {
 
   // --- Footer Summary ---
   rows.push([]);
-  rows.push(['', '', '', 'المجموع الفرعي:', data.subtotal || 0]);
-  rows.push(['', '', '', 'الإجمالي المستحق:', data.totalAmount || 0]);
+  rows.push(['', '', '', `المجموع الفرعي (${curr}):`, data.subtotal || 0]);
+  rows.push(['', '', '', `الإجمالي المستحق (${curr}):`, data.totalAmount || 0]);
 
   return rows;
 };

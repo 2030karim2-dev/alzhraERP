@@ -1,14 +1,12 @@
-﻿
 import React from 'react';
 import { useTrialBalance } from '../hooks';
 import ExcelTable from '../../../ui/common/ExcelTable';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, formatLocalDate } from '../../../core/utils';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import ShareButton from '../../../ui/common/ShareButton';
 import { cn } from '../../../core/utils';
-import { MobileCard } from './MobileComponents';
 
-/** صف ميزان المراجعة كما يعيده \useTrialBalance\/\eportsService.getTrialBalance\. */
+/** صف ميزان المراجعة كما يعيده useTrialBalance/reportsService.getTrialBalance */
 interface TrialBalanceRowView {
   id: string;
   code: string;
@@ -21,22 +19,62 @@ interface TrialBalanceRowView {
 const TrialBalanceView: React.FC = () => {
   const { data, isLoading } = useTrialBalance();
 
-  if (isLoading) return <div className="p-20  max-md:p-6 text-center animate-pulse text-slate-400 font-bold tracking-widest">تحميل ميزان المراجعة الذكي...</div>;
+  if (isLoading)
+    return (
+      <div className="animate-pulse p-12 text-center text-sm font-bold tracking-wider text-slate-400">
+        تحميل ميزان المراجعة...
+      </div>
+    );
 
   const columns = [
-    { header: 'كود الحساب', accessor: (row: TrialBalanceRowView) => <span className="font-mono text-[10px] text-blue-600 font-bold">{row.code}</span>, width: 'w-24' },
-    { header: 'اسم الحساب المحاسبي', accessor: (row: TrialBalanceRowView) => <span className="font-bold text-slate-700 dark:text-slate-100">{row.name}</span> },
-    { header: 'إجمالي المدين', accessor: (row: TrialBalanceRowView) => <span dir="ltr" className="font-mono font-bold text-emerald-600">{formatCurrency(row.totalDebit)}</span>, className: 'text-left bg-emerald-500/5' },
-    { header: 'إجمالي الدائن', accessor: (row: TrialBalanceRowView) => <span dir="ltr" className="font-mono font-bold text-rose-600">{formatCurrency(row.totalCredit)}</span>, className: 'text-left bg-rose-500/5' },
+    {
+      header: 'كود الحساب',
+      accessor: (row: TrialBalanceRowView) => (
+        <span className="font-mono text-xs font-bold text-blue-600">{row.code}</span>
+      ),
+      width: '110px',
+    },
+    {
+      header: 'اسم الحساب المحاسبي',
+      accessor: (row: TrialBalanceRowView) => (
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-100">{row.name}</span>
+      ),
+    },
+    {
+      header: 'إجمالي المدين',
+      accessor: (row: TrialBalanceRowView) => (
+        <span dir="ltr" className="font-mono text-xs font-bold text-emerald-600">
+          {formatCurrency(row.totalDebit)}
+        </span>
+      ),
+      className: 'text-left bg-emerald-500/5',
+    },
+    {
+      header: 'إجمالي الدائن',
+      accessor: (row: TrialBalanceRowView) => (
+        <span dir="ltr" className="font-mono text-xs font-bold text-rose-600">
+          {formatCurrency(row.totalCredit)}
+        </span>
+      ),
+      className: 'text-left bg-rose-500/5',
+    },
     {
       header: 'الرصيد الصافي',
       accessor: (row: TrialBalanceRowView) => (
-        <span dir="ltr" className={cn("flex items-center   max-md:gap-1 text-[10px] font-bold", row.netBalance >= 0 ? "text-emerald-700 bg-emerald-50  .5 " : "text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full")}>
+        <span
+          dir="ltr"
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-bold',
+            row.netBalance >= 0
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+          )}
+        >
           <span>{row.netBalance >= 0 ? 'مدين' : 'دائن'}</span>
           <span className="font-mono">{formatCurrency(Math.abs(row.netBalance))}</span>
         </span>
       ),
-      className: 'text-left font-bold bg-slate-50 dark:bg-slate-800'
+      className: 'text-left font-bold bg-slate-50 dark:bg-slate-800',
     },
   ];
 
@@ -46,77 +84,98 @@ const TrialBalanceView: React.FC = () => {
   const isBalanced = diff < 0.1;
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+    <div className="animate-in fade-in space-y-4 duration-500">
       {/* Dynamic Status Banner */}
-      <MobileCard padding="sm" className={cn(
-        "flex flex-col sm:flex-row items-center justify-between border-none relative overflow-hidden",
-        isBalanced ? "bg-emerald-500/5 dark:bg-emerald-500/10" : "bg-rose-500/5 dark:bg-rose-500/10"
-      )}>
-        <div className={cn(
-          "absolute top-0 right-0 w-1 h-full",
-          isBalanced ? "bg-emerald-500" : "bg-rose-500"
-        )} />
-
-        <div className="flex items-center   max-md:gap-3 sm:gap-5 relative z-10">
-          <div className={cn(
-            "  max-md:p-3 sm:p-4 rounded-2xl max-md:rounded-xl shadow-lg transition-transform active:scale-95",
-            isBalanced ? "bg-emerald-500 text-white shadow-emerald-500/30" : "bg-rose-500 text-white shadow-rose-500/30"
-          )}>
-            {isBalanced ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+      <div
+        className={cn(
+          'relative flex flex-col items-center justify-between overflow-hidden rounded-xl border p-3.5 sm:flex-row sm:p-4',
+          isBalanced
+            ? 'border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10'
+            : 'border-rose-500/20 bg-rose-500/5 dark:bg-rose-500/10'
+        )}
+      >
+        <div className="relative z-10 flex items-center gap-3">
+          <div
+            className={cn(
+              'rounded-xl p-2.5 text-white shadow-sm',
+              isBalanced ? 'bg-emerald-500' : 'bg-rose-500'
+            )}
+          >
+            {isBalanced ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           </div>
           <div>
-            <h4 className="font-bold text-sm sm:text-lg text-slate-800 dark:text-white tracking-tight">{isBalanced ? 'الميزان متزن حاسوبياً' : 'يوجد تباين في مراجعة الميزان'}</h4>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
-              {isBalanced ? 'تطابق تام بين الحركات المدينة والدائنة' : `فارق مالي قدره ${diff.toLocaleString('en-US')} ريال`}
+            <h4 className="text-sm font-bold text-slate-800 dark:text-white sm:text-base">
+              {isBalanced ? 'الميزان متزن محاسبياً' : 'يوجد تباين في مراجعة الميزان'}
+            </h4>
+            <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {isBalanced
+                ? 'تطابق تام بين الحركات المدينة والدائنة'
+                : `فارق مالي قدره ${diff.toLocaleString('en-US')} ريال`}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center   max-md:gap-4 sm:gap-6 mt-4 sm:mt-0 relative z-10">
-          <div className="text-right border-l border-slate-200 dark:border-slate-800 pl-4 sm:pl-6 h-10 flex flex-col justify-center">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">التباين الفعلي</p>
-            <p dir="ltr" className={cn("text-lg sm:text-xl font-bold font-mono tracking-tighter", isBalanced ? "text-emerald-500" : "text-rose-600")}>
+        <div className="relative z-10 mt-3 flex items-center gap-4 sm:mt-0">
+          <div className="flex h-9 flex-col justify-center border-l border-slate-200 pl-4 text-right dark:border-slate-700">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+              التباين الفعلي
+            </p>
+            <p
+              dir="ltr"
+              className={cn(
+                'font-mono text-base font-bold sm:text-lg',
+                isBalanced
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              )}
+            >
               {formatCurrency(diff)}
             </p>
           </div>
           <ShareButton
-            size="md"
+            size="sm"
             showLabel
             eventType="trial_balance"
             title="مشاركة ميزان المراجعة"
-            className="bg-white/50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl max-md:rounded-xl   max-md:p-3 sm:p-4 shadow-sm transition-all"
-            message={`⚖️ ميزان المراجعة الذكي - الزهراء سمارت\n━━━━━━━━━━━━━━\n📊 الحالة: ${isBalanced ? '✅ متزن تماماً' : '❌ غير متزن'}\n📗 إجمالي المدين: ${formatCurrency(totalDr)}\n📕 إجمالي الدائن: ${formatCurrency(totalCr)}\n📐 التباين: ${formatCurrency(diff)}\n📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+            message={`⚖️ ميزان المراجعة - الزهراء سمارت\n━━━━━━━━━━━━━━\n📊 الحالة: ${isBalanced ? '✅ متزن تماماً' : '❌ غير متزن'}\n📗 إجمالي المدين: ${formatCurrency(totalDr)}\n📕 إجمالي الدائن: ${formatCurrency(totalCr)}\n📐 التباين: ${formatCurrency(diff)}\n📅 التاريخ: ${formatLocalDate(new Date())}`}
           />
         </div>
-      </MobileCard>
+      </div>
 
-      <MobileCard padding="none" className="overflow-hidden shadow-xl">
+      <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
         <div className="overflow-x-auto">
           <ExcelTable columns={columns} data={data || []} colorTheme="blue" />
         </div>
 
-        {/* Simplified Summary Footer */}
-        <div className="  max-md:p-4 sm:p-6 bg-slate-900 dark:bg-slate-900/40 flex flex-col sm:flex-row justify-between items-center   max-md:gap-3 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-l from-emerald-500 via-transparent to-rose-500 opacity-30" />
-          <div className="flex items-center   max-md:gap-2 z-10">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider">ملخص الأرصدة الختامية</span>
+        {/* Summary Footer */}
+        <div className="flex flex-col items-center justify-between gap-3 bg-slate-900 p-3.5 dark:bg-slate-900/80 sm:flex-row sm:p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+            <span className="text-xs font-bold text-slate-300">ملخص الأرصدة الختامية</span>
           </div>
 
-          <div className="flex gap-6  max-md:gap-3 sm:gap-10 z-10">
+          <div className="flex gap-6 sm:gap-8">
             <div className="text-left">
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي المدين</span>
-              <span dir="ltr" className="text-base sm:text-lg font-bold font-mono text-emerald-400 tracking-tighter">{formatCurrency(totalDr)}</span>
+              <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-emerald-400 opacity-80">
+                إجمالي المدين
+              </span>
+              <span dir="ltr" className="font-mono text-sm font-bold text-emerald-400 sm:text-base">
+                {formatCurrency(totalDr)}
+              </span>
             </div>
-            <div className="text-left border-r border-slate-700/50 pr-4 sm:pr-10">
-              <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block opacity-70 mb-0.5">إجمالي الدائن</span>
-              <span dir="ltr" className="text-base sm:text-lg font-bold font-mono text-rose-400 tracking-tighter">{formatCurrency(totalCr)}</span>
+            <div className="border-r border-slate-700/60 pr-4 text-left sm:pr-8">
+              <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-rose-400 opacity-80">
+                إجمالي الدائن
+              </span>
+              <span dir="ltr" className="font-mono text-sm font-bold text-rose-400 sm:text-base">
+                {formatCurrency(totalCr)}
+              </span>
             </div>
           </div>
         </div>
-      </MobileCard>
+      </div>
     </div>
   );
 };
-
 export default TrialBalanceView;

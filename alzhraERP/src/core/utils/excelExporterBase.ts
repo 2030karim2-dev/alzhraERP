@@ -48,14 +48,18 @@ export interface XlsxLike {
   utils: {
     book_new: () => XlsxWorkbook;
     aoa_to_sheet: (rows: unknown[][]) => XlsxSheet;
+    json_to_sheet: (data: unknown[]) => XlsxSheet;
     book_append_sheet: (wb: XlsxWorkbook, ws: XlsxSheet, name: string) => void;
     encode_cell: (address: ExcelCellAddress) => string;
     decode_range: (ref: string) => { s: ExcelCellAddress; e: ExcelCellAddress };
-    sheet_to_json: (ws: XlsxSheet, opts: Record<string, unknown>) => Array<Record<string, unknown>>;
+    sheet_to_json: (
+      ws: XlsxSheet,
+      opts?: Record<string, unknown>
+    ) => Array<Record<string, unknown>>;
   };
   writeFile: (wb: XlsxWorkbook, filename: string) => void;
   write: (wb: XlsxWorkbook, opts: { bookType: string; type: string }) => unknown;
-  read: (data: ArrayBuffer, opts: Record<string, unknown>) => XlsxWorkbook;
+  read: (data: ArrayBuffer, opts?: Record<string, unknown>) => XlsxWorkbook;
 }
 
 let xlsxPromise: Promise<XlsxLike> | null = null;
@@ -121,15 +125,49 @@ export interface ExcelStylingOptions {
   summaryKeys?: { fromRow: number; col: number };
   /** تنسيق كل الأرقام ابتداءً من صف معيّن كأرقام صحيحة (#,##0). */
   integerFromRow?: number;
+  /** أعمدة يجب تحويل قيمها النصية إلى أرقام حقيقية وتطبيق التنسيق المالي عليها. */
+  numericColumns?: number[];
   /** عدد الأعمدة (يُستخدم عند غياب !ref). */
   columnCount?: number;
 }
 
 export interface BuildSheetOptions {
   colWidths: number[];
+  autoFitWidths?: boolean;
   merges?: ExcelMergeRange[];
   styling?: ExcelStylingOptions;
 }
+
+/**
+ * احتساب ديناميكي لعرض الأعمدة بناءً على أطول نص في كل عمود مع هامش أمان.
+ * يتجاهل النصوص الطويلة جداً التي تنتمي لصفوف العناوين أو الملاحظات المدمجة.
+ */
+export const computeAutoFitWidths = (
+  rows: unknown[][],
+  baseWidths?: number[],
+  padding = 4
+): number[] => {
+  const maxCols = Math.max(...rows.map(r => (Array.isArray(r) ? r.length : 0)), 0);
+  const widths: number[] = new Array(maxCols).fill(10);
+
+  for (let c = 0; c < maxCols; c++) {
+    const minWidth = baseWidths?.[c] ?? 10;
+    let maxCellLen = 0;
+    for (const row of rows) {
+      if (!Array.isArray(row) || c >= row.length) continue;
+      const cell = row[c];
+      if (cell !== null && cell !== undefined) {
+        const text = String(cell).trim();
+        if (text.length > maxCellLen) {
+          maxCellLen = Math.min(60, text.length);
+        }
+      }
+    }
+    const needed = maxCellLen > 0 ? maxCellLen + padding : minWidth;
+    widths[c] = Math.max(minWidth, Math.min(60, needed));
+  }
+  return widths;
+};
 
 const DEFAULT_BORDER = {
   top: { style: 'thin', color: { rgb: 'D3D3D3' } },
@@ -168,6 +206,12 @@ const applyNumberFormat = (
   row: number,
   col: number
 ): void => {
+  if (typeof cell.v === 'string' && options.numericColumns?.includes(col) === true) {
+    const parsed = Number(cell.v.replace(/[,\s]/g, ''));
+    if (Number.isFinite(parsed)) {
+      cell.v = parsed;
+    }
+  }
   if (typeof cell.v !== 'number') return;
   const isInteger =
     options.integerColumns?.includes(col) === true ||
@@ -318,7 +362,12 @@ export const buildStyledSheet = (
   options: BuildSheetOptions
 ): XlsxSheet => {
   const sheet = XLSX.utils.aoa_to_sheet(rows);
-  sheet['!cols'] = options.colWidths.map(width => ({ wch: width }));
+  const autoWidths = computeAutoFitWidths(rows, options.colWidths);
+  const finalWidths =
+    options.autoFitWidths === false
+      ? options.colWidths
+      : options.colWidths.map((w, i) => Math.max(w, autoWidths[i] ?? w));
+  sheet['!cols'] = finalWidths.map(width => ({ wch: width }));
   if (options.merges !== undefined && options.merges.length > 0) {
     sheet['!merges'] = options.merges;
   }
@@ -338,10 +387,13 @@ export const appendSheetToWorkbook = (
   XLSX.utils.book_append_sheet(wb, sheet, sheetName);
 };
 
-/** يحفظ ملف العمل كملف xlsx (تنزيل). */
 export const saveWorkbookToFile = async (wb: XlsxWorkbook, fileName: string): Promise<void> => {
   const XLSX = await loadXLSX();
-  XLSX.writeFile(wb, sanitizeFileName(fileName));
+  let cleanName = sanitizeFileName(fileName);
+  if (!cleanName.toLowerCase().endsWith('.xlsx')) {
+    cleanName += '.xlsx';
+  }
+  XLSX.writeFile(wb, cleanName);
 };
 
 /** يحوّل ملف العمل إلى Blob (للاستخدام مع واجهات المشاركة/الطباعة). */

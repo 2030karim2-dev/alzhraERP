@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '../../core/utils';
 import type { Column } from './ExcelTable';
@@ -8,6 +8,8 @@ interface ExcelTableHeaderProps<T> {
   enableSelection: boolean;
   orderedDataLength: number;
   selectedRowIdsSize: number;
+  isAllSelected?: boolean;
+  isPartiallySelected?: boolean;
   toggleAllSelection: () => void;
   columnWidths: Record<string, number>;
   handleSort: (key: string) => void;
@@ -22,6 +24,8 @@ export function ExcelTableHeader<T>({
   enableSelection,
   orderedDataLength,
   selectedRowIdsSize,
+  isAllSelected,
+  isPartiallySelected,
   toggleAllSelection,
   columnWidths,
   handleSort,
@@ -30,15 +34,32 @@ export function ExcelTableHeader<T>({
   handleMouseDown,
   isLoading,
 }: ExcelTableHeaderProps<T>) {
+  const checkboxRef = React.useRef<HTMLInputElement>(null);
+  const checked =
+    isAllSelected !== undefined
+      ? isAllSelected
+      : orderedDataLength > 0 && selectedRowIdsSize === orderedDataLength;
+  const indeterminate =
+    isPartiallySelected !== undefined
+      ? isPartiallySelected && !checked
+      : !checked && selectedRowIdsSize > 0 && selectedRowIdsSize < orderedDataLength;
+
+  React.useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = indeterminate;
+    }
+  }, [indeterminate]);
+
   return (
     <thead className="bg-[var(--app-bg)]/95 sticky top-0 z-[12] shadow-sm backdrop-blur-sm">
       <tr className="border-b border-[var(--app-border)] text-[var(--app-text)]">
         {enableSelection && (
           <th className="relative w-10 border-r border-[var(--app-border)] p-2 text-center">
             <input
+              ref={checkboxRef}
               type="checkbox"
               className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-              checked={orderedDataLength > 0 && selectedRowIdsSize === orderedDataLength}
+              checked={checked}
               onChange={toggleAllSelection}
               disabled={isLoading || orderedDataLength === 0}
             />

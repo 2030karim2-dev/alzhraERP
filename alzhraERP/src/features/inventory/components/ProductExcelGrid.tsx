@@ -21,7 +21,7 @@ interface Props {
   title?: string;
   subtitle?: string;
   colorTheme?: string;
-  onCellUpdate?: (rowIndex: number, accessorKey: string, value: any) => void;
+  onCellUpdate?: (rowIndex: number, accessorKey: string, value: any, item?: Product) => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   visibleColumns?: string[];
@@ -67,10 +67,27 @@ const ProductExcelGrid: React.FC<Props> = ({
   const { selectedRowIds, setSelectedRowIds, handleCopy, handleSend, clearSelection } =
     useProductBulkActions(products);
 
-  const handleCellUpdate = async (rowIndex: number, accessorKey: string, value: any) => {
-    const productToUpdate = products[rowIndex];
+  const handleCellUpdate = async (
+    rowIndex: number,
+    accessorKey: string,
+    value: any,
+    item?: Product
+  ) => {
+    const productToUpdate = item || products[rowIndex];
     if (productToUpdate) {
-      const updatedData = { ...productToUpdate, [accessorKey]: Number(value) || 0 };
+      const numericKeys = new Set([
+        'cost_price',
+        'sale_price',
+        'min_quantity',
+        'stock_quantity',
+        'current_stock',
+        'wholesale_price',
+        'minimum_price',
+      ]);
+      const formattedValue = numericKeys.has(accessorKey)
+        ? Number(value) || 0
+        : String(value ?? '').trim();
+      const updatedData = { ...productToUpdate, [accessorKey]: formattedValue };
       await saveProduct({ data: updatedData as ProductFormData, id: productToUpdate.id });
     }
   };

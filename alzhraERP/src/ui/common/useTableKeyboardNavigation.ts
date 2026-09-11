@@ -18,7 +18,8 @@ export interface UseTableKeyboardNavigationProps<T> {
   isRTL?: boolean | undefined;
   onRowDoubleClick?: ((row: T) => void) | undefined;
   onCellUpdate?:
-    ((rowIndex: number, accessorKey: string, value: unknown) => void | Promise<void>) | undefined;
+    | ((rowIndex: number, accessorKey: string, value: unknown, item?: T) => void | Promise<void>)
+    | undefined;
   onCopy?: ((cells: unknown[]) => void) | undefined;
   onPaste?: ((cells: unknown[]) => void) | undefined;
 }
@@ -133,11 +134,11 @@ export const useTableKeyboardNavigation = <T>({
       const { row, col } = editingCell;
       const colDef = columns[col];
       if (colDef?.accessorKey) {
-        await onCellUpdate(row, colDef.accessorKey as string, editValue);
+        await onCellUpdate(row, colDef.accessorKey as string, editValue, orderedData[row]);
       }
     }
     setEditingCell(null);
-  }, [editingCell, columns, onCellUpdate, editValue]);
+  }, [editingCell, columns, onCellUpdate, editValue, orderedData]);
 
   const cancelEdit = useCallback(() => {
     setEditingCell(null);
@@ -150,14 +151,13 @@ export const useTableKeyboardNavigation = <T>({
       const { row, col } = focusedCell;
       const colDef = columns[col];
       if (colDef && colDef.accessorKey && colDef.isEditable) {
-        await onCellUpdate(row, colDef.accessorKey as string, '');
+        await onCellUpdate(row, colDef.accessorKey as string, '', orderedData[row]);
       }
     }
-  }, [focusedCell, columns, onCellUpdate]);
+  }, [focusedCell, columns, onCellUpdate, orderedData]);
 
   // Copy selected cells
   const copyCells = useCallback(() => {
-    const cells: unknown[] = [];
     const { row, col } = focusedCell;
     const colDef = columns[col];
 
@@ -165,9 +165,11 @@ export const useTableKeyboardNavigation = <T>({
       const rowData = orderedData[row];
       if (rowData) {
         const value = (rowData as Record<string, unknown>)[colDef.accessorKey as string];
-        cells.push(value);
         setClipboard([value]);
         onCopy?.([value]);
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(String(value ?? '')).catch(() => {});
+        }
       }
     }
   }, [focusedCell, columns, orderedData, onCopy]);
@@ -205,34 +207,64 @@ export const useTableKeyboardNavigation = <T>({
 
     setClipboard(flatCells);
     onCopy?.(flatCells);
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      const tsv = cells.map(r => r.map(c => String(c ?? '')).join('\t')).join('\n');
+      navigator.clipboard.writeText(tsv).catch(() => {});
+    }
   }, [selection, columns, orderedData, copyCells, onCopy]);
 
-  // Paste to cell
+  // Paste to cell (supports true 2D/1D paste, system clipboard, and editable validation)
   const pasteCells = useCallback(async () => {
-    if (clipboard.length === 0 || !onCellUpdate) return;
+    if (!onCellUpdate) return;
 
     const { row, col } = focusedCell;
-    const colDef = columns[col];
+    let pasteGrid: unknown[][] = [];
 
-    if (colDef && colDef.accessorKey && colDef.isEditable) {
-      // If single value, paste to current cell
-      if (clipboard.length === 1) {
-        await onCellUpdate(row, colDef.accessorKey as string, clipboard[0]);
-      } else {
-        // If multiple values, paste starting from current cell
-        for (let i = 0; i < clipboard.length; i++) {
-          const targetRow = row + i;
-          if (targetRow < orderedData.length) {
-            const targetColDef = columns[col + i] || colDef;
-            if (targetColDef?.accessorKey) {
-              await onCellUpdate(targetRow, targetColDef.accessorKey as string, clipboard[i]);
-            }
+    // 1. Try reading from real system clipboard (compatible with Excel / Google Sheets)
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim().length > 0) {
+          const lines = text.split(/\r?\n/).filter(line => line.length > 0);
+          if (lines.length > 0) {
+            pasteGrid = lines.map(line => line.split('\t'));
           }
+        }
+      }
+    } catch {
+      // Fallback to internal React clipboard
+    }
+
+    // 2. Fallback to in-memory clipboard
+    if (pasteGrid.length === 0 && clipboard.length > 0) {
+      pasteGrid = clipboard.map(item => [item]);
+    }
+
+    if (pasteGrid.length === 0) return;
+
+    for (let rIdx = 0; rIdx < pasteGrid.length; rIdx++) {
+      const targetRow = row + rIdx;
+      if (targetRow >= orderedData.length) break;
+
+      const rowValues = pasteGrid[rIdx];
+      for (let cIdx = 0; cIdx < rowValues.length; cIdx++) {
+        const targetCol = col + cIdx;
+        if (targetCol >= columns.length) break;
+
+        const targetColDef = columns[targetCol];
+        if (targetColDef && targetColDef.accessorKey && targetColDef.isEditable) {
+          await onCellUpdate(
+            targetRow,
+            targetColDef.accessorKey as string,
+            rowValues[cIdx],
+            orderedData[targetRow]
+          );
         }
       }
     }
 
-    onPaste?.(clipboard);
+    onPaste?.(pasteGrid.flat());
   }, [clipboard, focusedCell, columns, orderedData, onCellUpdate, onPaste]);
 
   // Handle Shift+Click for selection

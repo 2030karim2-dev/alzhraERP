@@ -17,63 +17,58 @@ interface TopPartyRow {
 
 const ReturnsTopParties: React.FC<Props> = ({ topParties, type }) => {
   return (
-    <div className="glass-panel bento-item group relative overflow-hidden border-none bg-white/40 p-10 shadow-2xl backdrop-blur-3xl dark:bg-slate-900/40">
-      <div className="mb-8 flex items-center justify-between max-md:mb-3">
+    <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm sm:p-5">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <h4 className="mb-1 text-xl font-black text-slate-800 dark:text-white">
+          <h4 className="text-base font-bold text-slate-800 dark:text-white">
             {type === 'sales'
-              ? 'تحليل العملاء النشطين في المرتجعات'
+              ? 'العملاء الأكثر تسجيلاً للمرتجعات'
               : type === 'purchase'
-                ? 'تحليل الموردين النشطين في المرتجعات'
-                : 'تحليل الأطراف الأكثر تفاعلاً'}
+                ? 'الموردون الأكثر تسجيلاً للمرتجعات'
+                : 'الأطراف الأكثر تسجيلاً للمرتجعات'}
           </h4>
-          <p className="pl-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            High-Impact Flow Entities Analysis
+          <p className="text-[10px] font-semibold text-slate-400">
+            تحليل الجهات الأكثر نشاطاً في المرتجعات المالية
           </p>
         </div>
       </div>
       {topParties.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 max-md:gap-3 md:grid-cols-2 lg:grid-cols-1">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {topParties.map((party, index) => (
             <div
               key={index}
-              className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white/50 p-6 transition-all duration-300 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 dark:border-slate-700/50 dark:bg-slate-800/50 max-md:rounded-xl"
+              className="flex items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] p-3.5 transition-colors"
             >
-              <div className="absolute inset-y-0 right-0 w-1 bg-blue-500 opacity-0 transition-opacity group-hover:opacity-100 max-md:opacity-100" />
-              <div className="flex items-center gap-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-lg font-black italic text-blue-600 transition-transform group-hover:scale-110 dark:text-blue-400">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-sm font-bold text-blue-600 dark:text-blue-400">
                   #{index + 1}
                 </div>
                 <div>
-                  <span className="mb-1 block text-lg font-black tracking-tight text-slate-800 dark:text-white">
+                  <span className="block text-xs font-bold text-slate-800 dark:text-white">
                     {party.name}
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Returns Count:
-                    </span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-slate-400">عدد المرتجعات:</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                       {party.count}
                     </span>
                   </div>
                 </div>
               </div>
               <div className="text-left">
-                <div className="font-mono text-2xl font-black tracking-tighter text-slate-800 dark:text-white">
+                <div className="font-mono text-sm font-bold text-slate-800 dark:text-white">
                   {formatCurrency(party.total)}
                 </div>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-blue-500 opacity-60">
-                  Aggregate Return Value
-                </p>
+                <p className="text-[10px] font-semibold text-slate-400">إجمالي القيمة</p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center dark:border-slate-700 dark:bg-slate-800/30 max-md:rounded-xl">
-          <Package size={48} className="mx-auto mb-4 text-slate-300 opacity-20" />
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            No Significant Flow Detected in Current Context
+        <div className="rounded-xl border border-dashed border-[var(--app-border)] bg-[var(--app-surface-hover)] py-10 text-center">
+          <Package size={32} className="mx-auto mb-2 text-slate-300 opacity-60" />
+          <p className="text-xs font-semibold text-slate-400">
+            لا توجد حركات مرتجعات مسجلة في هذه الفترة
           </p>
         </div>
       )}

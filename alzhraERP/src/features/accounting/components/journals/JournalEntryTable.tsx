@@ -100,7 +100,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
               />
             </div>
 
-            <div className="relative col-span-2">
+            <div className="col-span-2 flex items-center gap-1">
               <input
                 type="number"
                 step="0.01"
@@ -122,7 +122,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                 onClick={() => {
                   remove(index);
                 }}
-                className="absolute -end-10 top-2 rounded-[var(--radius)] p-1.5 text-[var(--app-text-secondary)] opacity-50 transition-all hover:bg-rose-50 hover:text-rose-500 hover:opacity-100 group-hover:opacity-100 dark:hover:bg-rose-900/20 max-md:opacity-100"
+                className="shrink-0 rounded-[var(--radius)] p-1.5 text-[var(--app-text-secondary)] opacity-50 transition-all hover:bg-rose-50 hover:text-rose-500 hover:opacity-100 group-hover:opacity-100 dark:hover:bg-rose-900/20 max-md:opacity-100"
                 aria-label="حذف السطر"
               >
                 <Trash2 size={16} />

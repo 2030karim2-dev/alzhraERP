@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useProfitAndLoss } from '../hooks';
-import { useResponsive } from '../hooks/useResponsive';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, cn, formatLocalDate } from '../../../core/utils';
 import {
   TrendingUp,
   TrendingDown,
@@ -10,34 +9,34 @@ import {
   ChevronUp,
   RefreshCw,
 } from 'lucide-react';
-import { cn } from '../../../core/utils';
 import ShareButton from '../../../ui/common/ShareButton';
 
 const ProfitLossView: React.FC = () => {
   const { data, isLoading, isError, refetch } = useProfitAndLoss();
-  const { isMobile } = useResponsive();
   const [showAllRevenues, setShowAllRevenues] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
 
   if (isLoading)
     return (
-      <div className="flex animate-pulse flex-col items-center justify-center p-8 max-md:gap-4 max-md:p-4 md:p-20">
-        <div className="h-12 w-12 rounded-2xl bg-slate-200 dark:bg-slate-800 max-md:rounded-xl" />
-        <div className="h-4 w-48 rounded bg-slate-200 dark:bg-slate-800" />
-        <p className="text-xs text-slate-400 md:text-sm">جاري تحليل الأداء المالي...</p>
+      <div className="flex animate-pulse flex-col items-center justify-center p-8 max-md:gap-4 max-md:p-4 md:p-12">
+        <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-800" />
+        <div className="mt-2 h-4 w-40 rounded bg-slate-200 dark:bg-slate-800" />
+        <p className="mt-1 text-xs text-slate-400">جاري تحليل الأداء المالي...</p>
       </div>
     );
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center max-md:gap-4 max-md:p-4 md:p-12">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/30 max-md:rounded-xl">
-          <TrendingDown size={24} className="text-rose-500" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/30">
+          <TrendingDown size={20} className="text-rose-500" />
         </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400">تعذر تحميل البيانات المالية</p>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          تعذر تحميل البيانات المالية
+        </p>
         <button
           onClick={() => refetch()}
-          className="flex min-h-[44px] items-center rounded-xl bg-rose-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-rose-600 active:scale-95 max-md:gap-2"
+          className="mt-3 flex min-h-[38px] items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-rose-600 active:scale-95"
         >
           <RefreshCw size={14} /> إعادة المحاولة
         </button>
@@ -63,139 +62,120 @@ const ProfitLossView: React.FC = () => {
 
   const displayedRevenues = showAllRevenues ? data?.revenues : data?.revenues.slice(0, 5);
   const displayedExpenses = showAllExpenses ? data?.expenses : data?.expenses.slice(0, 5);
+  const reportDate = formatLocalDate(new Date());
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-4 pb-10 duration-700 md:space-y-6 md:pb-20">
-      {/* Premium Hero Stat Card — responsive padding & font sizes */}
+    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-4 pb-6 duration-700">
+      {/* Hero Stat Card */}
       <div
         className={cn(
-          'glass-card bento-item relative flex flex-col items-center justify-between overflow-hidden border-none shadow-2xl max-md:p-5 md:flex-row md:p-8 lg:p-10',
-          isProfit ? 'bg-emerald-500/5 dark:bg-emerald-500/10' : 'bg-rose-500/5 dark:bg-rose-500/10'
+          'flex flex-col items-stretch justify-between gap-4 rounded-xl border p-4 shadow-sm sm:flex-row sm:items-center sm:p-5',
+          isProfit ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5'
         )}
       >
-        {/* Animated Background Elements */}
-        <div
-          className={cn(
-            'absolute right-0 top-0 -mr-32 -mt-32 h-64 w-64 rounded-full opacity-20 blur-[100px]',
-            isProfit ? 'bg-emerald-400' : 'bg-rose-400'
-          )}
-        />
-        <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-transparent via-current to-transparent opacity-20" />
-
-        <div className="relative z-10 flex items-center max-md:gap-4 md:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
             className={cn(
-              'rounded-2xl shadow-xl transition-transform duration-500 hover:rotate-12 max-md:rounded-xl max-md:p-4 md:rounded-3xl md:p-5',
-              isProfit
-                ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                : 'bg-rose-500 text-white shadow-rose-500/30'
+              'flex items-center justify-center rounded-xl p-3 text-white shadow-sm',
+              isProfit ? 'bg-emerald-600' : 'bg-rose-600'
             )}
           >
-            <DollarSign size={isMobile ? 24 : 32} />
+            <DollarSign size={24} />
           </div>
           <div>
-            <h2 className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 md:mb-2 md:text-sm md:tracking-[0.3em]">
+            <h2 className="mb-0.5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {isProfit ? 'صافي أرباح المنشأة' : 'صافي خسائر المنشأة'}
             </h2>
-            <div className="flex items-baseline max-md:gap-2">
+            <div className="flex items-baseline gap-1.5">
               <p
                 className={cn(
-                  'number-reveal font-mono text-3xl font-bold tracking-tighter max-md:text-xl md:text-4xl lg:text-5xl',
-                  isProfit ? 'stat-value-profit' : 'stat-value-loss'
+                  'font-mono text-2xl font-bold tracking-tight sm:text-3xl',
+                  isProfit
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-rose-600 dark:text-rose-400'
                 )}
               >
                 {formatCurrency(Math.abs(data?.netProfit || 0))}
               </p>
-              <span className="text-[10px] font-bold text-slate-400 md:text-xs">ريال</span>
             </div>
-            <div className="mt-2 flex items-center max-md:gap-2 md:mt-3">
+            <div className="mt-1 flex items-center gap-1.5">
               <div
                 className={cn(
-                  'h-1.5 w-1.5 animate-pulse rounded-full',
+                  'h-1.5 w-1.5 rounded-full',
                   isProfit ? 'bg-emerald-500' : 'bg-rose-500'
                 )}
               />
-              <p className="flex items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 max-md:gap-1 md:text-xs">
-                <TrendingUp size={12} className={isProfit ? 'text-emerald-500' : 'text-rose-500'} />
-                تحديث مالي لحظي للنظام المحاسبي
+              <p className="text-[10px] font-semibold text-slate-400">
+                محدث تلقائياً وفق قيود اليومية المسجلة
               </p>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 mt-6 flex flex-col items-center max-md:mt-3 max-md:gap-3 md:mt-0 md:items-end md:gap-4">
-          <div className="flex items-center max-md:gap-3">
-            <div className="text-right">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 md:text-xs">
-                نسبة الأداء
-              </p>
-              <p
-                className={cn(
-                  'font-mono text-base font-bold md:text-lg',
-                  isProfit ? 'text-emerald-500' : 'text-rose-500'
-                )}
-              >
-                {isProfit ? '+' : '-'}
-                {totalRevenues > 0
-                  ? ((Math.abs(data?.netProfit || 0) / totalRevenues) * 100).toFixed(1)
-                  : 0}
-                %
-              </p>
-            </div>
-            {!isMobile && (
-              <ShareButton
-                size="md"
-                eventType="profit_loss"
-                title="مشاركة تقرير الأداء المالي"
-                className="rounded-2xl border border-white/20 bg-white/10 transition-all hover:bg-white/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:bg-slate-800 max-md:rounded-xl max-md:p-4"
-                message={`📊 تقرير الأرباح والخسائر - الزهراء سمارت
-━━━━━━━━━━━━━━
-📗 إجمالي الإيرادات: ${formatCurrency(totalRevenues)}
-📕 إجمالي المصروفات: ${formatCurrency(totalExpenses)}
-${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسارة'}: ${formatCurrency(Math.abs(data?.netProfit || 0))}
-📅 التاريخ: ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`}
-              />
-            )}
+        <div className="flex items-center justify-between gap-3 border-t border-[var(--app-border)] pt-3 sm:justify-end sm:border-t-0 sm:pt-0">
+          <div className="border-[var(--app-border)] text-right sm:border-l sm:pl-4">
+            <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              نسبة الأداء
+            </p>
+            <p
+              className={cn(
+                'font-mono text-base font-bold',
+                isProfit
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              )}
+            >
+              {isProfit ? '+' : '-'}
+              {totalRevenues > 0
+                ? ((Math.abs(data?.netProfit || 0) / totalRevenues) * 100).toFixed(1)
+                : 0}
+              %
+            </p>
           </div>
+          <ShareButton
+            size="md"
+            eventType="profit_loss"
+            title="مشاركة تقرير الأداء المالي"
+            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            message={`📊 تقرير الأرباح والخسائر - الزهراء سمارت\n━━━━━━━━━━━━━━\n📗 إجمالي الإيرادات: ${formatCurrency(totalRevenues)}\n📕 إجمالي المصروفات: ${formatCurrency(totalExpenses)}\n${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسارة'}: ${formatCurrency(Math.abs(data?.netProfit || 0))}\n📅 التاريخ: ${reportDate}`}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 max-md:gap-4 md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Revenues Layout */}
-        <div className="glass-card bento-item flex flex-col shadow-xl">
-          <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/50 dark:border-emerald-900/20 dark:bg-emerald-900/10 max-md:p-4 md:p-5">
-            <div className="flex items-center max-md:gap-2 md:gap-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 md:h-8 md:w-8">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/50 p-3 dark:border-emerald-900/20 dark:bg-emerald-900/10 sm:p-3.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600">
                 <TrendingUp size={14} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
+              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
                 تحليل الإيرادات
               </span>
             </div>
             <span
               dir="ltr"
-              className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400 md:text-sm"
+              className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400 sm:text-sm"
             >
               {formatCurrency(data?.totalRevenues || 0)}
             </span>
           </div>
-          <div className="flex-1 space-y-3 max-md:p-4 md:space-y-4 md:p-6">
+          <div className="flex-1 space-y-2 p-3 sm:p-3.5">
             {displayedRevenues?.map((rev: { id: string; name: string; netBalance: number }) => (
               <div
                 key={rev.id}
-                className="group flex items-center justify-between rounded-xl border border-transparent transition-colors hover:border-emerald-100 hover:bg-emerald-50 dark:hover:border-emerald-900/20 dark:hover:bg-emerald-900/10 max-md:p-2 md:rounded-2xl md:p-3"
+                className="group flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-[var(--app-surface-hover)]"
               >
-                <div className="flex items-center max-md:gap-2 md:gap-3">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-300 transition-transform group-hover:scale-150" />
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 md:text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {rev.name}
                   </span>
                 </div>
-                {/* [FIX] لا Math.abs هنا — net_balance للإيرادات = credit - debit (موجب طبيعياً).
-                     Math.abs كان يحوّل القيود العكسية السالبة إلى مبالغ مضافة وهو خطأ محاسبي. */}
                 <span
                   dir="ltr"
-                  className={`font-mono text-[11px] font-bold md:text-xs ${
+                  className={`font-mono text-xs font-bold ${
                     rev.netBalance < 0
                       ? 'text-rose-600 dark:text-rose-400'
                       : 'text-slate-800 dark:text-slate-100'
@@ -208,12 +188,12 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
             ))}
           </div>
           {(data?.revenues.length || 0) > 5 && (
-            <div className="border-t border-slate-50 dark:border-slate-800/50 max-md:p-3 md:p-4">
+            <div className="border-t border-[var(--app-border)] p-2 sm:p-2.5">
               <button
                 onClick={() => {
                   setShowAllRevenues(!showAllRevenues);
                 }}
-                className="flex min-h-[44px] w-full items-center justify-center text-center text-xs font-bold text-emerald-600 transition-colors hover:text-emerald-700 max-md:gap-2"
+                className="flex min-h-[36px] w-full items-center justify-center gap-1.5 text-center text-xs font-bold text-emerald-600 transition-colors hover:text-emerald-700"
               >
                 {showAllRevenues ? (
                   <>
@@ -230,41 +210,38 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
         </div>
 
         {/* Expenses Layout */}
-        <div className="glass-card bento-item flex flex-col shadow-xl">
-          <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 dark:border-rose-900/20 dark:bg-rose-900/10 max-md:p-4 md:p-5">
-            <div className="flex items-center max-md:gap-2 md:gap-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose-500/20 text-rose-600 md:h-8 md:w-8">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 p-3 dark:border-rose-900/20 dark:bg-rose-900/10 sm:p-3.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/20 text-rose-600">
                 <TrendingDown size={14} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-600">
+              <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
                 تحليل المصاريف
               </span>
             </div>
             <span
               dir="ltr"
-              className="font-mono text-xs font-bold text-rose-700 dark:text-rose-400 md:text-sm"
+              className="font-mono text-xs font-bold text-rose-700 dark:text-rose-400 sm:text-sm"
             >
               {formatCurrency(data?.totalExpenses || 0)}
             </span>
           </div>
-          <div className="flex-1 space-y-3 max-md:p-4 md:space-y-4 md:p-6">
+          <div className="flex-1 space-y-2 p-3 sm:p-3.5">
             {displayedExpenses?.map((exp: { id: string; name: string; netBalance: number }) => (
               <div
                 key={exp.id}
-                className="group flex items-center justify-between rounded-xl border border-transparent transition-colors hover:border-rose-100 hover:bg-rose-50 dark:hover:border-rose-900/20 dark:hover:bg-rose-900/10 max-md:p-2 md:rounded-2xl md:p-3"
+                className="group flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-[var(--app-surface-hover)]"
               >
-                <div className="flex items-center max-md:gap-2 md:gap-3">
-                  <div className="h-1.5 w-1.5 rounded-full bg-rose-300 transition-transform group-hover:scale-150" />
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 md:text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {exp.name}
                   </span>
                 </div>
-                {/* [FIX] لا Math.abs هنا — net_balance للمصروفات = debit - credit (موجب طبيعياً).
-                     Math.abs كان يحوّل القيود العكسية السالبة (تسويات دائنة) إلى مبالغ مضافة
-                     مما يضاعف المصروفات ظاهرياً. القيمة السالبة تعني مصروفاً مرتجعاً. */}
                 <span
                   dir="ltr"
-                  className={`font-mono text-[11px] font-bold md:text-xs ${
+                  className={`font-mono text-xs font-bold ${
                     exp.netBalance < 0
                       ? 'text-emerald-600 dark:text-emerald-400'
                       : 'text-rose-700 dark:text-rose-400'
@@ -278,12 +255,12 @@ ${isProfit ? '✅' : '🔴'} صافي ${isProfit ? 'الربح' : 'الخسار�
             ))}
           </div>
           {(data?.expenses.length || 0) > 5 && (
-            <div className="border-t border-slate-50 dark:border-slate-800/50 max-md:p-3 md:p-4">
+            <div className="border-t border-[var(--app-border)] p-2 sm:p-2.5">
               <button
                 onClick={() => {
                   setShowAllExpenses(!showAllExpenses);
                 }}
-                className="flex min-h-[44px] w-full items-center justify-center text-center text-xs font-bold text-rose-600 transition-colors hover:text-rose-700 max-md:gap-2"
+                className="flex min-h-[36px] w-full items-center justify-center gap-1.5 text-center text-xs font-bold text-rose-600 transition-colors hover:text-rose-700"
               >
                 {showAllExpenses ? (
                   <>

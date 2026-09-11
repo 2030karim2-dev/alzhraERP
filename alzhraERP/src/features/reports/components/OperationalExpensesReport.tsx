@@ -127,34 +127,31 @@ const OperationalExpensesReport: React.FC = () => {
       {
         header: 'كود الحساب',
         accessor: (row: ExpenseAccountRow) => (
-          <span className="font-mono text-[10px] text-gray-400">{row.code}</span>
+          <span className="font-mono text-xs text-slate-500">{row.code}</span>
         ),
-        width: '80px',
+        width: '90px',
       },
       {
         header: 'اسم المصروف',
         accessor: (row: ExpenseAccountRow) => (
-          <span className="text-[10px] font-bold text-gray-800 dark:text-slate-100">
-            {row.name}
-          </span>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{row.name}</span>
         ),
       },
       {
         header: 'عدد الحركات',
         accessor: (row: ExpenseAccountRow) => (
-          <span className="text-[10px] text-gray-500">{row.count}</span>
+          <span className="text-xs font-medium text-slate-500">{row.count}</span>
         ),
-        width: '80px',
+        width: '90px',
         align: 'center' as const,
       },
       {
         header: 'الإجمالي',
         accessor: (row: ExpenseAccountRow) => (
           // [FIX] لا Math.abs — total = debit - credit للحساب (موجب بعد الفلترة).
-          // Math.abs كانت تخفي أي قيم سالبة غير متوقعة وتحوّلها لمصاريف مضافة.
           <span
             dir="ltr"
-            className={`font-mono text-[10px] font-bold ${
+            className={`font-mono text-xs font-bold ${
               row.total < 0
                 ? 'text-emerald-700 dark:text-emerald-400'
                 : 'text-rose-700 dark:text-rose-400'
@@ -171,18 +168,16 @@ const OperationalExpensesReport: React.FC = () => {
       {
         header: 'النسبة',
         accessor: (row: ExpenseAccountRow) => {
-          // [FIX] لا Math.abs في حساب النسبة — استخدم القيمة الحقيقية.
-          // إذا كانت totalExpenses صحيحة والصف موجب، النسبة صحيحة بدون abs.
           const pct = data?.totalExpenses ? (row.total / data.totalExpenses) * 100 : 0;
           return (
-            <div className="flex items-center max-md:gap-2">
-              <div className="h-1.5 flex-1 rounded-full bg-gray-100 dark:bg-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
                   className="h-1.5 rounded-full bg-rose-500"
                   style={{ width: `${Math.min(Math.max(pct, 0), 100)}%` }}
                 />
               </div>
-              <span className="w-10 text-left text-[10px] font-bold text-gray-500">
+              <span className="w-10 text-left text-xs font-bold text-slate-500">
                 {pct.toFixed(1)}%
               </span>
             </div>
@@ -196,7 +191,7 @@ const OperationalExpensesReport: React.FC = () => {
 
   if (isLoading)
     return (
-      <div className="animate-pulse p-10 text-center text-sm text-slate-400 max-md:p-5">
+      <div className="animate-pulse p-10 text-center text-sm text-slate-400">
         جاري تحليل المصروفات التشغيلية...
       </div>
     );
@@ -204,13 +199,13 @@ const OperationalExpensesReport: React.FC = () => {
   const displayExpenses = showAll ? data?.expensesByAccount : data?.expensesByAccount.slice(0, 10);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-3 duration-500">
+    <div className="animate-in fade-in space-y-4 duration-500">
       {/* Header */}
       <MobileSectionTitle
         title="تقرير المصاريف التشغيلية"
         icon={<Wallet size={16} className="text-rose-600" />}
       />
-      <div className="no-scrollbar -mx-1 flex overflow-x-auto px-1 pb-1 max-md:gap-1">
+      <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1">
         {[7, 14, 30, 90].map(d => (
           <button
             key={d}
@@ -218,13 +213,13 @@ const OperationalExpensesReport: React.FC = () => {
               setDays(d);
             }}
             className={cn(
-              'min-h-[36px] flex-shrink-0 rounded-lg px-2 py-1.5 text-[10px] font-bold transition-all active:scale-95 sm:min-h-[40px] sm:px-3 sm:py-2 sm:text-xs',
+              'rounded-lg px-3 py-1.5 text-xs font-bold transition-all',
               days === d
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-slate-800'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             )}
           >
-            {d}
+            {d} يوم
           </button>
         ))}
       </div>
@@ -255,11 +250,11 @@ const OperationalExpensesReport: React.FC = () => {
       </ResponsiveGrid>
 
       {/* Chart + Table */}
-      <div className="grid grid-cols-1 max-md:gap-3 sm:gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Pie Chart */}
         {(data?.chartData.length || 0) > 0 && (
           <MobileCard padding="sm" className="lg:col-span-1">
-            <h4 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:mb-3 sm:text-xs">
+            <h4 className="mb-2 text-xs font-bold text-slate-700 dark:text-slate-300">
               توزيع المصروفات
             </h4>
             <div className="h-[180px] w-full sm:h-[200px]">
@@ -282,7 +277,7 @@ const OperationalExpensesReport: React.FC = () => {
                     formatter={value => formatCurrency(Number(value) || 0)}
                     contentStyle={{ fontSize: 11, borderRadius: 8 }}
                   />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                  <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -290,19 +285,21 @@ const OperationalExpensesReport: React.FC = () => {
         )}
 
         {/* Table */}
-        <MobileCard
-          padding="none"
-          className={cn('lg:col-span-2', (data?.chartData.length || 0) === 0 && 'lg:col-span-3')}
+        <div
+          className={cn(
+            'overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm lg:col-span-2',
+            (data?.chartData.length || 0) === 0 && 'lg:col-span-3'
+          )}
         >
-          <div className="flex items-center justify-between border-b bg-rose-50/50 dark:border-slate-800 dark:bg-rose-950/20 max-md:p-3 sm:p-4">
-            <h4 className="flex items-center text-[10px] font-bold uppercase text-rose-600 max-md:gap-2 sm:text-xs">
-              <Wallet size={12} /> تفصيل المصروفات ({data?.expensesByAccount.length || 0})
+          <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-rose-500/5 p-3 dark:bg-rose-950/20 sm:p-4">
+            <h4 className="flex items-center gap-2 text-xs font-bold text-rose-600 dark:text-rose-400">
+              <Wallet size={15} /> تفصيل المصروفات ({data?.expensesByAccount.length || 0})
             </h4>
             <ShareButton
               size="sm"
               eventType="expenses_report"
               title="مشاركة تقرير المصاريف"
-              message={`💰 تقرير المصاريف التشغيلية\n━━━━━━━━━━━━━━\n📊 إجمالي المصروفات (${days} يوم): ${formatCurrency(data?.totalExpenses || 0)}\n📋 عدد الأنواع: ${data?.expensesByAccount.length || 0}\n\n أعلى المصروفات:\n${(data?.expensesByAccount.slice(0, 5) || []).map((e: ExpenseAccountRow, i: number) => `${i + 1}. ${e.name}: ${formatCurrency(Math.abs(e.total))}`).join('\n')}`}
+              message={`💰 تقرير المصاريف التشغيلية\n━━━━━━━━━━━━━━\n📊 إجمالي المصروفات (${days} يوم): ${formatCurrency(data?.totalExpenses || 0)}\n📋 عدد الأنواع: ${data?.expensesByAccount.length || 0}\n\n أعلى المصروفات:\n${(data?.expensesByAccount.slice(0, 5) || []).map((e: ExpenseAccountRow, i: number) => `${i + 1}. ${e.name}: ${formatCurrency(Math.abs(e.total))}`).join('\n')}\n📅 التاريخ: ${formatLocalDate(new Date())}`}
             />
           </div>
           <div className="overflow-x-auto">
@@ -313,20 +310,20 @@ const OperationalExpensesReport: React.FC = () => {
               onClick={() => {
                 setShowAll(!showAll);
               }}
-              className="flex w-full items-center justify-center border-t text-center text-[10px] font-bold text-rose-600 transition-all hover:bg-rose-50 active:scale-[0.98] dark:border-slate-800 dark:hover:bg-rose-950/30 max-md:gap-1 max-md:p-2 sm:p-3 sm:text-xs"
+              className="flex w-full items-center justify-center gap-1.5 border-t border-[var(--app-border)] p-2.5 text-center text-xs font-bold text-rose-600 transition-all hover:bg-rose-50/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
             >
               {showAll ? (
                 <>
-                  <ChevronUp size={12} /> إخفاء
+                  <ChevronUp size={14} /> إخفاء
                 </>
               ) : (
                 <>
-                  <ChevronDown size={12} /> عرض الكل ({data?.expensesByAccount.length})
+                  <ChevronDown size={14} /> عرض الكل ({data?.expensesByAccount.length})
                 </>
               )}
             </button>
           )}
-        </MobileCard>
+        </div>
       </div>
     </div>
   );

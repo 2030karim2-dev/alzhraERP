@@ -124,7 +124,7 @@ export const purchaseQuotationsApi = {
     supabase
       .from('quotations')
       .select(
-        'id, quotation_number, status, total_amount, currency_code, delivery_terms, payment_terms, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total, product:product_id(size, part_number, sku, brand, name_ar))'
+        'id, quotation_number, status, total_amount, currency_code, exchange_rate, delivery_terms, payment_terms, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total, product:product_id(size, part_number, sku, brand, name_ar))'
       )
       .eq('rfq_group_id', rfqGroupId)
       .eq('company_id', companyId)
