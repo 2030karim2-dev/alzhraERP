@@ -68,6 +68,12 @@ const DOMAIN_KEYS = {
     'trial_balance',
     'balance_sheet',
     'income_statement',
+    'monthly_performance',
+    'audit_journals',
+    'vat_return_report',
+    'cashboxes',
+    'exchange_companies',
+    'fixed_assets',
   ],
   // Dashboard
   dashboard: [
@@ -76,6 +82,9 @@ const DOMAIN_KEYS = {
     'dashboard_raw_data',
     'dashboard_summary',
     'sales_chart_data',
+    'dashboard_monthly_performance',
+    'sales_quotations_summary',
+    'purchase_quotations_summary',
   ],
   // Parties (Customers & Suppliers)
   parties: [
@@ -93,9 +102,11 @@ const DOMAIN_KEYS = {
     'debt_report',
     'cash_flow',
     'daily_sales',
+    'daily_sales_report',
     'debt_aging',
     'operational_expenses',
     'financial_health',
+    'currency_diffs',
   ],
   // AI insights
   ai: ['ai_insights', 'pos_ai_suggestions'],

@@ -17,6 +17,7 @@ import { logger } from '../../../core/utils/logger';
 import { supabase } from '../../../lib/supabaseClient';
 import { type DashboardPeriod, getPeriodDates } from '../types';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
+import { invalidateByPreset } from '../../../lib/invalidation';
 
 // Realtime logic is now handled in useDashboardData hook
 
@@ -234,10 +235,29 @@ export const useDashboardData = (
             filter: `company_id=eq.${companyId}`,
           },
           (payload: any) => {
-            if (payload.new.type === 'sale') {
+            if (payload.new?.type === 'sale') {
               showToast(`مبيعات جديدة بقيمة ${payload.new.total_amount} ر.س`, 'success');
-              queryClient.invalidateQueries({ queryKey: ['dashboard_raw_data'] });
+              invalidateByPreset(queryClient, 'sale');
+            } else if (
+              payload.new?.type === 'purchase' ||
+              payload.new?.type === 'purchase_return'
+            ) {
+              invalidateByPreset(queryClient, 'purchase');
+            } else {
+              invalidateByPreset(queryClient, 'sale');
             }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'expenses',
+            filter: `company_id=eq.${companyId}`,
+          },
+          () => {
+            invalidateByPreset(queryClient, 'expense');
           }
         )
         .subscribe();

@@ -159,7 +159,19 @@ const bindChannelListeners = (
     const preset = TABLE_PRESET_MAP.get(payload.table);
     if (preset !== undefined) {
       logger.info('Realtime', `🔄 Sync: [${payload.table}] updated, refreshing...`);
-      invalidateByPreset(queryClient, preset);
+      if (payload.table === 'invoices') {
+        const type = String(payload.new?.type ?? payload.old?.type ?? '');
+        if (type === 'purchase' || type === 'purchase_return') {
+          invalidateByPreset(queryClient, 'purchase');
+        } else if (type === 'sale' || type === 'sale_return') {
+          invalidateByPreset(queryClient, 'sale');
+        } else {
+          invalidateByPreset(queryClient, 'sale');
+          invalidateByPreset(queryClient, 'purchase');
+        }
+      } else {
+        invalidateByPreset(queryClient, preset);
+      }
       lastInvalidated = now;
     }
   };

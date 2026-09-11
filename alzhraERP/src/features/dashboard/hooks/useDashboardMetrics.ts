@@ -55,7 +55,7 @@ export const useDashboardMetrics = (period: DashboardPeriod = 'this_month') => {
       }
     },
     enabled: !!companyId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
   const revenueExpensesData = useMemo(() => {

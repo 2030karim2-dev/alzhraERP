@@ -1,4 +1,3 @@
-
 import { QueryClient } from '@tanstack/react-query';
 import { persister } from './persister';
 
@@ -36,8 +35,8 @@ export const shouldRetryQuery = (
   const code = err.code ?? err.status;
   const msg = (err.message ?? '').toLowerCase();
 
-  const noRetryCode = NO_RETRY_CODES.some((c) => c === code);
-  const noRetryMessage = NO_RETRY_FRAGMENTS.some((fragment) => msg.includes(fragment));
+  const noRetryCode = NO_RETRY_CODES.some(c => c === code);
+  const noRetryMessage = NO_RETRY_FRAGMENTS.some(fragment => msg.includes(fragment));
 
   if (noRetryCode || noRetryMessage) return false;
   return failureCount < 3;
@@ -46,16 +45,17 @@ export const shouldRetryQuery = (
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // ⚡ 5 minutes stale time — realtime sync + fallback polling handle live updates
-      staleTime: 1000 * 60 * 5,
+      // ⚡ 30 seconds stale time — ensures responsive live ERP updates without freezing
+      staleTime: 1000 * 30,
       // Keep in cache for 24 hours (persister handles longer storage)
       gcTime: 1000 * 60 * 60 * 24,
       retry: (failureCount, error) => shouldRetryQuery(failureCount, error),
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      // ⚡ DISABLED — useRealtimeSync handles live updates via Supabase WebSocket.
-      // Enabling these causes ALL queries to fire on every page navigation = slow.
+      // ⚡ refetchOnMount: true ensures that whenever a component mounts, if its query
+      // was invalidated by a mutation (e.g. invoice/expense creation), it refetches immediately.
+      // Cached data renders instantly while fresh data arrives in the background.
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      refetchOnMount: true,
       refetchOnReconnect: true,
     },
     mutations: {

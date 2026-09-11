@@ -18,7 +18,7 @@ export const useTrialBalance = (
           reportsService.getTrialBalance(user.company_id, fromDate || '2000-01-01', toDate || today)
         : Promise.resolve([]),
     enabled: options.enabled !== false && !!user?.company_id,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 30 * 1000, // 30 sec
   });
 };
 
@@ -41,7 +41,7 @@ export const useProfitAndLoss = (
           )
         : Promise.resolve(null),
     enabled: options.enabled !== false && !!user?.company_id,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 30 * 1000, // 30 sec
   });
 };
 
@@ -54,7 +54,7 @@ export const useDebtReport = (options: { enabled?: boolean } = {}) => {
         ? reportsService.getDebtReport(user.company_id)
         : Promise.reject(new Error('Authentication required')),
     enabled: options.enabled !== false && !!user?.company_id,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 30 * 1000, // 30 sec
   });
 };
 
@@ -65,7 +65,7 @@ export const useBalanceSheet = (options: { enabled?: boolean } = {}) => {
     queryFn: () =>
       user?.company_id ? reportsService.getBalanceSheet(user.company_id) : Promise.resolve(null),
     enabled: options.enabled !== false && !!user?.company_id,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 30 * 1000, // 30 sec
   });
 };
 
@@ -76,7 +76,7 @@ export const useCurrencyDiffs = (options: { enabled?: boolean } = {}) => {
     queryFn: () =>
       user?.company_id ? reportsService.getCurrencyDiffs(user.company_id) : Promise.resolve([]),
     enabled: options.enabled !== false && !!user?.company_id,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 30 * 1000, // 30 sec
   });
 };
 
