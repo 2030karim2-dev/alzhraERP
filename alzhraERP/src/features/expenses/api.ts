@@ -75,7 +75,7 @@ export const expensesApi = {
         ...(data.voucher_number ? { voucher_number: data.voucher_number.trim() } : {}),
         currency_code: data.currency_code || 'SAR',
         currency: data.currency_code || 'SAR',
-        exchange_rate: Number(data.exchange_rate) || 1,
+        exchange_rate: Number(data.exchange_rate) > 0 ? Number(data.exchange_rate) : 1,
         branch_id: data.branch_id || null,
       } as unknown as Json,
     });

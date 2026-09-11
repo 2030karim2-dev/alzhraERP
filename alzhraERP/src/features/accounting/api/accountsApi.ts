@@ -98,7 +98,7 @@ export const accountsApi = {
 
     const { error: updateError } = await supabase
       .from('accounts')
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ deleted_at: 'now()' })
       .eq('id', id)
       .eq('company_id', companyId);
 

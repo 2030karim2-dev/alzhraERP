@@ -10,6 +10,7 @@ import { normalizeArabic } from '../../../core/utils/search';
 interface RawStock {
   quantity?: number | string;
   warehouse_id: string;
+  warehouse_name?: string;
   warehouses?: { name_ar?: string };
 }
 
@@ -38,6 +39,11 @@ interface RawProduct {
   status?: string;
   location?: string;
   uoms?: Array<{ id: string; uom_name: string; conversion_factor: number }>;
+  total_purchases_qty?: number | string;
+  total_sales_qty?: number | string;
+  total_profit?: number | string;
+  total_loss?: number | string;
+  last_invoice_date?: string | null;
 }
 
 /** Shape returned by the product search RPC — minimal fields for dropdowns/rows. */
@@ -186,7 +192,7 @@ export const productService = {
           barcode: prod.barcode || null,
           location: (() => {
             const warehouseNames = stockList
-              .map((s: RawStock) => s.warehouses?.name_ar)
+              .map((s: RawStock) => s.warehouse_name || s.warehouses?.name_ar)
               .filter(Boolean) as string[];
             const uniqueWarehouses = [...new Set(warehouseNames)].join(', ');
             const shelfLocation = prod.location || '';
@@ -203,7 +209,7 @@ export const productService = {
           })(),
           warehouse_distribution: stockList.map((s: RawStock) => ({
             warehouse_id: s.warehouse_id,
-            warehouse_name: s.warehouses?.name_ar || 'مستودع',
+            warehouse_name: s.warehouse_name || s.warehouses?.name_ar || 'مستودع',
             quantity: Number(s.quantity) || 0,
             location: prod.location || '',
           })),
@@ -211,11 +217,11 @@ export const productService = {
             ? prod.alternative_numbers.split(',').map(n => n.trim())
             : [],
           compatibility: [],
-          total_purchases_qty: 0,
-          total_sales_qty: 0,
-          total_profit: 0,
-          total_loss: 0,
-          last_invoice_date: new Date().toISOString(),
+          total_purchases_qty: Number(prod.total_purchases_qty) || 0,
+          total_sales_qty: Number(prod.total_sales_qty) || 0,
+          total_profit: Number(prod.total_profit) || 0,
+          total_loss: Number(prod.total_loss) || 0,
+          last_invoice_date: prod.last_invoice_date || undefined,
         } as Product;
       })
       .filter((p): p is Product => p !== null);
@@ -680,6 +686,56 @@ export const productService = {
   bulkSetCoreProducts: async (ids: string[], isCore: boolean) => {
     const { error } = await inventoryApi.bulkSetCoreProducts(ids, isCore);
     if (error) throw error;
+  },
+
+  /**
+   * Get accurate aggregate counts for favorite products (total, critical, out_of_stock, safe)
+   */
+  getCoreProductsStats: async (
+    companyId: string
+  ): Promise<{
+    total: number;
+    critical: number;
+    outOfStock: number;
+    safe: number;
+  }> => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, min_stock_level, stock:product_stock(quantity)')
+        .eq('company_id', companyId)
+        .eq('is_core', true)
+        .is('deleted_at', null)
+        .or('status.eq.active,status.is.null');
+
+      if (error) throw error;
+
+      let critical = 0;
+      let outOfStock = 0;
+      let safe = 0;
+      const total = data?.length ?? 0;
+
+      (data || []).forEach((row: any) => {
+        const stockQty = (row.stock || []).reduce(
+          (sum: number, s: any) => sum + (Number(s.quantity) || 0),
+          0
+        );
+        const minLevel = Number(row.min_stock_level) || 0;
+        const effectiveMinLevel = minLevel > 0 ? minLevel : 3;
+        if (stockQty <= 0) {
+          outOfStock++;
+        } else if (stockQty <= effectiveMinLevel) {
+          critical++;
+        } else {
+          safe++;
+        }
+      });
+
+      return { total, critical, outOfStock, safe };
+    } catch (err) {
+      logger.error('productService.getCoreProductsStats', 'Failed to fetch stats', err);
+      return { total: 0, critical: 0, outOfStock: 0, safe: 0 };
+    }
   },
 };
 

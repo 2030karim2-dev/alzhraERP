@@ -43,10 +43,10 @@ const ProductStockInfo: React.FC<Props> = ({ register, errors }) => {
             <Star size={16} className="fill-amber-400 text-amber-500" />
             <div>
               <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                صنف استراتيجي (العمود الفقري للمنشأة)
+                صنف استراتيجي ⭐ (العمود الفقري)
               </span>
               <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                مراقبة دقيقة وتنبيهات أولوية قصوى عند اقتراب نفاذ المخزون
+                أولوية عليا ومراقبة حثيثة مع تنبيهات فورية عند اقتراب نفاذ المخزون
               </span>
             </div>
           </div>

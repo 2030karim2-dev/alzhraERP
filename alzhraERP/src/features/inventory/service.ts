@@ -131,7 +131,7 @@ export const inventoryService = {
 
   finalizeAudit: async (
     sessionId: string,
-    items: Array<{ id?: string; product_id: string; counted_quantity: number }>,
+    items: Array<{ id?: string; product_id: string; counted_quantity: number | null }>,
     companyId: string,
     userId: string
   ) => {
@@ -150,9 +150,9 @@ export const inventoryService = {
     payload:
       | {
           sessionId?: string;
-          items: Array<{ id?: string; product_id: string; counted_quantity: number }>;
+          items: Array<{ id?: string; product_id: string; counted_quantity: number | null }>;
         }
-      | Array<{ id?: string; product_id: string; counted_quantity: number }>,
+      | Array<{ id?: string; product_id: string; counted_quantity: number | null }>,
     sessionId?: string
   ) => {
     return auditService.saveAuditProgress(payload, sessionId);

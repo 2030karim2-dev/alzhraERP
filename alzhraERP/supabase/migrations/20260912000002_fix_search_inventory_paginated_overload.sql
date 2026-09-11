@@ -68,7 +68,7 @@ BEGIN
   SELECT count(*)::integer INTO v_total FROM public.products p
   WHERE p.company_id = p_company_id
     AND p.deleted_at IS NULL
-    AND p.status = 'active'
+    AND (p.status = 'active' OR p.status IS NULL)
     AND (p_is_core IS NULL OR p.is_core = p_is_core)
     AND (
       cardinality(v_tokens) = 0 OR NOT EXISTS (
@@ -136,7 +136,7 @@ BEGIN
   LEFT JOIN public.product_categories cat ON cat.id = p.category_id
   WHERE p.company_id = p_company_id
     AND p.deleted_at IS NULL
-    AND p.status = 'active'
+    AND (p.status = 'active' OR p.status IS NULL)
     AND (p_is_core IS NULL OR p.is_core = p_is_core)
     AND (
       cardinality(v_tokens) = 0 OR NOT EXISTS (

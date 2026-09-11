@@ -327,3 +327,11 @@ export const usePurchaseStore = create<PurchaseState>()(
     }
   )
 );
+
+// إعادة حساب إجماليات المشتريات تلقائياً عند تفعيل/تعطيل الخصم من الإعدادات
+// مطابق لآلية sales/store.ts لضمان تناسق السلوك بين النظامين
+useDiscountStore.subscribe((state, prevState) => {
+  if (state.discountEnabled !== prevState.discountEnabled) {
+    usePurchaseStore.getState().calculateTotals();
+  }
+});

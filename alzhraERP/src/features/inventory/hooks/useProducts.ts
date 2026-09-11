@@ -208,18 +208,40 @@ export const useProductMutations = () => {
     mutationFn: async ({ id, isCore }: { id: string; isCore: boolean }) => {
       return inventoryService.toggleCoreProduct(id, isCore);
     },
+    onMutate: async ({ id, isCore }) => {
+      await queryClient.cancelQueries({ queryKey: ['products'] });
+      await queryClient.cancelQueries({ queryKey: ['products_paginated'] });
+
+      // Optimistically update paginated queries data
+      queryClient.setQueriesData({ queryKey: ['products_paginated'] }, (old: any) => {
+        if (!old || !Array.isArray(old.data)) return old;
+        return {
+          ...old,
+          data: old.data.map((p: any) => (p.id === id ? { ...p, is_core: isCore } : p)),
+        };
+      });
+
+      // Optimistically update full list query data
+      queryClient.setQueriesData({ queryKey: ['products'] }, (old: any) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((p: any) => (p.id === id ? { ...p, is_core: isCore } : p));
+      });
+    },
     onSuccess: (_, { isCore }) => {
       invalidateByPreset(queryClient, 'inventory');
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
+      queryClient.invalidateQueries({ queryKey: ['core_products_stats'] });
       showToast(
         isCore
-          ? 'تم تمييز الصنف كصنف استراتيجي (العمود الفقري)'
-          : 'تم إزالة التمييز الاستراتيجي عن الصنف',
+          ? 'تمت إضافة الصنف إلى المنتجات الاستراتيجية ⭐'
+          : 'تمت إزالة الصنف من المنتجات الاستراتيجية',
         'success'
       );
     },
     onError: (err: any) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products_paginated'] });
       showToast(err?.message || 'تعذر تحديث حالة الصنف الاستراتيجي', 'error');
     },
   });

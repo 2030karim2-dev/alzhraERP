@@ -120,13 +120,14 @@ export const purchaseQuotationsApi = {
     return quotation;
   },
 
-  getComparisonData: async (rfqGroupId: string) =>
+  getComparisonData: async (rfqGroupId: string, companyId: string) =>
     supabase
       .from('quotations')
       .select(
         'id, quotation_number, status, total_amount, currency_code, delivery_terms, payment_terms, party:party_id(name), quotation_items(id, product_id, description, quantity, unit_price, total, product:product_id(size, part_number, sku, brand, name_ar))'
       )
       .eq('rfq_group_id', rfqGroupId)
+      .eq('company_id', companyId)
       .is('deleted_at', null)
       .order('total_amount', { ascending: true }),
 

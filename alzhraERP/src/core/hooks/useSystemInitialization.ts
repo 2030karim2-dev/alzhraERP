@@ -75,12 +75,12 @@ export const useSystemInitialization = () => {
   useEffect(() => {
     if (!user?.company_id) return;
     // Run checks on mount
-    notificationService.checkSystemHealth(user.company_id);
+    notificationService.checkSystemHealth(user.company_id, user.branch_id);
 
     // Run interval checks every 10 minutes
     const interval = setInterval(
       () => {
-        notificationService.checkSystemHealth(user.company_id!);
+        notificationService.checkSystemHealth(user.company_id!, user.branch_id);
       },
       1000 * 60 * 10
     );
@@ -88,7 +88,7 @@ export const useSystemInitialization = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [user?.company_id]);
+  }, [user?.company_id, user?.branch_id]);
 
   // 3. Global Keyboard Shortcuts
   useEffect(() => {

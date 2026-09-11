@@ -34,7 +34,7 @@ export const getInventoryTabGroups = (t: (key: string, params?: any) => string):
       'text-indigo-600 bg-indigo-50 border-indigo-100 dark:text-indigo-400 dark:bg-indigo-950/40 dark:border-indigo-900/30',
     tabs: [
       { id: 'products', label: t('products'), icon: Box },
-      { id: 'core_products', label: 'المنتجات الاستراتيجية (العمود الفقري)', icon: Star },
+      { id: 'core_products', label: 'المنتجات الاستراتيجية', icon: Star },
       { id: 'categories', label: t('categories'), icon: Layers },
     ],
   },
@@ -63,7 +63,7 @@ export const getInventoryTabGroups = (t: (key: string, params?: any) => string):
 
 export const getInventoryTabs = (t: (key: string, params?: any) => string) => [
   { id: 'products', label: t('products'), icon: Box },
-  { id: 'core_products', label: 'المنتجات الاستراتيجية (العمود الفقري)', icon: Star },
+  { id: 'core_products', label: 'المنتجات الاستراتيجية', icon: Star },
   { id: 'categories', label: t('categories'), icon: Layers },
   { id: 'history', label: t('history'), icon: FileSearch },
   { id: 'warehouses', label: t('warehouses'), icon: Warehouse },

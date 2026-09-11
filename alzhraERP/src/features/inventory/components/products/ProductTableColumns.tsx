@@ -22,7 +22,7 @@ export const getProductColumns = ({
 }: GetProductColumnsProps): Array<Column<Product>> => {
   const baseColumns: Array<Column<Product>> = [
     {
-      header: 'استراتيجي',
+      header: 'استراتيجي ⭐',
       accessor: p => (
         <button
           type="button"
@@ -39,8 +39,8 @@ export const getProductColumns = ({
           )}
           title={
             p.is_core
-              ? 'صنف استراتيجي (العمود الفقري) - انقر للإلغاء'
-              : 'تعيين كصنف استراتيجي (العمود الفقري)'
+              ? 'صنف استراتيجي ⭐ - انقر لإزالته من القائمة الاستراتيجية'
+              : 'إضافة الصنف إلى المنتجات الاستراتيجية ⭐'
           }
         >
           <Star size={16} className={cn(p.is_core && 'fill-amber-400 text-amber-500')} />

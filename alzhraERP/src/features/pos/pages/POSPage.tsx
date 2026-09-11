@@ -127,10 +127,12 @@ const POSPage: React.FC = () => {
             unitPrice: i.price,
             costPrice: i.costPrice || 0,
             maxStock: 0,
+            ...(selectedWarehouseId ? { warehouseId: selectedWarehouseId } : {}),
           })),
-          discount: 0,
+          discount: summary.discountAmount || 0,
+          currency: currency || 'SAR',
           paymentMethod: 'cash',
-          // تأكيد صندوق الخزينة من النافذة (يُوجَّه عبر resolveStrictPaymentAccount)
+          // تأكيد صندوق الخزينة أو البنك من النافذة (يُوجَّه عبر resolveStrictPaymentAccount)
           ...(result.treasuryAccountId != null
             ? { treasuryAccountId: result.treasuryAccountId }
             : {}),
@@ -147,7 +149,16 @@ const POSPage: React.FC = () => {
         }
       );
     },
-    [isProcessing, processPayment, selectedCustomer, validCartItems, resetCart]
+    [
+      isProcessing,
+      processPayment,
+      selectedCustomer,
+      validCartItems,
+      resetCart,
+      summary.discountAmount,
+      selectedWarehouseId,
+      currency,
+    ]
   );
 
   const handleSuspend = useCallback(() => {

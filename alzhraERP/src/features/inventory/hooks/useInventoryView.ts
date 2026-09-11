@@ -23,12 +23,18 @@ export const useInventoryView = () => {
   }, [searchParams]);
 
   const setActiveView = (view: string) => {
+    const isChangingTab = view !== activeView;
     setActiveViewState(view);
     const nextParams = new URLSearchParams(searchParams);
     if (view && view !== 'products') {
       nextParams.set('tab', view);
     } else {
       nextParams.delete('tab');
+    }
+    // Clear search term when switching tabs so filters from previous tab do not hide contents
+    if (isChangingTab) {
+      setSearchTermState('');
+      nextParams.delete('search');
     }
     setSearchParams(nextParams, { replace: true });
   };

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   FileText,
   Plus,
@@ -12,6 +12,7 @@ import {
   Search,
   Check,
   X,
+  RotateCcw,
 } from 'lucide-react';
 import Modal from '../../../../ui/base/Modal';
 import { purchaseQuotationsApi } from '../../api/quotationsApi';
@@ -22,6 +23,9 @@ import ProductSelectionModal from '../../../sales/components/create/ProductSelec
 import type { Product } from '../../../inventory/types';
 import type { Party } from '../../../parties/types';
 import { logger } from '../../../../core/utils/logger';
+import { draftStorage } from '../../../../core/utils/draftStorage';
+import { useFeedbackStore } from '../../../feedback/store';
+import { parseError } from '../../../../core/utils/errorUtils';
 
 interface Props {
   onClose: () => void;
@@ -32,6 +36,7 @@ interface Props {
 interface ItemRow {
   productId: string;
   description: string;
+  partNumber?: string;
   size?: string;
   quantity: number;
   unitPrice: number;
@@ -119,41 +124,56 @@ const SupplierSection = ({
               onFocus={() => {
                 onOpenChange(true);
               }}
+              onBlur={() => {
+                setTimeout(() => onOpenChange(false), 150);
+              }}
               placeholder="بحث عن مورد..."
               className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 dark:border-slate-700 dark:bg-slate-800"
             />
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            {isOpen && partyQuery.trim() !== '' && (
-              <div className="custom-scrollbar absolute z-50 mt-1 max-h-48 w-full overflow-hidden overflow-y-auto rounded-xl border border-violet-500 bg-[var(--app-surface)] shadow-2xl">
+            {isOpen && (
+              <div
+                onMouseDown={event => {
+                  event.preventDefault();
+                }}
+                className="custom-scrollbar absolute z-50 mt-1 max-h-52 w-full overflow-hidden overflow-y-auto rounded-xl border border-violet-500 bg-[var(--app-surface)] shadow-2xl"
+              >
                 {loading ? (
                   <div className="animate-pulse p-3 text-center text-xs text-gray-400">
                     جاري التحميل...
                   </div>
                 ) : suppliers.length > 0 ? (
-                  <ul className="divide-y dark:divide-slate-800">
-                    {suppliers.map(supplier => (
-                      <li key={supplier.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onSelect(supplier);
-                            onOpenChange(false);
-                            onQueryChange('');
-                          }}
-                          className="group flex w-full cursor-pointer items-center justify-between px-3 py-2 text-right transition-colors hover:bg-violet-600 hover:text-white"
-                        >
-                          <span className="flex flex-col">
-                            <span className="text-xs font-bold">{supplier.name}</span>
-                            <span className="text-[10px] opacity-60">{supplier.phone ?? ''}</span>
-                          </span>
-                          <Check
-                            size={12}
-                            className="opacity-0 group-hover:opacity-100 max-md:opacity-100"
-                          />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    {partyQuery.trim() === '' && (
+                      <div className="border-b border-gray-100 bg-violet-50/60 px-3 py-1.5 text-[11px] text-violet-500 dark:border-slate-700 dark:bg-violet-900/20">
+                        اكتب للتصفية أو اختر من القائمة
+                      </div>
+                    )}
+                    <ul className="divide-y dark:divide-slate-800">
+                      {suppliers.slice(0, 50).map(supplier => (
+                        <li key={supplier.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onSelect(supplier);
+                              onOpenChange(false);
+                              onQueryChange('');
+                            }}
+                            className="group flex w-full cursor-pointer items-center justify-between px-3 py-2 text-right transition-colors hover:bg-violet-600 hover:text-white"
+                          >
+                            <span className="flex flex-col">
+                              <span className="text-xs font-bold">{supplier.name}</span>
+                              <span className="text-[10px] opacity-60">{supplier.phone ?? ''}</span>
+                            </span>
+                            <Check
+                              size={12}
+                              className="opacity-0 group-hover:opacity-100 max-md:opacity-100"
+                            />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 ) : (
                   <div className="p-3 text-center text-xs text-gray-400">لا توجد نتائج</div>
                 )}
@@ -224,11 +244,13 @@ const ItemRowView = ({
   onUpdate: (index: number, field: keyof ItemRow, value: string | number) => void;
   onSearch: (index: number, query?: string) => void;
 }): React.ReactElement => {
-  const lineTotal = item.quantity * item.unitPrice;
+  const lineTotal = item.quantity * item.unitPrice * (1 - (item.discountPercent || 0) / 100);
   return (
-    <tr className="border-b border-gray-50 dark:border-slate-800/50">
-      <td className="px-3 py-2 text-xs text-gray-400">{String(index + 1)}</td>
-      <td className="px-3 py-2">
+    <tr className="group border-b border-gray-100 transition-colors hover:bg-violet-50/30 dark:border-slate-700/60 dark:hover:bg-violet-900/10">
+      <td className="border-l border-gray-100 px-2 py-1.5 text-center text-xs font-bold text-gray-400 dark:border-slate-700/60">
+        {String(index + 1)}
+      </td>
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
         <div className="group/search relative">
           <input
             id={`quotation-description-${String(index)}`}
@@ -244,7 +266,8 @@ const ItemRowView = ({
                 onSearch(index, item.description);
               }
             }}
-            className="w-full border-0 bg-transparent pr-1 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-white"
+            placeholder="اسم الصنف..."
+            className="w-full border-0 bg-transparent pr-1 text-sm font-medium text-gray-900 placeholder-gray-300 outline-none focus:placeholder-transparent dark:text-white"
           />
           <button
             type="button"
@@ -252,13 +275,25 @@ const ItemRowView = ({
             onClick={() => {
               onSearch(index, item.description);
             }}
-            className="absolute left-0 top-1/2 -translate-y-1/2 p-1 text-gray-400 opacity-0 transition-all hover:text-violet-500 group-hover/search:opacity-100 max-md:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-300 opacity-0 transition-all hover:bg-violet-100 hover:text-violet-600 group-hover/search:opacity-100 dark:hover:bg-violet-900/30 max-md:opacity-100"
           >
-            <Search size={14} />
+            <Search size={13} />
           </button>
         </div>
       </td>
-      <td className="w-24 px-3 py-2">
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
+        <input
+          aria-label={`رقم القطعة ${String(index + 1)}`}
+          type="text"
+          placeholder="—"
+          value={item.partNumber ?? ''}
+          onChange={event => {
+            onUpdate(index, 'partNumber', event.target.value);
+          }}
+          className="w-full border-0 bg-transparent text-center font-mono text-xs text-gray-700 placeholder-gray-300 outline-none dark:text-gray-300"
+        />
+      </td>
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
         <input
           aria-label={`قياس/مقاس البند ${String(index + 1)}`}
           type="text"
@@ -267,52 +302,69 @@ const ItemRowView = ({
           onChange={event => {
             onUpdate(index, 'size', event.target.value);
           }}
-          className="w-full border-0 bg-transparent text-center font-mono text-xs text-gray-800 placeholder-gray-300 outline-none dark:text-gray-200 dark:placeholder-gray-600"
+          className="w-full border-0 bg-transparent text-center font-mono text-xs text-gray-700 placeholder-gray-300 outline-none dark:text-gray-300"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
         <input
           aria-label={`كمية البند ${String(index + 1)}`}
           type="number"
           step="any"
           min={0}
-          value={item.quantity}
+          value={item.quantity || ''}
           onChange={event => {
             onUpdate(index, 'quantity', Number(event.target.value));
           }}
-          className="w-full border-0 bg-transparent text-center text-sm text-gray-900 outline-none dark:text-white"
+          placeholder="0"
+          className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-gray-900 placeholder-gray-300 outline-none dark:text-white"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
         <input
           aria-label={`سعر البند ${String(index + 1)}`}
           type="number"
           min={0}
           step="any"
-          value={item.unitPrice}
+          value={item.unitPrice || ''}
           onChange={event => {
             onUpdate(index, 'unitPrice', Number(event.target.value));
           }}
-          className="w-full border-0 bg-transparent text-center font-mono text-sm text-gray-900 outline-none dark:text-white"
+          placeholder="0.00"
+          className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-emerald-600 placeholder-gray-300 outline-none dark:text-emerald-400"
+        />
+      </td>
+      <td className="border-l border-gray-100 px-2 py-1.5 dark:border-slate-700/60">
+        <input
+          aria-label={`خصم البند ${String(index + 1)}`}
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={item.discountPercent || ''}
+          onChange={event => {
+            onUpdate(index, 'discountPercent', Number(event.target.value));
+          }}
+          placeholder="0"
+          className="w-full border-0 bg-transparent text-center font-mono text-sm font-bold text-rose-500 placeholder-gray-300 outline-none"
         />
       </td>
       <td
-        className="px-3 py-2 text-center font-mono text-sm font-bold text-gray-900 dark:text-white"
+        className="border-l border-gray-100 bg-gray-50/60 px-2 py-1.5 text-center font-mono text-sm font-bold text-gray-800 dark:border-slate-700/60 dark:bg-slate-800/40 dark:text-gray-200"
         dir="ltr"
       >
-        {formatCurrency(lineTotal)}
+        {lineTotal > 0 ? formatCurrency(lineTotal) : <span className="text-gray-300">—</span>}
       </td>
-      <td className="px-1 py-2">
+      <td className="px-1 py-1.5">
         <button
           type="button"
           aria-label={`حذف البند ${String(index + 1)}`}
           onClick={() => {
             onRemove(index);
           }}
-          className="p-1 text-gray-400 transition-colors hover:text-rose-500"
+          className="rounded p-1 text-gray-300 transition-colors hover:bg-rose-50 hover:text-rose-500 disabled:opacity-30 dark:hover:bg-rose-900/20"
           disabled={itemCount <= 1}
         >
-          <Trash2 size={14} />
+          <Trash2 size={13} />
         </button>
       </td>
     </tr>
@@ -326,35 +378,55 @@ const ItemTable = ({
   onUpdate,
   onSearch,
 }: ItemTableProps): React.ReactElement => (
-  <div className="overflow-hidden rounded-2xl border border-gray-100 bg-[var(--app-surface)] dark:border-slate-800">
-    <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
-      <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">بنود العرض</h3>
+  <div className="overflow-hidden rounded-xl border border-gray-200 bg-[var(--app-surface)] shadow-sm dark:border-slate-700">
+    {/* Table header bar */}
+    <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-l from-violet-50 to-purple-50/60 px-3 py-2 dark:border-slate-700 dark:from-violet-900/20 dark:to-purple-900/10">
+      <h3 className="flex items-center gap-1.5 text-sm font-bold text-violet-700 dark:text-violet-300">
+        بنود العرض
+        <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold text-violet-600 dark:bg-violet-900/40">
+          {items.length}
+        </span>
+      </h3>
       <button
         type="button"
         onClick={onAdd}
-        className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-violet-600 transition-colors hover:bg-violet-50 dark:hover:bg-violet-900/20"
+        className="flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-3 py-1 text-xs font-bold text-violet-600 shadow-sm transition-all hover:bg-violet-600 hover:text-white dark:border-violet-700 dark:bg-slate-800 dark:hover:bg-violet-600"
       >
         <Plus size={12} /> إضافة بند
       </button>
     </div>
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-gray-100 dark:border-slate-800">
-            <th className="w-8 px-3 py-2 text-right text-xs font-medium text-gray-500">#</th>
-            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">الوصف</th>
-            <th className="w-24 px-3 py-2 text-center text-xs font-medium text-gray-500">القياس</th>
-            <th className="w-20 px-3 py-2 text-right text-xs font-medium text-gray-500">الكمية</th>
-            <th className="w-28 px-3 py-2 text-right text-xs font-medium text-gray-500">
+          <tr className="border-b-2 border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-800/60">
+            <th className="w-8 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-500 dark:border-slate-700">
+              #
+            </th>
+            <th className="border-l border-gray-200 px-2 py-2 text-right text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
+              اسم الصنف / الوصف
+            </th>
+            <th className="w-28 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
+              رقم القطعة
+            </th>
+            <th className="w-20 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
+              القياس
+            </th>
+            <th className="w-20 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
+              الكمية
+            </th>
+            <th className="w-28 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
               سعر الوحدة
             </th>
-            <th className="w-28 px-3 py-2 text-right text-xs font-medium text-gray-500">
+            <th className="w-20 border-l border-gray-200 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:text-gray-300">
+              خصم %
+            </th>
+            <th className="w-32 border-l border-gray-200 bg-gray-100/80 px-2 py-2 text-center text-[11px] font-bold text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
               الإجمالي
             </th>
-            <th className="w-10" />
+            <th className="w-8" />
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
           {items.map((item, index) => (
             <ItemRowView
               key={`${item.productId}-${String(index)}`}
@@ -433,23 +505,103 @@ const Totals = ({ total }: { total: number }): React.ReactElement => (
   </div>
 );
 
+interface PurchaseDraft {
+  items: ItemRow[];
+  partyId: string | null;
+  partyName: string | null;
+  partyPhone: string | null;
+  issueDate: string;
+  deliveryTerms: string;
+  paymentTerms: string;
+  notes: string;
+}
+
+const isPurchaseDraftDirty = (
+  items: ItemRow[],
+  party: SupplierOption | null,
+  notes: string,
+  deliveryTerms: string,
+  paymentTerms: string
+): boolean => {
+  const hasItems = items.some(
+    i => i.description.trim() !== '' || (i.productId && i.productId.trim() !== '')
+  );
+  return (
+    hasItems ||
+    party !== null ||
+    notes.trim() !== '' ||
+    deliveryTerms.trim() !== '' ||
+    paymentTerms.trim() !== ''
+  );
+};
+
 const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfqGroupId }) => {
   const { user } = useAuthStore();
+  const { showToast } = useFeedbackStore();
+  const companyId = user?.company_id;
+  const draftKey = companyId
+    ? user?.id
+      ? rfqGroupId && rfqGroupId !== ''
+        ? `purchase_quotation:${companyId}:${user.id}:rfq:${rfqGroupId}`
+        : `purchase_quotation:${companyId}:${user.id}:general`
+      : `purchase_quotation:${companyId}`
+    : null;
+
+  // ─── Load saved draft on mount ─────────────────────────────────────────────
+  const savedDraft = draftKey ? draftStorage.load<PurchaseDraft>(draftKey) : null;
+
   const [saving, setSaving] = useState(false);
-  const [selectedParty, setSelectedParty] = useState<SupplierOption | null>(null);
+  const savingRef = useRef(false);
+  const [hasDraft, setHasDraft] = useState(() => {
+    if (!savedDraft) return false;
+    return isPurchaseDraftDirty(
+      savedDraft.items || [],
+      savedDraft.partyId
+        ? {
+            id: savedDraft.partyId,
+            name: savedDraft.partyName || '',
+            phone: savedDraft.partyPhone ?? null,
+          }
+        : null,
+      savedDraft.notes || '',
+      savedDraft.deliveryTerms || '',
+      savedDraft.paymentTerms || ''
+    );
+  });
+  const [selectedParty, setSelectedParty] = useState<SupplierOption | null>(() => {
+    if (savedDraft?.partyId && savedDraft.partyName) {
+      return {
+        id: savedDraft.partyId,
+        name: savedDraft.partyName,
+        phone: savedDraft.partyPhone ?? null,
+      };
+    }
+    return null;
+  });
   const [partyQuery, setPartyQuery] = useState('');
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const { data: filteredSuppliers, isLoading: suppliersLoading } = useParties(
     'supplier',
     partyQuery
   );
-  const [issueDate, setIssueDate] = useState(() => formatLocalDate());
-  const [deliveryTerms, setDeliveryTerms] = useState('');
-  const [paymentTerms, setPaymentTerms] = useState('');
-  const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<ItemRow[]>([
-    { productId: '', description: '', size: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
-  ]);
+  const [issueDate, setIssueDate] = useState(() => savedDraft?.issueDate ?? formatLocalDate());
+  const [deliveryTerms, setDeliveryTerms] = useState(() => savedDraft?.deliveryTerms ?? '');
+  const [paymentTerms, setPaymentTerms] = useState(() => savedDraft?.paymentTerms ?? '');
+  const [notes, setNotes] = useState(() => savedDraft?.notes ?? '');
+  const [items, setItems] = useState<ItemRow[]>(() => {
+    if (savedDraft?.items && savedDraft.items.length > 0) return savedDraft.items;
+    return [
+      {
+        productId: '',
+        description: '',
+        partNumber: '',
+        size: '',
+        quantity: 1,
+        unitPrice: 0,
+        discountPercent: 0,
+      },
+    ];
+  });
   const [productModal, setProductModal] = useState<ProductModalState>({
     isOpen: false,
     rowIndex: 0,
@@ -472,7 +624,15 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
   const addItem = (): void => {
     setItems(previous => [
       ...previous,
-      { productId: '', description: '', size: '', quantity: 1, unitPrice: 0, discountPercent: 0 },
+      {
+        productId: '',
+        description: '',
+        partNumber: '',
+        size: '',
+        quantity: 1,
+        unitPrice: 0,
+        discountPercent: 0,
+      },
     ]);
   };
   const removeItem = (index: number): void => {
@@ -490,6 +650,7 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
               ...item,
               productId: product.id,
               description: product.name,
+              partNumber: (product as { part_number?: string }).part_number ?? '',
               size: product.size ?? '',
               unitPrice: product.cost_price,
             }
@@ -498,9 +659,72 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
     );
     setProductModal(previous => ({ ...previous, isOpen: false }));
   };
+
+  // ─── Auto-save draft ───────────────────────────────────────────────────────
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleSave = useCallback(() => {
+    if (!draftKey) return;
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      if (!isPurchaseDraftDirty(items, selectedParty, notes, deliveryTerms, paymentTerms)) {
+        draftStorage.clear(draftKey);
+        return;
+      }
+      draftStorage.save(draftKey, {
+        items,
+        partyId: selectedParty?.id ?? null,
+        partyName: selectedParty?.name ?? null,
+        partyPhone: selectedParty?.phone ?? null,
+        issueDate,
+        deliveryTerms,
+        paymentTerms,
+        notes,
+      });
+    }, 800);
+  }, [draftKey, items, selectedParty, issueDate, deliveryTerms, paymentTerms, notes]);
+
+  useEffect(() => {
+    scheduleSave();
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+  }, [scheduleSave]);
+
+  const clearDraft = (): void => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+      saveTimeout.current = null;
+    }
+    if (draftKey) draftStorage.clear(draftKey);
+    setHasDraft(false);
+    setSelectedParty(null);
+    setPartyQuery('');
+    setIssueDate(formatLocalDate());
+    setDeliveryTerms('');
+    setPaymentTerms('');
+    setNotes('');
+    setItems([
+      {
+        productId: '',
+        description: '',
+        partNumber: '',
+        size: '',
+        quantity: 1,
+        unitPrice: 0,
+        discountPercent: 0,
+      },
+    ]);
+  };
+
   const handleSave = async (): Promise<void> => {
+    if (savingRef.current) return;
     const validItems = items.filter(item => item.description.trim() !== '' && item.quantity > 0);
-    if (validItems.length === 0 || user?.company_id === undefined) return;
+    if (validItems.length === 0) {
+      showToast('يرجى إضافة صنف واحد على الأقل مع تحديد الكمية', 'warning');
+      return;
+    }
+    if (user?.company_id === undefined) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       await purchaseQuotationsApi.createQuotation(user.company_id, user.id, {
@@ -512,14 +736,21 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
         paymentTerms: paymentTerms.trim() !== '' ? paymentTerms : undefined,
         rfqGroupId,
       });
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      if (draftKey) draftStorage.clear(draftKey);
+      setHasDraft(false);
       onSuccess();
     } catch (error) {
       logger.error('CreatePurchaseQuotationModal', 'Failed to create purchase quotation:', error);
+      const parsed = parseError(error);
+      showToast(parsed.message, 'error', parsed);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
-  const hasValidItem = items.some(item => item.description.trim() !== '');
+
+  const hasValidItem = items.some(item => item.description.trim() !== '' && item.quantity > 0);
   return (
     <Modal
       isOpen={true}
@@ -556,6 +787,23 @@ const CreatePurchaseQuotationModal: React.FC<Props> = ({ onClose, onSuccess, rfq
       }
     >
       <div className="space-y-6">
+        {/* Draft restored banner */}
+        {hasDraft && (
+          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 dark:border-amber-700/50 dark:bg-amber-900/20">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <RotateCcw size={14} />
+              <span className="text-xs font-bold">تم استعادة مسودة محفوظة سابقاً</span>
+              <span className="text-[11px] opacity-70">— يمكنك الاستمرار من حيث توقفت</span>
+            </div>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-amber-600 transition-colors hover:bg-amber-100 dark:hover:bg-amber-800/30"
+            >
+              <X size={12} /> تجاهل المسودة
+            </button>
+          </div>
+        )}
         <SupplierSection
           selectedParty={selectedParty}
           partyQuery={partyQuery}

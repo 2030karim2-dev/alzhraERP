@@ -7,7 +7,7 @@ export const notificationService = {
   /**
    * Periodic health & stock check with strict deduplication tags.
    */
-  checkSystemHealth: async (companyId: string) => {
+  checkSystemHealth: async (companyId: string, branchId?: string | null) => {
     if (!companyId) return;
     const { addNotification } = useNotificationStore.getState();
 
@@ -15,11 +15,14 @@ export const notificationService = {
       // 1. Check Strategic (Core) Backbone Products & Custom Low Stock Thresholds
       const { data: products } = await inventoryApi.getProducts(companyId);
       const lowStockItems = (products || []).filter((p: any) => {
-        const stockList = Array.isArray(p.stock)
+        const rawStockList = Array.isArray(p.stock)
           ? p.stock
           : Array.isArray(p.product_stock)
             ? p.product_stock
             : [];
+        const stockList = branchId
+          ? rawStockList.filter((s: any) => !s.branch_id || s.branch_id === branchId)
+          : rawStockList;
         const stock = stockList.reduce(
           (acc: number, curr: any) => acc + (Number(curr.quantity) || 0),
           0
@@ -74,7 +77,10 @@ export const notificationService = {
 
       // 2. Check High Debts (Customers)
       const { data: customers } = await partiesApi.getParties(companyId, 'customer');
-      const riskyCustomers = customers?.filter((c: any) => (c.balance || 0) > 10000);
+      const riskyCustomers = customers?.filter((c: any) => {
+        const balance = c.party_balances?.[0]?.balance ?? c.balance ?? 0;
+        return Number(balance) > 10000;
+      });
 
       if (riskyCustomers && riskyCustomers.length > 0) {
         addNotification({

@@ -23,7 +23,6 @@ interface InventoryViewRendererProps {
   setSelectedProduct: (product: Product | null) => void;
   handleEdit: (product: Product) => void;
   deleteProduct: (id: string) => void;
-  handleSmartImportConfirm: (data: { items: any[]; currency?: string }) => Promise<void>;
   onMaximizeProduct?: () => void;
 }
 

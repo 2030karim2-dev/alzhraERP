@@ -202,7 +202,23 @@ class InventoryPersistenceService {
         sessionId: data.session_id,
         ...(data.warehouse_id ? { warehouseId: data.warehouse_id } : {}),
         items: Array.isArray(data.items)
-          ? (data.items as unknown as InventorySessionDraft['items'])
+          ? data.items.map((raw: unknown) => {
+              const item = raw as Record<string, unknown>;
+              let counted: number | null = null;
+              if (item.countedQuantity !== undefined && item.countedQuantity !== null) {
+                const parsed = Number(item.countedQuantity);
+                counted = Number.isNaN(parsed) ? null : parsed;
+              } else if (item.counted_quantity !== undefined && item.counted_quantity !== null) {
+                const parsed = Number(item.counted_quantity);
+                counted = Number.isNaN(parsed) ? null : parsed;
+              }
+              return {
+                productId: String(item.productId || item.product_id || item.id || ''),
+                countedQuantity: counted,
+                timestamp: typeof item.timestamp === 'number' ? item.timestamp : Date.now(),
+                synced: typeof item.synced === 'boolean' ? item.synced : true,
+              };
+            })
           : [],
         lastSavedAt: new Date(data.updated_at ?? new Date().toISOString()).getTime(),
         isDirty: false,
@@ -275,6 +291,8 @@ class InventoryPersistenceService {
     // Save to sessionStorage synchronously (consistent with scheduleLocalSave)
     try {
       const serialized = JSON.stringify({ ...draft, lastSavedAt: Date.now() });
+      // Write session-specific key first (matches scheduleLocalSave behaviour)
+      sessionStorage.setItem(this.getStorageKey(draft.sessionId), serialized);
       sessionStorage.setItem(STORAGE_KEY, serialized);
     } catch (error) {
       logger.error('inventoryPersistenceService', 'Failed to force save:', error);

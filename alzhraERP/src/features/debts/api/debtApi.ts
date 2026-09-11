@@ -73,7 +73,11 @@ export const debtApi = {
       // (return []) instead of throwing — throwing makes TanStack Query retry
       // and spam 400s.
       if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
-        logger.warn('DebtAPI', 'get_debt_today_tasks RPC not found on server — apply migration 20260814000006', { companyId });
+        logger.warn(
+          'DebtAPI',
+          'get_debt_today_tasks RPC not found on server — apply migration 20260814000006',
+          { companyId }
+        );
         return [];
       }
       throw error;
@@ -81,7 +85,10 @@ export const debtApi = {
     return data ?? [];
   },
 
-  getPartyOverview: async (companyId: string, partyId: string): Promise<PartyDebtOverview | null> => {
+  getPartyOverview: async (
+    companyId: string,
+    partyId: string
+  ): Promise<PartyDebtOverview | null> => {
     const { data, error } = await supabase.rpc('get_debt_party_overview', {
       p_company_id: companyId,
       p_party_id: partyId,
@@ -90,7 +97,10 @@ export const debtApi = {
     return data.length > 0 ? data[0] : null;
   },
 
-  getPartyBalances: async (companyId: string, partyId: string): Promise<PartyBalanceByCurrency[]> => {
+  getPartyBalances: async (
+    companyId: string,
+    partyId: string
+  ): Promise<PartyBalanceByCurrency[]> => {
     const { data, error } = await supabase.rpc('get_party_all_balances', {
       p_company_id: companyId,
       p_party_id: partyId,
@@ -150,19 +160,28 @@ export const debtApi = {
     return data;
   },
 
-  updatePromise: async (id: string, payload: PaymentPromiseUpdate): Promise<PaymentPromise> => {
+  updatePromise: async (
+    companyId: string,
+    id: string,
+    payload: PaymentPromiseUpdate
+  ): Promise<PaymentPromise> => {
     const { data, error } = await supabase
       .from('debt_payment_promises')
       .update(payload)
       .eq('id', id)
+      .eq('company_id', companyId) // دفاع عمق: منع تعديل وعود شركة أخرى
       .select()
       .single();
     if (error) throw error;
     return data;
   },
 
-  deletePromise: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('debt_payment_promises').delete().eq('id', id);
+  deletePromise: async (companyId: string, id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('debt_payment_promises')
+      .delete()
+      .eq('id', id)
+      .eq('company_id', companyId); // دفاع عمق: منع حذف وعود شركة أخرى
     if (error) throw error;
   },
 
@@ -174,7 +193,11 @@ export const debtApi = {
     return data;
   },
 
-  completePromise: async (companyId: string, promiseId: string, paymentId?: string): Promise<void> => {
+  completePromise: async (
+    companyId: string,
+    promiseId: string,
+    paymentId?: string
+  ): Promise<void> => {
     const { error } = await supabase.rpc('complete_promise', {
       p_company_id: companyId,
       p_promise_id: promiseId,
@@ -187,10 +210,7 @@ export const debtApi = {
 export const debtMessageApi = {
   // ── Message templates ──
   getTemplates: async (companyId: string, activeOnly = true): Promise<DebtMessageTemplate[]> => {
-    let query = supabase
-      .from('debt_message_templates')
-      .select('*')
-      .eq('company_id', companyId);
+    let query = supabase.from('debt_message_templates').select('*').eq('company_id', companyId);
     if (activeOnly) query = query.eq('is_active', true);
     query = query.order('name', { ascending: true });
     const { data, error } = await query;
@@ -222,8 +242,12 @@ export const debtMessageApi = {
     return data;
   },
 
-  deleteTemplate: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('debt_message_templates').delete().eq('id', id);
+  deleteTemplate: async (companyId: string, id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('debt_message_templates')
+      .delete()
+      .eq('id', id)
+      .eq('company_id', companyId); // دفاع عمق: منع حذف قوالب شركة أخرى
     if (error) throw error;
   },
 
@@ -272,18 +296,20 @@ export const debtMessageApi = {
   },
 
   // ── Opening balances (legacy debts) ──
-  getOpeningBalances: async (companyId: string, partyId?: string): Promise<PartyOpeningBalance[]> => {
-    let query = supabase
-      .from('party_opening_balances')
-      .select('*')
-      .eq('company_id', companyId);
+  getOpeningBalances: async (
+    companyId: string,
+    partyId?: string
+  ): Promise<PartyOpeningBalance[]> => {
+    let query = supabase.from('party_opening_balances').select('*').eq('company_id', companyId);
     if (partyId) query = query.eq('party_id', partyId);
     const { data, error } = await query.order('entry_date', { ascending: false });
     if (error) throw error;
     return data;
   },
 
-  upsertOpeningBalance: async (payload: PartyOpeningBalanceInsert): Promise<PartyOpeningBalance> => {
+  upsertOpeningBalance: async (
+    payload: PartyOpeningBalanceInsert
+  ): Promise<PartyOpeningBalance> => {
     const { data, error } = await supabase
       .from('party_opening_balances')
       .upsert(payload, { onConflict: 'company_id,party_id,currency_code' })
@@ -293,4 +319,3 @@ export const debtMessageApi = {
     return data;
   },
 };
-

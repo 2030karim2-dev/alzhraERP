@@ -39,7 +39,9 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم حفظ إعدادات المتابعة', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   // ── Payment promises ────────────────────────────────────────
@@ -53,31 +55,39 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم تسجيل وعد السداد', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const updatePromise = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: PaymentPromiseUpdate }) => {
       await assertPermission('debts:manage', 'تعديل وعد السداد');
-      return debtApi.updatePromise(id, payload);
+      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      return debtApi.updatePromise(companyId, id, payload);
     },
     onSuccess: () => {
       invalidateDebtQueries();
       showToast('تم تحديث الوعد', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const deletePromise = useMutation({
     mutationFn: async (id: string) => {
       await assertPermission('debts:manage', 'حذف وعد السداد');
-      return debtApi.deletePromise(id);
+      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      return debtApi.deletePromise(companyId, id);
     },
     onSuccess: () => {
       invalidateDebtQueries();
       showToast('تم حذف الوعد', 'info');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const completePromise = useMutation({
@@ -90,7 +100,9 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم إتمام الوعد 🎉', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const breakOverduePromises = useMutation({
@@ -99,14 +111,13 @@ export const useDebtMutations = () => {
       if (!companyId) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.breakOverduePromises(companyId);
     },
-    onSuccess: (ids) => {
+    onSuccess: ids => {
       invalidateDebtQueries();
-      showToast(
-        ids.length > 0 ? `تم كشف ${ids.length} وعد مخلَف` : 'لا توجد وعود متجاوزة',
-        'info'
-      );
+      showToast(ids.length > 0 ? `تم كشف ${ids.length} وعد مخلَف` : 'لا توجد وعود متجاوزة', 'info');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   // ── Message templates ───────────────────────────────────────
@@ -120,7 +131,9 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم حفظ القالب', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const updateTemplate = useMutation({
@@ -132,19 +145,24 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم تحديث القالب', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
       await assertPermission('debts:manage', 'حذف قالب رسالة');
-      return debtMessageApi.deleteTemplate(id);
+      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      return debtMessageApi.deleteTemplate(companyId, id);
     },
     onSuccess: () => {
       invalidateDebtQueries();
       showToast('تم حذف القالب', 'info');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   // ── Reminder recording (wa.me — log the send, user opens the link) ──
@@ -170,7 +188,9 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم تسجيل التذكير — اضغط واتساب لإرسال الرسالة', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   // ── Opening balances ────────────────────────────────────────
@@ -184,7 +204,9 @@ export const useDebtMutations = () => {
       invalidateDebtQueries();
       showToast('تم حفظ الرصيد الافتتاحي', 'success');
     },
-    onError: (err: Error) => { showToast(err.message, 'error', err); },
+    onError: (err: Error) => {
+      showToast(err.message, 'error', err);
+    },
   });
 
   return {
@@ -213,4 +235,3 @@ export const useDebtMutations = () => {
       saveOpeningBalance.isPending,
   };
 };
-

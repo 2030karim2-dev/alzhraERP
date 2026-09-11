@@ -205,11 +205,11 @@ const InventoryPage: React.FC = () => {
 
         <div
           className={cn(
-            'relative z-20 flex flex-1 flex-col min-h-0 overflow-hidden transition-all duration-500',
+            'relative z-20 flex min-h-0 flex-1 flex-col overflow-hidden transition-all duration-500',
             isZenMode ? 'bg-[var(--app-surface)]' : ''
           )}
         >
-          <ContentContainer fluid fillHeight className="h-full flex-1 flex flex-col min-h-0">
+          <ContentContainer fluid fillHeight className="flex h-full min-h-0 flex-1 flex-col">
             {showSmartImport ? (
               <div className="flex h-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between border-b bg-gray-50 p-3 dark:bg-slate-950/50 max-md:p-2">
@@ -228,7 +228,7 @@ const InventoryPage: React.FC = () => {
                 </div>
               </div>
             ) : showSplitDetail ? (
-              <div className="flex flex-1 min-h-0 h-full gap-0 overflow-hidden">
+              <div className="flex h-full min-h-0 flex-1 gap-0 overflow-hidden">
                 {/* Detail Pane — left side on RTL */}
                 <div className="custom-scrollbar w-[480px] overflow-y-auto border-l border-[var(--app-border)] bg-[var(--app-surface)] 4xl:w-[560px] 5xl:w-[640px]">
                   <div className="p-4 max-md:p-2">
@@ -263,7 +263,6 @@ const InventoryPage: React.FC = () => {
                     setSelectedProduct={setSelectedProduct}
                     handleEdit={handleEdit}
                     deleteProduct={handleDeleteProduct}
-                    handleSmartImportConfirm={handleSmartImportConfirm}
                     onMaximizeProduct={() => setIsDetailsMaximized(true)}
                   />
                   {activeView === 'products' && (
@@ -282,7 +281,7 @@ const InventoryPage: React.FC = () => {
               </div>
             ) : (
               /* Standard Layout: single column */
-              <div className="flex flex-1 min-h-0 h-full flex-col overflow-hidden transition-all duration-500">
+              <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden transition-all duration-500">
                 {isError ? (
                   <ErrorDisplay
                     error={error?.message || null}
@@ -304,7 +303,6 @@ const InventoryPage: React.FC = () => {
                       setSelectedProduct={setSelectedProduct}
                       handleEdit={handleEdit}
                       deleteProduct={handleDeleteProduct}
-                      handleSmartImportConfirm={handleSmartImportConfirm}
                       onMaximizeProduct={() => setIsDetailsMaximized(true)}
                     />
                     {activeView === 'products' && (

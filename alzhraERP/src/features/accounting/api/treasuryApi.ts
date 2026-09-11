@@ -70,7 +70,7 @@ export const treasuryApi = {
   deactivateCashbox: async (companyId: string, id: string) => {
     const { data, error } = await supabase
       .from('cashboxes')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .update({ is_active: false, updated_at: 'now()' })
       .eq('id', id)
       .eq('company_id', companyId)
       .select('id')
@@ -109,7 +109,7 @@ export const treasuryApi = {
   deactivateExchangeCompany: async (companyId: string, id: string) => {
     const { data, error } = await supabase
       .from('exchange_companies')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .update({ is_active: false, updated_at: 'now()' })
       .eq('id', id)
       .eq('company_id', companyId)
       .select('id')

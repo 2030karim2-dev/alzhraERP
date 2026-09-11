@@ -3,6 +3,7 @@ import { logger } from '../../../core/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../../core/utils';
+import { SOX_BALANCE_TOLERANCE } from '../../../core/utils/decimalUtils';
 import { useAuditJournals } from '../hooks/useReports';
 import { useFeedbackStore } from '../../../features/feedback/store';
 import Modal from '../../../ui/base/Modal';
@@ -62,8 +63,8 @@ export const AuditModal: React.FC<Props> = ({ onClose }) => {
       }
 
       const diff = Math.abs(totalDebit - totalCredit);
-      // Same tolerance as the DB `check_journal_balance` deferred trigger (0.001)
-      const isBalanced = diff < 0.001;
+      // Use the same SOX-grade tolerance as the DB balance trigger and journalsApi (R3)
+      const isBalanced = diff < SOX_BALANCE_TOLERANCE.toNumber();
 
       if (!isBalanced) {
         unbalancedCount++;

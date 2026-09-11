@@ -25,7 +25,7 @@ import type { Product } from '../types';
 interface AuditProgressItem {
   id?: string;
   product_id: string;
-  counted_quantity: number;
+  counted_quantity: number | null;
 }
 
 const AuditSessionPage: React.FC = () => {
@@ -143,12 +143,22 @@ const AuditSessionPage: React.FC = () => {
       const matched = formItems.find(f => String(f.product_id || f.id || '') === targetProductId);
       const formVal = matched?.counted_quantity;
       const counted = formVal !== undefined && formVal !== '' ? formVal : rawItem.counted_quantity;
+      let finalCounted: number | null = null;
+      if (counted !== null && counted !== undefined && counted !== '') {
+        const parsed = Number(counted);
+        finalCounted = Number.isNaN(parsed) ? null : parsed;
+      } else if (
+        rawItem.counted_quantity !== null &&
+        rawItem.counted_quantity !== undefined &&
+        rawItem.counted_quantity !== ''
+      ) {
+        const parsed = Number(rawItem.counted_quantity);
+        finalCounted = Number.isNaN(parsed) ? null : parsed;
+      }
+
       const res: AuditProgressItem = {
         product_id: targetProductId,
-        counted_quantity:
-          counted !== null && counted !== undefined && counted !== ''
-            ? Number(counted)
-            : Number(rawItem.counted_quantity ?? 0),
+        counted_quantity: finalCounted,
       };
       if (typeof rawItem.id === 'string' && rawItem.id.length > 0) {
         res.id = rawItem.id;
@@ -413,7 +423,7 @@ const AuditSessionPage: React.FC = () => {
         items: currentItems as unknown as Array<{
           id?: string;
           product_id: string;
-          counted_quantity: number;
+          counted_quantity: number | null;
         }>,
       });
 

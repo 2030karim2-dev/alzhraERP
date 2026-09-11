@@ -3,6 +3,7 @@ import type { CreateInvoiceDTO } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { notificationService } from '../notifications/service';
 import { toBaseCurrency } from '../../core/utils/currencyUtils';
+import { formatLocalDate } from '../../core/utils/dateUtils';
 import { netUnitPrices } from '../../core/utils/invoiceDiscount';
 import { validateSalePayload, assertValid } from '../../core/utils/validationUtils';
 import { resolveStrictPaymentAccount, type RoutableAccount } from '../../core/utils/accountRouting';
@@ -227,7 +228,7 @@ export const salesService = {
           customerName: payload.customerName || CASH_CUSTOMER_LABEL, // [FIX] استخدام اسم العميل المُمرر
           amount: itemsTotal,
           currency: payload.currency || 'SAR',
-          date: new Date().toLocaleDateString('en-GB'),
+          date: formatLocalDate(),
           paymentMethod: payload.paymentMethod || 'cash',
           itemCount: payload.items?.length || 0,
         },

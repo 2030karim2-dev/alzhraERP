@@ -175,26 +175,58 @@ export const salesApi = {
       throw new Error('يجب اختيار العميل قبل إنشاء مرتجع المبيعات');
     }
 
-    const rpcParams = {
-      p_company_id: companyId,
-      p_user_id: userId,
-      p_party_id: payload.partyId,
-      p_items: payload.items.map(i => ({
-        product_id: i.productId,
-        quantity: i.quantity,
-        unit_price: i.unitPrice,
-      })),
-      ...(payload.notes ? { p_notes: payload.notes } : {}),
-      ...(payload.currency ? { p_currency: payload.currency } : {}),
-      ...(payload.exchangeRate ? { p_exchange_rate: Number(payload.exchangeRate) } : {}),
-      ...(payload.referenceInvoiceId ? { p_reference_invoice_id: payload.referenceInvoiceId } : {}),
-      ...(payload.returnReason ? { p_return_reason: payload.returnReason } : {}),
-      ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
-    };
+    const returnItems = payload.items.map(i => ({
+      product_id: i.productId,
+      quantity: i.quantity,
+      unit_price: i.unitPrice,
+    }));
 
-    const { data: result, error } = await supabase.rpc('commit_sale_return', rpcParams);
-    if (error) throw parseError(error);
-    return result as unknown as InvoiceResponse;
+    try {
+      const { data: result, error } = await supabase.rpc('process_sales_return', {
+        p_invoice_id: (payload.referenceInvoiceId || null) as unknown as string,
+        p_party_id: (payload.partyId || null) as unknown as string,
+        p_payment_method: payload.paymentMethod || 'cash',
+        p_items: returnItems as any,
+        p_return_reason: payload.returnReason || '',
+        p_status: 'posted',
+        p_notes: payload.notes || '',
+        p_issue_date: payload.issueDate || formatLocalDate(),
+        p_currency_code: payload.currency || 'SAR',
+        p_exchange_rate: payload.exchangeRate ? Number(payload.exchangeRate) : 1,
+        p_company_id: companyId,
+        p_user_id: userId,
+      });
+
+      if (error) throw error;
+      return result as unknown as InvoiceResponse;
+    } catch (err) {
+      logger.warn(
+        'salesApi',
+        'process_sales_return failed, attempting fallback to commit_sale_return:',
+        err
+      );
+      const rpcParams = {
+        p_company_id: companyId,
+        p_user_id: userId,
+        p_party_id: payload.partyId,
+        p_items: returnItems,
+        ...(payload.notes ? { p_notes: payload.notes } : {}),
+        ...(payload.currency ? { p_currency: payload.currency } : {}),
+        ...(payload.exchangeRate ? { p_exchange_rate: Number(payload.exchangeRate) } : {}),
+        ...(payload.referenceInvoiceId
+          ? { p_reference_invoice_id: payload.referenceInvoiceId }
+          : {}),
+        ...(payload.returnReason ? { p_return_reason: payload.returnReason } : {}),
+        ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
+      };
+
+      const { data: fallbackResult, error: fallbackError } = await supabase.rpc(
+        'commit_sale_return',
+        rpcParams
+      );
+      if (fallbackError) throw parseError(fallbackError);
+      return fallbackResult as unknown as InvoiceResponse;
+    }
   },
 
   getInvoiceDetails: async (invoiceId: string) => {

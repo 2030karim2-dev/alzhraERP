@@ -109,9 +109,17 @@ CREATE INDEX IF NOT EXISTS idx_incentive_targets_updated_by ON public.incentive_
 CREATE INDEX IF NOT EXISTS idx_incentive_targets_user_id ON public.incentive_targets USING btree (user_id);
 CREATE INDEX IF NOT EXISTS idx_incentive_tiers_company_id ON public.incentive_tiers USING btree (company_id);
 CREATE INDEX IF NOT EXISTS idx_incentive_tiers_tier_currency_code ON public.incentive_tiers USING btree (tier_currency_code);
-CREATE INDEX IF NOT EXISTS idx_inv_stock_audit_items_audit_id ON public.inv_stock_audit_items USING btree (audit_id);
-CREATE INDEX IF NOT EXISTS idx_inv_stock_movement_items_movement_id ON public.inv_stock_movement_items USING btree (movement_id);
-CREATE INDEX IF NOT EXISTS idx_inv_stock_movements_to_warehouse_id ON public.inv_stock_movements USING btree (to_warehouse_id);
+DO $$ BEGIN
+  IF to_regclass('public.inv_stock_audit_items') IS NOT NULL THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_inv_stock_audit_items_audit_id ON public.inv_stock_audit_items USING btree (audit_id)';
+  END IF;
+  IF to_regclass('public.inv_stock_movement_items') IS NOT NULL THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_inv_stock_movement_items_movement_id ON public.inv_stock_movement_items USING btree (movement_id)';
+  END IF;
+  IF to_regclass('public.inv_stock_movements') IS NOT NULL THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_inv_stock_movements_to_warehouse_id ON public.inv_stock_movements USING btree (to_warehouse_id)';
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_inventory_session_drafts_warehouse_id ON public.inventory_session_drafts USING btree (warehouse_id);
 CREATE INDEX IF NOT EXISTS idx_invitations_branch_id ON public.invitations USING btree (branch_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_payment_account_id ON public.invoices USING btree (payment_account_id);

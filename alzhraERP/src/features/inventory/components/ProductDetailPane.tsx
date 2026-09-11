@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Edit, Trash2, Package, X, Maximize2 } from 'lucide-react';
+import { Box, Edit, Trash2, Package, X, Maximize2, Star } from 'lucide-react';
 import type { Product } from '../types';
 import StockStatusBadge from './product_detail/StockStatusBadge';
 import ProductDetailsContent from './product_detail/ProductDetailsContent';
@@ -46,6 +46,12 @@ const ProductDetailPane: React.FC<Props> = ({ product, onEdit, onDelete, onClose
               <h2 className="truncate text-sm font-bold uppercase leading-none tracking-tight text-slate-900 dark:text-white">
                 {product.name}
               </h2>
+              {product.is_core && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                  <Star size={10} className="fill-amber-400 text-amber-500" />
+                  صنف استراتيجي
+                </span>
+              )}
               <div className="origin-right scale-75">
                 <StockStatusBadge
                   quantity={product.stock_quantity}

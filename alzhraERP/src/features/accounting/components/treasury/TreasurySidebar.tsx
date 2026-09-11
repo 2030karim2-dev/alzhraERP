@@ -195,7 +195,7 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
 
     // Sort
     const sortNodes = (nodes: AccountNode[]) => {
-      nodes.sort((a, b) => parseInt(a.code) - parseInt(b.code));
+      nodes.sort((a, b) => parseInt(a.code, 10) - parseInt(b.code, 10));
       nodes.forEach(n => {
         if (n.children.length > 0) sortNodes(n.children);
       });
@@ -238,10 +238,13 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
   };
 
   const handleCreate = (data: AccountFormData) => {
-    const highestCode = Math.max(
-      0,
-      ...(accounts || []).filter(a => a.code.startsWith('10')).map(a => parseInt(a.code))
-    );
+    // Generate the next sibling code under the direct '10xx' level only
+    // (never mix 1010, 101001 etc. in the same max() call — that produces wrong codes)
+    const directChildren = (accounts || []).filter(a => {
+      const numeric = parseInt(a.code, 10);
+      return a.code.startsWith('10') && a.code.length <= 4 && !isNaN(numeric);
+    });
+    const highestCode = Math.max(0, ...directChildren.map(a => parseInt(a.code, 10)));
     const newCode = (highestCode + 1).toString();
 
     createAccount(

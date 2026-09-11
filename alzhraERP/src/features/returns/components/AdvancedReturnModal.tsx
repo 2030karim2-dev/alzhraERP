@@ -50,6 +50,10 @@ const returnSchema = z.object({
     .refine(items => items.some(item => item.returnQuantity > 0), {
       message: 'يجب اختيار كمية للإرجاع في واحد على الأقل من الأصناف',
       path: ['items'], // show error on the items array
+    })
+    .refine(items => items.every(item => item.returnQuantity <= item.maxQuantity), {
+      message: 'كمية الإرجاع لا يمكن أن تتجاوز الكمية المباعة الأصلية',
+      path: ['items'],
     }),
   returnReason: z.string().min(1, 'يرجى اختيار سبب الإرجاع'),
   status: z.enum(['processing', 'accepted', 'rejected']),

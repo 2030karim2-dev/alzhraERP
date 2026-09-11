@@ -66,22 +66,33 @@ export function useInventorySession({
           const mergedItems = [...baseList];
 
           draft.items.forEach(draftItem => {
+            const rawDraft = draftItem as Record<string, unknown>;
+            const draftProductId = String(
+              draftItem.productId || rawDraft.product_id || rawDraft.id || ''
+            );
+            const draftCountedQty =
+              draftItem.countedQuantity !== undefined
+                ? draftItem.countedQuantity
+                : rawDraft.counted_quantity !== undefined
+                  ? (rawDraft.counted_quantity as number | null)
+                  : null;
+
             const existingIndex = mergedItems.findIndex(
-              i => (i.product_id || i.id) === draftItem.productId
+              i => (i.product_id || i.id) === draftProductId
             );
 
             if (existingIndex >= 0) {
-              if (draftItem.countedQuantity !== null && draftItem.countedQuantity !== undefined) {
+              if (draftCountedQty !== null && draftCountedQty !== undefined) {
                 mergedItems[existingIndex] = {
                   ...mergedItems[existingIndex],
-                  counted_quantity: draftItem.countedQuantity,
+                  counted_quantity: draftCountedQty,
                 };
               }
-            } else {
+            } else if (draftProductId) {
               // Edge case: item in draft but not in server yet
               mergedItems.push({
-                product_id: draftItem.productId,
-                counted_quantity: draftItem.countedQuantity,
+                product_id: draftProductId,
+                counted_quantity: draftCountedQty,
               });
             }
           });

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TrendingDown, TrendingUp, Scale, Wallet, DollarSign } from 'lucide-react';
 // Fix: Corrected import path to point to the barrel file.
@@ -11,11 +10,11 @@ const AccountingStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
         {[1, 2, 3, 4, 5].map(i => (
           <div
             key={i}
-            className="h-28 bg-[var(--app-surface)] border border-[var(--app-border)] shadow-sm animate-pulse"
+            className="h-28 animate-pulse border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm"
           />
         ))}
       </div>
@@ -26,18 +25,22 @@ const AccountingStats: React.FC = () => {
   const totalRevenue = financials?.incomeStatement?.totalRevenue || 0;
   const totalExpenses = financials?.incomeStatement?.totalExpense || 0;
   const totalAssets = financials?.balanceSheet?.totals?.assets || 0;
-  const totalLiabilities = Math.abs(financials?.balanceSheet?.totals?.liabilities || 0);
+  const totalLiabilities = financials?.balanceSheet?.totals?.liabilities || 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 transition-colors duration-300">
+    <div className="grid grid-cols-2 gap-2 transition-colors duration-300 md:grid-cols-3 lg:grid-cols-5">
       <StatCard
         title="صافي الربح"
         value={formatCurrency(netIncome)}
         subtext={netIncome >= 0 ? 'أرباح محققة' : 'خسائر'}
         icon={DollarSign}
-        colorClass={netIncome >= 0 ? "text-emerald-500" : "text-red-500"}
-        iconBgClass={netIncome >= 0 ? "bg-emerald-500" : "bg-red-500"}
-        trend={totalRevenue > 0 ? { value: (netIncome / totalRevenue) * 100, isPositive: netIncome >= 0 } : undefined}
+        colorClass={netIncome >= 0 ? 'text-emerald-500' : 'text-red-500'}
+        iconBgClass={netIncome >= 0 ? 'bg-emerald-500' : 'bg-red-500'}
+        trend={
+          totalRevenue > 0
+            ? { value: (netIncome / totalRevenue) * 100, isPositive: netIncome >= 0 }
+            : undefined
+        }
       />
 
       <StatCard

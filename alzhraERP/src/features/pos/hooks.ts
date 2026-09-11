@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-// import { ProcessPOSCheckoutUsecase } from '../../core/usecases/sales/ProcessPOSCheckoutUsecase';
 import { useAuthStore } from '../auth/store';
 import { useFeedbackStore } from '../feedback/store';
 import type { CreateInvoiceDTO } from '../sales/types';
-// Fix: Import 'salesService' to resolve the 'Cannot find name' error.
 import { salesService } from '../sales/service';
 import { useBranchFilter } from '../branches/hooks/useBranchFilter';
+import { invalidateByPreset } from '../../lib/invalidation';
+import { syncStore } from '../../core/lib/sync-store';
 
 export const usePOSCheckout = () => {
   const queryClient = useQueryClient();
@@ -22,14 +22,24 @@ export const usePOSCheckout = () => {
     },
     onSuccess: invoice => {
       showToast(`تمت عملية البيع بنجاح (رقم: ${invoice?.invoice_number ?? ''})`, 'success');
-      // تحديث البيانات في الخلفية
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard_data'] });
+      invalidateByPreset(queryClient, 'sale');
     },
-    onError: (error: any) => {
-      showToast('فشل في إتمام عملية البيع', 'error', error);
+    onError: (error: any, variables: CreateInvoiceDTO) => {
+      const err = error as { message?: string; status?: number };
+      const isFetchError =
+        typeof err?.message === 'string' && err.message.includes('Failed to fetch');
+      const isNetworkError = err?.status === 0;
+
+      if (!navigator.onLine || isFetchError || isNetworkError) {
+        void syncStore.enqueue({
+          mutationKey: ['sales', 'create'],
+          variables: { ...variables, company_id: user?.company_id, user_id: user?.id },
+        });
+        showToast('تم حفظ الفاتورة محلياً وسيتم مزامنتها عند عودة الاتصال', 'info');
+        return;
+      }
+
+      showToast(err?.message || 'فشل في إتمام عملية البيع', 'error');
     },
   });
 

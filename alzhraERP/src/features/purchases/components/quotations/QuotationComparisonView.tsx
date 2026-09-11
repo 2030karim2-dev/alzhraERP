@@ -13,6 +13,7 @@ import {
 import { purchaseQuotationsApi } from '../../api/quotationsApi';
 import { formatCurrency } from '../../../../core/utils';
 import { usePurchaseStore } from '../../store';
+import { useAuthStore } from '../../../auth/store';
 import { logger } from '../../../../core/utils/logger';
 
 interface Props {
@@ -176,6 +177,7 @@ const ComparisonHeader = ({
     </div>
     <div className="flex items-center gap-2">
       <button
+        type="button"
         aria-label={expanded ? 'طي المقارنة' : 'توسيع المقارنة'}
         onClick={onToggle}
         className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-violet-50 hover:text-violet-600 dark:hover:bg-violet-900/20"
@@ -183,6 +185,7 @@ const ComparisonHeader = ({
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       <button
+        type="button"
         onClick={onClose}
         className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:bg-slate-800 dark:hover:bg-slate-700"
       >
@@ -470,17 +473,18 @@ const QuotationComparisonView: React.FC<Props> = ({ rfqGroupId, onClose, onConve
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
+  const { user } = useAuthStore();
   const fetchComparison = useCallback(async (): Promise<void> => {
-    if (rfqGroupId === '') return;
+    if (rfqGroupId === '' || !user?.company_id) return;
     setLoading(true);
     try {
-      const response = await purchaseQuotationsApi.getComparisonData(rfqGroupId);
+      const response = await purchaseQuotationsApi.getComparisonData(rfqGroupId, user.company_id);
       const rawData: unknown = response.data;
       setSuppliers(normalizeSuppliers(rawData));
     } finally {
       setLoading(false);
     }
-  }, [rfqGroupId]);
+  }, [rfqGroupId, user?.company_id]);
   useEffect(() => {
     void fetchComparison();
   }, [fetchComparison]);

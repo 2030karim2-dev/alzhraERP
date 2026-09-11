@@ -217,7 +217,15 @@ export const supplierPortalService = {
 
       const rawProducts = (data || []) as unknown as RawProductRow[];
 
-      return rawProducts.map((row): VendorProductItem => {
+      const filteredProducts = supplierId
+        ? rawProducts.filter(
+            row =>
+              Array.isArray(row.prc_supplier_products) &&
+              row.prc_supplier_products.some(sp => sp.supplier_id === supplierId)
+          )
+        : rawProducts;
+
+      return filteredProducts.map((row): VendorProductItem => {
         const supplierProd = Array.isArray(row.prc_supplier_products)
           ? row.prc_supplier_products.find(sp => !supplierId || sp.supplier_id === supplierId)
           : null;
@@ -252,9 +260,23 @@ export const supplierPortalService = {
   /**
    * Fetches RFQs invited to or managed
    */
-  getVendorRFQs: async (companyId: string, _supplierId?: string): Promise<VendorRFQ[]> => {
+  getVendorRFQs: async (companyId: string, supplierId?: string): Promise<VendorRFQ[]> => {
     try {
-      const query = supabase
+      let rfqIds: string[] | null = null;
+      if (supplierId) {
+        const { data: invitedRows, error: invitedErr } = await supabase
+          .from('prc_rfq_suppliers')
+          .select('rfq_id')
+          .eq('company_id', companyId)
+          .eq('supplier_id', supplierId);
+        if (invitedErr) throw invitedErr;
+        rfqIds = (invitedRows || []).map((r: { rfq_id: string }) => r.rfq_id);
+        if (rfqIds.length === 0) {
+          return [];
+        }
+      }
+
+      let query = supabase
         .from('prc_rfqs')
         .select(
           `
@@ -285,6 +307,10 @@ export const supplierPortalService = {
         )
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
+
+      if (rfqIds) {
+        query = query.in('rfq_id', rfqIds);
+      }
 
       const { data, error } = await query;
       if (error) throw error;

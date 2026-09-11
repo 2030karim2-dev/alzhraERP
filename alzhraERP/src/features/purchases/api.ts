@@ -44,6 +44,7 @@ interface PurchaseReturnRpcParams {
   p_notes: string;
   p_return_reason?: string;
   p_branch_id?: string;
+  p_reference_invoice_id?: string;
 }
 
 const hasText = (value: string | null | undefined): value is string =>
@@ -115,6 +116,7 @@ const buildReturnParams = (
   p_notes: data.notes ?? '',
   ...(hasText(data.returnReason) ? { p_return_reason: data.returnReason } : {}),
   ...(hasText(data.branchId) ? { p_branch_id: data.branchId } : {}),
+  ...(hasText(data.referenceInvoiceId) ? { p_reference_invoice_id: data.referenceInvoiceId } : {}),
 });
 
 export const purchasesApi = {

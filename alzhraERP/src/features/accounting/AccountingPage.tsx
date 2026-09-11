@@ -77,6 +77,7 @@ const AccountingPage: React.FC = () => {
   const { createJournal, isCreating } = useJournalMutation();
 
   const handleCreate = (data: JournalEntryFormData) => {
+    if (isCreating) return;
     createJournal(data, {
       onSuccess: () => {
         closeJournalModal();

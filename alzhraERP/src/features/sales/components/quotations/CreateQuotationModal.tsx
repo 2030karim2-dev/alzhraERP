@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Save, Loader2, Calendar, User, Search, Check, X } from 'lucide-react';
+import { FileText, Save, Loader2, Calendar, User, Search, Check, X, RotateCcw } from 'lucide-react';
 import Modal from '@/ui/base/Modal';
 import { useAuthStore } from '@/features/auth/store';
 import { useParties } from '@/features/parties/hooks';
@@ -7,6 +7,9 @@ import ProductSelectionModal from '../create/ProductSelectionModal';
 import { useQuotationForm } from '../../hooks/useQuotationForm';
 import QuotationItemsTable from './QuotationItemsTable';
 import QuotationTotals from './QuotationTotals';
+import { useFeedbackStore } from '@/features/feedback/store';
+import { parseError } from '@/core/utils/errorUtils';
+import type { Party } from '@/features/parties/types';
 
 import type { ItemRow } from '../../hooks/useQuotationForm';
 
@@ -24,6 +27,7 @@ const CreateQuotationModal: React.FC<Props> = ({
   initialNotes,
 }) => {
   const { user } = useAuthStore();
+  const { showToast } = useFeedbackStore();
 
   const {
     saving,
@@ -54,6 +58,8 @@ const CreateQuotationModal: React.FC<Props> = ({
     handleOpenProductSearch,
     handleProductSelect,
     handleSave,
+    hasDraft,
+    clearDraft,
   } = useQuotationForm(user?.company_id, user?.id, onSuccess, {
     items: initialItems,
     notes: initialNotes,
@@ -63,6 +69,15 @@ const CreateQuotationModal: React.FC<Props> = ({
     'customer',
     partyQuery
   );
+
+  const onSubmit = async () => {
+    try {
+      await handleSave();
+    } catch (err) {
+      const parsed = parseError(err);
+      showToast(parsed.message, 'error', parsed);
+    }
+  };
 
   return (
     <Modal
@@ -75,14 +90,18 @@ const CreateQuotationModal: React.FC<Props> = ({
       footer={
         <>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
           >
             إلغاء
           </button>
           <button
-            onClick={handleSave}
-            disabled={saving || items.every(i => !i.description.trim())}
+            type="button"
+            onClick={() => {
+              void onSubmit();
+            }}
+            disabled={saving || items.every(i => !i.description.trim() || !(i.quantity > 0))}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -92,6 +111,23 @@ const CreateQuotationModal: React.FC<Props> = ({
       }
     >
       <div className="space-y-6">
+        {/* Draft restored banner */}
+        {hasDraft && (
+          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 dark:border-amber-700/50 dark:bg-amber-900/20">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <RotateCcw size={14} />
+              <span className="text-xs font-bold">تم استعادة مسودة محفوظة سابقاً</span>
+              <span className="text-[11px] opacity-70">— يمكنك الاستمرار من حيث توقفت</span>
+            </div>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-amber-600 transition-colors hover:bg-amber-100 dark:hover:bg-amber-800/30"
+            >
+              <X size={12} /> تجاهل المسودة
+            </button>
+          </div>
+        )}
         {/* Customer & Date Section */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
@@ -108,6 +144,7 @@ const CreateQuotationModal: React.FC<Props> = ({
                     </span>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedParty(null);
                     }}
@@ -128,6 +165,9 @@ const CreateQuotationModal: React.FC<Props> = ({
                     onFocus={() => {
                       setIsPartyDropdownOpen(true);
                     }}
+                    onBlur={() => {
+                      setTimeout(() => setIsPartyDropdownOpen(false), 150);
+                    }}
                     placeholder="بحث عن عميل..."
                     className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
                   />
@@ -136,35 +176,51 @@ const CreateQuotationModal: React.FC<Props> = ({
                     size={16}
                   />
 
-                  {isPartyDropdownOpen && partyQuery.length > 0 && (
-                    <div className="custom-scrollbar absolute z-50 mt-1 max-h-48 w-full overflow-hidden overflow-y-auto rounded-xl border border-indigo-500 bg-[var(--app-surface)] shadow-2xl">
+                  {isPartyDropdownOpen && (
+                    <div
+                      onMouseDown={e => {
+                        e.preventDefault();
+                      }}
+                      className="custom-scrollbar absolute z-50 mt-1 max-h-52 w-full overflow-hidden overflow-y-auto rounded-xl border border-indigo-500 bg-[var(--app-surface)] shadow-2xl"
+                    >
                       {customersLoading ? (
                         <div className="animate-pulse p-3 text-center text-xs text-gray-400">
                           جاري التحميل...
                         </div>
                       ) : filteredCustomers && filteredCustomers.length > 0 ? (
-                        <ul className="divide-y dark:divide-slate-800">
-                          {filteredCustomers.map((c: any) => (
-                            <li
-                              key={c.id}
-                              onClick={() => {
-                                setSelectedParty(c);
-                                setIsPartyDropdownOpen(false);
-                                setPartyQuery('');
-                              }}
-                              className="group flex cursor-pointer items-center justify-between px-3 py-2 transition-colors hover:bg-indigo-600 hover:text-white"
-                            >
-                              <div className="flex flex-col">
-                                <span className="text-xs font-bold">{c.name}</span>
-                                <span className="text-[10px] opacity-60">{c.phone}</span>
-                              </div>
-                              <Check
-                                size={12}
-                                className="opacity-0 group-hover:opacity-100 max-md:opacity-100"
-                              />
-                            </li>
-                          ))}
-                        </ul>
+                        <>
+                          {partyQuery.length === 0 && (
+                            <div className="border-b border-gray-100 bg-indigo-50/60 px-3 py-1.5 text-[11px] text-indigo-500 dark:border-slate-700 dark:bg-indigo-900/20">
+                              اكتب للتصفية أو اختر من القائمة
+                            </div>
+                          )}
+                          <ul className="divide-y dark:divide-slate-800">
+                            {filteredCustomers.slice(0, 50).map((c: Party) => (
+                              <li
+                                key={c.id}
+                                onClick={() => {
+                                  setSelectedParty({
+                                    id: c.id,
+                                    name: c.name,
+                                    ...(c.phone != null ? { phone: c.phone } : {}),
+                                  });
+                                  setIsPartyDropdownOpen(false);
+                                  setPartyQuery('');
+                                }}
+                                className="group flex cursor-pointer items-center justify-between px-3 py-2 transition-colors hover:bg-indigo-600 hover:text-white"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold">{c.name}</span>
+                                  <span className="text-[10px] opacity-60">{c.phone}</span>
+                                </div>
+                                <Check
+                                  size={12}
+                                  className="opacity-0 group-hover:opacity-100 max-md:opacity-100"
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        </>
                       ) : (
                         <div className="p-3 text-center text-xs text-gray-400">لا توجد نتائج</div>
                       )}

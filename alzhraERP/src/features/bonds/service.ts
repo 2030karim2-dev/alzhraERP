@@ -2,6 +2,9 @@ import { bondsApi } from './api';
 import type { Bond, BondType, BondFormData } from './types';
 import { messagingService } from '../notifications/messagingService';
 import { notificationService } from '../notifications/service';
+import { toBaseCurrency } from '../../core/utils/currencyUtils';
+import { formatLocalDate } from '../../core/utils/dateUtils';
+import { logger } from '../../core/utils/logger';
 
 // Raw shape returned by the Supabase join query in bondsApi.getBonds
 interface RawPaymentRow {
@@ -30,26 +33,37 @@ export const bondsService = {
     if (error) throw error;
 
     return (data || []).map((p: RawPaymentRow) => {
-      // Convention: DB stores `amount` in base currency (SAR).
-      // exchange_rate = كم SAR لكل وحدة أجنبية
-      // للحصول على المبلغ بالعملة الأجنبية: base_amount / rate
-      const isBaseCurrency = !p.currency_code || p.currency_code === 'SAR';
-      const foreignAmount = isBaseCurrency
-        ? p.amount
-        : p.foreign_amount || p.amount / (p.exchange_rate || 1);
+      // payments.amount in DB stores the user-entered transaction amount in p.currency_code.
+      const rawAmount = Number(p.amount) || 0;
+      const safeRate = Number(p.exchange_rate) > 0 ? Number(p.exchange_rate) : 1;
+      let baseAmount = rawAmount;
+      try {
+        baseAmount = toBaseCurrency({
+          amount: rawAmount,
+          currency_code: p.currency_code ?? 'SAR',
+          exchange_rate: safeRate,
+        });
+      } catch (err) {
+        logger.warn(
+          'bondsService',
+          'Failed to convert to base currency, fallback to raw amount',
+          err
+        );
+        baseAmount = rawAmount;
+      }
 
       return {
         id: p.id,
-        payment_number: p.payment_number || '-',
+        payment_number: p.payment_number ?? '-',
         date: p.payment_date,
-        description: p.notes || '',
-        amount: foreignAmount,
-        base_amount: Number(p.amount) || 0,
-        currency_code: p.currency_code || 'SAR',
-        exchange_rate: p.exchange_rate || 1,
+        description: p.notes ?? '',
+        amount: rawAmount,
+        base_amount: baseAmount,
+        currency_code: p.currency_code ?? 'SAR',
+        exchange_rate: safeRate,
         type: (p.type === 'disbursement' ? 'payment' : p.type) as BondType,
-        party_name: p.party?.name || '',
-        account_name: p.account?.name_ar || p.account?.code || '',
+        party_name: p.party?.name ?? '',
+        account_name: p.account?.name_ar ?? p.account?.code ?? '',
         status: p.status as Bond['status'],
         payment_method: p.payment_method,
       };
@@ -72,7 +86,7 @@ export const bondsService = {
           currency: data.currency_code || 'SAR',
           description: data.description || '',
           accountName: '',
-          date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
+          date: formatLocalDate(),
         },
         resultObj.id as string
       );

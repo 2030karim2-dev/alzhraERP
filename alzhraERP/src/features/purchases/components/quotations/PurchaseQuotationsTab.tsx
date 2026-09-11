@@ -521,10 +521,13 @@ export const PurchaseQuotationsTab: React.FC<Props> = ({ onConvertToPurchase }) 
   const fetchQuotations = useCallback(async (): Promise<void> => {
     if (user?.company_id === undefined) return;
     setLoading(true);
-    const response = await purchaseQuotationsApi.getQuotations(user.company_id);
-    const rawData: unknown = response.data;
-    setQuotations(normalizeQuotations(rawData));
-    setLoading(false);
+    try {
+      const response = await purchaseQuotationsApi.getQuotations(user.company_id);
+      const rawData: unknown = response.data;
+      setQuotations(normalizeQuotations(rawData));
+    } finally {
+      setLoading(false);
+    }
   }, [user?.company_id]);
 
   useEffect(() => {

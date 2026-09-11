@@ -13,7 +13,7 @@ export type DeleteAuditItemParams =
 interface AuditItemInput {
   id?: string;
   product_id: string;
-  counted_quantity: number;
+  counted_quantity: number | null;
 }
 
 interface AuditProductRow {

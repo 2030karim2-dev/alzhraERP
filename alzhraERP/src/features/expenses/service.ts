@@ -94,9 +94,11 @@ export const expensesService = {
       if (import.meta.env.DEV) {
         console.warn('[ExpenseService] commit_expense_v2 returned empty result');
       }
+      // لا نُرسل إشعار نجاح إذا لم يُؤكِّد الخادم الإنشاء
+      return true;
     }
 
-    // 🔔 Fire-and-forget notification
+    // 🔔 Fire-and-forget notification — فقط عند التأكد من نجاح الخادم
     messagingService.notify(companyId, 'expense', {
       voucherNumber: formData.voucher_number || '',
       category:

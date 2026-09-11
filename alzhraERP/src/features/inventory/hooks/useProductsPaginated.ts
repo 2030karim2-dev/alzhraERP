@@ -116,7 +116,7 @@ async function fetchProductsFallback(
     )
     .eq('company_id', companyId)
     .is('deleted_at', null)
-    .eq('status', 'active');
+    .or('status.eq.active,status.is.null');
 
   if (isCore !== undefined) {
     query = query.eq('is_core', isCore);
@@ -238,6 +238,23 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
         const totalCount = (data as any)?.[0]?.total_count ?? 0;
         const totalPages = Math.ceil(totalCount / pageSize);
 
+        // Safety fallback: If filtering by isCore=true and RPC returns 0 results,
+        // double-check with direct table fallback to ensure favorite products never disappear
+        if (isCore === true && products.length === 0 && !debouncedSearch.trim()) {
+          const fallbackRes = await fetchProductsFallback(
+            companyId,
+            page,
+            pageSize,
+            debouncedSearch,
+            sortKey,
+            sortDir,
+            isCore
+          );
+          if (fallbackRes.totalCount > 0) {
+            return fallbackRes;
+          }
+        }
+
         return { data: products, totalCount, page, pageSize, totalPages };
       } catch (err) {
         logger.warn('useProductsPaginated', 'search RPC exception, using fallback:', err);
@@ -301,6 +318,19 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
 
           const products = productService.mapRawProducts(data ?? []);
           const totalCount = (data as any)?.[0]?.total_count ?? 0;
+
+          if (isCore === true && products.length === 0 && !debouncedSearch.trim()) {
+            return await fetchProductsFallback(
+              companyId,
+              page + 1,
+              pageSize,
+              debouncedSearch,
+              sortKey,
+              sortDir,
+              isCore
+            );
+          }
+
           return {
             data: products,
             totalCount,

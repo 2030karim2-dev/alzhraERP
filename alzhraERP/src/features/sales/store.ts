@@ -264,7 +264,7 @@ export const useSalesStore = create<SalesState>()(
         set(state => {
           const newItems =
             typeof idOrIndex === 'string'
-              ? state.items.filter(i => i.productId !== idOrIndex)
+              ? state.items.filter(i => i.id !== idOrIndex) // filter by unique row id, not productId
               : state.items.filter((_, i) => i !== idOrIndex);
           return { items: newItems };
         });
