@@ -12,18 +12,23 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StartAuditModal from './StartAuditModal';
-import { useAuditSessions, useInventoryMutations } from '../hooks/useInventoryManagement';
+import {
+  useAuditSessions,
+  useInventoryMutations,
+  type AuditSessionListItem,
+} from '../hooks/useInventoryManagement';
 import { cn } from '../../../core/utils';
 import { formatLocalDate } from '../../../core/utils/dateUtils';
+import { ROUTES } from '../../../core/routes/paths';
 
 const StockAuditView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AuditSessionListItem | null>(null);
   const { data: audits, isLoading } = useAuditSessions();
   const { deleteAuditSession, isDeletingSession } = useInventoryMutations();
   const navigate = useNavigate();
 
-  const handleDeleteClick = (e: React.MouseEvent, session: any) => {
+  const handleDeleteClick = (e: React.MouseEvent, session: AuditSessionListItem) => {
     e.preventDefault();
     e.stopPropagation();
     setDeleteTarget(session);
@@ -44,8 +49,8 @@ const StockAuditView: React.FC = () => {
     if (!audits) return { total: 0, active: 0, completed: 0 };
     return {
       total: audits.length,
-      active: audits.filter((a: any) => a.status === 'active').length,
-      completed: audits.filter((a: any) => a.status === 'completed').length,
+      active: audits.filter((a: AuditSessionListItem) => a.status === 'active').length,
+      completed: audits.filter((a: AuditSessionListItem) => a.status === 'completed').length,
     };
   }, [audits]);
 
@@ -120,7 +125,7 @@ const StockAuditView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => navigate('/inventory/quick-audit')}
+          onClick={() => navigate(ROUTES.DASHBOARD.INVENTORY_QUICK_AUDIT)}
           className="group flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-emerald-500 to-teal-400 p-3.5 text-white shadow-md transition-all hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 max-md:p-2.5"
         >
           <div className="rounded-lg bg-white/20 p-1 transition-transform group-hover:scale-110">
@@ -153,8 +158,8 @@ const StockAuditView: React.FC = () => {
           </div>
         ) : (
           audits
-            .filter((ad: any) => ad.status !== 'cancelled')
-            .map((ad: any) => {
+            .filter((ad: AuditSessionListItem) => ad.status !== 'cancelled')
+            .map((ad: AuditSessionListItem) => {
               const isCompleted = ad.status === 'completed';
               const progress = ad.progress ?? 0;
               const isDeletingThis = deleteTarget?.id === ad.id;
@@ -172,7 +177,11 @@ const StockAuditView: React.FC = () => {
                 >
                   {/* Session content — clickable */}
                   <button
-                    onClick={() => navigate(`/inventory/audit/${ad.id}`)}
+                    onClick={() =>
+                      navigate(
+                        ROUTES.DASHBOARD.INVENTORY_AUDIT_SESSION.replace(':sessionId', ad.id)
+                      )
+                    }
                     className="min-w-0 flex-1 text-right"
                   >
                     <div className="mb-1 flex items-center gap-2">
@@ -246,7 +255,7 @@ const StockAuditView: React.FC = () => {
                           ? 'border-rose-600 bg-rose-600 text-white'
                           : 'border-gray-200 bg-white text-gray-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-rose-700 dark:hover:bg-rose-900/20'
                       )}
-                      title="حذف الجلسة"
+                      title="إلغاء الجلسة"
                     >
                       {isDeletingSession && isDeletingThis ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -294,8 +303,8 @@ const StockAuditView: React.FC = () => {
               </div>
             </div>
             <p className="mb-4 text-[13px] leading-relaxed text-gray-500 dark:text-slate-400">
-              هل أنت متأكد من حذف هذه الجلسة؟ لا يمكن التراجع عن هذا الإجراء وستُحذف جميع بيانات
-              الجرد المرتبطة بها.
+              سيتم إلغاء هذه الجلسة وإخفاؤها من القائمة دون حذف بيانات الجرد المسجلة فيها (لحماية
+              سجل المراجعة). هل تريد المتابعة؟
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -310,7 +319,7 @@ const StockAuditView: React.FC = () => {
                 className="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-60"
               >
                 {isDeletingSession ? <Loader2 size={15} className="animate-spin" /> : null}
-                حذف نهائي
+                إلغاء الجلسة
               </button>
             </div>
           </div>

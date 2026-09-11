@@ -5,6 +5,8 @@ import Button from '../../../ui/base/Button';
 import Modal from '../../../ui/base/Modal';
 import { cn } from '../../../core/utils';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../core/routes/paths';
+import { useFeedbackStore } from '../../feedback/store';
 
 interface StartAuditModalProps {
   isOpen: boolean;
@@ -16,11 +18,11 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
   const { startAudit, isStartingAudit } = useInventoryMutations();
   const { data: auditSessions } = useAuditSessions();
   const navigate = useNavigate();
+  const { showToast } = useFeedbackStore();
 
   const [formData, setFormData] = useState({
     title: `جرد دوري - ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`,
     warehouse_id: '',
-    category: 'all',
   });
 
   if (!isOpen) return null;
@@ -29,20 +31,21 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
     if (!formData.warehouse_id || !formData.title) return;
 
     const hasActiveSession = auditSessions?.some(
-      (s: any) => s.warehouse_id === formData.warehouse_id && s.status === 'active'
+      s => s.warehouse_id === formData.warehouse_id && s.status === 'active'
     );
     if (hasActiveSession) {
-      alert(
-        'تنبيه: يوجد جلسة جرد نشطة مسبقاً لهذا المستودع. لا يمكنك بدء جلسة جديدة قبل إنهاء الجلسة الحالية لتجنب تضارب الأرصدة.'
+      showToast(
+        'تنبيه: يوجد جلسة جرد نشطة مسبقاً لهذا المستودع. لا يمكنك بدء جلسة جديدة قبل إنهاء الجلسة الحالية لتجنب تضارب الأرصدة.',
+        'warning'
       );
       return;
     }
 
     startAudit(formData, {
-      onSuccess: (session: any) => {
+      onSuccess: (session: { id?: string } | null) => {
         onClose();
         if (session?.id) {
-          navigate(`/inventory/audit/${session.id}`);
+          navigate(ROUTES.DASHBOARD.INVENTORY_AUDIT_SESSION.replace(':sessionId', session.id));
         }
       },
     });
@@ -100,7 +103,7 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
               المستودع المستهدف
             </label>
             <div className="grid grid-cols-1 gap-2">
-              {warehouses?.map((w: any) => (
+              {warehouses?.map((w: { id: string; name_ar?: string; name?: string }) => (
                 <button
                   key={w.id}
                   onClick={() => {
@@ -125,28 +128,6 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
                   )}
                 </button>
               ))}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="mr-1 text-xs font-bold uppercase text-gray-400">نطاق الجرد</label>
-            <div className="flex rounded-xl bg-gray-100 p-1.5 dark:bg-slate-800">
-              <button
-                onClick={() => {
-                  setFormData({ ...formData, category: 'all' });
-                }}
-                className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all ${formData.category === 'all' ? 'bg-white text-blue-600 shadow-sm dark:bg-slate-700' : 'text-gray-400'}`}
-              >
-                كافة الأصناف
-              </button>
-              <button
-                onClick={() => {
-                  setFormData({ ...formData, category: 'partial' });
-                }}
-                className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all ${formData.category === 'partial' ? 'bg-white text-blue-600 shadow-sm dark:bg-slate-700' : 'text-gray-400'}`}
-              >
-                أصناف مختارة
-              </button>
             </div>
           </div>
         </div>

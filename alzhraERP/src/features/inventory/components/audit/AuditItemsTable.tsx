@@ -206,6 +206,7 @@ const AuditItemsTable: React.FC<Props> = ({
                       <input
                         key={`qty-${field.id || field.audit_item_id || field.product_id}-${field.counted_quantity ?? 'empty'}`}
                         type="number"
+                        min={0}
                         defaultValue={field.counted_quantity ?? ''}
                         {...register(`items.${field.index}.counted_quantity`, {
                           valueAsNumber: true,

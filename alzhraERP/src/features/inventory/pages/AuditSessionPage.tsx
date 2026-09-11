@@ -11,7 +11,7 @@ import { inventoryService } from '../service';
 import { useInventorySession } from '../hooks/useInventorySession';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
-import AuditStats from '../components/audit/AuditStats';
+import AuditStats, { type AuditSessionInfo } from '../components/audit/AuditStats';
 import AuditItemsTable, { type AuditItemTarget } from '../components/audit/AuditItemsTable';
 import { AuditCategoryFilterBar } from '../components/audit/AuditCategoryFilterBar';
 import { AuditSessionSearchDropdown } from '../components/audit/AuditSessionSearchDropdown';
@@ -557,7 +557,7 @@ const AuditSessionPage: React.FC = () => {
         }}
       >
         <div className="mx-auto max-w-[1600px] space-y-4">
-          <AuditStats stats={stats} session={session} />
+          <AuditStats stats={stats} session={(session ?? {}) as unknown as AuditSessionInfo} />
 
           {/* Category Filter Bar */}
           <AuditCategoryFilterBar

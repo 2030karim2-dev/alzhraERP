@@ -9,7 +9,10 @@ import { useSearchProducts } from '../hooks/useProducts';
 import { useInventoryMutations } from '../hooks/useInventoryManagement';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
-import AuditSearchPanel, { type SearchResult } from '../components/audit/AuditSearchPanel';
+import AuditSearchPanel, {
+  getWarehouseStock,
+  type SearchResult,
+} from '../components/audit/AuditSearchPanel';
 import QuickAuditItemsTable, { type AdjustedItem } from '../components/audit/QuickAuditItemsTable';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { useFeedbackStore } from '../../feedback/store';
@@ -30,13 +33,7 @@ const QuickAuditPage: React.FC = () => {
 
   // Get system quantity for a product in the selected warehouse
   const getSystemQuantity = useCallback(
-    (product: SearchResult): number => {
-      if (!selectedWarehouseId) return 0;
-      const dist = product.warehouse_distribution?.find(
-        w => w.warehouse_id === selectedWarehouseId
-      );
-      return dist ? Number(dist.quantity) || 0 : 0;
-    },
+    (product: SearchResult): number => getWarehouseStock(product, selectedWarehouseId) ?? 0,
     [selectedWarehouseId]
   );
 
@@ -54,7 +51,7 @@ const QuickAuditPage: React.FC = () => {
           return prev;
         }
 
-        const systemQty = getSystemQuantity(product);
+        const systemQty = getSystemQuantity(product) ?? 0;
         const newItem: AdjustedItem = {
           product_id: product.id,
           name_ar: product.name_ar || 'بدون اسم',
@@ -79,7 +76,11 @@ const QuickAuditPage: React.FC = () => {
     setItems(prev =>
       prev.map(item =>
         item.product_id === productId
-          ? { ...item, quantity: qty === '' ? 0 : parseInt(qty, 10) || 0 }
+          ? {
+              ...item,
+              // الكمية المستهدفة لا تكون سالبة أبداً (الخادم يرفض السالب — منع مبكر هنا)
+              quantity: qty === '' ? 0 : Math.max(0, parseInt(qty, 10) || 0),
+            }
           : item
       )
     );

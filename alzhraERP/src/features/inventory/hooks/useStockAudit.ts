@@ -12,14 +12,29 @@ import { syncStore } from '../../../core/lib/sync-store';
 import { parseError } from '../../../core/utils/errorUtils';
 
 /** جلب قائمة جلسات الجرد */
+export interface AuditSessionListItem {
+  id: string;
+  company_id: string;
+  warehouse_id: string;
+  title: string;
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  completed_at?: string | null;
+  completed_by?: string | null;
+  warehouse_name?: string;
+  progress?: number;
+  accuracy?: number;
+}
+
 export const useAuditSessions = () => {
   const { user } = useAuthStore();
-  return useQuery({
+  return useQuery<AuditSessionListItem[]>({
     queryKey: ['audit_sessions', user?.company_id],
-    queryFn: () =>
-      user?.company_id
-        ? inventoryService.getAuditSessions(user.company_id)
-        : Promise.resolve<Awaited<ReturnType<typeof inventoryService.getAuditSessions>>>([]),
+    queryFn: async () => {
+      if (!user?.company_id) return [];
+      const rows = await inventoryService.getAuditSessions(user.company_id);
+      return rows as unknown as AuditSessionListItem[];
+    },
     enabled: !!user?.company_id,
   });
 };
