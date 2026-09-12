@@ -10,11 +10,14 @@ export interface AuditItemTarget {
   name?: string;
 }
 
+export type AuditStatusFilter = 'all' | 'discrepancy' | 'matched' | 'uncounted';
+
 interface Props {
   items: any[];
   register: UseFormRegister<any>;
   filter: string;
   category?: string | null;
+  statusFilter?: AuditStatusFilter;
   isCompleted: boolean;
   onRemoveItem?: (target: AuditItemTarget) => void;
   onSave?: () => void;
@@ -25,6 +28,7 @@ const AuditItemsTable: React.FC<Props> = ({
   register,
   filter,
   category,
+  statusFilter = 'all',
   isCompleted,
   onRemoveItem,
   onSave,
@@ -41,7 +45,23 @@ const AuditItemsTable: React.FC<Props> = ({
         product.sku?.toLowerCase().includes(term) ||
         product.part_number?.toLowerCase().includes(term);
       const matchesCategory = !category || product.category === category;
-      return matchesSearch && matchesCategory;
+
+      // Status filter
+      const isCounted =
+        field.counted_quantity !== null &&
+        field.counted_quantity !== undefined &&
+        field.counted_quantity !== '';
+      const isDiscrepancy =
+        isCounted && Number(field.counted_quantity) !== Number(field.expected_quantity);
+      const isMatched =
+        isCounted && Number(field.counted_quantity) === Number(field.expected_quantity);
+
+      let matchesStatus = true;
+      if (statusFilter === 'discrepancy') matchesStatus = isDiscrepancy;
+      else if (statusFilter === 'matched') matchesStatus = isMatched;
+      else if (statusFilter === 'uncounted') matchesStatus = !isCounted;
+
+      return matchesSearch && matchesCategory && matchesStatus;
     });
 
   const showActions = !isCompleted && !!onRemoveItem;
@@ -204,7 +224,7 @@ const AuditItemsTable: React.FC<Props> = ({
                       </div>
                     ) : (
                       <input
-                        key={`qty-${field.id || field.audit_item_id || field.product_id}-${field.counted_quantity ?? 'empty'}`}
+                        key={`qty-${field.id || field.audit_item_id || field.product_id}`}
                         type="number"
                         min={0}
                         defaultValue={field.counted_quantity ?? ''}

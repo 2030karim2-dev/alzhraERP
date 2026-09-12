@@ -1,6 +1,16 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Save, CheckCircle, Loader2, PackageSearch } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Save,
+  CheckCircle,
+  Loader2,
+  PackageSearch,
+  Filter,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+} from 'lucide-react';
 import {
   useAuditSession,
   useInventoryMutations,
@@ -9,16 +19,21 @@ import {
 import { useSearchProducts } from '../hooks/useProducts';
 import { inventoryService } from '../service';
 import { useInventorySession } from '../hooks/useInventorySession';
+import { useAuthStore } from '../../auth/store';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
 import AuditStats, { type AuditSessionInfo } from '../components/audit/AuditStats';
-import AuditItemsTable, { type AuditItemTarget } from '../components/audit/AuditItemsTable';
+import AuditItemsTable, {
+  type AuditItemTarget,
+  type AuditStatusFilter,
+} from '../components/audit/AuditItemsTable';
 import { AuditCategoryFilterBar } from '../components/audit/AuditCategoryFilterBar';
 import { AuditSessionSearchDropdown } from '../components/audit/AuditSessionSearchDropdown';
 import { useForm } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
+import { useFeedbackStore } from '../../feedback/store';
 import type { Product } from '../types';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
@@ -31,6 +46,8 @@ interface AuditProgressItem {
 const AuditSessionPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { showToast } = useFeedbackStore();
   const { data, isLoading, isError } = useAuditSession(sessionId);
   const {
     saveAuditProgress,
@@ -41,23 +58,26 @@ const AuditSessionPage: React.FC = () => {
     isAddingItem,
     removeItemFromAudit,
     isRemovingItem,
+    populateWarehouseItems,
+    isPopulatingWarehouse,
   } = useInventoryMutations();
   const { data: categories } = useInventoryCategories();
 
   const [filter, setFilter] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<AuditStatusFilter>('all');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [debouncedFilter] = useDebounce(filter, 300);
   const [showResults, setShowResults] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<AuditItemTarget | null>(null);
-  const [isBulkAdding, setIsBulkAdding] = useState(false);
-  const [, setBulkProgress] = useState({ current: 0, total: 0 });
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
 
   const isCompleted = data?.session?.status === 'completed';
+  const canManageAudit =
+    user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager';
 
   const {
     items: sessionItems,
@@ -120,18 +140,37 @@ const AuditSessionPage: React.FC = () => {
 
   const stats = useMemo(() => {
     const total = displayItems.length;
+    let discrepancyValue = 0;
+    let matchedCount = 0;
     const counted = displayItems.filter(
       i =>
         i.counted_quantity !== null && i.counted_quantity !== undefined && i.counted_quantity !== ''
     ).length;
     const discrepancies = displayItems.filter(i => {
-      const diff =
-        i.counted_quantity !== null && i.counted_quantity !== undefined && i.counted_quantity !== ''
-          ? Number(i.counted_quantity) - Number(i.expected_quantity)
-          : 0;
-      return diff !== 0;
+      const isCounted =
+        i.counted_quantity !== null &&
+        i.counted_quantity !== undefined &&
+        i.counted_quantity !== '';
+      if (!isCounted) return false;
+      const diff = Number(i.counted_quantity) - Number(i.expected_quantity);
+      if (diff !== 0) {
+        const prod = (i.products as Record<string, unknown>) || i;
+        const unitCost = Number(prod.cost_price ?? prod.purchase_price ?? 0);
+        discrepancyValue += diff * unitCost;
+        return true;
+      } else {
+        matchedCount += 1;
+        return false;
+      }
     }).length;
-    return { total, counted, pending: total - counted, discrepancies };
+    return {
+      total,
+      counted,
+      pending: total - counted,
+      discrepancies,
+      matched: matchedCount,
+      discrepancyValue: Math.round(discrepancyValue * 100) / 100,
+    };
   }, [displayItems]);
 
   const prepareProgressItems = useCallback((): AuditProgressItem[] => {
@@ -274,17 +313,35 @@ const AuditSessionPage: React.FC = () => {
     if (data?.session?.status === 'completed') return;
 
     const currentItems = getValues('items');
-    const existingIndex = currentItems.findIndex(i => i.product_id === product.id);
+    const existingIndex = currentItems.findIndex(
+      i =>
+        (i.product_id || i.id) === product.id || (i.products as { id?: string })?.id === product.id
+    );
 
+    // Barcode Accumulator: If item already in audit session, increment counted quantity by +1
     if (existingIndex >= 0) {
       const newItems = [...currentItems];
-      const [existingItem] = newItems.splice(existingIndex, 1);
+      const existingItem = { ...newItems[existingIndex] };
+      const currentQty =
+        existingItem.counted_quantity !== null &&
+        existingItem.counted_quantity !== undefined &&
+        existingItem.counted_quantity !== ''
+          ? Number(existingItem.counted_quantity)
+          : 0;
+      const nextQty = currentQty + 1;
+      existingItem.counted_quantity = nextQty;
+      newItems.splice(existingIndex, 1);
       newItems.unshift(existingItem);
       lastSyncedRef.current = JSON.stringify(newItems);
       reset({ items: newItems });
       updateItems(newItems);
       setFilter('');
       setShowResults(false);
+      showToast(
+        `تم زيادة كمية "${(existingItem.products as { name?: string })?.name || product.name_ar || 'الصنف'}" إلى (${nextQty})`,
+        'info',
+        { hideAfter: 1500 }
+      );
       return;
     }
 
@@ -301,11 +358,11 @@ const AuditSessionPage: React.FC = () => {
       expectedQuantity = Number(product.stock_quantity) || 0;
     }
 
-    // Optimistic addition for instant UI response (no 30-second delay)
+    // Optimistic addition for instant UI response (no delay)
     const optimisticItem = {
       product_id: product.id,
       expected_quantity: expectedQuantity,
-      counted_quantity: null,
+      counted_quantity: null, // Starts uncounted until counted or scanned again
       products: {
         id: product.id,
         name: product.name_ar || product.name || 'بدون اسم',
@@ -324,6 +381,9 @@ const AuditSessionPage: React.FC = () => {
     updateItems(newItems);
     setFilter('');
     setShowResults(false);
+    showToast(`تمت إضافة "${product.name_ar || product.name}" إلى مسودة الجرد`, 'success', {
+      hideAfter: 1500,
+    });
 
     addItemToAudit(
       { sessionId, productId: product.id, expectedQuantity },
@@ -386,81 +446,35 @@ const AuditSessionPage: React.FC = () => {
     }
   };
 
+  // Atomic bulk warehouse population
   const handleBulkAddWarehouseProducts = useCallback(async () => {
-    if (!sessionId || !data?.session?.warehouse_id) return;
-    const warehouseId_val = (data.session as { warehouse_id: string }).warehouse_id;
+    if (!sessionId) return;
     const currentItems = getValues('items');
-    const existingProductIds = new Set(currentItems.map(i => i.product_id));
-
-    const { products: allProducts } = await import('../service')
-      .then(async m => {
-        const result = await m.inventoryService.getProducts(
-          (data?.session as { company_id?: string })?.company_id || '',
-          1,
-          99999,
-          warehouseId_val
-        );
-        return {
-          products: Array.isArray(result)
-            ? result
-            : ((result as unknown as { data?: Product[] }).data ?? []),
-        };
-      })
-      .catch(() => ({ products: [] as Product[] }));
-
-    const newProducts = allProducts.filter(p => !existingProductIds.has(p.id));
-    if (newProducts.length === 0) {
-      setShowBulkConfirm(false);
-      return;
+    if (currentItems.length > 0) {
+      const itemsToSave = prepareProgressItems();
+      if (itemsToSave.length > 0) {
+        await inventoryService.saveAuditProgress({ sessionId, items: itemsToSave });
+      }
     }
 
-    setIsBulkAdding(true);
-    setBulkProgress({ current: 0, total: newProducts.length });
-
-    if (currentItems.length > 0)
-      saveAuditProgress({
-        sessionId,
-        items: currentItems as unknown as Array<{
-          id?: string;
-          product_id: string;
-          counted_quantity: number | null;
-        }>,
-      });
-
-    for (let i = 0; i < newProducts.length; i++) {
-      const p = newProducts[i];
-      const dist = p.warehouse_distribution?.find(w => w.warehouse_id === warehouseId_val);
-      const expectedQuantity =
-        dist !== undefined ? Number(dist.quantity) || 0 : p.stock_quantity || 0;
-      await new Promise<void>(resolve => {
-        addItemToAudit(
-          { sessionId, productId: p.id, expectedQuantity },
-          {
-            onSuccess: () => {
-              resolve();
-            },
-            onError: () => {
-              resolve();
-            },
-          }
-        );
-      });
-      setBulkProgress({ current: i + 1, total: newProducts.length });
-    }
-
-    setIsBulkAdding(false);
-    setShowBulkConfirm(false);
-    setBulkProgress({ current: 0, total: 0 });
-  }, [sessionId, data, getValues, saveAuditProgress, addItemToAudit]);
+    populateWarehouseItems(sessionId, {
+      onSuccess: () => {
+        setShowBulkConfirm(false);
+      },
+      onError: () => {
+        setShowBulkConfirm(false);
+      },
+    });
+  }, [sessionId, getValues, prepareProgressItems, populateWarehouseItems]);
 
   if (isLoading || isError) {
     if (isLoading)
       return (
-        <div className="p-20 text-center">
-          <Loader2 className="animate-spin text-blue-500" />
+        <div className="flex h-64 items-center justify-center p-20 text-center">
+          <Loader2 className="animate-spin text-blue-500" size={32} />
         </div>
       );
-    return <div>حدث خطأ أثناء تحميل بيانات الجرد.</div>;
+    return <div className="p-8 text-center text-rose-500">حدث خطأ أثناء تحميل بيانات الجرد.</div>;
   }
 
   const session = data?.session;
@@ -483,16 +497,16 @@ const AuditSessionPage: React.FC = () => {
               </span>
             )}
 
-            {session?.status !== 'completed' && (
+            {session?.status !== 'completed' && canManageAudit && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setShowBulkConfirm(true);
                 }}
-                isLoading={isBulkAdding}
+                isLoading={isPopulatingWarehouse}
                 leftIcon={
-                  isBulkAdding ? (
+                  isPopulatingWarehouse ? (
                     <Loader2 size={12} className="animate-spin" />
                   ) : (
                     <PackageSearch size={12} />
@@ -520,10 +534,10 @@ const AuditSessionPage: React.FC = () => {
               size="sm"
               onClick={handleFinalize}
               isLoading={isFinalizing}
-              disabled={session?.status === 'completed'}
+              disabled={session?.status === 'completed' || !canManageAudit}
               leftIcon={<CheckCircle size={12} />}
               className="border-none bg-emerald-600 px-2 hover:bg-emerald-700 sm:px-3"
-              title="إنهاء وترحيل"
+              title={canManageAudit ? 'إنهاء وترحيل' : 'يتطلب صلاحية مدير/مالك'}
             >
               <span className="hidden sm:inline">
                 {session?.status === 'completed' ? 'تم الإغلاق' : 'إنهاء وترحيل'}
@@ -559,18 +573,68 @@ const AuditSessionPage: React.FC = () => {
         <div className="mx-auto max-w-[1600px] space-y-4">
           <AuditStats stats={stats} session={(session ?? {}) as unknown as AuditSessionInfo} />
 
-          {/* Category Filter Bar */}
-          <AuditCategoryFilterBar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
+          {/* Category & Status Filter Bars */}
+          <div className="space-y-2">
+            <AuditCategoryFilterBar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+            />
+
+            {/* Quick Status Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-[var(--app-surface)] p-1.5 shadow-sm dark:border-slate-800">
+              <span className="flex items-center gap-1 px-2 text-[10px] font-black uppercase text-gray-400">
+                <Filter size={12} /> الحالة:
+              </span>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
+                  statusFilter === 'all'
+                    ? 'bg-slate-800 text-white shadow dark:bg-slate-700'
+                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                الكل ({stats.total})
+              </button>
+              <button
+                onClick={() => setStatusFilter('discrepancy')}
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
+                  statusFilter === 'discrepancy'
+                    ? 'bg-rose-600 text-white shadow'
+                    : 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20'
+                }`}
+              >
+                <AlertTriangle size={10} /> بها فروقات ({stats.discrepancies})
+              </button>
+              <button
+                onClick={() => setStatusFilter('matched')}
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
+                  statusFilter === 'matched'
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                }`}
+              >
+                <CheckCircle2 size={10} /> مطابقة ({stats.matched ?? 0})
+              </button>
+              <button
+                onClick={() => setStatusFilter('uncounted')}
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
+                  statusFilter === 'uncounted'
+                    ? 'bg-amber-600 text-white shadow'
+                    : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                }`}
+              >
+                <Clock size={10} /> لم تُجرد ({stats.pending})
+              </button>
+            </div>
+          </div>
 
           <AuditItemsTable
             items={displayItems}
             register={register}
             filter={debouncedFilter}
             category={selectedCategory}
+            statusFilter={statusFilter}
             isCompleted={isCompleted}
             onRemoveItem={setItemToDelete}
             onSave={handleSaveProgress}
@@ -611,9 +675,10 @@ const AuditSessionPage: React.FC = () => {
         }}
         onConfirm={handleBulkAddWarehouseProducts}
         title="جرد كامل المستودع"
-        message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً. هذه العملية قد تستغرق بعض الوقت. هل تريد المتابعة؟"
+        message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً وبشكل فوري. هل تريد المتابعة؟"
         variant="warning"
         confirmLabel="نعم، أضف كل المنتجات"
+        isLoading={isPopulatingWarehouse}
       />
 
       <ConfirmModal

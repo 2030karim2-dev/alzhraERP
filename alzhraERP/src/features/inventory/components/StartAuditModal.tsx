@@ -7,6 +7,7 @@ import { cn } from '../../../core/utils';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../core/routes/paths';
 import { useFeedbackStore } from '../../feedback/store';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 
 interface StartAuditModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ const StartAuditModal: React.FC<StartAuditModalProps> = ({ isOpen, onClose }) =>
   const { showToast } = useFeedbackStore();
 
   const [formData, setFormData] = useState({
-    title: `جرد دوري - ${new Date().toLocaleDateString('ar-SA-u-nu-latn')}`,
+    title: `جرد دوري - ${formatLocalDate(new Date())}`,
     warehouse_id: '',
   });
 

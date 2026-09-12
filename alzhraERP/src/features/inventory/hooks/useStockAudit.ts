@@ -319,6 +319,18 @@ export const useInventoryMutations = () => {
     },
   });
 
+  const populateWarehouse = useMutation({
+    mutationFn: (sessionId: string) => inventoryService.populateWarehouseItems(sessionId),
+    onSuccess: async (_, sessionId) => {
+      await queryClient.invalidateQueries({ queryKey: ['audit_session', sessionId] });
+      await queryClient.invalidateQueries({ queryKey: ['audit_sessions'] });
+      showToast('تم إدراج جميع منتجات المستودع في جلسة الجرد بنجاح', 'success');
+    },
+    onError: err => {
+      showToast('فشل تعبئة منتجات المستودع: ' + parseError(err).message, 'error');
+    },
+  });
+
   return {
     createTransfer: transfer.mutate,
     isTransferring: transfer.isPending,
@@ -336,5 +348,7 @@ export const useInventoryMutations = () => {
     isRemovingItem: removeItem.isPending,
     deleteAuditSession: deleteSession.mutate,
     isDeletingSession: deleteSession.isPending,
+    populateWarehouseItems: populateWarehouse.mutate,
+    isPopulatingWarehouse: populateWarehouse.isPending,
   };
 };

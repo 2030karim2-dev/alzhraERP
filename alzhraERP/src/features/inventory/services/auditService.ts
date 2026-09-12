@@ -367,9 +367,26 @@ export const auditService = {
   },
 
   /**
+   * Populate all active warehouse products into an active audit session atomically
+   */
+  populateWarehouseItems: async (sessionId: string) => {
+    const rpcClient = supabase as unknown as {
+      rpc: (
+        fn: string,
+        params: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: unknown }>;
+    };
+    const { data, error } = await rpcClient.rpc('populate_audit_session_warehouse', {
+      p_session_id: sessionId,
+    });
+    if (error) throw parseError(error);
+    return data;
+  },
+
+  /**
    * Delete (soft-delete) an audit session by marking it as cancelled.
    * Hard DELETE is blocked by RLS (admin-only policy), so we use status='cancelled'
-   * and hide cancelled sessions from the UI.
+   * and hide cancelled sessions from the UI. Also clears associated drafts.
    */
   deleteAuditSession: async (sessionId: string) => {
     const { error } = await supabase
@@ -377,6 +394,15 @@ export const auditService = {
       .update({ status: 'cancelled' })
       .eq('id', sessionId);
     if (error) throw parseError(error);
+
+    // Clean up drafts
+    try {
+      await supabase.from('inventory_session_drafts').delete().eq('session_id', sessionId);
+      sessionStorage.removeItem(`inventory_session_draft_${sessionId}`);
+      sessionStorage.removeItem('inventory_session_draft');
+    } catch {
+      // Non-blocking cleanup
+    }
   },
 };
 

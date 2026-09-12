@@ -102,12 +102,12 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                     <input
                       type="number"
                       min={0}
-                      value={item.quantity === 0 ? '' : item.quantity}
+                      value={item.quantity}
                       onChange={e => {
                         onUpdateQuantity(item.product_id, e.target.value);
                       }}
                       onFocus={e => {
-                        if (item.quantity === 0) e.target.select();
+                        e.target.select();
                       }}
                       className="w-full rounded-lg border-2 border-blue-200 bg-white px-1 py-1 text-center font-mono text-lg font-bold leading-none text-blue-600 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-blue-900/50 dark:bg-slate-950 dark:text-blue-400"
                       placeholder="0"
@@ -203,12 +203,12 @@ const QuickAuditItemsTable: React.FC<Props> = ({ items, onUpdateQuantity, onRemo
                     <input
                       type="number"
                       min={0}
-                      value={item.quantity === 0 ? '' : item.quantity}
+                      value={item.quantity}
                       onChange={e => {
                         onUpdateQuantity(item.product_id, e.target.value);
                       }}
                       onFocus={e => {
-                        if (item.quantity === 0) e.target.select();
+                        e.target.select();
                       }}
                       className="w-20 rounded-md border-2 border-blue-100 bg-white px-1 py-1.5 text-center font-mono font-bold text-blue-600 outline-none transition-colors focus:border-blue-500 focus:ring-0 dark:border-blue-900/50 dark:bg-slate-950 dark:text-blue-400"
                       placeholder="0"

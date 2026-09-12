@@ -166,6 +166,10 @@ export const inventoryService = {
     return auditService.deleteAuditSession(sessionId);
   },
 
+  populateWarehouseItems: async (sessionId: string) => {
+    return auditService.populateWarehouseItems(sessionId);
+  },
+
   // ==========================================
   // Category Operations (delegated to categoryService)
   // ==========================================
