@@ -5,10 +5,6 @@ import { useAuthStore } from '../../auth/store';
 import { useChatNotifications } from './useChatNotifications';
 import { logger } from '../../../core/utils/logger';
 import type { ChatMessage } from '../types';
-import type {
-  RealtimePostgresInsertPayload,
-  RealtimePostgresUpdatePayload,
-} from '@supabase/supabase-js';
 
 interface ChatMessageRow {
   id: string;
@@ -24,10 +20,8 @@ interface ChatMessageRow {
   deleted_at: string | null;
 }
 
-const getInsertRow = (payload: RealtimePostgresInsertPayload<ChatMessageRow>) =>
-  payload.new as ChatMessageRow | null;
-const getUpdateRow = (payload: RealtimePostgresUpdatePayload<ChatMessageRow>) =>
-  payload.new as Partial<ChatMessageRow> & { id: string };
+const getInsertRow = (payload: any) => payload.new as ChatMessageRow | null;
+const getUpdateRow = (payload: any) => payload.new as Partial<ChatMessageRow> & { id: string };
 
 // In-memory profile cache for fast realtime rendering
 const senderProfileCache = new Map<string, { full_name: string; avatar_url: string | null }>();
@@ -144,12 +138,12 @@ export const useChatRealtime = () => {
         payload => {
           const row = getUpdateRow(payload);
           if (!row) return;
-          updateMessageInState(row.id, {
-            content: row.content,
-            metadata: row.metadata,
-            edited_at: row.edited_at,
-            deleted_at: row.deleted_at,
-          });
+          const update: Partial<ChatMessage> = {};
+          if (row.content !== undefined) update.content = row.content;
+          if (row.metadata !== undefined) update.metadata = row.metadata;
+          if (row.edited_at !== undefined) update.edited_at = row.edited_at;
+          if (row.deleted_at !== undefined) update.deleted_at = row.deleted_at;
+          updateMessageInState(row.id, update);
         }
       )
       .on(

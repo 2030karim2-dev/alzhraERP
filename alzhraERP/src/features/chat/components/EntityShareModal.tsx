@@ -35,13 +35,14 @@ interface ChatProductResult {
   sale_price: number;
   total_stock: number;
   stock: number;
+  sku?: string;
 }
 
 interface ChatVinResult {
   id: string;
   vin: string;
   vehicle_id?: string | null;
-  decoded?: unknown;
+  decoded?: Record<string, string | undefined>;
 }
 
 interface ChatInvoiceResult {
@@ -63,9 +64,6 @@ interface ChatTransferResult {
 }
 
 type ChatSearchResult = ChatProductResult | ChatVinResult | ChatInvoiceResult | ChatTransferResult;
-
-const isProductResult = (r: ChatSearchResult): r is ChatProductResult =>
-  'total_stock' in r || 'part_number' in r;
 
 export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEntity }) => {
   const { user } = useAuthStore();
@@ -386,7 +384,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
               <div className="space-y-2">
                 {activeTab === 'product' &&
-                  results.map(item => (
+                  (results as ChatProductResult[]).map(item => (
                     <div
                       key={item.id}
                       onClick={() => {
@@ -417,7 +415,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                   ))}
 
                 {activeTab === 'vin' &&
-                  results.map(item => (
+                  (results as ChatVinResult[]).map(item => (
                     <div
                       key={item.id}
                       onClick={() => {
@@ -437,7 +435,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                   ))}
 
                 {activeTab === 'invoice' &&
-                  results.map(item => (
+                  (results as ChatInvoiceResult[]).map(item => (
                     <div
                       key={item.id}
                       onClick={() => {
@@ -461,7 +459,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
                 {activeTab === 'transfer' &&
                   transferMode === 'search' &&
-                  results.map(item => (
+                  (results as ChatTransferResult[]).map(item => (
                     <div
                       key={item.id}
                       onClick={() => {
@@ -527,7 +525,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
                       </div>
                     )}
                     <div className="max-h-36 space-y-1 overflow-y-auto">
-                      {results.map(p => (
+                      {(results as ChatProductResult[]).map(p => (
                         <div
                           key={p.id}
                           onClick={() => {

@@ -161,7 +161,7 @@ async function callRpc<Args, Result>(fn: string, args: Args): Promise<Result | n
  * Direct-channel naming needs the peer profile; the RPC does not return the
  * member list, so direct names resolve in a follow-up batch keyed by channel.
  */
-function mapMetaRowToChannel(row: RpcChannelsMetaRow, currentUserId: string): ChatChannel {
+function mapMetaRowToChannel(row: RpcChannelsMetaRow): ChatChannel {
   const lastMessage: ChatMessage | null = row.last_message_id
     ? {
         id: row.last_message_id,
@@ -238,12 +238,12 @@ export const chatService = {
    */
   getChannels: async (companyId: string, userId: string): Promise<ChatChannel[]> => {
     try {
-      const { data, error } = await supabase.rpc('rpc_get_channels_with_meta', {
+      const { data, error } = await (supabase.rpc as any)('rpc_get_channels_with_meta', {
         p_company_id: companyId,
       });
       if (!error && Array.isArray(data)) {
         const channels = (data as unknown as RpcChannelsMetaRow[]).map(row =>
-          mapMetaRowToChannel(row, userId)
+          mapMetaRowToChannel(row)
         );
         // Batch-resolve direct peer names (one query for all direct channels)
         const directIds = channels.filter(c => c.type === 'direct').map(c => c.id);

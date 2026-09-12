@@ -18,12 +18,12 @@ interface PresencePayload {
 const toUserPresence = (p: PresencePayload, status: UserPresence['status']): UserPresence => ({
   user_id: p.user_id,
   full_name: p.full_name,
-  avatar_url: p.avatar_url,
+  avatar_url: p.avatar_url ?? null,
   status: p.status || status,
-  branch_id: p.branch_id,
-  branch_name: p.branch_name,
+  branch_id: p.branch_id ?? null,
+  branch_name: p.branch_name ?? null,
   last_seen_at: p.last_seen_at || new Date().toISOString(),
-  typing_in_channel_id: p.typing_in_channel_id || null,
+  typing_in_channel_id: p.typing_in_channel_id ?? null,
 });
 
 export const useChatPresence = (activeChannelId?: string | null) => {
