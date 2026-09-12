@@ -3,10 +3,10 @@ import { chatService } from './chatService';
 import { logger } from '../../../core/utils/logger';
 
 // ── Mock supabase client — سلسلة استعلام PostgREST قابلة للتسلسل ─────────────
-const { mockFrom } = vi.hoisted(() => ({ mockFrom: vi.fn() }));
+const { mockFrom, mockRpc } = vi.hoisted(() => ({ mockFrom: vi.fn(), mockRpc: vi.fn() }));
 
 vi.mock('../../../lib/supabaseClient', () => ({
-  supabase: { from: mockFrom },
+  supabase: { from: mockFrom, rpc: mockRpc },
 }));
 
 interface MockQueryResult {
@@ -35,6 +35,7 @@ const catchErr = (promise: Promise<unknown>): Promise<CaughtErr> =>
 describe('chatService — بحث مشاركة الكيانات (Entity Share)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRpc.mockReset();
   });
 
   describe('searchProducts', () => {
@@ -256,6 +257,121 @@ describe('chatService — بحث مشاركة الكيانات (Entity Share)', 
       const err = await catchErr(chatService.getCompanyBranches('comp-1'));
 
       expect(err?.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
+    });
+  });
+
+  describe('getChannels — مسار RPC الموحد (آخر رسالة + عدّ حقيقي)', () => {
+    it('يستدعي rpc_get_channels_with_meta ويحوّل الصفوف مع أسماء direct دفعة واحدة', async () => {
+      mockRpc.mockResolvedValueOnce({
+        data: [
+          {
+            id: 'ch-direct',
+            company_id: 'comp-1',
+            type: 'direct',
+            name: 'مؤقت',
+            description: null,
+            branch_id: null,
+            reference_type: null,
+            reference_id: null,
+            is_private: true,
+            created_by: 'u1',
+            created_at: '2026-01-01T00:00:00Z',
+            updated_at: '2026-01-02T00:00:00Z',
+            archived_at: null,
+            branch_name: null,
+            members_count: 2,
+            last_message_id: 'm1',
+            last_message_content: 'مرحبا',
+            last_message_type: 'text',
+            last_message_sender_id: 'u2',
+            last_message_created_at: '2026-01-02T00:00:00Z',
+            last_message_sender_name: 'سارة',
+            last_message_sender_avatar: null,
+            unread_count: 3,
+          },
+          {
+            id: 'ch-topic',
+            company_id: 'comp-1',
+            type: 'topic',
+            name: 'عام',
+            description: null,
+            branch_id: null,
+            reference_type: null,
+            reference_id: null,
+            is_private: false,
+            created_by: 'u1',
+            created_at: '2026-01-01T00:00:00Z',
+            updated_at: '2026-01-01T00:00:00Z',
+            archived_at: null,
+            branch_name: null,
+            members_count: 5,
+            last_message_id: null,
+            last_message_content: null,
+            last_message_type: null,
+            last_message_sender_id: null,
+            last_message_created_at: null,
+            last_message_sender_name: null,
+            last_message_sender_avatar: null,
+            unread_count: 0,
+          },
+        ],
+        error: null,
+      });
+
+      const peerChain = buildQueryChain(
+        {
+          data: [
+            {
+              channel_id: 'ch-direct',
+              user_id: 'u2',
+              profiles: { id: 'u2', full_name: 'سارة', avatar_url: null },
+            },
+          ],
+          error: null,
+        },
+        'neq'
+      );
+      mockFrom.mockReturnValueOnce(peerChain);
+
+      const result = await chatService.getChannels('comp-1', 'u1');
+
+      expect(mockRpc).toHaveBeenCalledWith('rpc_get_channels_with_meta', {
+        p_company_id: 'comp-1',
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('سارة');
+      expect(result[0].direct_user).toEqual({ id: 'u2', full_name: 'سارة', avatar_url: null });
+      expect(result[0].unread_count).toBe(3);
+      expect(result[0].last_message?.content).toBe('مرحبا');
+      expect(result[1].last_message).toBeNull();
+    });
+
+    it('يسقط إلى المسار القديم عند فشل RPC', async () => {
+      mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'missing function' } });
+      const legacy = { data: [], error: null };
+      mockFrom.mockReturnValue(buildQueryChain(legacy, 'order'));
+
+      const result = await chatService.getChannels('comp-1', 'u1');
+
+      expect(mockFrom).toHaveBeenCalledWith('chat_channels');
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getMessages — مؤشر (created_at, id) وحد أقصى', () => {
+    it('يضيف ترتيب id وحد 100 ويستخدم beforeId عند غياب الطابع', async () => {
+      const anchorChain = buildQueryChain(
+        { data: { created_at: '2026-01-02T00:00:00Z' }, error: null },
+        'maybeSingle'
+      );
+      const mainChain = buildQueryChain({ data: [], error: null });
+      mockFrom.mockReturnValueOnce(anchorChain).mockReturnValueOnce(mainChain);
+
+      await chatService.getMessages('ch-1', 500, undefined, 'msg-old');
+
+      expect(mainChain.order).toHaveBeenCalledWith('id', { ascending: false });
+      expect(mainChain.limit).toHaveBeenCalledWith(100);
+      expect(mainChain.or).toHaveBeenCalledTimes(1);
     });
   });
 

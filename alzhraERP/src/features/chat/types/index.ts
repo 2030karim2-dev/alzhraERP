@@ -1,4 +1,12 @@
-export type ChannelType = 'direct' | 'group' | 'branch' | 'department' | 'topic' | 'contextual';
+export type ChannelType =
+  | 'direct'
+  | 'group'
+  | 'branch'
+  | 'department'
+  | 'topic'
+  | 'contextual'
+  | 'general'
+  | 'announcement';
 
 export type MessageType = 'text' | 'image' | 'file' | 'entity_card' | 'system' | 'action_request';
 

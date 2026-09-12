@@ -28,9 +28,12 @@ export const MessageList: React.FC<Props> = ({
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
 
-  // Auto-scroll on initial load and new messages
+  // Auto-scroll: only when already near the bottom (new incoming) or initial load.
+  // Loading older history (isLoadingMore) or reading mid-list must not yank the view.
+  const isNearBottomRef = useRef(true);
   useEffect(() => {
-    if (!isLoadingMore) {
+    if (isLoadingMore) return;
+    if (isNearBottomRef.current) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages.length, isLoadingMore]);
@@ -38,9 +41,10 @@ export const MessageList: React.FC<Props> = ({
   // Maintain scroll position when older messages are prepended
   const handleScroll = () => {
     if (!containerRef.current) return;
-    const { scrollTop } = containerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 120;
 
-    if (scrollTop === 0 && hasMore && !isLoadingMore) {
+    if (scrollTop <= 8 && hasMore && !isLoadingMore) {
       prevScrollHeightRef.current = containerRef.current.scrollHeight;
       onLoadMore();
     }

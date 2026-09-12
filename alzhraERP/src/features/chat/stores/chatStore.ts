@@ -132,7 +132,12 @@ export const useChatStore = create<ChatState>()(
             if (get().isLoadingMoreMessages || !get().hasMoreMessages[channelId]) return;
             set({ isLoadingMoreMessages: true });
             const oldestMessage = currentMessages[0];
-            const older = await chatService.getMessages(channelId, 30, oldestMessage?.created_at);
+            const older = await chatService.getMessages(
+              channelId,
+              30,
+              oldestMessage?.created_at,
+              oldestMessage?.id
+            );
             set(state => ({
               messagesByChannel: {
                 ...state.messagesByChannel,
@@ -264,8 +269,22 @@ export const useChatStore = create<ChatState>()(
       },
 
       addIncomingMessage: (message, currentUserId) => {
+        // Idempotency: realtime duplicates (multi-mount) or echo of own optimistic send
+        const existing = get().messagesByChannel[message.channel_id] || [];
+        if (existing.some(m => m.id === message.id)) return;
+        const withoutOptimistic = existing.filter(
+          m =>
+            !(
+              m.is_optimistic &&
+              m.sender_id === message.sender_id &&
+              (m.client_message_id === message.client_message_id ||
+                (!m.client_message_id &&
+                  !message.client_message_id &&
+                  m.content === message.content))
+            )
+        );
         set(state => {
-          const channelList = state.messagesByChannel[message.channel_id] || [];
+          const channelList = withoutOptimistic;
           // Avoid duplicate insertion
           if (
             channelList.some(

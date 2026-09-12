@@ -5,20 +5,64 @@ import { useAuthStore } from '../../auth/store';
 import { useChatNotifications } from './useChatNotifications';
 import { logger } from '../../../core/utils/logger';
 import type { ChatMessage } from '../types';
+import type {
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from '@supabase/supabase-js';
+
+interface ChatMessageRow {
+  id: string;
+  channel_id: string;
+  sender_id: string;
+  message_type: ChatMessage['message_type'];
+  content: string;
+  metadata: ChatMessage['metadata'];
+  reply_to_id: string | null;
+  client_message_id: string | null;
+  created_at: string;
+  edited_at: string | null;
+  deleted_at: string | null;
+}
+
+const getInsertRow = (payload: RealtimePostgresInsertPayload<ChatMessageRow>) =>
+  payload.new as ChatMessageRow | null;
+const getUpdateRow = (payload: RealtimePostgresUpdatePayload<ChatMessageRow>) =>
+  payload.new as Partial<ChatMessageRow> & { id: string };
 
 // In-memory profile cache for fast realtime rendering
 const senderProfileCache = new Map<string, { full_name: string; avatar_url: string | null }>();
 
+// Shared singleton guard: useChatRealtime is mounted by both ChatHubPage and
+// FloatingChatWidget. Without this, two channels -> duplicate messages + double beep.
+let activeRealtimeKey: string | null = null;
+let activeRealtimeRefCount = 0;
+
 export const useChatRealtime = () => {
   const { user } = useAuthStore();
-  const { addIncomingMessage, updateMessageInState, fetchChannels, activeChannelId, fetchMessages } = useChatStore();
-  const { playIncomingBeep } = useChatNotifications();
+  const {
+    addIncomingMessage,
+    updateMessageInState,
+    fetchChannels,
+    activeChannelId,
+    fetchMessages,
+  } = useChatStore();
+  const { notifyIncomingMessage } = useChatNotifications();
 
   const companyId = user?.company_id;
   const userId = user?.id;
 
   useEffect(() => {
     if (!companyId || !userId) return;
+
+    const key = `${companyId}:${userId}`;
+    if (activeRealtimeKey === key) {
+      activeRealtimeRefCount += 1;
+      return () => {
+        activeRealtimeRefCount = Math.max(0, activeRealtimeRefCount - 1);
+      };
+    }
+    activeRealtimeKey = key;
+    activeRealtimeRefCount = 1;
 
     let hasSubscribedBefore = false;
     const channelName = `chat-realtime-${companyId}`;
@@ -31,8 +75,8 @@ export const useChatRealtime = () => {
           schema: 'public',
           table: 'chat_messages',
         },
-        async (payload) => {
-          const row = payload.new as any;
+        async payload => {
+          const row = getInsertRow(payload);
           if (!row) return;
 
           // Fetch sender profile with in-memory caching
@@ -54,7 +98,10 @@ export const useChatRealtime = () => {
               if (profile) {
                 senderName = profile.full_name || 'موظف';
                 senderAvatar = profile.avatar_url;
-                senderProfileCache.set(row.sender_id, { full_name: senderName, avatar_url: senderAvatar });
+                senderProfileCache.set(row.sender_id, {
+                  full_name: senderName,
+                  avatar_url: senderAvatar,
+                });
               }
             } catch {
               // Fallback to default
@@ -81,9 +128,9 @@ export const useChatRealtime = () => {
 
           addIncomingMessage(message, userId);
 
-          // Play chime if message from another user
+          // Unified beep + background desktop notification (with cooldown)
           if (row.sender_id !== userId) {
-            playIncomingBeep();
+            notifyIncomingMessage(senderName, row.content || '', row.channel_id);
           }
         }
       )
@@ -94,8 +141,8 @@ export const useChatRealtime = () => {
           schema: 'public',
           table: 'chat_messages',
         },
-        (payload) => {
-          const row = payload.new as any;
+        payload => {
+          const row = getUpdateRow(payload);
           if (!row) return;
           updateMessageInState(row.id, {
             content: row.content,
@@ -117,7 +164,7 @@ export const useChatRealtime = () => {
           fetchChannels(companyId, userId);
         }
       )
-      .subscribe((status) => {
+      .subscribe(status => {
         if (status === 'SUBSCRIBED') {
           logger.debug('ChatRealtime', `Connected to chat realtime channel [${channelName}]`);
           // If reconnected after initial connection, resync channels & messages
@@ -132,7 +179,20 @@ export const useChatRealtime = () => {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      activeRealtimeRefCount = Math.max(0, activeRealtimeRefCount - 1);
+      if (activeRealtimeRefCount === 0) {
+        activeRealtimeKey = null;
+        supabase.removeChannel(channel);
+      }
     };
-  }, [companyId, userId, addIncomingMessage, updateMessageInState, fetchChannels, activeChannelId, fetchMessages, playIncomingBeep]);
+  }, [
+    companyId,
+    userId,
+    addIncomingMessage,
+    updateMessageInState,
+    fetchChannels,
+    activeChannelId,
+    fetchMessages,
+    notifyIncomingMessage,
+  ]);
 };

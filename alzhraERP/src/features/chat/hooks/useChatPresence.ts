@@ -1,7 +1,30 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useChatStore } from '../stores/chatStore';
+import type { UserPresence } from '../types';
 import { useAuthStore } from '../../auth/store';
+
+interface PresencePayload {
+  user_id: string;
+  full_name: string;
+  avatar_url?: string | null;
+  status?: 'online' | 'away' | 'busy' | 'offline';
+  branch_id?: string | null;
+  branch_name?: string | null;
+  last_seen_at?: string;
+  typing_in_channel_id?: string | null;
+}
+
+const toUserPresence = (p: PresencePayload, status: UserPresence['status']): UserPresence => ({
+  user_id: p.user_id,
+  full_name: p.full_name,
+  avatar_url: p.avatar_url,
+  status: p.status || status,
+  branch_id: p.branch_id,
+  branch_name: p.branch_name,
+  last_seen_at: p.last_seen_at || new Date().toISOString(),
+  typing_in_channel_id: p.typing_in_channel_id || null,
+});
 
 export const useChatPresence = (activeChannelId?: string | null) => {
   const { user } = useAuthStore();
@@ -33,49 +56,24 @@ export const useChatPresence = (activeChannelId?: string | null) => {
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         for (const id in state) {
-          const presences = state[id] as any[];
+          const presences = state[id] as unknown as PresencePayload[];
           if (presences && presences.length > 0) {
             const p = presences[0];
-            setUserPresence({
-              user_id: p.user_id,
-              full_name: p.full_name,
-              avatar_url: p.avatar_url,
-              status: p.status || 'online',
-              branch_id: p.branch_id,
-              branch_name: p.branch_name,
-              last_seen_at: p.last_seen_at || new Date().toISOString(),
-              typing_in_channel_id: p.typing_in_channel_id || null,
-            });
+            setUserPresence(toUserPresence(p, 'online'));
           }
         }
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         if (newPresences) {
-          for (const p of newPresences as any[]) {
-            setUserPresence({
-              user_id: p.user_id,
-              full_name: p.full_name,
-              avatar_url: p.avatar_url,
-              status: 'online',
-              branch_id: p.branch_id,
-              branch_name: p.branch_name,
-              last_seen_at: new Date().toISOString(),
-            });
+          for (const p of newPresences as unknown as PresencePayload[]) {
+            setUserPresence(toUserPresence(p, 'online'));
           }
         }
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
         if (leftPresences) {
-          for (const p of leftPresences as any[]) {
-            setUserPresence({
-              user_id: p.user_id,
-              full_name: p.full_name,
-              avatar_url: p.avatar_url,
-              status: 'offline',
-              branch_id: p.branch_id,
-              branch_name: p.branch_name,
-              last_seen_at: new Date().toISOString(),
-            });
+          for (const p of leftPresences as unknown as PresencePayload[]) {
+            setUserPresence(toUserPresence(p, 'offline'));
           }
         }
       })

@@ -3,6 +3,10 @@ import { useSoundStore } from '../../notifications/store';
 import { showDesktopNotification } from '../../notifications/desktopNotificationService';
 import { logger } from '../../../core/utils/logger';
 
+// Cooldown so a burst of messages does not stack beeps/desktop popups.
+const NOTIFY_COOLDOWN_MS = 3000;
+let lastNotifyAt = 0;
+
 /**
  * Hook for playing audio chime and triggering native desktop notifications for incoming chat messages.
  */
@@ -63,6 +67,9 @@ export const useChatNotifications = () => {
     messageText: string,
     conversationId?: string
   ) => {
+    const now = Date.now();
+    if (now - lastNotifyAt < NOTIFY_COOLDOWN_MS) return;
+    lastNotifyAt = now;
     void playIncomingBeep();
 
     // If tab is in background or document hidden, dispatch OS desktop notification

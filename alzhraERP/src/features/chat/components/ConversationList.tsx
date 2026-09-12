@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Search, Plus, Building2, User, Hash, Layers, MessageSquare } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  Building2,
+  User,
+  Hash,
+  Layers,
+  Megaphone,
+  MessageSquare,
+} from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { NewChatModal } from './NewChatModal';
 import type { ChannelType } from '../types';
@@ -51,6 +60,11 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
         return <User size={16} className="text-blue-500" />;
       case 'contextual':
         return <Layers size={16} className="text-indigo-500" />;
+      case 'department':
+        return <Building2 size={16} className="text-cyan-500" />;
+      case 'general':
+      case 'announcement':
+        return <Megaphone size={16} className="text-rose-500" />;
       default:
         return <Hash size={16} className="text-emerald-500" />;
     }
@@ -85,7 +99,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
           />
           <input
             type="text"
-            placeholder="بحث في القنوات والرسائل..."
+            placeholder="بحث في القنوات (بالاسم أو آخر رسالة)..."
             value={searchQuery}
             onChange={e => {
               setSearchQuery(e.target.value);

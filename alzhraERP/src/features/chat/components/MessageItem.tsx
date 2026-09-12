@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Reply, Smile, Check, Clock, FileText, Download, User } from 'lucide-react';
 import type { ChatMessage } from '../types';
 import { EntityCardMessage } from './cards/EntityCardMessage';

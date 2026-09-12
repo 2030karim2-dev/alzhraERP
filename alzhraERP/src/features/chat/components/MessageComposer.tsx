@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Smile, X, Layers, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { useAuthStore } from '../../auth/store';
+import { useFeedbackStore } from '../../feedback/store';
 import { EntityShareModal } from './EntityShareModal';
-import type { EntityCardMetadata } from '../types';
+import type { EntityCardMetadata, MessageType } from '../types';
 
 interface Props {
   channelId: string;
@@ -15,6 +16,14 @@ const EMOJI_LIST = ['👍', '✅', '🚗', '📦', '❗', '❤️', '🔥', '�
 export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
   const { user } = useAuthStore();
   const { sendMessage, replyingTo, setReplyingTo } = useChatStore();
+  const { showToast } = useFeedbackStore();
+
+  // Stop the "typing..." indicator when switching channels or unmounting.
+  useEffect(() => {
+    return () => {
+      onTyping(false);
+    };
+  }, [channelId, onTyping]);
 
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -44,7 +53,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 15 * 1024 * 1024) {
-        alert('حجم الملف يجب ألا يتجاوز 15 ميجابايت');
+        showToast('حجم الملف يجب ألا يتجاوز 15 ميجابايت', 'error');
         return;
       }
       setSelectedFile(file);
@@ -58,7 +67,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
     onTyping(false);
 
     try {
-      let messageType: any = 'text';
+      let messageType: MessageType = 'text';
       if (attachedEntity?.isActionRequest) {
         messageType = 'action_request';
       } else if (attachedEntity) {

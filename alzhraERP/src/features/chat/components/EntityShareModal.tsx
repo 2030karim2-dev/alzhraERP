@@ -27,19 +27,60 @@ interface Props {
   onSelectEntity: (metadata: EntityCardMetadata, isActionRequest?: boolean) => void;
 }
 
+interface ChatProductResult {
+  id: string;
+  name: string;
+  part_number: string;
+  brand: string;
+  sale_price: number;
+  total_stock: number;
+  stock: number;
+}
+
+interface ChatVinResult {
+  id: string;
+  vin: string;
+  vehicle_id?: string | null;
+  decoded?: unknown;
+}
+
+interface ChatInvoiceResult {
+  id: string;
+  invoice_number: string;
+  total: number;
+  customer_name: string;
+  status: string;
+  created_at: string;
+}
+
+interface ChatTransferResult {
+  id: string;
+  transfer_number: string;
+  status: string;
+  from_warehouse: string;
+  to_warehouse: string;
+  created_at: string;
+}
+
+type ChatSearchResult = ChatProductResult | ChatVinResult | ChatInvoiceResult | ChatTransferResult;
+
+const isProductResult = (r: ChatSearchResult): r is ChatProductResult =>
+  'total_stock' in r || 'part_number' in r;
+
 export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEntity }) => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'product' | 'vin' | 'transfer' | 'invoice'>('product');
   const [transferMode, setTransferMode] = useState<'search' | 'new'>('new');
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<ChatSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Transfer specific form state
   const [targetBranchId, setTargetBranchId] = useState('');
   const [branches, setBranches] = useState<BranchItem[]>([]);
   const [transferQty, setTransferQty] = useState(1);
-  const [selectedProductForTransfer, setSelectedProductForTransfer] = useState<any | null>(null);
+  const [selectedProductForTransfer, setSelectedProductForTransfer] =
+    useState<ChatProductResult | null>(null);
 
   const companyId = user?.company_id;
   const { showToast } = useFeedbackStore();
@@ -97,7 +138,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
 
   if (!isOpen) return null;
 
-  const handleSelectProduct = (product: any) => {
+  const handleSelectProduct = (product: ChatProductResult) => {
     const metadata: EntityCardMetadata = {
       entity_type: 'product',
       entity_id: product.id,
@@ -114,8 +155,8 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
     onClose();
   };
 
-  const handleSelectVin = (vinItem: any) => {
-    const decoded = vinItem.decoded || {};
+  const handleSelectVin = (vinItem: ChatVinResult) => {
+    const decoded = (vinItem.decoded || {}) as Record<string, string | undefined>;
     const metadata: EntityCardMetadata = {
       entity_type: 'vin',
       entity_id: vinItem.id,
@@ -134,7 +175,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
     onClose();
   };
 
-  const handleSelectInvoice = (inv: any) => {
+  const handleSelectInvoice = (inv: ChatInvoiceResult) => {
     const metadata: EntityCardMetadata = {
       entity_type: 'invoice',
       entity_id: inv.id,
@@ -151,7 +192,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
     onClose();
   };
 
-  const handleSelectTransfer = (tr: any) => {
+  const handleSelectTransfer = (tr: ChatTransferResult) => {
     const metadata: EntityCardMetadata = {
       entity_type: 'transfer',
       entity_id: tr.id,

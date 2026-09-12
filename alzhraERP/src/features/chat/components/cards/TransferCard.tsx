@@ -41,13 +41,15 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
 
   return (
     <div className="my-2 max-w-sm rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-sm transition-all">
-      <div className="flex items-start justify-between gap-2 border-b border-[var(--app-border)]/60 pb-2.5">
+      <div className="border-[var(--app-border)]/60 flex items-start justify-between gap-2 border-b pb-2.5">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
             <ArrowLeftRight size={18} />
           </div>
           <div>
-            <span className="font-mono text-xs font-bold text-[var(--app-text)]">{transferNumber}</span>
+            <span className="font-mono text-xs font-bold text-[var(--app-text)]">
+              {transferNumber}
+            </span>
             <p className="text-xs font-semibold text-[var(--app-text)]">طلب مناقلة مخزون</p>
           </div>
         </div>
@@ -75,7 +77,9 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
       <div className="mt-2.5 space-y-2 text-xs">
         <div className="flex items-center justify-between rounded-lg bg-[var(--app-bg)] p-2">
           <span className="text-[11px] text-[var(--app-text-secondary)]">الصنف:</span>
-          <strong className="text-[var(--app-text)]">{itemName} ({quantity} قطعة)</strong>
+          <strong className="text-[var(--app-text)]">
+            {itemName} ({quantity} قطعة)
+          </strong>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-center text-[11px]">
@@ -92,14 +96,14 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
 
       {/* Action Buttons for Managers when Pending */}
       {status === 'pending' && isManager && (
-        <div className="mt-3 flex gap-2 border-t border-[var(--app-border)]/60 pt-2.5">
+        <div className="border-[var(--app-border)]/60 mt-3 flex gap-2 border-t pt-2.5">
           <button
             onClick={() => handleAction('approve')}
             disabled={isProcessing}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+            className="flex flex-1 flex-wrap items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-2 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
           >
             {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-            موافقة وتحويل
+            موافقة (إشعار تشغيلي — لا تُنشئ مناقلة مخزنية تلقائياً)
           </button>
           <button
             onClick={() => handleAction('reject')}

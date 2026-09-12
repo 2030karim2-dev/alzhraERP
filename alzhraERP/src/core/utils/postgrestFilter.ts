@@ -31,3 +31,9 @@ export const buildEqOrFilter = (columns: string[], value: string): string => {
   const safe = `"${stripQuotes(value)}"`;
   return columns.map(column => `${column}.eq.${safe}`).join(',');
 };
+
+/**
+ * يُغلّف قيمة مفردة بعلامتي اقتباس مزدوجتين لاستخدامها الآمن داخل فلتر
+ * `or()` (طوابع زمنية/UUIDs) — يمنع كسر الفلتر عند احتواء القيمة فواصل.
+ */
+export const buildOrValue = (value: string): string => `"${stripQuotes(value)}"`;

@@ -1,7 +1,7 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
 import { parseError } from '../../../core/utils/errorUtils';
-import { buildIlikeOrFilter } from '../../../core/utils/postgrestFilter';
+import { buildIlikeOrFilter, buildOrValue } from '../../../core/utils/postgrestFilter';
 import type { Database } from '../../../core/database.types';
 import type {
   ChatChannel,
@@ -68,6 +68,32 @@ interface MessageRawRow {
   }>;
 }
 
+interface RpcChannelsMetaRow {
+  id: string;
+  company_id: string;
+  type: string;
+  name: string;
+  description: string | null;
+  branch_id: string | null;
+  reference_type: string | null;
+  reference_id: string | null;
+  is_private: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+  branch_name: string | null;
+  members_count: number | string | null;
+  last_message_id: string | null;
+  last_message_content: string | null;
+  last_message_type: string | null;
+  last_message_sender_id: string | null;
+  last_message_created_at: string | null;
+  last_message_sender_name: string | null;
+  last_message_sender_avatar: string | null;
+  unread_count: number | string | null;
+}
+
 interface EmployeeRoleRawRow {
   user_id: string;
   role: string;
@@ -130,11 +156,127 @@ async function callRpc<Args, Result>(fn: string, args: Args): Promise<Result | n
   return data;
 }
 
+/**
+ * Map one rpc_get_channels_with_meta row to the ChatChannel shape.
+ * Direct-channel naming needs the peer profile; the RPC does not return the
+ * member list, so direct names resolve in a follow-up batch keyed by channel.
+ */
+function mapMetaRowToChannel(row: RpcChannelsMetaRow, currentUserId: string): ChatChannel {
+  const lastMessage: ChatMessage | null = row.last_message_id
+    ? {
+        id: row.last_message_id,
+        channel_id: row.id,
+        sender_id: row.last_message_sender_id || '',
+        message_type: (row.last_message_type as MessageType) || 'text',
+        content: row.last_message_content || '',
+        metadata: {},
+        reply_to_id: null,
+        created_at: row.last_message_created_at || row.updated_at,
+        sender_name: row.last_message_sender_name || 'موظف',
+        sender_avatar: row.last_message_sender_avatar ?? null,
+      }
+    : null;
+  return {
+    id: row.id,
+    company_id: row.company_id,
+    type: row.type as ChatChannel['type'],
+    name: row.name,
+    description: row.description,
+    branch_id: row.branch_id,
+    branch_name: row.branch_name,
+    reference_type: row.reference_type,
+    reference_id: row.reference_id,
+    is_private: row.is_private,
+    created_by: row.created_by,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    archived_at: row.archived_at,
+    unread_count: Number(row.unread_count) || 0,
+    last_message: lastMessage,
+    members_count: Number(row.members_count) || 0,
+    direct_user: null,
+  };
+}
+
+/**
+ * Resolve display names for direct channels in one batched query.
+ * Returns a map of channelId -> peer profile (excluding the current user).
+ */
+async function fetchDirectPeers(
+  channelIds: string[],
+  currentUserId: string
+): Promise<Record<string, { id: string; full_name: string; avatar_url: string | null }>> {
+  if (channelIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('chat_channel_members')
+    .select('channel_id, user_id, profiles:user_id (id, full_name, avatar_url)')
+    .in('channel_id', channelIds)
+    .neq('user_id', currentUserId);
+  if (error || !data) return {};
+  const peers: Record<string, { id: string; full_name: string; avatar_url: string | null }> = {};
+  for (const row of data as unknown as Array<{
+    channel_id: string;
+    user_id: string;
+    profiles: { id: string; full_name: string; avatar_url: string | null } | null;
+  }>) {
+    if (!peers[row.channel_id] && row.profiles) {
+      peers[row.channel_id] = {
+        id: row.user_id,
+        full_name: row.profiles.full_name || 'موظف',
+        avatar_url: row.profiles.avatar_url,
+      };
+    }
+  }
+  return peers;
+}
+
 export const chatService = {
   /**
-   * Fetch all channels accessible to the current user in this company
+   * Fetch all channels accessible to the current user in this company.
+   * Single RPC call: last message + true unread count (after last_read).
+   * Falls back to the legacy per-channel queries only if the RPC is unavailable.
    */
   getChannels: async (companyId: string, userId: string): Promise<ChatChannel[]> => {
+    try {
+      const { data, error } = await supabase.rpc('rpc_get_channels_with_meta', {
+        p_company_id: companyId,
+      });
+      if (!error && Array.isArray(data)) {
+        const channels = (data as unknown as RpcChannelsMetaRow[]).map(row =>
+          mapMetaRowToChannel(row, userId)
+        );
+        // Batch-resolve direct peer names (one query for all direct channels)
+        const directIds = channels.filter(c => c.type === 'direct').map(c => c.id);
+        if (directIds.length > 0) {
+          const peers = await fetchDirectPeers(directIds, userId);
+          for (const ch of channels) {
+            const peer = peers[ch.id];
+            if (ch.type === 'direct' && peer) {
+              ch.direct_user = {
+                id: peer.id,
+                full_name: peer.full_name,
+                avatar_url: peer.avatar_url,
+              };
+              ch.name = peer.full_name;
+            }
+          }
+        }
+        return channels;
+      }
+      if (error) {
+        logger.error('ChatService', 'rpc_get_channels_with_meta failed, using fallback', error);
+      }
+      return chatService.getChannelsLegacy(companyId, userId);
+    } catch (err) {
+      logger.error('ChatService', 'Error fetching chat channels', err);
+      throw parseError(err);
+    }
+  },
+
+  /**
+   * Legacy per-channel fetch (kept as fallback for cached PostgREST schemas).
+   */
+  getChannelsLegacy: async (companyId: string, userId: string): Promise<ChatChannel[]> => {
     try {
       const { data, error } = await supabase
         .from('chat_channels')
@@ -234,19 +376,35 @@ export const chatService = {
               sender_avatar: msg.profiles?.avatar_url ?? null,
             };
 
-            // Calculate unread
-            if (
-              currentMember?.last_read_message_id !== (lastMessage?.id ?? '') &&
-              lastMessage != null &&
-              lastMessage.sender_id !== userId
-            ) {
-              const { count } = await supabase
-                .from('chat_messages')
-                .select('id', { count: 'exact', head: true })
-                .eq('channel_id', ch.id)
-                .neq('sender_id', userId);
-
-              unreadCount = count || 1;
+            // Calculate unread (legacy fallback): count messages newer than last_read.
+            if (lastMessage != null && lastMessage.sender_id !== userId) {
+              if (!currentMember?.last_read_message_id) {
+                const { count } = await supabase
+                  .from('chat_messages')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('channel_id', ch.id)
+                  .neq('sender_id', userId)
+                  .is('deleted_at', null);
+                unreadCount = count ?? 0;
+              } else {
+                const { data: readRow } = await supabase
+                  .from('chat_messages')
+                  .select('created_at')
+                  .eq('id', currentMember.last_read_message_id)
+                  .maybeSingle();
+                if (!readRow) {
+                  unreadCount = lastMessage.sender_id !== userId ? 1 : 0;
+                } else {
+                  const { count } = await supabase
+                    .from('chat_messages')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('channel_id', ch.id)
+                    .neq('sender_id', userId)
+                    .is('deleted_at', null)
+                    .gt('created_at', (readRow as { created_at: string }).created_at);
+                  unreadCount = count ?? 0;
+                }
+              }
             }
           }
 
@@ -297,14 +455,18 @@ export const chatService = {
   },
 
   /**
-   * Fetch messages for a specific channel with cursor pagination
+   * Fetch messages for a specific channel with cursor pagination.
+   * Cursor is (created_at, id) descending: pass both to avoid skipping
+   * messages that share the same millisecond timestamp.
    */
   getMessages: async (
     channelId: string,
     limit = 40,
-    beforeTimestamp?: string
+    beforeTimestamp?: string,
+    beforeId?: string
   ): Promise<ChatMessage[]> => {
     try {
+      const safeLimit = Math.min(Math.max(limit, 1), 100);
       const query = supabase
         .from('chat_messages')
         .select(
@@ -358,10 +520,24 @@ export const chatService = {
         .eq('channel_id', channelId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .order('id', { ascending: false })
+        .limit(safeLimit);
 
       if (beforeTimestamp) {
         query.lt('created_at', beforeTimestamp);
+      } else if (beforeId) {
+        // Keyset cursor: rows strictly older than (anchor.created_at, anchor.id).
+        const { data: anchor } = await supabase
+          .from('chat_messages')
+          .select('created_at')
+          .eq('id', beforeId)
+          .maybeSingle();
+        const anchorCreatedAt = (anchor as { created_at: string } | null)?.created_at;
+        if (anchorCreatedAt) {
+          query.or(
+            `created_at.lt.${buildOrValue(anchorCreatedAt)},and(created_at.eq.${buildOrValue(anchorCreatedAt)},id.lt.${buildOrValue(beforeId)})`
+          );
+        }
       }
 
       const { data, error } = await query;
