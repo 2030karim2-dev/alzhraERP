@@ -336,10 +336,10 @@ export const productService = {
         .select('id, name_ar, part_number, brand')
         .eq('company_id', companyId)
         .is('deleted_at', null)
-        .eq('part_number', trimmedPartNo);
+        .ilike('part_number', trimmedPartNo);
 
       if (trimmedBrand) {
-        partQuery = partQuery.eq('brand', trimmedBrand);
+        partQuery = partQuery.ilike('brand', trimmedBrand);
       }
 
       const { data: existingPart } = await partQuery.limit(1);
@@ -414,7 +414,7 @@ export const productService = {
   /**
    * Update an existing product
    */
-  updateProduct: async (id: string, data: ProductFormData, companyId?: string) => {
+  updateProduct: async (id: string, data: ProductFormData, companyId: string) => {
     logger.debug('ProductService', `Updating product ${id}`, data);
 
     const trimmedName = (data.name || data.name_ar || '').trim();
@@ -423,79 +423,81 @@ export const productService = {
     const trimmedPartNo = (data.part_number || '').trim();
     const trimmedBrand = (data.brand || '').trim();
 
-    if (companyId) {
-      // 1. Check duplicate name if name provided
-      if (trimmedName) {
-        const { data: existingName } = await supabase
-          .from('products')
-          .select('id, name_ar')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .ilike('name_ar', trimmedName)
-          .neq('id', id)
-          .limit(1);
+    if (!companyId) {
+      throw new Error('معرف المنشأة (companyId) مطلوب لتحديث المنتج');
+    }
 
-        if (existingName && existingName.length > 0) {
-          throw new Error(`يوجد منتج آخر مسجل بنفس الاسم: "${trimmedName}"`);
-        }
+    // 1. Check duplicate name if name provided
+    if (trimmedName) {
+      const { data: existingName } = await supabase
+        .from('products')
+        .select('id, name_ar')
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .ilike('name_ar', trimmedName)
+        .neq('id', id)
+        .limit(1);
+
+      if (existingName && existingName.length > 0) {
+        throw new Error(`يوجد منتج آخر مسجل بنفس الاسم: "${trimmedName}"`);
+      }
+    }
+
+    // 2. Check duplicate SKU
+    if (trimmedSku) {
+      const { data: existingSku } = await supabase
+        .from('products')
+        .select('id, name_ar, sku')
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .eq('sku', trimmedSku)
+        .neq('id', id)
+        .limit(1);
+
+      if (existingSku && existingSku.length > 0) {
+        throw new Error(
+          `رمز الصنف (SKU: ${trimmedSku}) مسجل مسبقاً لمنتج آخر: "${existingSku[0].name_ar}"`
+        );
+      }
+    }
+
+    // 3. Check duplicate Barcode
+    if (trimmedBarcode) {
+      const { data: existingBarcode } = await supabase
+        .from('products')
+        .select('id, name_ar, barcode')
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .eq('barcode', trimmedBarcode)
+        .neq('id', id)
+        .limit(1);
+
+      if (existingBarcode && existingBarcode.length > 0) {
+        throw new Error(
+          `الباركود (${trimmedBarcode}) مسجل مسبقاً لمنتج آخر: "${existingBarcode[0].name_ar}"`
+        );
+      }
+    }
+
+    // 4. Check duplicate Part Number + Brand
+    if (trimmedPartNo) {
+      let partQuery = supabase
+        .from('products')
+        .select('id, name_ar, part_number, brand')
+        .eq('company_id', companyId)
+        .is('deleted_at', null)
+        .ilike('part_number', trimmedPartNo)
+        .neq('id', id);
+
+      if (trimmedBrand) {
+        partQuery = partQuery.ilike('brand', trimmedBrand);
       }
 
-      // 2. Check duplicate SKU
-      if (trimmedSku) {
-        const { data: existingSku } = await supabase
-          .from('products')
-          .select('id, name_ar, sku')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .eq('sku', trimmedSku)
-          .neq('id', id)
-          .limit(1);
-
-        if (existingSku && existingSku.length > 0) {
-          throw new Error(
-            `رمز الصنف (SKU: ${trimmedSku}) مسجل مسبقاً لمنتج آخر: "${existingSku[0].name_ar}"`
-          );
-        }
-      }
-
-      // 3. Check duplicate Barcode
-      if (trimmedBarcode) {
-        const { data: existingBarcode } = await supabase
-          .from('products')
-          .select('id, name_ar, barcode')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .eq('barcode', trimmedBarcode)
-          .neq('id', id)
-          .limit(1);
-
-        if (existingBarcode && existingBarcode.length > 0) {
-          throw new Error(
-            `الباركود (${trimmedBarcode}) مسجل مسبقاً لمنتج آخر: "${existingBarcode[0].name_ar}"`
-          );
-        }
-      }
-
-      // 4. Check duplicate Part Number + Brand
-      if (trimmedPartNo) {
-        let partQuery = supabase
-          .from('products')
-          .select('id, name_ar, part_number, brand')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .eq('part_number', trimmedPartNo)
-          .neq('id', id);
-
-        if (trimmedBrand) {
-          partQuery = partQuery.eq('brand', trimmedBrand);
-        }
-
-        const { data: existingPart } = await partQuery.limit(1);
-        if (existingPart && existingPart.length > 0) {
-          throw new Error(
-            `رقم القطعة (${trimmedPartNo}${trimmedBrand ? ` - ${trimmedBrand}` : ''}) مسجل مسبقاً لمنتج آخر: "${existingPart[0].name_ar}"`
-          );
-        }
+      const { data: existingPart } = await partQuery.limit(1);
+      if (existingPart && existingPart.length > 0) {
+        throw new Error(
+          `رقم القطعة (${trimmedPartNo}${trimmedBrand ? ` - ${trimmedBrand}` : ''}) مسجل مسبقاً لمنتج آخر: "${existingPart[0].name_ar}"`
+        );
       }
     }
 

@@ -70,6 +70,11 @@ function createAuditItemsChannel(
     });
 }
 
+const channelRegistry = new Map<
+  string,
+  { channel: ReturnType<typeof supabase.channel>; refCount: number }
+>();
+
 /** جلب تفاصيل جلسة جرد مع Realtime subscription */
 export const useAuditSession = (sessionId: string | undefined) => {
   const queryClient = useQueryClient();
@@ -85,29 +90,13 @@ export const useAuditSession = (sessionId: string | undefined) => {
 
   useEffect(() => {
     if (!sessionId) return;
-
     const channelKey = `audit_session_${sessionId}`;
-    type AuditChannel = ReturnType<typeof supabase.channel>;
-    interface AuditChannelEntry {
-      channel: AuditChannel;
-      refCount: number;
-    }
-    interface AuditChannelRegistry {
-      __ALZ_AUDIT_CHANNELS__?: Map<string, AuditChannelEntry>;
-    }
-    const registryRef = window as unknown as AuditChannelRegistry;
-    // const + ?? جديد: سجل مؤكد التعيين يغني عن optional chaining في الـ cleanup
-    const registry: Map<string, AuditChannelEntry> =
-      registryRef.__ALZ_AUDIT_CHANNELS__ ?? new Map<string, AuditChannelEntry>();
-    registryRef.__ALZ_AUDIT_CHANNELS__ = registry;
 
-    // Reuse existing channel while other consumers still need it (prevents
-    // subscribe/unsubscribe churn across HMR / StrictMode remounts).
-    const existing = registry.get(channelKey);
+    const existing = channelRegistry.get(channelKey);
     if (existing !== undefined) {
       existing.refCount += 1;
     } else {
-      registry.set(channelKey, {
+      channelRegistry.set(channelKey, {
         channel: createAuditItemsChannel(channelKey, sessionId, queryClient),
         refCount: 1,
       });
@@ -118,11 +107,11 @@ export const useAuditSession = (sessionId: string | undefined) => {
       // الاشتراكات الحية لكل جلسة جرّدت زيارتها وتستقبل أحداثاً وتطلق
       // إبطالات في الخلفية لصفحات تركها المستخدم. الآن نُحرر المرجع، وإذا
       // لم يعد له مستهلكون نُلغي الاشتراك فعلياً ونحذفه من السجل.
-      const entry = registry.get(channelKey);
+      const entry = channelRegistry.get(channelKey);
       if (entry === undefined) return;
       entry.refCount -= 1;
       if (entry.refCount <= 0) {
-        registry.delete(channelKey);
+        channelRegistry.delete(channelKey);
         void supabase.removeChannel(entry.channel);
       }
     };
@@ -249,7 +238,7 @@ export const useInventoryMutations = () => {
       ) {
         void syncStore.enqueue({
           mutationKey: ['inventory', 'save_audit_progress'],
-          variables: { variables },
+          variables,
         });
         showToast('تم حفظ التقدم محلياً (وضع عدم الاتصال)', 'info');
         return;

@@ -194,9 +194,9 @@ const StockAuditView: React.FC = () => {
                         )}
                       >
                         {isCompleted ? (
-                          <CircleCheckBig size={9} />
+                          <CircleCheckBig size={10} />
                         ) : (
-                          <Activity size={9} className="animate-pulse" />
+                          <Activity size={10} className="animate-pulse" />
                         )}
                         {isCompleted ? 'مكتملة' : 'نشطة'}
                       </span>
@@ -206,7 +206,7 @@ const StockAuditView: React.FC = () => {
                         </span>
                       )}
                       <span className="mr-auto flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-600">
-                        <Clock size={9} /> {formatLocalDate(ad.created_at)}
+                        <Clock size={10} /> {formatLocalDate(ad.created_at)}
                       </span>
                     </div>
                     <p className="truncate text-sm font-bold leading-tight text-gray-900 dark:text-white max-md:text-[13px]">

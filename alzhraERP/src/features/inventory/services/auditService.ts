@@ -273,24 +273,37 @@ export const auditService = {
     // 2. Resilient fallback: direct UPDATE on existing audit_items rows (never upsert without required columns)
     const updatePromises = normalizedItems.map(async item => {
       if (item.id) {
-        return supabase
+        // ID exists, do an exact update
+        const { error: updateError } = await supabase
           .from('audit_items')
           .update({
             counted_quantity: item.counted_quantity,
             updated_at: new Date().toISOString(),
           })
           .eq('id', item.id);
+        if (updateError) throw updateError;
       } else if (sessionId && item.product_id) {
-        return supabase
+        // No ID, but we have session and product: check if exists first
+        const { data: existing } = await supabase
           .from('audit_items')
-          .update({
-            counted_quantity: item.counted_quantity,
-            updated_at: new Date().toISOString(),
-          })
+          .select('id')
           .eq('session_id', sessionId)
-          .eq('product_id', item.product_id);
+          .eq('product_id', item.product_id)
+          .maybeSingle();
+
+        if (existing?.id) {
+          const { error: updateError } = await supabase
+            .from('audit_items')
+            .update({
+              counted_quantity: item.counted_quantity,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+          if (updateError) throw updateError;
+        }
+        // If it doesn't exist, we skip silently or log
       }
-      return Promise.resolve({ error: null });
+      return { error: null };
     });
 
     const results = await Promise.all(updatePromises);

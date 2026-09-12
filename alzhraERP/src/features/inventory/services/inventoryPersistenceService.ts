@@ -248,10 +248,8 @@ class InventoryPersistenceService {
     try {
       if (sessionId) {
         sessionStorage.removeItem(this.getStorageKey(sessionId));
-        localStorage.removeItem(this.getStorageKey(sessionId));
       }
       sessionStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
       logger.error('inventoryPersistenceService', 'Failed to clear session storage:', error);
     }
