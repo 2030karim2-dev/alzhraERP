@@ -112,7 +112,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
           setResults(data);
         } else if (activeTab === 'vin') {
           const data = await chatService.searchVins(companyId, search);
-          setResults(data);
+          setResults(data as unknown as ChatVinResult[]);
         } else if (activeTab === 'invoice') {
           const data = await chatService.searchInvoices(companyId, search);
           setResults(data);
