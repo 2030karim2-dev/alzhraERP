@@ -13,7 +13,8 @@ describe('reportsApi.getDebtAgingInvoices', () => {
   it('ages by due_date and includes partially_paid invoices (regression: was issue_date + missing partially_paid)', async () => {
     const order = vi.fn().mockResolvedValue({ data: [], error: null });
     const inFilter = vi.fn(() => ({ order }));
-    const isFilter = vi.fn(() => ({ in: inFilter }));
+    const notFilter = vi.fn(() => ({ in: inFilter }));
+    const isFilter = vi.fn(() => ({ not: notFilter }));
     const eqType = vi.fn(() => ({ is: isFilter }));
     const eqCompany = vi.fn(() => ({ eq: eqType }));
     const select = vi.fn(() => ({ eq: eqCompany }));
@@ -27,6 +28,8 @@ describe('reportsApi.getDebtAgingInvoices', () => {
     expect(selectArg).toContain('issue_date');
     expect(eqCompany).toHaveBeenCalledWith('company_id', 'c1');
     expect(eqType).toHaveBeenCalledWith('type', 'sale');
+    expect(isFilter).toHaveBeenCalledWith('deleted_at', null);
+    expect(notFilter).toHaveBeenCalledWith('invoice_number', 'ilike', '%-INT');
     // Confirmed and partially paid invoices MUST be included in the aging report.
     expect(inFilter).toHaveBeenCalledWith('status', ['posted', 'confirmed', 'partially_paid']);
     // Ordering follows the DUE date, not the issue date.

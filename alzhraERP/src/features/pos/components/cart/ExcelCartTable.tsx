@@ -104,6 +104,7 @@ interface ExcelCartTableProps {
   onRemoveClick: (productId: string) => void;
   editingPriceId?: string | null;
   setEditingPriceId?: (id: string | null) => void;
+  isCrossBranch?: boolean;
 }
 
 export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
@@ -112,6 +113,7 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
   onRemoveClick,
   editingPriceId,
   setEditingPriceId,
+  isCrossBranch,
 }) => {
   // Navigation: col indices: 1: name, 2: partNumber, 3: quantity, 4: price, 5: total, 6: actions
   const [focusedCell, setFocusedCell] = useState<{ row: number; col: number }>({ row: 0, col: 3 });
@@ -461,7 +463,10 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                     isRowActive
                       ? 'bg-blue-50/30 dark:bg-blue-950/20'
                       : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30',
-                    isOverStock && 'bg-rose-50/50 dark:bg-rose-900/15'
+                    isOverStock && 'bg-rose-50/50 dark:bg-rose-900/15',
+                    isCrossBranch &&
+                      !isOverStock &&
+                      'bg-amber-50/50 hover:bg-amber-100/50 dark:bg-amber-900/10 dark:hover:bg-amber-900/20'
                   )}
                 >
                   {/* Col 0: Excel Row Header (#) */}

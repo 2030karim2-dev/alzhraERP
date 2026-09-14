@@ -174,16 +174,26 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         header: 'رقم الفاتورة',
         accessorKey: 'invoiceNumber' as keyof InvoiceListItem,
         accessor: (row: InvoiceListItem) => (
-          <div className="flex items-center gap-1.5">
-            {row.type === 'sale_return' && (
-              <ArrowLeftRight size={13} className="shrink-0 text-rose-500" />
+          <div className="flex flex-col items-start gap-1">
+            <div className="flex items-center gap-1.5">
+              {row.type === 'sale_return' && (
+                <ArrowLeftRight size={13} className="shrink-0 text-rose-500" />
+              )}
+              <span
+                dir="ltr"
+                className={`font-mono font-bold ${row.type === 'sale_return' ? 'text-rose-600' : 'text-blue-600'}`}
+              >
+                #{row.invoiceNumber}
+              </span>
+            </div>
+            {row.invoiceNumber.endsWith('-INT') && (
+              <span
+                className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                title="فاتورة داخلية نتيجة مبيعات متقاطعة عبر الفروع"
+              >
+                🔄 نقل داخلي
+              </span>
             )}
-            <span
-              dir="ltr"
-              className={`font-mono font-bold ${row.type === 'sale_return' ? 'text-rose-600' : 'text-blue-600'}`}
-            >
-              #{row.invoiceNumber}
-            </span>
           </div>
         ),
         width: 'w-32',
@@ -297,6 +307,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
       {
         header: 'إجراءات',
         accessor: (row: InvoiceListItem) => {
+          const isInternal = row.invoiceNumber?.endsWith('-INT');
           const isLocked = row.status === 'posted' || row.status === 'paid';
           return (
             <div className="flex items-center gap-1">
@@ -315,20 +326,22 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
               >
                 <Eye size={15} />
               </button>
-              <button
-                onClick={e => {
-                  handleDelete(e, row);
-                }}
-                disabled={isDeleting}
-                title={isLocked ? 'لا يمكن حذف فاتورة معتمدة أو مدفوعة' : 'حذف الفاتورة'}
-                className={`rounded p-1.5 transition-colors ${
-                  isLocked
-                    ? 'cursor-not-allowed text-gray-300 dark:text-slate-600'
-                    : 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20'
-                }`}
-              >
-                <Trash2 size={15} />
-              </button>
+              {!isInternal && (
+                <button
+                  onClick={e => {
+                    handleDelete(e, row);
+                  }}
+                  disabled={isDeleting}
+                  title={isLocked ? 'لا يمكن حذف فاتورة معتمدة أو مدفوعة' : 'حذف الفاتورة'}
+                  className={`rounded p-1.5 transition-colors ${
+                    isLocked
+                      ? 'cursor-not-allowed text-gray-300 dark:text-slate-600'
+                      : 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20'
+                  }`}
+                >
+                  <Trash2 size={15} />
+                </button>
+              )}
             </div>
           );
         },

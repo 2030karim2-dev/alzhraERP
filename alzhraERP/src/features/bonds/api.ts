@@ -56,8 +56,8 @@ export const bondsApi = {
     const paymentType =
       data.type === 'receipt' ? 'receipt' : data.type === 'transfer' ? 'transfer' : 'disbursement';
 
-    const { data: result, error } = await supabase.rpc('commit_payment', {
-      p_type: paymentType,
+    const { data: resultData, error } = await supabase.rpc('create_financial_bond', {
+      p_bond_type: paymentType,
       p_company_id: companyId,
       p_user_id: userId,
       p_amount: data.amount,
@@ -67,19 +67,79 @@ export const bondsApi = {
       p_counterparty_id: data.counterparty_id,
       p_description: data.description,
       p_payment_method: data.payment_method || 'cash',
-      p_reference_number: data.reference_number || '',
+      ...(data.invoice_id ? { p_invoice_id: data.invoice_id } : {}), // Atomic allocation!
       ...(data.currency_code ? { p_currency_code: data.currency_code } : {}),
       ...(data.exchange_rate ? { p_exchange_rate: data.exchange_rate } : {}),
       ...(data.foreign_amount ? { p_foreign_amount: data.foreign_amount } : {}),
       ...(data.branchId ? { p_branch_id: data.branchId } : {}),
-      ...(data.idempotency_key ? { p_idempotency_key: data.idempotency_key } : {}),
     });
 
     if (error) {
       throw error;
     }
 
+    const result = resultData as any;
+
+    // Handle Commission / Discount if provided
+    if (data.commission_amount && data.commission_amount > 0 && data.commission_account_id) {
+      const { error: commError } = await supabase.rpc('create_financial_bond', {
+        p_bond_type: paymentType, // receipt for customers, payment for suppliers
+        p_company_id: companyId,
+        p_user_id: userId,
+        p_amount: data.commission_amount,
+        p_date: data.date,
+        p_cash_account_id: data.commission_account_id, // The discount/commission expense account
+        p_counterparty_type: data.counterparty_type,
+        p_counterparty_id: data.counterparty_id,
+        p_description: `تسوية خصم/عمولة: ${data.description}`,
+        p_payment_method: 'cash',
+        ...(data.invoice_id ? { p_invoice_id: data.invoice_id } : {}), // Atomic allocation to the same invoice
+        ...(data.currency_code ? { p_currency_code: data.currency_code } : {}),
+        ...(data.exchange_rate ? { p_exchange_rate: data.exchange_rate } : {}),
+        ...(data.branchId ? { p_branch_id: data.branchId } : {}),
+      });
+
+      if (commError) {
+        logger.error('bondsApi', 'Failed to create commission bond', commError);
+      }
+    }
+
     return result;
+  },
+
+  getUnpaidPartyInvoices: async (
+    companyId: string,
+    partyId: string,
+    partyType: 'customer' | 'supplier',
+    branchId?: string | null
+  ) => {
+    let query = supabase
+      .from('invoices')
+      .select(
+        `
+        *,
+        invoice_items(
+          *,
+          product:product_id(name_ar, sku, part_number, brand)
+        )
+      `
+      )
+      .eq('company_id', companyId)
+      .eq('party_id', partyId)
+      .eq('type', partyType === 'customer' ? 'sale' : 'purchase')
+      .in('status', ['posted', 'partially_paid'])
+      .is('deleted_at', null)
+      .order('issue_date', { ascending: false });
+
+    if (branchId) {
+      query = query.eq('branch_id', branchId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).filter(
+      (inv: any) => Number(inv.total_amount) > Number(inv.paid_amount || 0)
+    );
   },
 
   deleteBond: async (id: string) => {

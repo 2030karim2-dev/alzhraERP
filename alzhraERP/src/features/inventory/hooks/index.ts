@@ -7,4 +7,4 @@ export * from './useProductImport';
 export * from './useSmartTransferSuggestions';
 export * from './useProductBulkActions';
 export * from './useProductDetails';
-
+export * from './useStockTransferRequests';

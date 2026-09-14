@@ -118,7 +118,7 @@ export const salesApi = {
 
   commitInvoiceRPC: async (
     companyId: string,
-    _userId: string,
+    userId: string,
     payload: CreateInvoicePayload
   ): Promise<InvoiceResponse> => {
     if (payload.paymentMethod === 'credit' && !payload.partyId) {
@@ -160,6 +160,34 @@ export const salesApi = {
         ? { p_paid_amount: Number(payload.paidAmount) || 0 }
         : {}),
     };
+
+    if (payload.isCrossBranch) {
+      const sourceWarehouseId = payload.items[0]?.warehouseId;
+      if (!sourceWarehouseId) {
+        throw new Error('يجب تحديد المستودع لعملية البيع المتقاطع');
+      }
+
+      const crossBranchParams = {
+        p_company_id: companyId,
+        p_seller_branch_id: payload.branchId,
+        p_source_warehouse_id: sourceWarehouseId,
+        p_customer_id: payload.partyId || null,
+        p_items: payload.items.map(i => ({
+          product_id: i.productId,
+          quantity: i.quantity,
+          sale_price: i.unitPrice,
+        })),
+        p_payment_type: payload.paymentMethod || 'cash',
+        p_user_id: userId,
+      };
+
+      const { data: result, error } = await supabase.rpc(
+        'fn_process_cross_branch_sale' as any,
+        crossBranchParams
+      );
+      if (error) throw parseError(error);
+      return { id: result } as unknown as InvoiceResponse;
+    }
 
     const { data: result, error } = await supabase.rpc('commit_sales_invoice_v2', rpcParams);
     if (error) throw parseError(error);

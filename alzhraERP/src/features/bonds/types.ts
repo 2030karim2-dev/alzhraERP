@@ -18,6 +18,9 @@ export interface BondFormData {
 
   description: string;
   reference_number?: string;
+  invoice_id?: string;
+  commission_amount?: number;
+  commission_account_id?: string;
   branchId?: string | null;
   idempotency_key?: string;
 }

@@ -9,6 +9,7 @@ interface CartTotalsProps {
   onPay: () => void;
   canPay: boolean;
   isProcessing?: boolean | undefined;
+  isCrossBranch?: boolean;
 }
 
 /** صف الخصم — مُستخرج لإبقاء المكوّن الرئيس تحت حد طول الدالة. */
@@ -49,15 +50,35 @@ const PayButton: React.FC<{
 };
 
 export const CartTotals: React.FC<CartTotalsProps> = React.memo(
-  ({ onPay, canPay, isProcessing = false }) => {
+  ({ onPay, canPay, isProcessing = false, isCrossBranch = false }) => {
     const { t } = useTranslation();
     const { summary, currency } = useSalesStore();
     // [FIX] اشتراك تفاعلي بدل getState() داخل الرندر — القراءة غير المشتركة
     // كانت تعرض صف الخصم حسب قيمة قديمة إن غيّر المتجر دون إعادة رندر.
     const discountEnabled = useDiscountStore(state => state.discountEnabled);
+    const { items, warehouseId } = useSalesStore();
+
+    // Check if any item in the cart relies entirely on another warehouse's stock
+    const hasCrossBranchItem = React.useMemo(() => {
+      if (!isCrossBranch || !items || items.length === 0) return false;
+      return items.some((item: any) => {
+        if (!item.productId) return false;
+        const wd = item.warehouse_distribution || [];
+        const localStock = wd.find((w: any) => w.warehouse_id === warehouseId)?.quantity || 0;
+        return localStock === 0 && wd.some((w: any) => w.quantity > 0);
+      });
+    }, [isCrossBranch, items, warehouseId]);
 
     return (
       <div className="shrink-0 space-y-2 border-t border-slate-800 bg-slate-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-white dark:bg-slate-950">
+        {hasCrossBranchItem && (
+          <div className="mb-2 flex items-start gap-2 rounded-lg border border-amber-700/50 bg-amber-900/40 p-2.5 text-[11px] text-amber-200 md:text-xs">
+            <span className="mt-0.5 text-lg font-bold leading-none text-amber-400">!</span>
+            <p className="leading-snug">
+              تنبيه: تتضمن السلة منتجات من فرع آخر. سيتم تسجيل فاتورة داخلية تلقائياً بسعر التكلفة.
+            </p>
+          </div>
+        )}
         {/* Subtotal row */}
         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <span>{t('subtotal')}</span>

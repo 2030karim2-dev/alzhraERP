@@ -114,8 +114,10 @@ export interface Product {
     | Array<{
         warehouse_id: string;
         warehouse_name: string;
+        branch_id?: string | undefined;
+        branch_name?: string | undefined;
         quantity: number;
-        location?: string;
+        location?: string | undefined;
       }>
     | undefined;
 

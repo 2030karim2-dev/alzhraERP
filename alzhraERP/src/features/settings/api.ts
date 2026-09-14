@@ -60,27 +60,30 @@ export const settingsApi = {
       .eq('company_id', companyId)
       .order('created_at', { ascending: false });
   },
-
   inviteUser: async (
     email: string,
     role: string,
     companyId: string,
-    userId: string,
+    _userId: string,
     branchId?: string | null
   ) => {
-    return await supabase
-      .from('invitations')
-      .insert({
+    // استدعاء الدالة الخلفية لإرسال إيميل حقيقي عبر Supabase Auth
+    const { data, error } = await supabase.functions.invoke('invite-user', {
+      body: {
         email,
         role,
         company_id: companyId,
-        created_by: userId,
-        ...(branchId ? { branch_id: branchId } : {}),
-      })
-      .select()
-      .single();
-  },
+        branch_id: branchId || null,
+      },
+    });
 
+    if (error) {
+      throw error;
+    }
+
+    // الدالة الخلفية ستقوم بإرجاع بيانات الدعوة بعد نجاحها
+    return { data, error: null };
+  },
   revokeInvitation: async (id: string) => {
     return await supabase.from('invitations').delete().eq('id', id);
   },

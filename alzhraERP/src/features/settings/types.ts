@@ -1,6 +1,22 @@
-
 // Add missing SettingsSection type used in SettingsPage.tsx
-export type SettingsSection = 'profile' | 'company' | 'financial' | 'appearance' | 'backup' | 'security' | 'notifications' | 'team' | 'invoice' | 'pos' | 'inventory' | 'print' | 'integrations' | 'localization' | 'branches' | 'preferences' | 'dhikr';
+export type SettingsSection =
+  | 'profile'
+  | 'company'
+  | 'financial'
+  | 'appearance'
+  | 'backup'
+  | 'security'
+  | 'notifications'
+  | 'team'
+  | 'invoice'
+  | 'pos'
+  | 'inventory'
+  | 'print'
+  | 'integrations'
+  | 'localization'
+  | 'branches'
+  | 'preferences'
+  | 'dhikr';
 
 export interface Company {
   id: string;
@@ -25,6 +41,7 @@ export interface Branch {
   address?: string | null;
   phone?: string | null;
   status: string;
+  integration_mode?: 'independent' | 'full_integration' | 'inventory_only' | string | null;
   created_at: string;
   updated_at: string;
 }

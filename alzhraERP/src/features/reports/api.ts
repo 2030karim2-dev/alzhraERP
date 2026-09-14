@@ -187,6 +187,8 @@ export const reportsApi = {
   },
 
   getDebtAgingInvoices: async (companyId: string) => {
+    // [CROSS-BRANCH FIX] Exclude internal cross-branch invoices (suffixed -INT)
+    // They are cost-price transfers, not real customer debts.
     return await supabase
       .from('invoices')
       .select(
@@ -195,11 +197,14 @@ export const reportsApi = {
       .eq('company_id', companyId)
       .eq('type', 'sale')
       .is('deleted_at', null)
+      .not('invoice_number', 'ilike', '%-INT')
       .in('status', ['posted', 'confirmed', 'partially_paid'])
       .order('due_date', { ascending: true });
   },
 
   getDailySalesInvoices: async (companyId: string, fromDateISO: string) => {
+    // [CROSS-BRANCH FIX] Exclude internal cross-branch invoices (suffixed -INT)
+    // from daily sales totals to prevent double-counting revenue.
     return await supabase
       .from('invoices')
       .select(
@@ -209,6 +214,7 @@ export const reportsApi = {
       .in('type', ['sale', 'sale_return', 'return_sale'])
       .neq('status', 'void')
       .is('deleted_at', null)
+      .not('invoice_number', 'ilike', '%-INT')
       .gte('issue_date', fromDateISO)
       .order('issue_date', { ascending: false });
   },

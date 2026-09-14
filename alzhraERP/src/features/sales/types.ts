@@ -44,6 +44,7 @@ export interface CreateInvoicePayload {
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
   branchId?: string | null;
+  isCrossBranch?: boolean;
   /** مفتاح منع التكرار — يُولَّد مرة واحدة لكل نية مستخدم (انظر core/utils/idempotency.ts) */
   idempotencyKey?: string;
 }
@@ -64,6 +65,7 @@ export interface CreateInvoiceDTO {
   referenceInvoiceId?: string | null;
   returnReason?: string | null;
   branchId?: string | null;
+  isCrossBranch?: boolean;
   customerName?: string;
   /** مفتاح منع التكرار — يُولَّد مرة واحدة لكل نية مستخدم (انظر core/utils/idempotency.ts) */
   idempotencyKey?: string;

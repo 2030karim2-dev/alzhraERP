@@ -11,7 +11,11 @@ interface RawStock {
   quantity?: number | string;
   warehouse_id: string;
   warehouse_name?: string;
-  warehouses?: { name_ar?: string };
+  warehouses?: {
+    name_ar?: string;
+    branch_id?: string;
+    branches?: { id?: string; name?: string } | null;
+  };
 }
 
 interface RawProduct {
@@ -160,14 +164,22 @@ export const productService = {
           return sum + (isNaN(qty) ? 0 : qty);
         }, 0);
 
+        const warehouseDistribution = stockList.map(s => ({
+          warehouse_id: s.warehouse_id,
+          warehouse_name: s.warehouse_name || s.warehouses?.name_ar || 'مستودع غير معروف',
+          branch_id: s.warehouses?.branch_id || s.warehouses?.branches?.id,
+          branch_name: s.warehouses?.branches?.name,
+          quantity: Number(s.quantity) || 0,
+        }));
+
         const categoryName = prod.category?.name || 'عام';
 
         return {
           id: prod.id,
           company_id: prod.company_id,
-          name_ar: prod.name_ar || 'بدون اسم',
+          name_ar: prod.name_ar || 'منتج غير مسمى',
           name_en: '',
-          name: prod.name_ar || 'بدون اسم',
+          name: prod.name_ar || 'منتج غير مسمى',
           sku: prod.sku || '---',
           part_number: prod.part_number || '---',
           brand: prod.brand || '',
@@ -179,6 +191,7 @@ export const productService = {
           sale_price: Number(prod.sale_price) || 0,
           selling_price: Number(prod.sale_price) || 0,
           stock_quantity: totalStock,
+          warehouse_distribution: warehouseDistribution,
           min_stock_level: Number(prod.min_stock_level) || 0,
           is_core: Boolean(prod.is_core),
           unit: prod.unit || 'pcs',
@@ -207,12 +220,6 @@ export const productService = {
             }
             return minLevel > 0 && totalStock <= minLevel;
           })(),
-          warehouse_distribution: stockList.map((s: RawStock) => ({
-            warehouse_id: s.warehouse_id,
-            warehouse_name: s.warehouse_name || s.warehouses?.name_ar || 'مستودع',
-            quantity: Number(s.quantity) || 0,
-            location: prod.location || '',
-          })),
           alternatives: prod.alternative_numbers
             ? prod.alternative_numbers.split(',').map(n => n.trim())
             : [],

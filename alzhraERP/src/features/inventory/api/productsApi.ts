@@ -38,7 +38,11 @@ export const productsApi = {
                 stock:product_stock(
                     quantity,
                     warehouse_id,
-                    warehouses(name_ar)
+                    warehouses(
+                        name_ar,
+                        branch_id,
+                        branches:branches!warehouses_branch_id_fkey(id, name)
+                    )
                 )
             `
       )

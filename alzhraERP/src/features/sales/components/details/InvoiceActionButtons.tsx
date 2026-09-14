@@ -105,7 +105,9 @@ const InvoiceActionButtons: React.FC<InvoiceActionButtonsProps> = ({
           <span>إغلاق</span>
         </button>
 
-        <ReturnButton isReturn={isReturn} onToggleReturn={onToggleReturn} />
+        {!invoice.invoice_number?.endsWith('-INT') && (
+          <ReturnButton isReturn={isReturn} onToggleReturn={onToggleReturn} />
+        )}
       </div>
 
       <ExportGroup

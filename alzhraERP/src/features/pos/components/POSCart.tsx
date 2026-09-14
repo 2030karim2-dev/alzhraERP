@@ -10,9 +10,15 @@ interface POSCartProps {
   onPay: () => void;
   onSuspend: () => void;
   isProcessing?: boolean | undefined;
+  isCrossBranch?: boolean;
 }
 
-export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend, isProcessing }) => {
+export const POSCart: React.FC<POSCartProps> = ({
+  onPay,
+  onSuspend,
+  isProcessing,
+  isCrossBranch,
+}) => {
   const { items, updateQuantity, removeItem } = useSalesStore();
   const validItems = Array.isArray(items) ? items.filter(i => i.productId) : [];
   const { t } = useTranslation();
@@ -51,11 +57,17 @@ export const POSCart: React.FC<POSCartProps> = ({ onPay, onSuspend, isProcessing
             onRemoveClick={handleRemoveClick}
             editingPriceId={editingPriceId}
             setEditingPriceId={setEditingPriceId}
+            isCrossBranch={!!isCrossBranch}
           />
         )}
       </div>
 
-      <CartTotals onPay={onPay} canPay={validItems.length > 0} isProcessing={isProcessing} />
+      <CartTotals
+        onPay={onPay}
+        canPay={validItems.length > 0}
+        isProcessing={isProcessing}
+        isCrossBranch={!!isCrossBranch}
+      />
     </div>
   );
 };

@@ -14,13 +14,35 @@ interface MockQueryResult {
   error: { code?: string; message: string; details?: string } | null;
 }
 
-/** سلسلة استعلام وهمية: كل باني تُعيد السلسلة، و `.limit()` هي النهاية الحالّة. */
+/** سلسلة استعلام وهمية: كل باني تُعيد السلسلة، مع دعم كافة دوال PostgREST والتسلسل غير المتزامن. */
 const buildQueryChain = (result: MockQueryResult, terminal = 'limit') => {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-  for (const method of ['select', 'eq', 'or', 'ilike', 'order', 'limit']) {
+  const methods = [
+    'select',
+    'eq',
+    'neq',
+    'gt',
+    'gte',
+    'lt',
+    'lte',
+    'like',
+    'ilike',
+    'is',
+    'in',
+    'not',
+    'or',
+    'order',
+    'limit',
+    'single',
+    'maybeSingle',
+  ];
+  for (const method of methods) {
     chain[method] = vi.fn(() => chain);
   }
-  chain[terminal] = vi.fn(() => Promise.resolve(result));
+  chain[terminal] = vi.fn(() => chain);
+  chain.then = vi.fn((resolve: (val: unknown) => unknown, reject?: (err: unknown) => unknown) => {
+    return Promise.resolve(result).then(resolve, reject);
+  });
   return chain;
 };
 
@@ -35,6 +57,7 @@ const catchErr = (promise: Promise<unknown>): Promise<CaughtErr> =>
 describe('chatService — بحث مشاركة الكيانات (Entity Share)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFrom.mockReset();
     mockRpc.mockReset();
   });
 
@@ -365,7 +388,7 @@ describe('chatService — بحث مشاركة الكيانات (Entity Share)', 
         'maybeSingle'
       );
       const mainChain = buildQueryChain({ data: [], error: null });
-      mockFrom.mockReturnValueOnce(anchorChain).mockReturnValueOnce(mainChain);
+      mockFrom.mockReturnValueOnce(mainChain).mockReturnValueOnce(anchorChain);
 
       await chatService.getMessages('ch-1', 500, undefined, 'msg-old');
 

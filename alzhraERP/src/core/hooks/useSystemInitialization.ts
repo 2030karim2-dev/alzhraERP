@@ -8,6 +8,7 @@ import { useLocalizationSettings } from '../../features/settings/settingsStore';
 import { useSoundStore } from '../../features/notifications/store';
 import { initAPM } from '../utils/initAPM';
 import { useRealtimeSync } from '../../lib/hooks/useRealtimeSync';
+import { useBranchNotifications } from '../../features/branches/hooks/useBranchNotifications';
 
 export const useSystemInitialization = () => {
   const hasBootstrappedSystem = useRef(false);
@@ -20,6 +21,8 @@ export const useSystemInitialization = () => {
 
   // Initialize Global Realtime Sync
   useRealtimeSync();
+  // Initialize Realtime Cross-Branch Notifications
+  useBranchNotifications();
   // 0. Track first user interaction for AudioContext / Autoplay policies
   useEffect(() => {
     const handleInteraction = () => {

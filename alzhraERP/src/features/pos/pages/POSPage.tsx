@@ -22,6 +22,7 @@ import { POSHeader } from '../components/layout/POSHeader';
 import { useWarehousesWithBranches } from '../../inventory/hooks/useWarehouseStock';
 import { createIdempotencyKey } from '../../../core/utils/idempotency';
 import { QuickDrawerExpenseModal } from '../../reconciliation/components/QuickDrawerExpenseModal';
+import { useBranches } from '../../settings/hooks';
 
 const POSPage: React.FC = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -39,6 +40,11 @@ const POSPage: React.FC = () => {
   const isDesktop = useBreakpoint('md');
 
   const { warehouses } = useWarehousesWithBranches();
+  const { user } = useAuthStore();
+  const { data: branches = [] } = useBranches();
+  const currentBranchId = user?.branch_id;
+  const currentBranch = branches.find(b => b.id === currentBranchId);
+  const isInventoryOnly = (currentBranch as any)?.integration_mode === 'inventory_only';
 
   const search = usePOSSearch({
     debounceMs: 200,
@@ -114,14 +120,23 @@ const POSPage: React.FC = () => {
     setIsPaymentOpen(true);
   }, [isProcessing, validCartItems.length]);
 
+  const selectedWarehouse = warehouses.find(w => w.id === selectedWarehouseId);
+  const isCrossBranch =
+    selectedWarehouse &&
+    selectedWarehouse.branch_id &&
+    user?.branch_id &&
+    selectedWarehouse.branch_id !== user.branch_id;
+
   const handlePayConfirm = useCallback(
     (result: POSPaymentResult) => {
       if (isProcessing) return;
+
       processPayment(
         {
           partyId: selectedCustomer?.id || null,
           idempotencyKey: checkoutIdempotencyKeyRef.current,
           type: 'sale',
+          isCrossBranch: !!isCrossBranch,
           items: validCartItems.map(i => ({
             ...i,
             unitPrice: i.price,
@@ -158,6 +173,7 @@ const POSPage: React.FC = () => {
       summary.discountAmount,
       selectedWarehouseId,
       currency,
+      isCrossBranch,
     ]
   );
 
@@ -214,6 +230,7 @@ const POSPage: React.FC = () => {
               onPay={handleOpenPayment}
               onSuspend={handleSuspend}
               isProcessing={isProcessing}
+              isCrossBranch={!!isCrossBranch}
             />
           </div>
 
@@ -242,6 +259,9 @@ const POSPage: React.FC = () => {
               setDetailProduct(p);
             }}
             selectedWarehouseId={selectedWarehouseId}
+            isCrossBranch={!!isCrossBranch}
+            isInventoryOnly={isInventoryOnly}
+            requesterBranchId={currentBranchId ?? null}
           />
         </main>
       </div>

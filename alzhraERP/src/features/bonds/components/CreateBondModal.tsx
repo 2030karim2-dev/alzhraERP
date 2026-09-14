@@ -28,6 +28,7 @@ import Input from '../../../ui/base/Input';
 import { cn, formatCurrency, formatLocalDate } from '../../../core/utils';
 import { convertToBaseCurrency } from '../../../core/utils/currencyUtils';
 import { createIdempotencyKey } from '../../../core/utils/idempotency';
+import PartyInvoicesList from './PartyInvoicesList';
 
 interface CreateBondModalProps {
   isOpen: boolean;
@@ -96,6 +97,8 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
 
   const selectedCurrency = watch('currency_code');
   const counterpartyType = watch('counterparty_type');
+  const counterpartyId = watch('counterparty_id');
+  const selectedInvoiceId = watch('invoice_id');
   const currencyObj = currencies.data?.find(
     (c: { code: string; exchange_operator?: string }) => c.code === selectedCurrency
   );
@@ -161,6 +164,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
 
   const handlePartySelect = (party: any) => {
     setValue('counterparty_id', party.id);
+    setValue('invoice_id', undefined);
     setPartyQuery(party.name);
   };
 
@@ -207,6 +211,10 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
               'لا يمكن إجراء تحويل داخلي إلى نفس الحساب (حساب المصدر وحساب الهدف متطابقان)',
               'error'
             );
+            return;
+          }
+          if (data.commission_amount && data.commission_amount > 0 && !data.commission_account_id) {
+            showToast('يجب تحديد الحساب المحاسبي لتوجيه مبلغ العمولة / الخصم', 'error');
             return;
           }
           onSubmit({ ...data, idempotency_key: idempotencyKeyRef.current });
@@ -345,6 +353,56 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
           </div>
         </div>
 
+        {/* Step 1.5: Commission / Discount (Optional) */}
+        {(type === 'receipt' || type === 'payment') && (
+          <div className="flex flex-col gap-4 rounded-2xl border border-amber-100 bg-amber-50/30 p-4 shadow-sm dark:border-amber-900/30 dark:bg-amber-900/10 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-amber-100 p-1.5 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400">
+                  <Tag size={16} />
+                </div>
+                <div className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                  {type === 'receipt'
+                    ? 'إضافة عمولة أو خصم مسموح به للعميل (اختياري)'
+                    : 'توثيق خصم مكتسب من المورد (اختياري)'}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  مبلغ الخصم / العمولة
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register('commission_amount', { valueAsNumber: true })}
+                    className="w-full rounded-xl border-2 border-gray-100 bg-white p-3 pr-10 text-sm font-bold outline-none focus:border-amber-500/50 dark:border-slate-700 dark:bg-slate-800"
+                    placeholder="0.00"
+                  />
+                  <DollarSign
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={16}
+                  />
+                </div>
+              </div>
+              <AccountSelector
+                label="حساب توجيه الخصم"
+                icon={Landmark}
+                {...register('commission_account_id')}
+              >
+                <option value="">-- اختر الحساب المحاسبي --</option>
+                {otherAccounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.code} - {acc.name}
+                  </option>
+                ))}
+              </AccountSelector>
+            </div>
+          </div>
+        )}
+
         {/* Step 2: Grid for Details */}
         <div className="grid grid-cols-1 gap-3.5 sm:gap-6 md:grid-cols-2">
           {/* Account/Party Section */}
@@ -394,50 +452,82 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                 </div>
 
                 {counterpartyType === 'party' ? (
-                  <div className="group relative">
-                    <input
-                      type="text"
-                      value={partyQuery}
-                      onChange={e => {
-                        setPartyQuery(e.target.value);
-                      }}
-                      placeholder="ابحث عن العميل أو المورد..."
-                      className="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 pl-12 text-sm font-bold outline-none transition-all placeholder:text-gray-300 focus:border-blue-500/30 dark:bg-slate-800 dark:focus:border-blue-500/20"
-                    />
-                    <Search
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 transition-colors group-focus-within:text-blue-500"
-                      size={20}
-                    />
-                    {partyQuery.length > 1 && parties.length > 0 && (
-                      <div className="animate-in fade-in zoom-in-95 absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-800">
-                        {parties.map((p: any) => (
-                          <div
-                            key={p.id}
-                            onClick={() => {
-                              handlePartySelect(p);
-                            }}
-                            className="flex cursor-pointer items-center justify-between border-b p-4 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-700/50 dark:hover:bg-slate-700/50"
-                          >
-                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-gray-800 dark:text-slate-100">
-                                {p.name}
-                              </span>
-                              <span className="text-[10px] font-bold text-gray-400">
-                                {p.code || p.phone || p.id.split('-')[0]}
+                  <div className="space-y-4">
+                    <div className="group relative">
+                      <input
+                        type="text"
+                        value={partyQuery}
+                        onChange={e => {
+                          setPartyQuery(e.target.value);
+                        }}
+                        placeholder="ابحث عن العميل أو المورد..."
+                        className="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 pl-12 text-sm font-bold outline-none transition-all placeholder:text-gray-300 focus:border-blue-500/30 dark:bg-slate-800 dark:focus:border-blue-500/20"
+                      />
+                      <Search
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 transition-colors group-focus-within:text-blue-500"
+                        size={20}
+                      />
+                      {partyQuery.length > 1 && parties.length > 0 && (
+                        <div className="animate-in fade-in zoom-in-95 absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-800">
+                          {parties.map((p: any) => (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                handlePartySelect(p);
+                              }}
+                              className="flex cursor-pointer items-center justify-between border-b p-4 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-700/50 dark:hover:bg-slate-700/50"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-black text-gray-800 dark:text-slate-100">
+                                  {p.name}
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-400">
+                                  {p.code || p.phone || p.id.split('-')[0]}
+                                </span>
+                              </div>
+                              <span
+                                className={cn(
+                                  'rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-sm',
+                                  p.type === 'customer'
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30'
+                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
+                                )}
+                              >
+                                {p.type === 'customer' ? 'عميل' : 'مورد'}
                               </span>
                             </div>
-                            <span
-                              className={cn(
-                                'rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-sm',
-                                p.type === 'customer'
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30'
-                                  : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
-                              )}
-                            >
-                              {p.type === 'customer' ? 'عميل' : 'مورد'}
-                            </span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {(type === 'receipt' || type === 'payment') && counterpartyId && (
+                      <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                        <PartyInvoicesList
+                          partyId={counterpartyId}
+                          partyType={type === 'receipt' ? 'customer' : 'supplier'}
+                          selectedInvoiceId={selectedInvoiceId}
+                          onSelectInvoice={inv => {
+                            if (!inv) {
+                              setValue('invoice_id', undefined);
+                              return;
+                            }
+                            setValue('invoice_id', inv.id);
+                            setValue(
+                              'amount',
+                              Number(inv.total_amount) - Number(inv.paid_amount || 0)
+                            );
+                            if (inv.currency_code) {
+                              setValue('currency_code', inv.currency_code);
+                            }
+                            if (inv.exchange_rate) {
+                              setValue('exchange_rate', Number(inv.exchange_rate));
+                            }
+                            setValue(
+                              'description',
+                              `سداد فاتورة ${type === 'receipt' ? 'مبيعات' : 'مشتريات'} رقم ${inv.invoice_number}`
+                            );
+                          }}
+                        />
                       </div>
                     )}
                   </div>

@@ -110,6 +110,16 @@ export const bondsService = {
     if (error) throw error;
   },
 
+  getUnpaidPartyInvoices: async (
+    companyId: string,
+    partyId: string,
+    partyType: 'customer' | 'supplier',
+    branchId?: string | null
+  ) => {
+    const data = await bondsApi.getUnpaidPartyInvoices(companyId, partyId, partyType, branchId);
+    return data;
+  },
+
   getBondsStats: async (companyId: string, branchId?: string | null) => {
     const { data, error } = await bondsApi.getBondsStats(companyId, branchId);
     if (error) throw error;

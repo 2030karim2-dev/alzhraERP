@@ -72,20 +72,33 @@ export const useDeleteBond = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!user) throw new Error('جلسة العمل منتهية');
+      if (!user) throw new Error('يرجى تسجيل الدخول');
 
-      // فحص الصلاحية لحذف السندات
-      await assertPermission('accounting:delete', 'حذف سندات مالية');
+      await assertPermission('accounting:delete', 'حذف سند مالي');
 
       return bondsService.deleteBond(id);
     },
     onSuccess: () => {
       invalidateFinancialQueries(queryClient, user?.company_id, { bonds: true });
       invalidateByPreset(queryClient, 'bond');
-      showToast('تم حذف وإلغاء السند وإنشاء القيد العكسي بنجاح', 'success');
+      showToast('تم إلغاء السند وعكس القيود بنجاح', 'success');
     },
     onError: (error: Error) => {
-      showToast(error.message || 'فشل حذف السند', 'error', error);
+      showToast(error.message || 'حدث خطأ غير متوقع', 'error', error);
     },
+  });
+};
+
+export const useUnpaidPartyInvoices = (partyId?: string, partyType?: 'customer' | 'supplier') => {
+  const { user } = useAuthStore();
+  const { branchId } = useBranchFilter();
+
+  return useQuery({
+    queryKey: ['unpaid_invoices', user?.company_id, branchId, partyId, partyType],
+    queryFn: () =>
+      user?.company_id && partyId && partyType
+        ? bondsService.getUnpaidPartyInvoices(user.company_id, partyId, partyType, branchId)
+        : Promise.resolve([]),
+    enabled: !!user?.company_id && !!partyId && !!partyType,
   });
 };
