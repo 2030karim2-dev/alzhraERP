@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Loader2, MessageSquare } from 'lucide-react';
 import type { ChatMessage } from '../types';
 import { MessageItem } from './MessageItem';
+import { DateSeparatorBadge } from './messages/DateSeparatorBadge';
 
 interface Props {
   messages: ChatMessage[];
@@ -10,6 +11,9 @@ interface Props {
   isLoadingMore: boolean;
   hasMore: boolean;
   typingUserNames: string[];
+  isDirectOnline?: boolean | undefined;
+  peerLastReadMessageId?: string | null | undefined;
+  activeSearchMatchId?: string | null | undefined;
   onLoadMore: () => void;
   onReply: (message: ChatMessage) => void;
 }
@@ -21,6 +25,9 @@ export const MessageList: React.FC<Props> = ({
   isLoadingMore,
   hasMore,
   typingUserNames,
+  isDirectOnline,
+  peerLastReadMessageId,
+  activeSearchMatchId,
   onLoadMore,
   onReply,
 }) => {
@@ -28,8 +35,7 @@ export const MessageList: React.FC<Props> = ({
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
 
-  // Auto-scroll: only when already near the bottom (new incoming) or initial load.
-  // Loading older history (isLoadingMore) or reading mid-list must not yank the view.
+  // Auto-scroll on initial load or new incoming messages
   const isNearBottomRef = useRef(true);
   useEffect(() => {
     if (isLoadingMore) return;
@@ -37,6 +43,16 @@ export const MessageList: React.FC<Props> = ({
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages.length, isLoadingMore]);
+
+  // Scroll to search match if active
+  useEffect(() => {
+    if (activeSearchMatchId) {
+      const el = document.getElementById(`msg-${activeSearchMatchId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [activeSearchMatchId]);
 
   // Maintain scroll position when older messages are prepended
   const handleScroll = () => {
@@ -73,36 +89,18 @@ export const MessageList: React.FC<Props> = ({
           <MessageSquare size={28} className="text-[var(--accent)]" />
         </div>
         <h4 className="text-sm font-bold text-[var(--app-text)]">لا توجد رسائل سابقة</h4>
-        <p className="mt-1 text-xs">ابدأ المحادثة الآن أو شارك بطاقة قطعة غيار / طلب مناقلة.</p>
+        <p className="mt-1 text-xs">
+          ابدأ المحادثة الآن أو أرسل ملاحظة صوتية أو شارك بطاقة قطعة غيار.
+        </p>
       </div>
     );
   }
-
-  // Format date helper for group separators
-  const formatDateSeparator = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'اليوم';
-    }
-    if (date.toDateString() === yesterday.toDateString()) {
-      return 'أمس';
-    }
-    return date.toLocaleDateString('ar-SA-u-nu-latn', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
 
   return (
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="scrollbar-thin scrollbar-thumb-[var(--app-border)] flex-1 overflow-y-auto p-4"
+      className="scrollbar-thin scrollbar-thumb-[var(--app-border)] relative flex-1 overflow-y-auto px-3 py-4 sm:px-5"
     >
       {/* Loading older messages indicator */}
       {isLoadingMore && (
@@ -119,27 +117,24 @@ export const MessageList: React.FC<Props> = ({
 
         return (
           <React.Fragment key={message.id}>
-            {showDateSeparator && (
-              <div className="my-4 flex items-center justify-center">
-                <span className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-0.5 text-[10px] font-semibold text-[var(--app-text-secondary)] shadow-xs">
-                  {formatDateSeparator(message.created_at)}
-                </span>
-              </div>
-            )}
+            {showDateSeparator && <DateSeparatorBadge dateStr={message.created_at} />}
             <MessageItem
               message={message}
               isOwn={message.sender_id === currentUserId}
               currentUserId={currentUserId}
+              isDirectOnline={isDirectOnline}
+              peerLastReadMessageId={peerLastReadMessageId}
+              isSearchMatch={message.id === activeSearchMatchId}
               onReply={onReply}
             />
           </React.Fragment>
         );
       })}
 
-      {/* Typing Indicator */}
+      {/* WhatsApp Typing Bubble Indicator */}
       {typingUserNames.length > 0 && (
-        <div className="my-2 flex items-center gap-2 ps-2 text-xs italic text-[var(--app-text-secondary)]">
-          <div className="flex gap-1">
+        <div className="animate-in fade-in my-2 flex items-center gap-2 ps-2 text-xs italic text-[var(--app-text-secondary)] duration-200">
+          <div className="shadow-2xs flex items-center gap-1 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1">
             <span
               className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--accent)]"
               style={{ animationDelay: '0ms' }}

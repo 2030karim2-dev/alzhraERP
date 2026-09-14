@@ -1,10 +1,14 @@
-import React from 'react';
-import { ArrowRight, Building2, Hash, Layers, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Building2, Hash, Layers, Users, Search } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { useAuthStore } from '../../auth/store';
 import { useChatPresence } from '../hooks/useChatPresence';
+import { useChatSearch } from '../hooks/useChatSearch';
 import { MessageList } from './MessageList';
 import { MessageComposer } from './MessageComposer';
+import { ChatWallpaper } from './conversation/ChatWallpaper';
+import { ChatSearchOverlay } from './conversation/ChatSearchOverlay';
+import { PinnedMessageBanner } from './conversation/PinnedMessageBanner';
 
 interface Props {
   onBack?: () => void;
@@ -23,16 +27,30 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
     setReplyingTo,
     presences,
     typingUsers,
+    pinMessage,
   } = useChatStore();
 
-  const currentUserId = user?.id || '';
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  const currentUserId = user?.id || '';
   const activeChannel = channels.find(c => c.id === activeChannelId);
   const messages = activeChannelId ? messagesByChannel[activeChannelId] || [] : [];
   const hasMore = activeChannelId ? !!hasMoreMessages[activeChannelId] : false;
   const currentTyping = activeChannelId ? typingUsers[activeChannelId] || [] : [];
 
   const { broadcastTyping } = useChatPresence(activeChannelId);
+
+  // In-chat search hook
+  const {
+    searchTerm,
+    setSearchTerm,
+    currentMatchId,
+    activeMatchIndex,
+    totalMatches,
+    goToNext,
+    goToPrev,
+    clearSearch,
+  } = useChatSearch(messages);
 
   if (!activeChannel) {
     return (
@@ -47,11 +65,26 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
   }
 
   const directUser = activeChannel.direct_user;
-  const isDirectOnline = directUser && presences[directUser.id]?.status === 'online';
+  const isDirectOnline = Boolean(directUser && presences[directUser.id]?.status === 'online');
+  const isDirectTyping = currentTyping.length > 0;
+
+  // Find latest pinned message in this channel if any
+  const pinnedMessage = messages.find(m => Boolean(m.pinned_at)) || null;
+
+  const handleJumpToMessage = (messageId: string) => {
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleUnpin = (messageId: string) => {
+    pinMessage(messageId, currentUserId, false);
+  };
 
   return (
     <div className="flex h-full flex-1 flex-col bg-[var(--app-bg)]">
-      {/* Top Channel Header */}
+      {/* Top Channel Header (WhatsApp-grade) */}
       <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] p-3 shadow-xs">
         <div className="flex items-center gap-3">
           {onBack && (
@@ -102,9 +135,13 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
             </div>
 
             <p className="text-[11px] text-[var(--app-text-secondary)]">
-              {activeChannel.type === 'direct' ? (
+              {isDirectTyping ? (
+                <span className="animate-pulse font-bold text-[var(--accent)]">يكتب الآن...</span>
+              ) : activeChannel.type === 'direct' ? (
                 isDirectOnline ? (
-                  <span className="font-semibold text-emerald-600">متصل الآن</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    متصل الآن
+                  </span>
                 ) : (
                   'غير متصل'
                 )
@@ -115,7 +152,24 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-[var(--app-text-secondary)]">
+        <div className="flex items-center gap-1.5 text-[var(--app-text-secondary)]">
+          {/* In-Chat Search Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsSearchOpen(!isSearchOpen);
+              if (isSearchOpen) clearSearch();
+            }}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+              isSearchOpen
+                ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                : 'text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]'
+            }`}
+            title="بحث داخل المحادثة"
+          >
+            <Search size={16} />
+          </button>
+
           {activeChannel.members_count && activeChannel.members_count > 1 && (
             <div className="flex items-center gap-1 rounded-lg bg-[var(--app-bg)] px-2.5 py-1 text-xs font-semibold">
               <Users size={14} />
@@ -125,19 +179,47 @@ export const ConversationView: React.FC<Props> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Messages List Area */}
-      <MessageList
-        messages={messages}
-        currentUserId={currentUserId}
-        isLoading={isLoadingMessages}
-        isLoadingMore={isLoadingMoreMessages}
-        hasMore={hasMore}
-        typingUserNames={currentTyping}
-        onLoadMore={() => fetchMessages(activeChannel.id, true)}
-        onReply={msg => {
-          setReplyingTo(msg);
+      {/* In-Chat Search Bar Overlay */}
+      <ChatSearchOverlay
+        isOpen={isSearchOpen}
+        searchTerm={searchTerm}
+        activeMatchIndex={activeMatchIndex}
+        totalMatches={totalMatches}
+        onSearchChange={setSearchTerm}
+        onNext={goToNext}
+        onPrev={goToPrev}
+        onClose={() => {
+          setIsSearchOpen(false);
+          clearSearch();
         }}
       />
+
+      {/* Pinned Message Banner */}
+      <PinnedMessageBanner
+        pinnedMessage={pinnedMessage}
+        onJumpToMessage={handleJumpToMessage}
+        onUnpin={handleUnpin}
+        canManage={true}
+      />
+
+      {/* Wallpaper Wrapped Messages List Area */}
+      <ChatWallpaper>
+        <MessageList
+          messages={messages}
+          currentUserId={currentUserId}
+          isLoading={isLoadingMessages}
+          isLoadingMore={isLoadingMoreMessages}
+          hasMore={hasMore}
+          typingUserNames={currentTyping}
+          isDirectOnline={isDirectOnline}
+          peerLastReadMessageId={activeChannel.peer_last_read_message_id}
+          activeSearchMatchId={isSearchOpen ? currentMatchId : null}
+          onLoadMore={() => fetchMessages(activeChannel.id, true)}
+          onReply={msg => {
+            setReplyingTo(msg);
+          }}
+        />
+      </ChatWallpaper>
 
       {/* Composer Input Area */}
       <MessageComposer

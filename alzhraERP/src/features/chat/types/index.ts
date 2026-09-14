@@ -8,7 +8,16 @@ export type ChannelType =
   | 'general'
   | 'announcement';
 
-export type MessageType = 'text' | 'image' | 'file' | 'entity_card' | 'system' | 'action_request';
+export type MessageType =
+  'text' | 'image' | 'file' | 'audio' | 'entity_card' | 'system' | 'action_request';
+
+export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'read';
+
+export interface AudioMetadata {
+  duration?: number;
+  waveform?: number[];
+  mime_type?: string;
+}
 
 export type ActionStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -37,6 +46,7 @@ export interface ChatChannel {
     avatar_url?: string | null;
     branch_name?: string | null;
   } | null;
+  peer_last_read_message_id?: string | null;
 }
 
 export interface ChatChannelMember {
@@ -111,6 +121,9 @@ export interface ChatMessage {
   created_at: string;
   edited_at?: string | null;
   deleted_at?: string | null;
+  pinned_at?: string | null;
+  pinned_by?: string | null;
+  delivery_status?: DeliveryStatus;
   // Joined fields
   sender_name?: string;
   sender_avatar?: string | null;

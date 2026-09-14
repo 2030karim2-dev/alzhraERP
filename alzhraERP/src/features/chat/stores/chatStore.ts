@@ -59,6 +59,8 @@ interface ChatState {
   updateMessageInState: (messageId: string, updates: Partial<ChatMessage>) => void;
   markChannelAsRead: (channelId: string) => Promise<void>;
   toggleReaction: (messageId: string, emoji: string, userId: string) => Promise<void>;
+  pinMessage: (messageId: string, userId: string, isPinned: boolean) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
   executeAction: (
     messageId: string,
     action: 'approve' | 'reject' | 'cancel',
@@ -364,6 +366,29 @@ export const useChatStore = create<ChatState>()(
         if (!msg) return;
 
         await chatService.toggleReaction(messageId, emoji, msg.reactions || [], userId);
+      },
+
+      pinMessage: async (messageId, userId, isPinned) => {
+        await chatService.pinMessage(messageId, userId, isPinned);
+        get().updateMessageInState(messageId, {
+          pinned_at: isPinned ? new Date().toISOString() : null,
+          pinned_by: isPinned ? userId : null,
+        });
+      },
+
+      deleteMessage: async messageId => {
+        await chatService.deleteMessage(messageId);
+        const activeChannel = get().activeChannelId;
+        if (activeChannel) {
+          set(state => ({
+            messagesByChannel: {
+              ...state.messagesByChannel,
+              [activeChannel]: (state.messagesByChannel[activeChannel] || []).filter(
+                m => m.id !== messageId
+              ),
+            },
+          }));
+        }
       },
 
       executeAction: async (messageId, action, notes) => {

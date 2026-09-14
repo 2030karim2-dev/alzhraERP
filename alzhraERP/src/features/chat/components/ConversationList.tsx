@@ -8,9 +8,12 @@ import {
   Layers,
   Megaphone,
   MessageSquare,
+  Mic,
 } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
+import { useAuthStore } from '../../auth/store';
 import { NewChatModal } from './NewChatModal';
+import { MessageStatusTicks } from './messages/MessageStatusTicks';
 import type { ChannelType } from '../types';
 
 interface Props {
@@ -29,6 +32,7 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
     presences,
     isLoadingChannels,
   } = useChatStore();
+  const { user } = useAuthStore();
 
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
@@ -220,19 +224,42 @@ export const ConversationList: React.FC<Props> = ({ onSelectChannel }) => {
                 </div>
 
                 <div className="mt-0.5 flex items-center justify-between gap-1">
-                  <p
-                    className={`truncate text-[11px] ${
+                  <div
+                    className={`flex items-center gap-1 truncate text-[11px] ${
                       isSelected ? 'text-white/80' : 'text-[var(--app-text-secondary)]'
                     }`}
                   >
-                    {channel.last_message
-                      ? channel.last_message.content || 'بطاقة تفاعلية / مرفق'
-                      : channel.description || 'محادثة جديدة'}
-                  </p>
+                    {channel.last_message && channel.last_message.sender_id === user?.id && (
+                      <MessageStatusTicks
+                        status={
+                          channel.peer_last_read_message_id === channel.last_message.id
+                            ? 'read'
+                            : isOnline
+                              ? 'delivered'
+                              : 'sent'
+                        }
+                        isOptimistic={channel.last_message.is_optimistic}
+                        className="flex-shrink-0"
+                      />
+                    )}
+
+                    {channel.last_message?.message_type === 'audio' ? (
+                      <span className="flex items-center gap-1">
+                        <Mic size={12} className={isSelected ? 'text-white' : 'text-emerald-500'} />
+                        <span>تسجيل صوتي</span>
+                      </span>
+                    ) : (
+                      <span className="truncate">
+                        {channel.last_message
+                          ? channel.last_message.content || 'بطاقة تفاعلية / مرفق'
+                          : channel.description || 'محادثة جديدة'}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Unread Badge */}
                   {channel.unread_count ? (
-                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs">
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-xs">
                       {channel.unread_count}
                     </span>
                   ) : null}

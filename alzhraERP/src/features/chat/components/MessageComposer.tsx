@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, X, Layers, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Send, Paperclip, Smile, X, Layers, Image as ImageIcon, Loader2, Mic } from 'lucide-react';
 import { useChatStore } from '../stores/chatStore';
 import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { EntityShareModal } from './EntityShareModal';
+import { AudioRecorder } from './composer/AudioRecorder';
+import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import type { EntityCardMetadata, MessageType } from '../types';
 
 interface Props {
@@ -17,6 +19,16 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
   const { user } = useAuthStore();
   const { sendMessage, replyingTo, setReplyingTo } = useChatStore();
   const { showToast } = useFeedbackStore();
+
+  const {
+    isRecording,
+    formattedDuration,
+    volumeLevel,
+    duration,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+  } = useAudioRecorder();
 
   // Stop the "typing..." indicator when switching channels or unmounting.
   useEffect(() => {
@@ -52,8 +64,8 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 15 * 1024 * 1024) {
-        showToast('حجم الملف يجب ألا يتجاوز 15 ميجابايت', 'error');
+      if (file.size > 25 * 1024 * 1024) {
+        showToast('حجم الملف يجب ألا يتجاوز 25 ميجابايت', 'error');
         return;
       }
       setSelectedFile(file);
@@ -96,8 +108,53 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
       setSelectedFile(null);
       setReplyingTo(null);
       setShowEmojiPicker(false);
-    } catch (err) {
+    } catch {
       // Error handled in store
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleStartVoiceRecord = async () => {
+    try {
+      await startRecording();
+    } catch {
+      showToast('تعذر الوصول إلى الميكروفون. يرجى السماح بالوصول في المتصفح.', 'error');
+    }
+  };
+
+  const handleSendVoiceNote = async () => {
+    if (!user || isSending) return;
+    setIsSending(true);
+
+    try {
+      const result = await stopRecording();
+      if (!result || result.blob.size === 0) return;
+
+      const audioFile = new File([result.blob], `voice_${Date.now()}.webm`, {
+        type: result.blob.type || 'audio/webm',
+      });
+
+      await sendMessage(
+        {
+          channel_id: channelId,
+          content: 'تسجيل صوتي',
+          message_type: 'audio',
+          metadata: {
+            duration: result.duration || duration || 1,
+            mime_type: audioFile.type,
+          },
+          reply_to_id: replyingTo?.id || null,
+        },
+        user.id,
+        user.full_name || user.email,
+        audioFile,
+        user.company_id
+      );
+
+      setReplyingTo(null);
+    } catch {
+      showToast('فشل إرسال الملاحظة الصوتية', 'error');
     } finally {
       setIsSending(false);
     }
@@ -107,8 +164,10 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
     setAttachedEntity({ metadata, isActionRequest: isActionRequest || false });
   };
 
+  const canSendText = Boolean(text.trim() || attachedEntity || selectedFile);
+
   return (
-    <div className="border-t border-[var(--app-border)] bg-[var(--app-surface)] p-3">
+    <div className="border-t border-[var(--app-border)] bg-[var(--app-surface)] p-2.5 sm:p-3">
       {/* Reply Banner */}
       {replyingTo && (
         <div className="mb-2 flex items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2 text-xs">
@@ -120,9 +179,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             </div>
           </div>
           <button
-            onClick={() => {
-              setReplyingTo(null);
-            }}
+            onClick={() => setReplyingTo(null)}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
           >
             <X size={14} />
@@ -145,9 +202,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             </div>
           </div>
           <button
-            onClick={() => {
-              setAttachedEntity(null);
-            }}
+            onClick={() => setAttachedEntity(null)}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -163,9 +218,7 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             <span className="font-medium text-[var(--app-text)]">{selectedFile.name}</span>
           </div>
           <button
-            onClick={() => {
-              setSelectedFile(null);
-            }}
+            onClick={() => setSelectedFile(null)}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -175,89 +228,109 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
 
       {/* Input controls */}
       <div className="flex items-end gap-2">
-        {/* ERP Card Sharing Button */}
-        <button
-          type="button"
-          onClick={() => {
-            setShowShareModal(true);
-          }}
-          title="مشاركة صنف أو طلب مناقلة"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--accent)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
-        >
-          <Layers size={18} />
-        </button>
-
-        {/* Attachment button */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          title="إرفاق ملف أو صورة"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
-        >
-          <Paperclip size={18} />
-        </button>
-        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
-
-        {/* Emoji Button */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              setShowEmojiPicker(!showEmojiPicker);
-            }}
-            title="رموز تعبيرية"
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
-          >
-            <Smile size={18} />
-          </button>
-
-          {showEmojiPicker && (
-            <div className="absolute bottom-11 start-0 z-20 grid grid-cols-4 gap-1.5 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-xl">
-              {EMOJI_LIST.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => {
-                    setText(prev => prev + emoji);
-                    setShowEmojiPicker(false);
-                  }}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-base hover:bg-[var(--app-surface-hover)] active:scale-125"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Text Input */}
-        <div className="relative flex-1">
-          <textarea
-            rows={1}
-            value={text}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            placeholder="اكتب رسالتك هنا... (Enter للإرسال)"
-            className="max-h-28 min-h-[38px] w-full resize-none rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 text-xs text-[var(--app-text)] placeholder-[var(--app-text-secondary)] outline-none focus:border-[var(--accent)]"
+        {/* If user is recording, show full WhatsApp voice recording bar */}
+        {isRecording ? (
+          <AudioRecorder
+            isRecording={isRecording}
+            formattedDuration={formattedDuration}
+            volumeLevel={volumeLevel}
+            onCancel={cancelRecording}
+            onSend={handleSendVoiceNote}
           />
-        </div>
+        ) : (
+          <>
+            {/* ERP Card Sharing Button */}
+            <button
+              type="button"
+              onClick={() => setShowShareModal(true)}
+              title="مشاركة صنف أو طلب مناقلة أو فاتورة"
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--accent)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
+            >
+              <Layers size={17} />
+            </button>
 
-        {/* Send button */}
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={(!text.trim() && !attachedEntity && !selectedFile) || isSending}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-40"
-        >
-          {isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-        </button>
+            {/* Attachment button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="إرفاق ملف أو صورة"
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
+            >
+              <Paperclip size={17} />
+            </button>
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+
+            {/* Emoji Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                title="رموز تعبيرية"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
+              >
+                <Smile size={17} />
+              </button>
+
+              {showEmojiPicker && (
+                <div className="animate-in zoom-in-95 absolute bottom-11 start-0 z-20 grid grid-cols-4 gap-1.5 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-xl duration-100">
+                  {EMOJI_LIST.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        setText(prev => prev + emoji);
+                        setShowEmojiPicker(false);
+                      }}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-base hover:bg-[var(--app-surface-hover)] active:scale-125"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Text Input */}
+            <div className="relative flex-1">
+              <textarea
+                rows={1}
+                value={text}
+                onChange={handleTextChange}
+                onKeyDown={handleKeyDown}
+                placeholder="اكتب رسالتك هنا... (Enter للإرسال)"
+                className="max-h-28 min-h-[38px] w-full resize-none rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] p-2.5 text-xs text-[var(--app-text)] placeholder-[var(--app-text-secondary)] outline-none focus:border-[var(--accent)]"
+              />
+            </div>
+
+            {/* WhatsApp-Style Toggle: Send Button OR Mic Record Button */}
+            {canSendText ? (
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={isSending}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-40"
+                title="إرسال"
+              >
+                {isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartVoiceRecord}
+                disabled={isSending}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-md transition-all hover:opacity-90 active:scale-95"
+                title="تسجيل ملاحظة صوتية (انقر للبدء)"
+              >
+                <Mic size={16} />
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       {/* Share Entity Modal */}
       <EntityShareModal
         isOpen={showShareModal}
-        onClose={() => {
-          setShowShareModal(false);
-        }}
+        onClose={() => setShowShareModal(false)}
         onSelectEntity={handleSelectEntity}
       />
     </div>
