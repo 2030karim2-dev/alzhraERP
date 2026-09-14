@@ -197,7 +197,17 @@ export async function searchDatabaseFallback(
     // مدخل المستخدم كانت تكسر صيغة or() فيرمي PostgREST خطأ 400 ويتوقف
     // البحث عن العمل بصمت (كان الخطأ يُبتلع ويُرجع []).
     .or(
-      buildIlikeOrFilter(['name_ar', 'sku', 'part_number', 'alternative_numbers', 'barcode'], query)
+      buildIlikeOrFilter(
+        [
+          'normalized_search_text',
+          'name_ar',
+          'sku',
+          'part_number',
+          'alternative_numbers',
+          'barcode',
+        ],
+        query
+      )
     )
     .limit(limit);
 

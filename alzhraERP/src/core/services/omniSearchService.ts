@@ -54,9 +54,8 @@ export const searchAll = async (companyId: string, query: string): Promise<OmniS
       .from('products')
       .select('id, name_ar, sku, part_number, sale_price')
       .eq('company_id', companyId)
-      // [FIX] قيمة مقتبسة داخل or() — الفاصلة في مدخل البحث كانت تكسر الفلتر
-      // وترمي 400 فيسقط Promise.all ويفشل البحث الشامل كله.
-      .or(buildIlikeOrFilter(['name_ar', 'sku', 'part_number'], term))
+      // Fast indexed trigram search via normalized_search_text
+      .or(buildIlikeOrFilter(['normalized_search_text', 'name_ar', 'sku', 'part_number'], term))
       .limit(5),
     supabase
       .from('parties')

@@ -47,6 +47,10 @@ export const inventoryService = {
     return productService.getProducts(companyId, page, limitNum, warehouseId, signal);
   },
 
+  getProductsWithStock: async (companyId: string, signal?: AbortSignal) => {
+    return productService.getProductsWithStock(companyId, signal);
+  },
+
   searchProducts: async (companyId: string, term: string) => {
     return productService.searchProducts(companyId, term);
   },

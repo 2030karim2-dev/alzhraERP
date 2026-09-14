@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn, formatCurrency } from '../../../core/utils';
-import { useProducts, useWarehouses } from '../../inventory/hooks/index';
+import { useStockedProducts, useWarehouses } from '../../inventory/hooks/index';
 import { useBranches } from '../../settings/hooks';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import type { Product, Warehouse } from '../../inventory/types';
@@ -29,7 +29,7 @@ interface Props {
 type FilterTab = 'all' | 'critical' | 'my_branch';
 
 const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
-  const { data: products } = useProducts();
+  const { data: products } = useStockedProducts();
   const { data: warehousesRaw } = useWarehouses();
   const { data: branches = [] } = useBranches();
   const { branchId: activeBranchId, branchName: activeBranchName } = useBranchFilter();

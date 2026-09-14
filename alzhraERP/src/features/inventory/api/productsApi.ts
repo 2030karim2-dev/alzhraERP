@@ -57,6 +57,11 @@ export const productsApi = {
     return signal ? query.abortSignal(signal) : query;
   },
 
+  getProductsWithStock: async (companyId: string, signal?: AbortSignal) => {
+    const query = (supabase.rpc as any)('get_products_with_stock', { p_company_id: companyId });
+    return signal ? query.abortSignal(signal) : query;
+  },
+
   getProductById: async (id: string) => {
     return await supabase.from('products').select('*').eq('id', id).single();
   },

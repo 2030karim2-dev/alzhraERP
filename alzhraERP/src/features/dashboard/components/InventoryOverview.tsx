@@ -14,7 +14,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { cn } from '../../../core/utils';
-import { useProducts, useWarehouses } from '../../inventory/hooks/index';
+import { useStockedProducts, useWarehouses } from '../../inventory/hooks/index';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import type { Product, Warehouse } from '../../inventory/types';
 import StockTransferRequestModal from '../../inventory/components/StockTransferRequestModal';
@@ -39,7 +39,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
   className,
 }) => {
   const navigate = useNavigate();
-  const { data: allProducts = [] } = useProducts();
+  const { data: allProducts = [] } = useStockedProducts();
   const { data: warehousesRaw = [] } = useWarehouses();
   const { branchId: activeBranchId } = useBranchFilter();
 
