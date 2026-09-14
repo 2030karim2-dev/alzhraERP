@@ -197,7 +197,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
     }
     setValue('invoice_id', inv.id);
     const remaining = Number(inv.total_amount) - Number(inv.paid_amount || 0);
-    const invCurrency = inv.currency_code || 'SAR';
+    const invCurrency = inv.currency_code || inv.currency || 'SAR';
     const invRate = Number(inv.exchange_rate) || 1;
 
     setValue('currency_code', invCurrency);

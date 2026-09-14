@@ -110,26 +110,35 @@ export const MessageList: React.FC<Props> = ({
       )}
 
       {/* Messages List with date groups */}
-      {messages.map((message, index) => {
-        const currentDate = new Date(message.created_at).toDateString();
-        const prevDate = index > 0 ? new Date(messages[index - 1].created_at).toDateString() : null;
-        const showDateSeparator = currentDate !== prevDate;
+      {(() => {
+        const peerLastReadIndex = peerLastReadMessageId
+          ? messages.findIndex(m => m.id === peerLastReadMessageId)
+          : -1;
 
-        return (
-          <React.Fragment key={message.id}>
-            {showDateSeparator && <DateSeparatorBadge dateStr={message.created_at} />}
-            <MessageItem
-              message={message}
-              isOwn={message.sender_id === currentUserId}
-              currentUserId={currentUserId}
-              isDirectOnline={isDirectOnline}
-              peerLastReadMessageId={peerLastReadMessageId}
-              isSearchMatch={message.id === activeSearchMatchId}
-              onReply={onReply}
-            />
-          </React.Fragment>
-        );
-      })}
+        return messages.map((message, index) => {
+          const currentDate = new Date(message.created_at).toDateString();
+          const prevDate =
+            index > 0 ? new Date(messages[index - 1].created_at).toDateString() : null;
+          const showDateSeparator = currentDate !== prevDate;
+          const isPeerRead = peerLastReadIndex >= 0 && index <= peerLastReadIndex;
+
+          return (
+            <React.Fragment key={message.id}>
+              {showDateSeparator && <DateSeparatorBadge dateStr={message.created_at} />}
+              <MessageItem
+                message={message}
+                isOwn={message.sender_id === currentUserId}
+                currentUserId={currentUserId}
+                isDirectOnline={isDirectOnline}
+                peerLastReadMessageId={peerLastReadMessageId}
+                isPeerRead={isPeerRead}
+                isSearchMatch={message.id === activeSearchMatchId}
+                onReply={onReply}
+              />
+            </React.Fragment>
+          );
+        });
+      })()}
 
       {/* WhatsApp Typing Bubble Indicator */}
       {typingUserNames.length > 0 && (

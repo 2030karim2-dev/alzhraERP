@@ -26,6 +26,7 @@ interface Props {
   currentUserId: string;
   isDirectOnline?: boolean | undefined;
   peerLastReadMessageId?: string | null | undefined;
+  isPeerRead?: boolean | undefined;
   isSearchMatch?: boolean | undefined;
   onReply: (message: ChatMessage) => void;
 }
@@ -38,6 +39,7 @@ export const MessageItem: React.FC<Props> = ({
   currentUserId,
   isDirectOnline,
   peerLastReadMessageId,
+  isPeerRead,
   isSearchMatch,
   onReply,
 }) => {
@@ -82,16 +84,21 @@ export const MessageItem: React.FC<Props> = ({
   let deliveryStatus: DeliveryStatus = 'sent';
   if (message.is_optimistic) {
     deliveryStatus = 'pending';
-  } else if (peerLastReadMessageId && peerLastReadMessageId === message.id) {
+  } else if (isPeerRead || (peerLastReadMessageId && peerLastReadMessageId === message.id)) {
     deliveryStatus = 'read';
   } else if (isDirectOnline) {
     deliveryStatus = 'delivered';
   }
 
+  const effectiveAttachments = [
+    ...(message.attachments || []),
+    ...(((message.metadata as any)?.forwarded_attachments as any[]) || []),
+  ];
+
   const isAudio =
     message.message_type === 'audio' ||
     Boolean(
-      message.attachments?.some(
+      effectiveAttachments.some(
         a =>
           a.mime_type.startsWith('audio/') ||
           a.file_name.endsWith('.webm') ||
@@ -100,7 +107,7 @@ export const MessageItem: React.FC<Props> = ({
     );
 
   const audioAttachment = isAudio
-    ? message.attachments?.find(
+    ? effectiveAttachments.find(
         a =>
           a.mime_type.startsWith('audio/') ||
           a.file_name.endsWith('.webm') ||
@@ -230,12 +237,12 @@ export const MessageItem: React.FC<Props> = ({
             )}
 
             {/* Non-audio Attachments */}
-            {message.attachments &&
-              message.attachments.filter(
+            {effectiveAttachments &&
+              effectiveAttachments.filter(
                 a => !a.mime_type.startsWith('audio/') && !a.file_name.endsWith('.webm')
               ).length > 0 && (
                 <div className="mt-2 space-y-1.5">
-                  {message.attachments
+                  {effectiveAttachments
                     .filter(
                       a => !a.mime_type.startsWith('audio/') && !a.file_name.endsWith('.webm')
                     )

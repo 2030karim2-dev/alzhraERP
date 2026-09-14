@@ -18,6 +18,7 @@ export const useAudioRecorder = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const durationRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -55,6 +56,7 @@ export const useAudioRecorder = () => {
   const startRecording = useCallback(async () => {
     try {
       cleanup();
+      durationRef.current = 0;
       setDuration(0);
       setRecordingBlob(null);
       if (recordingUrl) {
@@ -128,7 +130,11 @@ export const useAudioRecorder = () => {
       setIsPaused(false);
 
       timerIntervalRef.current = setInterval(() => {
-        setDuration(prev => prev + 1);
+        setDuration(prev => {
+          const next = prev + 1;
+          durationRef.current = next;
+          return next;
+        });
       }, 1000);
     } catch (err) {
       logger.error('AudioRecorder', 'Failed to start recording audio', err);
@@ -160,14 +166,14 @@ export const useAudioRecorder = () => {
 
         resolve({
           blob,
-          duration,
+          duration: durationRef.current || 1,
           url,
         });
       };
 
       recorder.stop();
     });
-  }, [cleanup, duration]);
+  }, [cleanup]);
 
   const cancelRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
@@ -179,6 +185,7 @@ export const useAudioRecorder = () => {
     audioChunksRef.current = [];
     setIsRecording(false);
     setIsPaused(false);
+    durationRef.current = 0;
     setDuration(0);
     setVolumeLevel(0);
     if (recordingUrl) {

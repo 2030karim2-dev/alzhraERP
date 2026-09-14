@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { WorkspaceTabBar, MultiViewContainer } from './tabs';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -22,8 +23,6 @@ import {
 import { ROUTES } from '../../core/routes/paths';
 import { useI18nStore } from '../../lib/i18nStore';
 import { useThemeStore } from '../../lib/themeStore';
-import { ErrorBoundary } from '../base/ErrorBoundary';
-import PageLoader from '../base/PageLoader';
 import BottomSheet from '../base/BottomSheet';
 import { cn } from '../../core/utils';
 import {
@@ -205,6 +204,7 @@ const MainLayout: React.FC = () => {
               setIsMobileSidebarOpen(true);
             }}
           />
+          {isDesktop && <WorkspaceTabBar />}
         </div>
 
         {isOnline && isUnstable && (
@@ -228,11 +228,7 @@ const MainLayout: React.FC = () => {
             mainPaddingBottom
           )}
         >
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Outlet />
-            </Suspense>
-          </ErrorBoundary>
+          <MultiViewContainer />
         </main>
 
         {/* Tactical Mobile Navigation */}

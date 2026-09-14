@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+// Singleton to ensure only one audio message plays at a time (like WhatsApp)
+let globalActiveAudio: HTMLAudioElement | null = null;
+
 export const useAudioPlayer = (src?: string | null) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -11,6 +14,9 @@ export const useAudioPlayer = (src?: string | null) => {
   useEffect(() => {
     if (!src) {
       if (audioRef.current) {
+        if (globalActiveAudio === audioRef.current) {
+          globalActiveAudio = null;
+        }
         audioRef.current.pause();
         audioRef.current = null;
       }
@@ -35,15 +41,25 @@ export const useAudioPlayer = (src?: string | null) => {
     };
 
     const handleEnded = () => {
+      if (globalActiveAudio === audio) {
+        globalActiveAudio = null;
+      }
       setIsPlaying(false);
       setCurrentTime(0);
     };
 
     const handlePause = () => {
+      if (globalActiveAudio === audio) {
+        globalActiveAudio = null;
+      }
       setIsPlaying(false);
     };
 
     const handlePlay = () => {
+      if (globalActiveAudio && globalActiveAudio !== audio) {
+        globalActiveAudio.pause();
+      }
+      globalActiveAudio = audio;
       setIsPlaying(true);
     };
 
@@ -54,6 +70,9 @@ export const useAudioPlayer = (src?: string | null) => {
     audio.addEventListener('play', handlePlay);
 
     return () => {
+      if (globalActiveAudio === audio) {
+        globalActiveAudio = null;
+      }
       audio.pause();
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -71,6 +90,10 @@ export const useAudioPlayer = (src?: string | null) => {
     if (isPlaying) {
       audio.pause();
     } else {
+      if (globalActiveAudio && globalActiveAudio !== audio) {
+        globalActiveAudio.pause();
+      }
+      globalActiveAudio = audio;
       audio.play().catch(() => {});
     }
   }, [isPlaying]);

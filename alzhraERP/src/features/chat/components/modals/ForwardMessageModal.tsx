@@ -41,6 +41,9 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
           metadata: {
             ...(message.metadata || {}),
             forwarded_from: message.sender_name || 'موظف',
+            ...(message.attachments && message.attachments.length > 0
+              ? { forwarded_attachments: message.attachments }
+              : {}),
           },
         },
         user.id,
