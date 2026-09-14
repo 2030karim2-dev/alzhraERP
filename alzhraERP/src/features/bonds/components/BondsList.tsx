@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -9,6 +9,7 @@ import {
   Wallet,
   Trash2,
   MessageCircle,
+  Eye,
 } from 'lucide-react';
 import type { Bond } from '../types';
 import { cn, formatCurrency } from '../../../core/utils';
@@ -23,20 +24,51 @@ interface Props {
   isLoading: boolean;
   searchTerm: string;
   displayMode?: 'table' | 'cards';
+  onPreviewBond?: (bond: Bond) => void;
 }
 
-const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode = 'cards' }) => {
+const BondsList: React.FC<Props> = ({
+  bonds,
+  isLoading,
+  searchTerm,
+  displayMode = 'cards',
+  onPreviewBond,
+}) => {
   const { mutate: deleteBond } = useDeleteBond();
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
 
-  const filteredBonds = bonds?.filter(
-    b =>
-      b.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (b.party_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (b.payment_number || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBonds = useMemo(() => {
+    if (!bonds) return [];
+    if (!searchTerm.trim()) return bonds;
+    const term = searchTerm.toLowerCase();
+    return bonds.filter(
+      b =>
+        b.description.toLowerCase().includes(term) ||
+        b.account_name.toLowerCase().includes(term) ||
+        (b.party_name || '').toLowerCase().includes(term) ||
+        (b.payment_number || '').toLowerCase().includes(term)
+    );
+  }, [bonds, searchTerm]);
+
+  const pageTotals = useMemo(() => {
+    let receipts = 0;
+    let payments = 0;
+    filteredBonds.forEach(b => {
+      const amt = b.base_amount !== undefined ? b.base_amount : b.amount;
+      if (b.type === 'receipt') {
+        receipts += amt;
+      } else {
+        payments += amt;
+      }
+    });
+    return {
+      receipts,
+      payments,
+      net: receipts - payments,
+      count: filteredBonds.length,
+    };
+  }, [filteredBonds]);
 
   const handleDelete = (id: string, number: string) => {
     if (window.confirm(`هل أنت متأكد من حذف السند رقم (${number})؟`)) {
@@ -52,7 +84,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
         phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
         tax_number: settingsCompany?.tax_number || '---',
       };
-      const { generateSingleBondExcelBlob, exportSingleBondToExcel } =
+      const { generateSingleBondExcelBlob, exportSingleBondToExcel: exportSingle } =
         await import('../../../core/utils/bondExcelExporter');
 
       const blob = await generateSingleBondExcelBlob(company, bond);
@@ -69,7 +101,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
           text: `مرفق ${bondTitle.replace('_', ' ')} رقم ${bond.payment_number}`,
         });
       } else {
-        await exportSingleBondToExcel(company, bond);
+        await exportSingle(company, bond);
         const text = encodeURIComponent(
           `مرفق ${bondTitle.replace('_', ' ')} رقم ${bond.payment_number}.`
         );
@@ -101,9 +133,9 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
     );
   }
 
-  if (filteredBonds?.length === 0) {
+  if (filteredBonds.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed p-20 text-center text-[10px] font-bold uppercase tracking-widest text-gray-300 dark:border-slate-800">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed p-20 text-center text-xs font-bold uppercase tracking-widest text-gray-300 dark:border-slate-800">
         <FileText size={48} strokeWidth={1} />
         لا توجد سندات تطابق بحثك في هذه الفئة
       </div>
@@ -112,130 +144,193 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
   if (displayMode === 'table') {
     return (
-      <div className="custom-scrollbar overflow-x-auto rounded-2xl border border-gray-100 bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
-        <table className="w-full min-w-[640px] border-collapse text-right">
-          <thead>
-            <tr className="border-b bg-gray-50 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:border-slate-800 dark:bg-slate-800/50">
-              <th className="px-4 py-3 font-bold">التاريخ</th>
-              <th className="px-4 py-3 font-bold">رقم السند</th>
-              <th className="px-4 py-3 font-bold">الحساب / الجهة</th>
-              <th className="px-4 py-3 font-bold">البيان</th>
-              <th className="px-4 py-3 font-bold">الطريقة</th>
-              <th className="px-4 py-3 font-bold">المبلغ</th>
-              <th className="px-4 py-3 text-center font-bold">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y dark:divide-slate-800">
-            {filteredBonds.map(bond => (
-              <tr
-                key={bond.id}
-                className="group transition-colors hover:bg-blue-50/30 dark:hover:bg-blue-900/5"
-              >
-                <td className="px-4 py-3 font-mono text-[11px] font-medium text-gray-500 dark:text-slate-400">
-                  {bond.date}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        'rounded-md p-1',
-                        bond.type === 'receipt'
-                          ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20'
-                          : 'bg-rose-50 text-rose-600 dark:bg-rose-900/20'
-                      )}
-                    >
-                      {bond.type === 'receipt' ? (
-                        <ArrowDownCircle size={12} />
-                      ) : (
-                        <ArrowUpCircle size={12} />
+      <div className="w-full space-y-3">
+        <div className="custom-scrollbar overflow-x-auto rounded-2xl border border-gray-100 bg-[var(--app-surface)] shadow-sm dark:border-slate-800">
+          <table className="w-full min-w-[760px] border-collapse text-right">
+            <thead>
+              <tr className="sticky top-0 z-10 border-b bg-gray-50/90 text-[10px] font-bold uppercase tracking-widest text-gray-500 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-400">
+                <th className="w-12 px-3 py-3 text-center">#</th>
+                <th className="px-4 py-3 font-bold">التاريخ</th>
+                <th className="px-4 py-3 font-bold">رقم السند والنوع</th>
+                <th className="px-4 py-3 font-bold">الجهة / الحساب المقابل</th>
+                <th className="px-4 py-3 font-bold">حساب الصندوق / البنك</th>
+                <th className="px-4 py-3 font-bold">البيان</th>
+                <th className="px-3 py-3 text-center font-bold">طريقة الدفع</th>
+                <th className="px-4 py-3 text-left font-bold">المبلغ</th>
+                <th className="px-4 py-3 text-center font-bold">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y dark:divide-slate-800">
+              {filteredBonds.map((bond, idx) => (
+                <tr
+                  key={bond.id}
+                  className="group cursor-pointer transition-colors hover:bg-blue-50/40 dark:hover:bg-blue-900/10"
+                  onClick={() => onPreviewBond?.(bond)}
+                >
+                  <td className="px-3 py-3 text-center font-mono text-[11px] text-gray-400">
+                    {idx + 1}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-[11px] font-medium text-gray-500 dark:text-slate-400">
+                    {bond.date}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          'rounded-md p-1',
+                          bond.type === 'receipt'
+                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20'
+                            : 'bg-rose-50 text-rose-600 dark:bg-rose-900/20'
+                        )}
+                      >
+                        {bond.type === 'receipt' ? (
+                          <ArrowDownCircle size={14} />
+                        ) : (
+                          <ArrowUpCircle size={14} />
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-gray-900 dark:text-slate-100">
+                          {bond.payment_number}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {bond.type === 'receipt'
+                            ? 'قبض'
+                            : bond.type === 'payment'
+                              ? 'صرف'
+                              : 'تحويل'}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-800 dark:text-slate-200">
+                        {bond.party_name || bond.account_name}
+                      </span>
+                      {bond.party_name && bond.account_name !== bond.party_name && (
+                        <span className="text-[10px] text-gray-400">{bond.account_name}</span>
                       )}
                     </div>
-                    <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
-                      {bond.payment_number}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      {bond.account_name}
+                    </span>
+                  </td>
+                  <td
+                    className="max-w-[220px] truncate px-4 py-3 text-xs text-gray-600 dark:text-slate-400"
+                    title={bond.description}
+                  >
+                    {bond.description || '---'}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                      {bond.payment_method === 'cash'
+                        ? 'نقداً'
+                        : bond.payment_method === 'bank'
+                          ? 'بنك'
+                          : bond.payment_method || 'نقداً'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-mono">
+                    <div className="flex flex-col items-start sm:items-end">
+                      <span
+                        className={cn(
+                          'text-xs font-black',
+                          bond.type === 'receipt' ? 'text-emerald-600' : 'text-rose-600'
+                        )}
+                      >
+                        {bond.type === 'receipt' ? '+' : '-'}
+                        {formatCurrency(bond.amount, bond.currency_code)}
+                      </span>
+                      {bond.currency_code !== 'SAR' && bond.base_amount !== undefined && (
+                        <span className="text-[10px] font-bold text-blue-500">
+                          {formatCurrency(bond.base_amount, 'SAR')}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-center gap-1 opacity-80 transition-all group-hover:opacity-100">
+                      {onPreviewBond && (
+                        <button
+                          onClick={() => onPreviewBond(bond)}
+                          className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30"
+                          title="معاينة السند الرسمي"
+                        >
+                          <Eye size={15} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleWhatsAppShare(bond)}
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-900/30"
+                        title="إرسال عبر واتساب"
+                      >
+                        <MessageCircle size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleExport(bond)}
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30"
+                        title="تصدير إكسل / طباعة"
+                      >
+                        <Printer size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(bond.id, bond.payment_number)}
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30"
+                        title="حذف السند"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            {/* Table Footer Totals */}
+            <tfoot>
+              <tr className="border-t-2 border-slate-200 bg-slate-50/80 text-xs font-bold dark:border-slate-800 dark:bg-slate-900/80">
+                <td colSpan={3} className="px-4 py-3 font-mono text-slate-500">
+                  إجمالي الصفحة ({pageTotals.count} سند)
+                </td>
+                <td colSpan={4} className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="text-emerald-600">
+                      قبض: {formatCurrency(pageTotals.receipts, 'SAR')}
+                    </span>
+                    <span className="text-rose-600">
+                      صرف: {formatCurrency(pageTotals.payments, 'SAR')}
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-gray-800 dark:text-slate-200">
-                      {bond.party_name || bond.account_name}
-                    </span>
-                    {bond.party_name && bond.account_name !== bond.party_name && (
-                      <span className="text-[10px] text-gray-400">{bond.account_name}</span>
+                <td className="px-4 py-3 text-left font-mono">
+                  <span
+                    className={cn(
+                      'text-xs font-black',
+                      pageTotals.net >= 0 ? 'text-emerald-600' : 'text-rose-600'
                     )}
-                  </div>
-                </td>
-                <td className="max-w-[200px] truncate px-4 py-3 text-[11px] text-gray-600 dark:text-slate-400">
-                  {bond.description}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800">
-                    {bond.payment_method === 'cash'
-                      ? 'نقداً'
-                      : bond.payment_method === 'bank'
-                        ? 'بنك'
-                        : bond.payment_method}
+                  >
+                    الصافي: {formatCurrency(pageTotals.net, 'SAR')}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-mono">
-                  <div className="flex flex-col items-end">
-                    <span
-                      className={cn(
-                        'text-[11px] font-bold',
-                        bond.type === 'receipt' ? 'text-emerald-600' : 'text-rose-600'
-                      )}
-                    >
-                      {bond.type === 'receipt' ? '+' : '-'}
-                      {formatCurrency(bond.amount, bond.currency_code)}
-                    </span>
-                    {bond.currency_code !== 'SAR' && bond.base_amount !== undefined && (
-                      <span className="text-[10px] font-medium text-blue-500">
-                        {formatCurrency(bond.base_amount)}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <div className="flex items-center justify-center gap-1 opacity-0 transition-all group-hover:opacity-100 max-md:opacity-100">
-                    <button
-                      onClick={() => handleWhatsAppShare(bond)}
-                      className="rounded-lg p-1.5 text-gray-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
-                      title="إرسال عبر واتساب"
-                    >
-                      <MessageCircle size={14} />
-                    </button>
-                    <button
-                      onClick={() => handleExport(bond)}
-                      className="rounded-lg p-1.5 text-gray-300 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-900/20"
-                      title="تصدير إكسل / طباعة"
-                    >
-                      <Printer size={14} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleDelete(bond.id, bond.payment_number);
-                      }}
-                      className="rounded-lg p-1.5 text-gray-300 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-900/20"
-                      title="حذف"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </td>
+                <td></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </tfoot>
+          </table>
+        </div>
       </div>
     );
   }
 
+  // Cards Mode
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 grid grid-cols-1 gap-4 duration-500 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {filteredBonds?.map(bond => (
+    <div className="animate-in fade-in slide-in-from-bottom-2 grid grid-cols-1 gap-4 duration-500 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {filteredBonds.map(bond => (
         <div
           key={bond.id}
-          className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-[var(--app-surface)] p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md dark:border-slate-800 dark:hover:border-blue-900/30"
+          onClick={() => onPreviewBond?.(bond)}
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-gray-100 bg-[var(--app-surface)] p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md dark:border-slate-800 dark:hover:border-blue-900/30"
         >
           {/* Style decoration */}
           <div
@@ -278,7 +373,7 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
 
           <div className="relative space-y-3">
             <div>
-              <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase text-gray-400 dark:text-slate-500">
+              <span className="mb-1 flex items-center gap-1 font-mono text-[10px] font-bold uppercase text-gray-400 dark:text-slate-500">
                 <FileText size={10} /> {bond.payment_number}
               </span>
               <h4 className="line-clamp-1 text-xs font-bold text-gray-800 dark:text-slate-100">
@@ -290,14 +385,17 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800">
                 <User size={12} />
               </div>
-              <span className="truncate text-[11px] font-bold text-gray-600 dark:text-slate-400">
+              <span className="truncate text-xs font-bold text-gray-600 dark:text-slate-400">
                 {bond.party_name || bond.account_name}
               </span>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
+            <div
+              className="flex items-center justify-between pt-1"
+              onClick={e => e.stopPropagation()}
+            >
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 dark:text-slate-500">
+                <div className="flex items-center gap-1 font-mono text-[10px] font-bold text-gray-400 dark:text-slate-500">
                   <Calendar size={10} />
                   {bond.date}
                 </div>
@@ -307,29 +405,36 @@ const BondsList: React.FC<Props> = ({ bonds, isLoading, searchTerm, displayMode 
                     ? 'نقداً'
                     : bond.payment_method === 'bank'
                       ? 'بنك'
-                      : bond.payment_method}
+                      : bond.payment_method || 'نقداً'}
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-0 transition-all group-hover:opacity-100 max-md:opacity-100">
+              <div className="flex items-center gap-1 opacity-80 transition-all group-hover:opacity-100">
+                {onPreviewBond && (
+                  <button
+                    onClick={() => onPreviewBond(bond)}
+                    className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
+                    title="معاينة السند"
+                  >
+                    <Eye size={14} />
+                  </button>
+                )}
                 <button
                   onClick={() => handleWhatsAppShare(bond)}
-                  className="rounded-lg p-1.5 text-gray-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
                   title="واتساب"
                 >
                   <MessageCircle size={14} />
                 </button>
                 <button
                   onClick={() => handleExport(bond)}
-                  className="rounded-lg p-1.5 text-gray-300 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-900/20"
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-indigo-50 hover:text-indigo-500 dark:hover:bg-indigo-900/20"
                   title="تصدير إكسل / طباعة"
                 >
                   <Printer size={14} />
                 </button>
                 <button
-                  onClick={() => {
-                    handleDelete(bond.id, bond.payment_number);
-                  }}
-                  className="rounded-lg p-1.5 text-gray-300 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-900/20"
+                  onClick={() => handleDelete(bond.id, bond.payment_number)}
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-900/20"
                   title="حذف"
                 >
                   <Trash2 size={14} />
