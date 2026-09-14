@@ -263,11 +263,13 @@ const BondsPage: React.FC = () => {
       {/* Primary Bond Create Button */}
       <Button
         onClick={() => openCreateModal(activeTab)}
-        variant={activeTab === 'receipt' ? 'success' : 'danger'}
+        variant={
+          activeTab === 'receipt' ? 'success' : activeTab === 'transfer' ? 'primary' : 'danger'
+        }
         size="sm"
         leftIcon={<Plus size={14} />}
       >
-        {activeTab === 'receipt' ? 'سند قبض' : 'سند صرف'}
+        {activeTab === 'receipt' ? 'سند قبض' : activeTab === 'transfer' ? 'تحويل مالي' : 'سند صرف'}
       </Button>
     </div>
   );
@@ -283,11 +285,18 @@ const BondsPage: React.FC = () => {
       <MicroHeader
         title={t('bonds_management')}
         icon={FileText}
-        iconColor={activeTab === 'receipt' ? 'text-emerald-600' : 'text-rose-600'}
+        iconColor={
+          activeTab === 'receipt'
+            ? 'text-emerald-600'
+            : activeTab === 'transfer'
+              ? 'text-blue-600'
+              : 'text-rose-600'
+        }
         actions={headerActions}
         tabs={[
           { id: 'receipt', label: t('receipt_bonds'), icon: ArrowDownCircle },
           { id: 'payment', label: t('payment_bonds'), icon: ArrowUpCircle },
+          { id: 'transfer', label: 'سندات التحويل', icon: ArrowRightLeft },
         ]}
         activeTab={activeTab}
         onTabChange={id => {

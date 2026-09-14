@@ -171,14 +171,17 @@ export function useCreateStockTransferRequest() {
       requesterBranchId: string;
       dto: CreateTransferRequestDTO;
     }) => {
+      if (!user?.company_id || !user?.id) {
+        throw new Error('جلسة العمل منتهية، يرجى إعادة تسجيل الدخول');
+      }
       const { data, error } = await db.rpc('create_stock_transfer_request', {
-        p_company_id: user!.company_id,
+        p_company_id: user.company_id,
         p_requester_branch_id: requesterBranchId,
         p_source_branch_id: dto.sourceBranchId,
         p_product_id: dto.productId,
         p_quantity: dto.quantity,
         p_notes: dto.notes ?? null,
-        p_user_id: user!.id,
+        p_user_id: user.id,
       });
       if (error) throw new Error(error.message);
       return data as string;
@@ -208,11 +211,14 @@ export function useRespondToTransferRequest() {
       action: 'approve' | 'reject' | 'cancel';
       reviewNotes?: string;
     }) => {
+      if (!user?.company_id || !user?.id) {
+        throw new Error('جلسة العمل منتهية، يرجى إعادة تسجيل الدخول');
+      }
       const { error } = await db.rpc('respond_stock_transfer_request', {
         p_request_id: params.requestId,
         p_action: params.action,
         p_review_notes: params.reviewNotes ?? null,
-        p_user_id: user!.id,
+        p_user_id: user.id,
       });
       if (error) throw new Error(error.message);
     },
@@ -221,6 +227,12 @@ export function useRespondToTransferRequest() {
         vars.action === 'approve' ? 'موافقة' : vars.action === 'reject' ? 'رفض' : 'إلغاء';
       showToast(`تمت ${label} طلب النقل بنجاح`, 'success');
       qc.invalidateQueries({ queryKey: ['stock_transfer_requests'] });
+      if (vars.action === 'approve') {
+        qc.invalidateQueries({ queryKey: ['products'] });
+        qc.invalidateQueries({ queryKey: ['warehouse_distribution'] });
+        qc.invalidateQueries({ queryKey: ['branches'] });
+        qc.invalidateQueries({ queryKey: ['branch_inventory'] });
+      }
     },
     onError: (err: Error) => {
       showToast(err.message || 'فشلت العملية', 'error');

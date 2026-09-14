@@ -165,11 +165,10 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
 
                   <div className="text-left">
                     <div className="font-mono text-sm font-black text-blue-600 dark:text-blue-400">
-                      {formatCurrency(remaining)}{' '}
-                      <span className="text-[10px]">{inv.currency_code}</span>
+                      {formatCurrency(remaining, inv.currency_code || 'SAR')}
                     </div>
                     <div className="mt-0.5 text-[10px] font-bold text-gray-400">
-                      الإجمالي: {formatCurrency(total)}
+                      الإجمالي: {formatCurrency(total, inv.currency_code || 'SAR')}
                     </div>
                   </div>
                 </div>

@@ -77,6 +77,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
   const { currencies, rates } = useCurrencies();
   const { showToast } = useFeedbackStore();
   const [partyQuery, setPartyQuery] = useState('');
+  const [showPartyDropdown, setShowPartyDropdown] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(true);
 
   const { data: allParties } = useParties(type === 'receipt' ? 'customer' : 'supplier', partyQuery);
@@ -131,6 +132,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
         cash_account_id: defaultAccountId || '',
       });
       setPartyQuery('');
+      setShowPartyDropdown(false);
     }
   }, [isOpen, type, reset, defaultAccountId, allAccounts]);
 
@@ -171,10 +173,54 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
     return { cashAccounts: cash, otherAccounts: others };
   }, [allAccounts]);
 
+  // Auto-select primary cash account if none selected
+  useEffect(() => {
+    if (cashAccounts.length > 0 && !watch('cash_account_id')) {
+      const primaryCash = cashAccounts.find(a => a.code === '1010') || cashAccounts[0];
+      if (primaryCash) {
+        setValue('cash_account_id', primaryCash.id);
+      }
+    }
+  }, [cashAccounts, setValue, watch]);
+
   const handlePartySelect = (party: any) => {
     setValue('counterparty_id', party.id);
     setValue('invoice_id', undefined);
     setPartyQuery(party.name);
+    setShowPartyDropdown(false);
+  };
+
+  const handleInvoiceSelect = (inv: any) => {
+    if (!inv) {
+      setValue('invoice_id', undefined);
+      return;
+    }
+    setValue('invoice_id', inv.id);
+    const remaining = Number(inv.total_amount) - Number(inv.paid_amount || 0);
+    const invCurrency = inv.currency_code || 'SAR';
+    const invRate = Number(inv.exchange_rate) || 1;
+
+    setValue('currency_code', invCurrency);
+    setValue('exchange_rate', invRate);
+
+    if (invCurrency !== 'SAR') {
+      setValue('foreign_amount', remaining);
+      const baseAmount = convertToBaseCurrency({
+        amount: remaining,
+        currencyCode: invCurrency,
+        exchangeRate: invRate,
+        exchangeOperator: (currencyObj?.exchange_operator as 'multiply' | 'divide') || 'multiply',
+      });
+      setValue('amount', baseAmount);
+    } else {
+      setValue('amount', remaining);
+      setValue('foreign_amount', 0);
+    }
+
+    setValue(
+      'description',
+      `سداد فاتورة ${type === 'receipt' ? 'مبيعات' : 'مشتريات'} رقم ${inv.invoice_number}`
+    );
   };
 
   const handleQuickAmount = (delta: number) => {
@@ -559,6 +605,10 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                           value={partyQuery}
                           onChange={e => {
                             setPartyQuery(e.target.value);
+                            setShowPartyDropdown(true);
+                          }}
+                          onFocus={() => {
+                            if (parties.length > 0) setShowPartyDropdown(true);
                           }}
                           placeholder={
                             type === 'receipt'
@@ -571,7 +621,7 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-blue-500"
                           size={18}
                         />
-                        {partyQuery.length > 0 && parties.length > 0 && (
+                        {showPartyDropdown && partyQuery.length > 0 && parties.length > 0 && (
                           <div className="animate-in fade-in zoom-in-95 absolute z-30 mt-2 max-h-56 w-full overflow-auto rounded-2xl border bg-white shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-800">
                             {parties.map((p: any) => (
                               <div
@@ -602,38 +652,6 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                               </div>
                             ))}
                           </div>
-                        )}
-                      </div>
-
-                      {/* On mobile: party invoices display directly below party selector */}
-                      <div className="lg:hidden">
-                        {(type === 'receipt' || type === 'payment') && counterpartyId && (
-                          <PartyInvoicesList
-                            partyId={counterpartyId}
-                            partyType={type === 'receipt' ? 'customer' : 'supplier'}
-                            selectedInvoiceId={selectedInvoiceId}
-                            onSelectInvoice={inv => {
-                              if (!inv) {
-                                setValue('invoice_id', undefined);
-                                return;
-                              }
-                              setValue('invoice_id', inv.id);
-                              setValue(
-                                'amount',
-                                Number(inv.total_amount) - Number(inv.paid_amount || 0)
-                              );
-                              if (inv.currency_code) {
-                                setValue('currency_code', inv.currency_code);
-                              }
-                              if (inv.exchange_rate) {
-                                setValue('exchange_rate', Number(inv.exchange_rate));
-                              }
-                              setValue(
-                                'description',
-                                `سداد فاتورة ${type === 'receipt' ? 'مبيعات' : 'مشتريات'} رقم ${inv.invoice_number}`
-                              );
-                            }}
-                          />
                         )}
                       </div>
                     </div>
@@ -795,33 +813,16 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
 
             {/* Left Column: Unpaid Invoices, Live Journal Simulation & Summary (5 columns on desktop) */}
             <div className="space-y-5 lg:col-span-5">
-              {/* Unpaid Invoices (Desktop View) */}
+              {/* Unpaid Invoices */}
               {(type === 'receipt' || type === 'payment') &&
                 counterpartyId &&
                 counterpartyType === 'party' && (
-                  <div className="animate-in fade-in slide-in-from-top-2 hidden duration-300 lg:block">
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <PartyInvoicesList
                       partyId={counterpartyId}
                       partyType={type === 'receipt' ? 'customer' : 'supplier'}
                       selectedInvoiceId={selectedInvoiceId}
-                      onSelectInvoice={inv => {
-                        if (!inv) {
-                          setValue('invoice_id', undefined);
-                          return;
-                        }
-                        setValue('invoice_id', inv.id);
-                        setValue('amount', Number(inv.total_amount) - Number(inv.paid_amount || 0));
-                        if (inv.currency_code) {
-                          setValue('currency_code', inv.currency_code);
-                        }
-                        if (inv.exchange_rate) {
-                          setValue('exchange_rate', Number(inv.exchange_rate));
-                        }
-                        setValue(
-                          'description',
-                          `سداد فاتورة ${type === 'receipt' ? 'مبيعات' : 'مشتريات'} رقم ${inv.invoice_number}`
-                        );
-                      }}
+                      onSelectInvoice={handleInvoiceSelect}
                     />
                   </div>
                 )}

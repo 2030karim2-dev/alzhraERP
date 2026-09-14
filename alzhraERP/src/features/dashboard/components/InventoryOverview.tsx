@@ -30,6 +30,7 @@ interface SelectedTransferTarget {
   product: Product;
   sourceBranchId: string;
   sourceBranchName: string;
+  targetBranchId: string;
   availableQty: number;
 }
 
@@ -73,21 +74,38 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
         const isLow = currentStock <= threshold;
         const isZero = currentStock === 0;
 
-        // Check availability in external branches
-        const externalDist = dist.filter(d => {
-          const isExternal = activeBranchId ? d.branch_id !== activeBranchId : true;
-          return isExternal && Number(d.quantity) > 0;
-        });
+        // Determine target (requester) branch and external sources
+        let targetBranchId = activeBranchId || '';
+        let externalDist = dist;
+
+        if (activeBranchId) {
+          externalDist = dist.filter(d => {
+            const isDifferent = d.branch_id ? d.branch_id !== activeBranchId : true;
+            return isDifferent && Number(d.quantity) > 0;
+          });
+        } else {
+          // In all-branches view: identify the deficit branch and separate from surplus branches
+          const sortedDist = [...dist].sort(
+            (a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0)
+          );
+          const lowest = sortedDist[0];
+          targetBranchId = lowest?.branch_id || lowest?.warehouse_id || '';
+          externalDist = sortedDist.slice(1).filter(d => Number(d.quantity) > 0);
+        }
 
         const bestExternalSource = externalDist.sort(
           (a, b) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0)
         )[0];
 
-        const externalAvailable = !!bestExternalSource;
+        // Only mark external available if source is valid and different from target
+        const bestSourceBranchId =
+          bestExternalSource?.branch_id || bestExternalSource?.warehouse_id || '';
+        const externalAvailable =
+          !!bestExternalSource && !!targetBranchId && bestSourceBranchId !== targetBranchId;
+
         const externalBranchName =
           bestExternalSource?.branch_name || bestExternalSource?.warehouse_name || 'فرع شقيق';
-        const externalBranchId =
-          bestExternalSource?.branch_id || bestExternalSource?.warehouse_id || '';
+        const externalBranchId = bestSourceBranchId;
         const externalQty = Number(bestExternalSource?.quantity) || 0;
 
         return {
@@ -96,6 +114,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
           threshold,
           isLow,
           isZero,
+          targetBranchId,
           externalAvailable,
           externalBranchName,
           externalBranchId,
@@ -363,6 +382,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
                               product: item.product,
                               sourceBranchId: item.externalBranchId,
                               sourceBranchName: item.externalBranchName,
+                              targetBranchId: item.targetBranchId,
                               availableQty: item.externalQty,
                             })
                           }
@@ -405,7 +425,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
           product={selectedTransfer.product}
           sourceBranchId={selectedTransfer.sourceBranchId}
           sourceBranchName={selectedTransfer.sourceBranchName}
-          requesterBranchId={activeBranchId || ''}
+          requesterBranchId={selectedTransfer.targetBranchId}
           availableQty={selectedTransfer.availableQty}
           onClose={() => setSelectedTransfer(null)}
         />

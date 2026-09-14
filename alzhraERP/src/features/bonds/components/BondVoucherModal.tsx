@@ -14,7 +14,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import type { Bond } from '../types';
-import { formatCurrency, cn } from '../../../core/utils';
+import { formatCurrency, formatLocalDate, cn } from '../../../core/utils';
 import { tafqeet } from '../../../core/utils/tafqeet';
 import { exportSingleBondToExcel } from '../../../core/utils/bondExcelExporter';
 import { useCompany } from '../../settings/hooks';
@@ -199,8 +199,33 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
 
         {/* Voucher Paper Area */}
         <div className="flex-1 overflow-y-auto bg-slate-100/70 p-4 dark:bg-slate-950 sm:p-8">
+          <style>{`
+            @media print {
+              body * {
+                visibility: hidden !important;
+              }
+              #bond-printable-voucher, #bond-printable-voucher * {
+                visibility: visible !important;
+              }
+              #bond-printable-voucher {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 24px !important;
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                z-index: 99999 !important;
+              }
+            }
+          `}</style>
           <div
             ref={printRef}
+            id="bond-printable-voucher"
             className="mx-auto max-w-3xl rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:p-10"
           >
             {/* Header: Company and Voucher Meta */}
@@ -346,7 +371,7 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
                   <ShieldCheck size={12} className="text-emerald-500" />
                   مستند محاسبي معتمد بنظام الزهراء الذكي ERP
                 </span>
-                <span className="font-mono">طُبع في: {new Date().toLocaleDateString('ar-SA')}</span>
+                <span className="font-mono">طُبع في: {formatLocalDate()}</span>
               </div>
             </div>
           </div>

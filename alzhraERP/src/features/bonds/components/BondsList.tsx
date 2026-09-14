@@ -54,17 +54,21 @@ const BondsList: React.FC<Props> = ({
   const pageTotals = useMemo(() => {
     let receipts = 0;
     let payments = 0;
+    let transfers = 0;
     filteredBonds.forEach(b => {
       const amt = b.base_amount !== undefined ? b.base_amount : b.amount;
       if (b.type === 'receipt') {
         receipts += amt;
-      } else {
+      } else if (b.type === 'payment') {
         payments += amt;
+      } else if (b.type === 'transfer') {
+        transfers += amt;
       }
     });
     return {
       receipts,
       payments,
+      transfers,
       net: receipts - payments,
       count: filteredBonds.length,
     };
@@ -295,13 +299,18 @@ const BondsList: React.FC<Props> = ({
                   إجمالي الصفحة ({pageTotals.count} سند)
                 </td>
                 <td colSpan={4} className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                  <div className="flex items-center gap-4 text-xs">
+                  <div className="flex flex-wrap items-center gap-4 text-xs">
                     <span className="text-emerald-600">
                       قبض: {formatCurrency(pageTotals.receipts, 'SAR')}
                     </span>
                     <span className="text-rose-600">
                       صرف: {formatCurrency(pageTotals.payments, 'SAR')}
                     </span>
+                    {pageTotals.transfers > 0 && (
+                      <span className="text-blue-600">
+                        تحويلات: {formatCurrency(pageTotals.transfers, 'SAR')}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-left font-mono">

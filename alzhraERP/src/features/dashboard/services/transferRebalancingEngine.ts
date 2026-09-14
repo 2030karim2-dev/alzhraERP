@@ -127,23 +127,36 @@ export function computeTransferSuggestions({
 
     if (deficitNodes.length === 0 || surplusNodes.length === 0) continue;
 
+    // Track dynamic remaining safe surplus per donor to prevent over-allocation across multiple deficits
+    const donorAvailableSurplus = new Map<string, number>();
+    for (const donor of surplusNodes) {
+      donorAvailableSurplus.set(donor.branchId, Math.floor(donor.totalQty - threshold));
+    }
+
     for (const deficit of deficitNodes) {
       // Calculate needed quantity up to target stock buffer
       const targetBuffer = threshold * 2;
       const neededQty = Math.max(1, targetBuffer - deficit.totalQty);
 
-      // Find best surplus donor (highest surplus first)
-      const sortedSurplus = [...surplusNodes].sort((a, b) => b.totalQty - a.totalQty);
+      // Find best surplus donor (highest remaining surplus first)
+      const sortedSurplus = [...surplusNodes].sort(
+        (a, b) =>
+          (donorAvailableSurplus.get(b.branchId) || 0) -
+          (donorAvailableSurplus.get(a.branchId) || 0)
+      );
 
       for (const donor of sortedSurplus) {
         if (donor.branchId === deficit.branchId) continue;
 
-        // Safe surplus: leave donor with at least its threshold
-        const safeSurplus = Math.floor(donor.totalQty - threshold);
-        if (safeSurplus < 1) continue;
+        // Safe surplus remaining: leave donor with at least its threshold
+        const availableSurplus = donorAvailableSurplus.get(donor.branchId) || 0;
+        if (availableSurplus < 1) continue;
 
-        const transferQty = Math.min(safeSurplus, neededQty);
+        const transferQty = Math.min(availableSurplus, neededQty);
         if (transferQty < 1) continue;
+
+        // Deduct allocated quantity so donor is not over-allocated across branches
+        donorAvailableSurplus.set(donor.branchId, availableSurplus - transferQty);
 
         // Determine Priority
         let priority: SuggestionPriority = 'rebalance';
@@ -177,7 +190,7 @@ export function computeTransferSuggestions({
             warehouseId: donor.warehouseId,
             warehouseName: donor.warehouseName,
             currentStock: donor.totalQty,
-            surplus: safeSurplus,
+            surplus: availableSurplus,
           },
           toBranch: {
             id: deficit.branchId,
