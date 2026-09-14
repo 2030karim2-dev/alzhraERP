@@ -125,7 +125,8 @@ async function fetchProductsFallback(
   const cleanSearch = search.trim();
   if (cleanSearch) {
     query = query.or(
-      `name_ar.ilike.%${cleanSearch}%,sku.ilike.%${cleanSearch}%,` +
+      `normalized_search_text.ilike.%${cleanSearch}%,` +
+        `name_ar.ilike.%${cleanSearch}%,sku.ilike.%${cleanSearch}%,` +
         `part_number.ilike.%${cleanSearch}%,alternative_numbers.ilike.%${cleanSearch}%,` +
         `barcode.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%`
     );

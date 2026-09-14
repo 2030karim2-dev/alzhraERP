@@ -86,7 +86,7 @@ export function useProductSelectionTable({
         const { data, error } = await supabase.rpc('search_inventory_paginated', {
           p_company_id: companyId,
           p_term: submittedQuery.trim(),
-          p_limit: 1000,
+          p_limit: 250,
           p_offset: 0,
           p_sort_key: sqlSortKey,
           p_sort_dir: sqlSortDir,
@@ -96,7 +96,7 @@ export function useProductSelectionTable({
 
         if (error) {
           logger.warn('useProductSelectionTable', 'RPC search error, falling back:', error.message);
-          const fallbackProds = await productService.getProducts(companyId, 1, 500);
+          const fallbackProds = await productService.getProducts(companyId, 1, 250);
           const q = submittedQuery.trim().toLowerCase();
           if (!q) return fallbackProds;
           return fallbackProds.filter(
@@ -179,7 +179,7 @@ export function useProductSelectionTable({
     if (colId === 'index' || colId === 'actions' || colId === 'branch' || colId === 'specs') return;
     setSortConfig(prev => {
       if (prev?.key === colId) {
-        return { key: colId, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+        return prev.direction === 'asc' ? { key: colId, direction: 'desc' } : null;
       }
       return { key: colId, direction: 'asc' };
     });
@@ -217,7 +217,7 @@ export function useProductSelectionTable({
     if (!isOpen) return;
     const timer = setTimeout(() => {
       setSubmittedQuery(localQuery);
-    }, 150);
+    }, 250);
     return () => {
       clearTimeout(timer);
     };

@@ -113,7 +113,8 @@ async function searchProductsFallback(
     .eq('company_id', companyId)
     .eq('status', 'active')
     .or(
-      `name_ar.ilike.%${term}%,sku.ilike.%${term}%,` +
+      `normalized_search_text.ilike.%${term}%,` +
+        `name_ar.ilike.%${term}%,sku.ilike.%${term}%,` +
         `part_number.ilike.%${term}%,alternative_numbers.ilike.%${term}%,` +
         `barcode.ilike.%${term}%`
     )

@@ -17,6 +17,7 @@ import QuickAuditItemsTable, { type AdjustedItem } from '../components/audit/Qui
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { useFeedbackStore } from '../../feedback/store';
 import { parseError } from '../../../core/utils/errorUtils';
+import { useDebounce } from '../../../lib/hooks/useDebounce';
 
 const QuickAuditPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,10 +27,11 @@ const QuickAuditPage: React.FC = () => {
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
   const [filter, setFilter] = useState('');
+  const debouncedFilter = useDebounce(filter.trim(), 250);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [items, setItems] = useState<AdjustedItem[]>([]);
 
-  const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(filter);
+  const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
 
   // Get system quantity for a product in the selected warehouse
   const getSystemQuantity = useCallback(

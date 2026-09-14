@@ -8237,6 +8237,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           global_search_text: string | null
+          normalized_search_text: string | null
           has_core_charge: boolean | null
           id: string
           image_url: string | null
@@ -8269,6 +8270,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           global_search_text?: string | null
+          normalized_search_text?: string | null
           has_core_charge?: boolean | null
           id?: string
           image_url?: string | null
@@ -8301,6 +8303,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           global_search_text?: string | null
+          normalized_search_text?: string | null
           has_core_charge?: boolean | null
           id?: string
           image_url?: string | null
