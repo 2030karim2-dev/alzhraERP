@@ -43,7 +43,7 @@ export type InvoiceWithDetails = Invoice & {
 };
 
 export const salesApi = {
-  getInvoices: async (companyId: string, page = 0, limit = 50, branchId?: string | null) => {
+  getInvoices: async (companyId: string, page = 0, limit = 500, branchId?: string | null) => {
     const from = page * limit;
     const to = from + limit - 1;
 
@@ -108,7 +108,7 @@ export const salesApi = {
       p_status: params.status || null,
       p_payment_method: params.paymentMethod || null,
       p_branch_id: params.branchId || null,
-      p_limit: params.limit ?? 50,
+      p_limit: params.limit ?? 500,
       p_offset: params.offset ?? 0,
     });
 

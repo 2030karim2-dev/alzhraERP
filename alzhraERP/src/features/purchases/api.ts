@@ -120,7 +120,7 @@ const buildReturnParams = (
 });
 
 export const purchasesApi = {
-  getPurchases: async (companyId: string, branchId?: string | null) => {
+  getPurchases: async (companyId: string, branchId?: string | null, limit = 500) => {
     let query = supabase
       .from('invoices')
       .select(
@@ -134,7 +134,7 @@ export const purchasesApi = {
       .in('type', ['purchase', 'purchase_return'])
       .is('deleted_at', null);
     if (hasText(branchId)) query = query.eq('branch_id', branchId);
-    return query.order('issue_date', { ascending: false });
+    return query.order('issue_date', { ascending: false }).limit(limit);
   },
 
   searchPurchasesAdvanced: async (
@@ -160,7 +160,7 @@ export const purchasesApi = {
       p_status: params.status || null,
       p_payment_method: params.paymentMethod || null,
       p_branch_id: params.branchId || null,
-      p_limit: params.limit ?? 50,
+      p_limit: params.limit ?? 500,
       p_offset: params.offset ?? 0,
     });
 

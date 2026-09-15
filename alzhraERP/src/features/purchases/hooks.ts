@@ -64,10 +64,10 @@ export const usePurchases = (options?: UsePurchasesOptions): UseQueryResult<Purc
           type: options?.type,
           branchId,
           page: options?.page ?? 0,
-          limit: options?.limit ?? 50,
+          limit: options?.limit ?? 500,
         });
       }
-      return purchasesService.getPurchases(companyId, branchId);
+      return purchasesService.getPurchases(companyId, branchId, options?.limit ?? 500);
     },
     enabled: hasCompany,
     staleTime: isSearchMode ? 30 * 1000 : 5 * 60 * 1000,

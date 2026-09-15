@@ -92,8 +92,8 @@ const safeToBase = (purchase: PurchaseListRow): number => {
 export { purchasesApi };
 
 export const purchasesService = {
-  getPurchases: async (companyId: string, branchId?: string | null) => {
-    const { data, error } = await purchasesApi.getPurchases(companyId, branchId);
+  getPurchases: async (companyId: string, branchId?: string | null, limit = 500) => {
+    const { data, error } = await purchasesApi.getPurchases(companyId, branchId, limit);
     if (error) throw error;
     return data;
   },
@@ -113,7 +113,7 @@ export const purchasesService = {
     }
   ) => {
     const page = params.page ?? 0;
-    const limit = params.limit ?? 50;
+    const limit = params.limit ?? 500;
     const offset = page * limit;
 
     const rows = await purchasesApi.searchPurchasesAdvanced(companyId, {

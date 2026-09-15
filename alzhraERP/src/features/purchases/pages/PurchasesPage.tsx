@@ -130,6 +130,8 @@ interface PageContentProps {
   onStatusFilterChange?: ((val: string) => void) | undefined;
   paymentMethodFilter?: string | undefined;
   onPaymentMethodFilterChange?: ((val: string) => void) | undefined;
+  limit?: number | undefined;
+  onLimitChange?: ((limit: number) => void) | undefined;
   onResetFilters: () => void;
 
   setViewInvoiceId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -156,6 +158,8 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
   onStatusFilterChange,
   paymentMethodFilter,
   onPaymentMethodFilterChange,
+  limit,
+  onLimitChange,
   onResetFilters,
   setViewInvoiceId,
   setActiveTab,
@@ -190,6 +194,8 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
             onPaymentMethodFilterChange={onPaymentMethodFilterChange}
             totalMatches={data.length}
             totalMatchingCount={(data[0] as any)?.total_matching_count || data.length}
+            limit={limit}
+            onLimitChange={onLimitChange}
             isLoading={isLoading}
             onResetFilters={onResetFilters}
             scopeLabel="purchases"
@@ -227,6 +233,7 @@ const PurchasesPage: React.FC = () => {
   const [dateTo, setDateTo] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+  const [limit, setLimit] = useState(500);
   const { t } = useTranslation();
   const { user } = useAuthStore();
 
@@ -245,8 +252,9 @@ const PurchasesPage: React.FC = () => {
       status: statusFilter !== 'all' ? statusFilter : undefined,
       paymentMethod: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
       type: activeTab === 'returns' ? 'purchase_return' : 'purchase',
+      limit,
     }),
-    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, activeTab]
+    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, activeTab, limit]
   );
 
   const { data: allPurchases = [], isLoading } = usePurchases(searchParams);
@@ -350,6 +358,8 @@ const PurchasesPage: React.FC = () => {
               onStatusFilterChange={setStatusFilter}
               paymentMethodFilter={paymentMethodFilter}
               onPaymentMethodFilterChange={setPaymentMethodFilter}
+              limit={limit}
+              onLimitChange={setLimit}
               onResetFilters={handleResetFilters}
               setViewInvoiceId={setViewInvoiceId}
               setActiveTab={setActiveTab}

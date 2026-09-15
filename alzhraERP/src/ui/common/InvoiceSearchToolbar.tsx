@@ -22,6 +22,8 @@ interface InvoiceSearchToolbarProps {
   onPaymentMethodFilterChange?: ((method: string) => void) | undefined;
   totalMatches?: number | undefined;
   totalMatchingCount?: number | undefined;
+  limit?: number | undefined;
+  onLimitChange?: ((limit: number) => void) | undefined;
   isLoading?: boolean | undefined;
   onResetFilters: () => void;
   scopeLabel?: 'sales' | 'purchases' | undefined;
@@ -53,6 +55,8 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
   onPaymentMethodFilterChange,
   totalMatches,
   totalMatchingCount,
+  limit,
+  onLimitChange,
   isLoading = false,
   onResetFilters,
   scopeLabel = 'sales',
@@ -181,8 +185,28 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
           })}
         </div>
 
-        {/* Matches Indicator */}
+        {/* Matches Indicator & Limit Selector */}
         <div className="flex items-center gap-2">
+          {onLimitChange && (
+            <div className="flex items-center gap-1 text-[11px] font-bold text-[var(--app-text-secondary)]">
+              <span>عرض:</span>
+              <select
+                value={limit ?? 500}
+                onChange={e => onLimitChange(Number(e.target.value))}
+                aria-label="عدد الفواتير المعروضة"
+                className="focus:outline-hidden h-7 rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-0.5 text-[11px] font-bold text-[var(--app-text)] focus:border-blue-500"
+              >
+                <option value={50}>50 فاتورة</option>
+                <option value={100}>100 فاتورة</option>
+                <option value={250}>250 فاتورة</option>
+                <option value={500}>500 فاتورة</option>
+                <option value={1000}>1,000 فاتورة</option>
+                <option value={2500}>2,500 فاتورة</option>
+                <option value={5000}>الكل (5,000)</option>
+              </select>
+            </div>
+          )}
+
           {typeof totalMatches === 'number' && (
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               {totalMatchingCount && totalMatchingCount > totalMatches

@@ -46,10 +46,15 @@ export const useInvoices = (options?: UseInvoicesOptions) => {
           type: options?.type ?? 'sale',
           branchId,
           page: options?.page ?? 0,
-          limit: options?.limit ?? 50,
+          limit: options?.limit ?? 500,
         });
       }
-      return salesService.fetchSalesLog(companyId, options?.page ?? 0, branchId);
+      return salesService.fetchSalesLog(
+        companyId,
+        options?.page ?? 0,
+        branchId,
+        options?.limit ?? 500
+      );
     },
     enabled: !!companyId,
     staleTime: isSearchMode ? 30 * 1000 : 5 * 60 * 1000,

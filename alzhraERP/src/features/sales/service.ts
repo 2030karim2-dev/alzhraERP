@@ -65,9 +65,9 @@ interface SalesStatsRow {
 }
 
 export const salesService = {
-  fetchSalesLog: async (companyId: string, page = 0, branchId?: string | null) => {
+  fetchSalesLog: async (companyId: string, page = 0, branchId?: string | null, limit = 500) => {
     try {
-      const data = await salesApi.getInvoices(companyId, page, 50, branchId);
+      const data = await salesApi.getInvoices(companyId, page, limit, branchId);
       return (data || []).map((inv: unknown) => {
         const _inv = inv as RawInvoice;
         return {
@@ -108,7 +108,7 @@ export const salesService = {
   ) => {
     try {
       const page = params.page ?? 0;
-      const limit = params.limit ?? 50;
+      const limit = params.limit ?? 500;
       const offset = page * limit;
 
       const rows = await salesApi.searchInvoicesAdvanced(companyId, {

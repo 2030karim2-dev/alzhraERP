@@ -65,6 +65,7 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   const [dateTo, setDateTo] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+  const [limit, setLimit] = useState(500);
 
   useEffect(() => {
     if (searchTerm !== undefined && searchTerm !== internalSearch) {
@@ -87,8 +88,9 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
       status: statusFilter !== 'all' ? statusFilter : undefined,
       paymentMethod: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
       type: viewType,
+      limit,
     }),
-    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, viewType]
+    [debouncedSearch, dateFrom, dateTo, statusFilter, paymentMethodFilter, viewType, limit]
   );
 
   const { data: invoices, isLoading, error, refetch } = useInvoices(searchParams);
@@ -375,6 +377,8 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         onPaymentMethodFilterChange={setPaymentMethodFilter}
         totalMatches={displayData.length}
         totalMatchingCount={displayData[0]?.totalMatchingCount || displayData.length}
+        limit={limit}
+        onLimitChange={setLimit}
         isLoading={isLoading}
         onResetFilters={handleResetFilters}
         scopeLabel="sales"
