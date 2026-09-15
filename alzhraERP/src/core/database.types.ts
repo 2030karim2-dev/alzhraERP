@@ -12048,17 +12048,18 @@ export type Database = {
       }
       commit_sales_invoice_v2: {
         Args: {
-          p_branch_id?: string
+          p_branch_id?: string | null
           p_currency_code?: string
           p_due_date: string
           p_exchange_rate?: number
           p_idempotency_key?: string
           p_invoice_date: string
           p_items: Json
-          p_notes?: string
+          p_notes?: string | null
           p_party_id?: string | null
-          p_payment_account_id?: string
+          p_payment_account_id?: string | null
           p_payment_type?: string
+          p_paid_amount?: number
         }
         Returns: string
       }
@@ -12226,7 +12227,7 @@ export type Database = {
         Returns: string[]
       }
       generate_invoice_number: {
-        Args: { p_company_id: string; p_type: string }
+        Args: { p_company_id: string; p_type: string; p_branch_id?: string | null }
         Returns: string
       }
       generate_payment_number: {

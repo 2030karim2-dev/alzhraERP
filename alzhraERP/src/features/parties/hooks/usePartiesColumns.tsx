@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { Edit, Trash2, History, Globe } from 'lucide-react';
+import { Edit, Trash2, History, Globe, MessageCircle, FileText } from 'lucide-react';
 import type { Party, PartyType } from '../types';
 import type { Column } from '../../../ui/common/ExcelTable';
 import Avatar from '../../../ui/base/Avatar';
 import { formatCurrency, cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
+import { buildWhatsAppLink, hasValidWhatsAppPhone } from '../../debts/lib/whatsapp';
 
 interface UsePartiesColumnsProps {
   partyType: PartyType;
@@ -12,6 +13,7 @@ interface UsePartiesColumnsProps {
   onDelete: (partyId: string) => void;
   onOpenTimeline: (party: Party) => void;
   onOpenPortal: (party: Party) => void;
+  onViewStatement?: (party: Party) => void;
 }
 
 export function usePartiesColumns({
@@ -20,6 +22,7 @@ export function usePartiesColumns({
   onDelete,
   onOpenTimeline,
   onOpenPortal,
+  onViewStatement,
 }: UsePartiesColumnsProps): Array<Column<Party>> {
   const { t } = useTranslation();
 
@@ -130,6 +133,39 @@ export function usePartiesColumns({
         header: t('actions'),
         accessor: (row: Party) => (
           <div className="flex items-center justify-center gap-1">
+            {hasValidWhatsAppPhone(row.phone) && (
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  const bal = Number(row.balance) || 0;
+                  const msg =
+                    partyType === 'customer'
+                      ? bal > 0
+                        ? `مرحباً ${row.name}، نود تذكيركم برصيد حسابكم الحالي وقدره ${formatCurrency(bal)}.`
+                        : `مرحباً ${row.name}، نأمل أن تكونوا بخير.`
+                      : `مرحباً ${row.name}، بخصوص حسابات التوريد والمشتريات.`;
+                  window.open(buildWhatsAppLink(row.phone!, msg), '_blank', 'noopener,noreferrer');
+                }}
+                className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                title="مراسلة عبر واتساب"
+              >
+                <MessageCircle size={14} />
+              </button>
+            )}
+            {onViewStatement && (
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  onViewStatement(row);
+                }}
+                className="rounded-lg p-1.5 text-sky-600 transition-colors hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                title="عرض كشف الحساب"
+              >
+                <FileText size={14} />
+              </button>
+            )}
             {partyType === 'supplier' && (
               <button
                 type="button"
@@ -137,7 +173,7 @@ export function usePartiesColumns({
                   e.stopPropagation();
                   onOpenPortal(row);
                 }}
-                className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                className="rounded-lg p-1.5 text-teal-600 transition-colors hover:bg-teal-50 dark:hover:bg-teal-900/20"
                 title="رابط بوابة المورد"
               >
                 <Globe size={14} />
@@ -180,11 +216,11 @@ export function usePartiesColumns({
             </button>
           </div>
         ),
-        width: '120px',
+        width: '150px',
         align: 'center',
       },
     ],
-    [t, partyType, onEdit, onDelete, onOpenTimeline, onOpenPortal]
+    [t, partyType, onEdit, onDelete, onOpenTimeline, onOpenPortal, onViewStatement]
   );
 }
 

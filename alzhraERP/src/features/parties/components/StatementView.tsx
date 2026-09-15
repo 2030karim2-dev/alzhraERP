@@ -10,8 +10,19 @@ import { StatementControls } from './statement/StatementControls';
 import { StatementSummaryCards } from './statement/StatementSummaryCards';
 import { StatementPrintSheet } from './statement/StatementPrintSheet';
 
-const StatementView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
-  const [selectedPartyId, setSelectedPartyId] = useState<string>('');
+interface StatementViewProps {
+  partyType: PartyType;
+  initialPartyId?: string | undefined;
+}
+
+const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId }) => {
+  const [selectedPartyId, setSelectedPartyId] = useState<string>(initialPartyId || '');
+
+  React.useEffect(() => {
+    if (initialPartyId) {
+      setSelectedPartyId(initialPartyId);
+    }
+  }, [initialPartyId]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const { data: parties } = useParties(partyType);

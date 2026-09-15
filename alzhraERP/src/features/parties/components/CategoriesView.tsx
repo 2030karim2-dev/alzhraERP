@@ -34,19 +34,57 @@ const CategoriesView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
     );
   };
 
-  if (isLoading) return <div>جاري تحميل الفئات...</div>;
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCategories = React.useMemo(() => {
+    if (!Array.isArray(categories)) return [];
+    if (!searchTerm.trim()) return categories;
+    const term = searchTerm.toLowerCase();
+    return categories.filter(c => c.name.toLowerCase().includes(term));
+  }, [categories, searchTerm]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-48 items-center justify-center">
+        <div className="text-sm font-bold text-slate-400">جاري تحميل الفئات...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold">إدارة الفئات</h3>
-        <Button onClick={handleAddNew} leftIcon={<Plus size={16} />}>
-          إضافة فئة
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            {partyType === 'customer' ? 'فئات وتصنيفات العملاء' : 'فئات وتصنيفات الموردين'}
+          </h3>
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            {Array.isArray(categories) ? categories.length : 0} فئات
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="بحث في الفئات..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          />
+          <Button onClick={handleAddNew} size="sm" leftIcon={<Plus size={14} />}>
+            إضافة فئة جديدة
+          </Button>
+        </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {Array.isArray(categories) &&
-          categories.map(cat => (
+
+      {filteredCategories.length === 0 ? (
+        <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/40 p-12 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900/30">
+          <p className="text-sm font-bold">لا توجد فئات مطابقة</p>
+          <p className="mt-1 text-xs">يمكنك الضغط على زر "إضافة فئة جديدة" لإنشاء تصنيف للجهات.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {filteredCategories.map(cat => (
             <CategoryCard
               key={cat.id}
               category={cat}
@@ -54,11 +92,14 @@ const CategoriesView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
                 handleEdit(cat);
               }}
               onDelete={() => {
-                remove(cat.id);
+                if (window.confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
+                  remove(cat.id);
+                }
               }}
             />
           ))}
-      </div>
+        </div>
+      )}
 
       <CategoryModal
         isOpen={isModalOpen}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, FileText, LayoutGrid } from 'lucide-react';
+import { Users, UserPlus, FileText, LayoutGrid, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useParties, usePartyMutations, usePartiesView } from './hooks';
@@ -9,6 +9,7 @@ import MicroHeader from '../../ui/base/MicroHeader';
 import PartyModal from './components/PartyModal';
 import StatementView from './components/StatementView';
 import CategoriesView from './components/CategoriesView';
+import PartyAnalyticsView from './components/PartyAnalyticsView';
 import CustomerTimelineModal from './components/customers/CustomerTimelineModal';
 import SupplierPortalShareModal from './components/SupplierPortalShareModal';
 import PartyTypeSwitcher from './components/PartyTypeSwitcher';
@@ -43,6 +44,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
   } = usePartiesView();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
+  const [selectedPartyForStatementId, setSelectedPartyForStatementId] = useState<string>('');
 
   const { data: parties, isLoading, stats } = useParties(partyType, searchTerm);
   const { saveParty, deleteParty, isSaving } = usePartyMutations(partyType);
@@ -87,6 +89,10 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
       setSelectedSupplierForPortal(party);
       setIsPortalModalOpen(true);
     },
+    onViewStatement: party => {
+      setSelectedPartyForStatementId(party.id);
+      setActiveView('statements');
+    },
   });
 
   const headerActions = (
@@ -124,7 +130,19 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
           />
         );
       case 'statements':
-        return <StatementView partyType={partyType} />;
+        return <StatementView partyType={partyType} initialPartyId={selectedPartyForStatementId} />;
+      case 'analytics':
+        return (
+          <PartyAnalyticsView
+            partyType={partyType}
+            parties={parties}
+            isLoading={isLoading}
+            onViewStatement={party => {
+              setSelectedPartyForStatementId(party.id);
+              setActiveView('statements');
+            }}
+          />
+        );
       case 'categories':
         return <CategoriesView partyType={partyType} />;
     }
@@ -151,6 +169,7 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
           tabs={[
             { id: 'list', label: t('records'), icon: Users },
             { id: 'statements', label: t('account_statements'), icon: FileText },
+            { id: 'analytics', label: 'التحليلات والائتمان', icon: BarChart3 },
             { id: 'categories', label: t('categories'), icon: LayoutGrid },
           ]}
           activeTab={activeView}
@@ -176,6 +195,12 @@ const PartiesPage: React.FC<PartiesPageProps> = ({ partyType, title, icon, iconC
               type === 'customer' ? ROUTES.DASHBOARD.CLIENTS : ROUTES.DASHBOARD.SUPPLIERS
             );
           }}
+          customerCount={
+            partyType === 'customer' ? (stats?.totalCount ?? parties?.length) : undefined
+          }
+          supplierCount={
+            partyType === 'supplier' ? (stats?.totalCount ?? parties?.length) : undefined
+          }
         />
 
         <div

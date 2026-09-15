@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, CreditCard, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Users, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import type { PartyStats, PartyType } from '../types';
 import { formatCurrency, formatNumberDisplay, cn } from '../../../core/utils';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
@@ -13,80 +13,127 @@ const PartiesStats: React.FC<Props> = ({ stats, type }) => {
   const { t } = useTranslation();
   const isCustomer = type === 'customer';
 
-  const cards = [
-    {
-      title: isCustomer ? t('total_customers') : t('total_suppliers'),
-      value: formatNumberDisplay(stats.totalCount),
-      icon: Users,
-      gradient: isCustomer ? "from-emerald-500 to-teal-600" : "from-blue-500 to-indigo-600",
-      shadow: isCustomer ? "shadow-emerald-200/50" : "shadow-blue-200/50",
-    },
-    {
-      title: t('total_balances'),
-      value: formatCurrency(stats.totalBalance),
-      icon: CreditCard,
-      gradient: "from-rose-500 to-pink-600",
-      shadow: "shadow-rose-200/50",
-    },
-    {
-      title: t('active_records'),
-      value: formatNumberDisplay(stats.activeCount),
-      icon: ShoppingCart,
-      gradient: isCustomer ? "from-emerald-400 to-emerald-500" : "from-blue-400 to-blue-500",
-      shadow: isCustomer ? "shadow-emerald-100/30" : "shadow-blue-100/30",
-    },
-    {
-      title: t('blocked_records'),
-      value: formatNumberDisplay(stats.blockedCount),
-      icon: AlertCircle,
-      gradient: "from-orange-400 to-orange-500",
-      shadow: "shadow-orange-100/30",
-    }
-  ];
+  const totalRec = stats.totalReceivable ?? 0;
+  const totalPay = stats.totalPayable ?? 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-      {cards.map((card, idx) => (
-        <div
-          key={idx}
-          className={cn(
-            "relative overflow-hidden group p-4 rounded-2xl border border-white/20 shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl",
-            "bg-gradient-to-br", card.gradient, card.shadow
-          )}
-        >
-          {/* Decorative Pattern */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-
-          <div className="flex flex-col relative z-10">
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest leading-none">
-                {card.title}
-              </span>
-              <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-md">
-                <card.icon size={16} className="text-white" />
-              </div>
-            </div>
-
-            <h3 className="text-xl md:text-2xl font-bold text-white font-mono leading-none tracking-tighter truncate drop-shadow-sm">
-              {card.value}
-            </h3>
-
-            {idx === 1 && stats.byCurrency && stats.byCurrency.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {stats.byCurrency.map((c) => (
-                  <span
-                    key={c.currency}
-                    dir="ltr"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded bg-black/20 text-white/90 text-[10px] font-mono font-bold"
-                  >
-                    {formatCurrency(c.balance, c.currency)}
-                  </span>
-                ))}
-              </div>
-            )}
+    <div className="mb-4 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-4">
+      {/* Card 1: Count & Status */}
+      <div className="group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all hover:border-slate-300 hover:shadow dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            {isCustomer ? t('total_customers') : t('total_suppliers')}
+          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+            <Users size={15} />
           </div>
         </div>
-      ))}
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="font-mono text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {formatNumberDisplay(stats.totalCount)}
+          </span>
+          <span className="text-[10px] text-slate-400">جهة</span>
+        </div>
+        <div className="mt-2 flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[10px] dark:border-slate-800">
+          <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {formatNumberDisplay(stats.activeCount)} نشط
+          </span>
+          {stats.blockedCount > 0 && (
+            <>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                {formatNumberDisplay(stats.blockedCount)} محظور
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Card 2: Receivables (لنا) */}
+      <div className="group relative overflow-hidden rounded-xl border border-emerald-200/60 bg-emerald-50/40 p-3.5 shadow-sm transition-all hover:border-emerald-300 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+            {isCustomer ? 'مستحقات لنا (مدين)' : 'أرصدة مدينة لنا'}
+          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+            <TrendingUp size={15} />
+          </div>
+        </div>
+        <div className="mt-2">
+          <span
+            dir="ltr"
+            className="font-mono text-xl font-bold tracking-tight text-emerald-700 dark:text-emerald-300"
+          >
+            {formatCurrency(totalRec)}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center gap-1 border-t border-emerald-100/80 pt-2 text-[10px] text-emerald-700/80 dark:border-emerald-900/40 dark:text-emerald-400">
+          <span>مبالغ مطلوبة لصالح المنشأة</span>
+        </div>
+      </div>
+
+      {/* Card 3: Payables (علينا / أمانات) */}
+      <div className="group relative overflow-hidden rounded-xl border border-amber-200/60 bg-amber-50/40 p-3.5 shadow-sm transition-all hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/20">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300">
+            {isCustomer ? 'أمانات / دفعات مقدمة (دائن)' : 'مستحقات للموردين (دائن)'}
+          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+            <TrendingDown size={15} />
+          </div>
+        </div>
+        <div className="mt-2">
+          <span
+            dir="ltr"
+            className="font-mono text-xl font-bold tracking-tight text-amber-700 dark:text-amber-300"
+          >
+            {formatCurrency(totalPay)}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center gap-1 border-t border-amber-100/80 pt-2 text-[10px] text-amber-700/80 dark:border-amber-900/40 dark:text-amber-400">
+          <span>التزامات أو أرصدة دائنة</span>
+        </div>
+      </div>
+
+      {/* Card 4: Net Balance & Multi-Currency */}
+      <div className="group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all hover:border-slate-300 hover:shadow dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            صافي الرصيد الإجمالي
+          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+            <Wallet size={15} />
+          </div>
+        </div>
+        <div className="mt-2">
+          <span
+            dir="ltr"
+            className={cn(
+              'font-mono text-xl font-bold tracking-tight',
+              stats.totalBalance >= 0
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-rose-600 dark:text-rose-400'
+            )}
+          >
+            {formatCurrency(stats.totalBalance)}
+          </span>
+        </div>
+        {stats.byCurrency && stats.byCurrency.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1 border-t border-slate-100 pt-2 dark:border-slate-800">
+            {stats.byCurrency.slice(0, 3).map(c => (
+              <span
+                key={c.currency}
+                dir="ltr"
+                className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
+                {formatCurrency(c.balance, c.currency)}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

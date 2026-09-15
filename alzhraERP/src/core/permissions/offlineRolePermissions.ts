@@ -95,6 +95,7 @@ export const OFFLINE_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'incentive:period_approved',
     'incentive:period_locked',
     'incentive:period_paid',
+    'settings:manage',
   ],
   accountant: [
     'sales:read',

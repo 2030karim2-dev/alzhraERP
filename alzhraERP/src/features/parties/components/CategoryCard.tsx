@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutGrid, Users, Edit, Trash2 } from 'lucide-react';
 import type { PartyCategory } from '../types';
+import { formatCurrency, formatNumberDisplay } from '../../../core/utils';
 
 interface Props {
   category: PartyCategory;
@@ -9,46 +10,62 @@ interface Props {
 }
 
 const CategoryCard: React.FC<Props> = ({ category, onEdit, onDelete }) => {
+  const balance = category.totalBalance ?? 0;
+
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-none border border-gray-100 bg-[var(--app-surface)] transition-all hover:border-blue-500/40 dark:border-slate-800">
-      <div className="flex items-start justify-between p-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center bg-blue-600 text-white shadow-lg shadow-blue-500/20">
-            <LayoutGrid size={14} />
-          </div>
-          <div>
-            <h4 className="text-[11px] font-bold uppercase tracking-tighter text-gray-800 dark:text-slate-100">
-              {category.name}
-            </h4>
-            <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-400">
-              <Users size={10} />
-              <span>{category.count || 0} سجلات نشطة</span>
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all hover:border-blue-300 hover:shadow dark:border-slate-800 dark:bg-slate-900">
+      <div className="p-3.5">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              <LayoutGrid size={16} />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">{category.name}</h4>
+              <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                <Users size={11} />
+                <span>{formatNumberDisplay(category.count || 0)} سجل</span>
+              </div>
             </div>
           </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
+              title="تعديل الفئة"
+            >
+              <Edit size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20"
+              title="حذف الفئة"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex gap-px border bg-gray-100 dark:border-slate-800 dark:bg-slate-800">
-          <button
-            onClick={onEdit}
-            className="bg-[var(--app-surface)] p-1.5 text-gray-400 transition-colors hover:text-blue-500"
-          >
-            <Edit size={12} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="border-r bg-[var(--app-surface)] p-1.5 text-gray-400 transition-colors hover:text-rose-500 dark:border-slate-800"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
+        {/* Balance information if available */}
+        {balance !== 0 && (
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] dark:border-slate-800">
+            <span className="text-slate-500 dark:text-slate-400">إجمالي الأرصدة:</span>
+            <span dir="ltr" className="font-mono font-bold text-slate-800 dark:text-slate-200">
+              {formatCurrency(balance)}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Visual Progress/Indicator */}
-      <div className="mt-auto h-1 w-full overflow-hidden bg-gray-50 dark:bg-slate-800">
+      {/* Visual Progress Bar */}
+      <div className="h-1 w-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full bg-blue-600 transition-all duration-1000"
-          style={{ width: `${Math.min(100, (category.count || 0) * 5)}%` }}
-        ></div>
+          className="h-full bg-blue-600 transition-all duration-700"
+          style={{ width: `${Math.min(100, Math.max(5, (category.count || 0) * 10))}%` }}
+        />
       </div>
     </div>
   );

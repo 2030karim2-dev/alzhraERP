@@ -124,12 +124,22 @@ export const partiesService = {
     const partyList = Array.isArray(parties) ? parties : [];
 
     const result = (Array.isArray(categories) ? categories : []).map(
-      (cat: Record<string, unknown>) => ({
-        id: cat.id as string,
-        name: cat.name as string,
-        type: cat.type as PartyType,
-        count: partyList.filter((p: Record<string, unknown>) => p.category_id === cat.id).length,
-      })
+      (cat: Record<string, unknown>) => {
+        const matchingParties = partyList.filter(
+          (p: Record<string, unknown>) => p.category_id === cat.id
+        );
+        const totalBalance = matchingParties.reduce((sum: number, p: Record<string, unknown>) => {
+          const bal = (p.party_balances as Array<{ balance: number }> | null)?.[0]?.balance ?? 0;
+          return sum + Number(bal);
+        }, 0);
+        return {
+          id: cat.id as string,
+          name: cat.name as string,
+          type: cat.type as PartyType,
+          count: matchingParties.length,
+          totalBalance,
+        };
+      }
     );
 
     return result;
@@ -138,6 +148,20 @@ export const partiesService = {
   calculateStats: (parties: Party[]): PartyStats => {
     const activeCount = parties.filter(p => (p.status ?? 'active') === 'active').length;
     const blockedCount = parties.filter(p => p.status === 'blocked').length;
+
+    let totalReceivable = 0;
+    let totalPayable = 0;
+    let totalBalance = 0;
+
+    for (const p of parties) {
+      const b = p.balance ?? 0;
+      totalBalance += b;
+      if (b > 0) {
+        totalReceivable += b;
+      } else if (b < 0) {
+        totalPayable += b;
+      }
+    }
 
     const currMap = new Map<string, { total: number; count: number }>();
     for (const p of parties) {
@@ -166,7 +190,9 @@ export const partiesService = {
 
     return {
       totalCount: parties.length,
-      totalBalance: parties.reduce((sum, p) => sum + (p.balance ?? 0), 0),
+      totalBalance,
+      totalReceivable,
+      totalPayable,
       activeCount,
       blockedCount,
       byCurrency,

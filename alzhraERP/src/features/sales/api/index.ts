@@ -150,15 +150,13 @@ export const salesApi = {
         ...(i.warehouseId ? { warehouse_id: i.warehouseId } : {}),
       })),
       p_payment_type: payload.paymentMethod || 'cash',
-      ...(payload.treasuryAccountId ? { p_payment_account_id: payload.treasuryAccountId } : {}),
-      ...(payload.notes ? { p_notes: payload.notes } : {}),
+      p_notes: payload.notes || null,
       p_currency_code: payload.currency || 'SAR',
       p_exchange_rate: payload.exchangeRate || 1,
       p_idempotency_key: idempotencyKey,
-      ...(payload.branchId ? { p_branch_id: payload.branchId } : {}),
-      ...(payload.paidAmount !== undefined
-        ? { p_paid_amount: Number(payload.paidAmount) || 0 }
-        : {}),
+      p_branch_id: payload.branchId || null,
+      p_payment_account_id: payload.treasuryAccountId || null,
+      p_paid_amount: Number(payload.paidAmount) || 0,
     };
 
     if (payload.isCrossBranch) {
@@ -308,10 +306,15 @@ export const salesApi = {
    * INV-YYYYMMDD-NNNN مطابقة لما يعتمده الخادم، بدلاً من get_next_sequence('sale')
    * التي لا تملك فرع 'sale' فترجع '1' دائماً.
    */
-  getNextGeneratedNumber: async (companyId: string, type: 'sale' | 'purchase' = 'sale') => {
+  getNextGeneratedNumber: async (
+    companyId: string,
+    type: 'sale' | 'purchase' = 'sale',
+    branchId?: string | null
+  ) => {
     const { data, error } = await supabase.rpc('generate_invoice_number', {
       p_company_id: companyId,
       p_type: type,
+      p_branch_id: branchId || null,
     });
     if (error) {
       logger.warn('Sales', 'generate_invoice_number unavailable — falling back to sequence', error);

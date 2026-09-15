@@ -2,7 +2,7 @@ import type { Database } from '../../core/database.types';
 
 export type PartyType = 'customer' | 'supplier' | 'both' | 'all';
 export type PartyStatus = 'active' | 'blocked';
-export type PartyView = 'list' | 'statements' | 'categories';
+export type PartyView = 'list' | 'statements' | 'analytics' | 'categories';
 
 export type Party = Database['public']['Tables']['parties']['Row'] & {
   category?: string;
@@ -32,6 +32,10 @@ export interface PartyStats {
   totalCount: number;
   /** Sum of `balance` across all parties, in the default currency. */
   totalBalance: number;
+  /** Total receivables (positive balance - owed to us). */
+  totalReceivable: number;
+  /** Total payables / customer credits (negative balance - owed by us). */
+  totalPayable: number;
   /** Count of parties whose `status` is `active`. */
   activeCount: number;
   /** Count of parties whose `status` is `blocked`. */
@@ -45,4 +49,5 @@ export interface PartyCategory {
   name: string;
   type: PartyType;
   count?: number; // Optional for UI display
+  totalBalance?: number; // Sum of balances in this category
 }
