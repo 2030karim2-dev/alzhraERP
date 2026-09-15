@@ -127,7 +127,7 @@ export const purchasesApi = {
         `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, notes, return_reason, reference_invoice_id, created_at,
-      party:party_id(name), invoice_items(id, cost_price, quantity, unit_price, total, description)
+      party:party_id(name), invoice_items!invoice_items_invoice_id_fkey(id, cost_price, quantity, unit_price, total, description)
     `
       )
       .eq('company_id', companyId)
@@ -173,7 +173,7 @@ export const purchasesApi = {
       .from('invoices')
       .select(
         `
-      *, party:party_id(*), invoice_items(*, product:product_id(name_ar, sku))
+      *, party:party_id(*), invoice_items!invoice_items_invoice_id_fkey(*, product:product_id(name_ar, sku))
     `
       )
       .eq('id', purchaseId)
@@ -262,7 +262,7 @@ export const purchasesApi = {
         `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(id, name),
-      invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
+      invoice_items!invoice_items_invoice_id_fkey(id, product_id, description, quantity, unit_price, total, cost_price)
     `
       )
       .eq('company_id', companyId)

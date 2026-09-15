@@ -118,7 +118,7 @@ export const bondsApi = {
       .select(
         `
         *,
-        invoice_items(
+        invoice_items!invoice_items_invoice_id_fkey(
           *,
           product:product_id(name_ar, sku, part_number, brand)
         )

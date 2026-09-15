@@ -61,7 +61,7 @@ export const salesApi = {
         currency_code,
         exchange_rate,
         party:party_id(name),
-        invoice_items(id),
+        invoice_items!invoice_items_invoice_id_fkey(id),
         reference_invoice_id
       `
       )
@@ -262,10 +262,10 @@ export const salesApi = {
         `
         *,
         parties:party_id(*),
-        payment_allocations(
+        payment_allocations!payment_allocations_invoice_id_fkey(
           payments:payment_id(amount, created_at, payment_method)
         ),
-        invoice_items(
+        invoice_items!invoice_items_invoice_id_fkey(
           *,
           product:product_id(name_ar, sku, cost_price, part_number, brand)
         )

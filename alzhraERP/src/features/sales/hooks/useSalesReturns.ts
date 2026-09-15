@@ -95,7 +95,7 @@ export const useSalesReturns = (filters?: {
           currency_code,
           exchange_rate,
           party:party_id(id, name),
-          invoice_items:invoice_items(
+          invoice_items:invoice_items!invoice_items_invoice_id_fkey(
             id,
             product_id,
             description,
@@ -268,7 +268,7 @@ export const useSalesInvoicesForReturn = (customerId?: string | null) => {
           payment_method,
           created_by,
           party:party_id(id, name),
-          invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
+          invoice_items!invoice_items_invoice_id_fkey(id, product_id, description, quantity, unit_price, total, cost_price)
         `
         )
         .eq('company_id', user.company_id)
