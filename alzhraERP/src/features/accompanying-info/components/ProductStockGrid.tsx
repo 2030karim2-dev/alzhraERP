@@ -9,7 +9,7 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
   return (
     <div className="flex flex-col text-xs text-slate-800 dark:text-slate-100">
       {/* رأس الصنف الأزرق */}
-      <div className="mb-2 rounded-sm bg-blue-600/90 p-2 text-center font-bold text-white shadow-inner dark:bg-blue-800">
+      <div className="mb-3 rounded-lg bg-blue-600 p-3 text-center font-bold text-white shadow-sm dark:bg-blue-800">
         <div className="text-sm tracking-wide">
           {data.part_number ? `${data.part_number} - ` : ''}
           {data.name_ar}
@@ -17,14 +17,14 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-2 pb-1 text-[11px] text-slate-600 dark:text-slate-300">
+      <div className="flex items-center justify-between border-b border-slate-200 px-2 pb-2 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
         <span>
           الوحدة: <strong className="text-slate-900 dark:text-white">{data.unit}</strong>
         </span>
         <span>
           إجمالي المخزون:{' '}
           <strong
-            className={`font-mono text-xs ${
+            className={`font-mono text-sm ${
               data.total_stock > 0
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : 'text-rose-600 dark:text-rose-400'
@@ -36,11 +36,11 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
       </div>
 
       {/* جدول أرصدة المستودعات الحية */}
-      <div className="mt-2 overflow-hidden rounded-sm border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <div className="border-b border-slate-300 bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+      <div className="mt-3 overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="border-b border-slate-300 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
           توزيع الرصيد عبر المستودعات:
         </div>
-        <table className="w-full border-collapse text-[10px]">
+        <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-300 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400">
               <th className="border-e border-slate-300 p-1.5 text-start dark:border-slate-700">
@@ -85,11 +85,11 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
       </div>
 
       {/* شبكة الأسعار والتكاليف بنمط الإكسل */}
-      <div className="mt-3 overflow-hidden rounded-sm border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <div className="border-b border-slate-300 bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+      <div className="mt-4 overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="border-b border-slate-300 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
           الأسعار والتكلفة (ر.س):
         </div>
-        <table className="w-full border-collapse text-[11px]">
+        <table className="w-full border-collapse text-xs">
           <tbody>
             <tr className="border-b border-slate-300 dark:border-slate-700">
               <td className="w-1/2 border-e border-slate-300 p-1.5 text-start font-mono font-bold text-blue-600 dark:border-slate-700 dark:text-blue-400">
@@ -131,15 +131,15 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
 
       {/* البدائل إن وجدت */}
       {data.alternatives && data.alternatives.length > 0 && (
-        <div className="mt-3 rounded-sm border border-slate-300 bg-white p-2 text-[10px] dark:border-slate-700 dark:bg-slate-900">
-          <div className="mb-1 font-bold text-slate-700 dark:text-slate-300">
+        <div className="mt-4 rounded-lg border border-slate-300 bg-white p-3 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="mb-2 font-bold text-slate-700 dark:text-slate-300">
             أرقام القطع البديلة:
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {data.alternatives.map((alt, idx) => (
               <span
                 key={idx}
-                className="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                className="rounded-md border border-slate-300 bg-slate-100 px-2 py-1 font-mono text-[11px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
               >
                 {alt}
               </span>

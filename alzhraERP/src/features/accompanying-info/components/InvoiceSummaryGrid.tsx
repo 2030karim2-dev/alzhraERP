@@ -50,14 +50,14 @@ export const InvoiceSummaryGrid: React.FC<InvoiceSummaryGridProps> = ({ data }) 
 
   return (
     <div className="flex flex-col text-xs text-slate-800 dark:text-slate-100">
-      {/* رأس الفاتورة الأزرق (مطابق تماماً للصورة 2) */}
-      <div className="mb-2 rounded-sm bg-blue-600/90 p-2 text-center font-bold text-white shadow-inner dark:bg-blue-800">
+      {/* رأس الفاتورة الأزرق (مصمت ومميز) */}
+      <div className="mb-3 rounded-lg bg-blue-600 p-3 text-center font-bold text-white shadow-sm dark:bg-blue-800">
         <div className="text-sm tracking-wide">فاتورة مبيع ، رقم: {data.invoice_number}</div>
       </div>
 
-      {/* جدول شبكة الإكسل المحاسبية بخطوط واضحة مقسمة أفقياً ورأسياً (مطابق للصورة 2) */}
-      <div className="overflow-hidden rounded-sm border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <table className="w-full border-collapse text-[11px]">
+      {/* جدول شبكة الإكسل المحاسبية بخطوط واضحة */}
+      <div className="overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <table className="w-full border-collapse text-xs">
           <tbody>
             {rows.map((row, idx) => (
               <tr
@@ -68,9 +68,9 @@ export const InvoiceSummaryGrid: React.FC<InvoiceSummaryGridProps> = ({ data }) 
               >
                 {/* عمود القيمة (اليسار في RTL) */}
                 <td
-                  className={`border-e border-slate-300 p-1.5 text-start font-mono dark:border-slate-700 ${
+                  className={`border-e border-slate-300 p-2 text-start font-mono dark:border-slate-700 ${
                     row.isHighlight
-                      ? 'text-xs font-bold text-blue-700 dark:text-blue-300'
+                      ? 'text-sm font-bold text-blue-700 dark:text-blue-300'
                       : row.isAlert
                         ? 'font-bold text-rose-600 dark:text-rose-400'
                         : row.isProfit
@@ -84,7 +84,7 @@ export const InvoiceSummaryGrid: React.FC<InvoiceSummaryGridProps> = ({ data }) 
 
                 {/* عمود العنوان (اليمين في RTL) */}
                 <td
-                  className="bg-slate-50/50 p-1.5 text-end font-semibold text-slate-700 dark:bg-slate-800/30 dark:text-slate-300"
+                  className="bg-slate-50/50 p-2 text-end font-semibold text-slate-700 dark:bg-slate-800/30 dark:text-slate-300"
                   style={{ width: '55%' }}
                 >
                   {row.label}

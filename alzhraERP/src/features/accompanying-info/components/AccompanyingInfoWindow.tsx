@@ -11,7 +11,9 @@ import {
   Package,
   Loader2,
   Info,
+  GripHorizontal,
 } from 'lucide-react';
+import { motion, useDragControls } from 'framer-motion';
 import { useAccompanyingInfoStore } from '../store/accompanyingInfoStore';
 import { accompanyingInfoService } from '../services/accompanyingInfoService';
 import { useAuthStore } from '../../auth/store';
@@ -52,6 +54,9 @@ export const AccompanyingInfoWindow: React.FC = () => {
     }>
   >([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  // للتحكم بالسحب (Drag)
+  const dragControls = useDragControls();
 
   // تحميل بيانات الكيان المستهدف فور تغييره
   const loadTargetData = useCallback(
@@ -133,19 +138,42 @@ export const AccompanyingInfoWindow: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`fixed z-40 select-text transition-all duration-200 ${
+    <motion.div
+      drag={!isMinimized}
+      dragControls={dragControls}
+      dragListener={false}
+      dragMomentum={false}
+      className={`fixed z-40 select-text transition-all duration-300 ${
         isMinimized
-          ? 'bottom-4 start-4 h-10 w-72 shadow-lg'
-          : 'start-4 top-14 max-h-[calc(100vh-4.5rem)] w-80 shadow-2xl md:w-96'
-      } flex flex-col overflow-hidden rounded-md border-2 border-slate-400 bg-[#f5f6f8] font-sans dark:border-slate-700 dark:bg-slate-900`}
-      style={{ direction: 'rtl' }}
+          ? 'bottom-4 start-4 h-12 w-80 shadow-lg'
+          : 'start-4 top-14 h-[500px] max-h-[calc(100vh-4.5rem)] w-96 shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
+      } flex flex-col rounded-xl border border-slate-300 bg-slate-50 font-sans dark:border-slate-700 dark:bg-slate-900`}
+      style={{
+        direction: 'rtl',
+        resize: !isMinimized ? 'both' : 'none',
+        overflow: 'hidden',
+        minWidth: isMinimized ? '320px' : '360px',
+        minHeight: isMinimized ? '48px' : '400px',
+      }}
     >
-      {/* شريط عنوان النافذة (مطابق لترويسة "المعلومات المرافقة" في الصور) */}
-      <div className="flex flex-shrink-0 cursor-default items-center justify-between border-b border-slate-300 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 px-2.5 py-1.5 dark:border-slate-700 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800">
+      {/* شريط عنوان النافذة المرافقة (مصمت واحترافي) */}
+      <div
+        className={`flex flex-shrink-0 items-center justify-between border-b border-slate-300 bg-slate-100 px-3 py-2 dark:border-slate-700 dark:bg-slate-800 ${
+          !isMinimized ? 'cursor-move touch-none' : 'cursor-default'
+        }`}
+        onPointerDown={e => {
+          if (!isMinimized) dragControls.start(e);
+        }}
+      >
         <div className="flex items-center gap-1.5">
+          {!isMinimized && (
+            <GripHorizontal
+              size={14}
+              className="hidden text-slate-400 dark:text-slate-500 md:block"
+            />
+          )}
           <Info size={14} className="text-blue-600 dark:text-blue-400" />
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
             المعلومات المرافقة
           </span>
           {isLoading && <Loader2 size={12} className="ms-1 animate-spin text-blue-500" />}
@@ -156,27 +184,27 @@ export const AccompanyingInfoWindow: React.FC = () => {
           <button
             onClick={togglePinned}
             title={isPinned ? 'إلغاء التثبيت' : 'تثبيت النافذة'}
-            className={`rounded p-1 text-slate-600 transition-colors hover:bg-slate-300/60 dark:text-slate-300 dark:hover:bg-slate-700 ${
-              isPinned ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' : ''
+            className={`rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 ${
+              isPinned ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : ''
             }`}
           >
-            {isPinned ? <Pin size={13} className="fill-current" /> : <PinOff size={13} />}
+            {isPinned ? <Pin size={15} className="fill-current" /> : <PinOff size={15} />}
           </button>
 
           <button
             onClick={toggleMinimized}
             title={isMinimized ? 'استعادة' : 'تصغير'}
-            className="rounded p-1 text-slate-600 transition-colors hover:bg-slate-300/60 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
           >
-            {isMinimized ? <Maximize2 size={13} /> : <Minimize2 size={13} />}
+            {isMinimized ? <Maximize2 size={15} /> : <Minimize2 size={15} />}
           </button>
 
           <button
             onClick={() => setOpen(false)}
             title="إغلاق"
-            className="rounded p-1 text-slate-600 transition-colors hover:bg-rose-500 hover:text-white dark:text-slate-300"
+            className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-rose-500 hover:text-white dark:text-slate-300"
           >
-            <X size={13} />
+            <X size={15} />
           </button>
         </div>
       </div>
@@ -191,23 +219,23 @@ export const AccompanyingInfoWindow: React.FC = () => {
               placeholder="ابحث عن عميل أو صنف أو فاتورة..."
               value={searchQuery}
               onChange={e => handleSearch(e.target.value)}
-              className="w-full rounded border border-slate-300 bg-white py-1 pe-2 ps-7 text-[11px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full rounded-lg border border-slate-300 bg-white py-2 pe-3 ps-9 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             />
             {isSearching ? (
               <Loader2
-                size={12}
-                className="pointer-events-none absolute start-2 top-2 animate-spin text-blue-500"
+                size={14}
+                className="pointer-events-none absolute start-3 top-2.5 animate-spin text-blue-500"
               />
             ) : (
               <Search
-                size={12}
-                className="pointer-events-none absolute start-2 top-2 text-slate-400"
+                size={14}
+                className="pointer-events-none absolute start-3 top-2.5 text-slate-400"
               />
             )}
 
             {/* قائمة نتائج البحث السريع */}
             {searchResults.length > 0 && (
-              <div className="absolute end-0 start-0 top-full z-50 mt-1 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded border border-slate-300 bg-white text-[11px] shadow-xl dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
+              <div className="absolute end-0 start-0 top-full z-50 mt-1 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-300 bg-white text-xs shadow-xl dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
                 {searchResults.map((res, i) => (
                   <button
                     key={i}
@@ -218,19 +246,19 @@ export const AccompanyingInfoWindow: React.FC = () => {
                     }}
                     className="flex w-full items-center justify-between p-2 text-start hover:bg-blue-50 dark:hover:bg-slate-700/50"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       {res.type === 'product' ? (
-                        <Package size={12} className="text-emerald-500" />
+                        <Package size={14} className="text-emerald-500" />
                       ) : res.type === 'invoice' ? (
-                        <FileText size={12} className="text-amber-500" />
+                        <FileText size={14} className="text-amber-500" />
                       ) : (
-                        <Users size={12} className="text-blue-500" />
+                        <Users size={14} className="text-blue-500" />
                       )}
                       <span className="font-semibold text-slate-800 dark:text-slate-100">
                         {res.label}
                       </span>
                     </div>
-                    {res.sub && <span className="text-[10px] text-slate-400">{res.sub}</span>}
+                    {res.sub && <span className="text-[11px] text-slate-400">{res.sub}</span>}
                   </button>
                 ))}
               </div>
@@ -269,21 +297,23 @@ export const AccompanyingInfoWindow: React.FC = () => {
             )
           ) : (
             /* الحالة الافتراضية عندما تفتح النافذة ولم يتم النقر على شيء بعد */
-            <div className="flex flex-col items-center justify-center space-y-2 rounded border border-dashed border-slate-300 p-6 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <Info size={28} className="text-blue-500/70" />
-              <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+            <div className="mt-4 flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+              <div className="rounded-full bg-blue-50 p-3 dark:bg-blue-900/20">
+                <Info size={32} className="text-blue-500" />
+              </div>
+              <div className="text-sm font-bold text-slate-700 dark:text-slate-200">
                 وضع المعلومات المرافقة نشط ⚡
               </div>
-              <p className="text-[11px] leading-relaxed">
+              <p className="max-w-[250px] text-xs leading-relaxed">
                 انقر على أي <strong className="text-blue-600">عميل</strong>، أو{' '}
                 <strong className="text-emerald-600">صنف</strong>، أو{' '}
-                <strong className="text-amber-600">فاتورة</strong> في أي شاشة لعرض كافة معلوماته
-                المرافقة فوراً.
+                <strong className="text-amber-600">فاتورة</strong> في النظام لعرض كافة معلوماته
+                التفصيلية فوراً.
               </p>
             </div>
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
