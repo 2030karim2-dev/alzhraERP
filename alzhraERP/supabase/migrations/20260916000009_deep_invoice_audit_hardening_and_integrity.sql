@@ -52,46 +52,59 @@ WHERE paid_amount > 0
 
 -- 3. Composite Foreign Keys for Strict Tenant Isolation
 DO $$
-BEGIN
   -- Invoices -> branches
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_branch_id_fkey;
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS fk_invoices_company_branch;
+  ALTER TABLE public.invoices ADD CONSTRAINT invoices_branch_id_fkey 
+    FOREIGN KEY (branch_id) REFERENCES public.branches(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoices ADD CONSTRAINT fk_invoices_company_branch 
     FOREIGN KEY (company_id, branch_id) REFERENCES public.branches(company_id, id) ON DELETE RESTRICT;
 
   -- Invoices -> parties
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_party_id_fkey;
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS fk_invoices_company_party;
+  ALTER TABLE public.invoices ADD CONSTRAINT invoices_party_id_fkey 
+    FOREIGN KEY (party_id) REFERENCES public.parties(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoices ADD CONSTRAINT fk_invoices_company_party 
     FOREIGN KEY (company_id, party_id) REFERENCES public.parties(company_id, id) ON DELETE RESTRICT;
 
   -- Invoices -> payment_account
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_payment_account_id_fkey;
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS fk_invoices_company_account;
+  ALTER TABLE public.invoices ADD CONSTRAINT invoices_payment_account_id_fkey 
+    FOREIGN KEY (payment_account_id) REFERENCES public.accounts(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoices ADD CONSTRAINT fk_invoices_company_account 
     FOREIGN KEY (company_id, payment_account_id) REFERENCES public.accounts(company_id, id) ON DELETE RESTRICT;
 
   -- Invoices -> reference_invoice
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_reference_invoice_id_fkey;
   ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS fk_invoices_company_reference;
+  ALTER TABLE public.invoices ADD CONSTRAINT invoices_reference_invoice_id_fkey 
+    FOREIGN KEY (reference_invoice_id) REFERENCES public.invoices(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoices ADD CONSTRAINT fk_invoices_company_reference 
     FOREIGN KEY (company_id, reference_invoice_id) REFERENCES public.invoices(company_id, id) ON DELETE RESTRICT;
 
   -- Payment allocations -> invoices
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS payment_allocations_invoice_id_fkey;
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS fk_payment_allocations_company_invoice;
+  ALTER TABLE public.payment_allocations ADD CONSTRAINT payment_allocations_invoice_id_fkey 
+    FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE RESTRICT;
   ALTER TABLE public.payment_allocations ADD CONSTRAINT fk_payment_allocations_company_invoice 
     FOREIGN KEY (company_id, invoice_id) REFERENCES public.invoices(company_id, id) ON DELETE RESTRICT;
 
   -- Payment allocations -> payments
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS payment_allocations_payment_id_fkey;
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS fk_payment_allocations_company_payment;
+  ALTER TABLE public.payment_allocations ADD CONSTRAINT payment_allocations_payment_id_fkey 
+    FOREIGN KEY (payment_id) REFERENCES public.payments(id) ON DELETE RESTRICT;
   ALTER TABLE public.payment_allocations ADD CONSTRAINT fk_payment_allocations_company_payment 
     FOREIGN KEY (company_id, payment_id) REFERENCES public.payments(company_id, id) ON DELETE RESTRICT;
 
   -- Invoice items -> tax_rates
   ALTER TABLE public.invoice_items DROP CONSTRAINT IF EXISTS invoice_items_tax_rate_id_fkey;
   ALTER TABLE public.invoice_items DROP CONSTRAINT IF EXISTS fk_invoice_items_company_tax_rate;
+  ALTER TABLE public.invoice_items ADD CONSTRAINT invoice_items_tax_rate_id_fkey 
+    FOREIGN KEY (tax_rate_id) REFERENCES public.tax_rates(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoice_items ADD CONSTRAINT fk_invoice_items_company_tax_rate 
     FOREIGN KEY (company_id, tax_rate_id) REFERENCES public.tax_rates(company_id, id) ON DELETE RESTRICT;
 END $$;
@@ -849,3 +862,7 @@ CREATE POLICY payments_select ON public.payments FOR SELECT TO authenticated
 CREATE POLICY payments_update ON public.payments FOR UPDATE TO authenticated
   USING (is_super_admin() OR ((company_id IN ( SELECT get_auth_companies() AS get_auth_companies)) AND ((branch_id IS NULL) OR (branch_id IN ( SELECT get_auth_branches(payments.company_id) AS get_auth_branches)))))
   WITH CHECK (is_super_admin() OR ((company_id IN ( SELECT get_auth_companies() AS get_auth_companies)) AND ((branch_id IS NULL) OR (branch_id IN ( SELECT get_auth_branches(payments.company_id) AS get_auth_branches)))));
+
+-- 12. Reload PostgREST schema cache
+NOTIFY pgrst, 'reload schema';
+
