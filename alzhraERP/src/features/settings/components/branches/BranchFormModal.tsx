@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, GitBranch, Loader2, Phone, MapPin } from 'lucide-react';
+import { X, GitBranch, Loader2, Phone, MapPin, Mail } from 'lucide-react';
 import type { Branch, BranchFormData } from '../../types';
 
 interface BranchFormModalProps {
@@ -23,6 +23,7 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
     name: '',
     address: '',
     phone: '',
+    email: '',
     status: 'active',
   });
 
@@ -32,10 +33,11 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
         name: branch.name,
         address: branch.address ?? '',
         phone: branch.phone ?? '',
+        email: branch.email ?? '',
         status: branch.status,
       });
     } else {
-      setForm({ name: '', address: '', phone: '', status: 'active' });
+      setForm({ name: '', address: '', phone: '', email: '', status: 'active' });
     }
   }, [branch, isOpen]);
 
@@ -126,6 +128,27 @@ const BranchFormModal: React.FC<BranchFormModalProps> = ({
               className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               dir="ltr"
             />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-300">
+              <Mail size={13} className="ml-1 inline text-gray-400" />
+              البريد الإلكتروني للفرع (لتسجيل الدخول والتواصل)
+            </label>
+            <input
+              type="email"
+              value={form.email ?? ''}
+              onChange={e => {
+                setForm({ ...form, email: e.target.value });
+              }}
+              placeholder="branch@example.com"
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              dir="ltr"
+            />
+            <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+              يُستخدم لتسجيل الدخول للفرع مباشرة بحساب Google أو بالبريد وكلمة السر.
+            </p>
           </div>
 
           {/* Status */}

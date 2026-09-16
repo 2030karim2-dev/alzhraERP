@@ -7,6 +7,7 @@ import {
   Loader2,
   Phone,
   MapPin,
+  Mail,
   CheckCircle2,
   XCircle,
   Building2,
@@ -181,6 +182,15 @@ const BranchManager: React.FC = () => {
                           >
                             <Phone size={11} className="shrink-0" />
                             {branch.phone}
+                          </p>
+                        )}
+                        {branch.email && (
+                          <p
+                            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400"
+                            dir="ltr"
+                          >
+                            <Mail size={11} className="shrink-0" />
+                            <span className="font-mono">{branch.email}</span>
                           </p>
                         )}
                       </div>

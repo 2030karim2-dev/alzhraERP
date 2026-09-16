@@ -40,6 +40,7 @@ export interface Branch {
   company_id: string;
   address?: string | null;
   phone?: string | null;
+  email?: string | null;
   status: string;
   integration_mode?: 'independent' | 'full_integration' | 'inventory_only' | string | null;
   created_at: string;
@@ -50,6 +51,7 @@ export interface BranchFormData {
   name: string;
   address?: string | null;
   phone?: string | null;
+  email?: string | null;
   status?: string;
 }
 
@@ -71,7 +73,7 @@ export interface CompanyFormData {
 export interface Invitation {
   id: string;
   email: string;
-  role: 'owner' | 'admin' | 'accountant' | 'cashier' | 'viewer';
+  role: 'owner' | 'admin' | 'manager' | 'accountant' | 'sales' | 'cashier' | 'viewer';
   status: 'pending' | 'accepted' | 'expired';
   expires_at: string;
   created_by?: string;

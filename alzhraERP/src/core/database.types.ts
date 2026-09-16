@@ -880,6 +880,7 @@ export type Database = {
           address: string | null
           company_id: string
           created_at: string
+          email: string | null
           id: string
           name: string
           phone: string | null
@@ -890,6 +891,7 @@ export type Database = {
           address?: string | null
           company_id: string
           created_at?: string
+          email?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -900,6 +902,7 @@ export type Database = {
           address?: string | null
           company_id?: string
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           phone?: string | null
