@@ -95,6 +95,48 @@ export const PartyCurrencyGrid: React.FC<PartyCurrencyGridProps> = ({ data }) =>
         </div>
       )}
 
+      {/* معلومات التواصل والتسجيل */}
+      {(data.email || data.address || data.city || data.tax_number || data.commercial_register) && (
+        <div className="mt-4 border-t border-slate-300 pt-3 dark:border-slate-700">
+          <div className="mb-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+            بيانات التسجيل والتواصل:
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
+            {data.tax_number && (
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400">الرقم الضريبي</span>
+                <span className="font-semibold">{data.tax_number}</span>
+              </div>
+            )}
+            {data.commercial_register && (
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400">السجل التجاري</span>
+                <span className="font-semibold">{data.commercial_register}</span>
+              </div>
+            )}
+            {data.email && (
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400">البريد الإلكتروني</span>
+                <span className="truncate font-semibold" title={data.email}>
+                  {data.email}
+                </span>
+              </div>
+            )}
+            {(data.city || data.address) && (
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400">العنوان</span>
+                <span
+                  className="truncate font-semibold"
+                  title={[data.city, data.address].filter(Boolean).join(' - ')}
+                >
+                  {[data.city, data.address].filter(Boolean).join(' - ')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* آخر فواتير للطرف */}
       {data.recent_invoices && data.recent_invoices.length > 0 && (
         <div className="mt-4 border-t border-slate-300 pt-3 dark:border-slate-700">

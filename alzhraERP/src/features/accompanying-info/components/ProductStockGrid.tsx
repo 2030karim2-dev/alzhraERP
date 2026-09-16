@@ -8,14 +8,41 @@ interface ProductStockGridProps {
 export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
   return (
     <div className="flex flex-col text-xs text-slate-800 dark:text-slate-100">
-      {/* رأس الصنف الأزرق */}
-      <div className="mb-3 rounded-lg bg-blue-600 p-3 text-center font-bold text-white shadow-sm dark:bg-blue-800">
+      {/* رأس الصنف الأزرق (مصمت ومميز) */}
+      <div className="mb-3 rounded-lg bg-emerald-600 p-3 text-center font-bold text-white shadow-sm dark:bg-emerald-800">
         <div className="text-sm tracking-wide">
-          {data.part_number ? `${data.part_number} - ` : ''}
+          {data.barcode ? `${data.barcode} - ` : data.sku ? `${data.sku} - ` : ''}
           {data.name_ar}
-          {data.brand ? ` / ${data.brand}` : ''}
         </div>
       </div>
+
+      {/* بطاقة الصنف ومعلومات إضافية */}
+      {(data.category_name || data.size || data.description) && (
+        <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-slate-100 p-2 text-xs dark:border-slate-700 dark:bg-slate-800/50">
+          {data.category_name && (
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-500">التصنيف</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {data.category_name}
+              </span>
+            </div>
+          )}
+          {data.size && (
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-500">المقاس / الحجم</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{data.size}</span>
+            </div>
+          )}
+          {data.description && (
+            <div className="col-span-2 mt-1 flex flex-col border-t border-slate-200 pt-1 dark:border-slate-700">
+              <span className="text-[10px] text-slate-500">الوصف</span>
+              <span className="line-clamp-2 font-medium text-slate-700 dark:text-slate-300">
+                {data.description}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between border-b border-slate-200 px-2 pb-2 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
         <span>
@@ -107,13 +134,25 @@ export const ProductStockGrid: React.FC<ProductStockGridProps> = ({ data }) => {
                 أدنى حد للبيع:
               </td>
             </tr>
-            {data.cost_price !== undefined && (
+            {/* التكلفة وهامش الربح */}
+            {(data.cost_price || data.purchase_price) && (
               <tr className="border-b border-slate-300 dark:border-slate-700">
-                <td className="border-e border-slate-300 p-1.5 text-start font-mono text-slate-700 dark:border-slate-700 dark:text-slate-300">
-                  {data.cost_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                <td className="flex items-center justify-between border-e border-slate-300 p-1.5 text-start font-mono text-slate-700 dark:border-slate-700 dark:text-slate-300">
+                  <span>
+                    {(data.cost_price || data.purchase_price).toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                  {data.profit_margin_percent !== undefined && (
+                    <span
+                      className={`rounded px-1.5 text-[10px] font-bold ${data.profit_margin_percent > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}
+                    >
+                      هامش: {data.profit_margin_percent}%
+                    </span>
+                  )}
                 </td>
                 <td className="bg-slate-50/50 p-1.5 text-end font-semibold text-slate-700 dark:bg-slate-800/30 dark:text-slate-300">
-                  متوسط التكلفة:
+                  سعر التكلفة:
                 </td>
               </tr>
             )}

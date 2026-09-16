@@ -18,7 +18,9 @@ export const accompanyingInfoService = {
     // 1. بيانات الطرف الأساسية
     const { data: party, error: partyErr } = await supabase
       .from('parties')
-      .select('id, name, phone, type, tax_number')
+      .select(
+        'id, name, phone, type, tax_number, commercial_register, email, address, city, credit_limit, payment_terms_days'
+      )
       .eq('id', partyId)
       .eq('company_id', companyId)
       .is('deleted_at', null)
@@ -149,8 +151,12 @@ export const accompanyingInfoService = {
       phone: party.phone || undefined,
       type: party.type as 'customer' | 'supplier' | 'both',
       tax_number: party.tax_number || undefined,
-      credit_limit: undefined,
-      payment_terms_days: undefined,
+      commercial_register: party.commercial_register || undefined,
+      email: party.email || undefined,
+      address: party.address || undefined,
+      city: party.city || undefined,
+      credit_limit: party.credit_limit ? Number(party.credit_limit) : undefined,
+      payment_terms_days: party.payment_terms_days ? Number(party.payment_terms_days) : undefined,
       currencies,
       recent_invoices: (recentInvoices || []).map(inv => ({
         id: inv.id,
@@ -188,6 +194,9 @@ export const accompanyingInfoService = {
         paid_amount,
         status,
         type,
+        notes,
+        customer_ref,
+        profiles(full_name),
         branch:branches(name),
         items:invoice_items(
           quantity,
@@ -265,6 +274,7 @@ export const accompanyingInfoService = {
     const profitPercentage = netTotal > 0 ? Math.round((estimatedProfit / netTotal) * 100) : 0;
 
     const branchName = (inv.branch as { name?: string } | null)?.name || 'الفرع الرئيسي';
+    const createdByName = (inv.profiles as { full_name?: string } | null)?.full_name || undefined;
 
     return {
       id: inv.id,
@@ -275,6 +285,9 @@ export const accompanyingInfoService = {
       currency_code: inv.currency_code || 'SAR',
       exchange_rate: Number(inv.exchange_rate) || 1,
       payment_method: inv.payment_method === 'credit' ? 'آجل' : 'نقدي',
+      notes: inv.notes || undefined,
+      customer_ref: inv.customer_ref || undefined,
+      created_by_name: createdByName,
       items_count: itemsCount,
       total_quantity: Math.round(totalQty * 100) / 100,
       expenses_amount: 0,
@@ -306,8 +319,12 @@ export const accompanyingInfoService = {
         name_ar,
         sku,
         part_number,
+        barcode,
         brand,
+        size,
+        description,
         unit,
+        category:product_categories(name),
         sale_price,
         purchase_price,
         cost_price,
@@ -356,7 +373,13 @@ export const accompanyingInfoService = {
     });
 
     const salePrice = Number(p.sale_price) || 0;
+    const costPrice = Number(p.cost_price) || Number(p.purchase_price) || 0;
     const minAllowedPrice = Math.round(salePrice * 0.7 * 100) / 100;
+
+    let profitMargin = undefined;
+    if (salePrice > 0) {
+      profitMargin = Math.round(((salePrice - costPrice) / salePrice) * 100);
+    }
 
     let alternatives: string[] = [];
     if (Array.isArray(p.alternative_numbers)) {
@@ -370,13 +393,18 @@ export const accompanyingInfoService = {
       name_ar: p.name_ar,
       sku: p.sku || undefined,
       part_number: p.part_number || undefined,
+      barcode: p.barcode || undefined,
       brand: p.brand || undefined,
+      category_name: (p.category as { name?: string } | null)?.name || undefined,
+      size: p.size || undefined,
+      description: p.description || undefined,
       unit: p.unit || 'حبة',
       sale_price: salePrice,
       purchase_price: Number(p.purchase_price) || 0,
       cost_price: p.cost_price ? Number(p.cost_price) : undefined,
       min_allowed_price: minAllowedPrice,
       total_stock: Math.round(totalStock * 100) / 100,
+      profit_margin_percent: profitMargin,
       warehouses_stock: warehousesStock,
       alternatives,
     };

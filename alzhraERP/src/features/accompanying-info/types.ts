@@ -17,6 +17,10 @@ export interface PartyCompanionData {
   phone?: string | undefined;
   type: 'customer' | 'supplier' | 'both';
   tax_number?: string | undefined;
+  commercial_register?: string | undefined;
+  email?: string | undefined;
+  address?: string | undefined;
+  city?: string | undefined;
   credit_limit?: number | undefined;
   payment_terms_days?: number | undefined;
   currencies: CurrencyBalanceRow[];
@@ -41,6 +45,9 @@ export interface InvoiceCompanionData {
   currency_code: string;
   exchange_rate: number;
   payment_method: string;
+  notes?: string | undefined;
+  customer_ref?: string | undefined;
+  created_by_name?: string | undefined;
   items_count: number;
   total_quantity: number;
   expenses_amount: number;
@@ -68,13 +75,18 @@ export interface ProductCompanionData {
   name_ar: string;
   sku?: string | undefined;
   part_number?: string | undefined;
+  barcode?: string | undefined;
   brand?: string | undefined;
+  category_name?: string | undefined;
+  size?: string | undefined;
+  description?: string | undefined;
   unit?: string | undefined;
   sale_price: number;
   purchase_price: number;
   cost_price?: number | undefined;
   min_allowed_price?: number | undefined;
   total_stock: number;
+  profit_margin_percent?: number | undefined;
   warehouses_stock: ProductWarehouseStock[];
   alternatives: string[];
 }
