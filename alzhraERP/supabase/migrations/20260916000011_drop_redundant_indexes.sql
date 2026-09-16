@@ -41,3 +41,20 @@ DROP INDEX IF EXISTS public.idx_invoices_reference_invoice_id;
 --    (also filters IS NOT NULL AND <> ''). The backing constraint
 --    uq_invoice_number_company enforces global uniqueness.
 DROP INDEX IF EXISTS public.uq_invoices_company_number;
+
+-- ============================================================
+-- invoice_items: same cleanup pattern
+-- ============================================================
+
+-- 8. (company_id) alone on invoice_items - subsumed by
+--    idx_invoice_items_company_invoice (company_id, invoice_id)
+--    and idx_invoice_items_company_product (company_id, product_id)
+DROP INDEX IF EXISTS public.idx_invoice_items_company_id_fk;
+
+-- 9. (invoice_id) alone - subsumed by
+--    idx_invoice_items_invoice_product (invoice_id, product_id)
+DROP INDEX IF EXISTS public.idx_invoice_items_invoice_id;
+
+-- 10. (product_id) alone - subsumed by
+--     idx_invoice_items_product_company (product_id, company_id)
+DROP INDEX IF EXISTS public.idx_invoice_items_product_id;
