@@ -19,7 +19,7 @@ export const accompanyingInfoService = {
     const { data: party, error: partyErr } = await supabase
       .from('parties')
       .select(
-        'id, name, phone, type, tax_number, commercial_register, email, address, city, credit_limit, payment_terms_days'
+        'id, name, phone, type, tax_number, commercial_registration, credit_limit, payment_terms_days'
       )
       .eq('id', partyId)
       .eq('company_id', companyId)
@@ -151,10 +151,10 @@ export const accompanyingInfoService = {
       phone: party.phone || undefined,
       type: party.type as 'customer' | 'supplier' | 'both',
       tax_number: party.tax_number || undefined,
-      commercial_register: party.commercial_register || undefined,
-      email: party.email || undefined,
-      address: party.address || undefined,
-      city: party.city || undefined,
+      commercial_register: party.commercial_registration || undefined,
+      email: undefined,
+      address: undefined,
+      city: undefined,
       credit_limit: party.credit_limit ? Number(party.credit_limit) : undefined,
       payment_terms_days: party.payment_terms_days ? Number(party.payment_terms_days) : undefined,
       currencies,
@@ -195,8 +195,6 @@ export const accompanyingInfoService = {
         status,
         type,
         notes,
-        customer_ref,
-        profiles(full_name),
         branch:branches(name),
         items:invoice_items(
           quantity,
@@ -274,7 +272,7 @@ export const accompanyingInfoService = {
     const profitPercentage = netTotal > 0 ? Math.round((estimatedProfit / netTotal) * 100) : 0;
 
     const branchName = (inv.branch as { name?: string } | null)?.name || 'الفرع الرئيسي';
-    const createdByName = (inv.profiles as { full_name?: string } | null)?.full_name || undefined;
+    const createdByName = undefined;
 
     return {
       id: inv.id,
@@ -286,7 +284,7 @@ export const accompanyingInfoService = {
       exchange_rate: Number(inv.exchange_rate) || 1,
       payment_method: inv.payment_method === 'credit' ? 'آجل' : 'نقدي',
       notes: inv.notes || undefined,
-      customer_ref: inv.customer_ref || undefined,
+      customer_ref: undefined,
       created_by_name: createdByName,
       items_count: itemsCount,
       total_quantity: Math.round(totalQty * 100) / 100,
@@ -321,7 +319,6 @@ export const accompanyingInfoService = {
         part_number,
         barcode,
         brand,
-        size,
         description,
         unit,
         category:product_categories(name),
@@ -396,7 +393,7 @@ export const accompanyingInfoService = {
       barcode: p.barcode || undefined,
       brand: p.brand || undefined,
       category_name: (p.category as { name?: string } | null)?.name || undefined,
-      size: p.size || undefined,
+      size: undefined,
       description: p.description || undefined,
       unit: p.unit || 'حبة',
       sale_price: salePrice,
