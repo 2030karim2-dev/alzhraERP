@@ -57,8 +57,8 @@ export async function getUpcomingActivities(
     .select(
       `
             *,
-            customer_parties:parties!customer_activities_customer_id_fkey(name),
-            assigned_to_profile:profiles!customer_activities_assigned_to_fkey(full_name)
+            customer_parties:parties!customer_id(name),
+            assigned_to_profile:profiles!assigned_to(full_name)
         `
     )
     .eq('company_id', companyId)
@@ -80,8 +80,8 @@ export async function getOverdueActivities(companyId: string): Promise<CustomerA
     .select(
       `
             *,
-            customer_parties:parties!customer_activities_customer_id_fkey(name),
-            assigned_to_profile:profiles!customer_activities_assigned_to_fkey(full_name)
+            customer_parties:parties!customer_id(name),
+            assigned_to_profile:profiles!assigned_to(full_name)
         `
     )
     .eq('company_id', companyId)

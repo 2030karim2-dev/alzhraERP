@@ -77,9 +77,7 @@ export function useInventoryVisibilityGroup(branchId?: string | null) {
       // 2. أوجد بقية الأعضاء في تلك المجموعات
       const { data: peers, error: e2 } = await db
         .from('branch_visibility_members')
-        .select(
-          'branch_id, branches:branches!branch_visibility_members_branch_id_fkey(id, name, integration_mode)'
-        )
+        .select('branch_id, branches:branches!branch_id(id, name, integration_mode)')
         .in('group_id', groupIds)
         .eq('company_id', companyId)
         .neq('branch_id', branchId);
@@ -123,9 +121,9 @@ export function useStockTransferRequests(
           id, company_id, requester_branch_id, source_branch_id,
           product_id, requested_quantity, status, notes, review_notes,
           created_by, reviewed_by, created_at, updated_at,
-          requester_branch:branches!stock_transfer_requests_requester_branch_id_fkey(name),
-          source_branch:branches!stock_transfer_requests_source_branch_id_fkey(name),
-          product:products!stock_transfer_requests_product_id_fkey(name_ar, sku)
+          requester_branch:branches!requester_branch_id(name),
+          source_branch:branches!source_branch_id(name),
+          product:products!product_id(name_ar, sku)
         `
         )
         .eq('company_id', companyId);

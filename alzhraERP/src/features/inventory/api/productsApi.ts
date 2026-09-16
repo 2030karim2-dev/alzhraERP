@@ -41,7 +41,7 @@ export const productsApi = {
                     warehouses(
                         name_ar,
                         branch_id,
-                        branches:branches!warehouses_branch_id_fkey(id, name)
+                        branches:branches(id, name)
                     )
                 )
             `

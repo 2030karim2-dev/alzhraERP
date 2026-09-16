@@ -15,7 +15,7 @@ export async function getCustomerNotes(customerId: string): Promise<CustomerNote
     .select(
       `
             *,
-            created_by_profile:profiles!customer_notes_created_by_fkey(full_name)
+            created_by_profile:profiles!created_by(full_name)
         `
     )
     .eq('customer_id', customerId)
