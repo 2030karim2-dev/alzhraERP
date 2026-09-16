@@ -316,7 +316,7 @@ export const dashboardApi = {
         let q = supabase
           .from('invoices')
           .select(
-            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
+            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties!fk_invoices_company_party(name)'
           )
           .eq('company_id', companyId)
           .is('deleted_at', null)

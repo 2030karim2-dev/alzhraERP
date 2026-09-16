@@ -23,8 +23,8 @@ export const bondsApi = {
         type,
         notes,
         status,
-        party:party_id(name),
-        account:account_id(name_ar, code)
+        party:parties!fk_payments_company_party(name),
+        account:accounts!fk_payments_company_account(name_ar, code)
       `
       )
       .eq('company_id', companyId)

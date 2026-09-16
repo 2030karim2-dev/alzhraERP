@@ -32,7 +32,7 @@ export const bondsService = {
     const { data, error } = await bondsApi.getBonds(companyId, branchId, type);
     if (error) throw error;
 
-    return (data || []).map((p: RawPaymentRow) => {
+    return ((data as unknown as RawPaymentRow[]) || []).map((p: RawPaymentRow) => {
       // payments.amount in DB stores the user-entered transaction amount in p.currency_code.
       const rawAmount = Number(p.amount) || 0;
       const safeRate = Number(p.exchange_rate) > 0 ? Number(p.exchange_rate) : 1;

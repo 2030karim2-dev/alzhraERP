@@ -189,26 +189,42 @@ export const reportsApi = {
   getDebtAgingInvoices: async (companyId: string) => {
     // [CROSS-BRANCH FIX] Exclude internal cross-branch invoices (suffixed -INT)
     // They are cost-price transfers, not real customer debts.
-    return await supabase
+    return (await supabase
       .from('invoices')
       .select(
-        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties(name, type), currency_code, exchange_rate'
+        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties!fk_invoices_company_party(name, type), currency_code, exchange_rate'
       )
       .eq('company_id', companyId)
       .eq('type', 'sale')
       .is('deleted_at', null)
       .not('invoice_number', 'ilike', '%-INT')
       .in('status', ['posted', 'confirmed', 'partially_paid'])
-      .order('due_date', { ascending: true });
+      .order('due_date', { ascending: true })) as unknown as {
+      data: Array<{
+        id: string;
+        invoice_number: string | null;
+        issue_date: string;
+        due_date: string | null;
+        total_amount: number;
+        paid_amount: number;
+        status: string;
+        type: string;
+        party_id: string | null;
+        parties: { name: string; type: string } | null;
+        currency_code: string | null;
+        exchange_rate: number | null;
+      }> | null;
+      error: { message: string } | null;
+    };
   },
 
   getDailySalesInvoices: async (companyId: string, fromDateISO: string) => {
     // [CROSS-BRANCH FIX] Exclude internal cross-branch invoices (suffixed -INT)
     // from daily sales totals to prevent double-counting revenue.
-    return await supabase
+    return (await supabase
       .from('invoices')
       .select(
-        'id, invoice_number, issue_date, total_amount, status, type, party_id, parties(name), exchange_rate, currency_code'
+        'id, invoice_number, issue_date, total_amount, status, type, party_id, parties!fk_invoices_company_party(name), exchange_rate, currency_code'
       )
       .eq('company_id', companyId)
       .in('type', ['sale', 'sale_return', 'return_sale'])
@@ -216,7 +232,21 @@ export const reportsApi = {
       .is('deleted_at', null)
       .not('invoice_number', 'ilike', '%-INT')
       .gte('issue_date', fromDateISO)
-      .order('issue_date', { ascending: false });
+      .order('issue_date', { ascending: false })) as unknown as {
+      data: Array<{
+        id: string;
+        invoice_number: string | null;
+        issue_date: string;
+        total_amount: number;
+        status: string;
+        type: string;
+        party_id: string | null;
+        parties: { name: string } | null;
+        exchange_rate: number | null;
+        currency_code: string | null;
+      }> | null;
+      error: { message: string } | null;
+    };
   },
 
   getOperationalExpensesLines: async (companyId: string, fromDateISO: string) => {
