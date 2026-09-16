@@ -99,6 +99,7 @@ export const salesApi = {
       offset?: number | undefined;
     }
   ): Promise<SearchInvoiceResultRow[]> => {
+    if (!companyId) return [];
     const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
       p_company_id: companyId,
       p_type: params.type ?? 'sale',
