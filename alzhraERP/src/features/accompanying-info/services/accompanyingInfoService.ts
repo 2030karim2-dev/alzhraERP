@@ -15,6 +15,7 @@ export const accompanyingInfoService = {
     partyId: string,
     companyId: string
   ): Promise<PartyCompanionData | null> => {
+    if (!partyId) return null;
     // 1. بيانات الطرف الأساسية
     const { data: party, error: partyErr } = await supabase
       .from('parties')
@@ -177,6 +178,7 @@ export const accompanyingInfoService = {
     invoiceId: string,
     companyId: string
   ): Promise<InvoiceCompanionData | null> => {
+    if (!invoiceId) return null;
     // 1. جلب رأس الفاتورة مع المستودع والفرع
     const { data: inv, error: invErr } = await supabase
       .from('invoices')
@@ -309,6 +311,7 @@ export const accompanyingInfoService = {
     productId: string,
     companyId: string
   ): Promise<ProductCompanionData | null> => {
+    if (!productId) return null;
     const { data: p, error: pErr } = await supabase
       .from('products')
       .select(

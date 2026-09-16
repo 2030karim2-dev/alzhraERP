@@ -30,6 +30,7 @@ tsc_output.txt
 sizes.txt
 sizes.txt
 tmp-verify/
+tmp-import/
 
 # etc
 .env.production.local
