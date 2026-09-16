@@ -13,12 +13,20 @@ const padItems = (items: any[], minRows: number) => {
 };
 
 const PrintableInvoice = ({ invoice }: { invoice: any }) => {
+  if (!invoice) {
+    return (
+      <div className="flex h-48 items-center justify-center p-8 text-center text-slate-400">
+        <p className="text-xs font-bold">جاري تجهيز الفاتورة للعرض والطباعة...</p>
+      </div>
+    );
+  }
+
   const {
     company: invoiceCompany,
     invoice_number,
     issue_date,
     party_name,
-    items,
+    items = [],
     total_amount,
     issuedBy,
   } = invoice;
@@ -65,9 +73,15 @@ const PrintableInvoice = ({ invoice }: { invoice: any }) => {
   }, [settingsCompany, invoiceCompany, invoiceSettings]);
 
   const displayItems = padItems(
-    items.filter((i: any) => i.name),
+    (items || [])
+      .filter((i: any) => i && (i.name || i.description || i.product?.name_ar))
+      .map((i: any) => ({
+        ...i,
+        name: i.name || i.product?.name_ar || i.description || 'صنف بدون اسم',
+        price: i.price ?? i.unit_price ?? 0,
+      })),
     10
-  ); // increased padding for better look
+  );
 
   return (
     <div id="invoice-printable-content" className="printable-area bg-white font-sans text-black">

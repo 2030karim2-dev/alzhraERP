@@ -170,20 +170,19 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   };
 
   // Prepare full data for PrintableInvoice
-  const fullInvoiceData =
-    invoice && company
-      ? {
-          ...invoice,
-          company,
-          party_name: invoice.parties?.name,
-          issuedBy: issuedByName,
-          items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
-            ...i,
-            name: i.description,
-            price: i.unit_price,
-          })),
-        }
-      : null;
+  const fullInvoiceData = invoice
+    ? {
+        ...invoice,
+        company: company || {},
+        party_name: invoice.parties?.name || 'عميل نقدي',
+        issuedBy: issuedByName,
+        items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
+          ...i,
+          name: i.product?.name_ar || (i as any).product?.name || i.description || 'صنف بدون اسم',
+          price: i.unit_price,
+        })),
+      }
+    : null;
 
   const statusBadge = (status: string) => {
     switch (status) {
@@ -411,7 +410,21 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+            <AlertTriangle className="text-amber-500" size={32} />
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+              تعذر تحميل بيانات الفاتورة أو أنها غير موجودة
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg bg-slate-100 px-4 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+            >
+              إغلاق
+            </button>
+          </div>
+        )}
       </ErrorBoundary>
     </Modal>
   );

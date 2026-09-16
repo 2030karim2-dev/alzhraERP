@@ -84,30 +84,54 @@ DO $$
   ALTER TABLE public.invoices ADD CONSTRAINT fk_invoices_company_reference 
     FOREIGN KEY (company_id, reference_invoice_id) REFERENCES public.invoices(company_id, id) ON DELETE RESTRICT;
 
-  -- Payment allocations -> invoices
+  -- Payment allocations -> invoices & payments (Single FKs to avoid PGRST201 embedding ambiguity + Tenant isolation trigger)
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS payment_allocations_invoice_id_fkey;
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS fk_payment_allocations_company_invoice;
   ALTER TABLE public.payment_allocations ADD CONSTRAINT payment_allocations_invoice_id_fkey 
     FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE RESTRICT;
-  ALTER TABLE public.payment_allocations ADD CONSTRAINT fk_payment_allocations_company_invoice 
-    FOREIGN KEY (company_id, invoice_id) REFERENCES public.invoices(company_id, id) ON DELETE RESTRICT;
 
-  -- Payment allocations -> payments
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS payment_allocations_payment_id_fkey;
   ALTER TABLE public.payment_allocations DROP CONSTRAINT IF EXISTS fk_payment_allocations_company_payment;
   ALTER TABLE public.payment_allocations ADD CONSTRAINT payment_allocations_payment_id_fkey 
     FOREIGN KEY (payment_id) REFERENCES public.payments(id) ON DELETE RESTRICT;
-  ALTER TABLE public.payment_allocations ADD CONSTRAINT fk_payment_allocations_company_payment 
-    FOREIGN KEY (company_id, payment_id) REFERENCES public.payments(company_id, id) ON DELETE RESTRICT;
 
-  -- Invoice items -> tax_rates
+  -- Invoice items -> tax_rates & products
   ALTER TABLE public.invoice_items DROP CONSTRAINT IF EXISTS invoice_items_tax_rate_id_fkey;
   ALTER TABLE public.invoice_items DROP CONSTRAINT IF EXISTS fk_invoice_items_company_tax_rate;
   ALTER TABLE public.invoice_items ADD CONSTRAINT invoice_items_tax_rate_id_fkey 
     FOREIGN KEY (tax_rate_id) REFERENCES public.tax_rates(id) ON DELETE RESTRICT;
   ALTER TABLE public.invoice_items ADD CONSTRAINT fk_invoice_items_company_tax_rate 
     FOREIGN KEY (company_id, tax_rate_id) REFERENCES public.tax_rates(company_id, id) ON DELETE RESTRICT;
+
+  ALTER TABLE public.invoice_items DROP CONSTRAINT IF EXISTS invoice_items_product_id_fkey;
+  ALTER TABLE public.invoice_items ADD CONSTRAINT invoice_items_product_id_fkey 
+    FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE RESTRICT;
 END $$;
+
+-- 3.1 Strict Tenant Isolation Trigger for payment_allocations
+CREATE OR REPLACE FUNCTION public.fn_guard_payment_allocations_tenant_isolation()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.invoice_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.invoices inv WHERE inv.id = NEW.invoice_id AND inv.company_id = NEW.company_id) THEN
+      RAISE EXCEPTION 'Multi-tenant violation: invoice % does not belong to company %', NEW.invoice_id, NEW.company_id;
+    END IF;
+  END IF;
+  IF NEW.payment_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.payments p WHERE p.id = NEW.payment_id AND p.company_id = NEW.company_id) THEN
+      RAISE EXCEPTION 'Multi-tenant violation: payment % does not belong to company %', NEW.payment_id, NEW.company_id;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_guard_payment_allocations_tenant_isolation ON public.payment_allocations;
+CREATE TRIGGER trg_guard_payment_allocations_tenant_isolation
+BEFORE INSERT OR UPDATE ON public.payment_allocations
+FOR EACH ROW EXECUTE FUNCTION public.fn_guard_payment_allocations_tenant_isolation();
 
 -- 4. Payment Allocation Sync Function
 CREATE OR REPLACE FUNCTION public.fn_sync_invoice_paid_amount()
