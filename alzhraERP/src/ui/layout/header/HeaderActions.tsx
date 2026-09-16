@@ -27,6 +27,7 @@ import SyncStatusModal from '../../components/SyncStatusModal';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
 import { useLogout, useIsSuperAdmin } from '../../../features/auth/hooks';
 import { ROUTES } from '../../../core/routes/paths';
+import { AccompanyingInfoToggle } from '../../../features/accompanying-info';
 
 const HeaderActions: React.FC = () => {
   const navigate = useNavigate();
@@ -178,6 +179,9 @@ const HeaderActions: React.FC = () => {
           setIsSyncModalOpen(false);
         }}
       />
+
+      {/* Accompanying Information / Live Companion Info Button */}
+      <AccompanyingInfoToggle />
 
       {/* Internal Branch Chat & Collaboration */}
       <button

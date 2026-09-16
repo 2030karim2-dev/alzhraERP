@@ -7,6 +7,7 @@ import { useFeedbackStore } from '../../../features/feedback/store';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import BulkActionsBar from './products/BulkActionsBar';
 import { getProductColumns } from './products/ProductTableColumns';
+import { useAccompanyingInfoStore } from '../../../features/accompanying-info';
 
 interface Props {
   products: Product[];
@@ -150,7 +151,19 @@ const ProductExcelGrid: React.FC<Props> = ({
         colorTheme={colorTheme as any}
         pageSize={100}
         onRowDoubleClick={onViewDetails}
-        onRowClick={onRowClick}
+        onRowClick={product => {
+          if (onRowClick) {
+            onRowClick(product);
+          }
+          const store = useAccompanyingInfoStore.getState();
+          if (store.isOpen) {
+            store.setTarget({
+              type: 'product',
+              id: product.id,
+              title: product.name_ar,
+            });
+          }
+        }}
         onOrderChange={onOrderChange || (() => {})}
         onCellUpdate={onCellUpdate || handleCellUpdate}
         enableSelection={!hideBulkActions}

@@ -10,6 +10,7 @@ import PageLoader from '../../../../ui/base/PageLoader';
 import ErrorDisplay from '../../../../ui/base/ErrorDisplay';
 import type { InvoiceListItem, InvoiceType } from '../../types';
 import { useFeedbackStore } from '../../../feedback/store';
+import { useAccompanyingInfoStore } from '../../../accompanying-info';
 import InvoiceSearchToolbar from '../../../../ui/common/InvoiceSearchToolbar';
 import type { DatePreset } from '@/core/types/invoiceSearch';
 
@@ -398,6 +399,16 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
               paymentMethod: item.paymentMethod || 'cash',
             }))}
             colorTheme={viewType === 'sale' ? 'blue' : 'orange'}
+            onRowClick={row => {
+              const store = useAccompanyingInfoStore.getState();
+              if (store.isOpen) {
+                store.setTarget({
+                  type: 'invoice',
+                  id: row.id,
+                  title: `فاتورة ${row.invoiceNumber || row.id.slice(0, 8)}`,
+                });
+              }
+            }}
           />
         </div>
       ) : (

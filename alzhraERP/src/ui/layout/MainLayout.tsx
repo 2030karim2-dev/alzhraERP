@@ -42,6 +42,7 @@ import {
 import { useConnectionStore } from '../../core/store/connectionStore';
 import { Activity, SlidersHorizontal, Link2 } from 'lucide-react';
 import { FloatingChatWidget } from '../../features/chat';
+import { AccompanyingInfoWindow } from '../../features/accompanying-info';
 
 const MainLayout: React.FC = () => {
   const isDesktop = useBreakpoint('md');
@@ -337,6 +338,9 @@ const MainLayout: React.FC = () => {
 
         {/* Global Realtime Floating Chat & Collaboration Dock */}
         {location.pathname !== ROUTES.DASHBOARD.CHAT && <FloatingChatWidget />}
+
+        {/* Global Accompanying Information (المعلومات المرافقة) HUD */}
+        <AccompanyingInfoWindow />
       </div>
     </div>
   );

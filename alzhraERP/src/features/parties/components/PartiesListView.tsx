@@ -5,6 +5,7 @@ import type { Column } from '../../../ui/common/ExcelTable';
 import PartiesStats from './PartiesStats';
 import ExcelTable from '../../../ui/common/ExcelTable';
 import { cn } from '../../../core/utils';
+import { useAccompanyingInfoStore } from '../../accompanying-info';
 
 type FilterChip = 'all' | 'debtors' | 'creditors' | 'settled' | 'active' | 'blocked';
 
@@ -206,6 +207,16 @@ export const PartiesListView: React.FC<PartiesListViewProps> = ({
           isRTL={true}
           showSearch={false}
           isLoading={isLoading}
+          onRowClick={row => {
+            const store = useAccompanyingInfoStore.getState();
+            if (store.isOpen) {
+              store.setTarget({
+                type: partyType === 'supplier' ? 'supplier' : 'customer',
+                id: row.id,
+                title: row.name,
+              });
+            }
+          }}
           onRowDoubleClick={row => {
             onEdit(row);
           }}

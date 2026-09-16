@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Check, Phone, ArrowLeftRight } from 'lucide-react';
 import { useParties } from '../../../parties/hooks';
 import { useSalesStore } from '../../store';
+import { useAccompanyingInfoStore } from '../../../accompanying-info';
 import { cn } from '../../../../core/utils';
 
 interface Props {
@@ -76,6 +77,14 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
       ...(customer.phone ? { phone: customer.phone } : {}),
       type: customer.type || 'customer',
     });
+    const infoStore = useAccompanyingInfoStore.getState();
+    if (infoStore.isOpen) {
+      infoStore.setTarget({
+        type: customer.type === 'supplier' ? 'supplier' : 'customer',
+        id: customer.id,
+        title: customer.name,
+      });
+    }
     setQuery('');
     setIsOpen(false);
   };
@@ -108,10 +117,22 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
     <div className="relative w-full" ref={wrapperRef}>
       {selectedCustomer ? (
         <div
+          data-inspect-type={selectedPartyType === 'supplier' ? 'supplier' : 'customer'}
+          data-inspect-id={selectedCustomer.id}
           className={cn(
-            'flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/80 shadow-xs transition-all dark:border-blue-800/80 dark:bg-blue-950/40',
+            'flex cursor-pointer items-center justify-between rounded-xl border border-blue-200 bg-blue-50/80 shadow-xs transition-all hover:border-blue-300 dark:border-blue-800/80 dark:bg-blue-950/40',
             compact ? 'h-[38px] p-1.5' : 'p-2.5'
           )}
+          onClick={() => {
+            const infoStore = useAccompanyingInfoStore.getState();
+            if (infoStore.isOpen) {
+              infoStore.setTarget({
+                type: selectedPartyType === 'supplier' ? 'supplier' : 'customer',
+                id: selectedCustomer.id,
+                title: selectedCustomer.name,
+              });
+            }
+          }}
         >
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div

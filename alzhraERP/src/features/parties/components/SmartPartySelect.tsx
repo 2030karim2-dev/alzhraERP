@@ -188,6 +188,9 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
                 return (
                   <li
                     key={party.id}
+                    data-inspect-type={partyType}
+                    data-inspect-id={party.id}
+                    data-inspect-title={party.name}
                     onClick={() => {
                       handleSelect(party.id);
                     }}

@@ -143,7 +143,11 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({
   };
 
   return (
-    <tr className="group h-11 transition-colors hover:bg-blue-50/50 dark:hover:bg-blue-900/10 max-md:h-9">
+    <tr
+      data-inspect-type={item.productId ? 'product' : undefined}
+      data-inspect-id={item.productId || undefined}
+      className="group h-11 transition-colors hover:bg-blue-50/50 dark:hover:bg-blue-900/10 max-md:h-9"
+    >
       <td className="border-l p-2 text-center font-mono text-xs font-bold text-gray-400 dark:border-slate-800 dark:text-slate-500 max-md:hidden max-md:p-1">
         {index + 1}
       </td>
