@@ -102,12 +102,45 @@ const SyncStatusModal: React.FC<SyncStatusModalProps> = ({ isOpen, onClose }) =>
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   العمليات المعلقة ({pending.length})
                 </span>
-                <button
-                  onClick={loadPending}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                >
-                  <RefreshCcw size={12} /> تحديث القائمة
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify(pending, null, 2)], {
+                        type: 'application/json',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'pending-sync.json';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="flex items-center gap-1 text-xs text-emerald-600 hover:underline"
+                  >
+                    تصدير JSON
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (
+                        window.confirm(
+                          'هل أنت متأكد من حذف جميع العمليات المعلقة؟ سيؤدي هذا إلى فقدان البيانات التي لم تتم مزامنتها!'
+                        )
+                      ) {
+                        await syncStore.clear();
+                        loadPending();
+                      }
+                    }}
+                    className="flex items-center gap-1 text-xs text-rose-600 hover:underline"
+                  >
+                    حذف الكل
+                  </button>
+                  <button
+                    onClick={loadPending}
+                    className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                  >
+                    <RefreshCcw size={12} /> تحديث
+                  </button>
+                </div>
               </div>
 
               {pending.map(item => (

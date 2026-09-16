@@ -143,11 +143,11 @@ export const AccompanyingInfoWindow: React.FC = () => {
       dragControls={dragControls}
       dragListener={false}
       dragMomentum={false}
-      className={`fixed z-40 select-text transition-all duration-300 ${
+      className={`fixed z-40 select-text ${
         isMinimized
           ? 'bottom-4 start-4 h-12 w-80 shadow-lg'
-          : 'start-4 top-14 h-[500px] max-h-[calc(100vh-4.5rem)] w-96 shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
-      } flex flex-col rounded-xl border border-slate-300 bg-slate-50 font-sans dark:border-slate-700 dark:bg-slate-900`}
+          : 'start-4 top-14 h-[500px] max-h-[calc(100vh-4.5rem)] w-96 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ring-1 ring-slate-900/10 dark:ring-white/10'
+      } flex flex-col rounded-xl border-2 border-blue-200 bg-white font-sans dark:border-blue-800 dark:bg-slate-950`}
       style={{
         direction: 'rtl',
         resize: !isMinimized ? 'both' : 'none',
@@ -156,9 +156,9 @@ export const AccompanyingInfoWindow: React.FC = () => {
         minHeight: isMinimized ? '48px' : '400px',
       }}
     >
-      {/* شريط عنوان النافذة المرافقة (مصمت واحترافي) */}
+      {/* شريط عنوان النافذة المرافقة (مصمت واحترافي بلون أزرق لتمييزه) */}
       <div
-        className={`flex flex-shrink-0 items-center justify-between border-b border-slate-300 bg-slate-100 px-3 py-2 dark:border-slate-700 dark:bg-slate-800 ${
+        className={`flex flex-shrink-0 items-center justify-between border-b border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-800 dark:bg-slate-900 ${
           !isMinimized ? 'cursor-move touch-none' : 'cursor-default'
         }`}
         onPointerDown={e => {
