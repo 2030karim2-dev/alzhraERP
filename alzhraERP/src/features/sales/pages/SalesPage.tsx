@@ -7,7 +7,7 @@ import SalesReturnsView from '@/features/sales/components/Returns/SalesReturnsVi
 import SalesAnalyticsView from '@/features/sales/components/Analytics/SalesAnalyticsView';
 import QuotationsTab from '@/features/sales/components/quotations/QuotationsTab';
 import InvoiceDetailsModal from '@/features/sales/components/details/InvoiceDetailsModal';
-import { useInvoices, useCreateSalesReturn } from '@/features/sales/hooks/index';
+import { useCreateSalesReturn } from '@/features/sales/hooks/index';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { logger } from '@/core/utils/logger';
 import { formatLocalDate } from '@/core/utils/dateUtils';
@@ -22,7 +22,6 @@ const SalesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
   const createSalesReturn = useCreateSalesReturn();
-  const { refetch: refetchInvoices } = useInvoices();
 
   const TABS = [
     { id: 'list' as const, label: t('sales_log'), icon: History },
@@ -37,6 +36,7 @@ const SalesPage: React.FC = () => {
   React.useEffect(() => {
     const aiData = consumePrefill(['create_sales_invoice', 'create_return_sale']);
     if (aiData?.entities) {
+      // استخدام getState() بدلاً من hook داخل useEffect لتجنّب حلقة لانهائية
       const { resetCart, setCustomer, setMetadata, calculateTotals } = useSalesStore.getState();
       resetCart();
       const entities = aiData.entities;
@@ -67,7 +67,10 @@ const SalesPage: React.FC = () => {
       }
       setActiveTab('create');
     }
-  }, [consumePrefill, useSalesStore, setActiveTab]);
+    // consumePrefill هو المعرّف الوحيد المستقر — useSalesStore ثابت دائماً وإضافته
+    // تُسبّب حلقة لانهائية؛ setActiveTab من useState مستقر بطبيعته.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consumePrefill]);
 
   const handleReturnAction = async (invoice: any, items: any[]) => {
     if (!invoice || items.length === 0) return;
@@ -97,7 +100,7 @@ const SalesPage: React.FC = () => {
         notes: `مرتجع للفاتورة #${invoice.invoice_number || ''}`,
       });
       setViewInvoiceId(null);
-      refetchInvoices();
+      // cache is invalidated by useCreateSalesReturn's onSuccess via invalidateByPreset
     } catch (error) {
       logger.error('SalesPage', 'Return failed', error);
     }

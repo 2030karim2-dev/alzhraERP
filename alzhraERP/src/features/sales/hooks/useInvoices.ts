@@ -57,7 +57,12 @@ export const useInvoices = (options?: UseInvoicesOptions) => {
       );
     },
     enabled: !!companyId,
-    staleTime: isSearchMode ? 30 * 1000 : 5 * 60 * 1000,
+    staleTime: isSearchMode ? 60 * 1000 : 5 * 60 * 1000,
+    // إعادة المحاولة مرتين بتأخير تصاعدي لمعالجة أخطاء QUIC/الشبكة العابرة
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
+    // منع إعادة الجلب التلقائية عند التبديل بين نوافذ المتصفح (مكلف للـ RPC)
+    refetchOnWindowFocus: false,
   });
 };
 
