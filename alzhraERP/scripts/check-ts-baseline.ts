@@ -55,9 +55,7 @@ if (current > baseline) {
   console.error(
     `\n[ts-baseline] FAILED: ${current} type errors (baseline: ${baseline}, +${current - baseline} NEW).`
   );
-  console.error(
-    'Fix the new errors before pushing. Inspect with: npx tsc --noEmit --pretty false\n'
-  );
+  console.error(output);
   process.exit(1);
 }
 

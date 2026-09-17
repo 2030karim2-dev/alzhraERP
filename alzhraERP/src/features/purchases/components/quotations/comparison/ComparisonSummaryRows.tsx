@@ -39,6 +39,13 @@ const ComparisonTotalCell = ({
   );
 };
 
+/** قراءة شرط نصّي بعمود صريح (يمنع الوصول الديناميكي لمفاتيح الكائن). */
+const readTerm = (
+  supplier: ComparisonSupplier,
+  termKey: 'delivery_terms' | 'payment_terms'
+): string | null =>
+  termKey === 'delivery_terms' ? supplier.delivery_terms : supplier.payment_terms;
+
 interface ComparisonTermsRowProps {
   label: string;
   termKey: 'delivery_terms' | 'payment_terms';
@@ -61,7 +68,7 @@ export const ComparisonTermsRow = ({
         key={supplier.id}
         className="px-4 py-3 text-center text-xs text-gray-600 dark:text-gray-400"
       >
-        {supplier[termKey] ?? '—'}
+        {readTerm(supplier, termKey) ?? '—'}
       </td>
     ))}
   </tr>

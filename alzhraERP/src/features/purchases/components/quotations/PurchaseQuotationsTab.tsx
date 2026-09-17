@@ -19,7 +19,7 @@ import { purchaseQuotationsApi } from '../../api/quotationsApi';
 import { useAuthStore } from '../../../auth/store';
 import { formatCurrency } from '../../../../core/utils';
 import QuotationComparisonView from './QuotationComparisonView';
-import CreatePurchaseQuotationModal from './CreatePurchaseQuotationModal';
+import CreatePurchaseQuotationModal from './create/CreatePurchaseQuotationModal';
 import type { QuotationStatus } from '../../../sales/types/quotation';
 
 interface QuotationItemDetail {

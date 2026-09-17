@@ -315,7 +315,7 @@ export const computeTotalDifference = (
   options: {
     isMixedCurrencies: boolean;
     normalizeCurrency: boolean;
-    dynamicRatesMap?: Map<string, number>;
+    dynamicRatesMap?: Map<string, number> | undefined;
   }
 ): { value: number; currency: string } | null => {
   if (suppliers.length < 2) return null;
