@@ -142,24 +142,103 @@ export const reportsService = {
   }> => {
     const today = formatLocalDate();
 
-    const { data, error } = await supabase.rpc('report_balance_sheet', {
-      p_company_id: companyId,
-      p_as_of_date: today,
-    });
-    if (error) throw error;
+    const [
+      { data: summaryData, error: summaryError },
+      { data: detailedData, error: detailedError },
+    ] = await Promise.all([
+      supabase.rpc('report_balance_sheet', {
+        p_company_id: companyId,
+        p_as_of_date: today,
+      }),
+      supabase.rpc('report_balance_sheet_detailed' as any, {
+        p_company_id: companyId,
+        p_as_of_date: today,
+      }),
+    ]);
+
+    if (summaryError) throw summaryError;
 
     // RPC returns rows: [{category, amount, type}]
-    const rows = (data || []) as Array<{ category: string; amount: number; type: string }>;
+    const rows = (summaryData || []) as Array<{ category: string; amount: number; type: string }>;
     const assetRow = rows.find(r => r.type === 'asset');
     const liabilityRow = rows.find(r => r.type === 'liability');
     const equityRow = rows.find(r => r.type === 'equity');
+    const retainedRow = rows.find(r => r.type === 'retained_earnings');
 
     const totalAssets = Number(assetRow?.amount) || 0;
     const totalLiabilities = Number(liabilityRow?.amount) || 0;
     const totalEquity = Number(equityRow?.amount) || 0;
+    const totalRetainedToDate = Number(retainedRow?.amount) || 0;
 
-    return {
-      assets: assetRow
+    let assets: TrialBalanceItem[] = [];
+    let liabilities: TrialBalanceItem[] = [];
+    let equity: TrialBalanceItem[] = [];
+
+    if (!detailedError && Array.isArray(detailedData)) {
+      const detailedRows = detailedData as unknown as Array<{
+        account_id: string;
+        account_code: string;
+        account_name: string;
+        account_type: string;
+        total_debit: number | string;
+        total_credit: number | string;
+        balance: number | string;
+      }>;
+
+      assets = detailedRows
+        .filter(r => r.account_type === 'asset')
+        .map(r => ({
+          id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          totalDebit: Number(r.total_debit) || 0,
+          totalCredit: Number(r.total_credit) || 0,
+          netBalance: Number(r.balance) || 0,
+        }));
+
+      liabilities = detailedRows
+        .filter(r => r.account_type === 'liability')
+        .map(r => ({
+          id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          totalDebit: Number(r.total_debit) || 0,
+          totalCredit: Number(r.total_credit) || 0,
+          netBalance: Number(r.balance) || 0,
+        }));
+
+      equity = detailedRows
+        .filter(r => r.account_type === 'equity')
+        .map(r => ({
+          id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          totalDebit: Number(r.total_debit) || 0,
+          totalCredit: Number(r.total_credit) || 0,
+          netBalance: Number(r.balance) || 0,
+        }));
+
+      // Calculate unclosed retained earnings to date
+      const existingRetainedAcc = equity.find(e => e.code === '3200');
+      const existingRetainedBalance = existingRetainedAcc?.netBalance || 0;
+      const unclosedEarnings = totalRetainedToDate - existingRetainedBalance;
+
+      if (Math.abs(unclosedEarnings) > 0.001) {
+        equity.push({
+          id: 'unclosed-retained-earnings',
+          code: '3999',
+          name: 'صافي أرباح/خسائر الفترات السابقة والحالية',
+          type: 'equity',
+          totalDebit: unclosedEarnings < 0 ? Math.abs(unclosedEarnings) : 0,
+          totalCredit: unclosedEarnings > 0 ? unclosedEarnings : 0,
+          netBalance: unclosedEarnings,
+        });
+      }
+    } else {
+      assets = assetRow
         ? [
             {
               id: 'asset',
@@ -171,8 +250,8 @@ export const reportsService = {
               netBalance: totalAssets,
             },
           ]
-        : [],
-      liabilities: liabilityRow
+        : [];
+      liabilities = liabilityRow
         ? [
             {
               id: 'liability',
@@ -184,8 +263,8 @@ export const reportsService = {
               netBalance: totalLiabilities,
             },
           ]
-        : [],
-      equity: equityRow
+        : [];
+      equity = equityRow
         ? [
             {
               id: 'equity',
@@ -197,7 +276,13 @@ export const reportsService = {
               netBalance: totalEquity,
             },
           ]
-        : [],
+        : [];
+    }
+
+    return {
+      assets,
+      liabilities,
+      equity,
       totalAssets,
       totalLiabEquity: totalLiabilities + totalEquity,
     };
@@ -295,10 +380,7 @@ export const reportsService = {
         accounts.map(a => a.id)
       );
 
-    const accountDataMap = new Map<
-      string,
-      { foreignBalance: number; bookValueBase: number }
-    >();
+    const accountDataMap = new Map<string, { foreignBalance: number; bookValueBase: number }>();
 
     for (const l of (lines || []) as Array<{
       account_id: string;

@@ -67,14 +67,17 @@ const toLedgerResult = (value: unknown): LedgerRpcResult => {
 const toTrialBalanceRows = (value: unknown): TrialBalanceRpcRow[] => {
   if (!Array.isArray(value)) return [];
   return value.filter(isRecord).flatMap(row => {
+    const total_debit = Number(row.total_debit);
+    const total_credit = Number(row.total_credit);
+    const balance = Number(row.balance);
     if (
       typeof row.account_id !== 'string' ||
       typeof row.account_code !== 'string' ||
       typeof row.account_name !== 'string' ||
       typeof row.account_type !== 'string' ||
-      typeof row.total_debit !== 'number' ||
-      typeof row.total_credit !== 'number' ||
-      typeof row.balance !== 'number'
+      Number.isNaN(total_debit) ||
+      Number.isNaN(total_credit) ||
+      Number.isNaN(balance)
     )
       return [];
     return [
@@ -83,9 +86,9 @@ const toTrialBalanceRows = (value: unknown): TrialBalanceRpcRow[] => {
         account_code: row.account_code,
         account_name: row.account_name,
         account_type: row.account_type,
-        total_debit: row.total_debit,
-        total_credit: row.total_credit,
-        balance: row.balance,
+        total_debit,
+        total_credit,
+        balance,
         // استيعاب حقل is_cogs الجديد من report_profit_loss_detailed
         is_cogs: typeof row.is_cogs === 'boolean' ? row.is_cogs : false,
       },
@@ -333,52 +336,125 @@ export const reportService = {
     const equityFromServer = Number(equityRow?.amount) || 0;
     const totalAssets = Number(assetRow?.amount) || 0;
     const totalLiabilities = Number(liabilityRow?.amount) || 0;
+    const totalRetainedToDate = Number(retainedRow?.amount) || 0;
     // إذا كان الخادم يرجع بند retained_earnings فإن equityRow يشمل أرباح الفترة سلفاً
     const totalEquity = retainedRow ? equityFromServer : equityFromServer + netIncome;
-    const baseEquity = retainedRow ? equityFromServer - netIncome : equityFromServer;
 
-    const assetTBI: TrialBalanceItem[] = assetRow
-      ? [
-          {
-            account_id: 'asset-total',
-            code: '1',
-            name: assetRow.category,
-            type: 'asset',
-            total_debit: totalAssets,
-            total_credit: 0,
-            net_balance: totalAssets,
-            currency_code: 'SAR',
-          },
-        ]
-      : [];
-    const liabilityTBI: TrialBalanceItem[] = liabilityRow
-      ? [
-          {
-            account_id: 'liability-total',
-            code: '2',
-            name: liabilityRow.category,
-            type: 'liability',
-            total_debit: 0,
-            total_credit: totalLiabilities,
-            net_balance: totalLiabilities,
-            currency_code: 'SAR',
-          },
-        ]
-      : [];
-    const equityTBI: TrialBalanceItem[] = equityRow
-      ? [
-          {
-            account_id: 'equity-total',
-            code: '3',
-            name: equityRow.category,
-            type: 'equity',
-            total_debit: 0,
-            total_credit: baseEquity,
-            net_balance: baseEquity,
-            currency_code: 'SAR',
-          },
-        ]
-      : [];
+    // Fetch detailed accounts breakdown per balance sheet group
+    let assetTBI: TrialBalanceItem[] = [];
+    let liabilityTBI: TrialBalanceItem[] = [];
+    let equityTBI: TrialBalanceItem[] = [];
+
+    const { data: detailBsData, error: detailBsError } = await supabase.rpc(
+      'report_balance_sheet_detailed' as any,
+      {
+        p_company_id: companyId,
+        p_as_of_date: to,
+        ...(branchId ? { p_branch_id: branchId } : {}),
+      }
+    );
+
+    if (detailBsError === null && Array.isArray(detailBsData)) {
+      const rows = toTrialBalanceRows(detailBsData);
+      assetTBI = rows
+        .filter(r => r.account_type === 'asset')
+        .map(r => ({
+          account_id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          total_debit: r.total_debit,
+          total_credit: r.total_credit,
+          net_balance: r.balance,
+          currency_code: 'SAR',
+        }));
+      liabilityTBI = rows
+        .filter(r => r.account_type === 'liability')
+        .map(r => ({
+          account_id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          total_debit: r.total_debit,
+          total_credit: r.total_credit,
+          net_balance: r.balance,
+          currency_code: 'SAR',
+        }));
+      equityTBI = rows
+        .filter(r => r.account_type === 'equity')
+        .map(r => ({
+          account_id: r.account_id,
+          code: r.account_code,
+          name: r.account_name,
+          type: r.account_type,
+          total_debit: r.total_debit,
+          total_credit: r.total_credit,
+          net_balance: r.balance,
+          currency_code: 'SAR',
+        }));
+
+      // Calculate unclosed prior period retained earnings (e.g. earlier years not yet closed to account 3200)
+      const existingRetainedAcc = equityTBI.find(e => e.code === '3200');
+      const existingRetainedBalance = existingRetainedAcc?.net_balance || 0;
+      const priorEarnings = totalRetainedToDate - netIncome - existingRetainedBalance;
+
+      if (Math.abs(priorEarnings) > 0.001) {
+        equityTBI.push({
+          account_id: 'prior-retained-earnings',
+          code: '3200-PRIOR',
+          name: 'أرباح/خسائر مدورة من فترات سابقة',
+          type: 'equity',
+          total_debit: priorEarnings < 0 ? Math.abs(priorEarnings) : 0,
+          total_credit: priorEarnings > 0 ? priorEarnings : 0,
+          net_balance: priorEarnings,
+          currency_code: 'SAR',
+        });
+      }
+    } else {
+      const baseEquity = retainedRow ? equityFromServer - netIncome : equityFromServer;
+      assetTBI = assetRow
+        ? [
+            {
+              account_id: 'asset-total',
+              code: '1',
+              name: assetRow.category,
+              type: 'asset',
+              total_debit: totalAssets,
+              total_credit: 0,
+              net_balance: totalAssets,
+              currency_code: 'SAR',
+            },
+          ]
+        : [];
+      liabilityTBI = liabilityRow
+        ? [
+            {
+              account_id: 'liability-total',
+              code: '2',
+              name: liabilityRow.category,
+              type: 'liability',
+              total_debit: 0,
+              total_credit: totalLiabilities,
+              net_balance: totalLiabilities,
+              currency_code: 'SAR',
+            },
+          ]
+        : [];
+      equityTBI = equityRow
+        ? [
+            {
+              account_id: 'equity-total',
+              code: '3',
+              name: equityRow.category,
+              type: 'equity',
+              total_debit: 0,
+              total_credit: baseEquity,
+              net_balance: baseEquity,
+              currency_code: 'SAR',
+            },
+          ]
+        : [];
+    }
 
     const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1;
 
