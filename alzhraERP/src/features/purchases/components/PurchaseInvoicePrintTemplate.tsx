@@ -42,6 +42,7 @@ interface CompanyPrintInfo {
   taxNumber: string;
   specialization: string;
   headerText: string;
+  logoUrl?: string;
 }
 
 interface PurchaseInvoicePrintTemplateProps {
@@ -59,7 +60,7 @@ const printStyles = `
     .grid-table th, .grid-table td { border: 1px solid #D3D3D3; padding: 8px; color: #111827 !important; background-color: #ffffff !important; }
     .grid-table th { background-color: #1F4E78 !important; color: #FFFFFF !important; font-weight: bold; text-align: center; }
     .grid-table tr:nth-child(even) td { background-color: #F8FAFC !important; }
-    .print-header { display: flex; justify-content: space-between; border-bottom: 2px solid #1F4E78; padding-bottom: 15px; margin-bottom: 20px; }
+    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1F4E78; padding-bottom: 15px; margin-bottom: 20px; }
     .meta-box { border: 1px solid #1F4E78; background-color: #F8FAFC !important; padding: 10px; border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 13px; color: #111827 !important; }
     .meta-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: #111827 !important; }
 `;
@@ -77,10 +78,16 @@ const PrintHeader = ({ company }: { company: CompanyPrintInfo }): React.ReactEle
         {company.taxNumber !== '' && <span>الرقم الضريبي: {company.taxNumber}</span>}
       </div>
     </div>
-    <div className="flex-1 text-center">
-      {company.headerText !== '' && (
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      {company.logoUrl ? (
+        <img
+          src={company.logoUrl}
+          alt="شعار المنشأة"
+          className="h-16 w-auto max-w-[120px] object-contain"
+        />
+      ) : company.headerText !== '' ? (
         <p className="text-sm font-bold text-gray-500">{company.headerText}</p>
-      )}
+      ) : null}
     </div>
     <div className="flex-1 text-left" dir="ltr">
       <h1 className="text-2xl font-bold text-[#1F4E78]">{company.nameEn}</h1>
@@ -208,6 +215,7 @@ const PurchaseInvoicePrintTemplate = React.forwardRef<
     taxNumber: settingsCompany?.tax_number ?? '',
     specialization: invoiceSettings.company_specialization,
     headerText: invoiceSettings.invoice_header_text,
+    logoUrl: settingsCompany?.logo_url ?? '',
   };
 
   return (

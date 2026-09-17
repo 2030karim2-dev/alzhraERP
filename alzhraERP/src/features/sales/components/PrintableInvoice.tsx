@@ -1,18 +1,40 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency } from '../../../core/utils';
+import { tafqeet } from '../../../core/utils/tafqeet';
 import { useInvoiceSettings } from '../../settings/settingsStore';
 import { useCompany } from '../../settings/hooks';
+import {
+  PrintDocumentHeader,
+  type HeaderLayoutMode,
+  type CompanyHeaderData,
+  type DocumentHeaderMeta,
+} from './print/PrintDocumentHeader';
+import { ZatcaInvoiceQRCode } from './print/ZatcaInvoiceQRCode';
+import { PrintToolbar } from './print/PrintToolbar';
 
-// Helper to ensure we always have a minimum number of rows for layout purposes
-const padItems = (items: any[], minRows: number) => {
-  const padded = [...items];
-  while (padded.length < minRows) {
-    padded.push({ id: `pad-${padded.length}`, name: '', quantity: '', price: '' });
-  }
-  return padded;
-};
+interface InvoiceItemDisplay {
+  id?: string;
+  name: string;
+  sku?: string;
+  part_number?: string;
+  quantity: number | string;
+  price: number | string;
+  discount?: number | string;
+  tax_amount?: number | string;
+  total?: number | string;
+}
 
-const PrintableInvoice = ({ invoice }: { invoice: any }) => {
+interface PrintableInvoiceProps {
+  invoice: any;
+  onExportPDF?: (() => void) | undefined;
+  isExporting?: boolean | undefined;
+}
+
+const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
+  invoice,
+  onExportPDF,
+  isExporting = false,
+}) => {
   if (!invoice) {
     return (
       <div className="flex h-48 items-center justify-center p-8 text-center text-slate-400">
@@ -25,376 +47,524 @@ const PrintableInvoice = ({ invoice }: { invoice: any }) => {
     company: invoiceCompany,
     invoice_number,
     issue_date,
+    due_date,
     party_name,
+    party_tax_number,
+    party_phone,
+    party_address,
     items = [],
+    subtotal: rawSubtotal,
+    discount_amount: rawDiscount,
+    tax_amount: rawTax,
     total_amount,
+    paid_amount,
+    currency_code = 'SAR',
+    payment_method,
+    branch_name,
     issuedBy,
+    type: invoiceType,
   } = invoice;
-  const { data: settingsCompany, isLoading: _isCompanyLoading } = useCompany();
+
+  const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
 
-  // Header State
-  const [header, setHeader] = useState({
+  // Print Configuration State
+  const [layoutMode, setLayoutMode] = useState<HeaderLayoutMode>('modern-centered');
+  const [accentColor, setAccentColor] = useState<string>('#1F4E78');
+  const [showQrCode, setShowQrCode] = useState<boolean>(true);
+
+  // Company Header Data State
+  const [companyHeader, setCompanyHeader] = useState<CompanyHeaderData>({
     nameAr: '',
     nameEn: '',
     address: '',
     taxNumber: '',
     specialization: '',
     phone: '',
+    crNumber: '',
     email: '',
-    headerText: '',
-    titleAr: 'فاتورة مبيعات',
-    titleEn: 'Sales Invoice',
+    logoUrl: '',
+    bannerUrl: '',
   });
 
-  // Effect to initialize header from settings and profile
+  // Terms and conditions state (editable)
+  const [termsList, setTermsList] = useState<string[]>([
+    'البضاعة المباعة ترد أو تستبدل خلال 3 أيام بشرط سلامة العبوة الأصلية.',
+    'القطع الكهربائية والإلكترونية خاضعة لسياسة الفحص ولا ترد بعد التركيب.',
+    'يجب إحضار أصل هذه الفاتورة عند أي استرجاع أو استبدال أو مطالبة ضمان.',
+  ]);
+
   useEffect(() => {
     const c = settingsCompany || invoiceCompany || {};
 
-    setHeader(prev => ({
+    setCompanyHeader(prev => ({
       ...prev,
-      // Settings take high priority, then profile data
       nameAr:
-        invoiceSettings.company_name_ar || c.name || c.name_ar || prev.nameAr || 'اسم المنشأة',
+        invoiceSettings?.company_name_ar ||
+        c.name_ar ||
+        c.name ||
+        prev.nameAr ||
+        'اسم المنشأة التجارية',
       nameEn:
-        invoiceSettings.company_name_en ||
-        c.english_name ||
+        invoiceSettings?.company_name_en ||
         c.name_en ||
+        c.english_name ||
         prev.nameEn ||
-        'Company Name',
+        'Commercial Enterprise',
       address:
-        invoiceSettings.company_address || c.address || prev.address || 'المملكة العربية السعودية',
+        invoiceSettings?.company_address || c.address || prev.address || 'المملكة العربية السعودية',
       taxNumber: c.tax_number || prev.taxNumber || '---',
-      specialization: invoiceSettings.company_specialization || prev.specialization,
-      phone: invoiceSettings.company_phone || prev.phone,
-      email: invoiceSettings.company_email || prev.email,
-      headerText: invoiceSettings.invoice_header_text || prev.headerText,
+      crNumber: c.cr_number || prev.crNumber || '',
+      specialization:
+        invoiceSettings?.company_specialization ||
+        c.specialization ||
+        prev.specialization ||
+        'تجارة قطع غيار السيارات ومستلزماتها',
+      phone: invoiceSettings?.company_phone || c.phone || prev.phone || '',
+      email: invoiceSettings?.company_email || c.email || prev.email || '',
+      logoUrl: prev.logoUrl || c.logo_url || '',
     }));
   }, [settingsCompany, invoiceCompany, invoiceSettings]);
 
-  const displayItems = padItems(
-    (items || [])
-      .filter((i: any) => i && (i.name || i.description || i.product?.name_ar))
-      .map((i: any) => ({
-        ...i,
-        name: i.name || i.product?.name_ar || i.description || 'صنف بدون اسم',
-        price: i.price ?? i.unit_price ?? 0,
-      })),
-    10
-  );
+  // Items formatting
+  const displayItems: InvoiceItemDisplay[] = (items || [])
+    .filter((i: any) => i && (i.name || i.description || i.product?.name_ar))
+    .map((i: any) => ({
+      id: i.id,
+      name: i.name || i.product?.name_ar || i.description || 'صنف غير محدد',
+      sku: i.sku || i.product?.sku || i.product?.part_number || '',
+      part_number: i.part_number || i.product?.part_number || '',
+      quantity: Number(i.quantity || 1),
+      price: Number(i.price ?? i.unit_price ?? 0),
+      discount: Number(i.discount || 0),
+      tax_amount: Number(i.tax_amount || 0),
+      total: Number(i.total ?? Number(i.price ?? i.unit_price ?? 0) * Number(i.quantity || 1)),
+    }));
+
+  // Calculations
+  const calculatedTotal = Number(total_amount || 0);
+  const calculatedTax =
+    rawTax !== undefined ? Number(rawTax) : Math.round(calculatedTotal * (15 / 115) * 100) / 100;
+  const calculatedSubtotal =
+    rawSubtotal !== undefined ? Number(rawSubtotal) : calculatedTotal - calculatedTax;
+  const calculatedDiscount = Number(rawDiscount || 0);
+  const calculatedPaid = Number(paid_amount || 0);
+  const remainingBalance = Math.max(0, calculatedTotal - calculatedPaid);
+
+  const currencyUnit =
+    currency_code === 'SAR' ? 'ريال سعودي' : currency_code === 'YER' ? 'ريال يمني' : currency_code;
+  const tafqeetSentence = tafqeet(calculatedTotal, currencyUnit);
+
+  const isReturn = invoiceType === 'sale_return';
+  const documentTitle = isReturn ? 'إشعار دائن (فاتورة مرتجع مبيعات)' : 'فاتورة ضريبية مبسطة';
+  const documentBadge = isReturn ? 'مرتجع مبيعات' : payment_method === 'credit' ? 'آجلة' : 'نقدية';
+
+  const documentMeta: DocumentHeaderMeta = {
+    titleAr: documentTitle,
+    titleEn: isReturn ? 'Credit Note (Sales Return)' : 'Simplified Tax Invoice',
+    documentNumber: invoice_number || 'INV-000',
+    documentDate: issue_date || new Date().toISOString().split('T')[0],
+    badge: documentBadge,
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <div id="invoice-printable-content" className="printable-area bg-white font-sans text-black">
+    <div className="printable-invoice-container w-full bg-white font-sans text-black">
+      {/* Styles for print and screen view */}
       <style>{`
         @media print {
-            body { background-color: white !important; }
-            .no-print { display: none !important; }
-            .printable-area {
-                display: block !important;
-                position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-                padding: 0; margin: 0; box-shadow: none; border: none;
+            body { 
+                background-color: white !important; 
+                margin: 0 !important;
+                padding: 0 !important;
             }
-            @page { margin: 10mm; size: A4 portrait; }
+            .no-print { 
+                display: none !important; 
+            }
+            .printable-invoice-container {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .invoice-page-box {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            @page { 
+                margin: 8mm; 
+                size: A4 portrait; 
+            }
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .avoid-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
         }
-        .invoice-box {
+        .invoice-page-box {
             max-width: 210mm;
             margin: auto;
-            padding: 10mm;
-            background: white;
-            font-family: 'Arial', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #000;
-            line-height: 1.4;
-            /* Force English numerals implicitly in modern browsers */
+            padding: 8mm 10mm;
+            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #0f172a;
+            line-height: 1.45;
             font-variant-numeric: tabular-nums;
         }
-        .inv-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #1F4E78; 
-            padding-bottom: 10px; 
-            margin-bottom: 15px; 
+        .inv-cell-header {
+            background-color: ${accentColor} !important;
+            color: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-        .inv-logo-area { text-align: center; }
-        .inv-title { font-size: 22px; font-weight: 900; margin: 0; line-height: 1.2; color: #1F4E78; }
-        .inv-subtitle { font-size: 13px; font-weight: bold; color: #444; }
-        .inv-meta-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-            font-size: 13px; 
-            border: 1px solid #1F4E78; 
-            border-radius: 4px;
-            padding: 10px; 
-            background-color: #FAFAFA;
+        .inv-row-zebra:nth-child(even) {
+            background-color: #f8fafc !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-        .meta-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .inv-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 20px; 
-            font-size: 13px; 
-        }
-        .inv-table th, .inv-table td {
-            border: 1px solid #D3D3D3;
-        }
-        .inv-table th { 
-            background: #1F4E78; 
-            color: #FFFFFF;
-            padding: 10px; 
-            font-weight: bold; 
-            text-align: center; 
-        }
-        .inv-table td { 
-            padding: 8px; 
-            text-align: center; 
-        }
-        .inv-table tr:nth-child(even) td {
-            background-color: #F9F9F9;
-        }
-        .inv-table td.desc { text-align: right; }
-        .inv-totals { display: flex; justify-content: flex-end; }
-        .totals-box { width: 50%; border: 1px solid #D3D3D3; border-collapse: collapse; }
-        .totals-row { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 8px 10px; 
-            border-bottom: 1px solid #D3D3D3; 
-        }
-        .totals-row.final { 
-            border-bottom: none; 
-            background: #EBF1DE; 
-            font-weight: bold; 
-            font-size: 15px; 
-            color: #1F4E78;
-        }
-        .qr-section { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .terms { font-size: 11px; color: #555; max-width: 60%; }
-        .editable-field:hover { background: #f0f7ff; cursor: text; border-radius: 4px; }
-        .edit-hint { 
-            background: #eff6ff; 
-            border: 1px solid #dbeafe; 
-            padding: 8px 12px; 
-            border-radius: 8px; 
-            margin-bottom: 15px; 
-            font-size: 12px; 
-            color: #1e40af; 
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .inv-total-highlight {
+            background-color: #f0fdf4 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
       `}</style>
 
-      <div className="invoice-box" dir="rtl">
-        {/* Visual Hint - Screen Only */}
-        <div className="edit-hint no-print">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></span>
-          نصيحة: يمكنك النقر على أي نص في الترويسة (الاسم، العنوان، الرقم الضريبي، مسمى الفاتورة)
-          لتعديله مباشرة قبل الطباعة.
-        </div>
+      {/* Screen-only Print Toolbar */}
+      <PrintToolbar
+        layoutMode={layoutMode}
+        onChangeLayout={setLayoutMode}
+        accentColor={accentColor}
+        onChangeAccentColor={setAccentColor}
+        showQrCode={showQrCode}
+        onToggleQrCode={() => setShowQrCode(!showQrCode)}
+        onPrint={handlePrint}
+        onExportPDF={onExportPDF}
+        isExporting={isExporting}
+      />
 
-        {/* Header with Company Info */}
-        <div className="inv-header">
-          <div className="flex-1 text-right">
-            <h1
-              className="inv-title editable-field outline-none"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, nameAr: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.nameAr || 'اسم الشركة'}
-            </h1>
-            <p
-              className="editable-field text-xs font-bold text-blue-800 outline-none"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, specialization: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.specialization}
-            </p>
-            <p
-              className="inv-subtitle editable-field mt-1 outline-none"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, address: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.address || 'العنوان غير مسجل'}
-            </p>
-            <div className="mt-1 flex flex-col gap-1 text-xs font-bold text-gray-700">
+      {/* Printable Invoice Page Box */}
+      <div className="invoice-page-box" dir="rtl">
+        {/* Document Header (Customizable & Configurable) */}
+        <PrintDocumentHeader
+          company={companyHeader}
+          document={documentMeta}
+          layoutMode={layoutMode}
+          onUpdateCompany={updated => setCompanyHeader(prev => ({ ...prev, ...updated }))}
+          accentColor={accentColor}
+        />
+
+        {/* Customer & Invoice Metadata Cards */}
+        <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs">
+          {/* Customer (Bill-To) Info */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 font-bold text-slate-700">
               <span
-                className="editable-field outline-none"
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={e => {
-                  setHeader(prev => ({ ...prev, phone: e.currentTarget.textContent || '' }));
-                }}
-              >
-                {header.phone ? `هاتف: ${header.phone}` : ''}
-              </span>
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: accentColor }}
+              ></span>
+              <span>بيانات العميل (Bill To):</span>
+            </div>
+            <div className="space-y-0.5 pr-3 text-slate-800">
+              <p className="text-sm font-bold text-slate-900">{party_name || 'عميل نقدي'}</p>
+              {party_tax_number && (
+                <p className="text-[11px] text-slate-600">
+                  <span className="font-semibold">الرقم الضريبي:</span> {party_tax_number}
+                </p>
+              )}
+              {party_phone && (
+                <p className="text-[11px] text-slate-600" dir="ltr">
+                  <span className="font-semibold" dir="rtl">
+                    الهاتف:{' '}
+                  </span>
+                  {party_phone}
+                </p>
+              )}
+              {party_address && (
+                <p className="text-[11px] text-slate-600">
+                  <span className="font-semibold">العنوان:</span> {party_address}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Invoice Specific Info */}
+          <div className="space-y-1 border-r border-slate-200 pr-3">
+            <div className="flex items-center gap-1.5 font-bold text-slate-700">
               <span
-                className="editable-field outline-none"
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={e => {
-                  setHeader(prev => ({ ...prev, taxNumber: e.currentTarget.textContent || '' }));
-                }}
-              >
-                {header.taxNumber ? `الرقم الضريبي: ${header.taxNumber}` : ''}
-              </span>
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: accentColor }}
+              ></span>
+              <span>تفاصيل العملية:</span>
             </div>
-          </div>
-
-          <div className="inv-logo-area flex-1">
-            {header.headerText && (
-              <p
-                className="editable-field mb-2 text-sm font-bold uppercase tracking-widest text-gray-500"
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={e => {
-                  setHeader(prev => ({ ...prev, headerText: e.currentTarget.textContent || '' }));
-                }}
-              >
-                {header.headerText}
-              </p>
-            )}
-            {/* Space for Logo if needed */}
-            <div className="no-print mx-auto flex h-16 w-32 items-center justify-center rounded border-2 border-dashed border-gray-300 text-xs text-gray-300">
-              مساحة الشعار
-            </div>
-          </div>
-
-          <div className="flex-1 text-left" dir="ltr">
-            <h1
-              className="inv-title editable-field outline-none"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, nameEn: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.nameEn || 'Company Name'}
-            </h1>
-            <h2
-              className="editable-field mt-2 text-lg font-bold text-gray-800 outline-none"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, titleEn: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.titleEn}
-            </h2>
-            <h2
-              className="editable-field text-lg font-bold text-gray-800 outline-none"
-              dir="rtl"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                setHeader(prev => ({ ...prev, titleAr: e.currentTarget.textContent || '' }));
-              }}
-            >
-              {header.titleAr}
-            </h2>
-          </div>
-        </div>
-
-        <div className="inv-meta-grid">
-          <div>
-            <div className="meta-row">
-              <strong>العميل:</strong> <span>{party_name}</span>
-            </div>
-            <div className="meta-row">
-              <strong>العنوان:</strong> <span>-</span>
-            </div>
-            {issuedBy && (
-              <div className="meta-row">
-                <strong>صدرت بواسطة:</strong> <span>{issuedBy}</span>
+            <div className="space-y-0.5 pr-3 text-slate-800">
+              <div className="flex justify-between">
+                <span className="text-slate-500">نوع الفاتورة:</span>
+                <span className="font-bold">{payment_method === 'credit' ? 'آجل' : 'نقداً'}</span>
               </div>
-            )}
-          </div>
-          <div>
-            <div className="meta-row">
-              <strong>رقم الفاتورة:</strong>{' '}
-              <span dir="ltr" className="font-bold">
-                {invoice_number}
-              </span>
-            </div>
-            <div className="meta-row">
-              <strong>تاريخ الإصدار:</strong> <span dir="ltr">{issue_date}</span>
+              {branch_name && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">الفرع:</span>
+                  <span className="font-semibold">{branch_name}</span>
+                </div>
+              )}
+              {due_date && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">تاريخ الاستحقاق:</span>
+                  <span className="font-mono" dir="ltr">
+                    {due_date}
+                  </span>
+                </div>
+              )}
+              {issuedBy && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">المستخدم / البائع:</span>
+                  <span className="font-semibold">{issuedBy}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        <table className="inv-table">
+        {/* Invoice Items Table */}
+        <table className="mb-4 w-full border-collapse border border-slate-200 text-xs">
           <thead>
-            <tr>
-              <th style={{ width: '5%' }}>#</th>
-              <th style={{ width: '40%' }}>وصف السلعة / الخدمة</th>
-              <th style={{ width: '15%' }}>الكمية</th>
-              <th style={{ width: '20%' }}>سعر الوحدة</th>
-              <th style={{ width: '20%' }}>الإجمالي</th>
+            <tr className="inv-cell-header text-center">
+              <th
+                className="border border-slate-300 px-1 py-2 text-center font-bold"
+                style={{ width: '4%' }}
+              >
+                #
+              </th>
+              <th
+                className="border border-slate-300 px-2 py-2 text-right font-bold"
+                style={{ width: '42%' }}
+              >
+                بيان الصنف / الخدمة
+              </th>
+              <th
+                className="border border-slate-300 px-2 py-2 text-center font-bold"
+                style={{ width: '10%' }}
+              >
+                الكمية
+              </th>
+              <th
+                className="border border-slate-300 px-2 py-2 text-center font-bold"
+                style={{ width: '14%' }}
+              >
+                سعر الوحدة
+              </th>
+              <th
+                className="border border-slate-300 px-2 py-2 text-center font-bold"
+                style={{ width: '12%' }}
+              >
+                الضريبة (15%)
+              </th>
+              <th
+                className="border border-slate-300 px-2 py-2 text-center font-bold"
+                style={{ width: '18%' }}
+              >
+                الإجمالي شامل الضريبة
+              </th>
             </tr>
           </thead>
           <tbody>
-            {displayItems.map((item, i) => (
-              <tr key={item.id}>
-                <td>{item.name ? i + 1 : ''}</td>
-                <td className="desc">{item.name}</td>
-                <td dir="ltr">{item.quantity}</td>
-                <td dir="ltr">
-                  {item.price ? formatCurrency(item.price, invoice.currency_code || 'SAR') : ''}
-                </td>
-                <td dir="ltr" className="font-bold">
-                  {item.price
-                    ? formatCurrency(
-                        Number(item.price) * Number(item.quantity),
-                        invoice.currency_code || 'SAR'
-                      )
-                    : ''}
+            {displayItems.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="border border-slate-200 py-8 text-center text-slate-400">
+                  لا توجد بنود في هذه الفاتورة
                 </td>
               </tr>
-            ))}
+            ) : (
+              displayItems.map((item, index) => {
+                const itemQty = Number(item.quantity);
+                const itemPrice = Number(item.price);
+                const itemTotal = Number(item.total);
+                const itemVat = Math.round(itemTotal * (15 / 115) * 100) / 100;
+
+                return (
+                  <tr key={item.id || index} className="inv-row-zebra border-b border-slate-200">
+                    <td className="border border-slate-200 px-1 py-1.5 text-center font-mono text-slate-500">
+                      {index + 1}
+                    </td>
+                    <td className="border border-slate-200 px-2 py-1.5 text-right font-semibold text-slate-900">
+                      <div>{item.name}</div>
+                      {(item.sku || item.part_number) && (
+                        <div className="font-mono text-[10px] text-slate-500" dir="ltr">
+                          {[item.sku, item.part_number].filter(Boolean).join(' | ')}
+                        </div>
+                      )}
+                    </td>
+                    <td
+                      className="border border-slate-200 px-2 py-1.5 text-center font-mono font-bold text-slate-800"
+                      dir="ltr"
+                    >
+                      {itemQty}
+                    </td>
+                    <td
+                      className="border border-slate-200 px-2 py-1.5 text-center font-mono text-slate-700"
+                      dir="ltr"
+                    >
+                      {formatCurrency(itemPrice, currency_code)}
+                    </td>
+                    <td
+                      className="border border-slate-200 px-2 py-1.5 text-center font-mono text-slate-600"
+                      dir="ltr"
+                    >
+                      {formatCurrency(itemVat, currency_code)}
+                    </td>
+                    <td
+                      className="border border-slate-200 px-2 py-1.5 text-center font-mono font-black text-slate-900"
+                      dir="ltr"
+                    >
+                      {formatCurrency(itemTotal, currency_code)}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
 
-        <div className="inv-totals">
-          <div className="totals-box">
-            <div className="totals-row">
-              <span>المجموع الفرعي</span>
-              <span dir="ltr">{formatCurrency(total_amount, invoice.currency_code || 'SAR')}</span>
+        {/* Financial Summary & QR Code Section */}
+        <div className="avoid-break mb-4 flex flex-wrap items-start justify-between gap-4">
+          {/* ZATCA QR Code & Amount in Words (Tafqeet) */}
+          <div className="min-w-[240px] flex-1 space-y-2.5">
+            <div className="flex items-center gap-3">
+              {showQrCode && (
+                <div className="shadow-2xs rounded border border-slate-200 bg-white p-1">
+                  <ZatcaInvoiceQRCode
+                    sellerName={companyHeader.nameAr}
+                    vatNumber={companyHeader.taxNumber || '300000000000003'}
+                    timestamp={issue_date || new Date().toISOString()}
+                    totalAmount={calculatedTotal}
+                    vatAmount={calculatedTax}
+                    size={105}
+                  />
+                </div>
+              )}
+              <div className="space-y-1 text-xs">
+                <div className="font-bold text-slate-700">المبلغ كتابةً:</div>
+                <div className="rounded border border-slate-200 bg-slate-50 p-2 text-[11px] font-bold leading-relaxed text-slate-800">
+                  {tafqeetSentence}
+                </div>
+              </div>
             </div>
-            <div className="totals-row final">
-              <span>الإجمالي المستحق</span>
-              <span dir="ltr">{formatCurrency(total_amount, invoice.currency_code || 'SAR')}</span>
-            </div>
+          </div>
+
+          {/* Financial Totals Table */}
+          <div className="w-full shrink-0 sm:w-72">
+            <table className="w-full border-collapse border border-slate-200 text-xs">
+              <tbody>
+                <tr className="border-b border-slate-200">
+                  <td className="px-3 py-1.5 font-semibold text-slate-600">المجموع قبل الضريبة:</td>
+                  <td
+                    className="px-3 py-1.5 text-left font-mono font-bold text-slate-800"
+                    dir="ltr"
+                  >
+                    {formatCurrency(calculatedSubtotal, currency_code)}
+                  </td>
+                </tr>
+
+                {calculatedDiscount > 0 && (
+                  <tr className="border-b border-slate-200 text-rose-600">
+                    <td className="px-3 py-1.5 font-semibold">إجمالي الخصم:</td>
+                    <td className="px-3 py-1.5 text-left font-mono font-bold" dir="ltr">
+                      -{formatCurrency(calculatedDiscount, currency_code)}
+                    </td>
+                  </tr>
+                )}
+
+                <tr className="border-b border-slate-200">
+                  <td className="px-3 py-1.5 font-semibold text-slate-600">
+                    ضريبة القيمة المضافة (15%):
+                  </td>
+                  <td
+                    className="px-3 py-1.5 text-left font-mono font-bold text-slate-800"
+                    dir="ltr"
+                  >
+                    {formatCurrency(calculatedTax, currency_code)}
+                  </td>
+                </tr>
+
+                <tr className="inv-total-highlight border-b-2" style={{ borderColor: accentColor }}>
+                  <td className="px-3 py-2 text-sm font-black" style={{ color: accentColor }}>
+                    الصافي المستحق النهائي:
+                  </td>
+                  <td
+                    className="px-3 py-2 text-left font-mono text-base font-black"
+                    style={{ color: accentColor }}
+                    dir="ltr"
+                  >
+                    {formatCurrency(calculatedTotal, currency_code)}
+                  </td>
+                </tr>
+
+                {calculatedPaid > 0 && calculatedPaid !== calculatedTotal && (
+                  <>
+                    <tr className="border-b border-slate-200 text-emerald-700">
+                      <td className="px-3 py-1 text-[11px] font-semibold">المبلغ المدفوع:</td>
+                      <td className="px-3 py-1 text-left font-mono text-[11px] font-bold" dir="ltr">
+                        {formatCurrency(calculatedPaid, currency_code)}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-200 text-amber-800">
+                      <td className="px-3 py-1 text-[11px] font-bold">المتبقي:</td>
+                      <td className="px-3 py-1 text-left font-mono text-[11px] font-bold" dir="ltr">
+                        {formatCurrency(remainingBalance, currency_code)}
+                      </td>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div className="qr-section">
-          <div className="terms">
-            <strong>الشروط والأحكام:</strong>
-            <ul style={{ marginTop: '5px', paddingRight: '15px' }}>
-              <li>البضاعة المباعة لا ترد ولا تستبدل بعد 3 أيام.</li>
-              <li>يجب إحضار أصل الفاتورة عند الاسترجاع.</li>
-              <li>القطع الكهربائية لا ترد ولا تستبدل.</li>
-            </ul>
-          </div>
-          <div style={{ textAlign: 'center', width: '30%' }}>
-            <div
-              style={{ borderBottom: '1px solid #000', marginBottom: '5px', paddingBottom: '30px' }}
-            >
-              التوقيع / الختم
+        {/* Terms & Signatures */}
+        <div className="avoid-break mt-6 border-t border-slate-200 pt-3 text-xs">
+          <div className="grid grid-cols-3 items-end gap-4">
+            {/* Terms List */}
+            <div className="col-span-2 space-y-0.5 text-[10px] text-slate-500">
+              <div className="mb-1 text-[11px] font-bold text-slate-700">
+                الشروط والأحكام العامة:
+              </div>
+              <ul className="list-disc space-y-0.5 pr-3 leading-tight">
+                {termsList.map((t, idx) => (
+                  <li
+                    key={idx}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={e => {
+                      const updated = [...termsList];
+                      updated[idx] = e.currentTarget.textContent || '';
+                      setTermsList(updated);
+                    }}
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div style={{ fontSize: '12px' }}>Signature / Stamp</div>
+
+            {/* Stamp & Signature */}
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="mb-2 h-16 w-36 border-b-2 border-dashed border-slate-400"></div>
+              <span className="text-[11px] font-bold text-slate-700">الختم والتوقيع المعتمد</span>
+              <span className="text-[10px] text-slate-400" dir="ltr">
+                Official Stamp & Signature
+              </span>
+            </div>
           </div>
         </div>
       </div>

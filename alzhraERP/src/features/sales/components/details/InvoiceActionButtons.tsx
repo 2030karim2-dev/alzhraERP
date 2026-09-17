@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, FileSpreadsheet, RotateCcw, Loader2, Share2, X } from 'lucide-react';
+import { Download, FileSpreadsheet, RotateCcw, Loader2, Share2, X, Printer } from 'lucide-react';
 import type { InvoiceWithDetails } from '../../api';
 
 interface InvoiceActionButtonsProps {
@@ -7,6 +7,7 @@ interface InvoiceActionButtonsProps {
   onClose: () => void;
   onExportPDF: () => void;
   onExportExcel: () => void;
+  onPrint?: (() => void) | undefined;
   onShare?: (() => void) | undefined;
   onToggleReturn: () => void;
   isExporting: boolean;
@@ -17,6 +18,7 @@ interface InvoiceActionButtonsProps {
 interface ExportGroupProps {
   onExportPDF: () => void;
   onExportExcel: () => void;
+  onPrint?: (() => void) | undefined;
   onShare?: (() => void) | undefined;
   isExporting: boolean;
 }
@@ -24,10 +26,22 @@ interface ExportGroupProps {
 const ExportGroup: React.FC<ExportGroupProps> = ({
   onExportPDF,
   onExportExcel,
+  onPrint = () => window.print(),
   onShare,
   isExporting,
 }) => (
   <div className="flex flex-1 flex-wrap items-center gap-1 sm:gap-1.5">
+    <button
+      type="button"
+      onClick={onPrint}
+      disabled={isExporting}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-black text-white shadow-xs transition-all hover:bg-black active:scale-95 disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 sm:flex-none"
+      title="طباعة الفاتورة مباشرة"
+    >
+      <Printer size={14} />
+      <span>طباعة</span>
+    </button>
+
     {onShare !== undefined && (
       <button
         type="button"
@@ -85,6 +99,7 @@ const InvoiceActionButtons: React.FC<InvoiceActionButtonsProps> = ({
   onClose,
   onExportPDF,
   onExportExcel,
+  onPrint,
   onShare,
   onToggleReturn,
   isExporting,
@@ -113,6 +128,7 @@ const InvoiceActionButtons: React.FC<InvoiceActionButtonsProps> = ({
       <ExportGroup
         onExportPDF={onExportPDF}
         onExportExcel={onExportExcel}
+        onPrint={onPrint}
         onShare={onShare}
         isExporting={isExporting}
       />

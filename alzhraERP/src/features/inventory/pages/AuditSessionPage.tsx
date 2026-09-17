@@ -36,6 +36,7 @@ import { useDebounce } from 'use-debounce';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { useFeedbackStore } from '../../feedback/store';
+import { calculateAuditStats } from '../utils/auditStats';
 import type { Product, ProductFormData } from '../types';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
@@ -142,40 +143,7 @@ const AuditSessionPage: React.FC = () => {
     return sessionItems.length > 0 ? sessionItems : watchedItems;
   }, [isCompleted, data?.items, sessionItems, watchedItems]);
 
-  const stats = useMemo(() => {
-    const total = displayItems.length;
-    let discrepancyValue = 0;
-    let matchedCount = 0;
-    const counted = displayItems.filter(
-      i =>
-        i.counted_quantity !== null && i.counted_quantity !== undefined && i.counted_quantity !== ''
-    ).length;
-    const discrepancies = displayItems.filter(i => {
-      const isCounted =
-        i.counted_quantity !== null &&
-        i.counted_quantity !== undefined &&
-        i.counted_quantity !== '';
-      if (!isCounted) return false;
-      const diff = Number(i.counted_quantity) - Number(i.expected_quantity);
-      if (diff !== 0) {
-        const prod = (i.products as Record<string, unknown>) || i;
-        const unitCost = Number(prod.cost_price ?? prod.purchase_price ?? 0);
-        discrepancyValue += diff * unitCost;
-        return true;
-      } else {
-        matchedCount += 1;
-        return false;
-      }
-    }).length;
-    return {
-      total,
-      counted,
-      pending: total - counted,
-      discrepancies,
-      matched: matchedCount,
-      discrepancyValue: Math.round(discrepancyValue * 100) / 100,
-    };
-  }, [displayItems]);
+  const stats = useMemo(() => calculateAuditStats(displayItems), [displayItems]);
 
   const prepareProgressItems = useCallback((): AuditProgressItem[] => {
     const formItems = getValues('items') || [];

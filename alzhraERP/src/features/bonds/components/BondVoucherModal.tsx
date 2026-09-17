@@ -40,6 +40,7 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
     address: invoiceSettings?.company_address || settingsCompany?.address || '',
     phone: invoiceSettings?.company_phone || settingsCompany?.phone || '',
     tax_number: settingsCompany?.tax_number || '---',
+    logo_url: settingsCompany?.logo_url || '',
   };
 
   const isReceipt = bond.type === 'receipt';
@@ -247,6 +248,16 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
                   <p className="text-xs text-slate-500">العنوان: {company.address}</p>
                 )}
               </div>
+
+              {company.logo_url && (
+                <div className="flex items-center justify-center">
+                  <img
+                    src={company.logo_url}
+                    alt="شعار المنشأة"
+                    className="h-16 w-auto max-w-[120px] object-contain"
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col items-start space-y-2 sm:items-end">
                 <div

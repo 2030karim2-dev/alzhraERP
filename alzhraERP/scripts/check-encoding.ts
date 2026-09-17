@@ -46,7 +46,6 @@ const IGNORE_DIRS = new Set([
   '.git',
   'coverage',
   'playwright-report',
-  '_attic',
 ]);
 
 /**

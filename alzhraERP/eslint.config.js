@@ -19,11 +19,8 @@ export default tseslint.config(
       // Deno Edge Functions — ملفات مستقلة عن مشروع Vite/React (لا TSConfig يغطيها).
       'supabase/**',
       // Vitest setup وأدوات الصيانة (tsx scripts) — ليست كود التطبيق المنشور،
-      // وخارج مشروع TSConfig الذي يغذّي المحلل النوعي (نفس منطق e2e/**).
       'test/**',
       'scripts/**',
-      // أرشيف الكود المهمل — خارج البناء والفحص عمداً (انظر _attic/*/README.md).
-      '_attic/**',
     ],
   },
   {

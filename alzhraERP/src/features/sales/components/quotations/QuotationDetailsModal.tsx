@@ -370,8 +370,15 @@ const QuotationDetailsModal: React.FC<Props> = ({
                   </span>
                 </div>
               </div>
-              <div className="flex-1 text-center">
-                <h2 className="mt-2 inline-block rounded bg-gray-100 px-4 py-1 text-xl font-bold text-gray-800">
+              <div className="flex flex-1 flex-col items-center justify-center text-center">
+                {Boolean(((company ?? {}) as Record<string, unknown>).logo_url) && (
+                  <img
+                    src={String(((company ?? {}) as Record<string, unknown>).logo_url)}
+                    alt="شعار المنشأة"
+                    className="mb-1 h-14 w-auto max-w-[120px] object-contain"
+                  />
+                )}
+                <h2 className="mt-1 inline-block rounded bg-gray-100 px-4 py-1 text-lg font-bold text-gray-800">
                   عرض سعر
                 </h2>
               </div>

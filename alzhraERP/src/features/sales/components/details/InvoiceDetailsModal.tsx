@@ -222,6 +222,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         <InvoiceActionButtons
           invoice={invoice}
           onClose={onClose}
+          onPrint={() => window.print()}
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onShare={handleShareWhatsApp}
@@ -398,15 +399,23 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </>
             ) : (
               <div className="custom-scrollbar flex max-h-[60vh] justify-center overflow-auto rounded-xl bg-slate-200 p-3 dark:bg-slate-900">
-                <div className="w-full max-w-3xl shrink-0 border border-slate-300 bg-white shadow-lg">
-                  <PrintableInvoice invoice={fullInvoiceData} />
+                <div className="w-full max-w-4xl shrink-0 rounded-xl border border-slate-300 bg-white p-2 shadow-lg">
+                  <PrintableInvoice
+                    invoice={fullInvoiceData}
+                    onExportPDF={handleExportPDF}
+                    isExporting={isExporting}
+                  />
                 </div>
               </div>
             )}
 
             <div style={{ display: 'none' }}>
               <div ref={printRef} className="print-only">
-                <PrintableInvoice invoice={fullInvoiceData} />
+                <PrintableInvoice
+                  invoice={fullInvoiceData}
+                  onExportPDF={handleExportPDF}
+                  isExporting={isExporting}
+                />
               </div>
             </div>
           </div>

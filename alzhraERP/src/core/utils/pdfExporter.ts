@@ -39,7 +39,8 @@ export const exportToPDF = async (element: HTMLElement, fileName: string) => {
     if (scaledHeight <= pdfHeight) {
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
     } else {
-      const customPdf = new jsPDF('p', 'mm', [pdfWidth, (scaledHeight * 25.4) / 96 + 20]);
+      // scaledHeight is already in millimetres, matching the jsPDF unit.
+      const customPdf = new jsPDF('p', 'mm', [pdfWidth, scaledHeight + 20]);
       customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
       customPdf.save(`${fileName}.pdf`);
       return;
