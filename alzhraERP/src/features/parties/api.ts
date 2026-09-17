@@ -56,7 +56,7 @@ export const partiesApi = {
       .order('name', { ascending: true });
 
     if (branchId) {
-      partiesQuery = partiesQuery.eq('branch_id', branchId);
+      partiesQuery = partiesQuery.or(`branch_id.eq.${branchId},branch_id.is.null`);
     }
 
     const { data: partiesData, error: partiesError } = await partiesQuery;

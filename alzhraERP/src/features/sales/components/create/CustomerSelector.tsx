@@ -89,6 +89,15 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
     setIsOpen(false);
   };
 
+  // نحدد قائمة الأطراف المعروضة: إذا لم يكتب المستخدم شيئاً، نعرض أول 40 طرفاً لتسهيل الاختيار الفوري
+  const displayedCustomers = React.useMemo(() => {
+    if (!filteredCustomers) return [];
+    if (!query.trim()) {
+      return filteredCustomers.slice(0, 40);
+    }
+    return filteredCustomers.slice(0, 60);
+  }, [filteredCustomers, query]);
+
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   useEffect(() => {
@@ -96,17 +105,17 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
   }, [query]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || !filteredCustomers || filteredCustomers.length === 0) return;
+    if (!isOpen || !displayedCustomers || displayedCustomers.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex(prev => (prev < filteredCustomers.length - 1 ? prev + 1 : prev));
+      setHighlightedIndex(prev => (prev < displayedCustomers.length - 1 ? prev + 1 : prev));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (filteredCustomers[highlightedIndex]) {
-        handleSelect(filteredCustomers[highlightedIndex]);
+      if (displayedCustomers[highlightedIndex]) {
+        handleSelect(displayedCustomers[highlightedIndex]);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -201,6 +210,9 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             onFocus={() => {
               setIsOpen(true);
             }}
+            onClick={() => {
+              setIsOpen(true);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={
               compact
@@ -219,67 +231,81 @@ const CustomerSelector: React.FC<Props> = ({ compact = false }) => {
             size={compact ? 14 : 17}
           />
 
-          {isOpen && query.length > 0 && (
+          {isOpen && (
             <div className="animate-in fade-in slide-in-from-top-1 absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
               {isLoading ? (
                 <div className="p-3 text-center text-xs font-bold text-slate-400">
-                  جاري البحث...
+                  جاري التحميل...
                 </div>
-              ) : filteredCustomers && filteredCustomers.length > 0 ? (
-                <ul className="custom-scrollbar max-h-64 overflow-y-auto">
-                  {filteredCustomers.map(
-                    (
-                      customer: { id: string; name: string; phone?: string | null; type?: string },
-                      idx: number
-                    ) => {
-                      const isHighlighted = idx === highlightedIndex;
-                      return (
-                        <li
-                          key={customer.id}
-                          onClick={() => {
-                            handleSelect(customer);
-                          }}
-                          onMouseEnter={() => {
-                            setHighlightedIndex(idx);
-                          }}
-                          className={cn(
-                            'group flex cursor-pointer items-center justify-between border-b border-slate-100 px-3.5 py-2.5 transition-colors last:border-none dark:border-slate-800/80',
-                            isHighlighted
-                              ? 'bg-blue-600 text-white'
-                              : 'text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
-                          )}
-                        >
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold">{customer.name}</p>
-                              {!isHighlighted && customer.type && (
-                                <PartyTypeBadge type={customer.type} />
+              ) : displayedCustomers && displayedCustomers.length > 0 ? (
+                <>
+                  {!query.trim() && (
+                    <div className="border-b border-slate-100 bg-slate-50/80 px-3 py-1.5 text-[10px] font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                      اختر عميل من القائمة أو ابحث بالاسم / الهاتف
+                    </div>
+                  )}
+                  <ul className="custom-scrollbar max-h-64 overflow-y-auto">
+                    {displayedCustomers.map(
+                      (
+                        customer: {
+                          id: string;
+                          name: string;
+                          phone?: string | null;
+                          type?: string;
+                        },
+                        idx: number
+                      ) => {
+                        const isHighlighted = idx === highlightedIndex;
+                        return (
+                          <li
+                            key={customer.id}
+                            onClick={() => {
+                              handleSelect(customer);
+                            }}
+                            onMouseEnter={() => {
+                              setHighlightedIndex(idx);
+                            }}
+                            className={cn(
+                              'group flex cursor-pointer items-center justify-between border-b border-slate-100 px-3.5 py-2.5 transition-colors last:border-none dark:border-slate-800/80',
+                              isHighlighted
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
+                            )}
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-xs font-bold">{customer.name}</p>
+                                {!isHighlighted && customer.type && (
+                                  <PartyTypeBadge type={customer.type} />
+                                )}
+                              </div>
+                              {customer.phone && (
+                                <p
+                                  dir="ltr"
+                                  className={cn(
+                                    'mt-0.5 font-mono text-[10px]',
+                                    isHighlighted ? 'text-blue-100' : 'text-slate-400'
+                                  )}
+                                >
+                                  {customer.phone}
+                                </p>
                               )}
                             </div>
-                            {customer.phone && (
-                              <p
-                                dir="ltr"
-                                className={cn(
-                                  'mt-0.5 font-mono text-[10px]',
-                                  isHighlighted ? 'text-blue-100' : 'text-slate-400'
-                                )}
-                              >
-                                {customer.phone}
-                              </p>
-                            )}
-                          </div>
-                          <Check
-                            size={14}
-                            className={cn('opacity-0', isHighlighted && 'opacity-100')}
-                          />
-                        </li>
-                      );
-                    }
-                  )}
-                </ul>
+                            <Check
+                              size={14}
+                              className={cn('opacity-0', isHighlighted && 'opacity-100')}
+                            />
+                          </li>
+                        );
+                      }
+                    )}
+                  </ul>
+                </>
               ) : (
                 <div className="p-3 text-center text-xs font-bold text-slate-400">
-                  لا توجد نتائج مطابقة لـ &quot;{query}&quot;
+                  {query.trim()
+                    ? `لا توجد نتائج مطابقة لـ "${query}"`
+                    : 'لا يوجد عملاء متاحين حالياً'}
                 </div>
               )}
             </div>
