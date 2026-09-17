@@ -222,6 +222,10 @@ const calculateQuotationTotal = (items: ItemRow[]): number =>
     0
   );
 
+/** بند قابل للإرسال = وصف غير فارغ وكمية موجبة (نفس شرط الإرسال). */
+const hasSubmittableItem = (items: ItemRow[]): boolean =>
+  items.some(item => item.description.trim() !== '' && item.quantity > 0);
+
 export function usePurchaseQuotationForm(
   params: UsePurchaseQuotationFormParams
 ): PurchaseQuotationFormController {
@@ -242,9 +246,7 @@ export function usePurchaseQuotationForm(
   });
 
   const total = useMemo(() => calculateQuotationTotal(items.items), [items.items]);
-  const hasValidItem = items.items.some(
-    item => item.description.trim() !== '' && item.quantity > 0
-  );
+  const hasValidItem = hasSubmittableItem(items.items);
 
   const { saving, handleSave } = useSavePurchaseQuotation({
     ...params,
