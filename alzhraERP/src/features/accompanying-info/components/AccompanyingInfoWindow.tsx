@@ -23,6 +23,7 @@ import { ProductStockGrid } from './ProductStockGrid';
 
 export const AccompanyingInfoWindow: React.FC = () => {
   const {
+    enabled,
     isOpen,
     isPinned,
     isMinimized,
@@ -110,8 +111,11 @@ export const AccompanyingInfoWindow: React.FC = () => {
     }
   };
 
-  // مستمع عام للأحداث للنقر على أي عنصر يحمل data-inspect-type و data-inspect-id
+  // مستمع للأحداث للنقر على أي عنصر يحمل data-inspect-type و data-inspect-id
+  // لا يفتح النافذة قسراً، بل يحدّث الكيان المستهدف فقط إذا كانت الميزة مفعلة والنافذة مفتوحة
   useEffect(() => {
+    if (!enabled || !isOpen) return;
+
     const handleDocumentClick = (e: MouseEvent) => {
       const targetEl = (e.target as HTMLElement).closest(
         '[data-inspect-type]'
@@ -124,7 +128,6 @@ export const AccompanyingInfoWindow: React.FC = () => {
 
         if (type && id) {
           setTarget({ type, id, ...(title ? { title } : {}) });
-          setOpen(true);
         }
       }
     };
@@ -133,9 +136,9 @@ export const AccompanyingInfoWindow: React.FC = () => {
     return () => {
       document.removeEventListener('click', handleDocumentClick, true);
     };
-  }, [setTarget, setOpen]);
+  }, [enabled, isOpen, setTarget]);
 
-  if (!isOpen) return null;
+  if (!enabled || !isOpen) return null;
 
   return (
     <motion.div

@@ -5,9 +5,18 @@ import { useTranslation } from '../../../../lib/hooks/useTranslation';
 interface TotalBannerProps {
   total: number;
   currency: string;
+  originalTotal?: number;
+  originalCurrency?: string;
+  exchangeRate?: number;
 }
 
-export const TotalBanner: React.FC<TotalBannerProps> = ({ total, currency }) => {
+export const TotalBanner: React.FC<TotalBannerProps> = ({
+  total,
+  currency,
+  originalTotal,
+  originalCurrency,
+  exchangeRate,
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -23,6 +32,17 @@ export const TotalBanner: React.FC<TotalBannerProps> = ({ total, currency }) => 
         {formatCurrency(total, currency)}
       </p>
       <p className="mt-0.5 text-[10px] font-bold uppercase opacity-60">{currency}</p>
+      {originalCurrency && originalCurrency !== currency && (
+        <div className="mx-auto mt-2 flex w-fit items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 py-0.5 text-[11px] font-medium text-blue-100/90">
+          <span>أصل الفاتورة:</span>
+          <span className="font-mono font-bold">
+            {formatCurrency(originalTotal ?? 0, originalCurrency)}
+          </span>
+          {exchangeRate ? (
+            <span className="font-mono text-[10px] opacity-80">(سعر الصرف: {exchangeRate})</span>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 };

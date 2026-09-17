@@ -1,8 +1,20 @@
 import React from 'react';
-import { ShoppingCart, PauseCircle, RotateCcw, Coins } from 'lucide-react';
+import {
+  ShoppingCart,
+  PauseCircle,
+  RotateCcw,
+  Coins,
+  ArrowRightLeft,
+  RefreshCw,
+} from 'lucide-react';
 import CustomerSelector from '../../../sales/components/create/CustomerSelector';
 import { useTranslation } from '../../../../lib/hooks/useTranslation';
 import { useSalesStore } from '../../../sales/store';
+import { useCurrencies } from '../../../settings/hooks';
+import {
+  resolveAutoExchangeRate,
+  getDefaultExchangeOperator,
+} from '../../../../core/utils/currencyUtils';
 
 interface CartHeaderProps {
   itemCount: number;
@@ -11,7 +23,33 @@ interface CartHeaderProps {
 
 export const CartHeader: React.FC<CartHeaderProps> = React.memo(({ itemCount, onSuspend }) => {
   const { t } = useTranslation();
-  const { currency, setMetadata, resetCart } = useSalesStore();
+  const { currency, exchangeRate, exchangeOperator, setCurrency, setMetadata, resetCart } =
+    useSalesStore();
+  const { currencies, rates } = useCurrencies();
+
+  const handleCurrencyChange = (newCurrency: string) => {
+    if (newCurrency === 'SAR') {
+      setCurrency('SAR', 1, 'multiply');
+    } else {
+      const autoRate = resolveAutoExchangeRate(
+        newCurrency,
+        rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+        currencies.data as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
+      );
+      const currencyConfig = (
+        currencies.data as Array<{ code: string; exchange_operator: string }>
+      )?.find(c => c.code === newCurrency);
+      const operator =
+        (currencyConfig?.exchange_operator as 'multiply' | 'divide') ||
+        getDefaultExchangeOperator(newCurrency);
+      setCurrency(newCurrency, autoRate, operator);
+    }
+  };
+
+  const displayRate =
+    exchangeOperator === 'divide' && exchangeRate < 1
+      ? Math.round(1 / exchangeRate)
+      : exchangeRate || (currency === 'YER' ? 410 : 1);
 
   return (
     <div className="shrink-0 space-y-2.5 border-b border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 dark:border-slate-800 dark:from-slate-950/80 dark:to-slate-900">
@@ -64,16 +102,60 @@ export const CartHeader: React.FC<CartHeaderProps> = React.memo(({ itemCount, on
           <select
             value={currency}
             onChange={e => {
-              setMetadata('currency', e.target.value);
+              handleCurrencyChange(e.target.value);
             }}
             className="h-[36px] w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white pl-2 pr-6 text-center text-[10px] font-black outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           >
-            <option value="YER">YER</option>
-            <option value="SAR">SAR</option>
-            <option value="USD">USD</option>
+            <option value="SAR">SAR (ر.س)</option>
+            <option value="YER">YER (ر.ي)</option>
+            <option value="USD">USD ($)</option>
           </select>
         </div>
       </div>
+
+      {/* Exchange rate strip when not SAR */}
+      {currency !== 'SAR' && (
+        <div className="flex items-center justify-between rounded-xl border border-amber-200/80 bg-amber-50/80 px-2.5 py-1.5 text-xs dark:border-amber-800/50 dark:bg-amber-950/30">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800 dark:text-amber-300">
+            <ArrowRightLeft size={12} className="text-amber-600 dark:text-amber-400" />
+            <span>سعر الصرف:</span>
+            <span className="font-mono text-[11px]">1 ر.س =</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={displayRate}
+              onChange={e => {
+                const val = Number(e.target.value);
+                if (val > 0) {
+                  setMetadata('exchangeRate', val);
+                }
+              }}
+              className="w-16 rounded-md border border-amber-300 bg-white px-1.5 py-0.5 text-center font-mono text-xs font-black text-amber-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 dark:border-amber-700 dark:bg-slate-900 dark:text-amber-200"
+            />
+            <span className="text-[10px] font-bold">{currency === 'YER' ? 'ر.ي' : currency}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const defaultRate = resolveAutoExchangeRate(
+                currency,
+                rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+                currencies.data as Array<{
+                  code: string;
+                  exchange_operator?: 'multiply' | 'divide';
+                }>
+              );
+              setMetadata('exchangeRate', defaultRate);
+            }}
+            title="استعادة سعر الصرف الافتراضي"
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/40"
+          >
+            <RefreshCw size={10} />
+            <span className="hidden sm:inline">افتراضي</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 });

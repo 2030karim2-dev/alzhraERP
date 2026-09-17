@@ -8,6 +8,7 @@ import type {
 } from '../types';
 
 interface AccompanyingInfoState {
+  enabled: boolean;
   isOpen: boolean;
   isPinned: boolean;
   isMinimized: boolean;
@@ -19,6 +20,8 @@ interface AccompanyingInfoState {
   error: string | null;
 
   // Actions
+  setEnabled: (enabled: boolean) => void;
+  toggleEnabled: () => void;
   toggleOpen: () => void;
   setOpen: (open: boolean) => void;
   togglePinned: () => void;
@@ -35,6 +38,7 @@ interface AccompanyingInfoState {
 export const useAccompanyingInfoStore = create<AccompanyingInfoState>()(
   persist(
     (set, get) => ({
+      enabled: false,
       isOpen: false,
       isPinned: false,
       isMinimized: false,
@@ -45,8 +49,29 @@ export const useAccompanyingInfoStore = create<AccompanyingInfoState>()(
       isLoading: false,
       error: null,
 
-      toggleOpen: () => set(state => ({ isOpen: !state.isOpen })),
-      setOpen: open => set({ isOpen: open }),
+      setEnabled: enabled =>
+        set(state => ({
+          enabled,
+          isOpen: enabled ? state.isOpen : false,
+        })),
+      toggleEnabled: () =>
+        set(state => {
+          const nextEnabled = !state.enabled;
+          return {
+            enabled: nextEnabled,
+            isOpen: nextEnabled ? state.isOpen : false,
+          };
+        }),
+      toggleOpen: () =>
+        set(state => {
+          if (!state.enabled) return { isOpen: false };
+          return { isOpen: !state.isOpen };
+        }),
+      setOpen: open =>
+        set(state => {
+          if (!state.enabled && open) return { isOpen: false };
+          return { isOpen: open };
+        }),
       togglePinned: () => set(state => ({ isPinned: !state.isPinned })),
       toggleMinimized: () => set(state => ({ isMinimized: !state.isMinimized })),
       setTarget: target =>
@@ -76,7 +101,7 @@ export const useAccompanyingInfoStore = create<AccompanyingInfoState>()(
     {
       name: 'alzhra-accompanying-info-settings',
       partialize: state => ({
-        isOpen: state.isOpen,
+        enabled: state.enabled,
         isPinned: state.isPinned,
         isMinimized: state.isMinimized,
       }),

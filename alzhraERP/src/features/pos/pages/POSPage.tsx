@@ -12,7 +12,7 @@ import { usePOSCheckout } from '../hooks';
 import { usePOSSearch } from '../hooks/usePOSSearch';
 import { posSearchService } from '../services/searchService';
 import { useBreakpoint } from '../../../lib/hooks/useBreakpoint';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, convertCurrency } from '../../../core/utils';
 import type { Product } from '../../inventory/types';
 import { buildProductFromSearchResult } from '../utils/buildProductFromResult';
 import { SuspendedOrdersModal } from '../components/SuspendedOrdersModal';
@@ -53,7 +53,7 @@ const POSPage: React.FC = () => {
     filters: { in_stock_only: inStockOnly },
   });
 
-  const { items, summary, selectedCustomer, currency, resetCart, addProductToCart } =
+  const { items, summary, selectedCustomer, currency, exchangeRate, resetCart, addProductToCart } =
     useSalesStore();
   const { suspendedOrders, suspendCurrentOrder, resumeOrder, removeSuspended } = usePOSStore();
   const { processPayment, isProcessing } = usePOSCheckout();
@@ -131,21 +131,42 @@ const POSPage: React.FC = () => {
     (result: POSPaymentResult) => {
       if (isProcessing) return;
 
+      const finalCurrency = result.paymentCurrency || currency || 'SAR';
+      const finalRate =
+        finalCurrency === 'SAR'
+          ? 1
+          : result.exchangeRate || (exchangeRate > 0 ? exchangeRate : 410);
+
+      const needConversion = finalCurrency !== currency;
+
+      const processedItems = validCartItems.map(i => {
+        let unitPrice = i.price;
+        if (needConversion) {
+          if (finalCurrency === 'YER') {
+            unitPrice = convertCurrency(i.basePrice, finalRate, 'fromBase', 'divide');
+          } else if (finalCurrency === 'SAR') {
+            unitPrice = i.basePrice;
+          }
+        }
+        return {
+          ...i,
+          unitPrice,
+          costPrice: i.costPrice || 0,
+          maxStock: 0,
+          ...(selectedWarehouseId ? { warehouseId: selectedWarehouseId } : {}),
+        };
+      });
+
       processPayment(
         {
           partyId: selectedCustomer?.id || null,
           idempotencyKey: checkoutIdempotencyKeyRef.current,
           type: 'sale',
           isCrossBranch: !!isCrossBranch,
-          items: validCartItems.map(i => ({
-            ...i,
-            unitPrice: i.price,
-            costPrice: i.costPrice || 0,
-            maxStock: 0,
-            ...(selectedWarehouseId ? { warehouseId: selectedWarehouseId } : {}),
-          })),
+          items: processedItems,
           discount: summary.discountAmount || 0,
-          currency: currency || 'SAR',
+          currency: finalCurrency,
+          exchangeRate: finalRate,
           paymentMethod: 'cash',
           // تأكيد صندوق الخزينة أو البنك من النافذة (يُوجَّه عبر resolveStrictPaymentAccount)
           ...(result.treasuryAccountId != null
@@ -173,6 +194,7 @@ const POSPage: React.FC = () => {
       summary.discountAmount,
       selectedWarehouseId,
       currency,
+      exchangeRate,
       isCrossBranch,
     ]
   );

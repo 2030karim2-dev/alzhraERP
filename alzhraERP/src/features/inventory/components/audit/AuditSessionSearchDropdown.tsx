@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScanBarcode } from 'lucide-react';
+import { ScanBarcode, Plus } from 'lucide-react';
 import SearchInput from '../../../../ui/components/SearchInput';
 import SearchDropdown from '../../../../ui/components/SearchDropdown';
 import type { Product } from '../../types';
@@ -15,6 +15,7 @@ interface AuditSessionSearchDropdownProps {
   searchResults: SearchResultProduct[] | undefined;
   onAddItem: (product: Product) => void;
   onOpenScanner: () => void;
+  onOpenAddProduct?: () => void;
 }
 
 export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProps> = ({
@@ -27,6 +28,7 @@ export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProp
   searchResults,
   onAddItem,
   onOpenScanner,
+  onOpenAddProduct,
 }) => {
   return (
     <div className="sticky top-0 z-40 border-b border-gray-200 bg-[var(--app-surface)] p-2 shadow-sm dark:border-slate-800 sm:p-4">
@@ -49,11 +51,21 @@ export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProp
           />
           <button
             onClick={onOpenScanner}
-            className="flex w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+            className="flex w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-700 active:scale-95"
             title="مسح الباركود"
           >
             <ScanBarcode size={22} />
           </button>
+          {onOpenAddProduct && (
+            <button
+              onClick={onOpenAddProduct}
+              className="flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-700 active:scale-95 sm:h-12"
+              title="إضافة منتج جديد للجلسة مباشرة"
+            >
+              <Plus size={18} />
+              <span>منتج جديد</span>
+            </button>
+          )}
         </div>
 
         {/* Search Results Dropdown */}
@@ -64,7 +76,28 @@ export const AuditSessionSearchDropdown: React.FC<AuditSessionSearchDropdownProp
           }}
           loading={isLoadingSearch || isAddingItem}
           hasResults={(searchResults?.length ?? 0) > 0}
-          emptyMessage="لا توجد نتائج مطابقة"
+          emptyMessage={
+            onOpenAddProduct ? (
+              <div className="px-3 py-4 text-center">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  لا توجد نتائج مطابقة لـ "{filter}"
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResults(false);
+                    onOpenAddProduct();
+                  }}
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+                >
+                  <Plus size={14} />
+                  إضافة كمنتج جديد في الجرد الآن
+                </button>
+              </div>
+            ) : (
+              'لا توجد نتائج مطابقة'
+            )
+          }
           className="z-50"
         >
           <div className="custom-scrollbar max-h-[60vh] overflow-y-auto">

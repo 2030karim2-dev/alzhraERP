@@ -3,7 +3,9 @@ import { TableProperties } from 'lucide-react';
 import { useAccompanyingInfoStore } from '../store/accompanyingInfoStore';
 
 export const AccompanyingInfoToggle: React.FC = () => {
-  const { isOpen, toggleOpen } = useAccompanyingInfoStore();
+  const { enabled, isOpen, toggleOpen } = useAccompanyingInfoStore();
+
+  if (!enabled) return null;
 
   return (
     <button

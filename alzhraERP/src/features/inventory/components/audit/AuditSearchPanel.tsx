@@ -3,7 +3,7 @@
 // يحتوي: اختيار المستودع + حقل البحث + نتائج البحث كـ dropdown
 // ============================================
 import React, { useState } from 'react';
-import { Database, ScanBarcode } from 'lucide-react';
+import { Database, ScanBarcode, Plus } from 'lucide-react';
 import SearchInput from '../../../../ui/components/SearchInput';
 import SearchDropdown from '../../../../ui/components/SearchDropdown';
 
@@ -36,6 +36,7 @@ interface Props {
   searchResults: SearchResult[] | undefined;
   isLoadingSearch: boolean;
   onAddItem: (product: SearchResult) => void;
+  onOpenAddProduct?: () => void;
 }
 
 /** كمية الصنف في المستودع المحدد (تسوّى على أساسها، لا على الإجمالي لكل المستودعات).
@@ -57,6 +58,7 @@ const AuditSearchPanel: React.FC<Props> = ({
   searchResults,
   isLoadingSearch,
   onAddItem,
+  onOpenAddProduct,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const hasResults = (searchResults?.length ?? 0) > 0;
@@ -116,9 +118,21 @@ const AuditSearchPanel: React.FC<Props> = ({
             onClick={onScannerOpen}
             disabled={!selectedWarehouseId}
             className="shrink-0 rounded-lg bg-blue-600 p-2.5 text-white shadow transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            title="مسح الباركود"
           >
             <ScanBarcode size={20} />
           </button>
+          {onOpenAddProduct && (
+            <button
+              onClick={onOpenAddProduct}
+              disabled={!selectedWarehouseId}
+              className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow transition hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              title="إضافة منتج جديد دون مغادرة الجرد"
+            >
+              <Plus size={16} />
+              <span>منتج جديد</span>
+            </button>
+          )}
         </div>
 
         <SearchDropdown
@@ -128,7 +142,28 @@ const AuditSearchPanel: React.FC<Props> = ({
           }}
           loading={isLoadingSearch}
           hasResults={hasResults}
-          emptyMessage="لا توجد أصناف مطابقة"
+          emptyMessage={
+            onOpenAddProduct ? (
+              <div className="p-4 text-center">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  لا توجد أصناف مطابقة لـ "{filter}"
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    onOpenAddProduct();
+                  }}
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+                >
+                  <Plus size={14} />
+                  إضافة كمنتج جديد في الجرد الآن
+                </button>
+              </div>
+            ) : (
+              'لا توجد أصناف مطابقة'
+            )
+          }
           className="max-h-[60vh] overflow-hidden"
         >
           <div className="custom-scrollbar max-h-[60vh] overflow-y-auto">

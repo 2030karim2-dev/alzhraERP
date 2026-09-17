@@ -10,6 +10,7 @@ import {
   Building2,
   MessageSquare,
   ShieldCheck,
+  TableProperties,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../../lib/themeStore';
@@ -27,7 +28,10 @@ import SyncStatusModal from '../../components/SyncStatusModal';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
 import { useLogout, useIsSuperAdmin } from '../../../features/auth/hooks';
 import { ROUTES } from '../../../core/routes/paths';
-import { AccompanyingInfoToggle } from '../../../features/accompanying-info';
+import {
+  AccompanyingInfoToggle,
+  useAccompanyingInfoStore,
+} from '../../../features/accompanying-info';
 
 const HeaderActions: React.FC = () => {
   const navigate = useNavigate();
@@ -41,6 +45,8 @@ const HeaderActions: React.FC = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { logout: performLogout, isLoggingOut } = useLogout();
   const { data: isSuperAdmin } = useIsSuperAdmin();
+  const { enabled: isAccompanyingEnabled, toggleEnabled: toggleAccompanyingEnabled } =
+    useAccompanyingInfoStore();
 
   // Poll for pending sync count
   useEffect(() => {
@@ -326,6 +332,28 @@ const HeaderActions: React.FC = () => {
                 >
                   <Building2 size={16} />
                   <span>إعدادات المنشأة</span>
+                </button>
+                <button
+                  onClick={() => {
+                    toggleAccompanyingEnabled();
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold text-[var(--app-text-secondary)] transition-all hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                  title="تفعيل أو تعطيل ظهور زر المعلومات المرافقة في الهيدر"
+                >
+                  <div className="flex items-center gap-3">
+                    <TableProperties size={16} />
+                    <span>المعلومات المرافقة في الهيدر</span>
+                  </div>
+                  <span
+                    className={cn(
+                      'rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors',
+                      isAccompanyingEnabled
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                    )}
+                  >
+                    {isAccompanyingEnabled ? 'مفعلة' : 'معطلة'}
+                  </span>
                 </button>
               </div>
 

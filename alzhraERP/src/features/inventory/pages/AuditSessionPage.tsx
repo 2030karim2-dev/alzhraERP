@@ -10,18 +10,20 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
+  Plus,
 } from 'lucide-react';
 import {
   useAuditSession,
   useInventoryMutations,
   useInventoryCategories,
 } from '../hooks/useInventoryManagement';
-import { useSearchProducts } from '../hooks/useProducts';
+import { useSearchProducts, useProductMutations } from '../hooks/useProducts';
 import { inventoryService } from '../service';
 import { useInventorySession } from '../hooks/useInventorySession';
 import { useAuthStore } from '../../auth/store';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
+import AddProductModal from '../components/AddProductModal';
 import AuditStats, { type AuditSessionInfo } from '../components/audit/AuditStats';
 import AuditItemsTable, {
   type AuditItemTarget,
@@ -34,7 +36,7 @@ import { useDebounce } from 'use-debounce';
 import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { useFeedbackStore } from '../../feedback/store';
-import type { Product } from '../types';
+import type { Product, ProductFormData } from '../types';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
 interface AuditProgressItem {
@@ -72,6 +74,8 @@ const AuditSessionPage: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<AuditItemTarget | null>(null);
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const { saveProduct, isSaving: isSavingProduct } = useProductMutations();
 
   const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
 
@@ -446,6 +450,53 @@ const AuditSessionPage: React.FC = () => {
     }
   };
 
+  const newProductInitialData = useMemo(() => {
+    const trimmed = filter.trim();
+    if (!trimmed) return null;
+    const isBarcode = /^\d{6,}$/.test(trimmed);
+    return {
+      name: !isBarcode ? trimmed : '',
+      name_ar: !isBarcode ? trimmed : '',
+      barcode: isBarcode ? trimmed : '',
+      sku: isBarcode ? '' : trimmed,
+    } as unknown as Product;
+  }, [filter]);
+
+  const handleCreateNewProduct = async (formData: ProductFormData) => {
+    try {
+      const created = await saveProduct({ data: formData });
+      setShowAddProduct(false);
+      showToast('تمت إضافة المنتج الجديد بنجاح', 'success');
+
+      if (created) {
+        const rawCreated = created as Record<string, any>;
+        const productToAdd = {
+          id: rawCreated.id,
+          name: rawCreated.name_ar || rawCreated.name || '',
+          name_ar: rawCreated.name_ar || rawCreated.name || '',
+          sku: rawCreated.sku || '',
+          part_number: rawCreated.part_number || '',
+          brand: rawCreated.brand || '',
+          category: rawCreated.category || '',
+          unit: rawCreated.unit || 'piece',
+          cost_price: rawCreated.cost_price || 0,
+          selling_price: rawCreated.sale_price ?? rawCreated.selling_price ?? 0,
+          purchase_price: rawCreated.cost_price || 0,
+          stock_quantity: 0,
+          min_stock_level: rawCreated.min_stock_level || 0,
+          is_core: rawCreated.is_core || false,
+          created_at: rawCreated.created_at || new Date().toISOString(),
+          updated_at: rawCreated.updated_at || new Date().toISOString(),
+          company_id: rawCreated.company_id || user?.company_id || '',
+        } as unknown as Product;
+        handleAddItem(productToAdd);
+        setFilter('');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'فشل في إضافة المنتج', 'error');
+    }
+  };
+
   // Atomic bulk warehouse population
   const handleBulkAddWarehouseProducts = useCallback(async () => {
     if (!sessionId) return;
@@ -495,6 +546,21 @@ const AuditSessionPage: React.FC = () => {
               <span className="ml-2 hidden self-center text-[10px] text-amber-500 md:inline">
                 حفظ...
               </span>
+            )}
+
+            {session?.status !== 'completed' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowAddProduct(true);
+                }}
+                leftIcon={<Plus size={14} className="text-emerald-600" />}
+                title="إضافة منتج جديد دون مغادرة الجلسة"
+                className="border-emerald-300 bg-emerald-50 px-2.5 font-bold text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 sm:px-3"
+              >
+                <span>منتج جديد</span>
+              </Button>
             )}
 
             {session?.status !== 'completed' && canManageAudit && (
@@ -560,6 +626,9 @@ const AuditSessionPage: React.FC = () => {
           onAddItem={handleAddItem}
           onOpenScanner={() => {
             setIsScannerOpen(true);
+          }}
+          onOpenAddProduct={() => {
+            setShowAddProduct(true);
           }}
         />
       )}
@@ -692,6 +761,17 @@ const AuditSessionPage: React.FC = () => {
         variant="warning"
         confirmLabel="نعم، اعتماد وإنهاء الجرد"
         isLoading={isFinalizing}
+      />
+
+      <AddProductModal
+        isOpen={showAddProduct}
+        onClose={() => {
+          setShowAddProduct(false);
+        }}
+        onSubmit={handleCreateNewProduct}
+        isSubmitting={isSavingProduct}
+        initialData={newProductInitialData}
+        zIndex="z-[10000]"
       />
     </div>
   );

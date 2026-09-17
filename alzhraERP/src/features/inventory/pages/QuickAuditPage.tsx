@@ -3,12 +3,13 @@
 // ============================================
 import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, CheckCircle2, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Zap, CheckCircle2, Loader2, ArrowRight, AlertTriangle, Plus } from 'lucide-react';
 import { useWarehouses } from '../hooks/useInventoryManagement';
-import { useSearchProducts } from '../hooks/useProducts';
+import { useSearchProducts, useProductMutations } from '../hooks/useProducts';
 import { useInventoryMutations } from '../hooks/useInventoryManagement';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
+import AddProductModal from '../components/AddProductModal';
 import AuditSearchPanel, {
   getWarehouseStock,
   type SearchResult,
@@ -18,17 +19,20 @@ import ScannerOverlay from '../../../ui/base/ScannerOverlay';
 import { useFeedbackStore } from '../../feedback/store';
 import { parseError } from '../../../core/utils/errorUtils';
 import { useDebounce } from '../../../lib/hooks/useDebounce';
+import type { Product, ProductFormData } from '../types';
 
 const QuickAuditPage: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useFeedbackStore();
   const { data: warehouses, isLoading: isWarehousesLoading } = useWarehouses();
   const { quickAdjustStock, isQuickAdjusting } = useInventoryMutations();
+  const { saveProduct, isSaving: isSavingProduct } = useProductMutations();
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
   const [filter, setFilter] = useState('');
   const debouncedFilter = useDebounce(filter.trim(), 250);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [showAddProduct, setShowAddProduct] = useState(false);
   const [items, setItems] = useState<AdjustedItem[]>([]);
 
   const { data: searchResults, isLoading: isLoadingSearch } = useSearchProducts(debouncedFilter);
@@ -133,6 +137,44 @@ const QuickAuditPage: React.FC = () => {
     });
   }, [selectedWarehouseId, items, quickAdjustStock, showToast, navigate]);
 
+  const newProductInitialData = useMemo(() => {
+    const trimmed = filter.trim();
+    if (!trimmed) return null;
+    const isBarcode = /^\d{6,}$/.test(trimmed);
+    return {
+      name: !isBarcode ? trimmed : '',
+      name_ar: !isBarcode ? trimmed : '',
+      barcode: isBarcode ? trimmed : '',
+      sku: isBarcode ? '' : trimmed,
+    } as unknown as Product;
+  }, [filter]);
+
+  const handleCreateNewProduct = async (formData: ProductFormData) => {
+    try {
+      const created = await saveProduct({ data: formData });
+      setShowAddProduct(false);
+      showToast('تمت إضافة المنتج الجديد بنجاح', 'success');
+
+      if (created) {
+        const rawCreated = created as Record<string, any>;
+        const searchRes: SearchResult = {
+          id: rawCreated.id,
+          name_ar: rawCreated.name_ar || rawCreated.name || '',
+          sku: created.sku || '',
+          part_number: created.part_number || '',
+          brand: created.brand || '',
+          alternative_numbers: created.alternative_numbers || '',
+          size: created.size || '',
+          warehouse_distribution: [],
+          stock_quantity: 0,
+        };
+        handleAddItem(searchRes);
+      }
+    } catch (err) {
+      showToast(parseError(err).message, 'error');
+    }
+  };
+
   const stats = useMemo(() => {
     const totalItems = items.length;
     const changedItems = items.filter(i => i.quantity !== i.system_quantity).length;
@@ -154,6 +196,15 @@ const QuickAuditPage: React.FC = () => {
               leftIcon={<ArrowRight size={14} />}
             >
               رجوع للمخزون
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddProduct(true)}
+              className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+              leftIcon={<Plus size={14} />}
+            >
+              منتج جديد
             </Button>
             <Button
               variant="success"
@@ -237,6 +288,7 @@ const QuickAuditPage: React.FC = () => {
             onScannerOpen={() => {
               setIsScannerOpen(true);
             }}
+            onOpenAddProduct={() => setShowAddProduct(true)}
             searchResults={(searchResults ?? []) as unknown as SearchResult[]}
             isLoadingSearch={isLoadingSearch}
             onAddItem={handleAddItem}
@@ -257,6 +309,17 @@ const QuickAuditPage: React.FC = () => {
           onClose={() => {
             setIsScannerOpen(false);
           }}
+        />
+      )}
+
+      {showAddProduct && (
+        <AddProductModal
+          isOpen={showAddProduct}
+          onClose={() => setShowAddProduct(false)}
+          onSubmit={handleCreateNewProduct}
+          isSubmitting={isSavingProduct}
+          initialData={newProductInitialData}
+          zIndex="z-[10000]"
         />
       )}
     </div>

@@ -34,6 +34,7 @@ import PrintSettings from './components/print';
 import IntegrationsSettings from './components/integrations/IntegrationsSettings';
 import LocalizationSettings from './components/localization/LocalizationSettings';
 import DhikrSettings from './components/dhikr/DhikrSettings';
+import { AccompanyingInfoSettingCard } from '../accompanying-info';
 import type { SettingsSection } from './types';
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { cn } from '../../core/utils';
@@ -206,6 +207,9 @@ const SettingsPage: React.FC = () => {
         return (
           <div className="space-y-8">
             <AppearancePage />
+            <div className="px-4">
+              <AccompanyingInfoSettingCard />
+            </div>
             <div className="px-4">
               <LocalizationSettings />
             </div>

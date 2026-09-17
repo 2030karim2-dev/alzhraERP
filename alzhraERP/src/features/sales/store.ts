@@ -60,6 +60,11 @@ interface SalesState {
     customer: { id: string; name: string; phone?: string; type?: string } | null
   ) => void;
   setMetadata: (field: string, value: string | boolean | null | number) => void;
+  setCurrency: (
+    currency: string,
+    exchangeRate?: number,
+    exchangeOperator?: 'multiply' | 'divide'
+  ) => void;
   toggleColumn: (field: 'showDiscount') => void;
   resetCart: () => void;
 }
@@ -309,6 +314,15 @@ export const useSalesStore = create<SalesState>()(
         set(state => {
           const newState = { ...state, [field]: value };
 
+          // إذا تم تحويل العملة إلى ريال يمني وكان سعر الصرف الافتراضي 1، نضبطه تلقائياً
+          if (field === 'currency' && value === 'YER' && state.exchangeRate === 1) {
+            newState.exchangeRate = 410;
+            newState.exchangeOperator = 'divide';
+          } else if (field === 'currency' && value === 'SAR') {
+            newState.exchangeRate = 1;
+            newState.exchangeOperator = 'multiply';
+          }
+
           if (['currency', 'exchangeRate', 'exchangeOperator'].includes(field)) {
             const rate = newState.exchangeRate;
             const isForeign = newState.currency !== 'SAR';
@@ -336,6 +350,53 @@ export const useSalesStore = create<SalesState>()(
           }
 
           return newState;
+        });
+        get().calculateTotals();
+      },
+
+      setCurrency: (currency, customRate, customOperator) => {
+        set(state => {
+          let newRate = customRate ?? (currency === 'SAR' ? 1 : state.exchangeRate);
+          let newOperator =
+            customOperator ?? (currency === 'SAR' ? 'multiply' : state.exchangeOperator);
+
+          if (currency === 'SAR') {
+            newRate = 1;
+            newOperator = 'multiply';
+          } else if (customRate === undefined || customRate <= 0) {
+            if (currency === 'YER') {
+              newRate = state.exchangeRate && state.exchangeRate > 1 ? state.exchangeRate : 410;
+              newOperator = 'divide';
+            } else if (currency === 'USD') {
+              newRate = state.exchangeRate && state.exchangeRate !== 1 ? state.exchangeRate : 3.75;
+              newOperator = 'multiply';
+            }
+          }
+
+          const isForeign = currency !== 'SAR';
+          const newItems = state.items.map(item => {
+            if (!item.productId) return item;
+            if (!isForeign) return { ...item, price: item.basePrice };
+
+            try {
+              const newPrice = convertCurrency(item.basePrice, newRate, 'fromBase', newOperator);
+              return { ...item, price: newPrice };
+            } catch (e) {
+              logger.error('SalesStore', 'Invalid rate in setCurrency', {
+                rate: newRate,
+                currency,
+              });
+              return item;
+            }
+          });
+
+          return {
+            ...state,
+            currency,
+            exchangeRate: newRate,
+            exchangeOperator: newOperator,
+            items: newItems,
+          };
         });
         get().calculateTotals();
       },

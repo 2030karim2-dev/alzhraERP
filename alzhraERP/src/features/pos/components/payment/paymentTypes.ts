@@ -6,28 +6,30 @@
 import type { PaymentAccount as CanonicalPaymentAccount } from '../../../accounting/hooks/usePaymentAccounts';
 
 export interface PaymentAccount extends CanonicalPaymentAccount {
-    company_id?: string;
-    type?: string;
-    is_system?: boolean;
-    parent_id?: string | null;
-    name?: string;
-    is_active?: boolean;
-    created_at?: string;
+  company_id?: string;
+  type?: string;
+  is_system?: boolean;
+  parent_id?: string | null;
+  name?: string;
+  is_active?: boolean;
+  created_at?: string;
 }
 
 export type POSPaymentMethod = 'cash' | 'exchange';
 
 export interface POSPaymentResult {
-    method: POSPaymentMethod;
-    treasuryAccountId: string | null;
-    received: number;
+  method: POSPaymentMethod;
+  treasuryAccountId: string | null;
+  received: number;
+  paymentCurrency?: string;
+  exchangeRate?: number;
 }
 
 export interface PaymentModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    total: number;
-    currency: string;
-    onConfirm: (result: POSPaymentResult) => void;
-    isProcessing: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  total: number;
+  currency: string;
+  onConfirm: (result: POSPaymentResult) => void;
+  isProcessing: boolean;
 }

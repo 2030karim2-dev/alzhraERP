@@ -6,7 +6,7 @@ export interface SearchDropdownProps {
   open: boolean;
   onClose: () => void;
   loading?: boolean;
-  emptyMessage?: string;
+  emptyMessage?: React.ReactNode;
   hasResults?: boolean;
   children: React.ReactNode;
   className?: string;
@@ -78,7 +78,7 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
       {!loading && !hasResults && (
         <div className="bg-gray-50 p-8 text-center dark:bg-slate-950">
           <Box size={32} className="mx-auto mb-2 opacity-20" />
-          <p className="text-xs font-bold text-gray-400">{emptyMessage}</p>
+          <div className="text-xs font-bold text-gray-400">{emptyMessage}</div>
         </div>
       )}
 
