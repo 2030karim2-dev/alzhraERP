@@ -45,6 +45,23 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
 
   const handleSafeSubmit = (data: ExpenseFormData) => {
     if (isSubmitting || localSubmitting) return;
+
+    if (data.currency_code === 'SAR' && Number(data.amount) >= 500) {
+      const isDailyPetty =
+        /(عشاء|غداء|غدا|قات|ماء|ثلج|حلاقة|رصيد|تكس|مدرسة|دفاتر|طماط|بصل|كريم|سيجارة|نثري)/i.test(
+          data.description || ''
+        );
+      if (isDailyPetty && !data.confirm_large_sar) {
+        const confirmed = window.confirm(
+          `تنبيه تدقيق مالي:\nالمبلغ المدخل هو (${data.amount} ريال سعودي) لبيان نثري (${data.description}).\n\nهل أنت متأكد تماماً أن هذا المبلغ بالريال السعودي وليس بالريال اليمني؟`
+        );
+        if (!confirmed) {
+          return;
+        }
+        data.confirm_large_sar = true;
+      }
+    }
+
     setLocalSubmitting(true);
     onSubmit(data);
   };

@@ -77,6 +77,7 @@ export const expensesApi = {
         currency_code: data.currency_code || 'SAR',
         currency: data.currency_code || 'SAR',
         exchange_rate: Number(data.exchange_rate) > 0 ? Number(data.exchange_rate) : 1,
+        confirm_large_sar: Boolean(data.confirm_large_sar),
         branch_id: data.branch_id || null,
       } as unknown as Json,
     });

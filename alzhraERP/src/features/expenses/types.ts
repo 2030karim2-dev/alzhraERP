@@ -44,6 +44,8 @@ export interface ExpenseFormData {
   frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   recurring_end_date?: string;
   branch_id?: string | null;
+  confirm_large_sar?: boolean;
+  idempotency_key?: string;
 }
 
 export interface ExpenseCategorySummary {

@@ -195,6 +195,15 @@ export const partiesApi = {
 
     return { invoices, payments, journalLines };
   },
+
+  // دمج طرفين مكررين ذرياً ونقل كافة الفواتير والقيود للطرف الأساسي
+  mergePartiesRPC: async (companyId: string, sourcePartyId: string, targetPartyId: string) => {
+    return await supabase.rpc('merge_duplicate_parties' as any, {
+      p_company_id: companyId,
+      p_source_id: sourcePartyId,
+      p_target_id: targetPartyId,
+    });
+  },
 };
 
 export { customerApi } from './api/enhanced/customerApi';

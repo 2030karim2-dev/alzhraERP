@@ -104,6 +104,13 @@ export const reportsApi = {
     });
   },
 
+  // تشغيل محرك التدقيق والرقابة المحاسبية الذاتي
+  auditErpIntegrityRPC: async (companyId: string) => {
+    return await supabase.rpc('fn_audit_erp_integrity' as any, {
+      p_company_id: companyId,
+    });
+  },
+
   // جلب كشف حساب لجهة معينة (عميل أو مورد)
   getPartyLedger: async (partyId: string) => {
     const { data: invoices } = (await supabase
