@@ -47,6 +47,7 @@ export const accountsService = {
     // are actually needed (e.g. the accounts list view); callers that only
     // route by account metadata (id/code/type) skip it entirely.
     const balanceMap = new Map<string, number>();
+    const foreignBalanceMap = new Map<string, number>();
     if (options?.includeBalances) {
       const { data: balances, error: balancesError } = await supabase.rpc(
         'report_account_balances',
@@ -59,7 +60,13 @@ export const accountsService = {
       if (balancesError) throw parseError(balancesError);
 
       for (const row of balances ?? []) {
-        balanceMap.set(row.account_id, Number(row.balance) || 0);
+        const r = row as {
+          account_id: string;
+          balance?: number | null;
+          foreign_balance?: number | null;
+        };
+        balanceMap.set(r.account_id, Number(r.balance) || 0);
+        foreignBalanceMap.set(r.account_id, Number(r.foreign_balance) || 0);
       }
     }
 
@@ -70,6 +77,7 @@ export const accountsService = {
       // liabilities / equity / revenue appear as positive CREDIT balances
       // (standard accounting presentation) instead of negative numbers.
       const rawBalance = balanceMap.get(acc.id) ?? 0;
+      const rawForeignBalance = foreignBalanceMap.get(acc.id) ?? 0;
       const isCreditNormal =
         acc.type === 'liability' || acc.type === 'equity' || acc.type === 'revenue';
       return {
@@ -79,6 +87,7 @@ export const accountsService = {
         name: acc.name_ar,
         type: acc.type as Account['type'],
         balance: isCreditNormal ? -rawBalance : rawBalance,
+        foreign_balance: isCreditNormal ? -rawForeignBalance : rawForeignBalance,
         currency_code: acc.currency_code || 'SAR',
         is_system: acc.is_system,
         parent_id: acc.parent_id ?? undefined,

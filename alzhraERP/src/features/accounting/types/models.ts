@@ -21,6 +21,7 @@ export interface Account {
   name_ar?: string;
   type: AccountType;
   balance: number;
+  foreign_balance?: number | undefined;
   currency_code: string;
   is_system: boolean;
   parent_id?: string | null | undefined;

@@ -6,6 +6,7 @@ export interface LedgerEntry {
   debit_amount: number;
   credit_amount: number;
   balance: number; // Running balance (sign-normalised by the RPC per account nature)
+  foreign_balance?: number | undefined;
   accountType?: string; // 'asset'|'expense' → debit-normal; 'liability'|'equity'|'revenue' → credit-normal
   branch_id?: string | null;
   currency_code?: string;

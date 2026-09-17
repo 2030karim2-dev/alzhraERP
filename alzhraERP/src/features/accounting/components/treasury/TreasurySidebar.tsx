@@ -102,7 +102,7 @@ const SidebarItem: React.FC<{
           </span>
         </div>
 
-        <div className="pe-2 text-start">
+        <div className="flex flex-col items-end pe-2 text-start">
           <span
             dir="ltr"
             className={cn(
@@ -111,8 +111,18 @@ const SidebarItem: React.FC<{
               depth === 0 ? 'text-sm' : 'text-xs'
             )}
           >
-            {formatCurrency(node.balance, node.currency_code)}
+            {!hasChildren &&
+            node.currency_code &&
+            node.currency_code !== 'SAR' &&
+            node.foreign_balance !== undefined
+              ? formatCurrency(node.foreign_balance, node.currency_code)
+              : formatCurrency(node.balance, 'SAR')}
           </span>
+          {!hasChildren && node.currency_code && node.currency_code !== 'SAR' && (
+            <span dir="ltr" className="text-muted-foreground font-mono text-[10px] opacity-75">
+              ≈ {formatCurrency(node.balance, 'SAR')}
+            </span>
+          )}
         </div>
 
         {isSelected && <div className="absolute bottom-0 end-0 top-0 w-1 bg-blue-500" />}

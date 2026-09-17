@@ -114,7 +114,19 @@ const AccountTreeRow: React.FC<{
           dir="ltr"
           className={`border-b border-[var(--app-border)] p-2 text-start font-mono text-[11px] font-bold ${node.balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}
         >
-          {formatCurrency(node.balance || 0)}
+          <div>
+            {node.children.length === 0 &&
+            node.currency_code &&
+            node.currency_code !== 'SAR' &&
+            node.foreign_balance !== undefined
+              ? formatCurrency(node.foreign_balance, node.currency_code)
+              : formatCurrency(node.balance || 0)}
+          </div>
+          {node.children.length === 0 && node.currency_code && node.currency_code !== 'SAR' && (
+            <div className="text-muted-foreground font-mono text-[10px] opacity-75">
+              ≈ {formatCurrency(node.balance || 0, 'SAR')}
+            </div>
+          )}
         </td>
         {/* Actions */}
         <td className="border-b border-[var(--app-border)] p-2 text-center">

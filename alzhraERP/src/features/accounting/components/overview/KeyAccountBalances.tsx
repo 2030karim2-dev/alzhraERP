@@ -59,10 +59,29 @@ const KeyAccountBalances: React.FC = () => {
     return byType || null;
   };
 
-  /** حساب الرصيد المجمّع (الحساب الأب + فروعه المباشرة) - الأرصدة في الخدمة محسوبة سلفاً بالعملة الأساسية (SAR). */
+  /** حساب الرصيد المجمّع (الحساب الأب + فروعه المباشرة والشجرية) - الأرصدة في الخدمة محسوبة سلفاً بالعملة الأساسية (SAR). */
   const computeBalance = (root: Account): number => {
-    const children = accounts?.filter(a => a.parent_id === root.id) || [];
-    return children.reduce((sum, child) => sum + (child.balance || 0), root.balance || 0);
+    if (!accounts || accounts.length === 0) return root.balance || 0;
+
+    const prefix = root.code.replace(/[^0-9]/g, '');
+    const matchedAccountIds = new Set<string>([root.id]);
+
+    for (const a of accounts) {
+      if (a.id === root.id) continue;
+      if (a.parent_id === root.id) {
+        matchedAccountIds.add(a.id);
+        continue;
+      }
+      // Also match by code prefix (e.g. 101001, 1010-01 under 1010)
+      const aCodeClean = a.code.replace(/[^0-9]/g, '');
+      if (prefix.length >= 3 && aCodeClean.startsWith(prefix)) {
+        matchedAccountIds.add(a.id);
+      }
+    }
+
+    return accounts
+      .filter(a => matchedAccountIds.has(a.id))
+      .reduce((sum, a) => sum + (a.balance || 0), 0);
   };
 
   return (

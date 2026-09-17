@@ -4,118 +4,17 @@ import { logger } from '../../../../../core/utils/logger';
 import { parseError } from '../../../../../core/utils/errorUtils';
 import { useParties } from '../../../../parties/hooks';
 import { useFeedbackStore } from '../../../../feedback/store';
-import type { Product } from '../../../../inventory/types';
+import { useQuotationItems } from './useQuotationItems';
 import type { Party } from '../../../../parties/types';
 import { purchaseQuotationsApi } from '../../../api/quotationsApi';
 import {
   buildQuotationDraftKey,
-  createEmptyItemRow,
   restoreQuotationDraft,
   type QuotationDraftSnapshot,
   type RestoredQuotationDraft,
 } from './draft';
 import { usePurchaseQuotationDraft } from './usePurchaseQuotationDraft';
-import type { ItemRow, ProductModalState, SupplierOption } from './types';
-
-type ItemFieldUpdater = (index: number, field: keyof ItemRow, value: string | number) => void;
-type ItemSearcher = (index: number, query?: string) => void;
-
-/** سعر صالح للاستخدام = عدد منتهٍ وغير صفري (يطابق دلالة `||` السابقة). */
-const isUsablePrice = (value: number | null | undefined): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value !== 0;
-
-/** سعر شراء المنتج: شراء ← تكلفة ← صفر. */
-const resolveProductUnitPrice = (product: Product): number => {
-  if (isUsablePrice(product.purchase_price)) return product.purchase_price;
-  if (isUsablePrice(product.cost_price)) return product.cost_price;
-  return 0;
-};
-
-/**
- * بنود العرض: الإضافة والتعديل والحذف + حالة نافذة اختيار المنتج.
- * تنطّع الحذف عند بقاء بند واحد فقط (لا يمكن ترك الجدول فارغاً).
- */
-const useQuotationItems = (
-  initialItems: ItemRow[]
-): {
-  items: ItemRow[];
-  productModal: ProductModalState;
-  updateItem: ItemFieldUpdater;
-  addItem: () => void;
-  removeItem: (index: number) => void;
-  resetItems: () => void;
-  openProductSearch: ItemSearcher;
-  closeProductSearch: () => void;
-  applyProduct: (product: Product) => void;
-} => {
-  const [items, setItems] = useState<ItemRow[]>(initialItems);
-  const [productModal, setProductModal] = useState<ProductModalState>({
-    isOpen: false,
-    rowIndex: 0,
-    query: '',
-  });
-
-  const updateItem = useCallback<ItemFieldUpdater>((index, field, value): void => {
-    setItems(previous =>
-      previous.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item))
-    );
-  }, []);
-
-  const addItem = useCallback((): void => {
-    setItems(previous => [...previous, createEmptyItemRow()]);
-  }, []);
-
-  const removeItem = useCallback((index: number): void => {
-    setItems(previous =>
-      previous.length <= 1 ? previous : previous.filter((_, itemIndex) => itemIndex !== index)
-    );
-  }, []);
-
-  const resetItems = useCallback((): void => {
-    setItems([createEmptyItemRow()]);
-  }, []);
-
-  const openProductSearch = useCallback<ItemSearcher>((index, query = ''): void => {
-    setProductModal({ isOpen: true, rowIndex: index, query });
-  }, []);
-
-  const closeProductSearch = useCallback((): void => {
-    setProductModal(previous => ({ ...previous, isOpen: false }));
-  }, []);
-
-  const applyProduct = useCallback(
-    (product: Product): void => {
-      setItems(previous =>
-        previous.map((item, index) =>
-          index === productModal.rowIndex
-            ? {
-                ...item,
-                productId: product.id,
-                description: product.name,
-                partNumber: (product as { part_number?: string }).part_number ?? '',
-                size: product.size ?? '',
-                unitPrice: resolveProductUnitPrice(product),
-              }
-            : item
-        )
-      );
-      setProductModal(previous => ({ ...previous, isOpen: false }));
-    },
-    [productModal.rowIndex]
-  );
-
-  return {
-    items,
-    productModal,
-    updateItem,
-    addItem,
-    removeItem,
-    resetItems,
-    openProductSearch,
-    closeProductSearch,
-    applyProduct,
-  };
-};
+import type { ItemRow, SupplierOption } from './types';
 
 /**
  * حالة اختيار المورد: المورد المختار + نص البحث + فتح/إغلاق القائمة المنسدلة.
@@ -219,20 +118,24 @@ interface UseSavePurchaseQuotationParams {
  * - تحويل أخطاء قاعدة البيانات إلى رسالة عربية عبر `parseError`.
  * - تنظيف المسودة ثم إبلاغ الأب بالنجاح.
  */
-const useSavePurchaseQuotation = ({
-  companyId,
-  userId,
-  rfqGroupId,
-  items,
-  selectedParty,
-  issueDate,
-  currencyCode,
-  deliveryTerms,
-  paymentTerms,
-  notes,
-  clearDraft,
-  onSuccess,
-}: UseSavePurchaseQuotationParams): { saving: boolean; handleSave: () => Promise<void> } => {
+const buildQuotationPayload = (
+  params: UseSavePurchaseQuotationParams,
+  validItems: ItemRow[]
+): Parameters<typeof purchaseQuotationsApi.createQuotation>[2] => ({
+  partyId: params.selectedParty?.id ?? null,
+  issueDate: params.issueDate,
+  currencyCode: params.currencyCode,
+  items: validItems,
+  notes: params.notes.trim() !== '' ? params.notes : undefined,
+  deliveryTerms: params.deliveryTerms.trim() !== '' ? params.deliveryTerms : undefined,
+  paymentTerms: params.paymentTerms.trim() !== '' ? params.paymentTerms : undefined,
+  rfqGroupId: params.rfqGroupId,
+});
+
+const useSavePurchaseQuotation = (
+  params: UseSavePurchaseQuotationParams
+): { saving: boolean; handleSave: () => Promise<void> } => {
+  const { companyId, userId, items, clearDraft, onSuccess } = params;
   const { showToast } = useFeedbackStore();
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -248,16 +151,11 @@ const useSavePurchaseQuotation = ({
     savingRef.current = true;
     setSaving(true);
     try {
-      await purchaseQuotationsApi.createQuotation(companyId, userId, {
-        partyId: selectedParty?.id ?? null,
-        issueDate,
-        currencyCode,
-        items: validItems,
-        notes: notes.trim() !== '' ? notes : undefined,
-        deliveryTerms: deliveryTerms.trim() !== '' ? deliveryTerms : undefined,
-        paymentTerms: paymentTerms.trim() !== '' ? paymentTerms : undefined,
-        rfqGroupId,
-      });
+      await purchaseQuotationsApi.createQuotation(
+        companyId,
+        userId,
+        buildQuotationPayload(params, validItems)
+      );
       clearDraft();
       onSuccess();
     } catch (error) {
@@ -284,12 +182,7 @@ export interface UsePurchaseQuotationFormParams {
  * الحالة الكاملة لنموذج «تسجيل عرض سعر مورد»: البنود + المورد + الشروط +
  * المسودة التلقائية + الإجمالي + الإرسال. الواجهة العامة محفوظة كما كانت.
  */
-export function usePurchaseQuotationForm({
-  companyId,
-  userId,
-  rfqGroupId,
-  onSuccess,
-}: UsePurchaseQuotationFormParams): {
+interface PurchaseQuotationFormController {
   items: ReturnType<typeof useQuotationItems>;
   party: ReturnType<typeof useQuotationPartyState>;
   terms: ReturnType<typeof useQuotationTermsState>;
@@ -301,7 +194,38 @@ export function usePurchaseQuotationForm({
   discardDraft: () => void;
   saving: boolean;
   handleSave: () => Promise<void>;
-} {
+}
+
+const useQuotationSnapshot = (
+  items: ItemRow[],
+  party: SupplierOption | null,
+  terms: ReturnType<typeof useQuotationTermsState>
+): QuotationDraftSnapshot => {
+  const { issueDate, currencyCode, deliveryTerms, paymentTerms, notes } = terms;
+  return useMemo(
+    () => ({
+      items,
+      party,
+      issueDate,
+      currencyCode,
+      deliveryTerms,
+      paymentTerms,
+      notes,
+    }),
+    [items, party, issueDate, currencyCode, deliveryTerms, paymentTerms, notes]
+  );
+};
+
+const calculateQuotationTotal = (items: ItemRow[]): number =>
+  items.reduce(
+    (sum, item) => sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100),
+    0
+  );
+
+export function usePurchaseQuotationForm(
+  params: UsePurchaseQuotationFormParams
+): PurchaseQuotationFormController {
+  const { companyId, userId, rfqGroupId } = params;
   const draftKey = buildQuotationDraftKey(companyId, userId, rfqGroupId);
   const [restored] = useState<RestoredQuotationDraft>(() => restoreQuotationDraft(draftKey));
   const items = useQuotationItems(restored.items);
@@ -309,26 +233,7 @@ export function usePurchaseQuotationForm({
   const terms = useQuotationTermsState(restored);
   const { data: suppliers, isLoading: suppliersLoading } = useParties('supplier', party.partyQuery);
 
-  const snapshot = useMemo<QuotationDraftSnapshot>(
-    () => ({
-      items: items.items,
-      party: party.selectedParty,
-      issueDate: terms.issueDate,
-      currencyCode: terms.currencyCode,
-      deliveryTerms: terms.deliveryTerms,
-      paymentTerms: terms.paymentTerms,
-      notes: terms.notes,
-    }),
-    [
-      items.items,
-      party.selectedParty,
-      terms.issueDate,
-      terms.currencyCode,
-      terms.deliveryTerms,
-      terms.paymentTerms,
-      terms.notes,
-    ]
-  );
+  const snapshot = useQuotationSnapshot(items.items, party.selectedParty, terms);
 
   const { hasDraft, clearDraft } = usePurchaseQuotationDraft({
     draftKey,
@@ -336,39 +241,24 @@ export function usePurchaseQuotationForm({
     snapshot,
   });
 
-  const total = useMemo(
-    () =>
-      items.items.reduce(
-        (sum, item) => sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100),
-        0
-      ),
-    [items.items]
-  );
+  const total = useMemo(() => calculateQuotationTotal(items.items), [items.items]);
   const hasValidItem = items.items.some(
     item => item.description.trim() !== '' && item.quantity > 0
   );
 
   const { saving, handleSave } = useSavePurchaseQuotation({
-    companyId,
-    userId,
-    rfqGroupId,
-    items: items.items,
-    selectedParty: party.selectedParty,
-    issueDate: terms.issueDate,
-    currencyCode: terms.currencyCode,
-    deliveryTerms: terms.deliveryTerms,
-    paymentTerms: terms.paymentTerms,
-    notes: terms.notes,
+    ...params,
+    ...snapshot,
+    selectedParty: snapshot.party,
     clearDraft,
-    onSuccess,
   });
 
-  const discardDraft = (): void => {
+  const discardDraft = useCallback((): void => {
     clearDraft();
     items.resetItems();
     party.resetParty();
     terms.resetTerms();
-  };
+  }, [clearDraft, items, party, terms]);
 
   return {
     items,

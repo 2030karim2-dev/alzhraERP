@@ -149,16 +149,26 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
           row.balance,
           row.accountType
         );
+        const isForeignLine = Boolean(
+          row.foreign_balance !== undefined && row.currency_code && row.currency_code !== 'SAR'
+        );
         return (
-          <div className="text-left">
+          <div className="space-y-0.5 text-left">
             <span
               className={`flex items-center text-xs font-bold max-md:gap-1 ${isCredit ? 'text-red-600' : 'text-blue-600'}`}
             >
               <span>{balanceLabel}</span>
               <span dir="ltr" className="font-mono">
-                {formatCurrency(Math.abs(row.balance))}
+                {isForeignLine
+                  ? formatCurrency(Math.abs(row.foreign_balance!), row.currency_code)
+                  : formatCurrency(Math.abs(row.balance))}
               </span>
             </span>
+            {isForeignLine && (
+              <div dir="ltr" className="font-mono text-[10px] text-gray-400">
+                ≈ {formatCurrency(Math.abs(row.balance), 'SAR')}
+              </div>
+            )}
           </div>
         );
       },
@@ -184,7 +194,13 @@ const LedgerView: React.FC<Props> = ({ dateRange, accountId, showAccountSelector
               showLabel
               eventType="ledger"
               title={`مشاركة كشف حساب ${selectedAccount?.name}`}
-              message={`📒 دفتر الأستاذ - كشف حساب\n━━━━━━━━━━━━━━\n📋 الحساب: ${selectedAccount?.name} (${selectedAccount?.code})\n📗 إجمالي المدين: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.debit_amount, 0))}\n📕 إجمالي الدائن: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.credit_amount, 0))}\n💰 الرصيد النهائي: ${formatCurrency(ledger[ledger.length - 1]?.balance || 0)}\n📅 الفترة: من ${dateRange.from} إلى ${dateRange.to}`}
+              message={`📒 دفتر الأستاذ - كشف حساب\n━━━━━━━━━━━━━━\n📋 الحساب: ${selectedAccount?.name} (${selectedAccount?.code})\n📗 إجمالي المدين: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.debit_amount, 0))}\n📕 إجمالي الدائن: ${formatCurrency(ledger.reduce((s: number, r: LedgerEntry) => s + r.credit_amount, 0))}\n💰 الرصيد النهائي: ${
+                selectedAccount?.currency_code &&
+                selectedAccount.currency_code !== 'SAR' &&
+                ledger[ledger.length - 1]?.foreign_balance !== undefined
+                  ? `${formatCurrency(ledger[ledger.length - 1].foreign_balance || 0, selectedAccount.currency_code)} (≈ ${formatCurrency(ledger[ledger.length - 1]?.balance || 0, 'SAR')})`
+                  : formatCurrency(ledger[ledger.length - 1]?.balance || 0)
+              }\n📅 الفترة: من ${dateRange.from} إلى ${dateRange.to}`}
             />
           )}
         </div>
