@@ -11,11 +11,12 @@ const CACHE_KEY_PREFIX = 'alzahra_party_cache_';
 
 export const partyCache = {
   /**
-   * Get cached parties for a specific company and type
+   * Get cached parties for a specific company, type, and optional branch
    */
-  get: (companyId: string, type: PartyType): Party[] => {
+  get: (companyId: string, type: PartyType, branchId?: string | null): Party[] => {
     try {
-      const key = `${CACHE_KEY_PREFIX}${companyId}_${type}`;
+      const branchKey = branchId ?? 'all';
+      const key = `${CACHE_KEY_PREFIX}${companyId}_${branchKey}_${type}`;
       const stored = localStorage.getItem(key);
       if (!stored) return [];
 
@@ -24,14 +25,11 @@ export const partyCache = {
       const timestamp = parsed.timestamp;
 
       // Expire cache after 1 hour to ensure fresh data eventual consistency.
-      // Also drop the stale entry so it stops occupying storage.
       if (typeof timestamp !== 'number' || Date.now() - timestamp > 3600000) {
         localStorage.removeItem(key);
         return [];
       }
 
-      // Guard the shape we trust downstream: corrupt/legacy payloads must
-      // never surface as malformed parties.
       if (!Array.isArray(data)) {
         logger.warn('party-cache', 'Party cache entry malformed, discarding for', key);
         localStorage.removeItem(key);
@@ -48,9 +46,10 @@ export const partyCache = {
   /**
    * Set cached parties
    */
-  set: (companyId: string, type: PartyType, data: Party[]) => {
+  set: (companyId: string, type: PartyType, data: Party[], branchId?: string | null) => {
     try {
-      const key = `${CACHE_KEY_PREFIX}${companyId}_${type}`;
+      const branchKey = branchId ?? 'all';
+      const key = `${CACHE_KEY_PREFIX}${companyId}_${branchKey}_${type}`;
       localStorage.setItem(
         key,
         JSON.stringify({
@@ -64,16 +63,33 @@ export const partyCache = {
   },
 
   /**
-   * Clear cache for a specific company/type
+   * Clear cache for a specific company/type/branch
    */
-  clear: (companyId: string, type: PartyType) => {
-    // localStorage.removeItem can throw in restricted/incognito contexts —
-    // keep the parity with `get`/`set` so callers are never broken.
+  clear: (companyId: string, type: PartyType, branchId?: string | null) => {
     try {
-      const key = `${CACHE_KEY_PREFIX}${companyId}_${type}`;
+      const branchKey = branchId ?? 'all';
+      const key = `${CACHE_KEY_PREFIX}${companyId}_${branchKey}_${type}`;
       localStorage.removeItem(key);
     } catch (e) {
       logger.error('party-cache', 'Failed to clear party cache:', e);
+    }
+  },
+
+  /**
+   * Clear all party caches
+   */
+  clearAll: () => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(CACHE_KEY_PREFIX)) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch (e) {
+      logger.error('party-cache', 'Failed to clear all party caches:', e);
     }
   },
 };

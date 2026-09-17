@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { debtsService } from '../services/debtService';
 import { debtApi, debtMessageApi } from '../api/debtApi';
+import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 
 const STALE_TIME = 60 * 1000; // 1 min — debt data changes with every payment
 
@@ -16,9 +17,11 @@ const useCompanyId = (): string | undefined => {
 
 export const useDebtDashboard = () => {
   const companyId = useCompanyId();
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['debts', 'dashboard', companyId],
-    queryFn: () => (companyId ? debtsService.getDashboard(companyId) : Promise.resolve([])),
+    queryKey: ['debts', 'dashboard', companyId, branchId],
+    queryFn: () =>
+      companyId ? debtsService.getDashboard(companyId, branchId) : Promise.resolve([]),
     enabled: !!companyId,
     staleTime: STALE_TIME,
   });
@@ -26,9 +29,11 @@ export const useDebtDashboard = () => {
 
 export const useDebtAnalytics = () => {
   const companyId = useCompanyId();
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['debts', 'analytics', companyId],
-    queryFn: () => (companyId ? debtsService.getAnalytics(companyId) : Promise.resolve(null)),
+    queryKey: ['debts', 'analytics', companyId, branchId],
+    queryFn: () =>
+      companyId ? debtsService.getAnalytics(companyId, branchId) : Promise.resolve(null),
     enabled: !!companyId,
     staleTime: STALE_TIME,
   });
@@ -36,9 +41,11 @@ export const useDebtAnalytics = () => {
 
 export const useDebtTodayTasks = () => {
   const companyId = useCompanyId();
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['debts', 'today_tasks', companyId],
-    queryFn: () => (companyId ? debtsService.getTodayTasks(companyId) : Promise.resolve([])),
+    queryKey: ['debts', 'today_tasks', companyId, branchId],
+    queryFn: () =>
+      companyId ? debtsService.getTodayTasks(companyId, branchId) : Promise.resolve([]),
     enabled: !!companyId,
     staleTime: STALE_TIME,
   });
@@ -46,10 +53,18 @@ export const useDebtTodayTasks = () => {
 
 export const useDebtPromises = (filters?: { partyId?: string; status?: string }) => {
   const companyId = useCompanyId();
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['debts', 'promises', companyId, filters?.partyId ?? '', filters?.status ?? ''],
+    queryKey: [
+      'debts',
+      'promises',
+      companyId,
+      branchId,
+      filters?.partyId ?? '',
+      filters?.status ?? '',
+    ],
     queryFn: () =>
-      companyId ? debtApi.getPromises(companyId, filters) : Promise.resolve([]),
+      companyId ? debtApi.getPromises(companyId, { ...filters, branchId }) : Promise.resolve([]),
     enabled: !!companyId,
     staleTime: STALE_TIME,
   });
@@ -94,8 +109,7 @@ export const useDebtFollowupConfig = () => {
   const companyId = useCompanyId();
   return useQuery({
     queryKey: ['debts', 'followup_config', companyId],
-    queryFn: () =>
-      companyId ? debtApi.getFollowupConfig(companyId) : Promise.resolve(null),
+    queryFn: () => (companyId ? debtApi.getFollowupConfig(companyId) : Promise.resolve(null)),
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
   });

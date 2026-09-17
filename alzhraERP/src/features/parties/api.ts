@@ -44,10 +44,10 @@ async function fetchPartyCurrencies(
 }
 
 export const partiesApi = {
-  getParties: async (companyId: string, type: PartyType) => {
+  getParties: async (companyId: string, type: PartyType, branchId?: string | null) => {
     // 'all' → جلب جميع الأطراف بغض النظر عن النوع (عملاء وموردين)
     const typeFilter = type === 'all' ? ['customer', 'supplier', 'both'] : [type, 'both'];
-    const { data: partiesData, error: partiesError } = await supabase
+    let partiesQuery = supabase
       .from('parties')
       .select('*, party_categories(id, name)')
       .eq('company_id', companyId)
@@ -55,17 +55,25 @@ export const partiesApi = {
       .is('deleted_at', null)
       .order('name', { ascending: true });
 
+    if (branchId) {
+      partiesQuery = partiesQuery.eq('branch_id', branchId);
+    }
+
+    const { data: partiesData, error: partiesError } = await partiesQuery;
+
     if (partiesError !== null) return { data: null, error: partiesError };
     if (partiesData.length === 0) return { data: [], error: null };
+
+    const partyIds = partiesData.map(p => p.id);
 
     const { data: balancesData, error: balancesError } = await supabase
       .from('party_balances')
       .select('party_id, balance, type')
       .eq('company_id', companyId)
-      .in('type', typeFilter);
+      .in('party_id', partyIds);
 
     const balancesMap = new Map();
-    if (balancesError === null) {
+    if (balancesError === null && balancesData !== null) {
       balancesData.forEach(b => balancesMap.set(b.party_id, b));
     }
 
@@ -80,11 +88,12 @@ export const partiesApi = {
     return { data: mergedData, error: null };
   },
 
-  createParty: async (data: PartyFormData, companyId: string) => {
+  createParty: async (data: PartyFormData, companyId: string, branchId?: string | null) => {
     const extended = data as unknown as Record<string, unknown>;
 
     const insertPayload = mapToInsert<'parties'>({
       company_id: companyId,
+      branch_id: branchId ?? (extended.branch_id as string | undefined) ?? null,
       type: data.type,
       name: data.name,
       phone: toCleanStr(data.phone),

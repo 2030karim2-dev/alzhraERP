@@ -10,6 +10,7 @@ import { partyCache } from './lib/party-cache';
 
 import { filterPartiesSmart } from '../../core/utils/partySearch';
 import { invalidateByPreset } from '../../lib/invalidation';
+import { useBranchFilter } from '../branches/hooks/useBranchFilter';
 
 export const useCustomers = (searchTerm = '') => useParties('customer', searchTerm);
 export const useSuppliers = (searchTerm = '') => useParties('supplier', searchTerm);
@@ -17,17 +18,18 @@ export const useSuppliers = (searchTerm = '') => useParties('supplier', searchTe
 export const useParties = (type: PartyType, searchTerm = '') => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
+  const { branchId } = useBranchFilter();
 
   const query = useQuery({
-    queryKey: ['parties', companyId, type],
+    queryKey: ['parties', companyId, type, branchId],
     queryFn: async () => {
       if (!companyId) return [];
-      const data = await partiesService.getParties(companyId, type);
-      partyCache.set(companyId, type, data);
+      const data = await partiesService.getParties(companyId, type, branchId);
+      partyCache.set(companyId, type, data, branchId);
       return data;
     },
     enabled: !!companyId,
-    initialData: () => (companyId ? partyCache.get(companyId, type) : []),
+    initialData: () => (companyId ? partyCache.get(companyId, type, branchId) : []),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -74,17 +76,18 @@ export const usePartyMutations = (type: PartyType) => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useFeedbackStore();
+  const { branchId } = useBranchFilter();
 
   const saveParty = useMutation({
     mutationFn: async ({ data, id }: { data: PartyFormData; id?: string }) => {
       if (!user?.company_id) throw new Error('Authentication required');
-      return partiesService.saveParty(user.company_id, data, id);
+      return partiesService.saveParty(user.company_id, data, id, branchId);
     },
     onSuccess: () => {
       // Read the *current* user instead of the render-closure value: if the user
       // logged out/in between render and callback, invalidate the right key.
       const currentUser = useAuthStore.getState().user;
-      queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id, type] });
+      queryClient.invalidateQueries({ queryKey: ['parties', currentUser?.company_id] });
       invalidateByPreset(queryClient, 'party');
       showToast('تم حفظ البيانات بنجاح', 'success');
     },

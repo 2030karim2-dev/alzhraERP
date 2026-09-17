@@ -35,20 +35,28 @@ export const DEBT_ENGINE_DEFAULTS = {
 
 export const debtApi = {
   // ── Follow-up engine (RPCs — server-classified, display only) ──
-  getDashboard: async (companyId: string): Promise<FollowUpDashboardRow[]> => {
+  getDashboard: async (
+    companyId: string,
+    branchId?: string | null
+  ): Promise<FollowUpDashboardRow[]> => {
     const { data, error } = await supabase.rpc('get_debt_followup_dashboard', {
       p_company_id: companyId,
       p_due_soon_days: DEBT_ENGINE_DEFAULTS.dueSoonDays,
       p_critical_days: DEBT_ENGINE_DEFAULTS.criticalDays,
       p_reminder_window_days: DEBT_ENGINE_DEFAULTS.reminderWindowDays,
+      p_branch_id: branchId ?? null,
     });
     if (error) throw error;
     return data;
   },
 
-  getAnalytics: async (companyId: string): Promise<Record<string, unknown> | null> => {
+  getAnalytics: async (
+    companyId: string,
+    branchId?: string | null
+  ): Promise<Record<string, unknown> | null> => {
     const { data, error } = await supabase.rpc('get_debt_analytics_summary', {
       p_company_id: companyId,
+      p_branch_id: branchId ?? null,
     });
     if (error) {
       // Graceful degradation (same pattern as getTodayTasks): on a database
@@ -63,15 +71,12 @@ export const debtApi = {
     return data as Record<string, unknown>;
   },
 
-  getTodayTasks: async (companyId: string): Promise<TodayTask[]> => {
+  getTodayTasks: async (companyId: string, branchId?: string | null): Promise<TodayTask[]> => {
     const { data, error } = await supabase.rpc('get_debt_today_tasks', {
       p_company_id: companyId,
+      p_branch_id: branchId ?? null,
     });
     if (error) {
-      // The RPC is created by the debt module migrations (20260819000002 /
-      // 20260823000001). Until it exists on the server, degrade gracefully
-      // (return []) instead of throwing — throwing makes TanStack Query retry
-      // and spam 400s.
       if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
         logger.warn(
           'DebtAPI',
@@ -136,15 +141,16 @@ export const debtApi = {
   // ── Payment promises ──
   getPromises: async (
     companyId: string,
-    filters?: { partyId?: string; status?: string }
+    filters?: { partyId?: string; status?: string; branchId?: string | null }
   ): Promise<PaymentPromiseWithParty[]> => {
     let query = supabase
       .from('debt_payment_promises')
-      .select('*, parties(name, phone)')
+      .select('*, parties!inner(name, phone, branch_id)')
       .eq('company_id', companyId)
       .order('promise_date', { ascending: true });
     if (filters?.partyId != null) query = query.eq('party_id', filters.partyId);
     if (filters?.status != null) query = query.eq('status', filters.status);
+    if (filters?.branchId) query = query.eq('parties.branch_id', filters.branchId);
     const { data, error } = await query;
     if (error) throw error;
     return data;

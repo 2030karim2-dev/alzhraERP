@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getRateToSAR } from '../../../features/purchases/components/quotations/QuotationComparisonView';
+import { getRateToSAR } from '../../../features/purchases/services/quotationComparison';
 import { computeAutoFitWidths } from '../../../core/utils/excelExporterBase';
 import {
   detectImportConflicts,

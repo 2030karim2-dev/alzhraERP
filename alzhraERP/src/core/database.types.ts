@@ -5021,6 +5021,7 @@ export type Database = {
           address: string | null
           avg_rating: number | null
           birth_date: string | null
+          branch_id: string | null
           category_id: string | null
           commercial_registration: string | null
           company_id: string
@@ -5060,6 +5061,7 @@ export type Database = {
           address?: string | null
           avg_rating?: number | null
           birth_date?: string | null
+          branch_id?: string | null
           category_id?: string | null
           commercial_registration?: string | null
           company_id: string
@@ -5099,6 +5101,7 @@ export type Database = {
           address?: string | null
           avg_rating?: number | null
           birth_date?: string | null
+          branch_id?: string | null
           category_id?: string | null
           commercial_registration?: string | null
           company_id?: string
@@ -5135,6 +5138,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "parties_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "parties_category_id_fkey"
             columns: ["category_id"]

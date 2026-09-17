@@ -6,12 +6,12 @@
  */
 import { debtApi, debtMessageApi, DEBT_ENGINE_DEFAULTS } from '../api/debtApi';
 import { renderReminderTemplate } from '../lib/messageTemplate';
-import { buildWhatsAppLink, hasValidWhatsAppPhone, normalizePhoneForWhatsApp } from '../lib/whatsapp';
-import type {
-  DebtAnalytics,
-  FollowUpDashboardRow,
-  FollowUpTab,
-} from '../types';
+import {
+  buildWhatsAppLink,
+  hasValidWhatsAppPhone,
+  normalizePhoneForWhatsApp,
+} from '../lib/whatsapp';
+import type { DebtAnalytics, FollowUpDashboardRow, FollowUpTab } from '../types';
 
 export interface PreparedReminder {
   message: string;
@@ -22,14 +22,16 @@ export interface PreparedReminder {
 
 export const debtsService = {
   /** Follow-up dashboard rows, already classified by the database. */
-  getDashboard: (companyId: string) => debtApi.getDashboard(companyId),
+  getDashboard: (companyId: string, branchId?: string | null) =>
+    debtApi.getDashboard(companyId, branchId),
 
-  getAnalytics: async (companyId: string): Promise<DebtAnalytics> => {
-    const raw = await debtApi.getAnalytics(companyId);
+  getAnalytics: async (companyId: string, branchId?: string | null): Promise<DebtAnalytics> => {
+    const raw = await debtApi.getAnalytics(companyId, branchId);
     return (raw ?? {}) as unknown as DebtAnalytics;
   },
 
-  getTodayTasks: (companyId: string) => debtApi.getTodayTasks(companyId),
+  getTodayTasks: (companyId: string, branchId?: string | null) =>
+    debtApi.getTodayTasks(companyId, branchId),
 
   getPartyOverview: (companyId: string, partyId: string) =>
     debtApi.getPartyOverview(companyId, partyId),
@@ -43,15 +45,13 @@ export const debtsService = {
       case 'all':
         return rows;
       case 'needs_reminder':
-        return rows.filter((r) => r.reminder_status === 'needs_reminder');
+        return rows.filter(r => r.reminder_status === 'needs_reminder');
       case 'reminded':
-        return rows.filter((r) => r.reminder_status === 'reminded');
+        return rows.filter(r => r.reminder_status === 'reminded');
       case 'overdue':
-        return rows.filter(
-          (r) => r.classification === 'overdue' || r.classification === 'critical'
-        );
+        return rows.filter(r => r.classification === 'overdue' || r.classification === 'critical');
       case 'today':
-        return rows.filter((r) => r.classification === 'due_today');
+        return rows.filter(r => r.classification === 'due_today');
       default:
         return rows;
     }

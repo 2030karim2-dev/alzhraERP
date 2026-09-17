@@ -18,8 +18,12 @@ export interface StatementMovement {
 }
 
 export const partiesService = {
-  getParties: async (companyId: string, type: PartyType): Promise<Party[]> => {
-    const { data, error } = await partiesApi.getParties(companyId, type);
+  getParties: async (
+    companyId: string,
+    type: PartyType,
+    branchId?: string | null
+  ): Promise<Party[]> => {
+    const { data, error } = await partiesApi.getParties(companyId, type, branchId);
     if (error) throw error;
     return (data || []).map((p: Record<string, unknown>) => {
       // party_balances is a joined array — take the first record's balance
@@ -199,7 +203,12 @@ export const partiesService = {
     };
   },
 
-  saveParty: async (companyId: string, data: PartyFormData, id?: string) => {
+  saveParty: async (
+    companyId: string,
+    data: PartyFormData,
+    id?: string,
+    branchId?: string | null
+  ) => {
     const trimmedName = (data.name || '').trim();
     if (!trimmedName) throw new Error('الاسم مطلوب');
 
@@ -251,7 +260,7 @@ export const partiesService = {
       }
     }
 
-    // 3. Check duplicate tax number (if tax number provided)
+    // 3. Check duplicate tax_number for same company (if provided)
     if (trimmedTaxNumber) {
       let taxQuery = supabase
         .from('parties')
@@ -290,7 +299,7 @@ export const partiesService = {
         const { error } = await partiesApi.updateParty(id, sanitizedData);
         if (error) throw error;
       } else {
-        const { error } = await partiesApi.createParty(sanitizedData, companyId);
+        const { error } = await partiesApi.createParty(sanitizedData, companyId, branchId);
         if (error) throw error;
       }
     } catch (error: unknown) {
