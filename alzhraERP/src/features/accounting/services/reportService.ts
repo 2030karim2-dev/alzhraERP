@@ -469,6 +469,13 @@ export const reportService = {
 
     const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1;
 
+    const cogsItems = expenseTBI.filter(
+      item => item.is_cogs || item.code === '5100' || item.code.startsWith('51')
+    );
+    const totalCogs = cogsItems.reduce((sum, item) => sum + item.net_balance, 0);
+    const operatingExpenses = totalExpense - totalCogs;
+    const grossProfit = totalRevenue - totalCogs;
+
     return {
       incomeStatement: {
         revenues: revenueTBI,
@@ -476,6 +483,9 @@ export const reportService = {
         netIncome,
         totalRevenue,
         totalExpense,
+        totalCogs,
+        grossProfit,
+        operatingExpenses,
       },
       balanceSheet: {
         assets: assetTBI,

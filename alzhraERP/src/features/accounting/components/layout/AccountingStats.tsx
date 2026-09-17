@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingDown, TrendingUp, Scale, Wallet, DollarSign } from 'lucide-react';
+import { TrendingDown, TrendingUp, Scale, Wallet, DollarSign, Package } from 'lucide-react';
 // Fix: Corrected import path to point to the barrel file.
 import { useFinancials } from '../../hooks/index';
 import { formatCurrency } from '../../../../core/utils';
@@ -10,8 +10,8 @@ const AccountingStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
-        {[1, 2, 3, 4, 5].map(i => (
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <div
             key={i}
             className="h-28 animate-pulse border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm"
@@ -21,18 +21,32 @@ const AccountingStats: React.FC = () => {
     );
   }
 
-  const netIncome = financials?.incomeStatement?.netIncome || 0;
-  const totalRevenue = financials?.incomeStatement?.totalRevenue || 0;
-  const totalExpenses = financials?.incomeStatement?.totalExpense || 0;
+  const incomeStmt = financials?.incomeStatement as
+    | {
+        netIncome?: number;
+        totalRevenue?: number;
+        totalExpense?: number;
+        totalCogs?: number;
+        grossProfit?: number;
+        operatingExpenses?: number;
+      }
+    | undefined;
+
+  const netIncome = incomeStmt?.netIncome || 0;
+  const totalRevenue = incomeStmt?.totalRevenue || 0;
+  const totalCogs = incomeStmt?.totalCogs || 0;
+  const operatingExpenses =
+    incomeStmt?.operatingExpenses ?? (incomeStmt?.totalExpense || 0) - totalCogs;
+  const grossProfit = incomeStmt?.grossProfit ?? totalRevenue - totalCogs;
   const totalAssets = financials?.balanceSheet?.totals?.assets || 0;
   const totalLiabilities = financials?.balanceSheet?.totals?.liabilities || 0;
 
   return (
-    <div className="grid grid-cols-2 gap-2 transition-colors duration-300 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 transition-colors duration-300 md:grid-cols-3 lg:grid-cols-6">
       <StatCard
         title="صافي الربح"
         value={formatCurrency(netIncome)}
-        subtext={netIncome >= 0 ? 'أرباح محققة' : 'خسائر'}
+        subtext={`مجمل: ${formatCurrency(grossProfit)}`}
         icon={DollarSign}
         colorClass={netIncome >= 0 ? 'text-emerald-500' : 'text-red-500'}
         iconBgClass={netIncome >= 0 ? 'bg-emerald-500' : 'bg-red-500'}
@@ -46,16 +60,25 @@ const AccountingStats: React.FC = () => {
       <StatCard
         title="الإيرادات"
         value={formatCurrency(totalRevenue)}
-        subtext="الدخل التشغيلي"
+        subtext="المبيعات والنشاط"
         icon={TrendingUp}
         colorClass="text-blue-500"
         iconBgClass="bg-blue-500"
       />
 
       <StatCard
-        title="المصروفات"
-        value={formatCurrency(totalExpenses)}
-        subtext="التكاليف والنفقات"
+        title="تكلفة المبيعات"
+        value={formatCurrency(totalCogs)}
+        subtext="تكلفة القطع المباعة (COGS)"
+        icon={Package}
+        colorClass="text-amber-500"
+        iconBgClass="bg-amber-500"
+      />
+
+      <StatCard
+        title="المصاريف التشغيلية"
+        value={formatCurrency(operatingExpenses)}
+        subtext="نثريات، إيجار، رواتب"
         icon={TrendingDown}
         colorClass="text-orange-500"
         iconBgClass="bg-orange-500"
@@ -64,7 +87,7 @@ const AccountingStats: React.FC = () => {
       <StatCard
         title="الأصول"
         value={formatCurrency(totalAssets)}
-        subtext="ممتلكات الشركة"
+        subtext="المخزون والأرصدة النقدية"
         icon={Wallet}
         colorClass="text-indigo-500"
         iconBgClass="bg-indigo-500"
@@ -73,7 +96,7 @@ const AccountingStats: React.FC = () => {
       <StatCard
         title="الخصوم"
         value={formatCurrency(totalLiabilities)}
-        subtext="الالتزامات القائمة"
+        subtext="الالتزامات والذمم"
         icon={Scale}
         colorClass="text-rose-500"
         iconBgClass="bg-rose-500"
