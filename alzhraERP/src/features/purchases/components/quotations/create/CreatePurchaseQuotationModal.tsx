@@ -4,15 +4,7 @@ import Modal from '../../../../../ui/base/Modal';
 import ProductSelectionModal from '../../../../sales/components/create/ProductSelectionModal';
 import { useAuthStore } from '../../../../auth/store';
 import { usePurchaseQuotationForm } from './usePurchaseQuotationForm';
-import { SupplierSection } from './SupplierSection';
-import { QuotationItemsTable } from './QuotationItemsTable';
-import {
-  DraftRestoredBanner,
-  QuotationFormFields,
-  QuotationModalFooter,
-  QuotationTermsSection,
-  QuotationTotalsBar,
-} from './QuotationFormSections';
+import { QuotationFormFields, QuotationModalFooter } from './QuotationFormSections';
 
 interface Props {
   onClose: () => void;
