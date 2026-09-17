@@ -60,12 +60,13 @@ export const expensesApi = {
     return { data: data || [], error: null };
   },
 
-  // استخدام RPC الموحد v2 الذي يدعم الربط المباشر بالحسابات وتحسين الأداء
+  // استخدام RPC الموحد v2 الذي يدعم الربط المباشر بالحسابات وتحسين الأداء ومنع التكرار
   createExpenseRPC: async (companyId: string, userId: string, data: ExpenseFormData) => {
     return await supabase.rpc('commit_expense_v2', {
       p_company_id: companyId,
       p_user_id: userId,
       p_data: {
+        idempotency_key: (data as any).idempotency_key || crypto.randomUUID(),
         category_id: data.category_id || null,
         amount: parseNumberFlexible(data.amount),
         description: data.description?.trim() || 'مصروف نثري',

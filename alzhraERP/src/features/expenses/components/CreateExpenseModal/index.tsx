@@ -35,6 +35,19 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
   const { register, handleSubmit, watch, setValue } = form;
 
   const { showToast } = useFeedbackStore();
+  const [localSubmitting, setLocalSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen || !isSubmitting) {
+      setLocalSubmitting(false);
+    }
+  }, [isOpen, isSubmitting]);
+
+  const handleSafeSubmit = (data: ExpenseFormData) => {
+    if (isSubmitting || localSubmitting) return;
+    setLocalSubmitting(true);
+    onSubmit(data);
+  };
 
   const onInvalidSubmit = (errors: Record<string, unknown>) => {
     // Collect error messages
@@ -56,18 +69,22 @@ const CreateExpenseModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isSubm
     }
   };
 
+  const isBusy = isSubmitting || localSubmitting;
+
   const footer = (
     <div className="flex w-full gap-2 p-1">
       <button
         type="button"
         onClick={onClose}
-        className="flex-1 border bg-gray-50 py-3 text-[11px] font-bold uppercase tracking-widest text-gray-500 transition-colors hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800"
+        disabled={isBusy}
+        className="flex-1 border bg-gray-50 py-3 text-[11px] font-bold uppercase tracking-widest text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800"
       >
         إلغاء
       </button>
       <Button
-        onClick={handleSubmit(onSubmit, onInvalidSubmit)}
-        isLoading={isSubmitting}
+        onClick={handleSubmit(handleSafeSubmit, onInvalidSubmit)}
+        isLoading={isBusy}
+        disabled={isBusy}
         className="flex-[2] rounded-none border-rose-700 bg-rose-600 text-[11px] font-bold uppercase tracking-widest shadow-xl"
         leftIcon={<Save size={16} />}
       >
