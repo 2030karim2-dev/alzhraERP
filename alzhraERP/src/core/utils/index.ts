@@ -17,6 +17,8 @@ export {
   parseNumberFlexible,
   calculateExchangeRate,
   CURRENCY_SYMBOLS,
+  ensureLatinDigits,
+  sanitizeNumericInput,
 } from './currencyUtils';
 
 export type { CurrencyCode, CurrencyConversionParams } from './currencyUtils';

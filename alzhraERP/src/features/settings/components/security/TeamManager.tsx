@@ -18,6 +18,7 @@ import Input from '../../../../ui/base/Input';
 import { useForm } from 'react-hook-form';
 import MicroListItem from '../../../../ui/common/MicroListItem';
 import { useI18nStore } from '@/lib/i18nStore';
+import { useAuthStore } from '@/features/auth/store';
 import { useBranches, useInvitations, useInvitationMutations } from '../../hooks';
 import { useCompanyMembers, type CompanyMember } from '../../hooks/useUserPermissions';
 import EmployeePermissionsModal from './EmployeePermissionsModal';
@@ -53,10 +54,24 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 const TeamManager: React.FC = () => {
   const { dictionary: t } = useI18nStore();
   const { register, handleSubmit, reset } = useForm();
+  const { user } = useAuthStore();
   const { data: branches = [] } = useBranches();
   const { data: invitations = [] } = useInvitations();
   const { inviteUser, revokeInvitation, isInviting } = useInvitationMutations();
   const { data: members = [], isLoading: isMembersLoading } = useCompanyMembers();
+
+  const isBranchScoped = Boolean(user?.branch_id && user?.role !== 'owner');
+  const userBranchId = user?.branch_id;
+  const currentBranchName =
+    user?.branch_name || branches.find(b => b.id === userBranchId)?.name || 'الفرع المخصص';
+
+  const visibleInvitations = isBranchScoped
+    ? invitations.filter(inv => inv.branch_id === userBranchId)
+    : invitations;
+
+  const visibleMembers = isBranchScoped
+    ? members.filter(m => m.branch_id === userBranchId)
+    : members;
 
   const [activeTab, setActiveTab] = useState<'members' | 'invitations'>('members');
   const [selectedMemberForPerms, setSelectedMemberForPerms] = useState<CompanyMember | null>(null);
@@ -69,7 +84,7 @@ const TeamManager: React.FC = () => {
 
   const onSubmit = async (data: any) => {
     try {
-      const branchId = data.branch_id || null;
+      const branchId = isBranchScoped ? userBranchId : data.branch_id || null;
       await inviteUser({
         email: data.email,
         role: data.role,
@@ -114,7 +129,7 @@ const TeamManager: React.FC = () => {
             )}
           >
             <UserCheck size={14} />
-            أعضاء الفريق ({members.length})
+            أعضاء الفريق ({visibleMembers.length})
           </button>
           <button
             type="button"
@@ -129,7 +144,7 @@ const TeamManager: React.FC = () => {
             )}
           >
             <Mail size={14} />
-            الدعوات ({invitations.length})
+            الدعوات ({visibleInvitations.length})
           </button>
         </div>
       </div>
@@ -140,7 +155,9 @@ const TeamManager: React.FC = () => {
           <div className="flex items-center justify-between">
             <h4 className="flex items-center gap-2 text-xs font-extrabold text-gray-700 dark:text-slate-300">
               <Shield size={14} className="text-purple-500" />
-              الموظفون المسجلون في المنشأة
+              {isBranchScoped
+                ? `الموظفون المسجلون في ${currentBranchName}`
+                : 'الموظفون المسجلون في المنشأة'}
             </h4>
             <span className="text-[10px] text-gray-400">
               انقر على "تخصيص الصلاحيات" لتحديد صلاحيات فردية لأي موظف
@@ -151,13 +168,13 @@ const TeamManager: React.FC = () => {
             <div className="py-12 text-center text-xs font-bold text-gray-400">
               جاري تحميل قائمة أعضاء الفريق...
             </div>
-          ) : members.length === 0 ? (
+          ) : visibleMembers.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-12 text-center text-xs font-bold text-gray-400 dark:border-slate-800 dark:bg-slate-950/30">
               لا يوجد أعضاء مسجلين حالياً. يمكنك إرسال دعوة للانضمام من تبويب الدعوات.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-              {members.map(member => {
+              {visibleMembers.map(member => {
                 const roleInfo = ROLE_LABELS[member.role] || {
                   label: member.role,
                   color: 'bg-gray-100 dark:bg-slate-800 text-gray-600',
@@ -242,11 +259,22 @@ const TeamManager: React.FC = () => {
                   {...register('role')}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-[11px] font-bold outline-none dark:border-slate-700 dark:bg-slate-800 max-md:p-2.5"
                 >
-                  <option value="admin">مسؤول نظام (Admin)</option>
-                  <option value="manager">مدير (Manager)</option>
-                  <option value="accountant">محاسب (Accountant)</option>
-                  <option value="sales">مبيعات (Sales)</option>
-                  <option value="viewer">مشاهد (Viewer)</option>
+                  {isBranchScoped ? (
+                    <>
+                      <option value="accountant">محاسب (Accountant)</option>
+                      <option value="sales">مبيعات (Sales)</option>
+                      <option value="viewer">مشاهد (Viewer)</option>
+                      <option value="manager">مساعد مدير فرع (Assistant Manager)</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="admin">مسؤول نظام (Admin)</option>
+                      <option value="manager">مدير (Manager)</option>
+                      <option value="accountant">محاسب (Accountant)</option>
+                      <option value="sales">مبيعات (Sales)</option>
+                      <option value="viewer">مشاهد (Viewer)</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -256,22 +284,39 @@ const TeamManager: React.FC = () => {
                   <GitBranch size={10} />
                   الفرع المخصص
                 </label>
-                <select
-                  {...register('branch_id')}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-[11px] font-bold outline-none dark:border-slate-700 dark:bg-slate-800 max-md:p-2.5"
-                >
-                  <option value="">-- بدون فرع محدد (إدارة عامة) --</option>
-                  {branches
-                    ?.filter((b: any) => b.status === 'active')
-                    .map((branch: any) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </option>
-                    ))}
-                </select>
-                <p className="px-1 text-[10px] text-gray-400">
-                  إذا تركته فارغاً، سيرى الموظف بيانات جميع الفروع
-                </p>
+                {isBranchScoped ? (
+                  <div className="rounded-xl border border-purple-200 bg-purple-50/60 p-2.5 dark:border-purple-900/40 dark:bg-purple-950/40">
+                    <div className="flex items-center gap-2 text-xs font-bold text-purple-700 dark:text-purple-300">
+                      <GitBranch size={13} className="text-purple-500" />
+                      <span>الفرع المخصص لدعوة الموظف:</span>
+                      <span className="rounded-lg bg-purple-200/70 px-2 py-0.5 text-purple-900 dark:bg-purple-900 dark:text-purple-200">
+                        {currentBranchName}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-purple-600/80 dark:text-purple-400/80">
+                      بصفتك مديراً للفرع، ستتم إضافة الموظف الجديد إلى هذا الفرع حصراً.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      {...register('branch_id')}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-[11px] font-bold outline-none dark:border-slate-700 dark:bg-slate-800 max-md:p-2.5"
+                    >
+                      <option value="">-- بدون فرع محدد (إدارة عامة) --</option>
+                      {branches
+                        ?.filter((b: any) => b.status === 'active')
+                        .map((branch: any) => (
+                          <option key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                    </select>
+                    <p className="px-1 text-[10px] text-gray-400">
+                      إذا تركته فارغاً، سيرى الموظف بيانات جميع الفروع
+                    </p>
+                  </>
+                )}
               </div>
 
               <Button
@@ -291,12 +336,12 @@ const TeamManager: React.FC = () => {
               {t.sent_invitations || 'الدعوات المرسلة'}
             </h4>
             <div className="space-y-2">
-              {invitations.length === 0 ? (
+              {visibleInvitations.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-xs text-gray-400 dark:border-slate-800 dark:bg-slate-950/30">
                   لا توجد دعوات معلقة حالياً.
                 </div>
               ) : (
-                invitations.map(inv => (
+                visibleInvitations.map(inv => (
                   <MicroListItem
                     key={inv.id}
                     icon={

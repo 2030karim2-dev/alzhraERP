@@ -104,6 +104,33 @@ export const ensureLatinDigits = (value: string | number): string => {
 };
 
 /**
+ * تطهير وتوحيد المدخلات الرقمية:
+ * - تحويل الأرقام المشرقية والعربية والفارسية إلى أرقام إنجليزية (0-9)
+ * - تحويل الفاصلة العربية (،) إلى نقطة عشرية (.)
+ * - السماح فقط بالأرقام ونقطة عشرية واحدة وإشارة سالب اختيارية
+ */
+export const sanitizeNumericInput = (value: string, allowNegative = false): string => {
+  if (!value) return '';
+  let cleaned = ensureLatinDigits(value)
+    .replace(/،/g, '.')
+    .replace(/[^\d.-]/g, '');
+
+  if (!allowNegative) {
+    cleaned = cleaned.replace(/-/g, '');
+  } else {
+    const isNegative = cleaned.startsWith('-');
+    cleaned = (isNegative ? '-' : '') + cleaned.replace(/-/g, '');
+  }
+
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    cleaned = parts[0] + '.' + parts.slice(1).join('');
+  }
+
+  return cleaned;
+};
+
+/**
  * Format a number as currency with the appropriate symbol
  * Accepts both CurrencyCode and string for flexibility
  */

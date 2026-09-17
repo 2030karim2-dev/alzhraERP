@@ -109,12 +109,25 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (callerRole === 'manager' && callerBranch) {
-      // Managers can only invite to their own branch
+    if (callerBranch) {
+      // Users assigned to a branch can ONLY invite to their own branch
       if (branch_id !== callerBranch) {
         return new Response(
           JSON.stringify({
-            error: 'Forbidden: Managers can only invite users to their own branch',
+            error: 'Forbidden: Branch managers can only invite users to their own branch',
+          }),
+          {
+            status: 403,
+            headers: { ...cors, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      // Branch managers cannot grant owner role
+      if (['owner', 'admin'].includes(role) && callerRole !== 'owner') {
+        return new Response(
+          JSON.stringify({
+            error:
+              'Forbidden: Branch managers can only invite branch staff (manager, accountant, sales, viewer, cashier)',
           }),
           {
             status: 403,

@@ -1,0 +1,64 @@
+import React, { useState } from 'react';
+import { Sparkles, Loader2, ArrowLeftRight } from 'lucide-react';
+import { aiService } from '../../ai/service';
+
+interface Props {
+  description: string;
+  amount: number;
+}
+
+const SmartJournalSuggestion: React.FC<Props> = ({ description, amount }) => {
+  const [result, setResult] = useState<{
+    debitAccount: string;
+    creditAccount: string;
+    explanation: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const suggest = async () => {
+    if (!description || !amount) return;
+    setIsLoading(true);
+    try {
+      const data = await aiService.suggestJournalEntry(description, amount);
+      setResult(data);
+    } catch {
+      /* ignore */
+    }
+    setIsLoading(false);
+  };
+
+  if (!description || !amount) return null;
+
+  return (
+    <div className="mt-2">
+      {!result ? (
+        <button
+          onClick={suggest}
+          disabled={isLoading}
+          className="flex items-center gap-1.5 text-[10px] font-bold text-violet-600 transition-colors hover:text-violet-500"
+        >
+          {isLoading ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+          اقتراح القيد المحاسبي بالذكاء الاصطناعي
+        </button>
+      ) : (
+        <div className="space-y-2 rounded-[var(--radius)] border border-violet-200 bg-violet-50 p-3 dark:border-violet-800/30 dark:bg-violet-950/20">
+          <p className="text-[10px] font-bold uppercase text-violet-600">
+            اقتراح AI للقيد المحاسبي
+          </p>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="flex-1 rounded-[var(--radius)] bg-emerald-100 px-2 py-1 text-center font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+              مدين: {result.debitAccount}
+            </span>
+            <ArrowLeftRight size={12} className="shrink-0 text-[var(--app-text-secondary)]" />
+            <span className="flex-1 rounded-[var(--radius)] bg-rose-100 px-2 py-1 text-center font-bold text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+              دائن: {result.creditAccount}
+            </span>
+          </div>
+          <p className="text-[10px] text-[var(--app-text-secondary)]">{result.explanation}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SmartJournalSuggestion;

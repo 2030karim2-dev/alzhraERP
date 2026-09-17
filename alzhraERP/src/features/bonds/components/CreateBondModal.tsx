@@ -1,13 +1,8 @@
-import { logger } from '../../../core/utils/logger';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
 import {
   DollarSign,
   Calendar,
   FileText,
-  ArrowDown,
-  ArrowUpCircle,
-  ArrowRightLeft,
   Search,
   Landmark,
   Save,
@@ -18,19 +13,16 @@ import {
   Keyboard,
   Maximize2,
   Minimize2,
+  Calculator,
+  Coins,
 } from 'lucide-react';
 import type { BondFormData, BondType } from '../types';
-import { useAccounts } from '../../accounting/hooks/index';
-import { useCurrencies } from '../../settings/hooks';
-import { useParties } from '../../parties/hooks';
-import { useFeedbackStore } from '../../feedback/store';
+import { useBondForm } from '../hooks/useBondForm';
 
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
 import Input from '../../../ui/base/Input';
-import { cn, formatCurrency, formatLocalDate } from '../../../core/utils';
-import { convertToBaseCurrency } from '../../../core/utils/currencyUtils';
-import { createIdempotencyKey } from '../../../core/utils/idempotency';
+import { cn, formatCurrency, formatLocalDate, formatNumber } from '../../../core/utils';
 import PartyInvoicesList from './PartyInvoicesList';
 
 interface CreateBondModalProps {
@@ -73,256 +65,51 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
   isSubmitting,
   defaultAccountId,
 }) => {
-  const { data: allAccounts, isLoading: _isLoadingAccounts } = useAccounts();
-  const { currencies, rates } = useCurrencies();
-  const { showToast } = useFeedbackStore();
-  const [partyQuery, setPartyQuery] = useState('');
-  const [showPartyDropdown, setShowPartyDropdown] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(true);
 
-  const { data: allParties } = useParties(type === 'receipt' ? 'customer' : 'supplier', partyQuery);
-
-  const parties = useMemo(() => {
-    return allParties || [];
-  }, [allParties]);
-
-  const idempotencyKeyRef = React.useRef(createIdempotencyKey('bond'));
-
-  const { register, handleSubmit, reset, watch, setValue } = useForm<BondFormData>({
-    defaultValues: {
-      type,
-      date: formatLocalDate(),
-      currency_code: 'SAR',
-      exchange_rate: 1,
-      counterparty_type: type === 'transfer' ? 'account' : 'party',
-      payment_method: 'cash',
-      cash_account_id: defaultAccountId || '',
-    },
-  });
-
-  const selectedCurrency = watch('currency_code');
-  const counterpartyType = watch('counterparty_type');
-  const counterpartyId = watch('counterparty_id');
-  const selectedInvoiceId = watch('invoice_id');
-  const cashAccountId = watch('cash_account_id');
-  const enteredAmount = watch(selectedCurrency === 'SAR' ? 'amount' : 'foreign_amount') || 0;
-  const commissionAmount = watch('commission_amount') || 0;
-  const commissionAccountId = watch('commission_account_id');
-
-  const currencyObj = currencies.data?.find(
-    (c: { code: string; exchange_operator?: string }) => c.code === selectedCurrency
-  );
-  const isDivide = currencyObj?.exchange_operator === 'divide';
-
-  useEffect(() => {
-    if (isOpen) {
-      idempotencyKeyRef.current = createIdempotencyKey('bond');
-      const targetAccount = defaultAccountId
-        ? allAccounts?.find(a => a.id === defaultAccountId)
-        : undefined;
-      const initialCurrency = targetAccount?.currency_code || 'SAR';
-
-      reset({
-        type,
-        date: formatLocalDate(),
-        currency_code: initialCurrency,
-        exchange_rate: 1,
-        counterparty_type: type === 'transfer' ? 'account' : 'party',
-        payment_method: 'cash',
-        cash_account_id: defaultAccountId || '',
-      });
-      setPartyQuery('');
-      setShowPartyDropdown(false);
-    }
-  }, [isOpen, type, reset, defaultAccountId, allAccounts]);
-
-  useEffect(() => {
-    if (selectedCurrency === 'SAR') {
-      setValue('exchange_rate', 1);
-      setValue('foreign_amount', 0);
-    } else {
-      const rate = rates.data?.find(
-        (r: { currency_code: string; rate_to_base: number }) => r.currency_code === selectedCurrency
-      );
-      if (rate) setValue('exchange_rate', rate.rate_to_base);
-    }
-  }, [selectedCurrency, rates.data, setValue]);
-
-  const foreignAmount = watch('foreign_amount');
-  const exchangeRate = watch('exchange_rate');
-
-  useEffect(() => {
-    if (selectedCurrency !== 'SAR' && foreignAmount && exchangeRate) {
-      try {
-        const baseAmount = convertToBaseCurrency({
-          amount: foreignAmount,
-          currencyCode: selectedCurrency,
-          exchangeRate: exchangeRate,
-          exchangeOperator: (currencyObj?.exchange_operator as 'multiply' | 'divide') || 'multiply',
-        });
-        setValue('amount', baseAmount);
-      } catch (e) {
-        logger.error('CreateBondModal', 'Conversion failed', e);
-      }
-    }
-  }, [selectedCurrency, foreignAmount, exchangeRate, currencyObj, setValue]);
-
-  const { cashAccounts, otherAccounts } = useMemo(() => {
-    const cash = allAccounts?.filter(acc => acc.code.startsWith('10')) || [];
-    const others = allAccounts?.filter(acc => !acc.code.startsWith('10')) || [];
-    return { cashAccounts: cash, otherAccounts: others };
-  }, [allAccounts]);
-
-  // Auto-select primary cash account if none selected
-  useEffect(() => {
-    if (cashAccounts.length > 0 && !watch('cash_account_id')) {
-      const primaryCash = cashAccounts.find(a => a.code === '1010') || cashAccounts[0];
-      if (primaryCash) {
-        setValue('cash_account_id', primaryCash.id);
-      }
-    }
-  }, [cashAccounts, setValue, watch]);
-
-  const handlePartySelect = (party: any) => {
-    setValue('counterparty_id', party.id);
-    setValue('invoice_id', undefined);
-    setPartyQuery(party.name);
-    setShowPartyDropdown(false);
-  };
-
-  const handleInvoiceSelect = (inv: any) => {
-    if (!inv) {
-      setValue('invoice_id', undefined);
-      return;
-    }
-    setValue('invoice_id', inv.id);
-    const remaining = Number(inv.total_amount) - Number(inv.paid_amount || 0);
-    const invCurrency = inv.currency_code || inv.currency || 'SAR';
-    const invRate = Number(inv.exchange_rate) || 1;
-
-    setValue('currency_code', invCurrency);
-    setValue('exchange_rate', invRate);
-
-    if (invCurrency !== 'SAR') {
-      setValue('foreign_amount', remaining);
-      const baseAmount = convertToBaseCurrency({
-        amount: remaining,
-        currencyCode: invCurrency,
-        exchangeRate: invRate,
-        exchangeOperator: (currencyObj?.exchange_operator as 'multiply' | 'divide') || 'multiply',
-      });
-      setValue('amount', baseAmount);
-    } else {
-      setValue('amount', remaining);
-      setValue('foreign_amount', 0);
-    }
-
-    setValue(
-      'description',
-      `سداد فاتورة ${type === 'receipt' ? 'مبيعات' : 'مشتريات'} رقم ${inv.invoice_number}`
-    );
-  };
-
-  const handleQuickAmount = (delta: number) => {
-    const current = Number(watch(selectedCurrency === 'SAR' ? 'amount' : 'foreign_amount') || 0);
-    const updated = Math.max(0, current + delta);
-    if (selectedCurrency === 'SAR') {
-      setValue('amount', updated);
-    } else {
-      setValue('foreign_amount', updated);
-    }
-  };
-
-  const handleClearAmount = () => {
-    if (selectedCurrency === 'SAR') {
-      setValue('amount', 0);
-    } else {
-      setValue('foreign_amount', 0);
-    }
-  };
-
-  const onValidSubmit = useCallback(
-    (data: BondFormData) => {
-      if (
-        type === 'transfer' &&
-        data.cash_account_id &&
-        data.counterparty_id &&
-        data.cash_account_id === data.counterparty_id
-      ) {
-        showToast(
-          'لا يمكن إجراء تحويل داخلي إلى نفس الحساب (حساب المصدر وحساب الهدف متطابقان)',
-          'error'
-        );
-        return;
-      }
-      if (data.commission_amount && data.commission_amount > 0 && !data.commission_account_id) {
-        showToast('يجب تحديد الحساب المحاسبي لتوجيه مبلغ العمولة / الخصم', 'error');
-        return;
-      }
-      onSubmit({ ...data, idempotency_key: idempotencyKeyRef.current });
-    },
-    [type, showToast, onSubmit]
-  );
-
-  // Desktop Keyboard Shortcuts (Ctrl+Enter to Save, Esc to Close)
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleSubmit(onValidSubmit)();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleSubmit, onValidSubmit]);
-
-  // Derived Account Names for Live Journal Preview
-  const selectedCashAccount = useMemo(() => {
-    return cashAccounts.find(a => a.id === cashAccountId);
-  }, [cashAccounts, cashAccountId]);
-
-  const selectedCounterpartyAccount = useMemo(() => {
-    if (counterpartyType === 'account') {
-      return (type === 'transfer' ? cashAccounts : otherAccounts).find(
-        a => a.id === counterpartyId
-      );
-    }
-    return null;
-  }, [counterpartyType, counterpartyId, type, cashAccounts, otherAccounts]);
-
-  const selectedParty = useMemo(() => {
-    if (counterpartyType === 'party') {
-      return parties.find(p => p.id === counterpartyId);
-    }
-    return null;
-  }, [counterpartyType, counterpartyId, parties]);
-
-  const selectedCommissionAccount = useMemo(() => {
-    return otherAccounts.find(a => a.id === commissionAccountId);
-  }, [otherAccounts, commissionAccountId]);
-
-  const theme =
-    type === 'receipt'
-      ? {
-          color: 'emerald',
-          icon: ArrowDown,
-          title: 'سند قبض جديد',
-          description: 'تسجيل عملية قبض نقدية أو بنكية في وضع ملء الشاشة للكمبيوتر',
-        }
-      : type === 'transfer'
-        ? {
-            color: 'blue',
-            icon: ArrowRightLeft,
-            title: 'تحويل داخلي جديد',
-            description: 'تحويل مبالغ بين الخزائن والحسابات البنكية في وضع ملء الشاشة للكمبيوتر',
-          }
-        : {
-            color: 'rose',
-            icon: ArrowUpCircle,
-            title: 'سند صرف جديد',
-            description: 'تسجيل عملية صرف نقدية أو بنكية في وضع ملء الشاشة للكمبيوتر',
-          };
+  const bond = useBondForm(isOpen, type, defaultAccountId, onSubmit);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    currencies,
+    parties,
+    partyQuery,
+    setPartyQuery,
+    showPartyDropdown,
+    setShowPartyDropdown,
+    selectedCurrency,
+    counterpartyType,
+    counterpartyId,
+    selectedInvoiceId,
+    enteredAmount,
+    commissionAmount,
+    isDivide,
+    cashAccounts,
+    otherAccounts,
+    handlePartySelect,
+    handleInvoiceSelect,
+    handleQuickAmount,
+    handleClearAmount,
+    onValidSubmit,
+    selectedCashAccount,
+    selectedCounterpartyAccount,
+    selectedParty,
+    selectedCommissionAccount,
+    tafqeetText,
+    theme,
+    amountInputStr,
+    rateInputStr,
+    equivalentSarInputStr,
+    commissionInputStr,
+    handleAmountChange,
+    handleRateChange,
+    handleEquivalentSarChange,
+    handleCalculateRateFromEquivalent,
+    handleCurrencyQuickSwitch,
+    handleCommissionChange,
+  } = bond;
 
   const footer = (
     <div className="flex w-full items-center justify-between gap-3 p-1">
@@ -416,38 +203,103 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                       : 'border-rose-100 bg-rose-50/40 dark:border-rose-800/20 dark:bg-rose-900/10'
                 )}
               >
-                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                {/* Currency quick switcher tabs */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-3 dark:border-slate-800/60">
+                  <div className="flex items-center gap-1.5">
+                    <Coins size={15} className="text-slate-500 dark:text-slate-400" />
+                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">
+                      عملة السند:
+                    </span>
+                    <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                      {['SAR', 'YER', 'USD'].map(curr => (
+                        <button
+                          key={curr}
+                          type="button"
+                          onClick={() => handleCurrencyQuickSwitch(curr)}
+                          className={cn(
+                            'rounded-lg px-2.5 py-1 font-mono text-[11px] font-black transition-all',
+                            selectedCurrency === curr
+                              ? curr === 'YER'
+                                ? 'bg-amber-500 text-white shadow-sm'
+                                : curr === 'SAR'
+                                  ? 'bg-emerald-600 text-white shadow-sm'
+                                  : 'bg-blue-600 text-white shadow-sm'
+                              : 'text-slate-600 hover:text-slate-900 dark:text-slate-300'
+                          )}
+                        >
+                          {curr === 'YER'
+                            ? 'YER (ريال يمني)'
+                            : curr === 'SAR'
+                              ? 'SAR (سعودي)'
+                              : curr}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400">عملات أخرى:</span>
+                    <div className="relative">
+                      <select
+                        {...register('currency_code')}
+                        onChange={e => handleCurrencyQuickSwitch(e.target.value)}
+                        className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1 pr-6 text-xs font-bold text-slate-800 outline-none hover:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                      >
+                        <option value="SAR">SAR</option>
+                        <option value="YER">YER</option>
+                        {currencies.data
+                          ?.filter((c: any) => c.code !== 'SAR' && c.code !== 'YER')
+                          .map((c: any) => (
+                            <option key={c.code} value={c.code}>
+                              {c.code}
+                            </option>
+                          ))}
+                      </select>
+                      <Tag
+                        className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={11}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-center">
+                  {/* Primary Amount Input */}
                   <div className="relative w-full flex-1">
-                    <label
-                      className={cn(
-                        'mb-1 inline-block rounded-t-xl px-3 py-1 text-xs font-black uppercase tracking-widest',
-                        type === 'receipt'
-                          ? 'bg-emerald-600 text-white'
-                          : type === 'transfer'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-rose-600 text-white'
+                    <div className="mb-1 flex items-center justify-between">
+                      <label
+                        className={cn(
+                          'inline-block rounded-t-xl px-3 py-0.5 text-xs font-black uppercase tracking-widest',
+                          type === 'receipt'
+                            ? 'bg-emerald-600 text-white'
+                            : type === 'transfer'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-rose-600 text-white'
+                        )}
+                      >
+                        المبلغ المطلوب ({selectedCurrency})
+                      </label>
+                      {selectedCurrency === 'YER' && (
+                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                          ⚡ دعم مبالغ الريال اليمني الكبيرة
+                        </span>
                       )}
-                    >
-                      المبلغ المطلوب ({selectedCurrency})
-                    </label>
+                    </div>
                     <div className="group relative">
                       <input
-                        type="number"
-                        step="0.01"
-                        {...register(selectedCurrency === 'SAR' ? 'amount' : 'foreign_amount', {
-                          required: true,
-                          valueAsNumber: true,
-                          min: 0.01,
-                        })}
+                        type="text"
+                        inputMode="decimal"
+                        value={amountInputStr}
+                        onChange={handleAmountChange}
+                        placeholder="0.00"
                         className={cn(
-                          'w-full rounded-2xl border-2 bg-white px-4 py-3 font-mono text-2xl font-black outline-none transition-all dark:bg-slate-950 sm:px-6 sm:py-4 sm:text-4xl',
+                          'w-full rounded-2xl border-2 bg-white px-4 py-3 font-mono text-2xl font-black outline-none transition-all dark:bg-slate-950 sm:px-5 sm:py-3.5 sm:text-3xl',
                           type === 'receipt'
                             ? 'border-emerald-200 text-emerald-600 focus:border-emerald-500 dark:border-emerald-800/50'
                             : type === 'transfer'
                               ? 'border-blue-200 text-blue-600 focus:border-blue-500 dark:border-blue-800/50'
                               : 'border-rose-200 text-rose-600 focus:border-rose-500 dark:border-rose-800/50'
                         )}
-                        placeholder="0.00"
                       />
                       <DollarSign
                         className={cn(
@@ -458,75 +310,103 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                               ? 'text-blue-600'
                               : 'text-rose-600'
                         )}
-                        size={28}
+                        size={26}
                       />
                     </div>
-                  </div>
 
-                  <div className="flex w-full flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-[var(--app-surface)] p-3 shadow-md dark:border-slate-800 sm:w-auto sm:flex-row">
-                    <div className="w-full sm:w-28">
-                      <label className="mb-1 block text-center text-[10px] font-bold uppercase text-gray-400">
-                        العملة
-                      </label>
-                      <div className="relative">
-                        <select
-                          {...register('currency_code')}
-                          className="w-full cursor-pointer appearance-none rounded-xl border-2 bg-slate-50 px-3 py-2 text-center text-sm font-black text-slate-800 outline-none transition-colors hover:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                        >
-                          <option value="SAR">SAR</option>
-                          {currencies.data
-                            ?.filter((c: any) => c.code !== 'SAR')
-                            .map((c: any) => (
-                              <option key={c.code} value={c.code}>
-                                {c.code}
-                              </option>
-                            ))}
-                        </select>
-                        <Tag
-                          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
-                          size={12}
-                        />
+                    {/* Instant Tafqeet & Digit Formatting */}
+                    {enteredAmount > 0 && (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <span className="rounded-md bg-white/80 px-2 py-0.5 font-mono text-[11px] font-black text-slate-800 shadow-sm dark:bg-slate-800 dark:text-slate-100">
+                          {formatNumber(enteredAmount)} {selectedCurrency}
+                        </span>
+                        {tafqeetText && (
+                          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                            ({tafqeetText})
+                          </span>
+                        )}
                       </div>
-                    </div>
-
-                    {selectedCurrency !== 'SAR' && (
-                      <>
-                        <div className="w-full sm:w-32">
-                          <label className="mb-1 block text-center text-[10px] font-bold uppercase text-gray-400">
-                            الصرف {isDivide ? '÷' : '×'}
-                          </label>
-                          <input
-                            type="number"
-                            step="0.000001"
-                            {...register('exchange_rate', { required: true, valueAsNumber: true })}
-                            className="w-full rounded-xl border-2 bg-slate-50 px-2 py-2 text-center font-mono text-xs font-black text-slate-800 outline-none transition-colors focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                          />
-                        </div>
-
-                        <div className="w-full sm:w-36">
-                          <label className="mb-1 block text-center text-[10px] font-bold uppercase text-gray-400">
-                            المقابل (SAR)
-                          </label>
-                          <div className="w-full rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/50 px-2 py-2 text-center font-mono text-xs font-black text-blue-600 dark:border-blue-800/50 dark:bg-blue-900/10 dark:text-blue-400">
-                            {formatCurrency(watch('amount') || 0)}
-                          </div>
-                        </div>
-                      </>
                     )}
                   </div>
+
+                  {/* Foreign Currency & Auto Exchange Rate Controls */}
+                  {selectedCurrency !== 'SAR' && (
+                    <div className="flex w-full flex-col items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-850 sm:w-auto sm:flex-row">
+                      {/* Exchange Rate Input */}
+                      <div className="w-full sm:w-36">
+                        <div className="mb-1 flex items-center justify-between">
+                          <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                            سعر الصرف {isDivide ? '(÷)' : '(×)'}
+                          </label>
+                          {selectedCurrency === 'YER' && (
+                            <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
+                              YER
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={rateInputStr}
+                          onChange={handleRateChange}
+                          placeholder="1.0"
+                          className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-2 py-1.5 text-center font-mono text-xs font-black text-slate-800 outline-none transition-colors focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                        />
+                        {selectedCurrency === 'YER' && (
+                          <div className="mt-0.5 text-center font-mono text-[10px] font-bold text-slate-400">
+                            1 ر.س = {rateInputStr || '410'} ر.ي
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Equivalent in Base Currency (SAR) with Auto-Rate Button */}
+                      <div className="w-full sm:w-44">
+                        <div className="mb-1 flex items-center justify-between">
+                          <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                            المقابل (SAR)
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleCalculateRateFromEquivalent}
+                            title="حساب سعر الصرف تلقائياً من المقابل"
+                            className="flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                          >
+                            <Calculator size={11} />
+                            <span>احسب الصرف</span>
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={equivalentSarInputStr}
+                          onChange={handleEquivalentSarChange}
+                          placeholder="0.00"
+                          className="w-full rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/60 px-2 py-1.5 text-center font-mono text-xs font-black text-blue-700 outline-none transition-colors focus:border-blue-500 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300"
+                        />
+                        <div className="mt-0.5 text-center text-[10px] text-slate-400">
+                          {formatCurrency(watch('amount') || 0)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Quick Presets row for fast typing in desktop mode */}
-                <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-200/50 pt-1 dark:border-slate-800/50">
-                  <span className="ml-1 text-[10px] font-bold text-slate-400">إضافة سريعة:</span>
-                  {[100, 500, 1000, 5000, 10000].map(val => (
+                {/* Quick Presets row adaptive to currency */}
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-200/50 pt-2 dark:border-slate-800/50">
+                  <span className="ml-1 text-[10px] font-bold text-slate-400">
+                    إضافة سريعة ({selectedCurrency}):
+                  </span>
+                  {(selectedCurrency === 'YER'
+                    ? [10000, 50000, 100000, 500000, 1000000, 5000000]
+                    : [100, 500, 1000, 5000, 10000]
+                  ).map(val => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => handleQuickAmount(val)}
                       className="rounded-lg border border-slate-200 bg-white px-2 py-1 font-mono text-[11px] font-bold text-slate-600 transition-all hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                     >
-                      +{val}
+                      +{val >= 1000000 ? `${val / 1000000}M` : val >= 1000 ? `${val / 1000}K` : val}
                     </button>
                   ))}
                   <button
@@ -782,10 +662,11 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                       </label>
                       <div className="relative">
                         <input
-                          type="number"
-                          step="0.01"
-                          {...register('commission_amount', { valueAsNumber: true })}
-                          className="w-full rounded-xl border-2 border-gray-100 bg-white p-2.5 pr-9 text-xs font-bold outline-none focus:border-amber-500/50 dark:border-slate-700 dark:bg-slate-800"
+                          type="text"
+                          inputMode="decimal"
+                          value={commissionInputStr}
+                          onChange={handleCommissionChange}
+                          className="w-full rounded-xl border-2 border-gray-100 bg-white p-2.5 pr-9 font-mono text-xs font-bold outline-none focus:border-amber-500/50 dark:border-slate-700 dark:bg-slate-800"
                           placeholder="0.00"
                         />
                         <DollarSign

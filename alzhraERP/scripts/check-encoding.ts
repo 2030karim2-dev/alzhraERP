@@ -27,6 +27,17 @@ const __dirname = path.dirname(__filename);
 
 const ROOT = path.resolve(__dirname, '..');
 const SCAN_DIRS = ['src', 'supabase', 'scripts'];
+/** Repo-root files checked directly (docs/env are common mojibake victims). */
+const ROOT_FILES = [
+  '.env.example',
+  'README.md',
+  'SECURITY.md',
+  'AGENTS.md',
+  'SYSTEM_PROMPT.md',
+  'SUPABASE_RULES.md',
+  'netlify.toml',
+  'vercel.json',
+];
 const FILE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.json', '.css', '.html', '.sql', '.md']);
 const IGNORE_DIRS = new Set([
   'node_modules',
@@ -35,6 +46,7 @@ const IGNORE_DIRS = new Set([
   '.git',
   'coverage',
   'playwright-report',
+  '_attic',
 ]);
 
 /**
@@ -89,40 +101,49 @@ function walk(dir: string): string[] {
 
 const findings: Finding[] = [];
 
+/** Direct root-file scan (see ROOT_FILES) + the recursive dir scan. */
+function scanFile(file: string): void {
+  // Never flag the guard itself (it documents the signatures)
+  if (path.resolve(file) === path.resolve(__filename)) return;
+  const content = fs.readFileSync(file, 'utf8');
+  const lines = content.split(/\r?\n/);
+  const fileFindings: Finding[] = [];
+  lines.forEach((lineText, idx) => {
+    for (const [regex, signature] of SIGNATURES) {
+      regex.lastIndex = 0;
+      if (regex.test(lineText)) {
+        fileFindings.push({
+          file: path.relative(ROOT, file),
+          line: idx + 1,
+          signature,
+          excerpt: lineText.trim().slice(0, 100),
+        });
+      }
+    }
+  });
+
+  // Signatures #1/#2 (cp1256-misread Arabic) can legitimately appear ONCE
+  // in a file when an Arabic word ending in Taa/Tah is followed by a
+  // punctuation mark such as the ellipsis (e.g. "saving..."). A file
+  // genuinely corrupted by a wrong codepage produces the pattern across
+  // MANY Arabic words, so a single occurrence is treated as a false
+  // positive and ignored.
+  const tolerated = new Set<string>([SIGNATURES[0][1], SIGNATURES[1][1]]);
+  const toleratedStrict = new Set<string>();
+  for (const sig of tolerated) {
+    const count = fileFindings.filter(f => f.signature === sig).length;
+    if (count < 2) toleratedStrict.add(sig);
+  }
+  findings.push(...fileFindings.filter(f => !toleratedStrict.has(f.signature)));
+}
+
+for (const rf of ROOT_FILES) {
+  const p = path.join(ROOT, rf);
+  if (fs.existsSync(p)) scanFile(p);
+}
 for (const dir of SCAN_DIRS) {
   for (const file of walk(path.join(ROOT, dir))) {
-    // Never flag the guard itself (it documents the signatures)
-    if (path.resolve(file) === path.resolve(__filename)) continue;
-    const content = fs.readFileSync(file, 'utf8');
-    const lines = content.split(/\r?\n/);
-    const fileFindings: Finding[] = [];
-    lines.forEach((lineText, idx) => {
-      for (const [regex, signature] of SIGNATURES) {
-        regex.lastIndex = 0;
-        if (regex.test(lineText)) {
-          fileFindings.push({
-            file: path.relative(ROOT, file),
-            line: idx + 1,
-            signature,
-            excerpt: lineText.trim().slice(0, 100),
-          });
-        }
-      }
-    });
-
-    // Signatures #1/#2 (cp1256-misread Arabic) can legitimately appear ONCE
-    // in a file when an Arabic word ending in Taa/Tah is followed by a
-    // punctuation mark such as the ellipsis (e.g. "saving..."). A file
-    // genuinely corrupted by a wrong codepage produces the pattern across
-    // MANY Arabic words, so a single occurrence is treated as a false
-    // positive and ignored.
-    const tolerated = new Set<string>([SIGNATURES[0][1], SIGNATURES[1][1]]);
-    const toleratedStrict = new Set<string>();
-    for (const sig of tolerated) {
-      const count = fileFindings.filter(f => f.signature === sig).length;
-      if (count < 2) toleratedStrict.add(sig);
-    }
-    findings.push(...fileFindings.filter(f => !toleratedStrict.has(f.signature)));
+    scanFile(file);
   }
 }
 

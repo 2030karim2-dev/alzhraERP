@@ -22,6 +22,8 @@ export default tseslint.config(
       // وخارج مشروع TSConfig الذي يغذّي المحلل النوعي (نفس منطق e2e/**).
       'test/**',
       'scripts/**',
+      // أرشيف الكود المهمل — خارج البناء والفحص عمداً (انظر _attic/*/README.md).
+      '_attic/**',
     ],
   },
   {
