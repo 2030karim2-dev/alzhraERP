@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import type { ReactElement, ReactNode, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 
 interface PdfCaptureHostProps {
@@ -18,7 +18,10 @@ interface PdfCaptureHostProps {
  * - It keeps a real A4 width, so print templates render at their natural size.
  * - CSS (`.pdf-capture-host`) hides it on screen and excludes it from physical printing.
  */
-export const PdfCaptureHost = ({ innerRef, children }: PdfCaptureHostProps) => {
+export const PdfCaptureHost = ({
+  innerRef,
+  children,
+}: PdfCaptureHostProps): ReactElement | null => {
   if (typeof document === 'undefined') return null;
 
   return createPortal(

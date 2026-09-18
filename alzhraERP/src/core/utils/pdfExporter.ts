@@ -48,7 +48,8 @@ export const computePageSlices = (
     let end = target;
     if (target < totalHeight - 1e-6) {
       const fitting = candidates.filter(point => point > start + MIN_SLICE_MM && point <= target);
-      const lastFitting = fitting[fitting.length - 1];
+      // `pop()` keeps the largest fitting boundary; an empty result means "cut at the page edge".
+      const lastFitting = fitting.pop();
       if (lastFitting !== undefined) end = lastFitting;
     }
     slices.push({ sourceY: start, sourceHeight: end - start });

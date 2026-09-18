@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as JsPdfModule from 'jspdf';
-import { computePageSlices, exportToPDF } from './pdfExporter';
+import { computePageSlices, exportToPDF, type PageSlice } from './pdfExporter';
 
 interface CapturedImage {
   pageIndex: number;
@@ -31,7 +31,7 @@ vi.mock('jspdf', async importOriginal => {
       pdf.addPage = vi.fn(() => {
         pageIndex += 1;
         return pdf;
-      }) as unknown as typeof pdf.addPage;
+      });
 
       pdf.addImage = vi.fn((...args2: Parameters<typeof pdf.addImage>) => {
         const [, , , y, width, height] = args2;
@@ -62,14 +62,7 @@ const captureOfHeightMm = (heightMm: number) => ({
 
 const firstFile = (): CapturedFile => {
   const [file] = mocks.files;
-  if (!file) throw new Error('expected exactly one exported PDF file');
   return file;
-};
-
-const itemAt = <T>(items: T[], index: number): T => {
-  const value = items[index];
-  if (value === undefined) throw new Error(`expected an item at index ${index}`);
-  return value;
 };
 
 const uniqueOffsets = (file: CapturedFile): number[] => [
@@ -96,12 +89,13 @@ describe('computePageSlices', () => {
     const slices = computePageSlices(800, 297);
     expect(slices).toHaveLength(3);
     expect(slices.reduce((sum, slice) => sum + slice.sourceHeight, 0)).toBeCloseTo(800, 6);
-    slices.forEach((slice, index) => {
+    let previous: PageSlice | undefined;
+    slices.forEach(slice => {
       expect(slice.sourceHeight).toBeLessThanOrEqual(297.000001);
-      if (index > 0) {
-        const previous = itemAt(slices, index - 1);
+      if (previous !== undefined) {
         expect(slice.sourceY).toBeCloseTo(previous.sourceY + previous.sourceHeight, 6);
       }
+      previous = slice;
     });
   });
 
@@ -139,7 +133,7 @@ describe('exportToPDF pagination', () => {
     expect(file.pageWidth).toBeCloseTo(210, 1);
     expect(file.pageHeight).toBeCloseTo(297, 1);
     expect(file.images).toHaveLength(1);
-    const image = itemAt(file.images, 0);
+    const [image] = file.images;
     expect(image.pageIndex).toBe(0);
     expect(image.offsetY).toBe(0);
     expect(image.imageWidth).toBeCloseTo(210, 1);
@@ -176,14 +170,18 @@ describe('exportToPDF pagination', () => {
 
       const offsets = uniqueOffsets(file);
       expect(offsets).toHaveLength(pageIndexes.length);
-      expect(itemAt(offsets, 0)).toBe(0);
+      const [firstOffset] = offsets;
+      expect(firstOffset).toBe(0);
       offsets.slice(1).forEach(offset => {
         expect(offset).toBeLessThan(0);
       });
       // Consecutive windows are contiguous: no row falls between two pages.
-      offsets.forEach((offset, index) => {
-        if (index === 0) return;
-        expect(itemAt(offsets, index - 1) - offset).toBeCloseTo(297, 1);
+      let previousOffset: number | undefined;
+      offsets.forEach(offset => {
+        if (previousOffset !== undefined) {
+          expect(previousOffset - offset).toBeCloseTo(297, 1);
+        }
+        previousOffset = offset;
       });
     }
   );
