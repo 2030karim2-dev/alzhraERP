@@ -217,6 +217,7 @@ export const dashboardApi = {
     const todayStr = formatLocalDate();
     const effectiveDateTo = dateTo || todayStr;
     const effectiveDateFrom = dateFrom !== undefined ? dateFrom : null;
+    const currentYearStart = `${todayStr.slice(0, 4)}-01-01`;
     const branchParam = branchId ?? undefined;
 
     // Ensure we always have a valid AbortSignal to prevent 'addEventListener is not a function' error
@@ -299,12 +300,12 @@ export const dashboardApi = {
         activeSignal
       ),
 
-      // 6. Trial Balance for Net Profit
+      // 6. Trial Balance for Net Profit (bounded to current fiscal year start if no date selected)
       dashboardRpc(
         'report_trial_balance',
         {
           p_company_id: companyId,
-          p_from: effectiveDateFrom || '2000-01-01',
+          p_from: effectiveDateFrom || currentYearStart,
           p_to: effectiveDateTo,
           ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
         },
@@ -362,7 +363,7 @@ export const dashboardApi = {
         'report_profit_loss',
         {
           p_company_id: companyId,
-          p_from: effectiveDateFrom || '2000-01-01',
+          p_from: effectiveDateFrom || currentYearStart,
           p_to: effectiveDateTo,
           ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
         },
