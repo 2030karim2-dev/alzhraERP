@@ -25,6 +25,7 @@ import type { Invoice, InvoiceItem } from '../../../returns/types';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceActionButtons from './InvoiceActionButtons';
 import { ErrorBoundary } from '@/core/components/ErrorBoundary';
+import { PdfCaptureHost } from '@/core/components/PdfCaptureHost';
 import { formatCurrency, cn } from '@/core/utils';
 
 interface Props {
@@ -409,18 +410,15 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </div>
             )}
 
-            {/* Off-screen capture host for PDF export: it must stay rendered (never
-                display:none) so html2canvas gets a measurable element. It is hidden
-                again by CSS while physically printing. */}
-            <div className="pdf-capture-host" aria-hidden="true">
-              <div ref={printRef}>
-                <PrintableInvoice
-                  invoice={fullInvoiceData}
-                  onExportPDF={handleExportPDF}
-                  isExporting={isExporting}
-                />
-              </div>
-            </div>
+            {/* Off-screen capture host for PDF export (must stay measurable, never
+                display:none). It is excluded from physical printing by CSS. */}
+            <PdfCaptureHost innerRef={printRef}>
+              <PrintableInvoice
+                invoice={fullInvoiceData}
+                onExportPDF={handleExportPDF}
+                isExporting={isExporting}
+              />
+            </PdfCaptureHost>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">

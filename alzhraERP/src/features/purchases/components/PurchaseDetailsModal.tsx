@@ -21,6 +21,7 @@ import { logger } from '../../../core/utils/logger';
 import { InvoiceMetaCards, type PurchaseDetailInvoice } from './details/InvoiceMetaCards';
 import { InvoiceItemsTable } from './details/InvoiceItemsTable';
 import { InvoiceActionToolbar } from './details/InvoiceActionToolbar';
+import { PdfCaptureHost } from '../../../core/components/PdfCaptureHost';
 
 interface PurchaseDetailsModalProps {
   invoiceId: string | null;
@@ -308,14 +309,11 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
               </div>
             )}
 
-            {/* Off-screen capture host for PDF export: it must stay rendered (never
-                display:none) so html2canvas gets a measurable element. It is hidden
-                again by CSS while physically printing. */}
-            <div className="pdf-capture-host" aria-hidden="true">
-              <div ref={printRef}>
-                <PurchaseInvoicePrintTemplate invoice={invoice} />
-              </div>
-            </div>
+            {/* Off-screen capture host for PDF export (must stay measurable, never
+                display:none). It is excluded from physical printing by CSS. */}
+            <PdfCaptureHost innerRef={printRef}>
+              <PurchaseInvoicePrintTemplate invoice={invoice} />
+            </PdfCaptureHost>
           </div>
         )}
       </Modal>

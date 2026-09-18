@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as JsPdfModule from 'jspdf';
 import { computePageSlices, exportToPDF } from './pdfExporter';
 
 interface CapturedImage {
@@ -20,32 +21,25 @@ const mocks = vi.hoisted(() => ({ capture: vi.fn(), files: [] as CapturedFile[] 
 vi.mock('html2canvas', () => ({ default: mocks.capture }));
 
 vi.mock('jspdf', async importOriginal => {
-  const { jsPDF: ActualPDF } = await importOriginal<typeof import('jspdf')>();
+  const { jsPDF: ActualPDF } = await importOriginal<typeof JsPdfModule>();
   return {
     jsPDF: vi.fn().mockImplementation((...args: ConstructorParameters<typeof ActualPDF>) => {
       const pdf = new ActualPDF(...args);
       const images: CapturedImage[] = [];
       let pageIndex = 0;
-      pdf.addPage = vi.fn().mockImplementation(() => {
+
+      pdf.addPage = vi.fn(() => {
         pageIndex += 1;
         return pdf;
       }) as unknown as typeof pdf.addPage;
-      pdf.addImage = vi
-        .fn()
-        .mockImplementation(
-          (
-            _data: string,
-            _format: string,
-            _x: number,
-            y: number,
-            width: number,
-            height: number
-          ) => {
-            images.push({ pageIndex, offsetY: y, imageWidth: width, imageHeight: height });
-            return pdf;
-          }
-        ) as unknown as typeof pdf.addImage;
-      pdf.save = vi.fn().mockImplementation((fileName: string) => {
+
+      pdf.addImage = vi.fn((...args2: Parameters<typeof pdf.addImage>) => {
+        const [, , , y, width, height] = args2;
+        images.push({ pageIndex, offsetY: y, imageWidth: width, imageHeight: height });
+        return pdf;
+      }) as unknown as typeof pdf.addImage;
+
+      pdf.save = vi.fn((fileName: string) => {
         mocks.files.push({
           fileName,
           pageWidth: pdf.internal.pageSize.getWidth(),
@@ -54,6 +48,7 @@ vi.mock('jspdf', async importOriginal => {
         });
         return pdf;
       }) as unknown as typeof pdf.save;
+
       return pdf;
     }),
   };
@@ -64,6 +59,22 @@ const captureOfHeightMm = (heightMm: number) => ({
   height: heightMm * 10,
   toDataURL: () => 'data:image/png;base64,test',
 });
+
+const firstFile = (): CapturedFile => {
+  const [file] = mocks.files;
+  if (!file) throw new Error('expected exactly one exported PDF file');
+  return file;
+};
+
+const itemAt = <T>(items: T[], index: number): T => {
+  const value = items[index];
+  if (value === undefined) throw new Error(`expected an item at index ${index}`);
+  return value;
+};
+
+const uniqueOffsets = (file: CapturedFile): number[] => [
+  ...new Set(file.images.map(image => image.offsetY)),
+];
 
 describe('computePageSlices', () => {
   it('keeps short content on a single slice', () => {
@@ -88,7 +99,7 @@ describe('computePageSlices', () => {
     slices.forEach((slice, index) => {
       expect(slice.sourceHeight).toBeLessThanOrEqual(297.000001);
       if (index > 0) {
-        const previous = slices[index - 1]!;
+        const previous = itemAt(slices, index - 1);
         expect(slice.sourceY).toBeCloseTo(previous.sourceY + previous.sourceHeight, 6);
       }
     });
@@ -123,12 +134,12 @@ describe('exportToPDF pagination', () => {
     await exportToPDF(document.createElement('div'), 'invoice');
 
     expect(mocks.files).toHaveLength(1);
-    const file = mocks.files[0]!;
+    const file = firstFile();
     expect(file.fileName).toBe('invoice.pdf');
     expect(file.pageWidth).toBeCloseTo(210, 1);
     expect(file.pageHeight).toBeCloseTo(297, 1);
     expect(file.images).toHaveLength(1);
-    const image = file.images[0]!;
+    const image = itemAt(file.images, 0);
     expect(image.pageIndex).toBe(0);
     expect(image.offsetY).toBe(0);
     expect(image.imageWidth).toBeCloseTo(210, 1);
@@ -150,7 +161,7 @@ describe('exportToPDF pagination', () => {
       await exportToPDF(document.createElement('div'), 'invoice');
 
       expect(mocks.files).toHaveLength(1);
-      const file = mocks.files[0]!;
+      const file = firstFile();
       const pageIndexes = [...new Set(file.images.map(image => image.pageIndex))];
       expect(pageIndexes).toHaveLength(Math.ceil(heightMm / 297 - 1e-6));
       expect(pageIndexes).toEqual(pageIndexes.map((_, index) => index));
@@ -162,14 +173,17 @@ describe('exportToPDF pagination', () => {
         expect(image.imageWidth).toBeCloseTo(210, 1);
         expect(image.imageHeight).toBeCloseTo(heightMm, 1);
       });
-      const offsets = [...new Set(file.images.map(image => image.offsetY))];
+
+      const offsets = uniqueOffsets(file);
       expect(offsets).toHaveLength(pageIndexes.length);
-      expect(offsets[0]).toBe(0);
-      offsets.slice(1).forEach(offset => expect(offset).toBeLessThan(0));
+      expect(itemAt(offsets, 0)).toBe(0);
+      offsets.slice(1).forEach(offset => {
+        expect(offset).toBeLessThan(0);
+      });
       // Consecutive windows are contiguous: no row falls between two pages.
       offsets.forEach((offset, index) => {
         if (index === 0) return;
-        expect(offsets[index - 1]! - offset).toBeCloseTo(297, 1);
+        expect(itemAt(offsets, index - 1) - offset).toBeCloseTo(297, 1);
       });
     }
   );
