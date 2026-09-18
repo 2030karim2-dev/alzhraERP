@@ -15,17 +15,29 @@ const toCleanStr = (val: unknown): string | null => {
 async function fetchPartyCurrencies(
   companyId: string
 ): Promise<Map<string, Array<{ currency: string; balance: number; transaction_count?: number }>>> {
-  const { data } = await supabase
-    .from('party_balances_by_currency')
-    .select('party_id, currency_code, balance, transaction_count')
-    .eq('company_id', companyId);
+  // Use dedicated RPC instead of querying the view directly.
+  // The view caused 500 errors for authenticated users because PostgREST applied
+  // row-level RLS checks on every one of the 2600+ cross-joined rows.
+  // The RPC filters by company_id early and runs with security invoker,
+  // delegating the company guard to a single WHERE check.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any).rpc('get_party_currencies_by_company', {
+    p_company_id: companyId,
+  });
+
+  type CurrencyRow = {
+    party_id?: string;
+    currency_code?: string;
+    balance?: number;
+    transaction_count?: number;
+  };
 
   const map = new Map<
     string,
     Array<{ currency: string; balance: number; transaction_count?: number }>
   >();
-  if (data !== null) {
-    data.forEach(c => {
+  if (data !== null && Array.isArray(data)) {
+    (data as CurrencyRow[]).forEach(c => {
       if (typeof c.party_id === 'string' && typeof c.currency_code === 'string') {
         const list = map.get(c.party_id) ?? [];
         const item: { currency: string; balance: number; transaction_count?: number } = {

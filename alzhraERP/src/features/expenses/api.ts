@@ -42,7 +42,7 @@ export const expensesApi = {
         recurring_end_date,
         created_at,
         branch_id,
-        expense_categories:category_id(name)
+        expense_categories!fk_expenses_company_category(name)
       `
       )
       .eq('company_id', companyId)
