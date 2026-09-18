@@ -409,8 +409,11 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </div>
             )}
 
-            <div style={{ display: 'none' }}>
-              <div ref={printRef} className="print-only">
+            {/* Off-screen capture host for PDF export: it must stay rendered (never
+                display:none) so html2canvas gets a measurable element. It is hidden
+                again by CSS while physically printing. */}
+            <div className="pdf-capture-host" aria-hidden="true">
+              <div ref={printRef}>
                 <PrintableInvoice
                   invoice={fullInvoiceData}
                   onExportPDF={handleExportPDF}

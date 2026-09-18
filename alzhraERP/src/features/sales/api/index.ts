@@ -264,7 +264,7 @@ export const salesApi = {
         *,
         parties:party_id(*),
         payment_allocations(
-          payments:payment_id(amount, created_at, payment_method)
+          payments:payments(amount, created_at, payment_method)
         ),
         invoice_items(
           *,

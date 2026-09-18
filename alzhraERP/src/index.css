@@ -907,6 +907,28 @@ a:focus-visible {
   }
 }
 
+/* Off-screen host used as the html2canvas / PDF capture source.
+   It must stay laid out (never display:none) so the capture has real dimensions,
+   and it must be wide enough to keep the print templates at their natural page width. */
+.pdf-capture-host {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  width: 210mm;
+  max-width: 210mm;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+@media print {
+  /* Physical printing must never include the off-screen capture host. */
+  .pdf-capture-host {
+    display: none !important;
+  }
+}
+
 /* ============================================================
    Print Styles
    ============================================================ */

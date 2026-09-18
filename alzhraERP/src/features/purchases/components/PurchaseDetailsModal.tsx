@@ -303,14 +303,16 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
               /* Print Preview Tab */
               <div className="custom-scrollbar flex max-h-[65vh] justify-center overflow-auto rounded-2xl border border-slate-300 bg-slate-200 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900 sm:p-6">
                 <div className="w-full max-w-3xl shrink-0 rounded-sm border border-slate-300 bg-white p-2 text-black shadow-2xl">
-                  <PurchaseInvoicePrintTemplate ref={printRef} invoice={invoice} />
+                  <PurchaseInvoicePrintTemplate invoice={invoice} />
                 </div>
               </div>
             )}
 
-            {/* Hidden print container for physical print and PDF export */}
-            <div style={{ display: 'none' }}>
-              <div ref={printRef} className="print-only">
+            {/* Off-screen capture host for PDF export: it must stay rendered (never
+                display:none) so html2canvas gets a measurable element. It is hidden
+                again by CSS while physically printing. */}
+            <div className="pdf-capture-host" aria-hidden="true">
+              <div ref={printRef}>
                 <PurchaseInvoicePrintTemplate invoice={invoice} />
               </div>
             </div>
