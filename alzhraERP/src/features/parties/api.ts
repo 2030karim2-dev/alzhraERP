@@ -76,14 +76,44 @@ export const partiesApi = {
     if (partiesError !== null) return { data: null, error: partiesError };
     if (partiesData.length === 0) return { data: [], error: null };
 
-    const { data: balancesData, error: balancesError } = await supabase
-      .from('party_balances')
-      .select('party_id, balance, type')
-      .eq('company_id', companyId);
+    // Fast dedicated RPC with fallback to party_balances view
+    let balancesData: Array<{
+      party_id?: string | null;
+      balance?: number | null;
+      type?: string | null;
+    }> | null = null;
+    let balancesError: unknown = null;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rpcRes = await (supabase as any).rpc('get_party_balances_by_company', {
+        p_company_id: companyId,
+      });
+      if (rpcRes.error === null && Array.isArray(rpcRes.data)) {
+        balancesData = rpcRes.data;
+      } else {
+        const viewRes = await supabase
+          .from('party_balances')
+          .select('party_id, balance, type')
+          .eq('company_id', companyId);
+        balancesData = viewRes.data;
+        balancesError = viewRes.error;
+      }
+    } catch {
+      const viewRes = await supabase
+        .from('party_balances')
+        .select('party_id, balance, type')
+        .eq('company_id', companyId);
+      balancesData = viewRes.data;
+      balancesError = viewRes.error;
+    }
 
     const balancesMap = new Map();
     if (balancesError === null && balancesData !== null) {
-      balancesData.forEach(b => balancesMap.set(b.party_id, b));
+      balancesData.forEach(b => {
+        if (b && b.party_id) {
+          balancesMap.set(b.party_id, b);
+        }
+      });
     }
 
     const currencyMap = await fetchPartyCurrencies(companyId);

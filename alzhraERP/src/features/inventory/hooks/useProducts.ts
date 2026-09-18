@@ -25,7 +25,7 @@ export const useProducts = (
         ? inventoryService.getProducts(
             companyId,
             1,
-            options.limitNum || 10000,
+            options.limitNum || 500,
             options.warehouseId,
             signal
           )

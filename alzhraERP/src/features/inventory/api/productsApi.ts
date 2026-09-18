@@ -6,7 +6,7 @@ import { normalizeArabic } from '@/core/utils/search';
 
 /** Products CRUD and search */
 export const productsApi = {
-  getProducts: async (companyId: string, page = 1, limitNum = 10000, signal?: AbortSignal) => {
+  getProducts: async (companyId: string, page = 1, limitNum = 500, signal?: AbortSignal) => {
     const from = (page - 1) * limitNum;
     const to = from + limitNum - 1;
 
