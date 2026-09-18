@@ -84,7 +84,9 @@ const FiscalYearClosingModal: React.FC<Props> = ({
           <input
             type="checkbox"
             checked={acknowledged}
-            onChange={e => setAcknowledged(e.target.checked)}
+            onChange={e => {
+              setAcknowledged(e.target.checked);
+            }}
             disabled={isLoading}
             className="mt-0.5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
           />
@@ -103,7 +105,9 @@ const FiscalYearClosingModal: React.FC<Props> = ({
             variant="danger"
             disabled={!acknowledged || isLoading}
             isLoading={isLoading}
-            onClick={() => onConfirm(fiscalYear.id)}
+            onClick={() => {
+              onConfirm(fiscalYear.id);
+            }}
             leftIcon={<Lock size={14} />}
           >
             تأكيد الإقفال السنوي

@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { X, Copy, RefreshCw, Layers, ShieldClose } from 'lucide-react';
-import { WorkspaceTab } from '../../../core/store/workspaceTabStore';
+import type { WorkspaceTab } from '../../../core/store/workspaceTabStore';
 
 interface WorkspaceTabContextMenuProps {
   x: number;
@@ -56,7 +56,7 @@ export const WorkspaceTabContextMenu: React.FC<WorkspaceTabContextMenuProps> = (
 
   const handleCopyLink = () => {
     const url = window.location.origin + window.location.pathname + '#' + tab.path;
-    navigator.clipboard.writeText(url).catch(() => {});
+    navigator.clipboard.writeText(url).catch(() => undefined);
     onClose();
   };
 

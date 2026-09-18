@@ -104,7 +104,9 @@ const FiscalYearManager: React.FC = () => {
 
       <FiscalYearClosingModal
         isOpen={!!closingYear}
-        onClose={() => setClosingYear(null)}
+        onClose={() => {
+          setClosingYear(null);
+        }}
         onConfirm={handleConfirmClose}
         fiscalYear={closingYear}
         isLoading={isClosing}

@@ -303,7 +303,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
           row.part_number ? (
             <button
               type="button"
-              onClick={() => handleCopyOEM(row.part_number!)}
+              onClick={() => {
+                handleCopyOEM(row.part_number!);
+              }}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-200 transition-all hover:border-emerald-500 hover:text-emerald-400"
               title="انقر لنسخ رقم القطعة"
             >
@@ -392,7 +394,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
         accessor: row => (
           <button
             type="button"
-            onClick={() => handleAddProductToDraft(row)}
+            onClick={() => {
+              handleAddProductToDraft(row);
+            }}
             className="rounded-xl border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-black text-emerald-400 transition-all hover:bg-emerald-600 hover:text-white"
           >
             + تسعير
@@ -444,7 +448,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
         company={company}
         supplier={supplier}
         draftCount={draftItems.length}
-        onOpenDrawer={() => setIsDrawerOpen(true)}
+        onOpenDrawer={() => {
+          setIsDrawerOpen(true);
+        }}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         reorderCount={reorderCount}
@@ -485,7 +491,9 @@ export const PublicSupplierPortalPage: React.FC = () => {
 
       <PortalDraftDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => {
+          setIsDrawerOpen(false);
+        }}
         draftItems={draftItems}
         setDraftItems={setDraftItems}
         deliveryTerms={deliveryTerms}

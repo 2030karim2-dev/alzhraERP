@@ -154,7 +154,9 @@ const FixedAssetsView: React.FC = () => {
             تشغيل إهلاك الشهر لكافة الأصول
           </Button>
           <Button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setIsAddModalOpen(true);
+            }}
             variant="primary"
             size="sm"
             leftIcon={<Plus size={14} />}
@@ -276,7 +278,9 @@ const FixedAssetsView: React.FC = () => {
 
       <AddAssetModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+        }}
         onSubmit={async input => {
           await createAsset(input);
         }}

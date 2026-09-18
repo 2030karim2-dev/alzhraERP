@@ -59,7 +59,9 @@ export const BulkPartsPasteDropzone: React.FC<BulkPartsPasteDropzoneProps> = ({
           <textarea
             rows={4}
             value={rawText}
-            onChange={e => onTextChange(e.target.value)}
+            onChange={e => {
+              onTextChange(e.target.value);
+            }}
             placeholder={`الصق قائمة القطع هنا بأي شكل، مثلاً:\nباكن راس\n11115-37051\nكرسي مكينه يمين\n12305-37021\nأو:\nباكن غطاء 11213-37021`}
             className="w-full rounded-xl border border-slate-300 bg-white p-3 font-mono text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             dir="auto"
@@ -77,7 +79,9 @@ export const BulkPartsPasteDropzone: React.FC<BulkPartsPasteDropzoneProps> = ({
               {rawText.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => onTextChange('')}
+                  onClick={() => {
+                    onTextChange('');
+                  }}
                   className="px-2 py-1 text-xs text-slate-400 hover:text-rose-500"
                 >
                   مسح

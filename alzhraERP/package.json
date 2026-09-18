@@ -24,6 +24,7 @@
     "check:classes": "node scripts/check-contradicting-classes.mjs",
     "check:fonts": "node scripts/check-tiny-fonts.mjs",
     "check:layers": "node scripts/check-layer-boundaries.mjs",
+    "check:lint-total": "node scripts/check-lint-total.mjs",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --noEmit --strict",
     "test": "vitest",
@@ -35,7 +36,7 @@
     "quality:report": "tsx scripts/quality-report.ts",
     "validate:barrels": "tsx scripts/validate-barrels.ts",
     "scan:orphans": "node scripts/orphan-scan.mjs",
-    "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts && npm run check:classes && npm run check:fonts && npm run check:layers"
+    "pre-push": "npm run check:encoding && tsx scripts/check-ts-baseline.ts && npm run check:classes && npm run check:fonts && npm run check:layers && npm run check:lint-total"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

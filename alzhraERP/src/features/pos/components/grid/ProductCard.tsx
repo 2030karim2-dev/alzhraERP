@@ -312,7 +312,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(
               sourceBranchName={transferSourceWh.branchName}
               requesterBranchId={requesterBranchId}
               availableQty={transferSourceWh.qty}
-              onClose={() => setShowTransferModal(false)}
+              onClose={() => {
+                setShowTransferModal(false);
+              }}
             />
           </Suspense>
         )}

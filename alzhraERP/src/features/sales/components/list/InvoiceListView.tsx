@@ -78,7 +78,9 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
     const timer = setTimeout(() => {
       setDebouncedSearch(internalSearch);
     }, 300);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [internalSearch]);
 
   const searchParams = useMemo(

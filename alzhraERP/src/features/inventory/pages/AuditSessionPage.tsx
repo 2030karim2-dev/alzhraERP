@@ -24,7 +24,7 @@ import { useAuthStore } from '../../auth/store';
 import MicroHeader from '../../../ui/base/MicroHeader';
 import Button from '../../../ui/base/Button';
 import AddProductModal from '../components/AddProductModal';
-import AuditStats, { type AuditSessionInfo } from '../components/audit/AuditStats';
+import AuditStats from '../components/audit/AuditStats';
 import AuditItemsTable, {
   type AuditItemTarget,
   type AuditStatusFilter,
@@ -120,9 +120,7 @@ const AuditSessionPage: React.FC = () => {
                 (serverItem as Record<string, unknown>).product_id ||
                 (serverItem as Record<string, unknown>).id;
               const local = sessionItems.find(s => (s.product_id || s.id) === serverProductId);
-              return local &&
-                local.counted_quantity !== null &&
-                local.counted_quantity !== undefined
+              return local?.counted_quantity !== null && local.counted_quantity !== undefined
                 ? { ...serverItem, counted_quantity: local.counted_quantity }
                 : serverItem;
             })
@@ -608,7 +606,7 @@ const AuditSessionPage: React.FC = () => {
         }}
       >
         <div className="mx-auto max-w-[1600px] space-y-4">
-          <AuditStats stats={stats} session={(session ?? {}) as unknown as AuditSessionInfo} />
+          <AuditStats stats={stats} session={session ?? {}} />
 
           {/* Category & Status Filter Bars */}
           <div className="space-y-2">
@@ -624,7 +622,9 @@ const AuditSessionPage: React.FC = () => {
                 <Filter size={12} /> الحالة:
               </span>
               <button
-                onClick={() => setStatusFilter('all')}
+                onClick={() => {
+                  setStatusFilter('all');
+                }}
                 className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
                   statusFilter === 'all'
                     ? 'bg-slate-800 text-white shadow dark:bg-slate-700'
@@ -634,7 +634,9 @@ const AuditSessionPage: React.FC = () => {
                 الكل ({stats.total})
               </button>
               <button
-                onClick={() => setStatusFilter('discrepancy')}
+                onClick={() => {
+                  setStatusFilter('discrepancy');
+                }}
                 className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
                   statusFilter === 'discrepancy'
                     ? 'bg-rose-600 text-white shadow'
@@ -644,7 +646,9 @@ const AuditSessionPage: React.FC = () => {
                 <AlertTriangle size={10} /> بها فروقات ({stats.discrepancies})
               </button>
               <button
-                onClick={() => setStatusFilter('matched')}
+                onClick={() => {
+                  setStatusFilter('matched');
+                }}
                 className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
                   statusFilter === 'matched'
                     ? 'bg-emerald-600 text-white shadow'
@@ -654,7 +658,9 @@ const AuditSessionPage: React.FC = () => {
                 <CheckCircle2 size={10} /> مطابقة ({stats.matched ?? 0})
               </button>
               <button
-                onClick={() => setStatusFilter('uncounted')}
+                onClick={() => {
+                  setStatusFilter('uncounted');
+                }}
                 className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
                   statusFilter === 'uncounted'
                     ? 'bg-amber-600 text-white shadow'

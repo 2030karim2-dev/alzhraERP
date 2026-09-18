@@ -223,7 +223,9 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         <InvoiceActionButtons
           invoice={invoice}
           onClose={onClose}
-          onPrint={() => window.print()}
+          onPrint={() => {
+            window.print();
+          }}
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onShare={handleShareWhatsApp}

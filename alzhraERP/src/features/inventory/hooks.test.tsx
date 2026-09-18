@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProductMutations } from './hooks/index';
 import { inventoryService } from './service';
-import { useAuthStore } from '../auth/store';
 
 // Mock dependencies
 vi.mock('./service', () => ({
@@ -19,15 +17,15 @@ vi.mock('./service', () => ({
     createCategory: vi.fn(),
     deleteCategory: vi.fn(),
     createTransfer: vi.fn(),
-    startAudit: vi.fn()
-  }
+    startAudit: vi.fn(),
+  },
 }));
 
 // Mock Auth Store to provide a fake logged-in user
 vi.mock('../auth/store', () => ({
   useAuthStore: () => ({
-    user: { id: 'user-1', company_id: 'comp-1' }
-  })
+    user: { id: 'user-1', company_id: 'comp-1' },
+  }),
 }));
 
 // Wrapper for React Query
@@ -52,9 +50,12 @@ describe('Inventory Hooks', () => {
       });
 
       const newProductData: any = { name: 'New Item', sku: '123' };
-      
+
       // Mock successful response
-      (inventoryService.createProduct as any).mockResolvedValue({ id: 'new-id', ...newProductData });
+      (inventoryService.createProduct as any).mockResolvedValue({
+        id: 'new-id',
+        ...newProductData,
+      });
 
       // Trigger mutation
       await result.current.saveProduct({ data: newProductData });

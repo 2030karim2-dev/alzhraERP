@@ -14,8 +14,7 @@ import { cn, formatCurrency } from '../../../core/utils';
 import { useStockedProducts, useWarehouses } from '../../inventory/hooks/index';
 import { useBranches } from '../../settings/hooks';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
-import type { Product, Warehouse } from '../../inventory/types';
-import type { Branch } from '../../settings/types';
+import type { Warehouse } from '../../inventory/types';
 import StockTransferRequestModal from '../../inventory/components/StockTransferRequestModal';
 import {
   computeTransferSuggestions,
@@ -34,7 +33,7 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
   const { data: branches = [] } = useBranches();
   const { branchId: activeBranchId, branchName: activeBranchName } = useBranchFilter();
 
-  const warehouses = (warehousesRaw || []) as Warehouse[];
+  const warehouses = useMemo(() => (warehousesRaw || []) as Warehouse[], [warehousesRaw]);
   const [activeModalSuggestion, setActiveModalSuggestion] = useState<TransferSuggestion | null>(
     null
   );
@@ -45,9 +44,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
   // Compute suggestions via the rebalancing engine
   const { suggestions: allSuggestions, summary } = useMemo(() => {
     return computeTransferSuggestions({
-      products: (products || []) as Product[],
+      products: products || [],
       warehouses,
-      branches: branches as Branch[],
+      branches: branches,
       activeBranchId,
       limit: 20,
     });
@@ -141,7 +140,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
         <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800/60">
             <button
-              onClick={() => setFilterTab('all')}
+              onClick={() => {
+                setFilterTab('all');
+              }}
               className={cn(
                 'rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all',
                 filterTab === 'all'
@@ -152,7 +153,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
               الكل ({allSuggestions.length})
             </button>
             <button
-              onClick={() => setFilterTab('critical')}
+              onClick={() => {
+                setFilterTab('critical');
+              }}
               className={cn(
                 'flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all',
                 filterTab === 'critical'
@@ -165,7 +168,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
             </button>
             {activeBranchId && (
               <button
-                onClick={() => setFilterTab('my_branch')}
+                onClick={() => {
+                  setFilterTab('my_branch');
+                }}
                 className={cn(
                   'rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all',
                   filterTab === 'my_branch'
@@ -187,7 +192,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
             <input
               type="text"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => {
+                setSearchTerm(e.target.value);
+              }}
               placeholder="بحث بالصنف، الكود، أو الفرع..."
               className="w-full rounded-xl border border-[var(--app-border)] bg-white/60 py-1 pe-2.5 ps-7 text-[11px] text-[var(--app-text)] placeholder-[var(--app-text-secondary)] transition-all focus:border-violet-500 focus:outline-none dark:bg-slate-800/40"
             />
@@ -252,7 +259,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
 
                     {/* Snooze/Dismiss Button */}
                     <button
-                      onClick={e => handleDismiss(s.id, e)}
+                      onClick={e => {
+                        handleDismiss(s.id, e);
+                      }}
                       title="تجاهل مؤقت"
                       className="text-slate-400 opacity-0 transition-opacity hover:text-slate-600 group-hover:opacity-100 dark:hover:text-slate-200"
                     >
@@ -323,7 +332,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
                     </p>
 
                     <button
-                      onClick={() => setActiveModalSuggestion(s)}
+                      onClick={() => {
+                        setActiveModalSuggestion(s);
+                      }}
                       className="flex shrink-0 items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition-all hover:bg-violet-700 active:scale-95"
                     >
                       <ArrowRightLeft size={12} />
@@ -345,7 +356,9 @@ const WarehouseTransferSuggestions: React.FC<Props> = ({ className }) => {
           sourceBranchName={activeModalSuggestion.fromBranch.name}
           requesterBranchId={activeModalSuggestion.toBranch.id}
           availableQty={activeModalSuggestion.fromBranch.currentStock}
-          onClose={() => setActiveModalSuggestion(null)}
+          onClose={() => {
+            setActiveModalSuggestion(null);
+          }}
         />
       )}
     </>

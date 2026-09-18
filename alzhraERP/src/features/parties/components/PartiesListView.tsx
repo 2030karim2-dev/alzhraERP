@@ -138,7 +138,9 @@ export const PartiesListView: React.FC<PartiesListViewProps> = ({
               <button
                 key={chip.id}
                 type="button"
-                onClick={() => setActiveFilter(chip.id)}
+                onClick={() => {
+                  setActiveFilter(chip.id);
+                }}
                 className={cn(
                   'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all',
                   isSelected
@@ -169,7 +171,9 @@ export const PartiesListView: React.FC<PartiesListViewProps> = ({
               <Filter size={13} className="text-slate-400" />
               <select
                 value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
+                onChange={e => {
+                  setSelectedCategory(e.target.value);
+                }}
                 className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 outline-none transition-colors hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >
                 <option value="all">جميع الفئات</option>

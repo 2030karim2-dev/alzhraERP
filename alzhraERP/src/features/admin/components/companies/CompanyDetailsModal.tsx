@@ -44,7 +44,7 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({ compan
     isOpen: false,
     title: '',
     message: '',
-    action: async () => {},
+    action: async () => undefined,
     variant: 'primary',
   });
 

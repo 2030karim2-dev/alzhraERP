@@ -24,7 +24,7 @@ import {
   Shield,
   Palette,
   Layers,
-  LucideIcon,
+  type LucideIcon,
 } from 'lucide-react';
 import { ROUTES } from '../../../core/routes/paths';
 

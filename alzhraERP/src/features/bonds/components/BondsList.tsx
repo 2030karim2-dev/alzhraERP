@@ -255,11 +255,18 @@ const BondsList: React.FC<Props> = ({
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                  <td
+                    className="px-4 py-3 text-center"
+                    onClick={e => {
+                      e.stopPropagation();
+                    }}
+                  >
                     <div className="flex items-center justify-center gap-1 opacity-80 transition-all group-hover:opacity-100">
                       {onPreviewBond && (
                         <button
-                          onClick={() => onPreviewBond(bond)}
+                          onClick={() => {
+                            onPreviewBond(bond);
+                          }}
                           className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30"
                           title="معاينة السند الرسمي"
                         >
@@ -281,7 +288,9 @@ const BondsList: React.FC<Props> = ({
                         <Printer size={15} />
                       </button>
                       <button
-                        onClick={() => handleDelete(bond.id, bond.payment_number)}
+                        onClick={() => {
+                          handleDelete(bond.id, bond.payment_number);
+                        }}
                         className="rounded-lg p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30"
                         title="حذف السند"
                       >
@@ -401,7 +410,9 @@ const BondsList: React.FC<Props> = ({
 
             <div
               className="flex items-center justify-between pt-1"
-              onClick={e => e.stopPropagation()}
+              onClick={e => {
+                e.stopPropagation();
+              }}
             >
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1 font-mono text-[10px] font-bold text-gray-400 dark:text-slate-500">
@@ -420,7 +431,9 @@ const BondsList: React.FC<Props> = ({
               <div className="flex items-center gap-1 opacity-80 transition-all group-hover:opacity-100">
                 {onPreviewBond && (
                   <button
-                    onClick={() => onPreviewBond(bond)}
+                    onClick={() => {
+                      onPreviewBond(bond);
+                    }}
                     className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
                     title="معاينة السند"
                   >
@@ -442,7 +455,9 @@ const BondsList: React.FC<Props> = ({
                   <Printer size={14} />
                 </button>
                 <button
-                  onClick={() => handleDelete(bond.id, bond.payment_number)}
+                  onClick={() => {
+                    handleDelete(bond.id, bond.payment_number);
+                  }}
                   className="rounded-lg p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-900/20"
                   title="حذف"
                 >

@@ -68,7 +68,9 @@ const CategoriesView: React.FC<{ partyType: PartyType }> = ({ partyType }) => {
             type="text"
             placeholder="بحث في الفئات..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+            }}
             className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
           />
           <Button onClick={handleAddNew} size="sm" leftIcon={<Plus size={14} />}>

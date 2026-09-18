@@ -117,9 +117,7 @@ export const AccompanyingInfoWindow: React.FC = () => {
     if (!enabled || !isOpen) return;
 
     const handleDocumentClick = (e: MouseEvent) => {
-      const targetEl = (e.target as HTMLElement).closest(
-        '[data-inspect-type]'
-      ) as HTMLElement | null;
+      const targetEl = (e.target as HTMLElement).closest('[data-inspect-type]');
       if (targetEl) {
         const type = targetEl.getAttribute('data-inspect-type') as
           'customer' | 'supplier' | 'invoice' | 'product';
@@ -203,7 +201,9 @@ export const AccompanyingInfoWindow: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+            }}
             title="إغلاق"
             className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-rose-500 hover:text-white dark:text-slate-300"
           >

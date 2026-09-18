@@ -241,7 +241,9 @@ const PurchasesPage: React.FC = () => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
     }, 300);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [searchTerm]);
 
   const searchParams = useMemo(
@@ -284,7 +286,7 @@ const PurchasesPage: React.FC = () => {
   );
 
   const filteredData = useMemo(() => {
-    return (allPurchases as PurchaseRows) || [];
+    return allPurchases || [];
   }, [allPurchases]);
 
   const TABS = [
@@ -305,7 +307,9 @@ const PurchasesPage: React.FC = () => {
           activeTab === 'create' ? (
             <button
               type="button"
-              onClick={() => setActiveTab('list')}
+              onClick={() => {
+                setActiveTab('list');
+              }}
               className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1 text-xs font-bold text-[var(--app-text)] shadow-xs transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
             >
               <History size={13} className="text-blue-500" />

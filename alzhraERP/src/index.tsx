@@ -20,8 +20,10 @@ window.addEventListener('vite:preloadError', _event => {
 // --- Production: Security & Error Masking ---
 if (import.meta.env.PROD) {
   // 1. Suppress console.log and disable debug output to prevent data leakage
-  console.log = () => {};
-  console.debug = () => {};
+  // eslint-disable-next-line no-console -- this assignment IS the production suppression itself
+  console.log = () => undefined;
+  // eslint-disable-next-line no-console -- this assignment IS the production suppression itself
+  console.debug = () => undefined;
 
   // 2. Intercept fetch to mask PG errors from Supabase RPC / PostgREST
   const originalFetch = window.fetch;
@@ -60,7 +62,7 @@ if (import.meta.env.PROD) {
             headers: response.headers,
           });
         }
-      } catch (e) {
+      } catch {
         // Ignore parsing errors
       }
     }

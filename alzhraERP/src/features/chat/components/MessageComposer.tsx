@@ -179,7 +179,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             </div>
           </div>
           <button
-            onClick={() => setReplyingTo(null)}
+            onClick={() => {
+              setReplyingTo(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)]"
           >
             <X size={14} />
@@ -202,7 +204,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             </div>
           </div>
           <button
-            onClick={() => setAttachedEntity(null)}
+            onClick={() => {
+              setAttachedEntity(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -218,7 +222,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             <span className="font-medium text-[var(--app-text)]">{selectedFile.name}</span>
           </div>
           <button
-            onClick={() => setSelectedFile(null)}
+            onClick={() => {
+              setSelectedFile(null);
+            }}
             className="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10"
           >
             <X size={14} />
@@ -242,7 +248,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             {/* ERP Card Sharing Button */}
             <button
               type="button"
-              onClick={() => setShowShareModal(true)}
+              onClick={() => {
+                setShowShareModal(true);
+              }}
               title="مشاركة صنف أو طلب مناقلة أو فاتورة"
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--accent)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
             >
@@ -264,7 +272,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                onClick={() => {
+                  setShowEmojiPicker(!showEmojiPicker);
+                }}
                 title="رموز تعبيرية"
                 className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
               >
@@ -330,7 +340,9 @@ export const MessageComposer: React.FC<Props> = ({ channelId, onTyping }) => {
       {/* Share Entity Modal */}
       <EntityShareModal
         isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
+        onClose={() => {
+          setShowShareModal(false);
+        }}
         onSelectEntity={handleSelectEntity}
       />
     </div>

@@ -224,13 +224,13 @@ export const useExcelImport = () => {
           const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
           setPreview(data.slice(0, 5)); // Show first 5 rows
 
-          const rawRows = XLSX.utils.sheet_to_json(ws) as Array<Record<string, unknown>>;
+          const rawRows = XLSX.utils.sheet_to_json(ws);
           const mappedRows: RawImportRow[] = rawRows.map(r => ({
-            name: String(r['اسم المنتج'] ?? r['name'] ?? ''),
-            sku: String(r['رقم الصنف (SKU)'] ?? r['sku'] ?? ''),
-            barcode: String(r['الباركود'] ?? r['barcode'] ?? ''),
-            partNumber: String(r['رقم القطعة (OEM)'] ?? r['part_number'] ?? r['partNumber'] ?? ''),
-            brand: String(r['الماركة / الشركة'] ?? r['brand'] ?? ''),
+            name: String(r['اسم المنتج'] ?? r.name ?? ''),
+            sku: String(r['رقم الصنف (SKU)'] ?? r.sku ?? ''),
+            barcode: String(r['الباركود'] ?? r.barcode ?? ''),
+            partNumber: String(r['رقم القطعة (OEM)'] ?? r.part_number ?? r.partNumber ?? ''),
+            brand: String(r['الماركة / الشركة'] ?? r.brand ?? ''),
           }));
           const detected = await detectImportConflicts(mappedRows, user?.company_id || '');
           setConflicts(detected);

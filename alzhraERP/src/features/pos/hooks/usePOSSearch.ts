@@ -105,8 +105,8 @@ export function usePOSSearch(options: UsePOSSearchOptions = {}) {
   });
 
   // ── Computed ───────────────────────────────────────────────────
-  const rawResults = searchQuery.data?.results ?? [];
-  const popularResults = popularQuery.data ?? [];
+  const rawResults = useMemo(() => searchQuery.data?.results ?? [], [searchQuery.data]);
+  const popularResults = useMemo(() => popularQuery.data ?? [], [popularQuery.data]);
 
   /**
    * Apply current sort mode to results.

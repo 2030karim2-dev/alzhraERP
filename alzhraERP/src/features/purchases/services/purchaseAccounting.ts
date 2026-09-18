@@ -14,13 +14,13 @@ export const purchaseAccountingService = {
    */
   handleNewPurchase: async (
     invoiceId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _dto: CreatePurchaseDTO,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _companyId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _totalAmount: number
   ): Promise<void> => {
     try {

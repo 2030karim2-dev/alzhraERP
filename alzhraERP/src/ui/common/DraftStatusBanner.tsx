@@ -7,7 +7,7 @@ interface DraftStatusBannerProps {
   entityName?: string | undefined;
 }
 
-const hasValidEntity = (name?: string | undefined): boolean =>
+const hasValidEntity = (name?: string): boolean =>
   typeof name === 'string' && name.trim().length > 0;
 
 const DraftBadge: React.FC<{ itemCount: number; entityName?: string | undefined }> = ({

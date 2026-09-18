@@ -44,7 +44,9 @@ export const WhatsAppShareButton: React.FC<WhatsAppShareButtonProps> = ({
       await navigator.clipboard.writeText(text);
       setCopied(true);
       showToast('تم نسخ تقرير اليومية بتنسيق الواتساب', 'success');
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2500);
     } catch {
       showToast('تعذر النسخ إلى الحافظة', 'error');
     }

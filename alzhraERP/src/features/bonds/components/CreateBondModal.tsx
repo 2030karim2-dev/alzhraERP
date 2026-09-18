@@ -146,7 +146,9 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={() => setIsFullscreen(!isFullscreen)}
+            onClick={() => {
+              setIsFullscreen(!isFullscreen);
+            }}
             className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
             {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -182,7 +184,9 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                         <button
                           key={curr}
                           type="button"
-                          onClick={() => handleCurrencyQuickSwitch(curr)}
+                          onClick={() => {
+                            handleCurrencyQuickSwitch(curr);
+                          }}
                           className={cn(
                             'rounded-lg px-2.5 py-1 font-mono text-[11px] font-black transition-all',
                             selectedCurrency === curr
@@ -209,7 +213,9 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                     <div className="relative">
                       <select
                         {...register('currency_code')}
-                        onChange={e => handleCurrencyQuickSwitch(e.target.value)}
+                        onChange={e => {
+                          handleCurrencyQuickSwitch(e.target.value);
+                        }}
                         className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1 pr-6 text-xs font-bold text-slate-800 outline-none hover:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                       >
                         <option value="SAR">SAR</option>
@@ -370,7 +376,9 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                     <button
                       key={val}
                       type="button"
-                      onClick={() => handleQuickAmount(val)}
+                      onClick={() => {
+                        handleQuickAmount(val);
+                      }}
                       className="rounded-lg border border-slate-200 bg-white px-2 py-1 font-mono text-[11px] font-bold text-slate-600 transition-all hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                     >
                       +{val >= 1000000 ? `${val / 1000000}M` : val >= 1000 ? `${val / 1000}K` : val}
@@ -564,7 +572,9 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
                       </span>
                       <button
                         type="button"
-                        onClick={() => setValue('date', formatLocalDate())}
+                        onClick={() => {
+                          setValue('date', formatLocalDate());
+                        }}
                         className="text-[10px] font-bold text-blue-600 hover:underline"
                       >
                         تاريخ اليوم

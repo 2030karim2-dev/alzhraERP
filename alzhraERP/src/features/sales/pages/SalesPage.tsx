@@ -69,7 +69,6 @@ const SalesPage: React.FC = () => {
     }
     // consumePrefill هو المعرّف الوحيد المستقر — useSalesStore ثابت دائماً وإضافته
     // تُسبّب حلقة لانهائية؛ setActiveTab من useState مستقر بطبيعته.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [consumePrefill]);
 
   const handleReturnAction = async (invoice: any, items: any[]) => {
@@ -151,7 +150,9 @@ const SalesPage: React.FC = () => {
           activeTab === 'create' ? (
             <button
               type="button"
-              onClick={() => setActiveTab('list')}
+              onClick={() => {
+                setActiveTab('list');
+              }}
               className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-2.5 py-1 text-xs font-bold text-[var(--app-text)] shadow-xs transition-all hover:bg-[var(--app-surface-hover)] active:scale-95"
             >
               <ShoppingBag size={13} className="text-emerald-500" />

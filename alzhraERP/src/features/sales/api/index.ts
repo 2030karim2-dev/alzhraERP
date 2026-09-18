@@ -114,7 +114,7 @@ export const salesApi = {
     });
 
     if (error) throw parseError(error);
-    return (data || []) as unknown as SearchInvoiceResultRow[];
+    return data || [];
   },
 
   commitInvoiceRPC: async (
@@ -264,7 +264,7 @@ export const salesApi = {
         *,
         parties:party_id(*),
         payment_allocations(
-          payments:payments(amount, created_at, payment_method)
+          payments:payment_id(amount, created_at, payment_method)
         ),
         invoice_items(
           *,

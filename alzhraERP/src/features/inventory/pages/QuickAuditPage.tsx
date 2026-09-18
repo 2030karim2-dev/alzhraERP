@@ -200,7 +200,9 @@ const QuickAuditPage: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowAddProduct(true)}
+              onClick={() => {
+                setShowAddProduct(true);
+              }}
               className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-300"
               leftIcon={<Plus size={14} />}
             >
@@ -288,7 +290,9 @@ const QuickAuditPage: React.FC = () => {
             onScannerOpen={() => {
               setIsScannerOpen(true);
             }}
-            onOpenAddProduct={() => setShowAddProduct(true)}
+            onOpenAddProduct={() => {
+              setShowAddProduct(true);
+            }}
             searchResults={(searchResults ?? []) as unknown as SearchResult[]}
             isLoadingSearch={isLoadingSearch}
             onAddItem={handleAddItem}
@@ -315,7 +319,9 @@ const QuickAuditPage: React.FC = () => {
       {showAddProduct && (
         <AddProductModal
           isOpen={showAddProduct}
-          onClose={() => setShowAddProduct(false)}
+          onClose={() => {
+            setShowAddProduct(false);
+          }}
           onSubmit={handleCreateNewProduct}
           isSubmitting={isSavingProduct}
           initialData={newProductInitialData}

@@ -91,7 +91,7 @@ const HeaderActions: React.FC = () => {
       if (
         notifRef.current &&
         !notifRef.current.contains(target) &&
-        (!notifPortal || !notifPortal.contains(target))
+        !notifPortal?.contains(target)
       ) {
         setIsNotifOpen(false);
       }

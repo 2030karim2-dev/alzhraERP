@@ -55,9 +55,8 @@ jobs:
           echo "Changed files: ${{ steps.changed.outputs.files }}"
           node scripts/check-lint-ratchet.mjs --files="${{ steps.changed.outputs.files }}"
 
-      - name: Full lint (non-blocking visibility on legacy debt)
-        run: npm run lint
-        continue-on-error: true
+      - name: Global lint-debt ceiling (total errors must not exceed lint-total-baseline.json)
+        run: npm run check:lint-total
 
       - name: Unit tests (with coverage gates — thresholds enforced from vitest.config.ts)
         run: npm test -- --reporter=verbose --run --coverage

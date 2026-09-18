@@ -179,7 +179,9 @@ const CreateQuotationModal: React.FC<Props> = ({
                       setIsPartyDropdownOpen(true);
                     }}
                     onBlur={() => {
-                      setTimeout(() => setIsPartyDropdownOpen(false), 150);
+                      setTimeout(() => {
+                        setIsPartyDropdownOpen(false);
+                      }, 150);
                     }}
                     placeholder="بحث عن عميل..."
                     className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"

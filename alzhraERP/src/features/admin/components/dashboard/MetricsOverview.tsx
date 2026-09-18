@@ -115,7 +115,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
         <div className="flex flex-wrap items-center gap-1.5">
           <Button
             variant={isMaintenanceActive ? 'danger' : 'outline'}
-            onClick={() => setShowMaintenanceModal(true)}
+            onClick={() => {
+              setShowMaintenanceModal(true);
+            }}
             disabled={isUpdating}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
             title="تبديل وضع الصيانة"
@@ -126,7 +128,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
           <Button
             variant="outline"
-            onClick={() => onNavigateTab('subscriptions')}
+            onClick={() => {
+              onNavigateTab('subscriptions');
+            }}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
           >
             <Plus size={13} />
@@ -135,7 +139,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
           <Button
             variant="outline"
-            onClick={() => onNavigateTab('security')}
+            onClick={() => {
+              onNavigateTab('security');
+            }}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
           >
             <Shield size={13} />
@@ -159,7 +165,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Companies Card */}
         <div
-          onClick={() => onNavigateTab('companies')}
+          onClick={() => {
+            onNavigateTab('companies');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-colors hover:border-blue-500/50"
         >
           <div className="flex items-center justify-between">
@@ -184,7 +192,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* Global Users Card */}
         <div
-          onClick={() => onNavigateTab('users')}
+          onClick={() => {
+            onNavigateTab('users');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-colors hover:border-blue-500/50"
         >
           <div className="flex items-center justify-between">
@@ -227,7 +237,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* AI & Intelligence Card */}
         <div
-          onClick={() => onNavigateTab('telemetry')}
+          onClick={() => {
+            onNavigateTab('telemetry');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-colors hover:border-blue-500/50"
         >
           <div className="flex items-center justify-between">
@@ -263,7 +275,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
               </h3>
             </div>
             <button
-              onClick={() => onNavigateTab('subscriptions')}
+              onClick={() => {
+                onNavigateTab('subscriptions');
+              }}
               className="text-[11px] font-bold text-blue-600 hover:underline dark:text-blue-400"
             >
               إدارة الباقات
@@ -314,7 +328,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
         {/* Security & Threat Posture */}
         <div
-          onClick={() => onNavigateTab('security')}
+          onClick={() => {
+            onNavigateTab('security');
+          }}
           className="group cursor-pointer rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 shadow-xs transition-colors hover:border-rose-500/40"
         >
           <div className="mb-3 flex items-center justify-between border-b border-[var(--app-border)] pb-2">
@@ -366,7 +382,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
         cancelLabel="تراجع"
         variant={isMaintenanceActive ? 'primary' : 'danger'}
         onConfirm={handleToggleMaintenance}
-        onClose={() => setShowMaintenanceModal(false)}
+        onClose={() => {
+          setShowMaintenanceModal(false);
+        }}
       />
     </div>
   );

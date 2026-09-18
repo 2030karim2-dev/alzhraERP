@@ -115,7 +115,9 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
           'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900 sm:rounded-3xl',
           isFullscreen ? 'h-full w-full rounded-none' : 'max-h-[92vh] w-full max-w-4xl'
         )}
-        onClick={e => e.stopPropagation()}
+        onClick={e => {
+          e.stopPropagation();
+        }}
       >
         {/* Header toolbar */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-3.5 dark:border-slate-800 dark:bg-slate-950/60">
@@ -182,7 +184,9 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
               <span className="hidden sm:inline">إكسل</span>
             </button>
             <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
+              onClick={() => {
+                setIsFullscreen(!isFullscreen);
+              }}
               className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
               title={isFullscreen ? 'تصغير النافذة' : 'ملء الشاشة'}
             >

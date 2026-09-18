@@ -88,7 +88,7 @@ export const CompaniesTable: React.FC = () => {
     isOpen: false,
     title: '',
     message: '',
-    action: async () => {},
+    action: async () => undefined,
     variant: 'primary',
   });
 

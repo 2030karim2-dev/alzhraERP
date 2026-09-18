@@ -367,7 +367,7 @@ export const useSoundStore = create<SoundState>()(
               /* ignore */
             }
           }, 65);
-        } catch (error) {
+        } catch {
           logger.warn('Notifications', 'Audio playback prevented by browser policy');
         }
       },

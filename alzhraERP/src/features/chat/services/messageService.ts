@@ -37,15 +37,6 @@ interface MessageRawRow {
   }>;
 }
 
-interface RpcSendMessageArgs {
-  p_channel_id: string;
-  p_content: string;
-  p_message_type: string;
-  p_metadata: unknown;
-  p_reply_to_id: string | null;
-  p_client_message_id: string;
-}
-
 export const messageService = {
   /**
    * Fetch messages for a specific channel with cursor pagination.
@@ -124,7 +115,7 @@ export const messageService = {
           .select('created_at')
           .eq('id', beforeId)
           .maybeSingle();
-        const anchorCreatedAt = (anchor as { created_at: string } | null)?.created_at;
+        const anchorCreatedAt = anchor?.created_at;
         if (anchorCreatedAt) {
           query.or(
             `created_at.lt.${buildOrValue(anchorCreatedAt)},and(created_at.eq.${buildOrValue(anchorCreatedAt)},id.lt.${buildOrValue(beforeId)})`
@@ -198,11 +189,11 @@ export const messageService = {
         p_metadata: payload.metadata || {},
         p_reply_to_id: payload.reply_to_id || null,
         p_client_message_id: clientMessageId,
-      } as RpcSendMessageArgs);
+      });
 
       if (error) throw error;
       if (!data) return null;
-      return data as unknown as ChatMessage;
+      return data;
     } catch (err) {
       logger.error('MessageService', 'Error sending chat message', err);
       throw err;

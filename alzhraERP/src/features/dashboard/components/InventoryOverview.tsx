@@ -49,7 +49,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
   const [selectedTransfer, setSelectedTransfer] = useState<SelectedTransferTarget | null>(null);
 
   const warehouses = warehousesRaw as Warehouse[];
-  const products = allProducts as Product[];
+  const products = allProducts;
 
   // Compute enriched low-stock products with branch breakdown
   const enrichedLowStock = useMemo(() => {
@@ -205,7 +205,9 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
         {/* 4-Stat High Density Metrics Grid */}
         <div className="relative z-10 mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div
-            onClick={() => setFilterMode('all')}
+            onClick={() => {
+              setFilterMode('all');
+            }}
             className={cn(
               'cursor-pointer rounded-xl border p-2.5 transition-all',
               filterMode === 'all'
@@ -223,7 +225,9 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
           </div>
 
           <div
-            onClick={() => setFilterMode('zero')}
+            onClick={() => {
+              setFilterMode('zero');
+            }}
             className={cn(
               'cursor-pointer rounded-xl border p-2.5 transition-all',
               filterMode === 'zero'
@@ -241,7 +245,9 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
           </div>
 
           <div
-            onClick={() => setFilterMode('core')}
+            onClick={() => {
+              setFilterMode('core');
+            }}
             className={cn(
               'cursor-pointer rounded-xl border p-2.5 transition-all',
               filterMode === 'core'
@@ -279,14 +285,18 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
             <input
               type="text"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => {
+                setSearchTerm(e.target.value);
+              }}
               placeholder="بحث في المنتجات المنخفضة..."
               className="w-full rounded-xl border border-[var(--app-border)] bg-white/60 py-1 pe-2.5 ps-7 text-[11px] text-[var(--app-text)] placeholder-[var(--app-text-secondary)] transition-all focus:border-cyan-500 focus:outline-none dark:bg-slate-800/40"
             />
           </div>
 
           <button
-            onClick={() => setIsListExpanded(!isListExpanded)}
+            onClick={() => {
+              setIsListExpanded(!isListExpanded);
+            }}
             className="flex items-center gap-1 rounded-lg border border-[var(--app-border)] px-2 py-1 text-[10px] font-bold text-[var(--app-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             {isListExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -377,15 +387,15 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       {item.externalAvailable ? (
                         <button
-                          onClick={() =>
+                          onClick={() => {
                             setSelectedTransfer({
                               product: item.product,
                               sourceBranchId: item.externalBranchId,
                               sourceBranchName: item.externalBranchName,
                               targetBranchId: item.targetBranchId,
                               availableQty: item.externalQty,
-                            })
-                          }
+                            });
+                          }}
                           className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
                         >
                           <ArrowRightLeft size={10} />
@@ -427,7 +437,9 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({
           sourceBranchName={selectedTransfer.sourceBranchName}
           requesterBranchId={selectedTransfer.targetBranchId}
           availableQty={selectedTransfer.availableQty}
-          onClose={() => setSelectedTransfer(null)}
+          onClose={() => {
+            setSelectedTransfer(null);
+          }}
         />
       )}
     </>

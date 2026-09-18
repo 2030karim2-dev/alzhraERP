@@ -32,7 +32,7 @@ export const TransferCard: React.FC<Props> = ({ messageId, metadata }) => {
     setIsProcessing(true);
     try {
       await executeAction(messageId, action);
-    } catch (err) {
+    } catch {
       // Error handled in store
     } finally {
       setIsProcessing(false);

@@ -231,7 +231,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
             {/* Clear all trigger */}
             {allNotifications.length > 0 && (
               <button
-                onClick={() => setIsConfirmingClear(true)}
+                onClick={() => {
+                  setIsConfirmingClear(true);
+                }}
                 className="rounded-lg p-1.5 text-rose-500 transition-colors hover:bg-rose-50 focus:outline-none dark:hover:bg-rose-950/30"
                 title="حذف جميع الإشعارات"
                 aria-label="حذف جميع الإشعارات"
@@ -267,7 +269,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
               </button>
               <button
                 type="button"
-                onClick={() => setIsConfirmingClear(false)}
+                onClick={() => {
+                  setIsConfirmingClear(false);
+                }}
                 className="rounded bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               >
                 إلغاء
@@ -280,7 +284,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
         <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-[var(--app-border)] bg-gray-50/40 px-3 py-1.5 dark:bg-slate-900/40">
           <button
             type="button"
-            onClick={() => setActiveTab('all')}
+            onClick={() => {
+              setActiveTab('all');
+            }}
             className={cn(
               'whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
               activeTab === 'all'
@@ -292,7 +298,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('unread')}
+            onClick={() => {
+              setActiveTab('unread');
+            }}
             className={cn(
               'flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
               activeTab === 'unread'
@@ -309,7 +317,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('urgent')}
+            onClick={() => {
+              setActiveTab('urgent');
+            }}
             className={cn(
               'flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-bold transition-colors',
               activeTab === 'urgent'
@@ -369,9 +379,15 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onClose }) => {
                 <NotificationItem
                   key={notif.id}
                   notif={notif}
-                  onClick={() => handleNotificationClick(notif)}
-                  onDelete={e => handleDeleteNotification(e, notif.id)}
-                  onActionClick={link => handleActionClick(notif.id, link)}
+                  onClick={() => {
+                    handleNotificationClick(notif);
+                  }}
+                  onDelete={e => {
+                    handleDeleteNotification(e, notif.id);
+                  }}
+                  onActionClick={link => {
+                    handleActionClick(notif.id, link);
+                  }}
                 />
               ))}
             </div>

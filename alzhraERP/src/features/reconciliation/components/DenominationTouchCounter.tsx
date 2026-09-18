@@ -70,7 +70,9 @@ export const DenominationTouchCounter: React.FC<DenominationTouchCounterProps> =
           <div className="flex rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] p-0.5 text-xs font-semibold">
             <button
               type="button"
-              onClick={() => onCountModeChange('quick')}
+              onClick={() => {
+                onCountModeChange('quick');
+              }}
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
                 countMode === 'quick'
                   ? 'bg-[var(--app-card-bg)] font-bold text-emerald-600 shadow-sm dark:text-emerald-400'
@@ -82,7 +84,9 @@ export const DenominationTouchCounter: React.FC<DenominationTouchCounterProps> =
             </button>
             <button
               type="button"
-              onClick={() => onCountModeChange('denominations')}
+              onClick={() => {
+                onCountModeChange('denominations');
+              }}
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
                 countMode === 'denominations'
                   ? 'bg-[var(--app-card-bg)] font-bold text-emerald-600 shadow-sm dark:text-emerald-400'
@@ -174,7 +178,9 @@ export const DenominationTouchCounter: React.FC<DenominationTouchCounterProps> =
                     {!disabled && (
                       <button
                         type="button"
-                        onClick={() => handleIncrement(key, -1)}
+                        onClick={() => {
+                          handleIncrement(key, -1);
+                        }}
                         disabled={count === 0}
                         className="flex h-7 w-7 items-center justify-center rounded bg-[var(--app-card-bg)] text-xs font-bold text-[var(--app-text)] shadow-sm hover:bg-[var(--app-hover)] disabled:opacity-40"
                       >
@@ -187,7 +193,9 @@ export const DenominationTouchCounter: React.FC<DenominationTouchCounterProps> =
                       min="0"
                       disabled={disabled}
                       value={count === 0 ? '' : count}
-                      onChange={e => handleCountChange(key, parseInt(e.target.value, 10) || 0)}
+                      onChange={e => {
+                        handleCountChange(key, parseInt(e.target.value, 10) || 0);
+                      }}
                       placeholder="0"
                       className="h-7 w-full rounded border border-[var(--app-border)] bg-[var(--app-card-bg)] text-center text-xs font-bold text-[var(--app-text)] focus:border-emerald-500 focus:outline-none"
                     />
@@ -195,7 +203,9 @@ export const DenominationTouchCounter: React.FC<DenominationTouchCounterProps> =
                     {!disabled && (
                       <button
                         type="button"
-                        onClick={() => handleIncrement(key, 1)}
+                        onClick={() => {
+                          handleIncrement(key, 1);
+                        }}
                         className="flex h-7 w-7 items-center justify-center rounded bg-[var(--app-card-bg)] text-xs font-bold text-[var(--app-text)] shadow-sm hover:bg-[var(--app-hover)]"
                       >
                         +

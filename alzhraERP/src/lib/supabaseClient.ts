@@ -97,7 +97,7 @@ const customFetch = async (
     const timeoutId = setTimeout(() => {
       try {
         timeoutController.abort('timeout');
-      } catch (_) {
+      } catch {
         /* ignore */
       }
     }, 45000);
@@ -117,7 +117,7 @@ const customFetch = async (
         () => {
           try {
             timeoutController.abort(options.signal?.reason || 'signal-merge');
-          } catch (_) {
+          } catch {
             /* ignore */
           }
         },
@@ -231,13 +231,13 @@ const createMockClient = () => {
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       signInWithPassword: () => Promise.resolve({ data: null, error: null }),
       signOut: () => Promise.resolve({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } }),
     },
     channel: () => ({
       on: () => ({
         subscribe: (cb?: (status: string) => void) => {
           cb?.('SUBSCRIBED');
-          return { unsubscribe: () => {} };
+          return { unsubscribe: () => undefined };
         },
       }),
     }),

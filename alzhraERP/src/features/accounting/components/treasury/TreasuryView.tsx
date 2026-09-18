@@ -63,7 +63,7 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
     try {
       await bondMutation.mutateAsync(data);
       setIsModalOpen(false);
-    } catch (error) {
+    } catch {
       // Error handled by hook toast
     }
   };
@@ -133,7 +133,9 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
                   showRevalue={
                     !!(selectedAccount?.currency_code && selectedAccount.currency_code !== 'SAR')
                   }
-                  onRevalue={() => setIsRevalueModalOpen(true)}
+                  onRevalue={() => {
+                    setIsRevalueModalOpen(true);
+                  }}
                 />
               </div>
             )}
@@ -167,7 +169,9 @@ const TreasuryView: React.FC<Props> = ({ dateRange }) => {
 
       <FxRevaluationModal
         isOpen={isRevalueModalOpen}
-        onClose={() => setIsRevalueModalOpen(false)}
+        onClose={() => {
+          setIsRevalueModalOpen(false);
+        }}
         account={selectedAccount || null}
         onSubmit={async params => {
           await revalueCurrency(params);

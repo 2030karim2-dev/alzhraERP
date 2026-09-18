@@ -82,7 +82,9 @@ const FxRevaluationModal: React.FC<Props> = ({
                 min="0.000001"
                 required
                 value={rate}
-                onChange={e => setRate(e.target.value)}
+                onChange={e => {
+                  setRate(e.target.value);
+                }}
                 placeholder="مثال: 0.0025 أو 400"
                 className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-sm text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
               />
@@ -99,7 +101,9 @@ const FxRevaluationModal: React.FC<Props> = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setOperator('multiply')}
+                onClick={() => {
+                  setOperator('multiply');
+                }}
                 className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-bold transition ${
                   operator === 'multiply'
                     ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
@@ -111,7 +115,9 @@ const FxRevaluationModal: React.FC<Props> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setOperator('divide')}
+                onClick={() => {
+                  setOperator('divide');
+                }}
                 className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-bold transition ${
                   operator === 'divide'
                     ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
@@ -132,7 +138,9 @@ const FxRevaluationModal: React.FC<Props> = ({
               type="date"
               required
               value={periodDate}
-              onChange={e => setPeriodDate(e.target.value)}
+              onChange={e => {
+                setPeriodDate(e.target.value);
+              }}
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
           </div>

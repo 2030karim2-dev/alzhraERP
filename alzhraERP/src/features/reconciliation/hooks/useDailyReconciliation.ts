@@ -15,7 +15,7 @@ export const useDailyDrawerSummary = (date: string) => {
   const { user } = useAuthStore();
   const { branchId } = useBranchFilter();
 
-  return useQuery<DailyDrawerSummary, Error>({
+  return useQuery<DailyDrawerSummary>({
     queryKey: ['daily_drawer_summary', user?.company_id, date, branchId],
     queryFn: async () => {
       if (!user?.company_id) {
@@ -77,7 +77,7 @@ export const useReconciliationHistory = (limit = 30) => {
   const { user } = useAuthStore();
   const { branchId } = useBranchFilter();
 
-  return useQuery<ExistingReconciliationRecord[], Error>({
+  return useQuery<ExistingReconciliationRecord[]>({
     queryKey: ['reconciliation_history', user?.company_id, branchId, limit],
     queryFn: async () => {
       if (!user?.company_id) return [];

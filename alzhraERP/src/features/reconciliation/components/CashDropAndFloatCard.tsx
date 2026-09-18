@@ -57,7 +57,9 @@ export const CashDropAndFloatCard: React.FC<CashDropAndFloatCardProps> = ({
               step="any"
               disabled={disabled}
               value={floatRetained === 0 ? '' : floatRetained}
-              onChange={e => onFloatRetainedChange(parseFloat(e.target.value) || 0)}
+              onChange={e => {
+                onFloatRetainedChange(parseFloat(e.target.value) || 0);
+              }}
               placeholder="مثال: 300"
               className="h-10 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-card-bg)] px-3 text-base font-bold text-[var(--app-text)] focus:border-indigo-500 focus:outline-none"
             />
@@ -73,7 +75,9 @@ export const CashDropAndFloatCard: React.FC<CashDropAndFloatCardProps> = ({
                 <button
                   key={amt}
                   type="button"
-                  onClick={() => onFloatRetainedChange(amt)}
+                  onClick={() => {
+                    onFloatRetainedChange(amt);
+                  }}
                   className={`rounded-md px-2 py-0.5 text-[11px] font-bold transition-colors ${
                     floatRetained === amt
                       ? 'bg-indigo-600 text-white'

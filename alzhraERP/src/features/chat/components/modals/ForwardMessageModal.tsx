@@ -22,10 +22,7 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
   const filteredChannels = channels.filter(ch => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
-    return (
-      ch.name.toLowerCase().includes(q) ||
-      (ch.branch_name && ch.branch_name.toLowerCase().includes(q))
-    );
+    return ch.name.toLowerCase().includes(q) || ch.branch_name?.toLowerCase().includes(q);
   });
 
   const handleForward = async () => {
@@ -53,7 +50,7 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
       );
 
       onClose();
-    } catch (err) {
+    } catch {
       // Handled in store
     } finally {
       setIsSending(false);
@@ -101,7 +98,9 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
               type="text"
               placeholder="ابحث عن محادثة أو زميل..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => {
+                setSearch(e.target.value);
+              }}
               className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] py-1.5 pe-3 ps-8 text-xs text-[var(--app-text)] outline-none focus:border-[var(--accent)]"
             />
           </div>
@@ -115,7 +114,9 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
               <button
                 key={ch.id}
                 type="button"
-                onClick={() => setSelectedChannelId(ch.id)}
+                onClick={() => {
+                  setSelectedChannelId(ch.id);
+                }}
                 className={`flex w-full items-center gap-2.5 rounded-xl p-2 text-start transition-all ${
                   isSelected
                     ? 'bg-[var(--accent)] text-white'
@@ -149,7 +150,9 @@ export const ForwardMessageModal: React.FC<Props> = ({ isOpen, message, onClose 
                   type="radio"
                   name="forwardDestination"
                   checked={isSelected}
-                  onChange={() => setSelectedChannelId(ch.id)}
+                  onChange={() => {
+                    setSelectedChannelId(ch.id);
+                  }}
                   className="accent-[var(--accent)]"
                 />
               </button>

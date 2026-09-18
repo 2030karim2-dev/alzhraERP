@@ -83,7 +83,7 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
       await fetchChannels(companyId, user?.id || '');
       setActiveChannel(channelId);
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled
     } finally {
       setIsSubmitting(false);
@@ -108,7 +108,7 @@ export const NewChatModal: React.FC<Props> = ({ isOpen, onClose }) => {
       await fetchChannels(companyId, user.id);
       setActiveChannel(channelId);
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled
     } finally {
       setIsSubmitting(false);

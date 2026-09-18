@@ -315,7 +315,7 @@ export const exportStatementToExcel = async (
     const safeName = sanitizeFileName(partyName);
     const dateStr = formatLocalDate();
     XLSX.writeFile(wb, `كشف_حساب_${safeName}_${dateStr}.xlsx`);
-  } catch (err) {
+  } catch {
     throw new Error('فشل تصدير كشف الحساب إلى Excel');
   }
 };

@@ -216,7 +216,9 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
           </p>
           <button
             type="button"
-            onClick={() => onSearch('')}
+            onClick={() => {
+              onSearch('');
+            }}
             className="mt-4 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-amber-600"
           >
             مسح البحث
@@ -545,7 +547,9 @@ export const CoreProductsView: React.FC<CoreProductsViewProps> = ({
                   product={selectedProduct}
                   onEdit={handleEdit}
                   onDelete={deleteProduct}
-                  onClose={() => setSelectedProduct(null)}
+                  onClose={() => {
+                    setSelectedProduct(null);
+                  }}
                   onMaximize={onMaximizeProduct}
                 />
               </div>

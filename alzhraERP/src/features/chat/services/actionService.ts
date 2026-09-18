@@ -2,12 +2,6 @@ import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
 import type { ActionStatus } from '../types';
 
-interface RpcExecuteActionArgs {
-  p_message_id: string;
-  p_action: 'approve' | 'reject' | 'cancel';
-  p_notes: string | null;
-}
-
 interface RpcExecuteActionResult {
   success: boolean;
   status: ActionStatus;
@@ -28,7 +22,7 @@ export const actionService = {
         p_message_id: messageId,
         p_action: action,
         p_notes: notes || null,
-      } as RpcExecuteActionArgs);
+      });
 
       if (error) throw error;
       return (

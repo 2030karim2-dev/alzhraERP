@@ -335,16 +335,7 @@ export const productsApi = {
       return [];
     }
 
-    return (data || []) as Array<{
-      id: string;
-      name_ar: string;
-      part_number: string | null;
-      alternative_numbers: string | null;
-      brand: string | null;
-      sku: string;
-      sale_price: number | null;
-      purchase_price: number | null;
-    }>;
+    return data || [];
   },
 
   toggleCoreProduct: async (id: string, isCore: boolean) => {

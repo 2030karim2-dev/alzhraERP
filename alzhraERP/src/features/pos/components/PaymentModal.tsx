@@ -65,7 +65,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     return (
       resolveAutoExchangeRate(
         'YER',
-        rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+        rates.data,
         currencies.data as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
       ) || 410
     );
@@ -253,7 +253,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   {customRate !== defaultYerRate && (
                     <button
                       type="button"
-                      onClick={() => setCustomRate(defaultYerRate)}
+                      onClick={() => {
+                        setCustomRate(defaultYerRate);
+                      }}
                       className="text-[10px] text-blue-600 underline hover:text-blue-700 dark:text-blue-400"
                     >
                       افتراضي ({defaultYerRate})

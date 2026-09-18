@@ -55,7 +55,9 @@ export const useDashboardMetrics = (period: DashboardPeriod = 'this_month') => {
       }
     },
     enabled: !!companyId,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes — monthly journal data changes infrequently
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false, // monthly chart doesn't need instant refresh on tab focus
   });
 
   const revenueExpensesData = useMemo(() => {

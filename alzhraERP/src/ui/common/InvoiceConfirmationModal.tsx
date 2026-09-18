@@ -79,7 +79,9 @@ export const InvoiceConfirmationModal: React.FC<InvoiceConfirmationModalProps> =
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen) return null;
@@ -385,7 +387,7 @@ export const InvoiceConfirmationModal: React.FC<InvoiceConfirmationModalProps> =
           </div>
 
           {/* ملاحظات الفاتورة إن وُجدت */}
-          {notes && notes.trim() && (
+          {notes?.trim() && (
             <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
               <span className="font-bold text-slate-800 dark:text-slate-200">ملاحظات: </span>
               <span>{notes.trim()}</span>

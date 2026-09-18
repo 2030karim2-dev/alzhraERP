@@ -98,14 +98,18 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
             id={inputId}
             type="text"
             value={searchTerm}
-            onChange={e => onSearchChange(e.target.value)}
+            onChange={e => {
+              onSearchChange(e.target.value);
+            }}
             placeholder={placeholder || defaultPlaceholder}
             className="focus:outline-hidden h-9 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] pe-9 ps-9 text-xs font-semibold text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
           {searchTerm && (
             <button
               type="button"
-              onClick={() => onSearchChange('')}
+              onClick={() => {
+                onSearchChange('');
+              }}
               className="absolute inset-y-0 end-0 flex items-center pe-2.5 text-[var(--app-text-secondary)] hover:text-rose-500"
               title="مسح البحث"
             >
@@ -118,7 +122,9 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
         {onPaymentMethodFilterChange && (
           <select
             value={paymentMethodFilter}
-            onChange={e => onPaymentMethodFilterChange(e.target.value)}
+            onChange={e => {
+              onPaymentMethodFilterChange(e.target.value);
+            }}
             aria-label="تصفية حسب طريقة الدفع"
             className="focus:outline-hidden h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 text-xs font-bold text-[var(--app-text)] focus:border-blue-500"
           >
@@ -132,7 +138,9 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
         {onStatusFilterChange && (
           <select
             value={statusFilter}
-            onChange={e => onStatusFilterChange(e.target.value)}
+            onChange={e => {
+              onStatusFilterChange(e.target.value);
+            }}
             aria-label="تصفية حسب حالة الفاتورة"
             className="focus:outline-hidden h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 text-xs font-bold text-[var(--app-text)] focus:border-blue-500"
           >
@@ -172,7 +180,9 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
               <button
                 key={preset.id}
                 type="button"
-                onClick={() => handlePresetClick(preset.id)}
+                onClick={() => {
+                  handlePresetClick(preset.id);
+                }}
                 className={`rounded-md px-2 py-1 text-[11px] font-bold transition-all ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-xs'
@@ -192,7 +202,9 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
               <span>عرض:</span>
               <select
                 value={limit ?? 500}
-                onChange={e => onLimitChange(Number(e.target.value))}
+                onChange={e => {
+                  onLimitChange(Number(e.target.value));
+                }}
                 aria-label="عدد الفواتير المعروضة"
                 className="focus:outline-hidden h-7 rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-2 py-0.5 text-[11px] font-bold text-[var(--app-text)] focus:border-blue-500"
               >

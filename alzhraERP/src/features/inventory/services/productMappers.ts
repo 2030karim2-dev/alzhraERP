@@ -130,7 +130,7 @@ export function mapRawProducts(rows: unknown[], warehouseId?: string): Product[]
         total_profit: Number(prod.total_profit) || 0,
         total_loss: Number(prod.total_loss) || 0,
         last_invoice_date: prod.last_invoice_date || undefined,
-      } as Product;
+      };
     })
     .filter((p): p is Product => p !== null);
 }

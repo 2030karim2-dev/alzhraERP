@@ -116,7 +116,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Tabs Navigation */}
         <div className="mb-5 flex flex-wrap gap-1.5">
           <button
-            onClick={() => setActiveTab('prayers')}
+            onClick={() => {
+              setActiveTab('prayers');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'prayers'
                 ? 'scale-102 bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
@@ -128,7 +130,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('tasbeeh_tahleel')}
+            onClick={() => {
+              setActiveTab('tasbeeh_tahleel');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'tasbeeh_tahleel'
                 ? 'scale-102 bg-teal-600 text-white shadow-md shadow-teal-600/30'
@@ -140,7 +144,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('quran_prophet')}
+            onClick={() => {
+              setActiveTab('quran_prophet');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'quran_prophet'
                 ? 'scale-102 bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
@@ -152,7 +158,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('istighfar')}
+            onClick={() => {
+              setActiveTab('istighfar');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'istighfar'
                 ? 'scale-102 bg-blue-600 text-white shadow-md shadow-blue-600/30'
@@ -164,7 +172,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('debt_rizq')}
+            onClick={() => {
+              setActiveTab('debt_rizq');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'debt_rizq'
                 ? 'scale-102 bg-amber-600 text-white shadow-md shadow-amber-600/30'
@@ -176,7 +186,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('protection_salawat')}
+            onClick={() => {
+              setActiveTab('protection_salawat');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'protection_salawat'
                 ? 'scale-102 bg-rose-600 text-white shadow-md shadow-rose-600/30'
@@ -188,7 +200,9 @@ export const PrayerTimesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('counter')}
+            onClick={() => {
+              setActiveTab('counter');
+            }}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               activeTab === 'counter'
                 ? 'scale-102 bg-purple-600 text-white shadow-md shadow-purple-600/30'

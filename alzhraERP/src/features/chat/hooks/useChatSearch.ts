@@ -12,7 +12,7 @@ export const useChatSearch = (messages: ChatMessage[]) => {
     return messages
       .filter(m => {
         if (m.content && m.content.toLowerCase().includes(term)) return true;
-        if (m.sender_name && m.sender_name.toLowerCase().includes(term)) return true;
+        if (m.sender_name?.toLowerCase().includes(term)) return true;
         if (m.metadata && typeof (m.metadata as any).title === 'string') {
           if ((m.metadata as any).title.toLowerCase().includes(term)) return true;
         }

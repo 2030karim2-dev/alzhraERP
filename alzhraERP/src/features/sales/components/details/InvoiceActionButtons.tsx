@@ -26,7 +26,9 @@ interface ExportGroupProps {
 const ExportGroup: React.FC<ExportGroupProps> = ({
   onExportPDF,
   onExportExcel,
-  onPrint = () => window.print(),
+  onPrint = () => {
+    window.print();
+  },
   onShare,
   isExporting,
 }) => (

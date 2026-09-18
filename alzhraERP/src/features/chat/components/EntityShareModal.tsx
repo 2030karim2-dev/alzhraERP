@@ -154,7 +154,7 @@ export const EntityShareModal: React.FC<Props> = ({ isOpen, onClose, onSelectEnt
   };
 
   const handleSelectVin = (vinItem: ChatVinResult) => {
-    const decoded = (vinItem.decoded || {}) as Record<string, string | undefined>;
+    const decoded = vinItem.decoded || {};
     const metadata: EntityCardMetadata = {
       entity_type: 'vin',
       entity_id: vinItem.id,

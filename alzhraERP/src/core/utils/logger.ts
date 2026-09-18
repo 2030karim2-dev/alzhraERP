@@ -128,6 +128,7 @@ class Logger {
   debug(context: string, message: string, data?: unknown): void {
     if (!this.shouldLog('debug')) return;
     const merged = this.merge(data);
+    // eslint-disable-next-line no-console -- logger transport; production suppression lives in index.tsx
     console.debug(
       `${LOG_COLORS.debug}${this.prefix('debug', context)}${RESET_COLOR}`,
       message,
@@ -194,11 +195,13 @@ class Logger {
 
   time(context: string, label: string): void {
     if (!this.shouldLog('debug')) return;
+    // eslint-disable-next-line no-console -- timing API, not a log statement
     console.time(`[${context}] ${label}`);
   }
 
   timeEnd(context: string, label: string): void {
     if (!this.shouldLog('debug')) return;
+    // eslint-disable-next-line no-console -- timing API, not a log statement
     console.timeEnd(`[${context}] ${label}`);
   }
 

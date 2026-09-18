@@ -247,7 +247,7 @@ export function parseBulkPartsText(
   vehicle: VehicleInfo | null,
   customTemplate?: string
 ): ExcelGridPart[] {
-  if (!rawText || !rawText.trim()) return [];
+  if (!rawText?.trim()) return [];
 
   const lines = rawText
     .split(/\r?\n/)
@@ -261,7 +261,7 @@ export function parseBulkPartsText(
     const currentLine = lines[i];
 
     // Pattern A: Single line with Name and OEM part number (e.g. "باكن راس 11115-37051" or "11115-37051 باكن راس")
-    const oemMatch = currentLine.match(/\b([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\b/i);
+    const oemMatch = /\b([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\b/i.exec(currentLine);
 
     if (oemMatch) {
       const oem = oemMatch[1].toUpperCase();
@@ -293,7 +293,7 @@ export function parseBulkPartsText(
     // Pattern B: Alternating lines: Line 1 = Name ("باكن راس"), Line 2 = OEM ("11115-37051")
     if (i + 1 < lines.length) {
       const nextLine = lines[i + 1];
-      const nextOemMatch = nextLine.match(/^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i);
+      const nextOemMatch = /^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i.exec(nextLine);
 
       if (nextOemMatch) {
         const baseName = currentLine;
@@ -320,7 +320,7 @@ export function parseBulkPartsText(
     }
 
     // Pattern C: Reverse alternating: Line 1 = OEM ("11115-37051"), Line 2 = Name ("باكن راس")
-    const isCurrentOem = currentLine.match(/^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i);
+    const isCurrentOem = /^\s*([A-Z0-9]{4,8}-[A-Z0-9]{4,8}|[A-Z0-9]{9,12})\s*$/i.exec(currentLine);
     if (isCurrentOem && i + 1 < lines.length) {
       const oem = isCurrentOem[1].toUpperCase();
       const baseName = lines[i + 1];

@@ -41,7 +41,9 @@ export const ChatSearchOverlay: React.FC<Props> = ({
         type="text"
         placeholder="بحث في الرسائل..."
         value={searchTerm}
-        onChange={e => onSearchChange(e.target.value)}
+        onChange={e => {
+          onSearchChange(e.target.value);
+        }}
         onKeyDown={e => {
           if (e.key === 'Enter') {
             if (e.shiftKey) onPrev();

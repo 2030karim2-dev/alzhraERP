@@ -92,7 +92,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              window.location.reload();
+            }}
             style={{
               padding: '0.625rem 1.5rem',
               borderRadius: 8,

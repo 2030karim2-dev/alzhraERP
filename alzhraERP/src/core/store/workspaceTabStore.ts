@@ -103,7 +103,7 @@ export const useWorkspaceTabStore = create<WorkspaceTabState>()(
         };
 
         // إدارة الحد الأقصى للتبويبات لمنع استهلاك الذاكرة
-        let nextTabs = [...tabs];
+        const nextTabs = [...tabs];
         if (nextTabs.length >= MAX_TABS_LIMIT) {
           // إغلاق أقدم تبويب قابل للإغلاق ليس نشطاً
           const oldestClosableIndex = nextTabs.findIndex(t => t.isClosable && t.id !== activeTabId);
@@ -124,7 +124,7 @@ export const useWorkspaceTabStore = create<WorkspaceTabState>()(
         const tabToClose = tabs.find(t => t.id === tabId);
 
         // لا يمكن إغلاق التبويبات غير القابلة للإغلاق كالرئيسية
-        if (!tabToClose || !tabToClose.isClosable) {
+        if (!tabToClose?.isClosable) {
           return null;
         }
 

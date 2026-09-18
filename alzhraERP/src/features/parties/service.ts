@@ -389,7 +389,7 @@ export const partiesService = {
     const { data: created, error: createError } = await partiesApi.createParty(
       {
         name,
-        type: (type === 'all' ? 'customer' : type) as 'customer' | 'supplier' | 'both',
+        type: type === 'all' ? 'customer' : type,
         status: 'active',
       },
       companyId

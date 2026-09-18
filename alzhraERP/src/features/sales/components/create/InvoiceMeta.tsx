@@ -76,7 +76,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
       } else {
         const autoRate = resolveAutoExchangeRate(
           currency,
-          rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+          rates.data,
           currencies.data as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
         );
         setMetadata('exchangeRate', autoRate);
@@ -277,7 +277,7 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
                   } else {
                     const autoRate = resolveAutoExchangeRate(
                       newCurr,
-                      (rates.data as Array<{ currency_code: string; rate_to_base: number }>) ?? [],
+                      rates.data ?? [],
                       currencies.data as Array<{
                         code: string;
                         exchange_operator?: 'multiply' | 'divide';

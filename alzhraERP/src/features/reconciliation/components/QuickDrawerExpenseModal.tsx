@@ -91,7 +91,9 @@ export const QuickDrawerExpenseModal: React.FC<QuickDrawerExpenseModalProps> = (
               required
               autoFocus
               value={amount}
-              onChange={e => setAmount(e.target.value)}
+              onChange={e => {
+                setAmount(e.target.value);
+              }}
               placeholder="مثال: 35"
               className="h-11 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-lg font-black text-[var(--app-text)] focus:border-amber-500 focus:outline-none"
             />
@@ -111,7 +113,9 @@ export const QuickDrawerExpenseModal: React.FC<QuickDrawerExpenseModalProps> = (
               <button
                 key={preset}
                 type="button"
-                onClick={() => setDescription(preset)}
+                onClick={() => {
+                  setDescription(preset);
+                }}
                 className={`rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
                   description === preset
                     ? 'bg-amber-600 text-white shadow-sm'
@@ -133,7 +137,9 @@ export const QuickDrawerExpenseModal: React.FC<QuickDrawerExpenseModalProps> = (
             type="text"
             required
             value={description}
-            onChange={e => setDescription(e.target.value)}
+            onChange={e => {
+              setDescription(e.target.value);
+            }}
             placeholder="مثال: شاي وضيافة، أو فاتورة مياه"
             className="h-10 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-xs text-[var(--app-text)] focus:border-amber-500 focus:outline-none"
           />

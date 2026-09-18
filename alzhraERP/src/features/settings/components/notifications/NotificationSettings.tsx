@@ -276,7 +276,9 @@ const NotificationSettings: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => handlePlayTone('normal')}
+              onClick={() => {
+                handlePlayTone('normal');
+              }}
               className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300"
             >
               <span>نغمة لطيفة</span>
@@ -284,7 +286,9 @@ const NotificationSettings: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => handlePlayTone('urgent')}
+              onClick={() => {
+                handlePlayTone('urgent');
+              }}
               className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300"
             >
               <span>نغمة عاجلة</span>
@@ -303,7 +307,9 @@ const NotificationSettings: React.FC = () => {
               max="1"
               step="0.05"
               value={volume}
-              onChange={e => setVolume(parseFloat(e.target.value))}
+              onChange={e => {
+                setVolume(parseFloat(e.target.value));
+              }}
               className="w-full cursor-pointer accent-blue-600"
               aria-label="مستوى صوت الإشعارات"
             />

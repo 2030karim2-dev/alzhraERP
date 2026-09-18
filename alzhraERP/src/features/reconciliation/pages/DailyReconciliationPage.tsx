@@ -186,7 +186,9 @@ const DailyReconciliationPage: React.FC = () => {
             <input
               type="date"
               value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
+              onChange={e => {
+                setSelectedDate(e.target.value);
+              }}
               className="bg-transparent text-xs font-bold text-[var(--app-text)] focus:outline-none"
             />
           </div>
@@ -194,7 +196,9 @@ const DailyReconciliationPage: React.FC = () => {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setIsExpenseModalOpen(true)}
+            onClick={() => {
+              setIsExpenseModalOpen(true);
+            }}
             className="gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400"
           >
             <Coffee className="h-4 w-4 text-amber-500" />
@@ -204,7 +208,9 @@ const DailyReconciliationPage: React.FC = () => {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setIsHistoryModalOpen(true)}
+            onClick={() => {
+              setIsHistoryModalOpen(true);
+            }}
             className="gap-1.5 text-xs font-bold"
           >
             <History className="h-4 w-4" />
@@ -216,7 +222,9 @@ const DailyReconciliationPage: React.FC = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setIsPrintModalOpen(true)}
+                onClick={() => {
+                  setIsPrintModalOpen(true);
+                }}
                 className="gap-1.5 text-xs font-bold"
               >
                 <Printer className="h-4 w-4" />
@@ -499,7 +507,9 @@ const DailyReconciliationPage: React.FC = () => {
                   type="text"
                   disabled={isLocked}
                   value={varianceReason}
-                  onChange={e => setVarianceReason(e.target.value)}
+                  onChange={e => {
+                    setVarianceReason(e.target.value);
+                  }}
                   placeholder="اكتب توضيحاً للسبب (مثال: نسيان تسجيل فاتورة فلان، أو فرق فكة زبون)"
                   className="h-9 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-card-bg)] px-3 text-xs text-[var(--app-text)] focus:border-red-500 focus:outline-none"
                 />
@@ -520,14 +530,18 @@ const DailyReconciliationPage: React.FC = () => {
       {/* Modals */}
       <QuickDrawerExpenseModal
         isOpen={isExpenseModalOpen}
-        onClose={() => setIsExpenseModalOpen(false)}
+        onClose={() => {
+          setIsExpenseModalOpen(false);
+        }}
         selectedDate={selectedDate}
       />
 
       {summary && (
         <ReconciliationPrintModal
           isOpen={isPrintModalOpen}
-          onClose={() => setIsPrintModalOpen(false)}
+          onClose={() => {
+            setIsPrintModalOpen(false);
+          }}
           summary={summary}
           actualCash={actualCashCounted}
           actualCard={actualCard}
@@ -539,8 +553,12 @@ const DailyReconciliationPage: React.FC = () => {
 
       <ReconciliationHistoryModal
         isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-        onSelectDate={date => setSelectedDate(date)}
+        onClose={() => {
+          setIsHistoryModalOpen(false);
+        }}
+        onSelectDate={date => {
+          setSelectedDate(date);
+        }}
         historyList={historyList}
         isLoading={isHistoryLoading}
         currency={currency}

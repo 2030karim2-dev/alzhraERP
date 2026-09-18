@@ -393,7 +393,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
               <th className="relative select-none border-l border-slate-300 px-1.5 py-1.5 text-right dark:border-slate-700">
                 <span className="truncate">الصنف</span>
                 <div
-                  onMouseDown={e => onResizeMouseDown(e, 'name')}
+                  onMouseDown={e => {
+                    onResizeMouseDown(e, 'name');
+                  }}
                   className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
                   title="اسحب لتغيير العرض"
                 />
@@ -403,7 +405,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
               <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-right dark:border-slate-700">
                 <span className="truncate">رقم القطعة</span>
                 <div
-                  onMouseDown={e => onResizeMouseDown(e, 'partNumber')}
+                  onMouseDown={e => {
+                    onResizeMouseDown(e, 'partNumber');
+                  }}
                   className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
                   title="اسحب لتغيير العرض"
                 />
@@ -413,7 +417,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
               <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-center dark:border-slate-700">
                 <span>الكمية</span>
                 <div
-                  onMouseDown={e => onResizeMouseDown(e, 'quantity')}
+                  onMouseDown={e => {
+                    onResizeMouseDown(e, 'quantity');
+                  }}
                   className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
                   title="اسحب لتغيير العرض"
                 />
@@ -423,7 +429,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
               <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-left dark:border-slate-700">
                 <span>السعر</span>
                 <div
-                  onMouseDown={e => onResizeMouseDown(e, 'price')}
+                  onMouseDown={e => {
+                    onResizeMouseDown(e, 'price');
+                  }}
                   className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
                   title="اسحب لتغيير العرض"
                 />
@@ -433,7 +441,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
               <th className="relative select-none border-l border-slate-300 px-1 py-1.5 text-left dark:border-slate-700">
                 <span>الإجمالي</span>
                 <div
-                  onMouseDown={e => onResizeMouseDown(e, 'total')}
+                  onMouseDown={e => {
+                    onResizeMouseDown(e, 'total');
+                  }}
                   className="absolute bottom-0 left-0 top-0 z-30 w-1.5 cursor-col-resize transition-colors hover:bg-blue-500 active:bg-blue-600"
                   title="اسحب لتغيير العرض"
                 />
@@ -471,7 +481,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                 >
                   {/* Col 0: Excel Row Header (#) */}
                   <td
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 1 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 1 });
+                    }}
                     className={cn(
                       'cursor-pointer select-none border-b border-l border-slate-200 py-1 text-center font-mono text-[10px] dark:border-slate-700/80',
                       isRowActive
@@ -485,7 +497,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                   {/* Col 1: Product Name (Compact Single-line) */}
                   <td
                     ref={isCellActive(1) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 1 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 1 });
+                    }}
                     className={cn(
                       'relative cursor-pointer border-b border-l border-slate-200 px-1.5 py-1 align-middle dark:border-slate-700/80',
                       isCellActive(1) &&
@@ -524,7 +538,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                   {/* Col 2: Part Number (Compact) */}
                   <td
                     ref={isCellActive(2) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 2 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 2 });
+                    }}
                     className={cn(
                       'relative cursor-pointer border-b border-l border-slate-200 px-1 py-1 align-middle font-mono text-[10px] text-slate-500 dark:border-slate-700/80 dark:text-slate-400',
                       isCellActive(2) &&
@@ -540,7 +556,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                   {/* Col 3: Quantity (Compact & Editable) */}
                   <td
                     ref={isCellActive(3) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 3 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 3 });
+                    }}
                     onDoubleClick={() => {
                       setEditingQtyRow(rowIdx);
                       setQtyInputValue(String(item.quantity));
@@ -559,13 +577,19 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                           min="0"
                           autoFocus
                           value={qtyInputValue}
-                          onChange={e => setQtyInputValue(e.target.value)}
-                          onBlur={() => commitQty(rowIdx)}
+                          onChange={e => {
+                            setQtyInputValue(e.target.value);
+                          }}
+                          onBlur={() => {
+                            commitQty(rowIdx);
+                          }}
                           className="w-full rounded border border-blue-500 bg-white py-0.5 text-center font-mono text-xs font-black text-blue-600 shadow-xs outline-none dark:bg-slate-950 dark:text-blue-400"
                         />
                         <button
                           type="button"
-                          onClick={() => commitQty(rowIdx)}
+                          onClick={() => {
+                            commitQty(rowIdx);
+                          }}
                           className="text-emerald-600 hover:text-emerald-700"
                         >
                           <CornerDownLeft size={10} />
@@ -630,7 +654,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                         setFocusedCell({ row: rowIdx, col: 4 });
                         setEditingPriceId?.(item.productId);
                       }}
-                      onKeyDown={e => handlePriceInputKeyDown(e, rowIdx)}
+                      onKeyDown={e => {
+                        handlePriceInputKeyDown(e, rowIdx);
+                      }}
                     />
                     {isCellActive(4) && (
                       <span className="rounded-xs pointer-events-none absolute -bottom-1 -left-1 z-20 h-2 w-2 bg-blue-600 dark:bg-blue-500" />
@@ -640,7 +666,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                   {/* Col 5: Total (Compact) */}
                   <td
                     ref={isCellActive(5) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 5 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 5 });
+                    }}
                     className={cn(
                       'relative cursor-pointer border-b border-l border-slate-200 px-1 py-0.5 text-left align-middle dark:border-slate-700/80',
                       isCellActive(5) &&
@@ -661,7 +689,9 @@ export const ExcelCartTable: React.FC<ExcelCartTableProps> = ({
                   {/* Col 6: Actions / Delete (Compact) */}
                   <td
                     ref={isCellActive(6) ? activeCellRef : undefined}
-                    onClick={() => setFocusedCell({ row: rowIdx, col: 6 })}
+                    onClick={() => {
+                      setFocusedCell({ row: rowIdx, col: 6 });
+                    }}
                     className={cn(
                       'relative cursor-pointer border-b border-slate-200 py-0.5 text-center align-middle dark:border-slate-700/80',
                       isCellActive(6) &&

@@ -127,7 +127,7 @@ export const aiCategoryService = {
           reasoning: raw.reasoning || '',
         };
       });
-    } catch (error) {
+    } catch {
       logger.error('aiCategoryService', 'Failed to parse AI response:', response);
       throw new Error('فشل تحليل رد الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.');
     }

@@ -23,7 +23,9 @@ export const EmployeeSalesBreakdownCard: React.FC<EmployeeSalesBreakdownCardProp
       {/* Header Bar - Clickable to toggle accordion */}
       <button
         type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          setIsExpanded(!isExpanded);
+        }}
         className="hover:bg-[var(--app-hover)]/50 flex w-full items-center justify-between rounded-xl p-3.5 text-right transition-colors"
       >
         <div className="flex items-center gap-2.5">

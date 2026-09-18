@@ -49,7 +49,9 @@ export const ReconciliationHistoryModal: React.FC<ReconciliationHistoryModalProp
             <input
               type="text"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+              }}
               placeholder="البحث بتاريخ معين (مثال: 2026-09)..."
               className="h-9 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] pl-3 pr-9 text-xs text-[var(--app-text)] placeholder:text-[var(--app-text-secondary)] focus:border-blue-500 focus:outline-none"
             />

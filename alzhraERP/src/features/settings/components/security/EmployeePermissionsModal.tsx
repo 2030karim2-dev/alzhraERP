@@ -120,7 +120,7 @@ export const EmployeePermissionsModal: React.FC<Props> = ({ isOpen, onClose, mem
       }
 
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled by mutation toast
     }
   };

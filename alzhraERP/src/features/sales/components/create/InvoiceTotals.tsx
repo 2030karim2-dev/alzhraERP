@@ -143,16 +143,18 @@ const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) =
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => setMetadata('paidAmount', summary.totalAmount)}
+                    onClick={() => {
+                      setMetadata('paidAmount', summary.totalAmount);
+                    }}
                     className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
                   >
                     كامل
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setMetadata('paidAmount', Math.round((summary.totalAmount / 2) * 100) / 100)
-                    }
+                    onClick={() => {
+                      setMetadata('paidAmount', Math.round((summary.totalAmount / 2) * 100) / 100);
+                    }}
                     className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
                   >
                     50%
@@ -160,7 +162,9 @@ const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({ notes, onNotesChange }) =
                   {paidAmount > 0 && (
                     <button
                       type="button"
-                      onClick={() => setMetadata('paidAmount', 0)}
+                      onClick={() => {
+                        setMetadata('paidAmount', 0);
+                      }}
                       className="rounded-md bg-rose-100 px-2 py-1.5 text-[10px] font-bold text-rose-700 transition-colors hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300"
                     >
                       إلغاء

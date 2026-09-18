@@ -155,7 +155,7 @@ export const purchasesApi = {
     const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
       p_company_id: companyId,
       p_type: params.type ?? 'purchase',
-      p_query: params.query && params.query.trim() ? params.query.trim() : null,
+      p_query: params.query?.trim() ? params.query.trim() : null,
       p_date_from: params.dateFrom || null,
       p_date_to: params.dateTo || null,
       p_status: params.status || null,
@@ -166,7 +166,7 @@ export const purchasesApi = {
     });
 
     if (error) throw asError(parseError(error));
-    return (data || []) as unknown as SearchInvoiceResultRow[];
+    return data || [];
   },
 
   getPurchaseDetails: async (purchaseId: string) => {

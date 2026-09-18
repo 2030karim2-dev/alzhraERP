@@ -50,7 +50,9 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
         .catch(() => {
           showToast('تعذر استخراج رابط المورد، اضغط زر التجديد بالأسفل', 'error');
         })
-        .finally(() => setIsRegenerating(false));
+        .finally(() => {
+          setIsRegenerating(false);
+        });
     }
   }, [party, isOpen]);
 

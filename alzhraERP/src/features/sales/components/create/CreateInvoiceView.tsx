@@ -298,8 +298,12 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
       {/* Interactive Confirmation Modal */}
       <InvoiceConfirmationModal
         isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={() => executeSave(targetStatus)}
+        onClose={() => {
+          setShowConfirmModal(false);
+        }}
+        onConfirm={() => {
+          executeSave(targetStatus);
+        }}
         isSubmitting={isPending}
         mode="sale"
         invoiceNumber={nextInvoiceNumber || undefined}

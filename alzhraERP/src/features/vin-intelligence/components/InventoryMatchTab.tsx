@@ -250,7 +250,7 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
       header: 'سعر البيع',
       accessor: r => (
         <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-          {r.sale_price ? `${r.sale_price.toLocaleString()}` : '—'}
+          {r.sale_price ? r.sale_price.toLocaleString() : '—'}
         </span>
       ),
       width: '90px',
@@ -337,7 +337,9 @@ export const InventoryMatchTab: React.FC<InventoryMatchTabProps> = ({
         <div className="max-w-md">
           <Input
             value={searchFilter}
-            onChange={e => setSearchFilter(e.target.value)}
+            onChange={e => {
+              setSearchFilter(e.target.value);
+            }}
             placeholder="بحث برقم القطعة، الاسم، أو رمز الصنف (SKU)..."
             icon={<Search size={14} className="text-slate-400" />}
           />

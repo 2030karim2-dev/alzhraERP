@@ -1,6 +1,6 @@
 import React from 'react';
 import { Save, Calculator } from 'lucide-react';
-import { JournalEntryFormData } from '../../types/index';
+import type { JournalEntryFormData } from '../../types/index';
 import { cn } from '../../../../core/utils';
 import { useJournalEntryForm } from '../../hooks/useJournalEntryForm';
 import JournalEntryTable from './JournalEntryTable';

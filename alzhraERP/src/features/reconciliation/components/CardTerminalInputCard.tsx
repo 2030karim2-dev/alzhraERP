@@ -80,7 +80,9 @@ export const CardTerminalInputCard: React.FC<CardTerminalInputCardProps> = ({
             type="text"
             disabled={disabled}
             value={terminalRef}
-            onChange={e => onTerminalRefChange(e.target.value)}
+            onChange={e => {
+              onTerminalRefChange(e.target.value);
+            }}
             placeholder="مثال: BATCH-4921 أو Z-104"
             className="h-10 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-xs text-[var(--app-text)] focus:border-cyan-500 focus:outline-none"
           />

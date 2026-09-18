@@ -160,7 +160,9 @@ const StockTransferRequestModal: React.FC<Props> = ({
               </label>
               <select
                 value={activeBranchId}
-                onChange={e => setActiveBranchId(e.target.value)}
+                onChange={e => {
+                  setActiveBranchId(e.target.value);
+                }}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >
                 {availableSources.map(s => (
@@ -183,7 +185,9 @@ const StockTransferRequestModal: React.FC<Props> = ({
                 <button
                   key={q}
                   type="button"
-                  onClick={() => setQuantity(String(q))}
+                  onClick={() => {
+                    setQuantity(String(q));
+                  }}
                   className={`flex-1 rounded-lg border py-1.5 text-xs font-bold transition-all ${
                     quantity === String(q)
                       ? 'border-amber-500 bg-amber-500 text-white shadow-sm'
@@ -200,7 +204,9 @@ const StockTransferRequestModal: React.FC<Props> = ({
               max={availableQty}
               step="0.5"
               value={quantity}
-              onChange={e => setQuantity(e.target.value)}
+              onChange={e => {
+                setQuantity(e.target.value);
+              }}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-bold text-slate-800 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               placeholder="0"
               required
@@ -220,7 +226,9 @@ const StockTransferRequestModal: React.FC<Props> = ({
             </label>
             <textarea
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={e => {
+                setNotes(e.target.value);
+              }}
               rows={2}
               maxLength={300}
               className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"

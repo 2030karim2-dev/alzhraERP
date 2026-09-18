@@ -94,13 +94,13 @@ export const useAudioPlayer = (src?: string | null) => {
         globalActiveAudio.pause();
       }
       globalActiveAudio = audio;
-      audio.play().catch(() => {});
+      audio.play().catch(() => undefined);
     }
   }, [isPlaying]);
 
   const seek = useCallback((percentage: number) => {
     const audio = audioRef.current;
-    if (!audio || !audio.duration) return;
+    if (!audio?.duration) return;
     const target = Math.max(0, Math.min(percentage * audio.duration, audio.duration));
     audio.currentTime = target;
     setCurrentTime(target);

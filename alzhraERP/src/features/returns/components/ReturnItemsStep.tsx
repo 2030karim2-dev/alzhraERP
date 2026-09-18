@@ -30,7 +30,7 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
   } = useFormContext();
 
   const selectedInvoiceId = watch('invoiceId');
-  const items: ReturnItemDraft[] = watch('items') || [];
+  const items: ReturnItemDraft[] = useMemo(() => watch('items') || [], [watch]);
 
   const selectedInvoice = useMemo(() => {
     return invoices.find(inv => inv.id === selectedInvoiceId);

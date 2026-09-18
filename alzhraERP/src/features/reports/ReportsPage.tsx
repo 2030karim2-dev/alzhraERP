@@ -253,7 +253,7 @@ const ReportsPage: React.FC = () => {
             setIsMaximized(!isMaximized);
           }}
           isZenMode={false}
-          onToggleZen={() => {}}
+          onToggleZen={() => undefined}
           extraRow={
             <div className="no-scrollbar flex items-center gap-1 overflow-x-auto pb-1 max-md:gap-0.5 max-md:pb-0">
               {categories.map(cat => {

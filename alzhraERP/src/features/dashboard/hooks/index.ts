@@ -304,10 +304,12 @@ export const useDashboardData = (
     },
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,
     retry: 1, // ⚡ Single retry — avoid long waits on persistent failures
-    // Refresh when the user returns to the tab so stale fallback zeros never
-    // linger after an RPC hiccup. Realtime still drives mid-session updates.
-    refetchOnWindowFocus: true,
+    // Realtime channel handles mid-session updates (new invoices/expenses).
+    // Avoid re-fetching 12 parallel RPCs on every tab focus — too expensive
+    // at 60K invoices. The user can manually refresh if needed.
+    refetchOnWindowFocus: false,
   });
 
   // 2. Compute Base Metrics using useMemo

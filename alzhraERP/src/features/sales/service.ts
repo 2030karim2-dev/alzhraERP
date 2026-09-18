@@ -204,7 +204,7 @@ export const salesService = {
       unitPrice: netLines[index]?.unitPrice ?? item.unitPrice,
     }));
 
-    const { treasuryAccountId, ...restPayload } = payload;
+    const { treasuryAccountId: _omittedTreasuryAccountId, ...restPayload } = payload;
     const enhancedPayload = {
       ...restPayload,
       items: netItems,

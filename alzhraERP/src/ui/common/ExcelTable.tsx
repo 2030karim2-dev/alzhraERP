@@ -134,7 +134,7 @@ function ExcelTable<T>({
     const out: Record<string, number> = {};
     columns.forEach((col, idx) => {
       if (col.width) {
-        const twMatch = col.width.match(/^w-(\d+)$/);
+        const twMatch = /^w-(\d+)$/.exec(col.width);
         if (twMatch) {
           out[String(idx)] = parseInt(twMatch[1], 10) * 4;
         } else {
@@ -182,7 +182,7 @@ function ExcelTable<T>({
               return Object.values(obj as Record<string, unknown>)
                 .map(getStringContent)
                 .join(' ');
-            } catch (e) {
+            } catch {
               return '';
             }
           }
@@ -199,7 +199,7 @@ function ExcelTable<T>({
             if (content) {
               return normalizeSearch(content).includes(term);
             }
-          } catch (e) {
+          } catch {
             // Ignore errors in custom accessors
           }
           return false;
@@ -217,7 +217,7 @@ function ExcelTable<T>({
             if (obj.$$typeof || typeof obj.then === 'function') return false;
             try {
               return Object.values(obj as Record<string, unknown>).some(deepSearch);
-            } catch (e) {
+            } catch {
               return false;
             }
           }
@@ -313,7 +313,7 @@ function ExcelTable<T>({
   // Update page size ref
   useEffect(() => {
     pageSizeRef.current = itemsPerPage;
-  }, [itemsPerPage]);
+  }, [itemsPerPage, pageSizeRef]);
 
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';

@@ -66,7 +66,9 @@ export const MessageItem: React.FC<Props> = ({
     if (message.content) {
       navigator.clipboard.writeText(message.content);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     }
   };
 
@@ -251,7 +253,9 @@ export const MessageItem: React.FC<Props> = ({
                         key={att.id}
                         attachment={att}
                         isOwn={isOwn}
-                        onImageClick={url => setLightboxImage({ url, name: att.file_name })}
+                        onImageClick={url => {
+                          setLightboxImage({ url, name: att.file_name });
+                        }}
                       />
                     ))}
                 </div>
@@ -276,7 +280,9 @@ export const MessageItem: React.FC<Props> = ({
               {message.reactions.map(reaction => (
                 <button
                   key={reaction.id}
-                  onClick={() => handleToggleEmoji(reaction.emoji)}
+                  onClick={() => {
+                    handleToggleEmoji(reaction.emoji);
+                  }}
                   className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-all ${
                     reaction.user_id === currentUserId
                       ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]'
@@ -297,7 +303,9 @@ export const MessageItem: React.FC<Props> = ({
           >
             {/* Reply */}
             <button
-              onClick={() => onReply(message)}
+              onClick={() => {
+                onReply(message);
+              }}
               title="رد"
               className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
             >
@@ -307,7 +315,9 @@ export const MessageItem: React.FC<Props> = ({
             {/* Reaction */}
             <div className="relative">
               <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                onClick={() => {
+                  setShowEmojiPicker(!showEmojiPicker);
+                }}
                 title="تفاعل"
                 className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
               >
@@ -319,7 +329,9 @@ export const MessageItem: React.FC<Props> = ({
                   {QUICK_EMOJIS.map(emoji => (
                     <button
                       key={emoji}
-                      onClick={() => handleToggleEmoji(emoji)}
+                      onClick={() => {
+                        handleToggleEmoji(emoji);
+                      }}
                       className="flex h-6 w-6 items-center justify-center rounded-full text-xs hover:bg-[var(--app-surface-hover)] active:scale-125"
                     >
                       {emoji}
@@ -331,7 +343,9 @@ export const MessageItem: React.FC<Props> = ({
 
             {/* Forward */}
             <button
-              onClick={() => setIsForwardOpen(true)}
+              onClick={() => {
+                setIsForwardOpen(true);
+              }}
               title="إعادة توجيه"
               className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text-secondary)] shadow-sm hover:text-[var(--accent)]"
             >
@@ -383,14 +397,18 @@ export const MessageItem: React.FC<Props> = ({
         fileName={lightboxImage?.name}
         senderName={message.sender_name}
         timestamp={formattedTime}
-        onClose={() => setLightboxImage(null)}
+        onClose={() => {
+          setLightboxImage(null);
+        }}
       />
 
       {/* Forward Modal */}
       <ForwardMessageModal
         isOpen={isForwardOpen}
         message={message}
-        onClose={() => setIsForwardOpen(false)}
+        onClose={() => {
+          setIsForwardOpen(false);
+        }}
       />
     </>
   );

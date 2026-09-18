@@ -48,7 +48,9 @@ export const PrintToolbar: React.FC<PrintToolbarProps> = ({
           </span>
           <select
             value={layoutMode}
-            onChange={e => onChangeLayout(e.target.value as HeaderLayoutMode)}
+            onChange={e => {
+              onChangeLayout(e.target.value as HeaderLayoutMode);
+            }}
             className="bg-transparent text-xs font-semibold text-slate-800 outline-none dark:text-slate-100"
           >
             <option value="modern-centered">عصري مركزي</option>
@@ -65,7 +67,9 @@ export const PrintToolbar: React.FC<PrintToolbarProps> = ({
               <button
                 key={c.value}
                 type="button"
-                onClick={() => onChangeAccentColor(c.value)}
+                onClick={() => {
+                  onChangeAccentColor(c.value);
+                }}
                 className={`h-4 w-4 rounded-full transition-transform ${
                   accentColor === c.value
                     ? 'scale-125 ring-2 ring-blue-500 ring-offset-1'

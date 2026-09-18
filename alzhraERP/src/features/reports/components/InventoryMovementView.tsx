@@ -92,7 +92,7 @@ const InventoryMovementView: React.FC = () => {
       totalOut,
       turnover: avgStock > 0 ? (totalOut / avgStock).toFixed(1) : 0,
       lastMovement: movementArr[movementArr.length - 1].entry_date
-        ? formatLocalDate(movementArr[movementArr.length - 1].entry_date!)
+        ? formatLocalDate(movementArr[movementArr.length - 1].entry_date)
         : '—',
     };
   }, [movement]);

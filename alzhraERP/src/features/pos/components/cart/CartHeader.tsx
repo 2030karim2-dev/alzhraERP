@@ -33,7 +33,7 @@ export const CartHeader: React.FC<CartHeaderProps> = React.memo(({ itemCount, on
     } else {
       const autoRate = resolveAutoExchangeRate(
         newCurrency,
-        rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+        rates.data,
         currencies.data as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
       );
       const currencyConfig = (
@@ -140,7 +140,7 @@ export const CartHeader: React.FC<CartHeaderProps> = React.memo(({ itemCount, on
             onClick={() => {
               const defaultRate = resolveAutoExchangeRate(
                 currency,
-                rates.data as Array<{ currency_code: string; rate_to_base: number }>,
+                rates.data,
                 currencies.data as Array<{
                   code: string;
                   exchange_operator?: 'multiply' | 'divide';

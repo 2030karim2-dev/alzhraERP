@@ -272,7 +272,9 @@ export const PartyAnalyticsView: React.FC<PartyAnalyticsViewProps> = ({
 
                             <button
                               type="button"
-                              onClick={() => onViewStatement(party)}
+                              onClick={() => {
+                                onViewStatement(party);
+                              }}
                               className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-900/60"
                               title="عرض كشف الحساب"
                             >

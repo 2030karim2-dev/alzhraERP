@@ -14,12 +14,12 @@ describe('logger', () => {
   >;
 
   beforeEach(() => {
-    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleTimeSpy = vi.spyOn(console, 'time').mockImplementation(() => {});
-    consoleTimeEndSpy = vi.spyOn(console, 'timeEnd').mockImplementation(() => {});
+    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => undefined);
+    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    consoleTimeSpy = vi.spyOn(console, 'time').mockImplementation(() => undefined);
+    consoleTimeEndSpy = vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
 
     // Reset logger config to default
     logger.configure({

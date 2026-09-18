@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { logger } from '@/core/utils/logger';
 
 export interface BranchNotificationPayload {
   id?: string;
@@ -28,7 +29,7 @@ export const subscribeToBranchNotifications = (
     )
     .subscribe((status, err) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to cross-branch notifications');
+        logger.debug('BranchesAPI', 'Subscribed to cross-branch notifications');
       } else if (err) {
         console.error('Error subscribing to cross-branch notifications:', err);
       }

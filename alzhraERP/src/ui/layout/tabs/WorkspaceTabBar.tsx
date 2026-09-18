@@ -10,7 +10,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { X, Plus, ChevronLeft, ChevronRight, Layers, Sparkles } from 'lucide-react';
-import { useWorkspaceTabStore, WorkspaceTab } from '../../../core/store/workspaceTabStore';
+import { useWorkspaceTabStore, type WorkspaceTab } from '../../../core/store/workspaceTabStore';
 import { getTabMeta, ICON_MAP, QUICK_LAUNCH_ITEMS } from './tabMeta';
 import { WorkspaceTabContextMenu } from './WorkspaceTabContextMenu';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
@@ -62,7 +62,7 @@ export const WorkspaceTabBar: React.FC = () => {
     if (!scrollContainerRef.current) return;
     const activeEl = scrollContainerRef.current.querySelector(
       `[data-tab-id="${CSS.escape(activeTabId)}"]`
-    ) as HTMLElement | null;
+    );
     if (activeEl && typeof activeEl.scrollIntoView === 'function') {
       activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
@@ -122,7 +122,7 @@ export const WorkspaceTabBar: React.FC = () => {
         (e.ctrlKey && !e.shiftKey && (e.key === 'w' || e.key === 'W'))
       ) {
         const activeTab = tabs.find(t => t.id === activeTabId);
-        if (activeTab && activeTab.isClosable) {
+        if (activeTab?.isClosable) {
           e.preventDefault();
           handleCloseTab(null, activeTab.id);
         }
@@ -145,7 +145,9 @@ export const WorkspaceTabBar: React.FC = () => {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [tabs, activeTabId, isRTL, handleCloseTab]);
 
   if (!isEnabled) {
@@ -161,7 +163,9 @@ export const WorkspaceTabBar: React.FC = () => {
     >
       {/* Scroll Left Button */}
       <button
-        onClick={() => handleScroll('left')}
+        onClick={() => {
+          handleScroll('left');
+        }}
         aria-label="تمرير التبويبات لليمين"
         className="flex h-7 w-6 items-center justify-center rounded-md text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]"
       >
@@ -184,9 +188,15 @@ export const WorkspaceTabBar: React.FC = () => {
               role="tab"
               aria-selected={isActive}
               tabIndex={0}
-              onClick={() => handleTabClick(tab)}
-              onMouseDown={e => handleMouseDown(e, tab)}
-              onContextMenu={e => handleContextMenu(e, tab)}
+              onClick={() => {
+                handleTabClick(tab);
+              }}
+              onMouseDown={e => {
+                handleMouseDown(e, tab);
+              }}
+              onContextMenu={e => {
+                handleContextMenu(e, tab);
+              }}
               title={`${tab.title} (${tab.isClosable ? 'انقر بالزر الأوسط للإغلاق' : 'الرئيسية'})`}
               className={cn(
                 'group relative flex h-8 min-w-[110px] max-w-[200px] cursor-pointer items-center gap-2 rounded-t-lg border border-b-0 px-2.5 text-xs font-bold transition-all duration-150',
@@ -223,7 +233,9 @@ export const WorkspaceTabBar: React.FC = () => {
               {/* Close Button */}
               {tab.isClosable ? (
                 <button
-                  onClick={e => handleCloseTab(e, tab.id)}
+                  onClick={e => {
+                    handleCloseTab(e, tab.id);
+                  }}
                   aria-label={`إغلاق تبويب ${tab.title}`}
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md p-0.5 text-[var(--app-text-secondary)] opacity-60 transition-all hover:bg-rose-500/15 hover:text-rose-600 hover:opacity-100 group-hover:opacity-90"
                 >
@@ -239,7 +251,9 @@ export const WorkspaceTabBar: React.FC = () => {
 
       {/* Scroll Right Button */}
       <button
-        onClick={() => handleScroll('right')}
+        onClick={() => {
+          handleScroll('right');
+        }}
         aria-label="تمرير التبويبات لليسار"
         className="flex h-7 w-6 items-center justify-center rounded-md text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]"
       >
@@ -249,7 +263,9 @@ export const WorkspaceTabBar: React.FC = () => {
       {/* Add New Tab (+) Quick Launch Button */}
       <div className="relative ms-1 shrink-0">
         <button
-          onClick={() => setShowQuickLaunch(!showQuickLaunch)}
+          onClick={() => {
+            setShowQuickLaunch(!showQuickLaunch);
+          }}
           aria-label="فتح شاشة جديدة في تبويب"
           title="فتح شاشة جديدة في تبويب (+)"
           className="shadow-2xs flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-secondary)] transition-all hover:border-blue-500/40 hover:bg-blue-50/50 hover:text-blue-600 dark:hover:bg-blue-900/20"
@@ -306,8 +322,12 @@ export const WorkspaceTabBar: React.FC = () => {
           y={contextMenu.y}
           tab={contextMenu.tab}
           isRTL={isRTL}
-          onClose={() => setContextMenu(null)}
-          onCloseTab={id => handleCloseTab(null, id)}
+          onClose={() => {
+            setContextMenu(null);
+          }}
+          onCloseTab={id => {
+            handleCloseTab(null, id);
+          }}
           onCloseOtherTabs={id => {
             const nextPath = closeOtherTabs(id);
             if (nextPath) navigate(nextPath);

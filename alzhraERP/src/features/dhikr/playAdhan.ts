@@ -99,7 +99,7 @@ function getAudioContext(): AudioContext | null {
 if (typeof window !== 'undefined') {
   const unlockAudio = (): void => {
     if (cachedContext && cachedContext.state === 'suspended') {
-      void cachedContext.resume().catch(() => {});
+      void cachedContext.resume().catch(() => undefined);
     }
   };
   window.addEventListener('click', unlockAudio, { once: true, passive: true });
@@ -141,7 +141,7 @@ async function playSynthesizedAdhan(volume: number, previewMode = false): Promis
 
   try {
     if (ctx.state === 'suspended') {
-      await ctx.resume().catch(() => {});
+      await ctx.resume().catch(() => undefined);
     }
     if (ctx.state !== 'running') return;
   } catch {

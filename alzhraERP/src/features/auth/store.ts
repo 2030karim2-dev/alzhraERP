@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           // Clear all React Query cache + IndexedDB persisted data on logout
           queryClient.clear();
-          Promise.resolve(persister.removeClient()).catch(() => {});
+          Promise.resolve(persister.removeClient()).catch(() => undefined);
           set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
         }
       },
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
             });
             await supabase.auth.signOut({ scope: 'local' });
             queryClient.clear();
-            Promise.resolve(persister.removeClient()).catch(() => {});
+            Promise.resolve(persister.removeClient()).catch(() => undefined);
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           } else if (session?.user) {
             // 2. Fetch full profile with timeout
@@ -186,7 +186,7 @@ export const useAuthStore = create<AuthState>()(
                   recoveredRole = roleData?.role || 'viewer';
                   recoveredBranchId = roleData?.branch_id ?? null;
                 }
-              } catch (_) {
+              } catch {
                 /* ignore — best effort */
               }
 
@@ -209,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           } else {
             queryClient.clear();
-            Promise.resolve(persister.removeClient()).catch(() => {});
+            Promise.resolve(persister.removeClient()).catch(() => undefined);
             set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
           }
 
@@ -241,7 +241,7 @@ export const useAuthStore = create<AuthState>()(
 
                 if (event === 'SIGNED_OUT' || !session) {
                   queryClient.clear();
-                  Promise.resolve(persister.removeClient()).catch(() => {});
+                  Promise.resolve(persister.removeClient()).catch(() => undefined);
                   set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
                   return;
                 }
@@ -285,7 +285,7 @@ export const useAuthStore = create<AuthState>()(
                       // ⚡ Targeted invalidation (active-only) — see initialize().
                       queryClient.invalidateQueries({ type: 'active' });
                     }
-                  } catch (e) {
+                  } catch {
                     logger.warn('Auth', `Profile fetch after ${event} failed`);
                   }
                 }
@@ -300,9 +300,11 @@ export const useAuthStore = create<AuthState>()(
           logger.error('Auth', 'Initialization error', err);
           try {
             await supabase.auth.signOut({ scope: 'local' });
-          } catch (_) {}
+          } catch {
+            /* best effort */
+          }
           queryClient.clear();
-          Promise.resolve(persister.removeClient()).catch(() => {});
+          Promise.resolve(persister.removeClient()).catch(() => undefined);
           set({ user: null, isAuthenticated: false, isLoading: false, isReady: true });
         } finally {
           isInitializingGlobal = false;

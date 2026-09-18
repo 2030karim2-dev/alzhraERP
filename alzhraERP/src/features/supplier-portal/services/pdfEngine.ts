@@ -23,10 +23,7 @@ export interface PDFQuotationOptions {
 }
 
 export const generateQuotationPDF = async (options: PDFQuotationOptions): Promise<void> => {
-  const [{ default: jsPDF }, QRCode] = await Promise.all([
-    import('jspdf'),
-    import('qrcode'),
-  ]);
+  const [{ default: jsPDF }, QRCode] = await Promise.all([import('jspdf'), import('qrcode')]);
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -45,7 +42,9 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
   doc.setFontSize(16);
   doc.text('OFFICIAL VENDOR QUOTATION', pageWidth / 2, 12, { align: 'center' });
   doc.setFontSize(10);
-  doc.text(`Doc #: ${options.quotationNumber} (Rev ${options.revisionNumber})`, pageWidth / 2, 18, { align: 'center' });
+  doc.text(`Doc #: ${options.quotationNumber} (Rev ${options.revisionNumber})`, pageWidth / 2, 18, {
+    align: 'center',
+  });
 
   y = 35;
   doc.setTextColor(30, 41, 59);
@@ -68,8 +67,16 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
   doc.text('Supplier / Vendor:', pageWidth / 2 + 10, y + 8);
   doc.setFont('Helvetica', 'normal');
   doc.text(options.supplierName, pageWidth / 2 + 10, y + 14);
-  doc.text(`Date: ${options.issueDate} | Valid: ${options.validUntil || '30 Days'}`, pageWidth / 2 + 10, y + 20);
-  doc.text(`Delivery: ${options.deliveryDays || 3} Days | Currency: ${options.currency}`, pageWidth / 2 + 10, y + 26);
+  doc.text(
+    `Date: ${options.issueDate} | Valid: ${options.validUntil || '30 Days'}`,
+    pageWidth / 2 + 10,
+    y + 20
+  );
+  doc.text(
+    `Delivery: ${options.deliveryDays || 3} Days | Currency: ${options.currency}`,
+    pageWidth / 2 + 10,
+    y + 26
+  );
 
   y += 38;
 
@@ -105,12 +112,17 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
 
     doc.setFontSize(8);
     doc.text(String(index + 1), 18, y + 5);
-    const itemName = item.product_name.length > 32 ? item.product_name.substring(0, 32) + '...' : item.product_name;
+    const itemName =
+      item.product_name.length > 32
+        ? item.product_name.substring(0, 32) + '...'
+        : item.product_name;
     doc.text(itemName, 30, y + 5);
     doc.text(item.oem_number || '---', 95, y + 5);
     doc.text(`${item.quantity} ${item.unit_of_measure}`, 130, y + 5);
     doc.text(formatCurrency(item.unit_price, options.currency), 150, y + 5);
-    doc.text(formatCurrency(item.total_price, options.currency), pageWidth - 20, y + 5, { align: 'right' });
+    doc.text(formatCurrency(item.total_price, options.currency), pageWidth - 20, y + 5, {
+      align: 'right',
+    });
 
     y += 7;
   });
@@ -129,18 +141,24 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
   const summaryX = pageWidth - 70;
   doc.setFontSize(9);
   doc.text('Subtotal:', summaryX, y);
-  doc.text(formatCurrency(options.subtotal, options.currency), pageWidth - 20, y, { align: 'right' });
+  doc.text(formatCurrency(options.subtotal, options.currency), pageWidth - 20, y, {
+    align: 'right',
+  });
   y += 5;
 
   if (options.discountAmount > 0) {
     doc.text('Discount:', summaryX, y);
-    doc.text(`-${formatCurrency(options.discountAmount, options.currency)}`, pageWidth - 20, y, { align: 'right' });
+    doc.text(`-${formatCurrency(options.discountAmount, options.currency)}`, pageWidth - 20, y, {
+      align: 'right',
+    });
     y += 5;
   }
 
   if (options.taxAmount > 0) {
     doc.text('VAT / Tax:', summaryX, y);
-    doc.text(formatCurrency(options.taxAmount, options.currency), pageWidth - 20, y, { align: 'right' });
+    doc.text(formatCurrency(options.taxAmount, options.currency), pageWidth - 20, y, {
+      align: 'right',
+    });
     y += 5;
   }
 
@@ -149,7 +167,9 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
   doc.setFont('Helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
   doc.text('Grand Total:', summaryX, y + 5);
-  doc.text(formatCurrency(options.totalAmount, options.currency), pageWidth - 20, y + 5, { align: 'right' });
+  doc.text(formatCurrency(options.totalAmount, options.currency), pageWidth - 20, y + 5, {
+    align: 'right',
+  });
 
   // Generate QR verification code
   const verificationPayload = JSON.stringify({
@@ -168,7 +188,7 @@ export const generateQuotationPDF = async (options: PDFQuotationOptions): Promis
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
     doc.text('Scan for Document Verification', 16, y + 15);
-  } catch (err) {
+  } catch {
     // QR code fallback
   }
 

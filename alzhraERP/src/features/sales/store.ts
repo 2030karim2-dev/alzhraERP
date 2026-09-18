@@ -339,7 +339,7 @@ export const useSalesStore = create<SalesState>()(
                   newState.exchangeOperator
                 );
                 return { ...item, price: newPrice };
-              } catch (e) {
+              } catch {
                 logger.error('SalesStore', 'Invalid rate in setMetadata', {
                   rate,
                   currency: newState.currency,
@@ -381,7 +381,7 @@ export const useSalesStore = create<SalesState>()(
             try {
               const newPrice = convertCurrency(item.basePrice, newRate, 'fromBase', newOperator);
               return { ...item, price: newPrice };
-            } catch (e) {
+            } catch {
               logger.error('SalesStore', 'Invalid rate in setCurrency', {
                 rate: newRate,
                 currency,

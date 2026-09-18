@@ -23,7 +23,7 @@ const ExchangeRateHistory: React.FC = () => {
   const { rates } = useCurrencies();
   const [filterCurrency, setFilterCurrency] = useState<string>('all');
 
-  const rateHistory: ExchangeRateEntry[] = (rates.data || []) as ExchangeRateEntry[];
+  const rateHistory = useMemo(() => (rates.data || []) as ExchangeRateEntry[], [rates.data]);
 
   // Get unique currencies from history
   const currencies = useMemo(() => {

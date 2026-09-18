@@ -362,6 +362,7 @@ export const useProductsPaginated = (options: UseProductsPaginatedOptions = {}) 
     sortKey,
     sortDir,
     branchId,
+    isCore,
     queryClient,
   ]);
 

@@ -48,7 +48,7 @@ export const useProductImport = (products: Product[]) => {
         'success'
       );
       return true;
-    } catch (e) {
+    } catch {
       showToast('حدث خطأ أثناء حفظ بعض الأصناف المستوردة', 'error');
       return false;
     }

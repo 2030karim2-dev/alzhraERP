@@ -58,7 +58,9 @@ export const ResolveAlertDialog: React.FC<ResolveAlertDialogProps> = ({
                   <button
                     key={preset}
                     type="button"
-                    onClick={() => setNotes(preset)}
+                    onClick={() => {
+                      setNotes(preset);
+                    }}
                     className="rounded border border-[var(--app-border)] bg-[var(--app-surface)] px-1.5 py-0.5 text-[10px] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-blue-500"
                   >
                     {preset}

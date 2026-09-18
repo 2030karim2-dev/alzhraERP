@@ -41,7 +41,7 @@ export const reconciliationApi = {
         throw error;
       }
 
-      return data as unknown as DailyDrawerSummary;
+      return data as DailyDrawerSummary;
     } catch (err) {
       logger.error('reconciliationApi', 'fetchDailyDrawerSummary exception', err);
       throw err;
@@ -77,7 +77,7 @@ export const reconciliationApi = {
         throw error;
       }
 
-      return data as unknown as { success: boolean; reconciliation_id: string; message: string };
+      return data as { success: boolean; reconciliation_id: string; message: string };
     } catch (err) {
       logger.error('reconciliationApi', 'commitReconciliation exception', err);
       throw err;
@@ -107,7 +107,7 @@ export const reconciliationApi = {
         throw error;
       }
 
-      return data as unknown as { success: boolean; expense_id: string; message: string };
+      return data as { success: boolean; expense_id: string; message: string };
     } catch (err) {
       logger.error('reconciliationApi', 'recordQuickExpense exception', err);
       throw err;

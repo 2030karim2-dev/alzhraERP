@@ -208,7 +208,7 @@ export const parseNumberFlexible = (value: string | number | null | undefined): 
       str = str.replace(/,/g, '');
     } else {
       // Single comma: e.g. "0,50", "12,5", "10,000"
-      const match = str.match(/^(-?\d+),(\d+)$/);
+      const match = /^(-?\d+),(\d+)$/.exec(str);
       if (match) {
         const [, integerPart, decimalPart] = match;
         if (decimalPart.length === 3 && integerPart !== '0' && integerPart.length <= 3) {

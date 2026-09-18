@@ -121,7 +121,9 @@ describe('ReturnItemsStep', () => {
 
 describe('InvoiceSelector', () => {
   it('البحث عن فاتورة لا ينهار (إصلاح خطأ TDZ لـ formatDate)', () => {
-    render(<InvoiceSelector invoices={invoices} selectedInvoiceId="" onSelectInvoice={() => {}} />);
+    render(
+      <InvoiceSelector invoices={invoices} selectedInvoiceId="" onSelectInvoice={() => undefined} />
+    );
 
     // فتح القائمة ثم البحث
     fireEvent.click(screen.getByText('اختر الفاتورة الأصلية...'));

@@ -91,7 +91,7 @@ const TeamManager: React.FC = () => {
         branchId,
       });
       reset();
-    } catch (err: any) {
+    } catch {
       // Handled by mutation toast
     }
   };

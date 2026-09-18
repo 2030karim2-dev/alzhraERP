@@ -256,7 +256,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
             <div className="flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-bold dark:border-slate-700/60 dark:bg-slate-800/80">
               <button
                 type="button"
-                onClick={() => setActiveTab('details')}
+                onClick={() => {
+                  setActiveTab('details');
+                }}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 transition-all duration-200',
                   activeTab === 'details'
@@ -271,7 +273,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('preview')}
+                onClick={() => {
+                  setActiveTab('preview');
+                }}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 transition-all duration-200',
                   activeTab === 'preview'
@@ -322,7 +326,9 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
       {invoice && (
         <AdvancedReturnModal
           isOpen={isReturnModalOpen}
-          onClose={() => setIsReturnModalOpen(false)}
+          onClose={() => {
+            setIsReturnModalOpen(false);
+          }}
           returnType="purchase"
           initialInvoiceId={invoice.id}
           partyId={invoice.party_id ?? undefined}

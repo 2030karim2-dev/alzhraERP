@@ -164,7 +164,7 @@ const ProductExcelGrid: React.FC<Props> = ({
             });
           }
         }}
-        onOrderChange={onOrderChange || (() => {})}
+        onOrderChange={onOrderChange || (() => undefined)}
         onCellUpdate={onCellUpdate || handleCellUpdate}
         enableSelection={!hideBulkActions}
         selectedRowIds={selectedRowIds}

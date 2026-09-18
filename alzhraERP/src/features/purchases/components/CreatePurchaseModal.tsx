@@ -105,14 +105,18 @@ const Totals: React.FC<TotalsProps> = ({
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => onPaidAmountChange(totals.grandTotal)}
+                onClick={() => {
+                  onPaidAmountChange(totals.grandTotal);
+                }}
                 className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
               >
                 كامل
               </button>
               <button
                 type="button"
-                onClick={() => onPaidAmountChange(Math.round((totals.grandTotal / 2) * 100) / 100)}
+                onClick={() => {
+                  onPaidAmountChange(Math.round((totals.grandTotal / 2) * 100) / 100);
+                }}
                 className="rounded-md bg-amber-200/70 px-2 py-1.5 text-[10px] font-bold text-amber-900 transition-colors hover:bg-amber-300 dark:bg-amber-900/60 dark:text-amber-200"
               >
                 50%
@@ -120,7 +124,9 @@ const Totals: React.FC<TotalsProps> = ({
               {paidAmount > 0 && (
                 <button
                   type="button"
-                  onClick={() => onPaidAmountChange(0)}
+                  onClick={() => {
+                    onPaidAmountChange(0);
+                  }}
                   className="rounded-md bg-rose-100 px-2 py-1.5 text-[10px] font-bold text-rose-700 transition-colors hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300"
                 >
                   إلغاء
@@ -389,7 +395,9 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
           invoiceType={invoiceType}
           paidAmount={paidAmount}
           currency={currency}
-          onPaidAmountChange={val => setMetadata('paidAmount', val)}
+          onPaidAmountChange={val => {
+            setMetadata('paidAmount', val);
+          }}
         />
       </div>
       <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2 print:hidden">
@@ -416,7 +424,9 @@ const CreatePurchaseModal: React.FC<Props> = ({ onSuccess }) => {
       {/* Interactive Invoice Confirmation Modal */}
       <InvoiceConfirmationModal
         isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
+        onClose={() => {
+          setShowConfirmModal(false);
+        }}
         onConfirm={executeConfirm}
         isSubmitting={isPending}
         mode="purchase"

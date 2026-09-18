@@ -37,7 +37,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
   const [selectedCurrency, setSelectedCurrency] = useState<string>('ALL');
 
   const selectedParty = parties?.find(p => p.id === selectedPartyId);
-  const movements = statement || [];
+  const movements = React.useMemo(() => statement || [], [statement]);
 
   const availableCurrencies = React.useMemo(() => {
     const set = new Set<string>();

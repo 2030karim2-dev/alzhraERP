@@ -168,7 +168,7 @@ export const useTableKeyboardNavigation = <T>({
         setClipboard([value]);
         onCopy?.([value]);
         if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-          navigator.clipboard.writeText(String(value ?? '')).catch(() => {});
+          navigator.clipboard.writeText(String(value ?? '')).catch(() => undefined);
         }
       }
     }
@@ -210,7 +210,7 @@ export const useTableKeyboardNavigation = <T>({
 
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       const tsv = cells.map(r => r.map(c => String(c ?? '')).join('\t')).join('\n');
-      navigator.clipboard.writeText(tsv).catch(() => {});
+      navigator.clipboard.writeText(tsv).catch(() => undefined);
     }
   }, [selection, columns, orderedData, copyCells, onCopy]);
 

@@ -146,7 +146,7 @@ const parseMatrixKeyValueBlock = (text: string): Record<string, string> => {
 
   // Clean lines: strip markdown link wrappers [val](url) -> val
   const lines = rawLines.map(l => {
-    const md = l.match(/^\[(.*?)\](?:\(.*?\))?$/);
+    const md = /^\[(.*?)\](?:\(.*?\))?$/.exec(l);
     return md ? md[1].trim() : l;
   });
 
@@ -208,7 +208,7 @@ const parseMatrixKeyValueBlock = (text: string): Record<string, string> => {
  * Parses raw catalog clipboard text and returns structured vehicle specifications
  */
 export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehicle => {
-  if (!rawInput || !rawInput.trim()) {
+  if (!rawInput?.trim()) {
     return {
       rawText: '',
       confidenceScore: 0,
@@ -223,7 +223,7 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   let make: string | null = null;
   let makeAr: string | null = null;
   let model: string | null = null;
-  let modelAr: string | null = null;
+  const modelAr: string | null = null;
   let modelCode: string | null = null;
   let modelShort: string | null = null;
   let year: string | null = null;
@@ -279,20 +279,21 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
 
   // 3. Extract Model Code (e.g., ZRR75G-APXEP, URJ200L-GNZEKV, GUN125L-DTFLXV, MD11, TB17)
   const modelCodeMatch =
-    text.match(
-      /(?:ModelCode|Model Code|Frame Code|كود الموديل)[:\s]*([A-Z0-9]{3,8}-[A-Z0-9]{4,8})/i
+    /(?:ModelCode|Model Code|Frame Code|كود الموديل)[:\s]*([A-Z0-9]{3,8}-[A-Z0-9]{4,8})/i.exec(
+      text
     ) ||
-    text.match(/\[([A-Z0-9]{3,8}-[A-Z0-9]{4,8})\]/i) ||
-    text.match(/\b([A-Z0-9]{3,8}-[A-Z0-9]{4,8})\b/);
+    /\[([A-Z0-9]{3,8}-[A-Z0-9]{4,8})\]/i.exec(text) ||
+    /\b([A-Z0-9]{3,8}-[A-Z0-9]{4,8})\b/.exec(text);
 
   if (modelCodeMatch && modelCodeMatch[1]) {
     modelCode = modelCodeMatch[1].trim().toUpperCase();
   }
 
   // 4. Extract Model Short / Frame Prefix (e.g. ZRR75, URJ200, GUN125, NZE141)
-  const modelShortMatch = text.match(
-    /(?:Model Short|ModelShort|Frame No|Short Model)[:\s]*([A-Z0-9]{3,8}?)(?=(?:Production|Prod|Trim|Color|Grade|Engine|\s|$))/i
-  );
+  const modelShortMatch =
+    /(?:Model Short|ModelShort|Frame No|Short Model)[:\s]*([A-Z0-9]{3,8}?)(?=(?:Production|Prod|Trim|Color|Grade|Engine|\s|$))/i.exec(
+      text
+    );
   if (modelShortMatch && modelShortMatch[1]) {
     modelShort = modelShortMatch[1].trim().toUpperCase();
   } else if (modelCode) {
@@ -326,9 +327,10 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
 
   // B. Try Header Pattern: "Toyota Parts Catalogs NOAH VOXY 2011" or "[Make] Parts Catalogs [Model] [Year]"
   if (!model) {
-    const headerMatch = text.match(
-      /(?:Toyota|Lexus|Nissan|Hyundai|Kia|Honda|Mitsubishi|Ford|Chevrolet|Mazda|Isuzu)?\s*(?:Parts\s+Catalogs|Parts\s+Catalog|Catalog)\s+([A-Z0-9\s/-]{2,30}?)(?:\s+\d{4}|\s+Region|\s+ModelCode|\n|$)/i
-    );
+    const headerMatch =
+      /(?:Toyota|Lexus|Nissan|Hyundai|Kia|Honda|Mitsubishi|Ford|Chevrolet|Mazda|Isuzu)?\s*(?:Parts\s+Catalogs|Parts\s+Catalog|Catalog)\s+([A-Z0-9\s/-]{2,30}?)(?:\s+\d{4}|\s+Region|\s+ModelCode|\n|$)/i.exec(
+        text
+      );
     if (headerMatch && headerMatch[1]) {
       const cand = headerMatch[1].trim();
       if (cand && !cand.toLowerCase().includes('catalog')) {
@@ -368,7 +370,7 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
 
   // D. Try explicit "Model: NOAH VOXY"
   if (!model) {
-    const explicitMatch = text.match(/(?:^|\n)(?:Model|الطراز|الموديل)[:\s]+([^\n\r]+)/i);
+    const explicitMatch = /(?:^|\n)(?:Model|الطراز|الموديل)[:\s]+([^\n\r]+)/i.exec(text);
     if (explicitMatch && explicitMatch[1]) {
       const cand = explicitMatch[1]
         .replace(/(?:ModelCode|Model Code|Details|Year|Color|Engine).*$/i, '')
@@ -388,8 +390,8 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   }
 
   // Apply Matrix values if present
-  if (matrix['الماركة'] || matrix['Make']) {
-    const rawM = matrix['الماركة'] || matrix['Make'];
+  if (matrix['الماركة'] || matrix.Make) {
+    const rawM = matrix['الماركة'] || matrix.Make;
     for (const [key, val] of Object.entries(KNOWN_MAKES)) {
       if (
         key.toLowerCase() === rawM.toLowerCase() ||
@@ -403,45 +405,46 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
     }
   }
 
-  if (matrix['الموديل'] || matrix['Model']) {
-    model = matrix['الموديل'] || matrix['Model'];
+  if (matrix['الموديل'] || matrix.Model) {
+    model = matrix['الموديل'] || matrix.Model;
   }
 
-  if (matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix['Year']) {
-    year = matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix['Year'];
+  if (matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix.Year) {
+    year = matrix['سنة الموديل'] || matrix['سنة الصنع'] || matrix['السنة'] || matrix.Year;
     if (!yearStart) yearStart = year;
     if (!yearEnd) yearEnd = year;
   }
 
-  if (matrix['هيكل المركبة'] || matrix['Body']) {
-    body = matrix['هيكل المركبة'] || matrix['Body'];
+  if (matrix['هيكل المركبة'] || matrix.Body) {
+    body = matrix['هيكل المركبة'] || matrix.Body;
   }
 
-  if (matrix['المحرك'] || matrix['Engine']) {
-    engine = cleanEngineCode(matrix['المحرك'] || matrix['Engine']);
+  if (matrix['المحرك'] || matrix.Engine) {
+    engine = cleanEngineCode(matrix['المحرك'] || matrix.Engine);
   }
 
-  if (matrix['المنطقة'] || matrix['السوق'] || matrix['Region'] || matrix['Market']) {
+  if (matrix['المنطقة'] || matrix['السوق'] || matrix.Region || matrix.Market) {
     market = normalizeMarketCategory(
-      matrix['المنطقة'] || matrix['السوق'] || matrix['Region'] || matrix['Market']
+      matrix['المنطقة'] || matrix['السوق'] || matrix.Region || matrix.Market
     );
   }
 
-  if (matrix['ناقل الحركة'] || matrix['الجير'] || matrix['Transmission']) {
+  if (matrix['ناقل الحركة'] || matrix['الجير'] || matrix.Transmission) {
     transmission = cleanTransmission(
-      matrix['ناقل الحركة'] || matrix['الجير'] || matrix['Transmission']
+      matrix['ناقل الحركة'] || matrix['الجير'] || matrix.Transmission
     );
   }
 
-  if (matrix['الفئة'] || matrix['Grade']) {
-    grade = matrix['الفئة'] || matrix['Grade'];
+  if (matrix['الفئة'] || matrix.Grade) {
+    grade = matrix['الفئة'] || matrix.Grade;
   }
 
   // 6. Extract Production Date and Range
   // Example: "Production Date: 2011-10" or "Production: 2010-04 » 2014-01" or "(04/2010 - 01/2014)"
-  const prodDateMatch = text.match(
-    /(?:Production Date|Prod Date|Date of manufacture|تاريخ الإنتاج)[:\s]*([0-9]{4}[-/.][0-9]{2}(?:[-/.][0-9]{2})?)/i
-  );
+  const prodDateMatch =
+    /(?:Production Date|Prod Date|Date of manufacture|تاريخ الإنتاج)[:\s]*([0-9]{4}[-/.][0-9]{2}(?:[-/.][0-9]{2})?)/i.exec(
+      text
+    );
   if (prodDateMatch && prodDateMatch[1]) {
     productionDate = prodDateMatch[1].replace(/[/.]/g, '-').trim();
     const yr = productionDate.slice(0, 4);
@@ -451,9 +454,9 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   }
 
   const prodRangeMatch =
-    text.match(
-      /(?:Production|فترة الإنتاج|Period)[:\s]*([0-9]{4}[-/.][0-9]{2})\s*(?:»|-|to|\.\.)\s*([0-9]{4}[-/.][0-9]{2})/i
-    ) || text.match(/\(([0-9]{2}[/.][0-9]{4})\s*-\s*([0-9]{2}[/.][0-9]{4})\)/);
+    /(?:Production|فترة الإنتاج|Period)[:\s]*([0-9]{4}[-/.][0-9]{2})\s*(?:»|-|to|\.\.)\s*([0-9]{4}[-/.][0-9]{2})/i.exec(
+      text
+    ) || /\(([0-9]{2}[/.][0-9]{4})\s*-\s*([0-9]{2}[/.][0-9]{4})\)/.exec(text);
 
   if (prodRangeMatch && prodRangeMatch[1] && prodRangeMatch[2]) {
     let start = prodRangeMatch[1].trim();
@@ -477,9 +480,9 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   // 7. Extract Specific Year if not found yet
   if (!year) {
     const yearMatch =
-      text.match(/\[(\d{4})\]/) ||
-      text.match(/(?:^|\n)(?:Year|السنة|عام)[:\s]+(\d{4})\b/i) ||
-      text.match(/\b(19\d{2}|20\d{2})\b/);
+      /\[(\d{4})\]/.exec(text) ||
+      /(?:^|\n)(?:Year|السنة|عام)[:\s]+(\d{4})\b/i.exec(text) ||
+      /\b(19\d{2}|20\d{2})\b/.exec(text);
 
     if (yearMatch && yearMatch[1]) {
       year = yearMatch[1].trim();
@@ -491,35 +494,39 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
 
   // 8. Extract Engine (e.g. Engine: 3ZRFA, 2TRFE, 1GRFE, 3ZR-FAE, 3URFE (5.7L V8), 2.0L, 1.8L)
   if (!engine) {
-    const engineMatch = text.match(
-      /(?:Engine|المحرك|كود المحرك)[:\s]*([^\n\r]+?)(?=(?:Production Date|Production|Color Code|Color|Grade Description|Grade|Trim Code|Trim|Model Short|ModelShort|\n|$))/i
-    );
+    const engineMatch =
+      /(?:Engine|المحرك|كود المحرك)[:\s]*([^\n\r]+?)(?=(?:Production Date|Production|Color Code|Color|Grade Description|Grade|Trim Code|Trim|Model Short|ModelShort|\n|$))/i.exec(
+        text
+      );
     if (engineMatch && engineMatch[1]) {
       engine = cleanEngineCode(engineMatch[1]);
     }
   }
 
   // 9. Extract Color Code (e.g. Color Code: 070, 1D6, 202, 040)
-  const colorMatch = text.match(
-    /(?:Color Code|Color|كود اللون|رمز اللون)[:\s]*([A-Z0-9]{2,6}?)(?=(?:Engine|Production|Trim|Grade|Model|\s|$))/i
-  );
+  const colorMatch =
+    /(?:Color Code|Color|كود اللون|رمز اللون)[:\s]*([A-Z0-9]{2,6}?)(?=(?:Engine|Production|Trim|Grade|Model|\s|$))/i.exec(
+      text
+    );
   if (colorMatch && colorMatch[1]) {
     colorCode = colorMatch[1].trim().toUpperCase();
   }
 
   // 10. Extract Trim Code / Interior (e.g. Trim Code: FA41, FC20, LA10)
-  const trimMatch = text.match(
-    /(?:Trim Code|Trim|كود الفرش|رمز الداخلية)[:\s]*([A-Z0-9]{2,6}?)(?=(?:Color|Engine|Production|Grade|Model|\s|$))/i
-  );
+  const trimMatch =
+    /(?:Trim Code|Trim|كود الفرش|رمز الداخلية)[:\s]*([A-Z0-9]{2,6}?)(?=(?:Color|Engine|Production|Grade|Model|\s|$))/i.exec(
+      text
+    );
   if (trimMatch && trimMatch[1]) {
     trimCode = trimMatch[1].trim().toUpperCase();
   }
 
   // 11. Extract Grade Description / Trim (e.g. Grade Description: X TYPE, TX-L, G, V)
   if (!grade) {
-    const gradeMatch = text.match(
-      /(?:Grade Description|Grade|الفئة)[:\s]*([^\n\r]+?)(?=(?:Model Short|Production|Trim|Color|Engine|$))/i
-    );
+    const gradeMatch =
+      /(?:Grade Description|Grade|الفئة)[:\s]*([^\n\r]+?)(?=(?:Model Short|Production|Trim|Color|Engine|$))/i.exec(
+        text
+      );
     if (gradeMatch && gradeMatch[1]) {
       grade = gradeMatch[1].trim();
     }
@@ -528,9 +535,9 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   // 12. Extract Market / Region (e.g. Japan, GCC, Europe, USA)
   if (!market) {
     const marketMatch =
-      text.match(/\[(Japan|GCC|General|Europe|USA|North America|Middle East)\]/i) ||
-      text.match(
-        /(?:Region|Market|السوق|المنطقة)[:\s]*\n?(Japan|GCC|General|Europe|USA|North America|Middle East|JP|EU|US)\b/i
+      /\[(Japan|GCC|General|Europe|USA|North America|Middle East)\]/i.exec(text) ||
+      /(?:Region|Market|السوق|المنطقة)[:\s]*\n?(Japan|GCC|General|Europe|USA|North America|Middle East|JP|EU|US)\b/i.exec(
+        text
       );
     if (marketMatch && marketMatch[1]) {
       market = normalizeMarketCategory(marketMatch[1]);
@@ -550,12 +557,12 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   // 13. Transmission & Drive heuristics
   if (!drive) {
     if (
-      text.match(/(?:4WD|AWD|4X4|دبل)/i) ||
+      /(?:4WD|AWD|4X4|دبل)/i.exec(text) ||
       (model && /سافاري|باترول|شاص|لاندكروزر|برادو|safari|patrol/i.test(model)) ||
       (body && /pick up|بيك اب/i.test(body) && (make === 'Nissan' || make === 'Toyota'))
     ) {
       drive = 'دبل';
-    } else if (text.match(/(?:2WD|FWD|RHD|سنجل|دفع أمامي|دفع خلفي)/i)) {
+    } else if (/(?:2WD|FWD|RHD|سنجل|دفع أمامي|دفع خلفي)/i.exec(text)) {
       drive = 'سنجل';
     } else {
       drive = 'دبل';
@@ -563,9 +570,9 @@ export const parseCatalogVehicleText = (rawInput: string): ExtractedCatalogVehic
   }
 
   if (!transmission) {
-    if (text.match(/(?:ATM|CVT|AUTOMATIC|AUTO|تماتيك|أوتوماتيك)/i)) {
+    if (/(?:ATM|CVT|AUTOMATIC|AUTO|تماتيك|أوتوماتيك)/i.exec(text)) {
       transmission = 'تماتيك';
-    } else if (text.match(/(?:MTM|MANUAL|عادي|يدوي)/i)) {
+    } else if (/(?:MTM|MANUAL|عادي|يدوي)/i.exec(text)) {
       transmission = 'عادي';
     } else {
       transmission = 'عادي';

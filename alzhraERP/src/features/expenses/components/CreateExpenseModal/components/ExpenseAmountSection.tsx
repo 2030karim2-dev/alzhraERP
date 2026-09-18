@@ -181,7 +181,9 @@ export const ExpenseAmountSection: React.FC<ExpenseAmountSectionProps> = ({
           </div>
           <button
             type="button"
-            onClick={() => setValue('currency_code', 'YER', { shouldValidate: true })}
+            onClick={() => {
+              setValue('currency_code', 'YER', { shouldValidate: true });
+            }}
             className="shrink-0 cursor-pointer rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-rose-700 active:scale-95"
           >
             تحويل إلى ريال يمني (YER)

@@ -170,7 +170,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
             <div className="flex items-center rounded-lg border border-slate-200 bg-white p-0.5 text-[10px] font-bold dark:border-slate-700 dark:bg-slate-800">
               <button
                 type="button"
-                onClick={() => setStatusFilter('all')}
+                onClick={() => {
+                  setStatusFilter('all');
+                }}
                 className={cn(
                   'rounded px-2 py-0.5 transition-colors',
                   statusFilter === 'all'
@@ -182,7 +184,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setStatusFilter('partial')}
+                onClick={() => {
+                  setStatusFilter('partial');
+                }}
                 className={cn(
                   'rounded px-2 py-0.5 transition-colors',
                   statusFilter === 'partial'
@@ -194,7 +198,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setStatusFilter('unpaid')}
+                onClick={() => {
+                  setStatusFilter('unpaid');
+                }}
                 className={cn(
                   'rounded px-2 py-0.5 transition-colors',
                   statusFilter === 'unpaid'
@@ -212,7 +218,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+              }}
               placeholder="بحث برقم الفاتورة، القطعة، المبلغ..."
               className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs font-bold text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-500"
             />
@@ -230,7 +238,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
               <tr>
                 <th className="w-10 px-2.5 py-2 text-center">تحديد</th>
                 <th
-                  onClick={() => handleSort('invoice_number')}
+                  onClick={() => {
+                    handleSort('invoice_number');
+                  }}
                   className="cursor-pointer px-3 py-2 transition-colors hover:text-blue-600"
                 >
                   <div className="flex items-center gap-1">
@@ -239,7 +249,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                   </div>
                 </th>
                 <th
-                  onClick={() => handleSort('issue_date')}
+                  onClick={() => {
+                    handleSort('issue_date');
+                  }}
                   className="cursor-pointer px-3 py-2 transition-colors hover:text-blue-600"
                 >
                   <div className="flex items-center gap-1">
@@ -249,7 +261,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                 </th>
                 <th className="px-3 py-2">البيان والملاحظات</th>
                 <th
-                  onClick={() => handleSort('total_amount')}
+                  onClick={() => {
+                    handleSort('total_amount');
+                  }}
                   className="cursor-pointer px-3 py-2 text-left transition-colors hover:text-blue-600"
                 >
                   <div className="flex items-center justify-end gap-1">
@@ -259,7 +273,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                 </th>
                 <th className="px-3 py-2 text-left">المسدد</th>
                 <th
-                  onClick={() => handleSort('remaining_amount')}
+                  onClick={() => {
+                    handleSort('remaining_amount');
+                  }}
                   className="cursor-pointer px-3 py-2 text-left transition-colors hover:text-blue-600"
                 >
                   <div className="flex items-center justify-end gap-1">
@@ -286,7 +302,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                   return (
                     <tr
                       key={inv.id}
-                      onClick={() => onSelectInvoice(isSelected ? null : inv)}
+                      onClick={() => {
+                        onSelectInvoice(isSelected ? null : inv);
+                      }}
                       className={cn(
                         'cursor-pointer transition-colors hover:bg-blue-50/60 dark:hover:bg-blue-900/20',
                         isSelected
@@ -297,12 +315,19 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                       )}
                     >
                       {/* Selection radio/checkbox */}
-                      <td className="px-2.5 py-2 text-center" onClick={e => e.stopPropagation()}>
+                      <td
+                        className="px-2.5 py-2 text-center"
+                        onClick={e => {
+                          e.stopPropagation();
+                        }}
+                      >
                         <input
                           type="radio"
                           name="selected_invoice"
                           checked={isSelected}
-                          onChange={() => onSelectInvoice(isSelected ? null : inv)}
+                          onChange={() => {
+                            onSelectInvoice(isSelected ? null : inv);
+                          }}
                           className="h-3.5 w-3.5 cursor-pointer accent-blue-600"
                         />
                       </td>
@@ -365,10 +390,17 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
                       </td>
 
                       {/* Preview Button */}
-                      <td className="px-3 py-2 text-center" onClick={e => e.stopPropagation()}>
+                      <td
+                        className="px-3 py-2 text-center"
+                        onClick={e => {
+                          e.stopPropagation();
+                        }}
+                      >
                         <button
                           type="button"
-                          onClick={() => setPreviewInvoiceId(inv.id)}
+                          onClick={() => {
+                            setPreviewInvoiceId(inv.id);
+                          }}
                           title="معاينة الفاتورة بجميع تفاصيلها وأصنافها"
                           className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-1 text-slate-600 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                         >
@@ -424,7 +456,9 @@ const PartyInvoicesList: React.FC<PartyInvoicesListProps> = ({
       {previewInvoiceId && (
         <InvoiceDetailsModal
           invoiceId={previewInvoiceId}
-          onClose={() => setPreviewInvoiceId(null)}
+          onClose={() => {
+            setPreviewInvoiceId(null);
+          }}
         />
       )}
     </>

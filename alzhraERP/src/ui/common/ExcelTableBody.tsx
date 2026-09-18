@@ -202,7 +202,7 @@ export function ExcelTableBody<T>({
                     type="checkbox"
                     className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     checked={isSelected}
-                    onChange={() => {}}
+                    onChange={() => undefined}
                     onClick={e => {
                       toggleRowSelection(rowId, e);
                     }}

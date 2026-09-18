@@ -42,7 +42,9 @@ export const MediaLightboxModal: React.FC<Props> = ({
       {/* Top action header */}
       <div
         className="flex items-center justify-between border-b border-white/10 bg-black/40 px-4 py-3 text-white"
-        onClick={e => e.stopPropagation()}
+        onClick={e => {
+          e.stopPropagation();
+        }}
       >
         <div className="flex flex-col">
           <span className="text-xs font-bold sm:text-sm">{fileName}</span>
@@ -94,7 +96,9 @@ export const MediaLightboxModal: React.FC<Props> = ({
           src={imageUrl}
           alt={fileName || 'صورة'}
           className="max-h-[85vh] max-w-[95vw] rounded-lg object-contain shadow-2xl transition-transform"
-          onClick={e => e.stopPropagation()}
+          onClick={e => {
+            e.stopPropagation();
+          }}
         />
       </div>
     </div>

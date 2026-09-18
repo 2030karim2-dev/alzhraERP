@@ -44,8 +44,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
   const { save: saveCategory, isSaving: isSavingCategory } = useCategoryMutations(partyType);
 
   useEffect(() => {
-    const effectiveType: PartyFormData['type'] =
-      partyType === 'all' ? 'customer' : (partyType as PartyFormData['type']);
+    const effectiveType: PartyFormData['type'] = partyType === 'all' ? 'customer' : partyType;
     if (isOpen) {
       if (initialData) {
         reset({
@@ -60,7 +59,7 @@ const PartyModal: React.FC<PartyModalProps> = ({
         });
       } else if (prefillData) {
         reset({
-          type: (prefillData.type as PartyFormData['type']) || effectiveType,
+          type: prefillData.type! || effectiveType,
           name: prefillData.name || '',
           phone: prefillData.phone || '',
           email: prefillData.email || '',

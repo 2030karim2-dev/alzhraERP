@@ -11,8 +11,8 @@ const buildPagination = (overrides: Partial<AdminPaginationProps> = {}): AdminPa
   totalItems: 30,
   itemLabel: 'منشأة',
   isLoading: false,
-  onPrev: () => {},
-  onNext: () => {},
+  onPrev: () => undefined,
+  onNext: () => undefined,
   ...overrides,
 });
 

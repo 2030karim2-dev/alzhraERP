@@ -427,7 +427,7 @@ const PurchaseMeta: React.FC = () => {
     } else if (currencyChanged || ratesJustLoaded) {
       const autoRate = resolveAutoExchangeRate(
         currency,
-        rateRows as Array<{ currency_code: string; rate_to_base: number }>,
+        rateRows,
         currencyRows as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
       );
       setMetadata('exchangeRate', autoRate);
@@ -451,7 +451,7 @@ const PurchaseMeta: React.FC = () => {
       } else {
         const autoRate = resolveAutoExchangeRate(
           newCurr,
-          (rates.data ?? []) as Array<{ currency_code: string; rate_to_base: number }>,
+          rates.data ?? [],
           currencyRows as Array<{ code: string; exchange_operator?: 'multiply' | 'divide' }>
         );
         setMetadata('exchangeRate', autoRate);

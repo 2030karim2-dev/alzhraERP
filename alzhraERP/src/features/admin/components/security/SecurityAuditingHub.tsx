@@ -199,7 +199,9 @@ export const SecurityAuditingHub: React.FC = () => {
         {/* Subtabs Switcher — Calm, Monochromatic */}
         <div className="mt-2.5 flex items-center gap-1 border-t border-[var(--app-border)] pt-2.5">
           <button
-            onClick={() => setActiveSubTab('honeypot')}
+            onClick={() => {
+              setActiveSubTab('honeypot');
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
               activeSubTab === 'honeypot'
                 ? 'bg-blue-600 text-white'
@@ -210,7 +212,9 @@ export const SecurityAuditingHub: React.FC = () => {
             <span>سجلات الأمان ({securityAlertsTotal})</span>
           </button>
           <button
-            onClick={() => setActiveSubTab('csp')}
+            onClick={() => {
+              setActiveSubTab('csp');
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
               activeSubTab === 'csp'
                 ? 'bg-blue-600 text-white'

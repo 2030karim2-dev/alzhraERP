@@ -247,7 +247,9 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
         accentColor={accentColor}
         onChangeAccentColor={setAccentColor}
         showQrCode={showQrCode}
-        onToggleQrCode={() => setShowQrCode(!showQrCode)}
+        onToggleQrCode={() => {
+          setShowQrCode(!showQrCode);
+        }}
         onPrint={handlePrint}
         onExportPDF={onExportPDF}
         isExporting={isExporting}
@@ -260,7 +262,9 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           company={companyHeader}
           document={documentMeta}
           layoutMode={layoutMode}
-          onUpdateCompany={updated => setCompanyHeader(prev => ({ ...prev, ...updated }))}
+          onUpdateCompany={updated => {
+            setCompanyHeader(prev => ({ ...prev, ...updated }));
+          }}
           accentColor={accentColor}
         />
 

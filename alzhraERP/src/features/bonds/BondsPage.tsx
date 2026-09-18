@@ -69,7 +69,9 @@ const BondsPage: React.FC = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
   }, []);
 
   const toggleFullscreen = async () => {
@@ -164,7 +166,9 @@ const BondsPage: React.FC = () => {
       {/* Payment Method Quick Filter */}
       <div className="hidden items-center gap-0.5 rounded-lg border border-gray-200 bg-[var(--app-surface)] p-0.5 dark:border-slate-800 lg:flex">
         <button
-          onClick={() => setPaymentMethodFilter('all')}
+          onClick={() => {
+            setPaymentMethodFilter('all');
+          }}
           className={cn(
             'rounded-md px-2 py-1 text-[11px] font-bold transition-all',
             paymentMethodFilter === 'all'
@@ -175,7 +179,9 @@ const BondsPage: React.FC = () => {
           الكل
         </button>
         <button
-          onClick={() => setPaymentMethodFilter('cash')}
+          onClick={() => {
+            setPaymentMethodFilter('cash');
+          }}
           className={cn(
             'rounded-md px-2 py-1 text-[11px] font-bold transition-all',
             paymentMethodFilter === 'cash'
@@ -186,7 +192,9 @@ const BondsPage: React.FC = () => {
           نقداً
         </button>
         <button
-          onClick={() => setPaymentMethodFilter('bank')}
+          onClick={() => {
+            setPaymentMethodFilter('bank');
+          }}
           className={cn(
             'rounded-md px-2 py-1 text-[11px] font-bold transition-all',
             paymentMethodFilter === 'bank'
@@ -251,7 +259,9 @@ const BondsPage: React.FC = () => {
 
       {/* Internal Transfer Button */}
       <Button
-        onClick={() => openCreateModal('transfer')}
+        onClick={() => {
+          openCreateModal('transfer');
+        }}
         variant="outline"
         size="sm"
         className="hidden md:inline-flex"
@@ -262,7 +272,9 @@ const BondsPage: React.FC = () => {
 
       {/* Primary Bond Create Button */}
       <Button
-        onClick={() => openCreateModal(activeTab)}
+        onClick={() => {
+          openCreateModal(activeTab);
+        }}
         variant={
           activeTab === 'receipt' ? 'success' : activeTab === 'transfer' ? 'primary' : 'danger'
         }
@@ -402,7 +414,9 @@ const BondsPage: React.FC = () => {
             isLoading={isLoading}
             searchTerm={searchTerm}
             displayMode={displayMode}
-            onPreviewBond={bond => setPreviewBond(bond)}
+            onPreviewBond={bond => {
+              setPreviewBond(bond);
+            }}
           />
         </div>
       </div>
@@ -427,7 +441,9 @@ const BondsPage: React.FC = () => {
       {/* Official Voucher Preview & Print Modal */}
       <BondVoucherModal
         isOpen={!!previewBond}
-        onClose={() => setPreviewBond(null)}
+        onClose={() => {
+          setPreviewBond(null);
+        }}
         bond={previewBond}
       />
     </div>

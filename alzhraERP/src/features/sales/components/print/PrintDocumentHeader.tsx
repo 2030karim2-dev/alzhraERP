@@ -83,7 +83,9 @@ export const PrintDocumentHeader: React.FC<PrintDocumentHeaderProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onUpdateCompany({ bannerUrl: '' })}
+                  onClick={() => {
+                    onUpdateCompany({ bannerUrl: '' });
+                  }}
                   className="flex items-center gap-1 rounded bg-rose-600/90 px-2 py-1 text-[11px] font-bold text-white hover:bg-rose-700"
                 >
                   <X size={12} />
@@ -112,7 +114,9 @@ export const PrintDocumentHeader: React.FC<PrintDocumentHeaderProps> = ({
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={e => handleImageUpload(e, 'bannerUrl')}
+          onChange={e => {
+            handleImageUpload(e, 'bannerUrl');
+          }}
         />
       </div>
     );
@@ -130,7 +134,9 @@ export const PrintDocumentHeader: React.FC<PrintDocumentHeaderProps> = ({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={e => handleImageUpload(e, 'logoUrl')}
+        onChange={e => {
+          handleImageUpload(e, 'logoUrl');
+        }}
       />
 
       <div className="flex items-center justify-between gap-4">
@@ -230,7 +236,9 @@ export const PrintDocumentHeader: React.FC<PrintDocumentHeaderProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onUpdateCompany({ logoUrl: '' })}
+                    onClick={() => {
+                      onUpdateCompany({ logoUrl: '' });
+                    }}
                     className="rounded bg-rose-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-rose-700"
                     title="حذف الشعار"
                   >

@@ -122,8 +122,7 @@ const POSPage: React.FC = () => {
 
   const selectedWarehouse = warehouses.find(w => w.id === selectedWarehouseId);
   const isCrossBranch =
-    selectedWarehouse &&
-    selectedWarehouse.branch_id &&
+    selectedWarehouse?.branch_id &&
     user?.branch_id &&
     selectedWarehouse.branch_id !== user.branch_id;
 
@@ -225,7 +224,9 @@ const POSPage: React.FC = () => {
         warehouses={warehouses}
         selectedWarehouseId={selectedWarehouseId}
         onWarehouseChange={setSelectedWarehouseId}
-        onOpenQuickExpense={() => setIsQuickExpenseOpen(true)}
+        onOpenQuickExpense={() => {
+          setIsQuickExpenseOpen(true);
+        }}
       />
 
       <div className="relative flex flex-1 flex-row-reverse overflow-hidden bg-gray-50/50 p-2 dark:bg-slate-950/50 max-md:p-2 md:gap-4 md:p-4 lg:gap-6 lg:p-6">
@@ -368,7 +369,9 @@ const POSPage: React.FC = () => {
 
       <QuickDrawerExpenseModal
         isOpen={isQuickExpenseOpen}
-        onClose={() => setIsQuickExpenseOpen(false)}
+        onClose={() => {
+          setIsQuickExpenseOpen(false);
+        }}
       />
     </div>
   );

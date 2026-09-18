@@ -44,7 +44,9 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               type="text"
               required
               value={formData.name}
-              onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={e => {
+                setFormData(prev => ({ ...prev, name: e.target.value }));
+              }}
               placeholder="مثال: رافعة سيارات هيدروليكية"
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
@@ -58,7 +60,9 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               type="text"
               required
               value={formData.asset_code}
-              onChange={e => setFormData(prev => ({ ...prev, asset_code: e.target.value }))}
+              onChange={e => {
+                setFormData(prev => ({ ...prev, asset_code: e.target.value }));
+              }}
               placeholder="مثال: AST-001"
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
@@ -72,7 +76,9 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
             </label>
             <select
               value={formData.category}
-              onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              onChange={e => {
+                setFormData(prev => ({ ...prev, category: e.target.value }));
+              }}
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             >
               <option value="equipment">معدات وآلات</option>
@@ -91,7 +97,9 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               type="date"
               required
               value={formData.purchase_date}
-              onChange={e => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
+              onChange={e => {
+                setFormData(prev => ({ ...prev, purchase_date: e.target.value }));
+              }}
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
           </div>
@@ -108,12 +116,12 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               step="0.01"
               required
               value={formData.purchase_cost || ''}
-              onChange={e =>
+              onChange={e => {
                 setFormData(prev => ({
                   ...prev,
                   purchase_cost: Number.parseFloat(e.target.value) || 0,
-                }))
-              }
+                }));
+              }}
               placeholder="0.00"
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
@@ -128,12 +136,12 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               min="0"
               step="0.01"
               value={formData.salvage_value || ''}
-              onChange={e =>
+              onChange={e => {
                 setFormData(prev => ({
                   ...prev,
                   salvage_value: Number.parseFloat(e.target.value) || 0,
-                }))
-              }
+                }));
+              }}
               placeholder="0.00"
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
@@ -148,12 +156,12 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
               min="1"
               required
               value={formData.useful_life_months || ''}
-              onChange={e =>
+              onChange={e => {
                 setFormData(prev => ({
                   ...prev,
                   useful_life_months: Number.parseInt(e.target.value, 10) || 1,
-                }))
-              }
+                }));
+              }}
               placeholder="60"
               className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 font-mono text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
             />
@@ -165,7 +173,9 @@ const AddAssetModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, isLoading }
           <textarea
             rows={2}
             value={formData.notes || ''}
-            onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            onChange={e => {
+              setFormData(prev => ({ ...prev, notes: e.target.value }));
+            }}
             placeholder="بيانات الضمان، الرقم التسلسلي، موقع الأصل..."
             className="w-full rounded-lg border border-slate-300 bg-[var(--app-surface)] px-3 py-2 text-xs text-[var(--app-text)] focus:border-blue-500 focus:outline-none dark:border-slate-700"
           />
