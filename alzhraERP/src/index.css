@@ -929,6 +929,11 @@ a:focus-visible {
   }
 }
 
+/* Screen-only helpers (toolbars, buttons) must stay out of the PDF capture too. */
+.pdf-capture-host .no-print {
+  display: none !important;
+}
+
 /* ============================================================
    Print Styles
    ============================================================ */
