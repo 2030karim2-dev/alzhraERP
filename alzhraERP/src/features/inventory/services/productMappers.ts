@@ -50,7 +50,7 @@ interface RawProduct {
  */
 export function mapRawProducts(rows: unknown[], warehouseId?: string): Product[] {
   return (rows as RawProduct[])
-    .map(prod => {
+    .map((prod): Product | null => {
       if (!prod?.id) return null;
 
       const stockList = Array.isArray(prod.stock) ? prod.stock : [];
@@ -132,5 +132,5 @@ export function mapRawProducts(rows: unknown[], warehouseId?: string): Product[]
         last_invoice_date: prod.last_invoice_date || undefined,
       };
     })
-    .filter((p): p is Product => p !== null);
+    .filter((p): p is Product => p !== null && typeof p === 'object' && 'id' in p);
 }

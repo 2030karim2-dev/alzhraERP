@@ -120,7 +120,9 @@ const AuditSessionPage: React.FC = () => {
                 (serverItem as Record<string, unknown>).product_id ||
                 (serverItem as Record<string, unknown>).id;
               const local = sessionItems.find(s => (s.product_id || s.id) === serverProductId);
-              return local?.counted_quantity !== null && local.counted_quantity !== undefined
+              return local != null &&
+                local.counted_quantity !== null &&
+                local.counted_quantity !== undefined
                 ? { ...serverItem, counted_quantity: local.counted_quantity }
                 : serverItem;
             })
