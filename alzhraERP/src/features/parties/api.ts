@@ -64,13 +64,10 @@ export const partiesApi = {
     if (partiesError !== null) return { data: null, error: partiesError };
     if (partiesData.length === 0) return { data: [], error: null };
 
-    const partyIds = partiesData.map(p => p.id);
-
     const { data: balancesData, error: balancesError } = await supabase
       .from('party_balances')
       .select('party_id, balance, type')
-      .eq('company_id', companyId)
-      .in('party_id', partyIds);
+      .eq('company_id', companyId);
 
     const balancesMap = new Map();
     if (balancesError === null && balancesData !== null) {

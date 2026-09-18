@@ -77,7 +77,7 @@ export const salesQuotationsApi = {
         total_amount,
         currency_code,
         created_at,
-        party:party_id(name),
+        party:parties(name),
         quotation_items(id)
       `
       )
@@ -103,10 +103,10 @@ export const salesQuotationsApi = {
       .select(
         `
         *,
-        party:party_id(id, name, phone, email),
+        party:parties(id, name, phone, email),
         quotation_items(
           *,
-          product:product_id(name_ar, sku, part_number)
+          product:products(name_ar, sku, part_number)
         )
       `
       )
