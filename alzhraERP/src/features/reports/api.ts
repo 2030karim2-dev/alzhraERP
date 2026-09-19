@@ -199,7 +199,7 @@ export const reportsApi = {
     return (await supabase
       .from('invoices')
       .select(
-        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties!fk_invoices_company_party(name, type), currency_code, exchange_rate'
+        'id, invoice_number, issue_date, due_date, total_amount, paid_amount, status, type, party_id, parties(name, type), currency_code, exchange_rate'
       )
       .eq('company_id', companyId)
       .eq('type', 'sale')
@@ -231,7 +231,7 @@ export const reportsApi = {
     return (await supabase
       .from('invoices')
       .select(
-        'id, invoice_number, issue_date, total_amount, status, type, party_id, parties!fk_invoices_company_party(name), exchange_rate, currency_code'
+        'id, invoice_number, issue_date, total_amount, status, type, party_id, parties(name), exchange_rate, currency_code'
       )
       .eq('company_id', companyId)
       .in('type', ['sale', 'sale_return', 'return_sale'])

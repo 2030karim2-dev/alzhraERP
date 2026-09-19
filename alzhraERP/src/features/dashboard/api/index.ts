@@ -317,7 +317,7 @@ export const dashboardApi = {
         let q = supabase
           .from('invoices')
           .select(
-            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties!fk_invoices_company_party(name)'
+            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
           )
           .eq('company_id', companyId)
           .is('deleted_at', null)
@@ -328,12 +328,16 @@ export const dashboardApi = {
         return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
       })(),
 
-      // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped
+      // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped.
+      // ⚡ The embed MUST carry the FK hint: `expenses` has TWO relationships to
+      // `expense_categories` (the single-column `expenses_category_id_fkey` and the
+      // tenant-safe composite `fk_expenses_company_category`), so an unhinted
+      // `expense_categories(name)` embed fails with PostgREST PGRST201 (300).
       (() => {
         let q = supabase
           .from('expenses')
           .select(
-            'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories(name)'
+            'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories!fk_expenses_company_category(name)'
           )
           .eq('company_id', companyId)
           .is('deleted_at', null);

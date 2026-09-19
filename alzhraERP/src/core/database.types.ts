@@ -10463,11 +10463,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "warehouses_branch_id_fkey"
-            columns: ["branch_id"]
+            foreignKeyName: "fk_warehouses_company_branch"
+            columns: ["company_id", "branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
-            referencedColumns: ["id"]
+            referencedColumns: ["company_id", "id"]
           },
           {
             foreignKeyName: "warehouses_company_id_fkey"

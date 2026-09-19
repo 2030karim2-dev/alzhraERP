@@ -178,7 +178,7 @@ export const warehouseApi = {
                     id,
                     name_ar,
                     branch_id,
-                    branches:branch_id(id, name)
+                    branches(id, name)
                 )
             `
       )
@@ -197,7 +197,7 @@ export const warehouseApi = {
                 name_ar,
                 location,
                 branch_id,
-                branches:branch_id(id, name)
+                branches(id, name)
             `
       )
       .eq('company_id', companyId)
