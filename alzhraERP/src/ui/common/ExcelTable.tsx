@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback, useDeferredValue } from 'react';
 import { GripVertical } from 'lucide-react';
 import { cn, normalizeSearch } from '../../core/utils';
 import { useTableKeyboardNavigation } from './useTableKeyboardNavigation';
@@ -122,7 +122,13 @@ function ExcelTable<T>({
     };
   }, [internalSearch, isMainSearch]);
 
-  const searchTermForFilter = isMainSearch ? (searchValue ?? '') : debouncedSearch;
+  // ⚡ The external ("main") search box used to feed its RAW value straight into
+  // the copy + sort + filter pipeline, so every keystroke blocked the main thread
+  // on the whole dataset (up to thousands of rows × all columns). Deferring the
+  // value keeps typing at full speed while React prioritises the heavy pass.
+  // The internal search box was already debounced (150ms).
+  const deferredMainSearch = useDeferredValue(searchValue ?? '');
+  const searchTermForFilter = isMainSearch ? deferredMainSearch : debouncedSearch;
 
   const currentTheme = EXCEL_TABLE_THEMES[colorTheme];
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -157,8 +163,10 @@ function ExcelTable<T>({
     isRTL,
   });
 
-  const processedData = useMemo(() => {
-    let items = [...data];
+  // ⚡ Filtering only. Sorting moved to its own memo further down: previously one
+  // keystroke re-sorted the whole dataset and a sort click re-ran the whole filter.
+  const filteredItems = useMemo(() => {
+    let items = data;
     if (!isMainSearch && searchTermForFilter) {
       const term = normalizeSearch(searchTermForFilter);
       if (!term) return items;
@@ -226,40 +234,46 @@ function ExcelTable<T>({
         return deepSearch(item);
       });
     }
-    if (sortConfig) {
-      const getNestedValue = (obj: unknown, path: string): unknown => {
-        if (!obj || typeof obj !== 'object') return undefined;
-        if (path in obj) return (obj as Record<string, unknown>)[path];
-        return path.split('.').reduce((acc: unknown, part) => {
-          return acc && typeof acc === 'object'
-            ? (acc as Record<string, unknown>)[part]
-            : undefined;
-        }, obj);
-      };
-
-      items.sort((a, b) => {
-        const aVal = getNestedValue(a, sortConfig.key);
-        const bVal = getNestedValue(b, sortConfig.key);
-
-        // Handle undefined/null cases
-        if (aVal === bVal) return 0;
-        if (aVal === undefined || aVal === null) return sortConfig.direction === 'asc' ? 1 : -1;
-        if (bVal === undefined || bVal === null) return sortConfig.direction === 'asc' ? -1 : 1;
-
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          const comp = aVal.localeCompare(bVal, 'ar', { numeric: true, sensitivity: 'base' });
-          return sortConfig.direction === 'asc' ? comp : -comp;
-        }
-
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-
-        return sortConfig.direction === 'asc' ? (aVal > bVal ? 1 : -1) : aVal < bVal ? 1 : -1;
-      });
-    }
     return items;
-  }, [data, sortConfig, searchTermForFilter, columns, isMainSearch]);
+  }, [data, searchTermForFilter, columns, isMainSearch]);
+
+  /**
+   * ⚡ Sorting in its own memo (was appended to the filter memo): the dataset is
+   * copied only when a sort is actually active, and changing the sort no longer
+   * re-runs the filtering pass.
+   */
+  const processedData = useMemo(() => {
+    if (!sortConfig) return filteredItems;
+
+    const getNestedValue = (obj: unknown, path: string): unknown => {
+      if (!obj || typeof obj !== 'object') return undefined;
+      if (path in obj) return (obj as Record<string, unknown>)[path];
+      return path.split('.').reduce((acc: unknown, part) => {
+        return acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[part] : undefined;
+      }, obj);
+    };
+
+    return [...filteredItems].sort((a, b) => {
+      const aVal = getNestedValue(a, sortConfig.key);
+      const bVal = getNestedValue(b, sortConfig.key);
+
+      // Handle undefined/null cases
+      if (aVal === bVal) return 0;
+      if (aVal === undefined || aVal === null) return sortConfig.direction === 'asc' ? 1 : -1;
+      if (bVal === undefined || bVal === null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        const comp = aVal.localeCompare(bVal, 'ar', { numeric: true, sensitivity: 'base' });
+        return sortConfig.direction === 'asc' ? comp : -comp;
+      }
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+
+      return sortConfig.direction === 'asc' ? (aVal > bVal ? 1 : -1) : aVal < bVal ? 1 : -1;
+    });
+  }, [filteredItems, sortConfig]);
 
   // Reset page when search/data changes
   useEffect(() => {

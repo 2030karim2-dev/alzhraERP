@@ -20,8 +20,7 @@ async function fetchPartyCurrencies(
   // row-level RLS checks on every one of the 2600+ cross-joined rows.
   // The RPC filters by company_id early and runs with security invoker,
   // delegating the company guard to a single WHERE check.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (supabase as any).rpc('get_party_currencies_by_company', {
+  const { data } = await supabase.rpc('get_party_currencies_by_company', {
     p_company_id: companyId,
   });
 
@@ -84,8 +83,7 @@ export const partiesApi = {
     }> | null = null;
     let balancesError: unknown = null;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rpcRes = await (supabase as any).rpc('get_party_balances_by_company', {
+      const rpcRes = await supabase.rpc('get_party_balances_by_company', {
         p_company_id: companyId,
       });
       if (rpcRes.error === null && Array.isArray(rpcRes.data)) {

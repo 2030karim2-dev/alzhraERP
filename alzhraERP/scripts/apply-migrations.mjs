@@ -27,8 +27,10 @@ const MIGRATIONS_DIR = join(process.cwd(), 'supabase', 'migrations');
 
 // Local migration files, sorted by version prefix. Only real migrations
 // (14-digit version + name + .sql) are considered; README.md is ignored.
+const targetArg = process.argv[2];
 const MIGRATION_FILES = readdirSync(MIGRATIONS_DIR)
   .filter(f => /^\d{14}_.+\.sql$/.test(f))
+  .filter(f => !targetArg || f.includes(targetArg))
   .sort();
 
 async function runSql(sql) {

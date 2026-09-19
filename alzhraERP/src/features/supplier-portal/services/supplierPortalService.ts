@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
+import type { Database, Json } from '../../../core/database.types';
 import { logger } from '../../../core/utils/logger';
 import { parseError } from '../../../core/utils/errorUtils';
 import type {
@@ -136,34 +137,30 @@ interface RawQuotationRow {
 }
 
 /**
- * Typed RPC wrappers. The public portal RPCs exist on the server but are
- * not yet part of the generated `database.types.ts` (Functions section),
- * so we declare the exact argument/return shapes here (mirrors the
- * chatService pattern) instead of scattering `(supabase as any)` casts.
+ * Portal RPCs consumed by this service. All three are present in the generated
+ * `database.types.ts`, so calls go through the typed `supabase.rpc` API (no
+ * `any`/`unknown` cast) and their argument/return shapes come from the database
+ * contract itself.
+ *
+ * Authorization stays server-side:
+ *  • `get_supplier_portal_context` / `submit_supplier_portal_quotation` are
+ *    granted to `anon` + `authenticated` and validate the portal token inside
+ *    the SECURITY DEFINER function (the token IS the credential).
+ *  • `regenerate_supplier_portal_token` is granted to `authenticated` only.
  */
-interface RpcGetContextArgs {
-  p_token: string;
-}
-interface RpcSubmitQuotationArgs {
-  p_token: string;
-  p_payload: SubmitPortalQuotationPayload;
-}
-interface RpcRegenerateTokenArgs {
-  p_party_id: string;
-}
-
-type PortalRpcArgs = RpcGetContextArgs | RpcSubmitQuotationArgs | RpcRegenerateTokenArgs;
+type PortalRpcName =
+  | 'get_supplier_portal_context'
+  | 'submit_supplier_portal_quotation'
+  | 'regenerate_supplier_portal_token';
 
 /** Call a named portal RPC with typed args; returns the raw result payload. */
-async function callPortalRpc<Result>(fn: string, args: PortalRpcArgs): Promise<Result> {
-  const { data, error } = await (
-    supabase.rpc as unknown as (
-      name: string,
-      args: PortalRpcArgs
-    ) => Promise<{ data: Result | null; error: { message: string } | null }>
-  )(fn, args);
+async function callPortalRpc<Name extends PortalRpcName>(
+  fn: Name,
+  args: Database['public']['Functions'][Name]['Args']
+): Promise<Database['public']['Functions'][Name]['Returns']> {
+  const { data, error } = await supabase.rpc(fn, args);
   if (error) throw new Error(error.message);
-  return data as Result;
+  return data;
 }
 
 export const supplierPortalService = {
@@ -688,18 +685,17 @@ export const supplierPortalService = {
   },
 
   /* ── Public (token-based) supplier portal — typed RPC wrappers ─────
-   * The public portal RPCs are not yet part of the generated
-   * `database.types.ts`, so we declare the exact argument/return shapes
-   * here (same pattern as chatService) instead of scattering
-   * `(supabase as any)` casts across components. Access is authorized
-   * server-side by the token itself; RLS/SECURITY DEFINER scope applies.
+   * These wrappers call the token-authorized RPCs through `callPortalRpc`
+   * (typed via the generated `database.types.ts`). Access is authorized
+   * server-side by the token itself; the RPCs run as SECURITY DEFINER and
+   * only the two public ones are granted to `anon`.
    */
 
   getPublicPortalContext: async (token: string): Promise<PublicPortalContext> => {
     try {
-      return await callPortalRpc<PublicPortalContext>('get_supplier_portal_context', {
-        p_token: token,
-      });
+      const data = await callPortalRpc('get_supplier_portal_context', { p_token: token });
+      // The RPC returns the portal context document (jsonb) shaped as PublicPortalContext.
+      return data as unknown as PublicPortalContext;
     } catch (err) {
       logger.error(
         'supplierPortalService.getPublicPortalContext',
@@ -715,10 +711,13 @@ export const supplierPortalService = {
     payload: SubmitPortalQuotationPayload
   ): Promise<SubmitPortalQuotationResult> => {
     try {
-      return await callPortalRpc<SubmitPortalQuotationResult>('submit_supplier_portal_quotation', {
+      const data = await callPortalRpc('submit_supplier_portal_quotation', {
         p_token: token,
-        p_payload: payload,
+        // `Json` requires an implicit index signature that interfaces do not
+        // provide, so the payload is adapted once at this RPC boundary.
+        p_payload: payload as unknown as Json,
       });
+      return data as unknown as SubmitPortalQuotationResult;
     } catch (err) {
       logger.error(
         'supplierPortalService.submitPublicQuotation',
@@ -731,10 +730,7 @@ export const supplierPortalService = {
 
   regeneratePortalToken: async (partyId: string): Promise<string> => {
     try {
-      const newToken = await callPortalRpc<string>('regenerate_supplier_portal_token', {
-        p_party_id: partyId,
-      });
-      return newToken;
+      return await callPortalRpc('regenerate_supplier_portal_token', { p_party_id: partyId });
     } catch (err) {
       logger.error(
         'supplierPortalService.regeneratePortalToken',

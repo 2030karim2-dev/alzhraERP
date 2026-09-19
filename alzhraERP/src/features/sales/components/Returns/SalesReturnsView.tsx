@@ -34,6 +34,7 @@ const normalizeSalesReturn = (row: SalesReturn): ReturnsListRow => ({
   issue_date: row.issue_date,
   created_at: row.created_at,
   total_amount: row.total_amount,
+  currency_code: row.currency_code ?? 'SAR',
   exchange_rate: row.exchange_rate ?? null,
   status: row.status,
   notes: row.notes ?? null,

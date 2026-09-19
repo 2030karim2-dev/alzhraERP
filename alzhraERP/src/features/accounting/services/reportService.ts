@@ -522,7 +522,7 @@ export const reportService = {
   },
 
   getVatReturnReport: async (companyId: string, startDate: string, endDate: string) => {
-    const { data, error } = await supabase.rpc('fn_get_vat_return_report' as any, {
+    const { data, error } = await supabase.rpc('fn_get_vat_return_report', {
       p_company_id: companyId,
       p_start_date: startDate,
       p_end_date: endDate,

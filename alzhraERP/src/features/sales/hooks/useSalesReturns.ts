@@ -163,20 +163,24 @@ export const useSalesReturnsStats = () => {
 
       const { data, error } = await supabase
         .from('invoices')
-        .select('id, total_amount, status')
+        .select('id, total_amount, status, currency_code, exchange_rate')
         .eq('company_id', user.company_id)
         .eq('type', 'sale_return')
         .is('deleted_at', null);
 
       if (error) throw error;
-      const typedData = data as unknown as Array<Pick<Invoice, 'id' | 'total_amount' | 'status'>>;
-
-      const returns = typedData || [];
+      const returns = data || [];
       const returnCount = returns.length;
-      const totalReturns = returns.reduce(
-        (sum: number, r: any) => sum + (Number(r.total_amount) || 0),
-        0
-      );
+      const totalReturns = returns.reduce((sum: number, r: any) => {
+        const amount = Number(r.total_amount) || 0;
+        const rate = Number(r.exchange_rate) || 1;
+        const code = r.currency_code || 'SAR';
+        let baseAmount = amount;
+        if (code === 'YER' && rate > 0) {
+          baseAmount = rate < 1 ? amount * rate : amount / rate;
+        }
+        return sum + baseAmount;
+      }, 0);
       const avgReturn = returnCount > 0 ? totalReturns / returnCount : 0;
       const pendingCount = returns.filter(
         (r: any) => r.status === 'draft' || r.status === 'posted'

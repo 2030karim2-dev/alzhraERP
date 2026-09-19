@@ -3,7 +3,6 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Copy, CheckCircle2 } from 'lucide-react';
 import { supplierPortalService } from '../services/supplierPortalService';
 import PageLoader from '../../../ui/base/PageLoader';
-import { formatCurrency } from '../../../core/utils';
 import type { Column } from '../../../ui/common/ExcelTable';
 import {
   SupplierQuotationPrintModal,
@@ -98,7 +97,10 @@ export const PublicSupplierPortalPage: React.FC = () => {
           oem_number: product.part_number,
           brand: product.brand,
           quantity: 1,
-          unit_price: Number(product.cost_price || 0),
+          // The portal context intentionally withholds internal pricing
+          // (`cost_price`/`sale_price` are shielded server-side since
+          // migration 20260916000001), so the supplier enters their own price.
+          unit_price: 0,
           discount_percent: 0,
         },
       ];
@@ -124,7 +126,8 @@ export const PublicSupplierPortalPage: React.FC = () => {
             oem_number: p.part_number,
             brand: p.brand,
             quantity: 1,
-            unit_price: Number(p.cost_price || 0),
+            // See note above: no internal pricing is exposed to the public portal.
+            unit_price: 0,
             discount_percent: 0,
           });
         }
@@ -373,18 +376,6 @@ export const PublicSupplierPortalPage: React.FC = () => {
         align: 'center',
         accessor: row => (
           <span className="font-mono text-xs text-slate-400">{row.min_stock_level || 0}</span>
-        ),
-      },
-      {
-        header: 'سعر التكلفة الاسترشادي',
-        accessorKey: 'cost_price',
-        sortKey: 'cost_price',
-        width: '140px',
-        align: 'center',
-        accessor: row => (
-          <span className="font-mono text-xs font-bold text-slate-200">
-            {formatCurrency(Number(row.cost_price || 0), 'SAR')}
-          </span>
         ),
       },
       {

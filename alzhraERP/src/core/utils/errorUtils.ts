@@ -28,6 +28,27 @@ const makeAppError = (
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
+/**
+ * Portal-token RPC failures (`get_supplier_portal_context`,
+ * `submit_supplier_portal_quotation`) are raised with ERRCODE `42501` — the
+ * same code as a real permission denial — so they must be mapped BEFORE the
+ * generic 42501 branch, otherwise an invalid/expired supplier portal link is
+ * reported as "insufficient permissions" instead of an actionable message.
+ * The prefix is ASCII and therefore survives any DB-side text encoding issue.
+ */
+const PORTAL_TOKEN_ERRORS: Record<string, string> = {
+  invalid_portal_token:
+    'رابط بوابة الموردين غير صالح أو تم إلغاؤه. يرجى طلب رابط وصول جديد من إدارة المشتريات.',
+  invalid_token: 'رمز الوصول مفقود أو غير صالح. يرجى استخدام الرابط الكامل المرسل إليكم.',
+};
+
+const parsePortalTokenError = (rawMessage: string): string | null => {
+  for (const [prefix, message] of Object.entries(PORTAL_TOKEN_ERRORS)) {
+    if (rawMessage.startsWith(`${prefix}:`) || rawMessage === prefix) return message;
+  }
+  return null;
+};
+
 export const parseError = (error: unknown): AppError => {
   const errorRecord = isRecord(error) ? error : undefined;
   const code = typeof errorRecord?.code === 'string' ? errorRecord.code : 'UNKNOWN';
@@ -112,13 +133,19 @@ export const parseError = (error: unknown): AppError => {
         'لا يمكن إتمام العملية لوجود سجلات أو بيانات أخرى مرتبطة بهذا السجل.',
         'medium'
       );
-    case '42501':
+    case '42501': {
+      // Portal-token RPCs share ERRCODE 42501 — resolve them first (see above).
+      const portalTokenMessage = parsePortalTokenError(rawMessage);
+      if (portalTokenMessage !== null) {
+        return makeAppError('invalid_portal_token', portalTokenMessage, 'medium');
+      }
       return makeAppError(
         code,
         'عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.',
         'high',
         'طلب إذن'
       );
+    }
     case 'AuthApiError':
     case 'invalid_credentials':
       return makeAppError(

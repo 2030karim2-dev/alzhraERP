@@ -12,6 +12,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dev-server.log
+*.log
+
+# local one-off verification scripts that embed privileged credentials
+# (must never be committed; move any token to an env var instead)
+scripts/verify-fixes.mjs
 
 # env
 .env

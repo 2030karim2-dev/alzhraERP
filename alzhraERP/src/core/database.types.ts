@@ -12153,6 +12153,18 @@ export type Database = {
         }
         Returns: Json
       }
+      create_stock_transfer_request: {
+        Args: {
+          p_company_id: string
+          p_notes?: string | null
+          p_product_id: string
+          p_quantity: number
+          p_requester_branch_id: string
+          p_source_branch_id: string
+          p_user_id?: string | null
+        }
+        Returns: string
+      }
       disassemble_kit: {
         Args: {
           p_company_id: string
@@ -12194,6 +12206,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: undefined
       }
+      fn_close_fiscal_year: {
+        Args: { p_created_by?: string | null; p_fiscal_year_id: string }
+        Returns: Json
+      }
       fn_get_account_id: {
         Args: { p_code: string; p_company_id: string }
         Returns: string
@@ -12201,6 +12217,10 @@ export type Database = {
       fn_get_default_cash_account: {
         Args: { p_company_id: string; p_currency?: string }
         Returns: string
+      }
+      fn_get_vat_return_report: {
+        Args: { p_company_id: string; p_end_date: string; p_start_date: string }
+        Returns: Json
       }
       fn_post_inventory_movement: {
         Args: {
@@ -12219,6 +12239,17 @@ export type Database = {
       fn_release_payment_allocations: {
         Args: { p_invoice_id?: string; p_payment_id?: string }
         Returns: undefined
+      }
+      fn_revalue_foreign_currency: {
+        Args: {
+          p_account_id: string
+          p_closing_rate: number
+          p_company_id: string
+          p_created_by?: string | null
+          p_operator?: string
+          p_period_date?: string
+        }
+        Returns: Json
       }
       fn_reverse_inventory_for_reference: {
         Args: {
@@ -12607,6 +12638,20 @@ export type Database = {
           transaction_count: number
         }[]
       }
+      get_party_balances_by_company: {
+        Args: { p_company_id: string }
+        Returns: { balance: number; party_id: string; type: string }[]
+      }
+      get_party_currencies_by_company: {
+        Args: { p_company_id: string }
+        Returns: {
+          balance: number
+          currency_code: string
+          last_activity_date: string
+          party_id: string
+          transaction_count: number
+        }[]
+      }
       get_party_statement: {
         Args: { p_company_id: string; p_party_id: string }
         Returns: Json
@@ -12705,6 +12750,58 @@ export type Database = {
         }
         Returns: Json
       }
+      get_products_paged: {
+        Args: {
+          p_company_id: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string | null
+          p_status?: string | null
+        }
+        Returns: {
+          alternative_numbers: string
+          barcode: string
+          brand: string
+          category: Json
+          category_id: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          is_core: boolean
+          min_stock_level: number
+          name_ar: string
+          part_number: string
+          purchase_price: number
+          sale_price: number
+          size: string
+          sku: string
+          status: string
+          stock: Json
+          unit: string
+          updated_at: string
+        }[]
+      }
+      get_products_with_stock: {
+        Args: { p_company_id: string }
+        Returns: {
+          brand: string
+          category_id: string
+          company_id: string
+          id: string
+          is_core: boolean
+          min_stock_level: number
+          name_ar: string
+          part_number: string
+          purchase_price: number
+          sale_price: number
+          size: string
+          sku: string
+          stock: Json
+          unit: string
+        }[]
+      }
       get_purchase_stats: {
         Args: { p_branch_id?: string; p_company_id: string }
         Returns: Json
@@ -12744,6 +12841,7 @@ export type Database = {
         }[]
       }
       get_stock_valuation: { Args: { p_company_id: string }; Returns: Json }
+      get_supplier_portal_context: { Args: { p_token: string }; Returns: Json }
       get_top_customers_by_revenue: {
         Args: { p_company_id: string; p_limit?: number }
         Returns: {
@@ -13221,6 +13319,10 @@ export type Database = {
           message_log_id: string
         }[]
       }
+      regenerate_supplier_portal_token: {
+        Args: { p_party_id: string }
+        Returns: string
+      }
       report_account_balances: {
         Args: {
           p_as_of_date?: string
@@ -13230,6 +13332,7 @@ export type Database = {
         Returns: {
           account_id: string
           balance: number
+          foreign_balance: number
           total_credit: number
           total_debit: number
         }[]
@@ -13302,6 +13405,15 @@ export type Database = {
         }[]
       }
       resolve_vehicle_from_vin: { Args: { p_vin: string }; Returns: Json }
+      respond_stock_transfer_request: {
+        Args: {
+          p_action: string
+          p_request_id: string
+          p_review_notes?: string | null
+          p_user_id?: string | null
+        }
+        Returns: undefined
+      }
       reverse_audit_session: { Args: { p_session_id: string }; Returns: Json }
       reverse_stock_transfer: { Args: { p_transfer_id: string }; Returns: Json }
       save_product_uoms: {
@@ -13402,6 +13514,40 @@ export type Database = {
           updated_at: string
         }[]
       }
+      search_invoices_advanced: {
+        Args: {
+          p_branch_id?: string | null
+          p_company_id: string
+          p_date_from?: string | null
+          p_date_to?: string | null
+          p_limit?: number
+          p_offset?: number
+          p_payment_method?: string | null
+          p_query?: string | null
+          p_status?: string | null
+          p_type?: string | null
+        }
+        Returns: {
+          company_id: string
+          currency_code: string
+          exchange_rate: number
+          id: string
+          invoice_number: string
+          issue_date: string
+          item_count: number
+          matched_items: Json
+          notes: string | null
+          party_id: string | null
+          party_name: string | null
+          party_phone: string | null
+          payment_method: string
+          reference_invoice_id: string | null
+          status: string
+          total_amount: number
+          total_matching_count: number
+          type: string
+        }[]
+      }
       search_parties: {
         Args: {
           p_company_id: string
@@ -13427,6 +13573,10 @@ export type Database = {
           p_account_id: string
           p_company_id: string
         }
+        Returns: Json
+      }
+      submit_supplier_portal_quotation: {
+        Args: { p_payload: Json; p_token: string }
         Returns: Json
       }
       submit_vendor_quotation_revision: {

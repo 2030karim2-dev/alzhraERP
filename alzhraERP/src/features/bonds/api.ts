@@ -120,7 +120,7 @@ export const bondsApi = {
         *,
         invoice_items(
           *,
-          product:product_id(name_ar, sku, part_number, brand)
+          product:products(name_ar, sku, part_number, brand)
         )
       `
       )

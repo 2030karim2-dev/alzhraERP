@@ -128,12 +128,14 @@ export const treasuryApi = {
     operator?: 'multiply' | 'divide';
     periodDate?: string;
   }) => {
-    const { data, error } = await supabase.rpc('fn_revalue_foreign_currency' as any, {
+    const { data, error } = await supabase.rpc('fn_revalue_foreign_currency', {
       p_company_id: params.companyId,
       p_account_id: params.accountId,
       p_closing_rate: params.closingRate,
       p_operator: params.operator || 'multiply',
-      p_period_date: params.periodDate,
+      // `exactOptionalPropertyTypes` forbids passing `undefined` explicitly;
+      // the RPC defaults p_period_date to CURRENT_DATE when omitted.
+      ...(params.periodDate ? { p_period_date: params.periodDate } : {}),
     });
     if (error) throw parseError(error);
     return data;

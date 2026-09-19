@@ -22,16 +22,17 @@ export const WorkspaceTabBar: React.FC = () => {
   const { dir } = useTranslation();
   const isRTL = dir === 'rtl';
 
-  const {
-    tabs,
-    activeTabId,
-    isEnabled,
-    openTab,
-    closeTab,
-    closeOtherTabs,
-    closeAllTabs,
-    setActiveTab,
-  } = useWorkspaceTabStore();
+  // ⚡ Selectors instead of a whole-store subscription: the tab bar no longer
+  // re-renders when unrelated store slices change, and (more importantly) neither
+  // does the MultiViewContainer that hosts every kept-alive page.
+  const tabs = useWorkspaceTabStore(s => s.tabs);
+  const activeTabId = useWorkspaceTabStore(s => s.activeTabId);
+  const isEnabled = useWorkspaceTabStore(s => s.isEnabled);
+  const openTab = useWorkspaceTabStore(s => s.openTab);
+  const closeTab = useWorkspaceTabStore(s => s.closeTab);
+  const closeOtherTabs = useWorkspaceTabStore(s => s.closeOtherTabs);
+  const closeAllTabs = useWorkspaceTabStore(s => s.closeAllTabs);
+  const setActiveTab = useWorkspaceTabStore(s => s.setActiveTab);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showQuickLaunch, setShowQuickLaunch] = useState(false);

@@ -92,7 +92,7 @@ export const productService = {
   getProducts: async (
     companyId: string,
     page = 1,
-    limitNum = 10000,
+    limitNum = 500,
     warehouseId?: string,
     signal?: AbortSignal
   ): Promise<Product[]> => {

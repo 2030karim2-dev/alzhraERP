@@ -47,6 +47,30 @@ describe('parseError', () => {
     expect(result.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
   });
 
+  it('should keep the generic permission message for 42501 without a portal-token prefix', () => {
+    const denied = parseError({ code: '42501', message: 'access_denied' });
+    expect(denied.message).toBe('عذراً، لا تمتلك الصلاحيات الكافية لتنفيذ هذه العملية.');
+    expect(denied.code).toBe('42501');
+  });
+
+  it('should map supplier portal token failures (42501) to an actionable Arabic message', () => {
+    // The public portal RPCs raise 42501 for an invalid/expired token, so the
+    // generic permission text must not be shown to suppliers.
+    const invalid = parseError({
+      code: '42501',
+      message: 'invalid_portal_token: رابط البوابة غير صالح أو تم إلغاؤه',
+    });
+    expect(invalid.message).toBe(
+      'رابط بوابة الموردين غير صالح أو تم إلغاؤه. يرجى طلب رابط وصول جديد من إدارة المشتريات.'
+    );
+    expect(invalid.code).toBe('invalid_portal_token');
+
+    const missing = parseError({ code: '42501', message: 'invalid_token: رمز الوصول مطلوب' });
+    expect(missing.message).toBe(
+      'رمز الوصول مفقود أو غير صالح. يرجى استخدام الرابط الكامل المرسل إليكم.'
+    );
+  });
+
   it('should handle auth errors', () => {
     const result = parseError({ code: 'invalid_credentials' });
     expect(result.message).toBe('بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.');

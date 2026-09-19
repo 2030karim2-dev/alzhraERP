@@ -5,7 +5,7 @@ import type { CreateInvoicePayload, InvoiceResponse } from '../types';
 import { logger } from '@/core/utils/logger';
 import type { Invoice, Party } from '@/core/types/supabase-helpers';
 import { salesQuotationsApi } from './quotationsApi';
-import type { SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
+import type { MatchedInvoiceItem, SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
 
 // Re-export quotations API
 export { salesQuotationsApi };
@@ -100,7 +100,7 @@ export const salesApi = {
     }
   ): Promise<SearchInvoiceResultRow[]> => {
     if (!companyId) return [];
-    const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
+    const { data, error } = await supabase.rpc('search_invoices_advanced', {
       p_company_id: companyId,
       p_type: params.type ?? 'sale',
       p_query: params.query && params.query.trim() ? params.query.trim() : null,
@@ -114,7 +114,12 @@ export const salesApi = {
     });
 
     if (error) throw parseError(error);
-    return data || [];
+    // `matched_items` is a jsonb column on the RPC contract; the API layer
+    // exposes it as the typed MatchedInvoiceItem[] the search views consume.
+    return (data ?? []).map(row => ({
+      ...row,
+      matched_items: row.matched_items as unknown as MatchedInvoiceItem[],
+    }));
   },
 
   commitInvoiceRPC: async (
@@ -264,11 +269,11 @@ export const salesApi = {
         *,
         parties:party_id(*),
         payment_allocations(
-          payments:payment_id(amount, created_at, payment_method)
+          payments:payments(amount, created_at, payment_method)
         ),
         invoice_items(
           *,
-          product:product_id(name_ar, sku, cost_price, part_number, brand)
+          product:products(name_ar, sku, cost_price, part_number, brand)
         )
       `
       )

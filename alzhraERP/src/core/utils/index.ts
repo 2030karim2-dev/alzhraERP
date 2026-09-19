@@ -45,23 +45,17 @@ export type { LogLevel, LoggerConfig } from './logger';
 export { parseError } from './errorUtils';
 export type { AppError } from './errorUtils';
 
-// PDF & Excel exporters
-export { exportToPDF } from './pdfExporter';
-export { exportInvoiceToExcel, generateInvoiceExcelBlob } from './invoiceExcelExporter';
-export { exportReturnsToExcel, exportSingleReturnToExcel } from './returnsExcelExporter';
-export {
-  exportSingleBondToExcel,
-  exportBondsListToExcel,
-  generateSingleBondExcelBlob,
-} from './bondExcelExporter';
-export { exportQuotationToExcel, generateQuotationExcelBlob } from './quotationExcelExporter';
+// NOTE: the PDF/Excel/share/ZATCA exporters are intentionally NOT re-exported
+// here. They statically pull jspdf, html2canvas and xlsx-js-style; because this
+// barrel is imported by 300+ modules (most only for `cn`/`formatCurrency`), a
+// single static re-export dragged those heavy vendors into every importer's chunk
+// — including the app entry chunk (verified: `vendor-export` 573KB was
+// modulepreloaded on first paint). Import them directly from their module
+// (e.g. `@/core/utils/pdfExporter`) or dynamically at the call site.
 
-// Sharing utilities
-export { shareExcelFile, shareSpreadsheet } from './shareUtils';
-export type { ShareSpreadsheetOptions } from './shareUtils';
+// Sharing utilities are imported directly by their consumers (see note above).
 
-// ZATCA compliance
-export { generateZatcaBase64 } from './zatca';
+// ZATCA compliance is imported directly by its consumers (see note above).
 
 // Query synchronization utilities
 export { invalidateFinancialQueries } from './querySyncUtils';

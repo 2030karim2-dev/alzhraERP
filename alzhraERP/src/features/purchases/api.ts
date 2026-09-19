@@ -3,7 +3,7 @@ import { parseError } from '../../core/utils/errorUtils';
 import type { CreatePurchaseDTO, SupplierPaymentData } from './types';
 import type { Json } from '../../core/database.types';
 import { treasuryApi } from '../accounting/api/treasuryApi';
-import type { SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
+import type { MatchedInvoiceItem, SearchInvoiceResultRow } from '@/core/types/invoiceSearch';
 
 type PurchaseItem = CreatePurchaseDTO['items'][number];
 interface PurchaseItemPayload {
@@ -152,7 +152,7 @@ export const purchasesApi = {
     }
   ): Promise<SearchInvoiceResultRow[]> => {
     if (!companyId) return [];
-    const { data, error } = await (supabase.rpc as any)('search_invoices_advanced', {
+    const { data, error } = await supabase.rpc('search_invoices_advanced', {
       p_company_id: companyId,
       p_type: params.type ?? 'purchase',
       p_query: params.query?.trim() ? params.query.trim() : null,
@@ -166,7 +166,12 @@ export const purchasesApi = {
     });
 
     if (error) throw asError(parseError(error));
-    return data || [];
+    // `matched_items` is a jsonb column on the RPC contract; the API layer
+    // exposes it as the typed MatchedInvoiceItem[] the search views consume.
+    return (data ?? []).map(row => ({
+      ...row,
+      matched_items: row.matched_items as unknown as MatchedInvoiceItem[],
+    }));
   },
 
   getPurchaseDetails: async (purchaseId: string) => {
@@ -174,7 +179,7 @@ export const purchasesApi = {
       .from('invoices')
       .select(
         `
-      *, party:party_id(*), invoice_items(*, product:product_id(name_ar, sku))
+      *, party:party_id(*), invoice_items(*, product:products(name_ar, sku))
     `
       )
       .eq('id', purchaseId)

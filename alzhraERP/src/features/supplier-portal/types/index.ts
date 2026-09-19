@@ -214,6 +214,14 @@ export interface PublicPortalCompany {
   tax_number?: string | null;
 }
 
+/**
+ * Reorder-catalog row returned by `get_supplier_portal_context`.
+ *
+ * NOTE (backend hardening `20260916000001`): `cost_price` and `sale_price` are
+ * deliberately NOT part of the portal payload any more — the database shields
+ * internal pricing from unauthenticated suppliers. The supplier prices each
+ * line when submitting the quotation.
+ */
 export interface PublicPortalReorderProduct {
   id: string;
   name_ar: string;
@@ -222,8 +230,6 @@ export interface PublicPortalReorderProduct {
   brand?: string | null;
   size?: string | null;
   unit?: string | null;
-  cost_price: number;
-  sale_price: number;
   min_stock_level: number;
   current_stock: number;
   needs_reorder: boolean;
@@ -296,6 +302,10 @@ export interface PublicPortalQuotationDraftItem {
   notes: string | null;
 }
 
+/**
+ * Payload accepted by `submit_supplier_portal_quotation`. It is adapted to the
+ * RPC's `Json` argument at the service boundary (see `submitPublicQuotation`).
+ */
 export interface SubmitPortalQuotationPayload {
   items: PublicPortalQuotationDraftItem[];
   notes: string;
@@ -304,7 +314,12 @@ export interface SubmitPortalQuotationPayload {
   currency_code: string;
 }
 
+/** Shape of the jsonb document returned by `submit_supplier_portal_quotation`. */
 export interface SubmitPortalQuotationResult {
+  success: boolean;
+  quotation_id: string;
   quotation_number: string;
   total_amount: number;
+  items_count: number;
+  message: string;
 }
