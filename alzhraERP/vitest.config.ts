@@ -7,6 +7,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Vitest ≥ 3 runs on Node 24 (vitest 1.x silently collected 0 tests here).
+    // `forks` (child processes) is the v3 default; kept explicit for clarity.
+    pool: 'forks',
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'v8',

@@ -10,6 +10,8 @@ import {
   X,
 } from 'lucide-react';
 import type { Invoice, InvoiceItem } from '../types';
+import { formatCurrency, ensureLatinDigits } from '../../../core/utils';
+import { getItemDisplayName, getItemDisplayCode } from '../utils/returnHelpers';
 
 interface GlobalItemSearchProps {
   invoices: Invoice[];
@@ -31,25 +33,13 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const formatCurrency = (amount: number, currency = 'SAR') => {
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-      }).format(amount);
-    } catch {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'SAR',
-      }).format(amount);
-    }
+    return ensureLatinDigits(
+      new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    );
   };
 
   // Build a flat list of all items from all invoices for global searching
@@ -63,11 +53,19 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
       if (!invoice.invoice_items) return;
 
       invoice.invoice_items.forEach(item => {
+        const displayName = getItemDisplayName(item).toLowerCase();
+        const displayCode = getItemDisplayCode(item).toLowerCase();
         const matchDesc = (item.description || '').toLowerCase().includes(term);
         const matchCode = (item.product_id || '').toLowerCase().includes(term);
         const matchPrice = (item.unit_price?.toString() || '').includes(term);
 
-        if (matchDesc || matchCode || matchPrice) {
+        if (
+          displayName.includes(term) ||
+          displayCode.includes(term) ||
+          matchDesc ||
+          matchCode ||
+          matchPrice
+        ) {
           results.push({
             invoiceId: invoice.id,
             invoiceNumber: invoice.invoice_number,
@@ -183,12 +181,15 @@ const GlobalItemSearch: React.FC<GlobalItemSearchProps> = ({ invoices, onItemSel
                     </td>
                     <td className="border-l p-3 dark:border-slate-800 max-md:p-3">
                       <span className="line-clamp-1 text-sm font-bold text-slate-900 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-400">
-                        {result.item.description || 'بدون اسم'}
+                        {getItemDisplayName(result.item)}
                       </span>
                     </td>
                     <td className="border-l p-3 dark:border-slate-800 max-md:p-3">
-                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                        {result.item.product_id || '-'}
+                      <span
+                        className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        dir="ltr"
+                      >
+                        {getItemDisplayCode(result.item)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap border-l p-3 dark:border-slate-800 max-md:p-3">

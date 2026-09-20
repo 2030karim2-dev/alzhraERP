@@ -268,7 +268,7 @@ export const purchasesApi = {
         `
       id, invoice_number, issue_date, total_amount, status, type, payment_method,
       currency_code, exchange_rate, party:party_id(id, name),
-      invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
+      invoice_items(id, product_id, description, quantity, unit_price, total, cost_price, product:products!fk_invoice_items_company_product(id, name_ar, sku, part_number, brand))
     `
       )
       .eq('company_id', companyId)

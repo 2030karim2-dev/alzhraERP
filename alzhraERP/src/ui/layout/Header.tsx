@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Car, Menu, Search, X } from 'lucide-react';
 import HeaderActions from './header/HeaderActions';
 import RealtimeStatusIndicator from '../common/RealtimeStatusIndicator';
-import DhikrTicker from '../../features/dhikr/DhikrTicker';
 import { MENU_ITEMS } from '../../core/constants';
+
+/**
+ * ⚡ Lazy: شريط الذكر وأوقات الصلاة عنصر ديكوري غير حرج. كان استيراده الثابت
+ * يسحب وحدة dhikr كاملة (أوقات الصلاة بالجغرافيا، صوت الأذان، framer-motion)
+ * إلى حزمة الدخول. يُحمَّل الآن عند الطلب بعد الإقلاع.
+ */
+const DhikrTicker = lazy(() => import('../../features/dhikr/DhikrTicker'));
 import { useTranslation } from '../../lib/hooks/useTranslation';
 import { useSearchStore } from '../../core/store/searchStore';
 
@@ -175,7 +181,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       )}
 
       {/* Non-intrusive Dhikr & Prayer ticker */}
-      <DhikrTicker />
+      <Suspense fallback={null}>
+        <DhikrTicker />
+      </Suspense>
     </div>
   );
 };

@@ -151,18 +151,26 @@ const InvoiceMeta: React.FC<Props> = ({ invoiceNumber }) => {
     return paymentAccounts?.find(a => a.id === cashboxId);
   }, [paymentAccounts, cashboxId]);
 
-  // Filter treasury accounts
+  // Filter treasury accounts: strictly enforce matching currency with current invoice
   const filteredAccounts = useMemo(() => {
     if (!paymentAccounts) return [];
-    if (!treasurySearch.trim()) return paymentAccounts;
+    const normalizedInvoiceCurrency = (currency ?? 'SAR').toUpperCase();
+
+    // 1. Filter by currency matching (or accounts that have no currency specified)
+    const currencyMatched = paymentAccounts.filter(a => {
+      const accCurr = (a.currency_code ?? '').toUpperCase();
+      return accCurr === '' || accCurr === normalizedInvoiceCurrency;
+    });
+
+    // 2. Filter by search term if user is searching
     const term = treasurySearch.toLowerCase().trim();
-    return paymentAccounts.filter(
+    if (term === '') return currencyMatched;
+    return currencyMatched.filter(
       a =>
         a.name_ar.toLowerCase().includes(term) ||
-        (a.code && a.code.toLowerCase().includes(term)) ||
-        (a.currency_code && a.currency_code.toLowerCase().includes(term))
+        (a.code !== '' && a.code.toLowerCase().includes(term))
     );
-  }, [paymentAccounts, treasurySearch]);
+  }, [paymentAccounts, treasurySearch, currency]);
 
   return (
     <div className="relative z-30 border-b border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/60">

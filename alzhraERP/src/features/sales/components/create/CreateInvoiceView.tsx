@@ -168,10 +168,22 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
       return;
     }
 
-    // تحقق إضافي: الفاتورة النقدية تحتاج صندوقاً
-    if (invoiceType === 'cash' && !cashboxId) {
-      showToast('يرجى اختيار حساب الصندوق / البنك للفاتورة النقدية', 'warning');
-      return;
+    // تحقق إضافي: الفاتورة النقدية تحتاج صندوقاً مطابقاً لنفس عملة الفاتورة
+    if (invoiceType === 'cash') {
+      if (!cashboxId) {
+        showToast('يرجى اختيار حساب الصندوق / البنك للفاتورة النقدية', 'warning');
+        return;
+      }
+      const selectedBox = paymentAccounts.find(a => a.id === cashboxId);
+      const invoiceCurr = (currency ?? 'SAR').toUpperCase();
+      const boxCurr = (selectedBox?.currency_code ?? 'SAR').toUpperCase();
+      if (selectedBox && selectedBox.currency_code !== '' && boxCurr !== invoiceCurr) {
+        showToast(
+          `تعارض عملات: الصندوق المختار (${selectedBox.name_ar} - ${boxCurr}) لا يطابق عملة الفاتورة (${invoiceCurr})`,
+          'error'
+        );
+        return;
+      }
     }
 
     // تحقق من الدفعة النقدية للآجل
@@ -183,9 +195,21 @@ const CreateInvoiceView: React.FC<CreateInvoiceViewProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (invoiceType === 'credit' && (paidAmount || 0) > 0 && !cashboxId) {
-      showToast('يرجى اختيار حساب الصندوق / البنك لاستلام الدفعة النقدية', 'warning');
-      return;
+    if (invoiceType === 'credit' && (paidAmount || 0) > 0) {
+      if (!cashboxId) {
+        showToast('يرجى اختيار حساب الصندوق / البنك لاستلام الدفعة النقدية', 'warning');
+        return;
+      }
+      const selectedBox = paymentAccounts.find(a => a.id === cashboxId);
+      const invoiceCurr = (currency ?? 'SAR').toUpperCase();
+      const boxCurr = (selectedBox?.currency_code ?? 'SAR').toUpperCase();
+      if (selectedBox && selectedBox.currency_code !== '' && boxCurr !== invoiceCurr) {
+        showToast(
+          `تعارض عملات: الصندوق المختار لاستلام الدفعة (${selectedBox.name_ar} - ${boxCurr}) لا يطابق عملة الفاتورة (${invoiceCurr})`,
+          'error'
+        );
+        return;
+      }
     }
 
     setTargetStatus(status);

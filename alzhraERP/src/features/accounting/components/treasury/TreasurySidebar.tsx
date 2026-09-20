@@ -238,7 +238,26 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
     return leaves.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
   }, [accounts]);
 
-  const toggleExpand = (id: string) => {
+  const currencyBreakdown = useMemo(() => {
+    if (!accounts || accounts.length === 0) return { sar: 0, yer: 0 };
+    const treasuryAccounts = accounts.filter(
+      acc => acc.type === 'asset' && acc.code.startsWith('10')
+    );
+    const parentIds = new Set(treasuryAccounts.map(a => a.parent_id).filter(Boolean));
+    const leaves = treasuryAccounts.filter(a => !parentIds.has(a.id));
+
+    const sar = leaves
+      .filter(a => (a.currency_code ?? 'SAR') === 'SAR')
+      .reduce((s, a) => s + (a.balance || 0), 0);
+
+    const yer = leaves
+      .filter(a => a.currency_code === 'YER')
+      .reduce((s, a) => s + (a.foreign_balance ?? a.balance ?? 0), 0);
+
+    return { sar, yer };
+  }, [accounts]);
+
+  const toggleExpand = (id: string): void => {
     setExpandedIds(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -277,15 +296,31 @@ const TreasurySidebar: React.FC<Props> = ({ onSelectAccount, selectedAccountId }
   return (
     <div className="flex h-full flex-col border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
       <div className="shrink-0 border-b border-[var(--app-border)] bg-slate-900 p-3 text-white max-md:p-2">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">
-          إجمالي السيولة المتاحة
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">
+            إجمالي السيولة المتاحة (معادل SAR)
+          </p>
+        </div>
         <h3
           dir="ltr"
           className="font-mono text-xl font-bold tracking-tight text-emerald-400 max-md:text-base"
         >
-          {formatCurrency(totalLiquidity)}
+          {formatCurrency(totalLiquidity, 'SAR')}
         </h3>
+
+        {/* Currency breakdown summary for quick physical cash verification */}
+        {accounts && accounts.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-800/80 pt-2 font-mono text-[10px]">
+            <span className="rounded bg-slate-800 px-2 py-0.5 font-bold text-amber-300">
+              SAR: {formatCurrency(currencyBreakdown.sar, 'SAR')}
+            </span>
+            {currencyBreakdown.yer !== 0 ? (
+              <span className="rounded bg-slate-800 px-2 py-0.5 font-bold text-emerald-300">
+                YER: {formatCurrency(currencyBreakdown.yer, 'YER')}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="custom-scrollbar flex-1 overflow-y-auto">

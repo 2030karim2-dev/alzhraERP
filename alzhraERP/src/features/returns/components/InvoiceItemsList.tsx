@@ -1,7 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Package, RotateCcw, Search, X } from 'lucide-react';
 import type { InvoiceItem } from '../types';
-import { formatCurrency, parseNumberFlexible } from '../../../core/utils';
+import {
+  formatCurrency,
+  parseNumberFlexible,
+  ensureLatinDigits,
+  sanitizeNumericInput,
+} from '../../../core/utils/currencyUtils';
+import { getItemDisplayName, getItemDisplayCode } from '../utils/returnHelpers';
 
 interface InvoiceItemsListProps {
   items: InvoiceItem[];
@@ -15,6 +21,7 @@ interface InvoiceItemsListProps {
 
 const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
   items,
+  invoiceCurrency = 'SAR',
   returnQuantities,
   selectedItems,
   onItemSelect,
@@ -42,12 +49,20 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return items;
     const term = searchTerm.toLowerCase();
-    return items.filter(
-      item =>
-        (item.description || '').toLowerCase().includes(term) ||
-        (item.product_id || '').toLowerCase().includes(term) ||
-        (item.unit_price?.toString() || '').includes(term)
-    );
+    return items.filter(item => {
+      const name = getItemDisplayName(item).toLowerCase();
+      const code = getItemDisplayCode(item).toLowerCase();
+      const desc = (item.description || '').toLowerCase();
+      const pid = (item.product_id || '').toLowerCase();
+      const price = item.unit_price?.toString() || '';
+      return (
+        name.includes(term) ||
+        code.includes(term) ||
+        desc.includes(term) ||
+        pid.includes(term) ||
+        price.includes(term)
+      );
+    });
   }, [items, searchTerm]);
 
   // Initialize refs array based on filtered items
@@ -90,10 +105,14 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
         newRow = Math.min(filteredItems.length - 1, rowIndex + 1);
         break;
       case 'ArrowLeft':
+        // السماح بالتنقل الطبيعي لمؤشر النص داخل حقل الكميات
+        if (colIndex === 1) return;
         e.preventDefault();
         newCol = Math.min(1, colIndex + 1);
         break;
       case 'ArrowRight':
+        // السماح بالتنقل الطبيعي لمؤشر النص داخل حقل الكميات
+        if (colIndex === 1) return;
         e.preventDefault();
         newCol = Math.max(0, colIndex - 1);
         break;
@@ -116,10 +135,7 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
       const inputRef = itemRefs.current[newRow]?.[newCol];
       if (inputRef) {
         inputRef.focus();
-        // Select all text if it's the number input
-        if (inputRef.type === 'number') {
-          inputRef.select();
-        }
+        inputRef.select();
       }
     }
   };
@@ -251,26 +267,32 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                     <div className="col-span-4">
                       <p
                         className="truncate text-xs font-bold text-gray-900 dark:text-white sm:text-sm"
-                        title={item.description}
+                        title={getItemDisplayName(item)}
                       >
-                        {item.description || 'منتج بدون اسم'}
+                        {getItemDisplayName(item)}
                       </p>
-                      <p className="text-[10px] text-gray-400 sm:text-xs">
-                        كود: {item.product_id || '-'}
+                      <p className="font-mono text-[10px] text-gray-400 sm:text-xs" dir="ltr">
+                        كود: {getItemDisplayCode(item)}
                       </p>
                     </div>
 
                     {/* Original Quantity */}
                     <div className="col-span-2 text-center">
-                      <span className="inline-flex items-center rounded border border-slate-200 bg-gray-100 px-2 py-0.5 text-xs font-bold text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                        {item.quantity}
+                      <span
+                        className="inline-flex items-center rounded border border-slate-200 bg-gray-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                        dir="ltr"
+                      >
+                        {ensureLatinDigits(item.quantity)}
                       </span>
                     </div>
 
                     {/* Unit Price */}
                     <div className="col-span-2 text-center">
-                      <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(item.unit_price)}
+                      <span
+                        className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300"
+                        dir="ltr"
+                      >
+                        {formatCurrency(item.unit_price, invoiceCurrency)}
                       </span>
                     </div>
 
@@ -278,20 +300,24 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                     <div className="col-span-3">
                       <div className="flex items-center gap-1">
                         <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          max={maxQty}
-                          value={returnQty === 0 ? '' : returnQty}
+                          type="text"
+                          inputMode="decimal"
+                          dir="ltr"
+                          data-testid="return-quantity-input"
+                          value={returnQty === 0 ? '' : ensureLatinDigits(returnQty)}
+                          placeholder="0"
                           onChange={e => {
                             const rawVal = e.target.value;
-                            const parsedVal = rawVal === '' ? 0 : parseNumberFlexible(rawVal);
+                            const sanitized = sanitizeNumericInput(rawVal);
+                            if (sanitized === '') {
+                              onQuantityChange(item.id, 0, maxQty);
+                              return;
+                            }
+                            const parsedVal = parseNumberFlexible(sanitized);
                             const val = Math.min(Math.max(0, parsedVal), maxQty);
 
                             if (val > 0 && !isSelected) {
                               onItemSelect(item.id, true, val);
-                            } else if (val === 0 && isSelected) {
-                              onItemSelect(item.id, false);
                             } else {
                               onQuantityChange(item.id, val, maxQty);
                             }
@@ -306,10 +332,12 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
                           onKeyDown={e => {
                             handleKeyDown(e, index, 1, item, maxQty);
                           }}
-                          className="w-16 rounded border border-gray-300 bg-[var(--app-surface)] p-1 text-center text-sm font-bold text-slate-900 placeholder-transparent outline-none transition-all hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:text-slate-100"
+                          className="w-16 rounded border border-gray-300 bg-[var(--app-surface)] p-1 text-center font-mono text-sm font-bold text-slate-900 outline-none transition-all hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:text-slate-100"
                           tabIndex={0}
                         />
-                        <span className="font-mono text-xs text-gray-400">/ {maxQty}</span>
+                        <span className="font-mono text-xs text-gray-400" dir="ltr">
+                          / {ensureLatinDigits(maxQty)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -331,12 +359,15 @@ const InvoiceItemsList: React.FC<InvoiceItemsListProps> = ({
           </div>
           <span className="text-xs font-bold text-gray-600 dark:text-slate-400">
             الإجمالي المرتجع:{' '}
-            {formatCurrency(
-              items.reduce((sum, item) => {
-                const qty = returnQuantities[item.id] || 0;
-                return sum + qty * item.unit_price;
-              }, 0)
-            )}
+            <span className="font-mono" dir="ltr">
+              {formatCurrency(
+                items.reduce((sum, item) => {
+                  const qty = returnQuantities[item.id] || 0;
+                  return sum + qty * item.unit_price;
+                }, 0),
+                invoiceCurrency
+              )}
+            </span>
           </span>
         </div>
       </div>

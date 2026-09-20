@@ -1,11 +1,16 @@
 {
-  "errors": 10068,
+  "errors": 10063,
   "warnings": 219,
-  "capturedAt": "2026-09-18",
+  "capturedAt": "2026-09-20",
   "method": "npx eslint . --report-unused-disable-directives --format json (full scan of repo)",
   "history": [
     { "date": "2026-09-18", "errors": 10482, "note": "initial ceiling measured" },
     { "date": "2026-09-18", "errors": 10145, "note": "eslint --fix auto-fixes (-337)" },
-    { "date": "2026-09-18", "errors": 10068, "note": "phase 1 cleanup progress (-77)" }
+    { "date": "2026-09-18", "errors": 10068, "note": "phase 1 cleanup progress (-77)" },
+    {
+      "date": "2026-09-20",
+      "errors": 10063,
+      "note": "strict currency cashbox ground-truth refactoring (-5)"
+    }
   ]
 }

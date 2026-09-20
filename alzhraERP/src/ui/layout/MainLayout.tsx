@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense, lazy } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -41,8 +41,21 @@ import {
 } from './sidebarSizing';
 import { useConnectionStore } from '../../core/store/connectionStore';
 import { Activity, SlidersHorizontal, Link2 } from 'lucide-react';
-import { FloatingChatWidget } from '../../features/chat';
-import { AccompanyingInfoWindow } from '../../features/accompanying-info';
+/**
+ * ⚡ Lazy floating overlays — لا تنتمي لمسار الإقلاع الحرج.
+ * برميل `features/chat` يصدّر وحدات المحادثات كاملة (خدمات، متاجر، هوكات صوتية،
+ * عشرات المكوّنات) وبرميل `accompanying-info` يجرّ framer-motion؛ كان استيرادهما
+ * الثابت من MainLayout يسحبها كلها إلى حزمة الدخول (~100KB+) ويجعل التحميل
+ * الكسلي لـ ChatHubPage في routes.tsx بلا معنى.
+ */
+const FloatingChatWidget = lazy(() =>
+  import('../../features/chat').then(m => ({ default: m.FloatingChatWidget }))
+);
+const AccompanyingInfoWindow = lazy(() =>
+  import('../../features/accompanying-info').then(m => ({
+    default: m.AccompanyingInfoWindow,
+  }))
+);
 
 const MainLayout: React.FC = () => {
   const isDesktop = useBreakpoint('md');
@@ -337,10 +350,16 @@ const MainLayout: React.FC = () => {
         </BottomSheet>
 
         {/* Global Realtime Floating Chat & Collaboration Dock */}
-        {location.pathname !== ROUTES.DASHBOARD.CHAT && <FloatingChatWidget />}
+        {location.pathname !== ROUTES.DASHBOARD.CHAT && (
+          <Suspense fallback={null}>
+            <FloatingChatWidget />
+          </Suspense>
+        )}
 
         {/* Global Accompanying Information (المعلومات المرافقة) HUD */}
-        <AccompanyingInfoWindow />
+        <Suspense fallback={null}>
+          <AccompanyingInfoWindow />
+        </Suspense>
       </div>
     </div>
   );

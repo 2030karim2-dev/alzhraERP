@@ -5,6 +5,7 @@ import InvoiceItemsList from './InvoiceItemsList';
 import InvoiceSelector from './InvoiceSelector';
 import GlobalItemSearch from './GlobalItemSearch';
 import type { Invoice } from '../types';
+import { formatCurrency, ensureLatinDigits } from '../../../core/utils';
 import {
   buildReturnItem,
   mergeReturnItem,
@@ -30,7 +31,8 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
   } = useFormContext();
 
   const selectedInvoiceId = watch('invoiceId');
-  const items: ReturnItemDraft[] = useMemo(() => watch('items') || [], [watch]);
+  const watchedItems = watch('items');
+  const items: ReturnItemDraft[] = useMemo(() => watchedItems || [], [watchedItems]);
 
   const selectedInvoice = useMemo(() => {
     return invoices.find(inv => inv.id === selectedInvoiceId);
@@ -227,8 +229,11 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                             <span className="max-w-[120px] truncate" title={item.name}>
                               {item.name}
                             </span>
-                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-[10px] text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
-                              {item.returnQuantity}x
+                            <span
+                              className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-[10px] text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+                              dir="ltr"
+                            >
+                              {ensureLatinDigits(item.returnQuantity)}x
                             </span>
                           </span>
                         ))}
@@ -240,16 +245,17 @@ export const ReturnItemsStep: React.FC<ReturnItemsStepProps> = ({
                       <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         إجمالي المرتجع
                       </p>
-                      <p className="font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: selectedInvoice?.currency_code || 'SAR',
-                        }).format(
+                      <p
+                        className="font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400"
+                        dir="ltr"
+                      >
+                        {formatCurrency(
                           items.reduce(
                             (sum: number, item: ReturnItemDraft) =>
                               sum + item.returnQuantity * item.unitPrice,
                             0
-                          )
+                          ),
+                          selectedInvoice?.currency_code || 'SAR'
                         )}
                       </p>
                     </div>

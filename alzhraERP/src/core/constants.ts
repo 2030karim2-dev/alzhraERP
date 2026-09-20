@@ -151,4 +151,6 @@ export const STORAGE_KEYS = {
   COLUMN_RESIZE: 'persist-cols',
   SALES_DRAFT: 'alzhra_sales_draft_v1',
   PURCHASES_DRAFT: 'alzhra_purchases_draft_v1',
+  REMEMBER_ME: 'alz_remember_me',
+  REMEMBERED_EMAIL: 'alz_remembered_email',
 } as const;

@@ -28,10 +28,8 @@ import SyncStatusModal from '../../components/SyncStatusModal';
 import LogoutConfirmModal from '../../../features/auth/components/LogoutConfirmModal';
 import { useLogout, useIsSuperAdmin } from '../../../features/auth/hooks';
 import { ROUTES } from '../../../core/routes/paths';
-import {
-  AccompanyingInfoToggle,
-  useAccompanyingInfoStore,
-} from '../../../features/accompanying-info';
+import { AccompanyingInfoToggle } from '../../../features/accompanying-info/components/AccompanyingInfoToggle';
+import { useAccompanyingInfoStore } from '../../../features/accompanying-info/store/accompanyingInfoStore';
 
 const HeaderActions: React.FC = () => {
   const navigate = useNavigate();

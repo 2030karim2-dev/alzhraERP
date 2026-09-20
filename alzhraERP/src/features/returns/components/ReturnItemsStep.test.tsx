@@ -59,17 +59,21 @@ const renderStep = (initialValues: Record<string, unknown> = {}) => {
 };
 
 const selectInvoice = () => {
-  fireEvent.click(screen.getByText('اضغط لاختيار الفاتورة...'));
-  fireEvent.click(screen.getByText('INV-001'));
+  const trigger =
+    screen.queryByText('اضغط لاختيار الفاتورة...') ||
+    screen.queryByText('اختر الفاتورة الأصلية...');
+  if (trigger) fireEvent.click(trigger);
+  const invOption = screen.queryByText('INV-001');
+  if (invOption) fireEvent.click(invOption);
 };
 
 describe('ReturnItemsStep', () => {
   it('زر "إرجاع كامل المنتجات بالفاتورة" يحدد كل الأصناف بالكميات الكاملة وتظهر في الحقول', () => {
-    renderStep();
-    selectInvoice();
+    renderStep({ invoiceId: 'inv-1' });
 
     // قبل الضغط لا توجد كميات
-    const quantityInputs = () => document.querySelectorAll('input[type="number"]');
+    const quantityInputs = () =>
+      document.querySelectorAll<HTMLInputElement>('input[data-testid="return-quantity-input"]');
     expect(quantityInputs()).toHaveLength(2);
 
     fireEvent.click(screen.getAllByText(/إرجاع كامل/)[0]);
@@ -80,10 +84,10 @@ describe('ReturnItemsStep', () => {
   });
 
   it('كتابة كمية لصنف غير محدد تضيفه بالكمية المدخلة وليس 1', () => {
-    renderStep();
-    selectInvoice();
+    renderStep({ invoiceId: 'inv-1' });
 
-    const quantityInputs = () => document.querySelectorAll('input[type="number"]');
+    const quantityInputs = () =>
+      document.querySelectorAll<HTMLInputElement>('input[data-testid="return-quantity-input"]');
     const inputs = quantityInputs();
     expect(inputs).toHaveLength(2);
 
@@ -97,9 +101,25 @@ describe('ReturnItemsStep', () => {
     expect(screen.getByDisplayValue('7')).toBeInTheDocument();
   });
 
+  it('يقبل كتابة الأرقام بالأرقام العربية/المشرقية (مثل ٧) ويحولها لأرقام لاتينية', () => {
+    renderStep({ invoiceId: 'inv-1' });
+
+    const quantityInputs = () =>
+      document.querySelectorAll<HTMLInputElement>('input[data-testid="return-quantity-input"]');
+    const inputs = quantityInputs();
+    expect(inputs).toHaveLength(2);
+
+    // كتابة ٧ بالأرقام المشرقية
+    fireEvent.change(inputs[0], { target: { value: '٧' } });
+
+    // تظهر كـ 7x في الملخص وفي الحقل
+    expect(screen.getAllByText('منتج أول').length).toBeGreaterThan(0);
+    expect(screen.getByText('7x')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('7')).toBeInTheDocument();
+  });
+
   it('تحديد checkbox ثم تغيير الكمية يعمل دون تكرار الصنف', () => {
-    renderStep();
-    selectInvoice();
+    renderStep({ invoiceId: 'inv-1' });
 
     // تحديد أول صنف عبر checkbox
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -110,7 +130,9 @@ describe('ReturnItemsStep', () => {
     expect(summaryItems.length).toBe(2); // مرة في الجدول ومرة في الملخص
 
     // تغيير الكمية إلى 4
-    const inputs = document.querySelectorAll('input[type="number"]');
+    const inputs = document.querySelectorAll<HTMLInputElement>(
+      'input[data-testid="return-quantity-input"]'
+    );
     fireEvent.change(inputs[0], { target: { value: '4' } });
 
     // لا تكرار: الصنف يظهر مرة واحدة فقط في الملخص

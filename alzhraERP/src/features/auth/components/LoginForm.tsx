@@ -5,6 +5,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useLogin, useGoogleLogin } from '../hooks';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { ROUTES } from '../../../core/routes/paths';
+import { STORAGE_KEYS } from '../../../core/constants';
 import { FloatingInput } from './FloatingInput';
 
 // Google OAuth is enabled in the Supabase project (external_google_enabled=true)
@@ -14,7 +15,22 @@ import { FloatingInput } from './FloatingInput';
 const GOOGLE_LOGIN_ENABLED = import.meta.env.VITE_ENABLE_GOOGLE_LOGIN !== 'false';
 
 export const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [email, setEmail] = useState(() => {
+    try {
+      const isRemembered = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
+      const savedEmail = localStorage.getItem(STORAGE_KEYS.REMEMBERED_EMAIL);
+      return isRemembered && savedEmail !== null && savedEmail.length > 0 ? savedEmail : '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error } = useLogin();
@@ -25,9 +41,20 @@ export const LoginForm: React.FC = () => {
   } = useGoogleLogin();
   const { t } = useTranslation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    login(email, password);
+    try {
+      if (rememberMe) {
+        localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
+        localStorage.setItem(STORAGE_KEYS.REMEMBERED_EMAIL, email.trim());
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+        localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+    void login(email, password);
   };
 
   return (
@@ -90,7 +117,34 @@ export const LoginForm: React.FC = () => {
             setShowPassword(!showPassword);
           }}
         />
-        <div className="flex justify-start">
+        <div className="flex items-center justify-between pt-1">
+          <label
+            htmlFor="remember-me"
+            className="group flex cursor-pointer select-none items-center gap-2"
+          >
+            <input
+              type="checkbox"
+              id="remember-me"
+              checked={rememberMe}
+              onChange={e => {
+                const checked = e.target.checked;
+                setRememberMe(checked);
+                if (!checked) {
+                  try {
+                    localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+                    localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
+                  } catch {
+                    /* ignore */
+                  }
+                }
+              }}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:checked:bg-blue-600"
+            />
+            <span className="text-xs font-bold text-gray-600 transition-colors group-hover:text-gray-900 dark:text-slate-300 dark:group-hover:text-white">
+              {t('remember_me')}
+            </span>
+          </label>
+
           <Link
             to={ROUTES.AUTH.FORGOT_PASSWORD}
             title="استعادة كلمة المرور"

@@ -68,6 +68,20 @@ export default defineConfig({
         // ⚡ Improved and memory-efficient manual chunking strategy
         manualChunks(id) {
           /**
+           * ⚡ Vite's virtual preload helper MUST live in a chunk the entry
+           * always loads. Left to Rollup heuristics it landed inside
+           * `vendor-export` (the jsPDF/html2canvas chunk) — and because EVERY
+           * chunk containing a dynamic import statically imports that helper,
+           * the app entry was forced to download the whole 593KB vendor at
+           * boot (verified in dist: `from"./vendor-export-*.js"`), defeating
+           * the modulePreload filter below. Pinning it to `vendor-react`
+           * (always part of the initial graph) makes vendor-export truly
+           * on-demand again.
+           */
+          if (id.includes('preload-helper')) {
+            return 'vendor-react';
+          }
+          /**
            * React + the injected Node polyfills share ONE chunk on purpose:
            * `react-dom` needs the polyfilled globals and the polyfills' shim
            * modules are pulled back by React, so splitting them produced a

@@ -55,7 +55,16 @@ export type SalesReturnQueryResult = Pick<
 > & {
   party: Pick<Party, 'id' | 'name'> | null;
   invoice_items: Array<
-    Pick<InvoiceItem, 'id' | 'product_id' | 'description' | 'quantity' | 'unit_price' | 'total'>
+    Pick<InvoiceItem, 'id' | 'product_id' | 'description' | 'quantity' | 'unit_price' | 'total'> & {
+      cost_price?: number | null;
+      product?: {
+        id?: string;
+        name_ar?: string | null;
+        sku?: string | null;
+        part_number?: string | null;
+        brand?: string | null;
+      } | null;
+    }
   >;
 };
 
@@ -272,7 +281,7 @@ export const useSalesInvoicesForReturn = (customerId?: string | null) => {
           payment_method,
           created_by,
           party:party_id(id, name),
-          invoice_items(id, product_id, description, quantity, unit_price, total, cost_price)
+          invoice_items(id, product_id, description, quantity, unit_price, total, cost_price, product:products!fk_invoice_items_company_product(id, name_ar, sku, part_number, brand))
         `
         )
         .eq('company_id', user.company_id)

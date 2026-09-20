@@ -1,0 +1,820 @@
+{
+  "invoice_counts": [
+    {
+      "type": "purchase",
+      "status": "paid",
+      "count": 1,
+      "total_val": "905.40",
+      "total_paid": "905.40"
+    },
+    {
+      "type": "purchase",
+      "status": "posted",
+      "count": 4198,
+      "total_val": "9621282.07",
+      "total_paid": "23622.48"
+    },
+    {
+      "type": "purchase_return",
+      "status": "posted",
+      "count": 182,
+      "total_val": "77867.74",
+      "total_paid": "0.00"
+    },
+    {
+      "type": "sale",
+      "status": "paid",
+      "count": 18226,
+      "total_val": "5848325.16",
+      "total_paid": "5848325.16"
+    },
+    {
+      "type": "sale",
+      "status": "posted",
+      "count": 41791,
+      "total_val": "9949077.19",
+      "total_paid": "321386.41"
+    },
+    {
+      "type": "sale",
+      "status": "void",
+      "count": 2,
+      "total_val": "15000.00",
+      "total_paid": "0.00"
+    },
+    {
+      "type": "sale_return",
+      "status": "posted",
+      "count": 321,
+      "total_val": "151781.28",
+      "total_paid": "0.00"
+    }
+  ],
+  "invoice_math_mismatch": [
+    {
+      "count": 3,
+      "total_diff": "15000.02"
+    }
+  ],
+  "items_sum_vs_subtotal": [
+    {
+      "mismatch_count": 0
+    }
+  ],
+  "status_vs_paid": [
+    {
+      "status": "posted",
+      "count": 41791,
+      "paid_zero": 40089,
+      "paid_partial": 8,
+      "paid_full": 1710,
+      "overpaid": 0
+    },
+    {
+      "status": "paid",
+      "count": 18226,
+      "paid_zero": 0,
+      "paid_partial": 0,
+      "paid_full": 18226,
+      "overpaid": 0
+    },
+    {
+      "status": "void",
+      "count": 2,
+      "paid_zero": 2,
+      "paid_partial": 0,
+      "paid_full": 0,
+      "overpaid": 0
+    }
+  ],
+  "returns_without_ref": [
+    {
+      "returns_without_ref_count": 321
+    }
+  ],
+  "returns_invalid_ref": [],
+  "returns_exceeding_sold_qty": [],
+  "returns_unrelated_products": [],
+  "returns_currency_mismatch": [],
+  "returns_price_mismatch": [],
+  "sales_without_inventory_tx": [
+    {
+      "sales_missing_inv_tx": 36962
+    }
+  ],
+  "returns_without_inventory_tx": [
+    {
+      "returns_missing_inv_tx": 297
+    }
+  ],
+  "inv_tx_sign_anomalies": [
+    {
+      "transaction_type": "sales",
+      "reference_type": "sales_invoice",
+      "count": 150,
+      "pos_count": 0,
+      "neg_count": 150,
+      "zero_count": 0
+    }
+  ],
+  "sales_without_je": [
+    {
+      "sales_missing_je": 16
+    }
+  ],
+  "returns_without_je": [
+    {
+      "returns_missing_je": 0
+    }
+  ],
+  "unbalanced_je": [],
+  "je_line_abnormalities": [
+    {
+      "abnormal_lines_count": 0
+    }
+  ],
+  "cross_company_branches": [],
+  "cross_company_parties": [],
+  "cross_company_products": [],
+  "cross_company_reference_invoices": [],
+  "duplicate_numbers": [],
+  "triggers": [
+    {
+      "tgname": "RI_ConstraintTrigger_a_82982",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82983",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113641",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113642",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113646",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113647",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_39734",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_39735",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97289",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97290",
+      "relname": "invoice_items",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "ensure_invoice_item_total",
+      "relname": "invoice_items",
+      "proname": "verify_invoice_item_total"
+    },
+    {
+      "tgname": "set_updated_at",
+      "relname": "invoice_items",
+      "proname": "update_updated_at_column"
+    },
+    {
+      "tgname": "trg_audit_invoice_items",
+      "relname": "invoice_items",
+      "proname": "log_table_changes"
+    },
+    {
+      "tgname": "trg_check_invoice_item_product_tenant",
+      "relname": "invoice_items",
+      "proname": "fn_check_invoice_item_product_tenant"
+    },
+    {
+      "tgname": "trg_check_invoice_item_tenant",
+      "relname": "invoice_items",
+      "proname": "fn_check_invoice_item_tenant"
+    },
+    {
+      "tgname": "trg_guard_posted_invoice_items_immutability",
+      "relname": "invoice_items",
+      "proname": "fn_guard_posted_invoice_items_immutability"
+    },
+    {
+      "tgname": "trg_prevent_company_id_change",
+      "relname": "invoice_items",
+      "proname": "prevent_company_id_change"
+    },
+    {
+      "tgname": "trg_update_invoice_totals",
+      "relname": "invoice_items",
+      "proname": "update_invoice_totals_from_items"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_113639",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_113640",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_51630",
+      "relname": "invoices",
+      "proname": "RI_FKey_setnull_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_51631",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82732",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82733",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82774",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82775",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82977",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_82978",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_83160",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_83161",
+      "relname": "invoices",
+      "proname": "RI_FKey_cascade_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_83165",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_83166",
+      "relname": "invoices",
+      "proname": "RI_FKey_cascade_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97272",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97273",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97318",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97319",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97543",
+      "relname": "invoices",
+      "proname": "RI_FKey_restrict_del"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_a_97544",
+      "relname": "invoices",
+      "proname": "RI_FKey_noaction_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113505",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_113506",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_17790",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_17791",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_17800",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_17801",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_18675",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_18676",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_48950",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_48951",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_62168",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_62169",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97269",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97270",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97274",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97275",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97305",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97306",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97315",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97316",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97320",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97321",
+      "relname": "invoices",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "Unique_ConstraintTrigger_75777",
+      "relname": "invoices",
+      "proname": "unique_key_recheck"
+    },
+    {
+      "tgname": "auto_invoice_number",
+      "relname": "invoices",
+      "proname": "auto_fill_invoice_number"
+    },
+    {
+      "tgname": "on_invoice_change",
+      "relname": "invoices",
+      "proname": "send_webhook_event"
+    },
+    {
+      "tgname": "set_updated_at_invoices",
+      "relname": "invoices",
+      "proname": "update_updated_at_column"
+    },
+    {
+      "tgname": "trg_audit_invoices",
+      "relname": "invoices",
+      "proname": "log_audit_event"
+    },
+    {
+      "tgname": "trg_auto_fiscal_year_invoice",
+      "relname": "invoices",
+      "proname": "auto_assign_fiscal_year_to_invoice"
+    },
+    {
+      "tgname": "trg_auto_mark_invoice_paid",
+      "relname": "invoices",
+      "proname": "check_invoice_paid_status"
+    },
+    {
+      "tgname": "trg_auto_post_invoice_journal",
+      "relname": "invoices",
+      "proname": "fn_auto_post_invoice_journal"
+    },
+    {
+      "tgname": "trg_auto_sync_party_role_from_invoice",
+      "relname": "invoices",
+      "proname": "fn_auto_sync_party_role_from_invoice"
+    },
+    {
+      "tgname": "trg_check_invoice_party_tenant",
+      "relname": "invoices",
+      "proname": "fn_check_invoice_party_tenant"
+    },
+    {
+      "tgname": "trg_guard_currency_inversion_invoices",
+      "relname": "invoices",
+      "proname": "fn_guard_currency_inversion"
+    },
+    {
+      "tgname": "trg_guard_invoice_day_lock",
+      "relname": "invoices",
+      "proname": "check_record_not_on_locked_day"
+    },
+    {
+      "tgname": "trg_guard_posted_invoice_immutability",
+      "relname": "invoices",
+      "proname": "fn_guard_posted_invoice_immutability"
+    },
+    {
+      "tgname": "trg_guard_text_control_chars",
+      "relname": "invoices",
+      "proname": "guard_text_control_chars"
+    },
+    {
+      "tgname": "trg_guard_text_lengths",
+      "relname": "invoices",
+      "proname": "guard_text_lengths"
+    },
+    {
+      "tgname": "trg_invoice_soft_delete_propagation_trigger",
+      "relname": "invoices",
+      "proname": "trg_invoice_soft_delete_propagation"
+    },
+    {
+      "tgname": "trg_prevent_company_id_change",
+      "relname": "invoices",
+      "proname": "prevent_company_id_change"
+    },
+    {
+      "tgname": "trg_prevent_invoice_closed_fiscal",
+      "relname": "invoices",
+      "proname": "prevent_invoice_in_closed_fiscal_year"
+    },
+    {
+      "tgname": "trg_set_updated_by",
+      "relname": "invoices",
+      "proname": "set_updated_by"
+    },
+    {
+      "tgname": "trg_sync_party_stats_invoice",
+      "relname": "invoices",
+      "proname": "sync_party_stats_on_invoice_change"
+    },
+    {
+      "tgname": "trg_validate_invoice_business_rules",
+      "relname": "invoices",
+      "proname": "fn_validate_invoice_business_rules"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_44081",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_44082",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97545",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97546",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97550",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_ins"
+    },
+    {
+      "tgname": "RI_ConstraintTrigger_c_97551",
+      "relname": "payment_allocations",
+      "proname": "RI_FKey_check_upd"
+    },
+    {
+      "tgname": "set_updated_at",
+      "relname": "payment_allocations",
+      "proname": "update_updated_at_column"
+    },
+    {
+      "tgname": "trg_guard_payment_allocations_tenant_isolation",
+      "relname": "payment_allocations",
+      "proname": "fn_guard_payment_allocations_tenant_isolation"
+    },
+    {
+      "tgname": "trg_prevent_company_id_change",
+      "relname": "payment_allocations",
+      "proname": "prevent_company_id_change"
+    },
+    {
+      "tgname": "trg_sync_paid_amount",
+      "relname": "payment_allocations",
+      "proname": "fn_sync_invoice_paid_amount"
+    },
+    {
+      "tgname": "trg_update_invoice_status",
+      "relname": "payment_allocations",
+      "proname": "update_invoice_status_on_payment"
+    },
+    {
+      "tgname": "trg_validate_payment_allocation_company",
+      "relname": "payment_allocations",
+      "proname": "validate_payment_allocation_company"
+    },
+    {
+      "tgname": "trg_validate_payment_allocation_total_amount",
+      "relname": "payment_allocations",
+      "proname": "validate_payment_allocation_total_amount"
+    },
+    {
+      "tgname": "trg_verify_invoice_paid_amount",
+      "relname": "payment_allocations",
+      "proname": "verify_invoice_paid_amount"
+    }
+  ],
+  "constraints": [
+    {
+      "conname": "check_cost_price_valid",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "check_invoice_items_amounts_valid",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "check_unit_price_valid",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "chk_item_total",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "invoice_items_discount_amount_check",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "invoice_items_quantity_check",
+      "contype": "c",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "fk_invoice_items_company",
+      "contype": "f",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "fk_invoice_items_company_invoice",
+      "contype": "f",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "fk_invoice_items_company_product",
+      "contype": "f",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "fk_invoice_items_company_tax_rate",
+      "contype": "f",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "invoice_items_pkey",
+      "contype": "p",
+      "relname": "invoice_items"
+    },
+    {
+      "conname": "check_invoice_amounts_valid",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "chk_due_after_issue",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "chk_invoices_paid_not_exceed_total",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "chk_return_needs_reason",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_exchange_rate_positive",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_payment_method_check",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_status_check",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_total_amount_check",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_type_check",
+      "contype": "c",
+      "relname": "invoices"
+    },
+    {
+      "conname": "fk_invoices_company_account",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "fk_invoices_company_reference",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "fk_invoices_fiscal_year",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_branch_id_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_company_id_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_created_by_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_currency_code_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_party_id_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_payment_account_id_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_reference_invoice_id_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_updated_by_fkey",
+      "contype": "f",
+      "relname": "invoices"
+    },
+    {
+      "conname": "invoices_pkey",
+      "contype": "p",
+      "relname": "invoices"
+    },
+    {
+      "conname": "uq_invoice_number_company",
+      "contype": "u",
+      "relname": "invoices"
+    },
+    {
+      "conname": "uq_invoices_company_id",
+      "contype": "u",
+      "relname": "invoices"
+    },
+    {
+      "conname": "payment_allocations_amount_check",
+      "contype": "c",
+      "relname": "payment_allocations"
+    },
+    {
+      "conname": "fk_pa_company_invoice",
+      "contype": "f",
+      "relname": "payment_allocations"
+    },
+    {
+      "conname": "fk_pa_company_payment",
+      "contype": "f",
+      "relname": "payment_allocations"
+    },
+    {
+      "conname": "payment_allocations_company_id_fkey",
+      "contype": "f",
+      "relname": "payment_allocations"
+    },
+    {
+      "conname": "payment_allocations_pkey",
+      "contype": "p",
+      "relname": "payment_allocations"
+    },
+    {
+      "conname": "uq_allocation_per_payment_invoice",
+      "contype": "u",
+      "relname": "payment_allocations"
+    }
+  ]
+}

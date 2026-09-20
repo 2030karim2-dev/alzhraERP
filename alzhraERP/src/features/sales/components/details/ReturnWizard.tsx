@@ -1,7 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { formatCurrency, parseNumberFlexible } from '../../../../core/utils';
+import {
+  formatCurrency,
+  parseNumberFlexible,
+  ensureLatinDigits,
+  sanitizeNumericInput,
+} from '../../../../core/utils/currencyUtils';
 import type { Invoice, InvoiceItem } from '../../../returns/types';
+import { getItemDisplayName } from '../../../returns/utils/returnHelpers';
 
 interface Props {
   invoice: Invoice;
@@ -90,30 +96,37 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
             >
               <div className="flex-1">
                 <p className="text-sm font-bold text-gray-800 dark:text-slate-200">
-                  {item.description}
+                  {getItemDisplayName(item)}
                 </p>
-                <p className="text-xs text-gray-500">
-                  المتوفر: {item.quantity} ×{' '}
+                <p className="text-xs text-gray-500" dir="ltr">
+                  المتوفر: {ensureLatinDigits(item.quantity)} ×{' '}
                   {formatCurrency(item.unit_price, invoice.currency_code || 'SAR')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  step="any"
-                  min="0"
-                  max={item.quantity}
-                  value={returnItems[item.id] || 0}
+                  type="text"
+                  inputMode="decimal"
+                  dir="ltr"
+                  placeholder="0"
+                  value={returnItems[item.id] ? ensureLatinDigits(returnItems[item.id]) : ''}
                   onChange={e => {
-                    const parsed = parseNumberFlexible(e.target.value);
+                    const sanitized = sanitizeNumericInput(e.target.value);
+                    if (sanitized === '') {
+                      updateReturnQuantity(item.id, 0);
+                      return;
+                    }
+                    const parsed = parseNumberFlexible(sanitized);
                     updateReturnQuantity(item.id, Number.isNaN(parsed) ? 0 : parsed);
                   }}
-                  className="w-16 rounded-lg border border-gray-200 p-2 text-center text-sm font-bold dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  className="w-16 rounded-lg border border-gray-200 p-2 text-center font-mono text-sm font-bold dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 />
-                <span className="text-xs text-gray-500">/ {item.quantity}</span>
+                <span className="font-mono text-xs text-gray-500" dir="ltr">
+                  / {ensureLatinDigits(item.quantity)}
+                </span>
               </div>
               <div className="w-24 text-left">
-                <span className="font-mono text-sm font-bold text-rose-600">
+                <span className="font-mono text-sm font-bold text-rose-600" dir="ltr">
                   {formatCurrency(
                     (returnItems[item.id] || 0) * item.unit_price,
                     invoice.currency_code ?? 'SAR'
@@ -125,7 +138,7 @@ const ReturnWizard: React.FC<Props> = ({ invoice, onReturn, onCancel, onAlert })
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-rose-200 pt-3 dark:border-rose-700">
           <span className="font-bold text-rose-700 dark:text-rose-400">إجمالي الإرجاع:</span>
-          <span className="font-mono text-xl font-bold text-rose-600">
+          <span className="font-mono text-xl font-bold text-rose-600" dir="ltr">
             {formatCurrency(totalReturnAmount, invoice.currency_code ?? 'SAR')}
           </span>
         </div>
