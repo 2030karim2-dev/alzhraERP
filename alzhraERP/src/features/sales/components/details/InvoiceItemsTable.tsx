@@ -1,5 +1,10 @@
 import React from 'react';
-import { formatCurrency, formatNumberDisplay } from '../../../../core/utils';
+import {
+  formatCurrency,
+  formatNumberDisplay,
+  getDisplayItemName,
+  getDisplayItemCode,
+} from '../../../../core/utils';
 import { Package } from 'lucide-react';
 
 interface Props {
@@ -23,6 +28,16 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
       </div>
     );
   }
+
+  const itemsSubtotal = items.reduce(
+    (sum: number, it: any) =>
+      sum + Number(it.total || (it.quantity || 0) * (it.unit_price || 0) || 0),
+    0
+  );
+  const displaySubtotal =
+    itemsSubtotal > 0
+      ? itemsSubtotal
+      : Number(invoice.subtotal) || Number(invoice.total_amount) || 0;
 
   return (
     <div className="mt-3 space-y-2">
@@ -51,13 +66,8 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-800 dark:divide-slate-800 dark:text-slate-200">
             {items.map((item: any, index: number) => {
-              const partNumber =
-                item.product?.part_number ||
-                item.product?.sku ||
-                item.part_number ||
-                item.sku ||
-                '---';
-              const name = item.description || item.product?.name_ar || item.name || 'صنف بدون اسم';
+              const partNumber = getDisplayItemCode(item);
+              const name = getDisplayItemName(item);
 
               return (
                 <tr
@@ -122,10 +132,7 @@ const InvoiceItemsTable: React.FC<Props> = ({ invoice }) => {
           <div className="flex justify-between text-slate-600 dark:text-slate-300">
             <span>مجموع البنود:</span>
             <span dir="ltr" className="font-mono font-bold">
-              {formatCurrency(
-                Number(invoice.subtotal) || Number(invoice.total_amount) || 0,
-                invoice.currency_code || 'SAR'
-              )}
+              {formatCurrency(displaySubtotal, invoice.currency_code || 'SAR')}
             </span>
           </div>
           {Number(invoice.tax_amount) > 0 && (

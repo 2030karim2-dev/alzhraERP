@@ -73,5 +73,9 @@ export {
   filterByArabicSearch,
 } from './search';
 
+// Product display utilities (safe name/code extraction, UUID prevention)
+export { getDisplayItemName, getDisplayItemCode, isRawUuid } from './productUtils';
+export type { DisplayableItemInput } from './productUtils';
+
 // Re-export from parent utils.ts (cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL)
 export { cn, formatNumberDisplay, GLOBAL_CURRENCY_SYMBOL } from '../utils';

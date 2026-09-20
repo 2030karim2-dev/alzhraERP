@@ -26,7 +26,7 @@ import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceActionButtons from './InvoiceActionButtons';
 import { ErrorBoundary } from '@/core/components/ErrorBoundary';
 import { PdfCaptureHost } from '@/core/components/PdfCaptureHost';
-import { formatCurrency, cn } from '@/core/utils';
+import { formatCurrency, cn, getDisplayItemName } from '@/core/utils';
 
 interface Props {
   invoiceId: string | null;
@@ -83,7 +83,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       customerName: invoice.parties?.name || 'عميل نقدي',
       issuedBy: issuedByName,
       items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
-        name: i.description || i.name || '---',
+        name: getDisplayItemName(i),
         quantity: i.quantity,
         unitPrice: i.unit_price,
         total: i.total,
@@ -142,7 +142,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         customerName: invoice.parties?.name || 'عميل نقدي',
         issuedBy: issuedByName,
         items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
-          name: i.description || i.name || '---',
+          name: getDisplayItemName(i),
           quantity: i.quantity,
           unitPrice: i.unit_price,
           total: i.total,
@@ -179,7 +179,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
         issuedBy: issuedByName,
         items: (invoice.invoice_items || []).map((i: InvoiceDetailItem) => ({
           ...i,
-          name: i.product?.name_ar || (i as any).product?.name || i.description || 'صنف بدون اسم',
+          name: getDisplayItemName(i),
           price: i.unit_price,
         })),
       }

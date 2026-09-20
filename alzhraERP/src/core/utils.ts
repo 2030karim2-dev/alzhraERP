@@ -38,3 +38,7 @@ export {
   matchesArabicSearch,
   filterByArabicSearch,
 } from './utils/search';
+
+// Product display utilities (safe name/code extraction, UUID prevention)
+export { getDisplayItemName, getDisplayItemCode, isRawUuid } from './utils/productUtils';
+export type { DisplayableItemInput } from './utils/productUtils';

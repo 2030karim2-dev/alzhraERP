@@ -11,6 +11,7 @@ import { useCreateSalesReturn } from '@/features/sales/hooks/index';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { logger } from '@/core/utils/logger';
 import { formatLocalDate } from '@/core/utils/dateUtils';
+import { getDisplayItemName } from '@/core/utils';
 import { useAIPrefillStore } from '@/features/ai/store';
 import { useSalesStore } from '@/features/sales/store';
 
@@ -86,7 +87,7 @@ const SalesPage: React.FC = () => {
         paymentMethod: invoice.payment_method || 'cash',
         items: items.map(item => ({
           productId: item.product_id || item.productId || (item.product?.id ?? item.id),
-          name: item.description || item.name || item.product?.name_ar || 'صنف مرتجع',
+          name: getDisplayItemName(item, 'صنف مرتجع'),
           quantity: Number(item.quantity ?? item.returnQuantity ?? 1),
           unitPrice: Number(item.unit_price ?? item.unitPrice ?? 0),
           costPrice: Number(item.cost_price ?? item.costPrice ?? 0),

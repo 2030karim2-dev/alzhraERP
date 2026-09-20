@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { formatCurrency } from '../../../core/utils';
+import { formatCurrency, getDisplayItemName, getDisplayItemCode } from '../../../core/utils';
 import { tafqeet } from '../../../core/utils/tafqeet';
 import { useInvoiceSettings } from '../../settings/settingsStore';
 import { useCompany } from '../../settings/hooks';
@@ -131,8 +131,8 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     .filter((i: any) => i && (i.name || i.description || i.product?.name_ar))
     .map((i: any) => ({
       id: i.id,
-      name: i.name || i.product?.name_ar || i.description || 'صنف غير محدد',
-      sku: i.sku || i.product?.sku || i.product?.part_number || '',
+      name: getDisplayItemName(i, 'صنف غير محدد'),
+      sku: getDisplayItemCode(i, ''),
       part_number: i.part_number || i.product?.part_number || '',
       quantity: Number(i.quantity || 1),
       price: Number(i.price ?? i.unit_price ?? 0),
