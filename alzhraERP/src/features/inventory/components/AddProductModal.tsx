@@ -1,9 +1,9 @@
-/* eslint-disable */
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import type { Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, Zap, ShieldCheck, Package, DollarSign, Box } from 'lucide-react';
-import { ProductFormData, Product } from '../types';
+import type { ProductFormData, Product } from '../types';
 import { productFormSchema } from '../schema';
 import Modal from '../../../ui/base/Modal';
 import Button from '../../../ui/base/Button';
@@ -52,7 +52,7 @@ const AddProductModal: React.FC<Props> = ({
     watch,
     setValue,
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema) as any,
+    resolver: zodResolver(productFormSchema) as Resolver<ProductFormData>,
     defaultValues: {
       unit: 'piece',
       category: '',
@@ -68,70 +68,72 @@ const AddProductModal: React.FC<Props> = ({
     !initialData
   );
 
+  // eslint-disable-next-line complexity -- reset-effect maps many optional Product fields into the form; extracting per-field helpers adds indirection without reducing branches.
   useEffect(() => {
-    if (isOpen) {
-      if (initialData) {
-        const rawUnit = initialData.unit;
-        const normalizedUnit = rawUnit === 'set' ? 'set' : 'piece';
-        const rawAlternatives =
-          initialData.alternative_numbers ||
-          (Array.isArray(initialData.alternatives) && initialData.alternatives.length > 0
-            ? initialData.alternatives.join(', ')
-            : '');
+    if (!isOpen) return;
 
-        reset({
-          name: initialData.name || initialData.name_ar || '',
-          sku: initialData.sku || '',
-          part_number: initialData.part_number || '',
-          brand: initialData.brand || '',
-          size: initialData.size || '',
-          specifications: initialData.specifications || '',
-          alternative_numbers: rawAlternatives,
-          image_url: initialData.image_url || null,
-          cost_price: initialData.cost_price ?? initialData.purchase_price ?? '',
-          selling_price: initialData.selling_price ?? initialData.sale_price ?? '',
-          min_stock_level: initialData.min_stock_level ?? 0,
-          is_core: Boolean(initialData.is_core),
-          stock_quantity: initialData.stock_quantity ?? 0,
-          unit: normalizedUnit,
-          category:
-            initialData.category_id ||
-            (initialData.category && initialData.category.length === 36
-              ? initialData.category
-              : '') ||
-            '',
-          location: initialData.location || '',
-        });
-      } else {
-        const autoSku = `AZ-${Date.now().toString(36).slice(-4).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-        reset({
-          name: '',
-          sku: autoSku,
-          part_number: '',
-          brand: '',
-          size: '',
-          specifications: '',
-          alternative_numbers: '',
-          image_url: null,
-          cost_price: '',
-          selling_price: '',
-          min_stock_level: 0,
-          is_core: false,
-          stock_quantity: 0,
-          unit: 'piece',
-          category: '',
-          location: '',
-        });
-      }
+    if (initialData) {
+      const normalizedUnit = initialData.unit === 'set' ? 'set' : 'piece';
+      const rawAlternatives =
+        initialData.alternative_numbers ??
+        (Array.isArray(initialData.alternatives) && initialData.alternatives.length > 0
+          ? initialData.alternatives.join(', ')
+          : '');
+
+      reset({
+        name: initialData.name !== '' ? initialData.name : initialData.name_ar,
+        sku: initialData.sku,
+        part_number: initialData.part_number ?? '',
+        brand: initialData.brand ?? '',
+        size: initialData.size ?? '',
+        specifications: initialData.specifications ?? '',
+        alternative_numbers: rawAlternatives,
+        image_url: initialData.image_url ?? null,
+        cost_price:
+          initialData.cost_price !== 0
+            ? initialData.cost_price
+            : (initialData.purchase_price ?? ''),
+        selling_price: initialData.selling_price ?? initialData.sale_price,
+        min_stock_level: initialData.min_stock_level,
+        is_core: Boolean(initialData.is_core),
+        stock_quantity: initialData.stock_quantity,
+        unit: normalizedUnit,
+        category:
+          initialData.category_id ??
+          (initialData.category !== null && initialData.category.length === 36
+            ? initialData.category
+            : ''),
+        location: initialData.location ?? '',
+      });
+    } else {
+      const autoSku = `AZ-${Date.now().toString(36).slice(-4).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      reset({
+        name: '',
+        sku: autoSku,
+        part_number: '',
+        brand: '',
+        size: '',
+        specifications: '',
+        alternative_numbers: '',
+        image_url: null,
+        cost_price: '',
+        selling_price: '',
+        min_stock_level: 0,
+        is_core: false,
+        stock_quantity: 0,
+        unit: 'piece',
+        category: '',
+        location: '',
+      });
     }
   }, [isOpen, initialData, reset]);
 
   const onInvalid = (formErrors: typeof errors): void => {
     const errorList = Object.values(formErrors)
-      .map(e => e?.message)
-      .filter(Boolean);
-    const firstMsg = errorList[0] || 'يرجى مراجعة وتصحيح الحقول المطلوبة';
-    showToast(String(firstMsg), 'error');
+      .map(e => (e as { message?: string } | undefined)?.message)
+      .filter((m): m is string => m !== undefined && m !== '');
+    const firstMsg = errorList[0] ?? 'يرجى مراجعة وتصحيح الحقول المطلوبة';
+    showToast(firstMsg, 'error');
   };
 
   const footer = (
@@ -144,7 +146,9 @@ const AddProductModal: React.FC<Props> = ({
         {t('cancel')}
       </button>
       <Button
-        onClick={handleSubmit(onSubmit as any, onInvalid)}
+        onClick={() => {
+          void handleSubmit(async data => onSubmit(data), onInvalid)();
+        }}
         isLoading={isSubmitting}
         className="flex-[2] rounded-none border-blue-700 bg-blue-600 text-[11px] font-bold uppercase tracking-widest shadow-xl"
         leftIcon={<Save size={16} />}
@@ -162,7 +166,7 @@ const AddProductModal: React.FC<Props> = ({
       title={initialData ? t('edit_product_title') : t('new_product_title')}
       description={t('product_card_desc')}
       footer={footer}
-      {...(zIndex ? { zIndex } : {})}
+      {...(zIndex !== undefined && zIndex !== '' ? { zIndex } : {})}
     >
       <div className="flex flex-col">
         <div className="flex flex-row gap-6 border-b bg-white p-5 dark:border-slate-800 dark:bg-slate-900">

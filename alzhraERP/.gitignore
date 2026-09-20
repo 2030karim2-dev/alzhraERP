@@ -72,6 +72,9 @@ supabase/.temp/
 coverage/
 *.pid
 eslint_*.json
+*-vitest.json
+vitest-*.json
+
 
 # one-off / secret-bearing scripts & credentials
 *.ps1
