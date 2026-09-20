@@ -38,6 +38,7 @@ import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { useFeedbackStore } from '../../feedback/store';
 import { calculateAuditStats } from '../utils/auditStats';
 import type { Product, ProductFormData } from '../types';
+import type { SearchResultProduct } from '../services/productService';
 
 /** Shape of audit progress items (matches inventoryService.saveAuditProgress). */
 interface AuditProgressItem {
@@ -590,7 +591,7 @@ const AuditSessionPage: React.FC = () => {
           setShowResults={setShowResults}
           isLoadingSearch={isLoadingSearch}
           isAddingItem={isAddingItem}
-          searchResults={searchResults}
+          searchResults={searchResults as unknown as SearchResultProduct[] | undefined}
           onAddItem={handleAddItem}
           onOpenScanner={() => {
             setIsScannerOpen(true);

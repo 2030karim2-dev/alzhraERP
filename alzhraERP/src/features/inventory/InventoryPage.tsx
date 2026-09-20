@@ -343,21 +343,18 @@ const InventoryPage: React.FC = () => {
             try {
               await saveProduct(editingProduct?.id ? { data, id: editingProduct.id } : { data });
               if (selectedProduct && editingProduct && selectedProduct.id === editingProduct.id) {
-                setSelectedProduct(prev =>
-                  prev
-                    ? ({
-                        ...prev,
-                        ...data,
-                        name_ar: data.name,
-                        name: data.name,
-                        cost_price: Number(data.cost_price) || 0,
-                        sale_price: Number(data.selling_price) || 0,
-                        selling_price: Number(data.selling_price) || 0,
-                        purchase_price: Number(data.cost_price) || 0,
-                        min_stock_level: Number(data.min_stock_level) || 0,
-                      } as Product)
-                    : null
-                );
+                const updated: Product = {
+                  ...selectedProduct,
+                  ...data,
+                  name_ar: data.name,
+                  name: data.name,
+                  cost_price: Number(data.cost_price) || 0,
+                  sale_price: Number(data.selling_price) || 0,
+                  selling_price: Number(data.selling_price) || 0,
+                  purchase_price: Number(data.cost_price) || 0,
+                  min_stock_level: Number(data.min_stock_level) || 0,
+                } as unknown as Product;
+                setSelectedProduct(updated);
               }
               handleCloseModal();
             } catch (err) {

@@ -405,7 +405,7 @@ const InventoryMovementView: React.FC = () => {
             <div className="overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
               <ExcelTable
                 columns={columns}
-                data={movement || []}
+                data={(movement as MovementRow[]) || []}
                 colorTheme="blue"
                 title={`سجل حركة الصنف`}
                 subtitle={`النشاط المسجل لـ: ${selectedProduct?.name}`}

@@ -160,11 +160,11 @@ const QuickAuditPage: React.FC = () => {
         const searchRes: SearchResult = {
           id: rawCreated.id,
           name_ar: rawCreated.name_ar || rawCreated.name || '',
-          sku: created.sku || '',
-          part_number: created.part_number || '',
-          brand: created.brand || '',
-          alternative_numbers: created.alternative_numbers || '',
-          size: created.size || '',
+          sku: (rawCreated.sku as string | undefined) ?? '',
+          part_number: (rawCreated.part_number as string | undefined) ?? '',
+          brand: (rawCreated.brand as string | undefined) ?? '',
+          alternative_numbers: (rawCreated.alternative_numbers as string | undefined) ?? '',
+          size: (rawCreated.size as string | undefined) ?? '',
           warehouse_distribution: [],
           stock_quantity: 0,
         };
