@@ -54,7 +54,7 @@ export const WhatsAppShareButton: React.FC<WhatsAppShareButtonProps> = ({
 
   const handleOpenWhatsApp = () => {
     const text = encodeURIComponent(getMessageText());
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   return (

@@ -449,7 +449,7 @@ const ChatAttachmentItem: React.FC<{
               if (onImageClick) {
                 onImageClick(signedUrl);
               } else {
-                window.open(signedUrl, '_blank');
+                window.open(signedUrl, '_blank', 'noopener,noreferrer');
               }
             }}
           />

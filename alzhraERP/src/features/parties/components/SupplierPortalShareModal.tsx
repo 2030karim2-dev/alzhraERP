@@ -103,7 +103,7 @@ export const SupplierPortalShareModal: React.FC<Props> = ({
     const waUrl = phoneClean
       ? `https://wa.me/${phoneClean}?text=${text}`
       : `https://wa.me/?text=${text}`;
-    window.open(waUrl, '_blank');
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleRegenerateToken = async () => {
