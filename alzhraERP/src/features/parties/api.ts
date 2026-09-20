@@ -89,20 +89,10 @@ export const partiesApi = {
       if (rpcRes.error === null && Array.isArray(rpcRes.data)) {
         balancesData = rpcRes.data;
       } else {
-        const viewRes = await supabase
-          .from('party_balances')
-          .select('party_id, balance, type')
-          .eq('company_id', companyId);
-        balancesData = viewRes.data;
-        balancesError = viewRes.error;
+        balancesError = rpcRes.error;
       }
-    } catch {
-      const viewRes = await supabase
-        .from('party_balances')
-        .select('party_id, balance, type')
-        .eq('company_id', companyId);
-      balancesData = viewRes.data;
-      balancesError = viewRes.error;
+    } catch (err) {
+      balancesError = err;
     }
 
     const balancesMap = new Map();

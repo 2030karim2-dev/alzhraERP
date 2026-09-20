@@ -167,7 +167,7 @@ export const reportsApi = {
         .select('id, name, type')
         .eq('company_id', companyId)
         .is('deleted_at', null),
-      supabase.from('party_balances').select('party_id, balance').eq('company_id', companyId),
+      supabase.rpc('get_party_balances_by_company', { p_company_id: companyId }),
     ]);
 
     if (!parties) return { data: null, error: { message: 'Failed to fetch parties' } };
