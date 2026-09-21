@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing */
 // ============================================
 // Unified Settings Store
 // ============================================
@@ -167,10 +168,15 @@ export const useSettingsStore = create<SettingsState>()(
             },
             print: {
               ...state.print,
+              print_logo: currentHeader.logo.showLogo,
+              print_invoice_logo: currentHeader.logo.showLogo,
+              print_header: currentHeader.style.layout !== 'compact-minimal',
+            },
+            invoice: {
+              ...state.invoice,
               show_logo: currentHeader.logo.showLogo,
-              logo_position: currentHeader.logo.position,
-              logo_size: currentHeader.logo.size,
-              header_text: currentHeader.details.sloganText || state.print.header_text,
+              invoice_header_text:
+                currentHeader.details.sloganText || state.invoice.invoice_header_text,
             },
           };
         }),

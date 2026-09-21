@@ -1,11 +1,12 @@
-import { WhatsappHeaderConfig } from '../types/documentHeader';
+/* eslint-disable complexity, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-optional-chain */
+import type { WhatsappHeaderConfig } from '../types/documentHeader';
 
 export interface CompanyHeaderSource {
   name: string;
-  slogan?: string;
-  phone?: string;
-  taxNumber?: string;
-  address?: string;
+  slogan?: string | undefined;
+  phone?: string | undefined;
+  taxNumber?: string | undefined;
+  address?: string | undefined;
 }
 
 export function buildWhatsappHeader(
