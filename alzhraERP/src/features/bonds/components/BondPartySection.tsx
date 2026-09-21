@@ -203,7 +203,7 @@ interface PartySearchDropdownProps {
 
 // eslint-disable-next-line max-lines-per-function -- search input + dropdown list is one cohesive widget.
 const PartySearchDropdown: React.FC<PartySearchDropdownProps> = ({
-  type,
+  type: _type,
   partyQuery,
   setPartyQuery,
   showPartyDropdown,
@@ -225,11 +225,7 @@ const PartySearchDropdown: React.FC<PartySearchDropdownProps> = ({
         onFocus={() => {
           if (parties.length > 0) setShowPartyDropdown(true);
         }}
-        placeholder={
-          type === 'receipt'
-            ? 'ابحث بالاسم أو الهاتف عن العميل...'
-            : 'ابحث بالاسم أو الهاتف عن المورد...'
-        }
+        placeholder="ابحث بالاسم أو الهاتف (عميل، مورد، موظف)..."
         className="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-3.5 pl-12 text-sm font-bold text-slate-800 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500/30 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-500/20"
       />
       <Search
@@ -260,10 +256,12 @@ const PartySearchDropdown: React.FC<PartySearchDropdownProps> = ({
                   'rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest shadow-sm',
                   p.type === 'customer'
                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
+                    : p.type === 'employee'
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30'
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
                 )}
               >
-                {p.type === 'customer' ? 'عميل' : 'مورد'}
+                {p.type === 'customer' ? 'عميل' : p.type === 'employee' ? 'موظف' : 'مورد'}
               </span>
             </button>
           ))}

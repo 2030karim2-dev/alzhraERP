@@ -4,7 +4,13 @@
  * Business decisions (classification, aging, reminder window) live in SQL;
  * this layer only maps and filters for presentation.
  */
-import { debtApi, debtMessageApi, DEBT_ENGINE_DEFAULTS } from '../api/debtApi';
+import {
+  debtApi,
+  debtMessageApi,
+  DEBT_ENGINE_DEFAULTS,
+  type DebtEngineParams,
+} from '../api/debtApi';
+import { logger } from '../../../core/utils/logger';
 import { renderReminderTemplate } from '../lib/messageTemplate';
 import {
   buildWhatsAppLink,
@@ -20,10 +26,41 @@ export interface PreparedReminder {
   phoneMissing: boolean;
 }
 
+/** شكل مرن لإعدادات المحرك — يقبل صف الإعدادات الكامل أو قيماً جزئية. */
+export interface DebtEngineConfigLike {
+  due_soon_days?: number | null;
+  critical_days?: number | null;
+  reminder_window_days?: number | null;
+}
+
+/** يدمج إعدادات الشركة المحفوظة مع الافتراضي — دالة نقية قابلة للاختبار. */
+export const resolveEngineParams = (
+  config: DebtEngineConfigLike | null | undefined
+): DebtEngineParams => ({
+  dueSoonDays: config?.due_soon_days ?? DEBT_ENGINE_DEFAULTS.dueSoonDays,
+  criticalDays: config?.critical_days ?? DEBT_ENGINE_DEFAULTS.criticalDays,
+  reminderWindowDays: config?.reminder_window_days ?? DEBT_ENGINE_DEFAULTS.reminderWindowDays,
+});
+
 export const debtsService = {
-  /** Follow-up dashboard rows, already classified by the database. */
-  getDashboard: (companyId: string, branchId?: string | null) =>
-    debtApi.getDashboard(companyId, branchId),
+  /**
+   * Follow-up dashboard rows, already classified by the database.
+   * تُمرَّر نوافذ المحرك المحفوظة صراحةً حتى تعمل إعدادات «الإعدادات»
+   * حتى مع قاعدة بيانات حية لم تُطبّق الهجرة الخادمية بعد (التوافقين).
+   */
+  getDashboard: async (
+    companyId: string,
+    branchId?: string | null
+  ): Promise<FollowUpDashboardRow[]> => {
+    let engine: DebtEngineParams = { ...DEBT_ENGINE_DEFAULTS };
+    try {
+      const config = await debtApi.getFollowupConfig(companyId);
+      if (config) engine = resolveEngineParams(config);
+    } catch (err) {
+      logger.warn('DebtService', 'تعذر قراءة إعدادات المتابعة — استخدام الافتراضي', err);
+    }
+    return debtApi.getDashboard(companyId, branchId, engine);
+  },
 
   getAnalytics: async (companyId: string, branchId?: string | null): Promise<DebtAnalytics> => {
     const raw = await debtApi.getAnalytics(companyId, branchId);

@@ -139,7 +139,8 @@ export const useDebtMutations = () => {
   const updateTemplate = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: DebtMessageTemplateUpdate }) => {
       await assertPermission('debts:manage', 'تعديل قالب رسالة');
-      return debtMessageApi.updateTemplate(id, payload);
+      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      return debtMessageApi.updateTemplate(companyId, id, payload);
     },
     onSuccess: () => {
       invalidateDebtQueries();

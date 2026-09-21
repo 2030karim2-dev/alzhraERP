@@ -1,6 +1,6 @@
 import type { Database } from '../../core/database.types';
 
-export type PartyType = 'customer' | 'supplier' | 'both' | 'all';
+export type PartyType = 'customer' | 'supplier' | 'both' | 'employee' | 'all';
 export type PartyStatus = 'active' | 'blocked';
 export type PartyView = 'list' | 'statements' | 'analytics' | 'categories';
 
@@ -17,7 +17,7 @@ export type Party = Database['public']['Tables']['parties']['Row'] & {
 
 export interface PartyFormData {
   name: string;
-  type: 'customer' | 'supplier' | 'both';
+  type: 'customer' | 'supplier' | 'both' | 'employee';
   phone?: string;
   email?: string;
   tax_number?: string;

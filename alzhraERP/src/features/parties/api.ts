@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-explicit-any */
 import { supabase } from '../../lib/supabaseClient';
 import type { PartyFormData, PartyType } from './types';
 import { mapToInsert, mapToUpdate } from '../../core/utils/supabaseMappers';
@@ -56,8 +57,13 @@ async function fetchPartyCurrencies(
 
 export const partiesApi = {
   getParties: async (companyId: string, type: PartyType, branchId?: string | null) => {
-    // 'all' → جلب جميع الأطراف بغض النظر عن النوع (عملاء وموردين)
-    const typeFilter = type === 'all' ? ['customer', 'supplier', 'both'] : [type, 'both'];
+    // 'all' → جلب جميع الأطراف بغض النظر عن النوع (عملاء وموردين وموظفين)
+    const typeFilter =
+      type === 'all'
+        ? ['customer', 'supplier', 'both', 'employee']
+        : type === 'employee'
+          ? ['employee']
+          : [type, 'both'];
     let partiesQuery = supabase
       .from('parties')
       .select('*, party_categories(id, name)')

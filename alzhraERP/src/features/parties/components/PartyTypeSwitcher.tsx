@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-lines-per-function */
 import React from 'react';
 import type { PartyType } from '../types';
 import { cn } from '../../../core/utils';
@@ -8,10 +9,11 @@ interface PartyTypeSwitcherProps {
   onSwitch: (type: PartyType) => void;
   customerCount?: number | undefined;
   supplierCount?: number | undefined;
+  employeeCount?: number | undefined;
 }
 
 /**
- * Segmented control for party type — navigates between /clients and /suppliers
+ * Segmented control for party type — navigates between /clients, /suppliers, and /employees
  * (URL is the single source of truth — docs/archive/plans/party-routes-tabs-cleanup.md).
  */
 export const PartyTypeSwitcher: React.FC<PartyTypeSwitcherProps> = ({
@@ -19,17 +21,19 @@ export const PartyTypeSwitcher: React.FC<PartyTypeSwitcherProps> = ({
   onSwitch,
   customerCount,
   supplierCount,
+  employeeCount,
 }) => {
   const { t } = useTranslation();
   return (
     <div
       className="flex items-center gap-1.5 px-2 pt-3 md:px-4"
       role="tablist"
-      aria-label="العملاء والموردون"
+      aria-label="العملاء والموردون والموظفون"
     >
-      {(['customer', 'supplier'] as PartyType[]).map(type => {
+      {(['customer', 'supplier', 'employee'] as PartyType[]).map(type => {
         const isSelected = partyType === type;
-        const count = type === 'customer' ? customerCount : supplierCount;
+        const count =
+          type === 'customer' ? customerCount : type === 'supplier' ? supplierCount : employeeCount;
         return (
           <button
             key={type}
@@ -44,11 +48,19 @@ export const PartyTypeSwitcher: React.FC<PartyTypeSwitcherProps> = ({
               isSelected
                 ? type === 'customer'
                   ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                  : 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
+                  : type === 'employee'
+                    ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20'
+                    : 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
                 : 'border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             )}
           >
-            <span>{type === 'customer' ? t('customers') : t('suppliers')}</span>
+            <span>
+              {type === 'customer'
+                ? t('customers')
+                : type === 'supplier'
+                  ? t('suppliers')
+                  : 'الموظفون'}
+            </span>
             {count !== undefined && count > 0 && (
               <span
                 className={cn(

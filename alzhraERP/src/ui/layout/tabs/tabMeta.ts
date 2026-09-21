@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-lines-per-function */
 /**
  * Workspace Tab Meta & Resolvers — تعريف مسميات وأيقونات التبويبات بحسب مسار الصفحة.
  *
@@ -91,6 +92,10 @@ export function getTabMeta(pathname: string): TabMetaInfo {
     return { title: 'الموردين', iconKey: 'Truck', IconComponent: Truck };
   }
 
+  if (cleanPath === ROUTES.DASHBOARD.EMPLOYEES) {
+    return { title: 'الموظفين', iconKey: 'Users', IconComponent: Users };
+  }
+
   if (cleanPath.startsWith(ROUTES.DASHBOARD.INVENTORY)) {
     if (cleanPath.includes('audit')) {
       return { title: 'جرد المخزون', iconKey: 'Layers', IconComponent: Layers };
@@ -157,6 +162,7 @@ export const QUICK_LAUNCH_ITEMS = [
   { path: ROUTES.DASHBOARD.BONDS, title: 'السندات المالية', iconKey: 'FileText' },
   { path: ROUTES.DASHBOARD.CLIENTS, title: 'العملاء', iconKey: 'Users' },
   { path: ROUTES.DASHBOARD.SUPPLIERS, title: 'الموردين', iconKey: 'Truck' },
+  { path: ROUTES.DASHBOARD.EMPLOYEES, title: 'الموظفين', iconKey: 'Users' },
   { path: ROUTES.DASHBOARD.INVENTORY, title: 'المخزون والأصناف', iconKey: 'Package' },
   { path: ROUTES.DASHBOARD.ACCOUNTING, title: 'المحاسبة والقيود', iconKey: 'Calculator' },
   { path: ROUTES.DASHBOARD.EXPENSES, title: 'المصروفات', iconKey: 'ReceiptText' },

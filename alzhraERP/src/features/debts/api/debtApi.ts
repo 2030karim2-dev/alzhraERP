@@ -33,17 +33,28 @@ export const DEBT_ENGINE_DEFAULTS = {
   reminderWindowDays: 3,
 } as const;
 
+/** نوافذ محرك المتابعة — تُحل من إعدادات الشركة المحفوظة أو الافتراضي. */
+export interface DebtEngineParams {
+  dueSoonDays: number;
+  criticalDays: number;
+  reminderWindowDays: number;
+}
+
 export const debtApi = {
   // ── Follow-up engine (RPCs — server-classified, display only) ──
   getDashboard: async (
     companyId: string,
-    branchId?: string | null
+    branchId?: string | null,
+    engine?: DebtEngineParams
   ): Promise<FollowUpDashboardRow[]> => {
+    // نوافذ المحرك: قيم الشركة المحفوظة (من الطبقة الخدمية) أو الافتراضي.
+    // الخادم أيضاً يسقط لإعدادات debt_followup_config عند تمرير NULL.
+    const params: DebtEngineParams = engine ?? DEBT_ENGINE_DEFAULTS;
     const { data, error } = await supabase.rpc('get_debt_followup_dashboard', {
       p_company_id: companyId,
-      p_due_soon_days: DEBT_ENGINE_DEFAULTS.dueSoonDays,
-      p_critical_days: DEBT_ENGINE_DEFAULTS.criticalDays,
-      p_reminder_window_days: DEBT_ENGINE_DEFAULTS.reminderWindowDays,
+      p_due_soon_days: params.dueSoonDays,
+      p_critical_days: params.criticalDays,
+      p_reminder_window_days: params.reminderWindowDays,
       p_branch_id: branchId ?? null,
     });
     if (error) throw error;
@@ -235,6 +246,7 @@ export const debtMessageApi = {
   },
 
   updateTemplate: async (
+    companyId: string,
     id: string,
     payload: DebtMessageTemplateUpdate
   ): Promise<DebtMessageTemplate> => {
@@ -242,6 +254,7 @@ export const debtMessageApi = {
       .from('debt_message_templates')
       .update(payload)
       .eq('id', id)
+      .eq('company_id', companyId) // دفاع عمق: منع تعديل قوالب شركة أخرى
       .select()
       .single();
     if (error) throw error;

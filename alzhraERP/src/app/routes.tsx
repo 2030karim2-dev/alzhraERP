@@ -370,6 +370,14 @@ export const AppRoutes: React.FC = () => {
             </FeatureBoundary>
           }
         />
+        <Route
+          path={ROUTES.DASHBOARD.EMPLOYEES}
+          element={
+            <FeatureBoundary name="employees">
+              <PartiesPage partyType="employee" title="إدارة الموظفين" />
+            </FeatureBoundary>
+          }
+        />
         {/* Legacy /parties/* routes → redirect to the unified /clients & /suppliers */}
         <Route
           path={ROUTES.DASHBOARD.LEGACY.PARTIES}

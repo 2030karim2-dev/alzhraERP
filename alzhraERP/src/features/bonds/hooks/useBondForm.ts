@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions, @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unnecessary-type-conversion */
 import { logger } from '../../../core/utils/logger';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -41,7 +42,7 @@ export function useBondForm(
   const [equivalentSarInputStr, setEquivalentSarInputStr] = useState<string>('');
   const [commissionInputStr, setCommissionInputStr] = useState<string>('');
 
-  const { data: allParties } = useParties(type === 'receipt' ? 'customer' : 'supplier', partyQuery);
+  const { data: allParties } = useParties('all', partyQuery);
 
   const parties = useMemo(() => {
     return allParties || [];

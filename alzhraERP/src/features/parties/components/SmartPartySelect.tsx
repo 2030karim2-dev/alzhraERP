@@ -39,7 +39,9 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
     placeholder ||
     (partyType === 'customer'
       ? 'ابحث بالاسم أو الهاتف أو حروف متقطعة...'
-      : 'ابحث عن المورد بالاسم أو الهاتف...');
+      : partyType === 'employee'
+        ? 'ابحث عن الموظف بالاسم أو الهاتف...'
+        : 'ابحث عن المورد بالاسم أو الهاتف...');
 
   const filteredParties = useMemo(() => {
     return filterPartiesSmart(parties, query);
@@ -211,7 +213,9 @@ export const SmartPartySelect: React.FC<SmartPartySelectProps> = ({
                           'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black',
                           partyType === 'customer'
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                            : partyType === 'employee'
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                         )}
                       >
                         <User size={14} />

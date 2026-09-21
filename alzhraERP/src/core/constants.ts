@@ -64,6 +64,13 @@ export const MENU_ITEMS: MenuItem[] = [
     color: 'blue',
   },
   {
+    id: 'employees',
+    labelKey: 'employees',
+    icon: Users,
+    path: ROUTES.DASHBOARD.EMPLOYEES,
+    color: 'purple',
+  },
+  {
     id: 'supplier_portal',
     labelKey: 'supplier_portal',
     icon: Building2,

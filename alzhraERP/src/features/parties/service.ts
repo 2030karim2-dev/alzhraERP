@@ -134,7 +134,7 @@ export const partiesService = {
         );
         const totalBalance = matchingParties.reduce((sum: number, p: Record<string, unknown>) => {
           const bal = (p.party_balances as Array<{ balance: number }> | null)?.[0]?.balance ?? 0;
-          return sum + Number(bal);
+          return sum + bal;
         }, 0);
         return {
           id: cat.id as string,
@@ -215,7 +215,8 @@ export const partiesService = {
     const trimmedPhone = (data.phone || '').trim();
     const trimmedTaxNumber = (data.tax_number || '').trim();
     const partyType = data.type || 'customer';
-    const typeLabel = partyType === 'customer' ? 'العميل' : 'المورد';
+    const typeLabel =
+      partyType === 'customer' ? 'العميل' : partyType === 'employee' ? 'الموظف' : 'المورد';
     const relevantTypes = [partyType, 'both'];
 
     // 1. Check duplicate name for same or overlapping type & company

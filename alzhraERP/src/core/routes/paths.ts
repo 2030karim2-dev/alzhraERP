@@ -21,6 +21,7 @@ export const ROUTES = {
     BONDS: '/bonds',
     SUPPLIERS: '/suppliers',
     CLIENTS: '/clients',
+    EMPLOYEES: '/employees',
     LEGACY: {
       // Old party routes — kept ONLY as redirect targets to /clients & /suppliers
       // (see docs/archive/plans/party-routes-tabs-cleanup.md). Do not link to these.

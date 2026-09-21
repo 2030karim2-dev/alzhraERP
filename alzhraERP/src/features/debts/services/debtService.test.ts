@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { debtsService } from './debtService';
+import { debtsService, resolveEngineParams } from './debtService';
+import { DEBT_ENGINE_DEFAULTS } from '../api/debtApi';
 import type { FollowUpDashboardRow } from '../types';
 
 const row = (partial: Partial<FollowUpDashboardRow>): FollowUpDashboardRow => ({
@@ -30,9 +31,19 @@ const row = (partial: Partial<FollowUpDashboardRow>): FollowUpDashboardRow => ({
 describe('debtsService.filterByTab', () => {
   const rows: FollowUpDashboardRow[] = [
     row({ party_id: 'a', classification: 'critical', reminder_status: 'needs_reminder' }),
-    row({ party_id: 'b', classification: 'overdue', reminder_status: 'reminded', has_broken_promise: true }),
+    row({
+      party_id: 'b',
+      classification: 'overdue',
+      reminder_status: 'reminded',
+      has_broken_promise: true,
+    }),
     row({ party_id: 'c', classification: 'due_today', reminder_status: 'needs_reminder' }),
-    row({ party_id: 'd', classification: 'due_soon', reminder_status: 'reminded', pending_promise_count: 2 }),
+    row({
+      party_id: 'd',
+      classification: 'due_soon',
+      reminder_status: 'reminded',
+      pending_promise_count: 2,
+    }),
     row({ party_id: 'e', classification: 'current', reminder_status: 'needs_reminder' }),
   ];
 
@@ -42,22 +53,22 @@ describe('debtsService.filterByTab', () => {
 
   it('selects needs_reminder rows', () => {
     const out = debtsService.filterByTab(rows, 'needs_reminder');
-    expect(out.map((r) => r.party_id)).toEqual(['a', 'c', 'e']);
+    expect(out.map(r => r.party_id)).toEqual(['a', 'c', 'e']);
   });
 
   it('selects reminded rows', () => {
     const out = debtsService.filterByTab(rows, 'reminded');
-    expect(out.map((r) => r.party_id)).toEqual(['b', 'd']);
+    expect(out.map(r => r.party_id)).toEqual(['b', 'd']);
   });
 
   it('selects overdue + critical for the overdue tab', () => {
     const out = debtsService.filterByTab(rows, 'overdue');
-    expect(out.map((r) => r.party_id)).toEqual(['a', 'b']);
+    expect(out.map(r => r.party_id)).toEqual(['a', 'b']);
   });
 
   it('selects due today rows', () => {
     const out = debtsService.filterByTab(rows, 'today');
-    expect(out.map((r) => r.party_id)).toEqual(['c']);
+    expect(out.map(r => r.party_id)).toEqual(['c']);
   });
 });
 
@@ -75,12 +86,39 @@ describe('debtsService.prepareReminder', () => {
   });
 
   it('flags a missing phone', () => {
-    const prepared = debtsService.prepareReminder(
-      row({ party_phone: '' }),
-      'نص',
-      {}
-    );
+    const prepared = debtsService.prepareReminder(row({ party_phone: '' }), 'نص', {});
     expect(prepared.phoneMissing).toBe(true);
     expect(prepared.whatsappLink).toBeNull();
+  });
+});
+
+describe('resolveEngineParams', () => {
+  it('falls back to engine defaults when no config exists', () => {
+    expect(resolveEngineParams(null)).toEqual({
+      dueSoonDays: DEBT_ENGINE_DEFAULTS.dueSoonDays,
+      criticalDays: DEBT_ENGINE_DEFAULTS.criticalDays,
+      reminderWindowDays: DEBT_ENGINE_DEFAULTS.reminderWindowDays,
+    });
+    expect(resolveEngineParams(undefined)).toEqual({ ...DEBT_ENGINE_DEFAULTS });
+  });
+
+  it('uses the saved company config values', () => {
+    expect(
+      resolveEngineParams({ due_soon_days: 14, critical_days: 60, reminder_window_days: 5 })
+    ).toEqual({ dueSoonDays: 14, criticalDays: 60, reminderWindowDays: 5 });
+  });
+
+  it('fills only the missing fields from defaults', () => {
+    expect(
+      resolveEngineParams({
+        due_soon_days: 14,
+        critical_days: null,
+        reminder_window_days: undefined,
+      })
+    ).toEqual({
+      dueSoonDays: 14,
+      criticalDays: DEBT_ENGINE_DEFAULTS.criticalDays,
+      reminderWindowDays: DEBT_ENGINE_DEFAULTS.reminderWindowDays,
+    });
   });
 });
