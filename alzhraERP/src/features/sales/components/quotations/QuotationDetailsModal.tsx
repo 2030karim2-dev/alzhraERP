@@ -23,6 +23,9 @@ import { useSalesStore } from '../../store';
 import { exportQuotationToExcel } from '../../../../core/utils/quotationExcelExporter';
 import { useCompany } from '../../../settings/hooks';
 import { useAuthStore } from '../../../auth/store';
+import { useDocumentHeaderSettings } from '../../../settings/settingsStore';
+import { UniversalDocumentHeader } from '@/ui/common/UniversalDocumentHeader';
+import { buildWhatsappHeader } from '@/core/utils/whatsappHeader';
 import { logger } from '../../../../core/utils/logger';
 
 interface Props {
@@ -115,6 +118,7 @@ const QuotationDetailsModal: React.FC<Props> = ({
   // [FIX] جلب بيانات الشركة من قاعدة البيانات بدلاً من ترميز الاسم
   const { data: company } = useCompany();
   const { user } = useAuthStore();
+  const headerConfig = useDocumentHeaderSettings();
 
   useEffect(() => {
     const fetch = async () => {
@@ -219,13 +223,23 @@ const QuotationDetailsModal: React.FC<Props> = ({
         totalAmount: quotation.total_amount,
       };
 
+      const waHeader = headerConfig?.whatsapp
+        ? buildWhatsappHeader(headerConfig.whatsapp, {
+            name: headerConfig.details.companyNameOverride || resolvedCompanyName,
+            phone: (comp?.phone as string) || undefined,
+            taxNumber: (comp?.tax_number as string) || undefined,
+            slogan: headerConfig.details.sloganText || undefined,
+          })
+        : '';
+      const shareText = `${waHeader}مرفق عرض سعر رقم ${quotation.quotation_number}`;
+
       const blob = await generateQuotationExcelBlob(data);
       await shareSpreadsheet({
         blob,
         fileName: `عرض_سعر_${quotation.quotation_number}.xlsx`,
         shareTitle: `عرض سعر ${quotation.quotation_number}`,
-        shareText: `مرفق عرض سعر رقم ${quotation.quotation_number}`,
-        fallbackText: `مرفق عرض سعر رقم ${quotation.quotation_number}. يرجى الاطلاع على الملف المرفق.`,
+        shareText,
+        fallbackText: `${shareText}. يرجى الاطلاع على الملف المرفق.`,
         onDownloadFallback: () => exportQuotationToExcel(data),
       });
     } catch (err) {
@@ -348,52 +362,72 @@ const QuotationDetailsModal: React.FC<Props> = ({
         </div>
       ) : quotation ? (
         <div className="print-section space-y-6">
-          {/* Professional Print Header */}
-          <div className="print-only mb-6 border-b-2 border-[#1F4E78] pb-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex-1 text-right">
-                {/* [FIX] استخدام اسم الشركة الحقيقي */}
-                <h1 className="text-xl font-bold text-[#1F4E78]">
-                  {String(
+          {/* Print Header - Respects global template setting */}
+          {headerConfig?.isTemplateAppliedToAll ? (
+            <div className="print-only mb-4">
+              <UniversalDocumentHeader
+                config={headerConfig}
+                company={{
+                  name: String(
                     ((company ?? {}) as Record<string, unknown>).name_ar ||
                       ((company ?? {}) as Record<string, unknown>).name ||
                       'الشركة'
-                  )}
-                </h1>
-                <div className="mt-1 flex flex-col gap-1 text-xs font-bold text-gray-700 max-md:gap-1">
-                  <span>
+                  ),
+                  logo_url: String(((company ?? {}) as Record<string, unknown>).logo_url || ''),
+                  phone: String(((company ?? {}) as Record<string, unknown>).phone || ''),
+                  address: String(((company ?? {}) as Record<string, unknown>).address || ''),
+                  tax_number: String(((company ?? {}) as Record<string, unknown>).tax_number || ''),
+                }}
+                documentTitle="عرض سعر"
+              />
+            </div>
+          ) : (
+            <div className="print-only mb-6 border-b-2 border-[#1F4E78] pb-4">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex-1 text-right">
+                  {/* [FIX] استخدام اسم الشركة الحقيقي */}
+                  <h1 className="text-xl font-bold text-[#1F4E78]">
                     {String(
-                      ((company ?? {}) as Record<string, unknown>).phone
-                        ? `هاتف: ${((company ?? {}) as Record<string, unknown>).phone}`
-                        : ''
+                      ((company ?? {}) as Record<string, unknown>).name_ar ||
+                        ((company ?? {}) as Record<string, unknown>).name ||
+                        'الشركة'
                     )}
-                  </span>
+                  </h1>
+                  <div className="mt-1 flex flex-col gap-1 text-xs font-bold text-gray-700 max-md:gap-1">
+                    <span>
+                      {String(
+                        ((company ?? {}) as Record<string, unknown>).phone
+                          ? `هاتف: ${((company ?? {}) as Record<string, unknown>).phone}`
+                          : ''
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
+                  {Boolean(((company ?? {}) as Record<string, unknown>).logo_url) && (
+                    <img
+                      src={String(((company ?? {}) as Record<string, unknown>).logo_url)}
+                      alt="شعار المنشأة"
+                      className="mb-1 h-14 w-auto max-w-[120px] object-contain"
+                    />
+                  )}
+                  <h2 className="mt-1 inline-block rounded bg-gray-100 px-4 py-1 text-lg font-bold text-gray-800">
+                    عرض سعر
+                  </h2>
+                </div>
+                <div className="flex-1 text-left" dir="ltr">
+                  <h1 className="text-xl font-bold text-[#1F4E78]">
+                    {String(
+                      ((company ?? {}) as Record<string, unknown>).name_en ||
+                        ((company ?? {}) as Record<string, unknown>).name ||
+                        'Company'
+                    )}
+                  </h1>
+                  <h2 className="text-md mt-2 font-bold text-gray-800">Quotation</h2>
                 </div>
               </div>
-              <div className="flex flex-1 flex-col items-center justify-center text-center">
-                {Boolean(((company ?? {}) as Record<string, unknown>).logo_url) && (
-                  <img
-                    src={String(((company ?? {}) as Record<string, unknown>).logo_url)}
-                    alt="شعار المنشأة"
-                    className="mb-1 h-14 w-auto max-w-[120px] object-contain"
-                  />
-                )}
-                <h2 className="mt-1 inline-block rounded bg-gray-100 px-4 py-1 text-lg font-bold text-gray-800">
-                  عرض سعر
-                </h2>
-              </div>
-              <div className="flex-1 text-left" dir="ltr">
-                <h1 className="text-xl font-bold text-[#1F4E78]">
-                  {String(
-                    ((company ?? {}) as Record<string, unknown>).name_en ||
-                      ((company ?? {}) as Record<string, unknown>).name ||
-                      'Company'
-                  )}
-                </h1>
-                <h2 className="text-md mt-2 font-bold text-gray-800">Quotation</h2>
-              </div>
             </div>
-          </div>
+          )}
           {/* Status & Validity Bar */}
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800 max-md:gap-3 max-md:p-4">
             <span

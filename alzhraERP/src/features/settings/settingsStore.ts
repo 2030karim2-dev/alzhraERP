@@ -23,6 +23,10 @@ import {
   DEFAULT_INTEGRATION_SETTINGS,
   DEFAULT_LOCALIZATION_SETTINGS,
 } from './types/index';
+import {
+  type DocumentHeaderConfig,
+  DEFAULT_DOCUMENT_HEADER_CONFIG,
+} from '@/core/types/documentHeader';
 
 // ------------------------------------------
 // Store State Interface
@@ -36,6 +40,7 @@ interface SettingsState {
   print: PrintSettings;
   integration: IntegrationSettings;
   localization: LocalizationSettings;
+  documentHeader: DocumentHeaderConfig;
 
   // Actions
   setInvoiceSettings: (settings: Partial<InvoiceSettings>) => void;
@@ -45,6 +50,8 @@ interface SettingsState {
   setPrintSettings: (settings: Partial<PrintSettings>) => void;
   setIntegrationSettings: (settings: Partial<IntegrationSettings>) => void;
   setLocalizationSettings: (settings: Partial<LocalizationSettings>) => void;
+  setDocumentHeader: (settings: Partial<DocumentHeaderConfig>) => void;
+  applyHeaderTemplateToAll: () => void;
 
   // Bank accounts
   addBankAccount: (account: BankAccount) => void;
@@ -69,6 +76,8 @@ interface SettingsActions {
   setPrintSettings: (settings: Partial<PrintSettings>) => void;
   setIntegrationSettings: (settings: Partial<IntegrationSettings>) => void;
   setLocalizationSettings: (settings: Partial<LocalizationSettings>) => void;
+  setDocumentHeader: (settings: Partial<DocumentHeaderConfig>) => void;
+  applyHeaderTemplateToAll: () => void;
   addBankAccount: (account: BankAccount) => void;
   updateBankAccount: (id: string, account: Partial<BankAccount>) => void;
   deleteBankAccount: (id: string) => void;
@@ -92,6 +101,7 @@ export const useSettingsStore = create<SettingsState>()(
       print: DEFAULT_PRINT_SETTINGS,
       integration: DEFAULT_INTEGRATION_SETTINGS,
       localization: DEFAULT_LOCALIZATION_SETTINGS,
+      documentHeader: DEFAULT_DOCUMENT_HEADER_CONFIG,
 
       // Invoice settings
       setInvoiceSettings: settings =>
@@ -134,6 +144,36 @@ export const useSettingsStore = create<SettingsState>()(
         set(state => ({
           localization: { ...state.localization, ...settings },
         })),
+
+      // Document header settings
+      setDocumentHeader: settings =>
+        set(state => ({
+          documentHeader: {
+            ...state.documentHeader,
+            ...settings,
+            lastUpdated: new Date().toISOString(),
+          },
+        })),
+
+      // Apply template to all documents (unifies print & invoice header states)
+      applyHeaderTemplateToAll: () =>
+        set(state => {
+          const currentHeader = state.documentHeader;
+          return {
+            documentHeader: {
+              ...currentHeader,
+              isTemplateAppliedToAll: true,
+              lastUpdated: new Date().toISOString(),
+            },
+            print: {
+              ...state.print,
+              show_logo: currentHeader.logo.showLogo,
+              logo_position: currentHeader.logo.position,
+              logo_size: currentHeader.logo.size,
+              header_text: currentHeader.details.sloganText || state.print.header_text,
+            },
+          };
+        }),
 
       // Bank accounts management
       addBankAccount: account =>
@@ -194,6 +234,7 @@ export const useSettingsStore = create<SettingsState>()(
           print: DEFAULT_PRINT_SETTINGS,
           integration: DEFAULT_INTEGRATION_SETTINGS,
           localization: DEFAULT_LOCALIZATION_SETTINGS,
+          documentHeader: DEFAULT_DOCUMENT_HEADER_CONFIG,
         }),
 
       // Reset specific section
@@ -206,6 +247,7 @@ export const useSettingsStore = create<SettingsState>()(
           print: DEFAULT_PRINT_SETTINGS,
           integration: DEFAULT_INTEGRATION_SETTINGS,
           localization: DEFAULT_LOCALIZATION_SETTINGS,
+          documentHeader: DEFAULT_DOCUMENT_HEADER_CONFIG,
         };
         set({ [section]: defaults[section] });
       },
@@ -220,6 +262,7 @@ export const useSettingsStore = create<SettingsState>()(
         print: state.print,
         integration: state.integration,
         localization: state.localization,
+        documentHeader: state.documentHeader,
       }),
     }
   )
@@ -235,6 +278,7 @@ export const usePOSSettings = () => useSettingsStore(state => state.pos);
 export const usePrintSettings = () => useSettingsStore(state => state.print);
 export const useIntegrationSettings = () => useSettingsStore(state => state.integration);
 export const useLocalizationSettings = () => useSettingsStore(state => state.localization);
+export const useDocumentHeaderSettings = () => useSettingsStore(state => state.documentHeader);
 
 // Re-export types for convenience
 export type {
@@ -248,3 +292,4 @@ export type {
   BankAccount,
   PaymentMethod,
 } from './types/index';
+export type { DocumentHeaderConfig } from '@/core/types/documentHeader';

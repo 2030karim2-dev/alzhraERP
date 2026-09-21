@@ -1,7 +1,8 @@
 import React from 'react';
 import { formatCurrency } from '../../../core/utils';
 import { useCompany } from '../../settings/hooks';
-import { useInvoiceSettings } from '../../settings/settingsStore';
+import { useInvoiceSettings, useDocumentHeaderSettings } from '../../settings/settingsStore';
+import { UniversalDocumentHeader } from '@/ui/common/UniversalDocumentHeader';
 
 export interface PurchasePrintParty {
   name: string | null;
@@ -218,11 +219,34 @@ const PurchaseInvoicePrintTemplate = React.forwardRef<
     logoUrl: settingsCompany?.logo_url ?? '',
   };
 
+  const headerConfig = useDocumentHeaderSettings();
+
   return (
     <div ref={ref} className="mx-auto max-w-4xl bg-white font-sans text-black print:p-0" dir="rtl">
       <style>{printStyles}</style>
       <div className="purchases-print-box p-8">
-        <PrintHeader company={company} />
+        {headerConfig?.isTemplateAppliedToAll ? (
+          <div className="mb-5">
+            <UniversalDocumentHeader
+              config={headerConfig}
+              company={{
+                name: company.nameAr || settingsCompany?.name_ar,
+                phone: company.phone || settingsCompany?.phone,
+                email: settingsCompany?.email,
+                address: company.address || settingsCompany?.address,
+                tax_number: company.taxNumber || settingsCompany?.tax_number,
+                commercial_register: settingsCompany?.cr_number,
+                slogan: company.specialization,
+                logo_url: company.logoUrl || settingsCompany?.logo_url,
+              }}
+              documentTitle="فاتورة مشتريات"
+              documentNumber={invoice.invoice_number ?? undefined}
+              documentDate={invoice.issue_date}
+            />
+          </div>
+        ) : (
+          <PrintHeader company={company} />
+        )}
         <MetaInfo invoice={invoice} />
         <ItemsTable items={invoice.invoice_items} />
         <Totals invoice={invoice} />

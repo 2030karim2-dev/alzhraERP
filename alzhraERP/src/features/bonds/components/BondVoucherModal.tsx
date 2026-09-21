@@ -18,7 +18,9 @@ import { formatCurrency, formatLocalDate, cn } from '../../../core/utils';
 import { tafqeet } from '../../../core/utils/tafqeet';
 import { exportSingleBondToExcel } from '../../../core/utils/bondExcelExporter';
 import { useCompany } from '../../settings/hooks';
-import { useInvoiceSettings } from '../../settings/settingsStore';
+import { useInvoiceSettings, useDocumentHeaderSettings } from '../../settings/settingsStore';
+import { UniversalDocumentHeader } from '@/ui/common/UniversalDocumentHeader';
+import { buildWhatsappHeader } from '@/core/utils/whatsappHeader';
 import { logger } from '../../../core/utils/logger';
 
 interface BondVoucherModalProps {
@@ -32,6 +34,7 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
   const printRef = useRef<HTMLDivElement>(null);
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
+  const headerConfig = useDocumentHeaderSettings();
 
   if (!isOpen || !bond) return null;
 
@@ -86,15 +89,25 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
         }
       );
 
+      const waHeader = headerConfig?.whatsapp
+        ? buildWhatsappHeader(headerConfig.whatsapp, {
+            name: headerConfig.details.companyNameOverride || company.name_ar,
+            phone: company.phone || undefined,
+            taxNumber: company.tax_number || undefined,
+            slogan: headerConfig.details.sloganText || undefined,
+          })
+        : '';
+      const shareText = `${waHeader}مرفق ${voucherTitle} رقم ${bond.payment_number}\nالمبلغ: ${formatCurrency(bond.amount)} ${bond.currency_code}`;
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: `${voucherTitle} ${bond.payment_number}`,
-          text: `مرفق ${voucherTitle} رقم ${bond.payment_number}`,
+          text: shareText,
         });
       } else {
         await exportSingleBondToExcel(company, bond);
-        const text = encodeURIComponent(`مرفق ${voucherTitle} رقم ${bond.payment_number}`);
+        const text = encodeURIComponent(shareText);
         window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
       }
     } catch (err) {
@@ -210,62 +223,82 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
             className="mx-auto max-w-3xl rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:p-10"
           >
             {/* Header: Company and Voucher Meta */}
-            <div className="flex flex-col justify-between gap-4 border-b-2 border-slate-200 pb-6 dark:border-slate-800 sm:flex-row sm:items-start">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Building2 size={22} className="text-blue-600 dark:text-blue-400" />
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                    {company.name_ar}
-                  </h2>
-                </div>
-                {company.tax_number && (
-                  <p className="font-mono text-xs text-slate-500">
-                    الرقم الضريبي: {company.tax_number}
-                  </p>
-                )}
-                {company.phone && <p className="text-xs text-slate-500">الهاتف: {company.phone}</p>}
-                {company.address && (
-                  <p className="text-xs text-slate-500">العنوان: {company.address}</p>
-                )}
+            {headerConfig?.isTemplateAppliedToAll ? (
+              <div className="mb-6">
+                <UniversalDocumentHeader
+                  config={headerConfig}
+                  company={{
+                    name: company.name_ar,
+                    phone: company.phone || undefined,
+                    address: company.address || undefined,
+                    tax_number: company.tax_number || undefined,
+                    logo_url: company.logo_url || undefined,
+                  }}
+                  documentTitle={voucherTitle}
+                  documentNumber={bond.payment_number}
+                  documentDate={bond.date}
+                />
               </div>
-
-              {company.logo_url && (
-                <div className="flex items-center justify-center">
-                  <img
-                    src={company.logo_url}
-                    alt="شعار المنشأة"
-                    className="h-16 w-auto max-w-[120px] object-contain"
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-col items-start space-y-2 sm:items-end">
-                <div
-                  className={cn(
-                    'rounded-xl px-5 py-2 text-center shadow-sm',
-                    isReceipt
-                      ? 'bg-emerald-600 text-white'
-                      : isPayment
-                        ? 'bg-rose-600 text-white'
-                        : 'bg-blue-600 text-white'
+            ) : (
+              <div className="flex flex-col justify-between gap-4 border-b-2 border-slate-200 pb-6 dark:border-slate-800 sm:flex-row sm:items-start">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Building2 size={22} className="text-blue-600 dark:text-blue-400" />
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                      {company.name_ar}
+                    </h2>
+                  </div>
+                  {company.tax_number && (
+                    <p className="font-mono text-xs text-slate-500">
+                      الرقم الضريبي: {company.tax_number}
+                    </p>
                   )}
-                >
-                  <span className="text-sm font-black tracking-wide">{voucherTitle}</span>
+                  {company.phone && (
+                    <p className="text-xs text-slate-500">الهاتف: {company.phone}</p>
+                  )}
+                  {company.address && (
+                    <p className="text-xs text-slate-500">العنوان: {company.address}</p>
+                  )}
                 </div>
-                <div className="space-y-1 text-left font-mono text-xs sm:text-right">
-                  <div className="text-slate-600 dark:text-slate-400">
-                    رقم السند:{' '}
-                    <span className="font-bold text-slate-900 dark:text-slate-100">
-                      {bond.payment_number}
-                    </span>
+
+                {company.logo_url && (
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={company.logo_url}
+                      alt="شعار المنشأة"
+                      className="h-16 w-auto max-w-[120px] object-contain"
+                    />
                   </div>
-                  <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-                    <Calendar size={12} />
-                    <span>التاريخ: {bond.date}</span>
+                )}
+
+                <div className="flex flex-col items-start space-y-2 sm:items-end">
+                  <div
+                    className={cn(
+                      'rounded-xl px-5 py-2 text-center shadow-sm',
+                      isReceipt
+                        ? 'bg-emerald-600 text-white'
+                        : isPayment
+                          ? 'bg-rose-600 text-white'
+                          : 'bg-blue-600 text-white'
+                    )}
+                  >
+                    <span className="text-sm font-black tracking-wide">{voucherTitle}</span>
+                  </div>
+                  <div className="space-y-1 text-left font-mono text-xs sm:text-right">
+                    <div className="text-slate-600 dark:text-slate-400">
+                      رقم السند:{' '}
+                      <span className="font-bold text-slate-900 dark:text-slate-100">
+                        {bond.payment_number}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                      <Calendar size={12} />
+                      <span>التاريخ: {bond.date}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Amount Banner */}
             <div className="my-6 flex flex-col items-center justify-between gap-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-800/40 sm:flex-row">

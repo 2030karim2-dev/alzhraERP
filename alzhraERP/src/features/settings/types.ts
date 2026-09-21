@@ -16,7 +16,8 @@ export type SettingsSection =
   | 'localization'
   | 'branches'
   | 'preferences'
-  | 'dhikr';
+  | 'dhikr'
+  | 'header_studio';
 
 export interface Company {
   id: string;

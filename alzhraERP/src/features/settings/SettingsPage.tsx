@@ -16,7 +16,9 @@ import {
   GitBranch,
   Moon,
   Bell,
+  LayoutTemplate,
 } from 'lucide-react';
+import { DocumentHeaderStudio } from './components/header-studio/DocumentHeaderStudio';
 import CompanyProfile from './components/CompanyProfile';
 import BranchManager from './components/branches/BranchManager';
 import PersonalProfile from './components/PersonalProfile';
@@ -131,6 +133,13 @@ const SettingsPage: React.FC = () => {
           color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30',
         },
         {
+          id: 'header_studio',
+          label: 'ترويسة وتصميم المستندات',
+          icon: LayoutTemplate,
+          desc: 'تخصيص الخطوط والشعارات وتعميم ترويسة الفواتير والسندات والواتساب',
+          color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30',
+        },
+        {
           id: 'pos',
           label: t('pos_settings'),
           icon: Calculator,
@@ -227,10 +236,15 @@ const SettingsPage: React.FC = () => {
           <div className="space-y-8">
             <InvoiceSettings />
             <div className="px-4">
+              <DocumentHeaderStudio />
+            </div>
+            <div className="px-4">
               <PrintSettings />
             </div>
           </div>
         );
+      case 'header_studio':
+        return <DocumentHeaderStudio />;
       case 'pos':
         return <POSSettings />;
       case 'inventory':

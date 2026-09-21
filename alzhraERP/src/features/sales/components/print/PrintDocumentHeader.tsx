@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
 import { Building2, Image as ImageIcon, Upload, X } from 'lucide-react';
+import { useDocumentHeaderSettings } from '@/features/settings/settingsStore';
+import { UniversalDocumentHeader } from '@/ui/common/UniversalDocumentHeader';
 
 export type HeaderLayoutMode = 'modern-centered' | 'classic-split' | 'full-banner';
 
@@ -41,8 +43,50 @@ export const PrintDocumentHeader: React.FC<PrintDocumentHeaderProps> = ({
   accentColor = '#1F4E78',
   allowEdit = true,
 }) => {
+  const globalHeaderConfig = useDocumentHeaderSettings();
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // If generalized template is active, render the UniversalDocumentHeader
+  if (globalHeaderConfig?.isTemplateAppliedToAll) {
+    const mergedConfig = {
+      ...globalHeaderConfig,
+      style: {
+        ...globalHeaderConfig.style,
+        layout: (layoutMode as any) || globalHeaderConfig.style.layout,
+        accentColor: accentColor || globalHeaderConfig.style.accentColor,
+      },
+      logo: {
+        ...globalHeaderConfig.logo,
+        logoUrl: company.logoUrl || globalHeaderConfig.logo.logoUrl,
+      },
+      banner: {
+        ...globalHeaderConfig.banner,
+        bannerUrl: company.bannerUrl || globalHeaderConfig.banner.bannerUrl,
+      },
+    };
+
+    return (
+      <div className="mb-4 w-full">
+        <UniversalDocumentHeader
+          config={mergedConfig}
+          company={{
+            name: company.nameAr,
+            phone: company.phone,
+            email: company.email,
+            address: company.address,
+            tax_number: company.taxNumber,
+            commercial_register: company.crNumber,
+            slogan: company.specialization,
+            logo_url: company.logoUrl,
+          }}
+          documentTitle={document.titleAr}
+          documentNumber={document.documentNumber}
+          documentDate={document.documentDate}
+        />
+      </div>
+    );
+  }
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,

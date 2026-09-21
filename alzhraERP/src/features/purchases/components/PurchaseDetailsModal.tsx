@@ -18,6 +18,8 @@ import {
 import { shareSpreadsheet } from '../../../core/utils/shareUtils';
 import { AdvancedReturnModal } from '../../returns/components/AdvancedReturnModal';
 import { logger } from '../../../core/utils/logger';
+import { useDocumentHeaderSettings } from '../../settings/settingsStore';
+import { buildWhatsappHeader } from '../../../core/utils/whatsappHeader';
 import { InvoiceMetaCards, type PurchaseDetailInvoice } from './details/InvoiceMetaCards';
 import { InvoiceItemsTable } from './details/InvoiceItemsTable';
 import { InvoiceActionToolbar } from './details/InvoiceActionToolbar';
@@ -45,6 +47,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedSku, setCopiedSku] = useState<string | null>(null);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const headerConfig = useDocumentHeaderSettings();
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -149,12 +152,22 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
         totalAmount: invoice.total_amount,
       });
 
+      const waHeader = headerConfig?.whatsapp
+        ? buildWhatsappHeader(headerConfig.whatsapp, {
+            name: headerConfig.details.companyNameOverride || companyName,
+            phone: (company as { phone?: string })?.phone || undefined,
+            taxNumber,
+            slogan: headerConfig.details.sloganText || undefined,
+          })
+        : '';
+      const shareText = `${waHeader}مرفق فاتورة مشتريات رقم #${invoiceNumber} من ${companyName}`;
+
       await shareSpreadsheet({
         blob,
         fileName: `فاتورة_شراء_${invoiceNumber}.xlsx`,
         shareTitle: `فاتورة مشتريات #${invoiceNumber}`,
-        shareText: `مرفق فاتورة مشتريات رقم #${invoiceNumber} من ${companyName}`,
-        fallbackText: `فاتورة مشتريات #${invoiceNumber} من ${companyName}\nالمورد: ${invoice.party?.name ?? 'مورد عام'}`,
+        shareText,
+        fallbackText: `${shareText}\nالمورد: ${invoice.party?.name ?? 'مورد عام'}`,
         onDownloadFallback: () =>
           exportInvoiceToExcel({
             companyName,

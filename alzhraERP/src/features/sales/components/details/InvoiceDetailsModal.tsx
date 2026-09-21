@@ -19,6 +19,8 @@ import { useInvoiceDetails } from '../../hooks/index';
 import type { InvoiceDetailItem } from '../../api';
 import { useCompany } from '@/features/settings/hooks';
 import { useAuthStore } from '@/features/auth/store';
+import { useDocumentHeaderSettings } from '@/features/settings/settingsStore';
+import { buildWhatsappHeader } from '@/core/utils/whatsappHeader';
 import { useInvoicePaymentStatus } from '../../hooks/useInvoicePaymentStatus';
 import ReturnWizard from './ReturnWizard';
 import type { Invoice, InvoiceItem } from '../../../returns/types';
@@ -38,6 +40,7 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const { data: invoice, isLoading } = useInvoiceDetails(invoiceId);
   const { data: company } = useCompany();
   const { user } = useAuthStore();
+  const headerConfig = useDocumentHeaderSettings();
   const [isExporting, setIsExporting] = useState(false);
   const [showReturnSection, setShowReturnSection] = useState(false);
   const [showAlert, setShowAlert] = useState<{
@@ -159,12 +162,25 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
       };
 
       const blob = await generateInvoiceExcelBlob(data);
+      const waHeader = headerConfig?.whatsapp
+        ? buildWhatsappHeader(headerConfig.whatsapp, {
+            name:
+              headerConfig.details.companyNameOverride ||
+              (comp?.name_ar as string) ||
+              (comp?.name as string) ||
+              'الشركة',
+            phone: (comp?.phone as string) || undefined,
+            taxNumber: (comp?.tax_number as string) || undefined,
+            slogan: headerConfig.details.sloganText || undefined,
+          })
+        : '';
+      const shareText = `${waHeader}مرفق فاتورة رقم ${data.invoiceNumber}`;
       await shareSpreadsheet({
         blob,
         fileName: `فاتورة_${data.invoiceNumber}.xlsx`,
         shareTitle: `فاتورة ${data.invoiceNumber}`,
-        shareText: `مرفق فاتورة رقم ${data.invoiceNumber}`,
-        fallbackText: `مرفق فاتورة رقم ${data.invoiceNumber}. يرجى الاطلاع على الملف المرفق.`,
+        shareText,
+        fallbackText: `${shareText}. يرجى الاطلاع على الملف المرفق.`,
         onDownloadFallback: () => exportInvoiceToExcel(data),
       });
     } catch (err) {
