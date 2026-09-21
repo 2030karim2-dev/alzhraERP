@@ -52,8 +52,13 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
   const issuedByName = user?.full_name || user?.email || 'غير محدد';
 
   const handleExportPDF = async () => {
-    if (!printRef.current || !invoice) return;
     setIsExporting(true);
+    // Allow React to commit the PdfCaptureHost to the DOM before measuring
+    await new Promise(resolve => setTimeout(resolve, 50));
+    if (!printRef.current || !invoice) {
+      setIsExporting(false);
+      return;
+    }
     try {
       await exportToPDF(printRef.current, `فاتورة-${invoice.invoice_number}`);
       setShowAlert({ type: 'success', message: 'تم تصدير الفاتورة بنجاح' });
@@ -412,15 +417,16 @@ const InvoiceDetailsModal: React.FC<Props> = ({ invoiceId, onClose, onReturn }) 
               </div>
             )}
 
-            {/* Off-screen capture host for PDF export (must stay measurable, never
-                display:none). It is excluded from physical printing by CSS. */}
-            <PdfCaptureHost innerRef={printRef}>
-              <PrintableInvoice
-                invoice={fullInvoiceData}
-                onExportPDF={handleExportPDF}
-                isExporting={isExporting}
-              />
-            </PdfCaptureHost>
+            {/* Off-screen capture host for PDF export (only mounted when exporting to prevent heavy eager QR & canvas calculations on modal open) */}
+            {isExporting && (
+              <PdfCaptureHost innerRef={printRef}>
+                <PrintableInvoice
+                  invoice={fullInvoiceData}
+                  onExportPDF={handleExportPDF}
+                  isExporting={isExporting}
+                />
+              </PdfCaptureHost>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">

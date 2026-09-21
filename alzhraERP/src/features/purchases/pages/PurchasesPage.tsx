@@ -130,6 +130,11 @@ interface PageContentProps {
   onStatusFilterChange?: ((val: string) => void) | undefined;
   paymentMethodFilter?: string | undefined;
   onPaymentMethodFilterChange?: ((val: string) => void) | undefined;
+  currencyFilter?: string | undefined;
+  onCurrencyFilterChange?: ((curr: string) => void) | undefined;
+  sortBy?: string | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
+  onSortChange?: ((by: string, order: 'asc' | 'desc') => void) | undefined;
   limit?: number | undefined;
   onLimitChange?: ((limit: number) => void) | undefined;
   onResetFilters: () => void;
@@ -158,6 +163,11 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
   onStatusFilterChange,
   paymentMethodFilter,
   onPaymentMethodFilterChange,
+  currencyFilter,
+  onCurrencyFilterChange,
+  sortBy,
+  sortOrder,
+  onSortChange,
   limit,
   onLimitChange,
   onResetFilters,
@@ -192,6 +202,11 @@ const PurchasePageContent: React.FC<PageContentProps> = ({
             onStatusFilterChange={onStatusFilterChange}
             paymentMethodFilter={paymentMethodFilter}
             onPaymentMethodFilterChange={onPaymentMethodFilterChange}
+            currencyFilter={currencyFilter}
+            onCurrencyFilterChange={onCurrencyFilterChange}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={onSortChange}
             totalMatches={data.length}
             totalMatchingCount={(data[0] as any)?.total_matching_count || data.length}
             limit={limit}
@@ -233,6 +248,9 @@ const PurchasesPage: React.FC = () => {
   const [dateTo, setDateTo] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+  const [currencyFilter, setCurrencyFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<'date' | 'total' | 'number'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [limit, setLimit] = useState(500);
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -271,6 +289,9 @@ const PurchasesPage: React.FC = () => {
     setDateTo(undefined);
     setStatusFilter('all');
     setPaymentMethodFilter('all');
+    setCurrencyFilter('all');
+    setSortBy('date');
+    setSortOrder('desc');
   }, []);
 
   const handleSmartImportConfirm = useCallback(
@@ -286,8 +307,35 @@ const PurchasesPage: React.FC = () => {
   );
 
   const filteredData = useMemo(() => {
-    return allPurchases || [];
-  }, [allPurchases]);
+    let result = (allPurchases || []) as any[];
+
+    if (currencyFilter !== 'all') {
+      result = result.filter(
+        p =>
+          (p.currency_code || p.currencyCode || '').toUpperCase() === currencyFilter.toUpperCase()
+      );
+    }
+
+    result.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'total') {
+        const totA = Number(a.total_amount ?? a.total ?? 0);
+        const totB = Number(b.total_amount ?? b.total ?? 0);
+        cmp = totA - totB;
+      } else if (sortBy === 'number') {
+        const numA = String(a.invoice_number ?? a.invoiceNumber ?? '');
+        const numB = String(b.invoice_number ?? b.invoiceNumber ?? '');
+        cmp = numA.localeCompare(numB, undefined, { numeric: true });
+      } else {
+        const dateA = new Date(a.issue_date ?? a.date ?? 0).getTime() || 0;
+        const dateB = new Date(b.issue_date ?? b.date ?? 0).getTime() || 0;
+        cmp = dateA - dateB;
+      }
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
+
+    return result as PurchaseRows;
+  }, [allPurchases, currencyFilter, sortBy, sortOrder]);
 
   const TABS = [
     { id: 'list', label: t('purchases_log'), icon: History },
@@ -362,6 +410,14 @@ const PurchasesPage: React.FC = () => {
               onStatusFilterChange={setStatusFilter}
               paymentMethodFilter={paymentMethodFilter}
               onPaymentMethodFilterChange={setPaymentMethodFilter}
+              currencyFilter={currencyFilter}
+              onCurrencyFilterChange={setCurrencyFilter}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={(by, order) => {
+                setSortBy(by as 'date' | 'total' | 'number');
+                setSortOrder(order);
+              }}
               limit={limit}
               onLimitChange={setLimit}
               onResetFilters={handleResetFilters}

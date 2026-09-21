@@ -20,6 +20,11 @@ interface InvoiceSearchToolbarProps {
   onStatusFilterChange?: ((status: string) => void) | undefined;
   paymentMethodFilter?: string | undefined;
   onPaymentMethodFilterChange?: ((method: string) => void) | undefined;
+  currencyFilter?: string | undefined;
+  onCurrencyFilterChange?: ((curr: string) => void) | undefined;
+  sortBy?: string | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
+  onSortChange?: ((by: string, order: 'asc' | 'desc') => void) | undefined;
   totalMatches?: number | undefined;
   totalMatchingCount?: number | undefined;
   limit?: number | undefined;
@@ -53,6 +58,11 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
   onStatusFilterChange,
   paymentMethodFilter = 'all',
   onPaymentMethodFilterChange,
+  currencyFilter = 'all',
+  onCurrencyFilterChange,
+  sortBy = 'date',
+  sortOrder = 'desc',
+  onSortChange,
   totalMatches,
   totalMatchingCount,
   limit,
@@ -74,7 +84,10 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
     dateFrom ||
     dateTo ||
     (statusFilter && statusFilter !== 'all') ||
-    (paymentMethodFilter && paymentMethodFilter !== 'all')
+    (paymentMethodFilter && paymentMethodFilter !== 'all') ||
+    (currencyFilter && currencyFilter !== 'all') ||
+    (sortBy && sortBy !== 'date') ||
+    (sortOrder && sortOrder !== 'desc')
   );
 
   const handlePresetClick = (preset: DatePreset) => {
@@ -118,6 +131,25 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
           )}
         </div>
 
+        {/* Currency Filter */}
+        {onCurrencyFilterChange && (
+          <select
+            value={currencyFilter}
+            onChange={e => {
+              onCurrencyFilterChange(e.target.value);
+            }}
+            aria-label="تصفية حسب العملة"
+            className="focus:outline-hidden h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 text-xs font-bold text-[var(--app-text)] focus:border-blue-500"
+          >
+            <option value="all">كل العملات</option>
+            <option value="SAR">ريال سعودي (SAR)</option>
+            <option value="YER">ريال يمني (YER)</option>
+            <option value="USD">دولار أمريكي (USD)</option>
+            <option value="OMR">ريال عماني (OMR)</option>
+            <option value="CNY">يوان صيني (CNY)</option>
+          </select>
+        )}
+
         {/* Quick Filter: Payment Method */}
         {onPaymentMethodFilterChange && (
           <select
@@ -149,6 +181,26 @@ export const InvoiceSearchToolbar: React.FC<InvoiceSearchToolbarProps> = ({
             <option value="posted">مرحّلة</option>
             <option value="partially_paid">مدفوعة جزئياً</option>
             <option value="draft">مسودة</option>
+          </select>
+        )}
+
+        {/* Sort Selector */}
+        {onSortChange && (
+          <select
+            value={`${sortBy}_${sortOrder}`}
+            onChange={e => {
+              const [by, order] = e.target.value.split('_');
+              onSortChange(by, order as 'asc' | 'desc');
+            }}
+            aria-label="ترتيب وفرز النتائج"
+            className="focus:outline-hidden h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 text-xs font-bold text-[var(--app-text)] focus:border-blue-500"
+          >
+            <option value="date_desc">الأحدث تاريخاً / وقتاً</option>
+            <option value="date_asc">الأقدم تاريخاً</option>
+            <option value="total_desc">الأعلى مبلغاً</option>
+            <option value="total_asc">الأقل مبلغاً</option>
+            <option value="number_desc">رقم المستند (تنازلي)</option>
+            <option value="number_asc">رقم المستند (تصاعدي)</option>
           </select>
         )}
 

@@ -24,6 +24,8 @@ const ROUTE_PREFETCH_MAP: Record<string, PrefetchFn> = {
   '/clients': () => import('../../features/parties/PartiesPage'),
   '/suppliers': () => import('../../features/parties/PartiesPage'),
   '/reports': () => import('../../features/reports/ReportsPage'),
+  '/debts': () => import('../../features/debts/pages/OverviewPage'),
+  '/appearance': () => import('../../features/appearance/AppearancePage'),
 };
 
 // Track which routes have already been prefetched to avoid duplicate fetches
@@ -66,7 +68,18 @@ export function prefetchRoute(path: string): void {
 export function prefetchCriticalRoutes(): void {
   // Only prefetch when browser is completely idle to preserve typing & rendering performance
   const startPrefetch = () => {
-    const criticalRoutes = ['/pos', '/sales', '/inventory'];
+    const criticalRoutes = [
+      '/pos',
+      '/sales',
+      '/inventory',
+      '/purchases',
+      '/expenses',
+      '/bonds',
+      '/accounting',
+      '/clients',
+      '/suppliers',
+      '/reports',
+    ];
     criticalRoutes.forEach((path, index) => {
       setTimeout(
         () => {
@@ -81,7 +94,7 @@ export function prefetchCriticalRoutes(): void {
             prefetchRoute(path);
           }
         },
-        (index + 1) * 1500
+        (index + 1) * 800
       );
     });
   };

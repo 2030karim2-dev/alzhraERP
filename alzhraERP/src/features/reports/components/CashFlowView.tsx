@@ -195,7 +195,7 @@ const CashFlowView: React.FC = () => {
 
           <div className="h-[260px] w-full flex-1 sm:h-[320px]">
             {isMounted ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <AreaChart
                   data={data?.monthlyTrend || []}
                   margin={{ top: 10, right: 10, left: 0, bottom: 0 }}

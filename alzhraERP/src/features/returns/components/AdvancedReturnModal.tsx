@@ -82,12 +82,14 @@ export const AdvancedReturnModal: React.FC<AdvancedReturnModalProps> = ({
   const { showToast } = useFeedbackStore();
   const queryClient = useQueryClient();
 
-  // Need to fetch invoices based on type
+  // Need to fetch invoices based on type — only when modal is open and matches the return type
   const { data: salesInvoices, isLoading: isLoadingSales } = useSalesInvoicesForReturn(
-    returnType === 'sale' ? partyId : null
+    returnType === 'sale' ? partyId : null,
+    { enabled: isOpen && returnType === 'sale' }
   );
   const { data: purchaseInvoices, isLoading: isLoadingPurchases } = usePurchaseInvoicesForReturn(
-    (returnType === 'purchase' ? partyId : null) as string | null
+    (returnType === 'purchase' ? partyId : null) as string | null,
+    { enabled: isOpen && returnType === 'purchase' }
   );
 
   const invoices: SourceReturnInvoice[] =

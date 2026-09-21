@@ -7,7 +7,13 @@ export const bondsApi = {
   getBonds: async (companyId: string, branchId?: string | null, type?: BondType) => {
     // Map BondType → payments.type
     const paymentType =
-      type === 'receipt' ? 'receipt' : type === 'transfer' ? 'transfer' : 'disbursement';
+      type === 'receipt'
+        ? 'receipt'
+        : type === 'transfer'
+          ? 'transfer'
+          : type === 'payment'
+            ? 'disbursement'
+            : null;
 
     let query = supabase
       .from('payments')
@@ -28,10 +34,14 @@ export const bondsApi = {
       `
       )
       .eq('company_id', companyId)
-      .eq('type', paymentType)
       .is('deleted_at', null)
       .neq('status', 'void')
       .order('payment_date', { ascending: false });
+
+    // Only filter by type when explicitly requested
+    if (paymentType) {
+      query = query.eq('type', paymentType);
+    }
 
     if (branchId) {
       query = query.eq('branch_id', branchId);
@@ -161,10 +171,11 @@ export const bondsApi = {
     return { error: null };
   },
 
-  getBondsStats: async (companyId: string, branchId?: string | null) => {
+  getBondsStats: async (companyId: string, branchId?: string | null, period?: string) => {
     return await supabase.rpc('get_bonds_stats', {
       p_company_id: companyId,
       ...(branchId ? { p_branch_id: branchId } : {}),
+      ...(period ? { p_period: period } : {}),
     });
   },
 };

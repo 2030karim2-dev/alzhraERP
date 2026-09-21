@@ -199,7 +199,34 @@ function ExcelTable<T>({
       };
 
       items = items.filter(item => {
-        // 1. Try to evaluate column accessors to catch custom displayed values/elements
+        // ⚡ Fast path 1: check direct primitive fields of the item first (avoids virtual DOM creation)
+        if (item && typeof item === 'object') {
+          const rec = item as Record<string, unknown>;
+          for (const key in rec) {
+            const v = rec[key];
+            if (v === null || v === undefined) continue;
+            if (typeof v === 'string' || typeof v === 'number') {
+              if (normalizeSearch(String(v)).includes(term)) return true;
+            }
+          }
+        }
+
+        // ⚡ Fast path 2: check column accessorKeys if specified
+        for (let i = 0; i < columns.length; i++) {
+          const key = columns[i].accessorKey;
+          if (key && typeof item === 'object' && item !== null) {
+            const val = (item as Record<string, unknown>)[key as string];
+            if (
+              val !== null &&
+              val !== undefined &&
+              (typeof val === 'string' || typeof val === 'number')
+            ) {
+              if (normalizeSearch(String(val)).includes(term)) return true;
+            }
+          }
+        }
+
+        // 3. Fallback to evaluating column accessors (catches custom rendered elements/badges)
         const accessorMatches = columns.some(col => {
           try {
             const val = col.accessor(item);
@@ -214,7 +241,7 @@ function ExcelTable<T>({
         });
         if (accessorMatches) return true;
 
-        // 2. Fallback to recursive deep search of the item object's values
+        // 4. Fallback to recursive deep search of the item object's nested values
         const deepSearch = (val: unknown): boolean => {
           if (val === null || val === undefined) return false;
           if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {

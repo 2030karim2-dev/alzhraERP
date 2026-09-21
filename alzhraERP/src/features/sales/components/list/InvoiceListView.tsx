@@ -3,6 +3,9 @@ import SalesStats from './SalesStats';
 import ExcelTable from '../../../../ui/common/ExcelTable';
 import { useInvoices, useDeleteInvoice } from '../../hooks/index';
 import { formatCurrency } from '../../../../core/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../../auth/store';
+import { salesApi } from '../../api';
 
 import { Eye, Trash2, ArrowLeftRight, FileSpreadsheet, Package } from 'lucide-react';
 import EmptyState from '../../../../ui/base/EmptyState';
@@ -66,6 +69,9 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   const [dateTo, setDateTo] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+  const [currencyFilter, setCurrencyFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<'date' | 'total' | 'number'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [limit, setLimit] = useState(500);
 
   useEffect(() => {
@@ -99,6 +105,19 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   const { data: invoices, isLoading, error, refetch } = useInvoices(searchParams);
   const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
   const { showToast } = useFeedbackStore();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+
+  const handlePrefetchDetails = useCallback(
+    (id: string) => {
+      void queryClient.prefetchQuery({
+        queryKey: ['invoice_details', id],
+        queryFn: () => salesApi.getInvoiceDetails(id, user?.company_id),
+        staleTime: 1000 * 60 * 5,
+      });
+    },
+    [queryClient, user?.company_id]
+  );
 
   const handleResetFilters = useCallback(() => {
     setInternalSearch('');
@@ -108,11 +127,39 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
     setDateTo(undefined);
     setStatusFilter('all');
     setPaymentMethodFilter('all');
+    setCurrencyFilter('all');
+    setSortBy('date');
+    setSortOrder('desc');
   }, []);
 
   const displayData = useMemo(() => {
-    return (invoices as InvoiceListItem[]) || [];
-  }, [invoices]);
+    const list = (invoices as InvoiceListItem[]) || [];
+    let result = [...list];
+
+    if (currencyFilter !== 'all') {
+      result = result.filter(
+        inv => (inv.currencyCode || '').toUpperCase() === currencyFilter.toUpperCase()
+      );
+    }
+
+    result.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'total') {
+        cmp = (a.total || 0) - (b.total || 0);
+      } else if (sortBy === 'number') {
+        cmp = (a.invoiceNumber || '').localeCompare(b.invoiceNumber || '', undefined, {
+          numeric: true,
+        });
+      } else {
+        const dateA = new Date(a.date).getTime() || 0;
+        const dateB = new Date(b.date).getTime() || 0;
+        cmp = dateA - dateB;
+      }
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
+
+    return result;
+  }, [invoices, currencyFilter, sortBy, sortOrder]);
 
   const handleViewDetails = useCallback(
     (id: string) => {
@@ -324,10 +371,14 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
                 <FileSpreadsheet size={15} />
               </button>
               <button
+                onMouseEnter={() => {
+                  handlePrefetchDetails(row.id);
+                }}
                 onClick={() => {
                   handleViewDetails(row.id);
                 }}
                 className="rounded p-1.5 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-slate-800"
+                title="معاينة تفاصيل الفاتورة"
               >
                 <Eye size={15} />
               </button>
@@ -378,6 +429,14 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         onStatusFilterChange={setStatusFilter}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodFilterChange={setPaymentMethodFilter}
+        currencyFilter={currencyFilter}
+        onCurrencyFilterChange={setCurrencyFilter}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={(by, order) => {
+          setSortBy(by as 'date' | 'total' | 'number');
+          setSortOrder(order);
+        }}
         totalMatches={displayData.length}
         totalMatchingCount={displayData[0]?.totalMatchingCount || displayData.length}
         limit={limit}
@@ -401,7 +460,11 @@ const InvoiceListView: React.FC<InvoiceListViewProps> = ({
               paymentMethod: item.paymentMethod || 'cash',
             }))}
             colorTheme={viewType === 'sale' ? 'blue' : 'orange'}
+            onRowDoubleClick={row => {
+              handleViewDetails(row.id);
+            }}
             onRowClick={row => {
+              handlePrefetchDetails(row.id);
               const store = useAccompanyingInfoStore.getState();
               if (store.isOpen) {
                 store.setTarget({

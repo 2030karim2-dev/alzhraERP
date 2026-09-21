@@ -174,16 +174,21 @@ export const purchasesApi = {
     }));
   },
 
-  getPurchaseDetails: async (purchaseId: string) => {
-    const { data, error } = await supabase
+  getPurchaseDetails: async (purchaseId: string, companyId?: string | null) => {
+    let query = supabase
       .from('invoices')
       .select(
         `
       *, party:party_id(*), invoice_items(*, product:products(name_ar, sku))
     `
       )
-      .eq('id', purchaseId)
-      .single();
+      .eq('id', purchaseId);
+
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data, error } = await query.single();
     return { data, error };
   },
 

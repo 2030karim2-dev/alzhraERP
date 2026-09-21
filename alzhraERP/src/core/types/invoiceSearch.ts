@@ -14,6 +14,9 @@ export interface MatchedInvoiceItem {
   is_direct_match?: boolean | undefined;
 }
 
+export type InvoiceSortField = 'date' | 'total' | 'number';
+export type SortOrder = 'asc' | 'desc';
+
 export interface InvoiceSearchParams {
   searchTerm?: string | undefined;
   datePreset?: DatePreset | undefined;
@@ -21,6 +24,7 @@ export interface InvoiceSearchParams {
   dateTo?: string | undefined;
   status?: string | undefined;
   paymentMethod?: string | undefined;
+  currency?: string | undefined;
   type?: string | undefined;
   branchId?: string | null | undefined;
   page?: number | undefined;

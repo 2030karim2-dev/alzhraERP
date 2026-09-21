@@ -279,13 +279,12 @@ export const useDashboardData = (
         return null;
       }
       try {
-        const result = await dashboardApi.fetchRawDashboardData(
-          companyId,
+        const result = await dashboardApi.fetchRawDashboardData(companyId, {
           signal,
           branchId,
           dateFrom,
-          dateTo
-        );
+          dateTo,
+        });
         return result as unknown as RawDashboardData;
       } catch (error) {
         // ⚡ Swallow ALL errors — the dashboard should degrade gracefully

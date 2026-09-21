@@ -94,17 +94,41 @@ export const usePurchaseStats = (): UseQueryResult<PurchaseStats | null> => {
 export const usePurchaseDetails = (
   purchaseId: string | null
 ): UseQueryResult<Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null> => {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const companyId = user?.company_id;
+
   return useQuery({
     queryKey: ['purchase_details', purchaseId],
     queryFn: async (): Promise<
       Awaited<ReturnType<typeof purchasesApi.getPurchaseDetails>>['data'] | null
     > => {
       if (purchaseId === null || purchaseId === '') return null;
-      const { data, error } = await purchasesApi.getPurchaseDetails(purchaseId);
+      const { data, error } = await purchasesApi.getPurchaseDetails(purchaseId, companyId);
       if (error) throw error;
       return data; // Cast to unknown to bypass strict Supabase join types without losing safety
     },
     enabled: purchaseId !== null && purchaseId !== '',
+    staleTime: 1000 * 60 * 5,
+    placeholderData: previousData => {
+      if (previousData) return previousData;
+      if (!purchaseId) return undefined;
+
+      const allQueries = queryClient.getQueriesData<any[]>({ queryKey: ['purchases'] });
+      for (const [, list] of allQueries) {
+        if (Array.isArray(list)) {
+          const found = list.find((inv: any) => inv?.id === purchaseId);
+          if (found) {
+            return {
+              ...found,
+              party: found.party ? found.party : undefined,
+              invoice_items: found.invoice_items || [],
+            } as any;
+          }
+        }
+      }
+      return undefined;
+    },
   });
 };
 

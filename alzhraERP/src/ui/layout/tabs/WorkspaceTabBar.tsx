@@ -15,6 +15,7 @@ import { getTabMeta, ICON_MAP, QUICK_LAUNCH_ITEMS } from './tabMeta';
 import { WorkspaceTabContextMenu } from './WorkspaceTabContextMenu';
 import { useTranslation } from '../../../lib/hooks/useTranslation';
 import { cn } from '../../../core/utils';
+import { prefetchRoute } from '../../../core/utils/routePrefetcher';
 
 export const WorkspaceTabBar: React.FC = () => {
   const location = useLocation();
@@ -198,6 +199,9 @@ export const WorkspaceTabBar: React.FC = () => {
               onContextMenu={e => {
                 handleContextMenu(e, tab);
               }}
+              onMouseEnter={() => {
+                prefetchRoute(tab.path);
+              }}
               title={`${tab.title} (${tab.isClosable ? 'انقر بالزر الأوسط للإغلاق' : 'الرئيسية'})`}
               className={cn(
                 'group relative flex h-8 min-w-[110px] max-w-[200px] cursor-pointer items-center gap-2 rounded-t-lg border border-b-0 px-2.5 text-xs font-bold transition-all duration-150',
@@ -293,6 +297,9 @@ export const WorkspaceTabBar: React.FC = () => {
                 return (
                   <button
                     key={item.path}
+                    onMouseEnter={() => {
+                      prefetchRoute(item.path);
+                    }}
                     onClick={() => {
                       openTab({
                         id: item.path,

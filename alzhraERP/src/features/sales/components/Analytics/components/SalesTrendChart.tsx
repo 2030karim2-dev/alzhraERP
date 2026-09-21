@@ -1,265 +1,322 @@
 import React, { useState } from 'react';
 import {
-    AreaChart, Area, BarChart, Bar, LineChart, Line,
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import { Activity, BarChart2, AreaChart as AreaChartIcon, TrendingUp } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18nStore';
 import { cn } from '@/core/utils';
 
 interface SalesByDayPoint {
-    date: string;
-    sales: number;
-    returns?: number;
+  date: string;
+  sales: number;
+  returns?: number;
 }
 
 interface SalesTrendChartProps {
-    salesByDay: SalesByDayPoint[];
-    periodLabel: string;
-    formatCurrency: (value: number) => string;
+  salesByDay: SalesByDayPoint[];
+  periodLabel: string;
+  formatCurrency: (value: number) => string;
 }
 
 const CustomTooltip = ({ active, payload, label, t, formatCurrency }: any) => {
-    if (active && payload?.length) {
-        const point = payload[0]?.payload as SalesByDayPoint | undefined;
-        const returns = point?.returns ?? 0;
-        return (
-            <div className="p-4 max-md:p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl transition-all duration-300">
-                <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight border-b border-slate-100 dark:border-slate-800 pb-2">
-                    {new Date(label).toLocaleDateString('ar-SA-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-                <div className="flex items-center justify-between gap-6 max-md:gap-3">
-                    <div className="flex items-center gap-2 max-md:gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.sales}</span>
-                    </div>
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400 font-mono">
-                        {formatCurrency(payload[0].value)}
-                    </span>
-                </div>
-                {returns > 0 && (
-                    <div className="flex items-center justify-between gap-6 max-md:gap-3 mt-1">
-                        <div className="flex items-center gap-2 max-md:gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.returns}</span>
-                        </div>
-                        <span className="text-sm font-bold text-rose-500 dark:text-rose-400 font-mono">
-                            {formatCurrency(returns)}
-                        </span>
-                    </div>
-                )}
+  if (active && payload?.length) {
+    const point = payload[0]?.payload as SalesByDayPoint | undefined;
+    const returns = point?.returns ?? 0;
+    return (
+      <div className="rounded-2xl border border-slate-200/50 bg-white/90 p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 dark:border-slate-700/50 dark:bg-slate-900/90 max-md:p-4">
+        <p className="mb-2 border-b border-slate-100 pb-2 text-[10px] font-bold uppercase tracking-tight text-slate-400 dark:border-slate-800">
+          {new Date(label).toLocaleDateString('ar-SA-u-nu-latn', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </p>
+        <div className="flex items-center justify-between gap-6 max-md:gap-3">
+          <div className="flex items-center gap-2 max-md:gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.sales}</span>
+          </div>
+          <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
+            {formatCurrency(payload[0].value)}
+          </span>
+        </div>
+        {returns > 0 && (
+          <div className="mt-1 flex items-center justify-between gap-6 max-md:gap-3">
+            <div className="flex items-center gap-2 max-md:gap-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                {t.returns}
+              </span>
             </div>
-        );
-    }
-    return null;
+            <span className="font-mono text-sm font-bold text-rose-500 dark:text-rose-400">
+              {formatCurrency(returns)}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
 };
 
 export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
-    salesByDay,
-    periodLabel,
-    formatCurrency
+  salesByDay,
+  periodLabel,
+  formatCurrency,
 }) => {
-    const { dictionary: t } = useI18nStore();
-    const [activeChart, setActiveChart] = useState<'area' | 'bar' | 'line'>('area');
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    const [isMounted, setIsMounted] = useState(false);
+  const { dictionary: t } = useI18nStore();
+  const [activeChart, setActiveChart] = useState<'area' | 'bar' | 'line'>('area');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-    React.useEffect(() => {
-        const checkDimensions = () => {
-            if (containerRef.current && containerRef.current.offsetWidth > 0) {
-                setIsMounted(true);
-                return true;
-            }
-            return false;
-        };
-
-        if (checkDimensions()) return;
-
-        const interval = setInterval(() => {
-            if (checkDimensions()) clearInterval(interval);
-        }, 500);
-
-        return () => { clearInterval(interval); };
-    }, []);
-
-    const commonProps = {
-        data: salesByDay,
-        margin: { top: 10, right: 10, left: -20, bottom: 0 },
-        style: { cursor: 'pointer' } as React.CSSProperties
+  React.useEffect(() => {
+    const checkDimensions = () => {
+      if (containerRef.current && containerRef.current.offsetWidth > 0) {
+        setIsMounted(true);
+        return true;
+      }
+      return false;
     };
 
-    const renderChart = () => {
-        const xAxis = (
-            <XAxis
-                dataKey="date"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { day: 'numeric' })}
-                dy={10}
-            />
-        );
-        const yAxis = <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />;
-        const tooltip = <Tooltip content={<CustomTooltip t={t} formatCurrency={formatCurrency} />} cursor={{ stroke: 'rgba(59, 130, 246, 0.1)', strokeWidth: 2, fill: 'rgba(59, 130, 246, 0.05)' }} />;
-        const grid = <CartesianGrid strokeDasharray="4 4" vertical={false} opacity={0.3} />;
+    if (checkDimensions()) return;
 
-        switch (activeChart) {
-            case 'area':
-                return (
-                    <AreaChart {...commonProps}>
-                        <defs>
-                            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                            </linearGradient>
-                            <filter id="areaGlow" height="150%">
-                                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-                                <feOffset dx="0" dy="3" result="offsetblur" />
-                                <feFlood floodColor="rgba(59, 130, 246, 0.3)" />
-                                <feComposite in2="offsetblur" operator="in" />
-                                <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-                            </filter>
-                        </defs>
-                        {grid}
-                        {xAxis}
-                        {yAxis}
-                        {tooltip}
-                        <Area
-                            type="monotone"
-                            dataKey="sales"
-                            stroke="#3b82f6"
-                            strokeWidth={3}
-                            fill="url(#colorSales)"
-                            filter="url(#areaGlow)"
-                            activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, fill: '#3b82f6' }}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="returns"
-                            stroke="#f43f5e"
-                            strokeWidth={2}
-                            strokeDasharray="5 4"
-                            fillOpacity={0.08}
-                            fill="#f43f5e"
-                            connectNulls
-                            dot={false}
-                        />
-                    </AreaChart>
-                );
-            case 'bar':
-                return (
-                    <BarChart {...commonProps}>
-                        <defs>
-                            <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                                <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
-                            </linearGradient>
-                        </defs>
-                        {grid}
-                        {xAxis}
-                        {yAxis}
-                        {tooltip}
-                        <Bar dataKey="sales" fill="url(#barGrad)" radius={[6, 6, 0, 0]} barSize={24} minPointSize={1} />
-                        <Bar dataKey="returns" fill="#f43f5e" radius={[6, 6, 0, 0]} barSize={10} opacity={0.35} />
-                    </BarChart>
-                );
-            case 'line':
-                return (
-                    <LineChart {...commonProps}>
-                        {grid}
-                        {xAxis}
-                        {yAxis}
-                        {tooltip}
-                        <Line
-                            type="monotone"
-                            dataKey="sales"
-                            stroke="#3b82f6"
-                            strokeWidth={4}
-                            dot={{ fill: '#3b82f6', stroke: '#fff', strokeWidth: 2, r: 4 }}
-                            activeDot={{ r: 8, stroke: '#fff', strokeWidth: 3, fill: '#3b82f6' }}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="returns"
-                            stroke="#f43f5e"
-                            strokeWidth={2}
-                            strokeDasharray="5 4"
-                            connectNulls
-                            dot={false}
-                        />
-                    </LineChart>
-                );
-        }
+    const interval = setInterval(() => {
+      if (checkDimensions()) clearInterval(interval);
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
     };
+  }, []);
 
-    return (
-        <div className="lg:col-span-2 bg-[var(--app-surface)] border border-slate-200 dark:border-slate-800 p-6 max-md:p-3 rounded-2xl">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h4 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 max-md:gap-2">
-                        <Activity size={18} className="text-blue-600" />
-                        {t.sales_trend}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1">{periodLabel}</p>
-                </div>
-                <div className="flex gap-1 max-md:gap-1 bg-[var(--app-surface-hover)] p-1 max-md:p-1 rounded-xl">
-                    <button
-                        onClick={() => { setActiveChart('area'); }}
-                        className={cn(
-                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
-                            activeChart === 'area' ? "bg-[var(--app-surface)] text-[var(--accent)] shadow-sm" : "text-[var(--app-text-secondary)] hover:text-[var(--app-text)]"
-                        )}
-                        title={t.area_chart || 'Area'}
-                    >
-                        <AreaChartIcon size={16} />
-                    </button>
-                    <button
-                        onClick={() => { setActiveChart('bar'); }}
-                        className={cn(
-                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
-                            activeChart === 'bar' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                        )}
-                        title={t.bar_chart || 'Bar'}
-                    >
-                        <BarChart2 size={16} />
-                    </button>
-                    <button
-                        onClick={() => { setActiveChart('line'); }}
-                        className={cn(
-                            "p-2 max-md:p-2 rounded-lg transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center",
-                            activeChart === 'line' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                        )}
-                        title={t.line_chart || 'Line'}
-                    >
-                        <TrendingUp size={16} />
-                    </button>
-                </div>
-            </div>
-            <div className="flex items-center gap-4 max-md:gap-4 mt-1 px-1">
-                <span className="flex items-center gap-1 max-md:gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                    <span className="w-3 h-1 rounded-full bg-blue-500" />
-                    {t.sales}
-                </span>
-                <span className="flex items-center gap-1 max-md:gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                    <span className="w-3 h-1 rounded-full bg-rose-500" />
-                    {t.returns}
-                </span>
-            </div>
-            <div 
-                ref={containerRef}
-                className="h-72 w-full mt-4" 
-                dir="ltr"
-            >
-                {isMounted ? (
-                    <ResponsiveContainer width="99%" height={280}>
-                        {renderChart()}
-                    </ResponsiveContainer>
-                ) : (
-                    <div className="w-full h-[280px] bg-slate-50/50 dark:bg-slate-800/10 animate-pulse rounded-2xl" />
-                )}
-            </div>
-        </div>
+  const commonProps = {
+    data: salesByDay,
+    margin: { top: 10, right: 10, left: -20, bottom: 0 },
+    style: { cursor: 'pointer' } as React.CSSProperties,
+  };
+
+  const renderChart = () => {
+    const xAxis = (
+      <XAxis
+        dataKey="date"
+        axisLine={false}
+        tickLine={false}
+        tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
+        tickFormatter={value => new Date(value).toLocaleDateString('en-US', { day: 'numeric' })}
+        dy={10}
+      />
     );
+    const yAxis = (
+      <YAxis
+        tick={{ fontSize: 9, fill: '#94a3b8' }}
+        axisLine={false}
+        tickLine={false}
+        width={40}
+        tickFormatter={v => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
+      />
+    );
+    const tooltip = (
+      <Tooltip
+        content={<CustomTooltip t={t} formatCurrency={formatCurrency} />}
+        cursor={{
+          stroke: 'rgba(59, 130, 246, 0.1)',
+          strokeWidth: 2,
+          fill: 'rgba(59, 130, 246, 0.05)',
+        }}
+      />
+    );
+    const grid = <CartesianGrid strokeDasharray="4 4" vertical={false} opacity={0.3} />;
+
+    switch (activeChart) {
+      case 'area':
+        return (
+          <AreaChart {...commonProps}>
+            <defs>
+              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              </linearGradient>
+              <filter id="areaGlow" height="150%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                <feOffset dx="0" dy="3" result="offsetblur" />
+                <feFlood floodColor="rgba(59, 130, 246, 0.3)" />
+                <feComposite in2="offsetblur" operator="in" />
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {grid}
+            {xAxis}
+            {yAxis}
+            {tooltip}
+            <Area
+              type="monotone"
+              dataKey="sales"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              fill="url(#colorSales)"
+              filter="url(#areaGlow)"
+              activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, fill: '#3b82f6' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="returns"
+              stroke="#f43f5e"
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              fillOpacity={0.08}
+              fill="#f43f5e"
+              connectNulls
+              dot={false}
+            />
+          </AreaChart>
+        );
+      case 'bar':
+        return (
+          <BarChart {...commonProps}>
+            <defs>
+              <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            {grid}
+            {xAxis}
+            {yAxis}
+            {tooltip}
+            <Bar
+              dataKey="sales"
+              fill="url(#barGrad)"
+              radius={[6, 6, 0, 0]}
+              barSize={24}
+              minPointSize={1}
+            />
+            <Bar
+              dataKey="returns"
+              fill="#f43f5e"
+              radius={[6, 6, 0, 0]}
+              barSize={10}
+              opacity={0.35}
+            />
+          </BarChart>
+        );
+      case 'line':
+        return (
+          <LineChart {...commonProps}>
+            {grid}
+            {xAxis}
+            {yAxis}
+            {tooltip}
+            <Line
+              type="monotone"
+              dataKey="sales"
+              stroke="#3b82f6"
+              strokeWidth={4}
+              dot={{ fill: '#3b82f6', stroke: '#fff', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 8, stroke: '#fff', strokeWidth: 3, fill: '#3b82f6' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="returns"
+              stroke="#f43f5e"
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              connectNulls
+              dot={false}
+            />
+          </LineChart>
+        );
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-[var(--app-surface)] p-6 dark:border-slate-800 max-md:p-3 lg:col-span-2">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h4 className="flex items-center gap-2 text-base font-bold text-slate-800 dark:text-white max-md:gap-2">
+            <Activity size={18} className="text-blue-600" />
+            {t.sales_trend}
+          </h4>
+          <p className="mt-1 text-xs text-slate-400">{periodLabel}</p>
+        </div>
+        <div className="flex gap-1 rounded-xl bg-[var(--app-surface-hover)] p-1 max-md:gap-1 max-md:p-1">
+          <button
+            onClick={() => {
+              setActiveChart('area');
+            }}
+            className={cn(
+              'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 transition-all duration-300 max-md:p-2',
+              activeChart === 'area'
+                ? 'bg-[var(--app-surface)] text-[var(--accent)] shadow-sm'
+                : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'
+            )}
+            title={t.area_chart || 'Area'}
+          >
+            <AreaChartIcon size={16} />
+          </button>
+          <button
+            onClick={() => {
+              setActiveChart('bar');
+            }}
+            className={cn(
+              'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 transition-all duration-300 max-md:p-2',
+              activeChart === 'bar'
+                ? 'bg-white text-blue-600 shadow-sm dark:bg-slate-700'
+                : 'text-slate-400 hover:text-slate-600'
+            )}
+            title={t.bar_chart || 'Bar'}
+          >
+            <BarChart2 size={16} />
+          </button>
+          <button
+            onClick={() => {
+              setActiveChart('line');
+            }}
+            className={cn(
+              'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 transition-all duration-300 max-md:p-2',
+              activeChart === 'line'
+                ? 'bg-white text-blue-600 shadow-sm dark:bg-slate-700'
+                : 'text-slate-400 hover:text-slate-600'
+            )}
+            title={t.line_chart || 'Line'}
+          >
+            <TrendingUp size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="mt-1 flex items-center gap-4 px-1 max-md:gap-4">
+        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 max-md:gap-1.5">
+          <span className="h-1 w-3 rounded-full bg-blue-500" />
+          {t.sales}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 max-md:gap-1.5">
+          <span className="h-1 w-3 rounded-full bg-rose-500" />
+          {t.returns}
+        </span>
+      </div>
+      <div ref={containerRef} className="mt-4 h-72 w-full" dir="ltr">
+        {isMounted ? (
+          <ResponsiveContainer width="99%" height={280} minWidth={1} minHeight={1}>
+            {renderChart()}
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[280px] w-full animate-pulse rounded-2xl bg-slate-50/50 dark:bg-slate-800/10" />
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default SalesTrendChart;

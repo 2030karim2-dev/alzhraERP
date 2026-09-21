@@ -16,6 +16,9 @@ import { useReturnsListView, type ReturnsListRow } from '../../../returns/hooks/
 import { ReturnsStatsHeader } from '../../../returns/components/view/ReturnsStatsHeader';
 import { ReturnsFilterControls } from '../../../returns/components/view/ReturnsFilterControls';
 import { logger } from '../../../../core/utils/logger';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../../auth/store';
+import { salesApi } from '../../api';
 
 // Status labels
 const STATUS_LABELS: Record<string, string> = {
@@ -73,6 +76,19 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({
 
   const { data: stats } = useSalesReturnsStats();
   const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+
+  const handlePrefetchDetails = React.useCallback(
+    (id: string) => {
+      void queryClient.prefetchQuery({
+        queryKey: ['invoice_details', id],
+        queryFn: () => salesApi.getInvoiceDetails(id, user?.company_id),
+        staleTime: 1000 * 60 * 5,
+      });
+    },
+    [queryClient, user?.company_id]
+  );
 
   // We fetch without strict filters since client-side filtering handles most cases for small-medium lists
   // But for larger datasets, server-side filtering would be preferred.
@@ -325,11 +341,15 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({
                 accessor: (row: SalesReturnRow) => (
                   <div className="flex items-center justify-center gap-1 max-md:gap-1">
                     <button
+                      onMouseEnter={() => {
+                        handlePrefetchDetails(row.id);
+                      }}
                       onClick={e => {
                         e.stopPropagation();
                         onViewDetails(row.id);
                       }}
                       className="rounded-lg p-1 text-blue-600 transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 max-md:p-1.5"
+                      title="معاينة تفاصيل المرتجع"
                     >
                       <Eye size={14} />
                     </button>
@@ -360,6 +380,9 @@ const SalesReturnsView: React.FC<SalesReturnsViewProps> = ({
             isRTL={true}
             onRowDoubleClick={row => {
               onViewDetails(row.id);
+            }}
+            onRowClick={row => {
+              handlePrefetchDetails(row.id);
             }}
             showSearch={false}
             pageSize={10}

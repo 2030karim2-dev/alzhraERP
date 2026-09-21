@@ -204,30 +204,6 @@ export const BondVoucherModal: React.FC<BondVoucherModalProps> = ({ isOpen, onCl
 
         {/* Voucher Paper Area */}
         <div className="flex-1 overflow-y-auto bg-slate-100/70 p-4 dark:bg-slate-950 sm:p-8">
-          <style>{`
-            @media print {
-              body * {
-                visibility: hidden !important;
-              }
-              #bond-printable-voucher, #bond-printable-voucher * {
-                visibility: visible !important;
-              }
-              #bond-printable-voucher {
-                position: fixed !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                margin: 0 !important;
-                padding: 24px !important;
-                background: white !important;
-                color: black !important;
-                box-shadow: none !important;
-                border: 1px solid #cbd5e1 !important;
-                z-index: 99999 !important;
-              }
-            }
-          `}</style>
           <div
             ref={printRef}
             id="bond-printable-voucher"

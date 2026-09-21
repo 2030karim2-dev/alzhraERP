@@ -21,14 +21,14 @@ export const useBonds = (type?: BondType) => {
   });
 };
 
-export const useBondsAnalytics = () => {
+export const useBondsAnalytics = (period?: 'today' | 'week' | 'month' | 'quarter' | 'year') => {
   const { user } = useAuthStore();
   const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: ['bonds_analytics', user?.company_id, branchId],
+    queryKey: ['bonds_analytics', user?.company_id, branchId, period],
     queryFn: () =>
       user?.company_id
-        ? bondsService.getBondsStats(user.company_id, branchId)
+        ? bondsService.getBondsStats(user.company_id, branchId, period)
         : Promise.resolve(null),
     enabled: !!user?.company_id,
   });

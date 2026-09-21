@@ -120,8 +120,8 @@ export const bondsService = {
     return data;
   },
 
-  getBondsStats: async (companyId: string, branchId?: string | null) => {
-    const { data, error } = await bondsApi.getBondsStats(companyId, branchId);
+  getBondsStats: async (companyId: string, branchId?: string | null, period?: string) => {
+    const { data, error } = await bondsApi.getBondsStats(companyId, branchId, period);
     if (error) throw error;
     return data;
   },

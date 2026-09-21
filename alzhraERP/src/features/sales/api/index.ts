@@ -261,8 +261,8 @@ export const salesApi = {
     }
   },
 
-  getInvoiceDetails: async (invoiceId: string) => {
-    const { data, error } = await supabase
+  getInvoiceDetails: async (invoiceId: string, companyId?: string | null) => {
+    let query = supabase
       .from('invoices')
       .select(
         `
@@ -277,8 +277,13 @@ export const salesApi = {
         )
       `
       )
-      .eq('id', invoiceId)
-      .single();
+      .eq('id', invoiceId);
+
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) throw parseError(error);
     return data as unknown as InvoiceWithDetails;

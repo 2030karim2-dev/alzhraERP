@@ -260,11 +260,15 @@ export const useCreateSalesReturn = () => {
 };
 
 // Fetch sales invoices for return selection
-export const useSalesInvoicesForReturn = (customerId?: string | null) => {
+export const useSalesInvoicesForReturn = (
+  customerId?: string | null,
+  options?: { enabled?: boolean }
+) => {
   const { user } = useAuthStore();
+  const isEnabled = (options?.enabled ?? true) && !!user?.company_id;
 
   return useQuery({
-    queryKey: ['sales-invoices-for-return', customerId],
+    queryKey: ['sales-invoices-for-return', user?.company_id, customerId],
     queryFn: async () => {
       if (!user?.company_id) return [];
 
@@ -301,6 +305,7 @@ export const useSalesInvoicesForReturn = (customerId?: string | null) => {
 
       return typedData || [];
     },
-    enabled: !!user?.company_id,
+    enabled: isEnabled,
+    staleTime: 1000 * 60 * 3,
   });
 };

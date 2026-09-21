@@ -73,8 +73,12 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
   };
 
   const handleExportPDF = async () => {
-    if (!printRef.current || !invoice) return;
     setIsExporting(true);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    if (!printRef.current || !invoice) {
+      setIsExporting(false);
+      return;
+    }
     try {
       await exportToPDF(printRef.current, `فاتورة-مشتريات-${invoice.invoice_number ?? invoice.id}`);
       showToast('تم تصدير الفاتورة إلى PDF بنجاح', 'success');
@@ -313,17 +317,18 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
               </div>
             )}
 
-            {/* Off-screen capture host for PDF export (must stay measurable, never
-                display:none). It is excluded from physical printing by CSS. */}
-            <PdfCaptureHost innerRef={printRef}>
-              <PurchaseInvoicePrintTemplate invoice={invoice} />
-            </PdfCaptureHost>
+            {/* Off-screen capture host for PDF export (only mounted when exporting) */}
+            {isExporting && (
+              <PdfCaptureHost innerRef={printRef}>
+                <PurchaseInvoicePrintTemplate invoice={invoice} />
+              </PdfCaptureHost>
+            )}
           </div>
         )}
       </Modal>
 
-      {/* Embedded Advanced Return Modal for 1-Click Purchase Return */}
-      {invoice && (
+      {/* Embedded Advanced Return Modal for 1-Click Purchase Return (mounted only when opened) */}
+      {invoice && isReturnModalOpen && (
         <AdvancedReturnModal
           isOpen={isReturnModalOpen}
           onClose={() => {

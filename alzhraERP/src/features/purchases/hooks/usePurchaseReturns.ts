@@ -74,10 +74,12 @@ export type PurchaseInvoicesForReturnRow = NonNullable<
 >[number];
 
 export const usePurchaseInvoicesForReturn = (
-  supplierId: string | null
+  supplierId: string | null,
+  options?: { enabled?: boolean }
 ): UseQueryResult<PurchaseInvoicesForReturnRow[] | null> => {
   const { user } = useAuthStore();
   const companyId = user?.company_id;
+  const isEnabled = (options?.enabled ?? true) && hasCompanyId(companyId);
   return useQuery({
     queryKey: ['purchase_invoices_for_return', companyId, supplierId],
     queryFn: async () => {
@@ -89,6 +91,7 @@ export const usePurchaseInvoicesForReturn = (
       if (error) throw error;
       return data;
     },
-    enabled: hasCompanyId(companyId),
+    enabled: isEnabled,
+    staleTime: 1000 * 60 * 3,
   });
 };

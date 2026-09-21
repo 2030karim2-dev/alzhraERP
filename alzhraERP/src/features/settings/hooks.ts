@@ -65,6 +65,7 @@ export const useCompany = () => {
       return company;
     },
     enabled: Boolean(user?.company_id),
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
   });
 };
 

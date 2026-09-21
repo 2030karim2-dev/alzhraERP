@@ -198,22 +198,21 @@ interface RawTopPayload {
   top_customers?: RawTopCustomer[] | null;
 }
 
+interface FetchRawDashboardOptions {
+  signal?: AbortSignal;
+  branchId?: string | null;
+  dateFrom?: string | null | undefined;
+  dateTo?: string | null | undefined;
+}
+
 export const dashboardApi = {
   /**
    * Fetches the core dashboard raw data in parallel
    * @param companyId The current active company ID
-   * @param signal AbortSignal for cancellation
-   * @param branchId Optional branch UUID for branch-level filtering
-   * @param dateFrom Optional start date (ISO YYYY-MM-DD), null for all-time
-   * @param dateTo Optional end date (ISO YYYY-MM-DD)
+   * @param opts Optional parameters: signal, branchId, dateFrom, dateTo
    */
-  async fetchRawDashboardData(
-    companyId: string,
-    signal?: AbortSignal,
-    branchId?: string | null,
-    dateFrom?: string | null,
-    dateTo?: string | null
-  ) {
+  async fetchRawDashboardData(companyId: string, opts: FetchRawDashboardOptions = {}) {
+    const { signal, branchId, dateFrom, dateTo } = opts;
     const todayStr = formatLocalDate();
     const effectiveDateTo = dateTo || todayStr;
     const effectiveDateFrom = dateFrom !== undefined ? dateFrom : null;
@@ -224,176 +223,171 @@ export const dashboardApi = {
     const activeSignal: AbortSignal =
       signal && 'addEventListener' in signal ? signal : new AbortController().signal;
 
-    // Use Promise.allSettled so one failed RPC doesn't block the entire dashboard
-    const [
-      summaryRes,
-      chartRes,
-      topRes,
-      lowStockRes,
-      categoryRes,
-      trialBalanceRes,
-      recentInvoicesRes,
-      recentExpensesRes,
-      debtFollowupRes,
-      plRes,
-      topSellingRes,
-      productCategoriesRes,
-    ] = await Promise.allSettled([
-      // NOTE: dashboard RPCs are non-critical (safeData falls back to
-      // zeros/empty arrays). They opt out of network retries via the
-      // `x-skip-network-retry` header so a flaky connection cannot amplify
-      // 6 parallel calls × retries into a request storm.
-      // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
-      dashboardRpc(
-        'get_dashboard_summary',
-        {
-          p_company_id: companyId,
-          ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
-          ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+    // Execute in two staggered batches to protect against concurrent statement timeouts:
+    // Batch 1: Core KPIs and real-time activity feeds
+    const [summaryRes, plRes, lowStockRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes] =
+      await Promise.allSettled([
+        // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
+        dashboardRpc(
+          'get_dashboard_summary',
+          {
+            p_company_id: companyId,
+            ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+            ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
 
-      // 2. Sales Chart Data
-      dashboardRpc(
-        'get_sales_chart_data',
-        {
-          p_company_id: companyId,
-          ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
-          ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+        // 2. Authoritative Net Profit
+        dashboardRpc(
+          'report_profit_loss',
+          {
+            p_company_id: companyId,
+            p_from: effectiveDateFrom || currentYearStart,
+            p_to: effectiveDateTo,
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
 
-      // 3. Top Products & Customers
-      dashboardRpc(
-        'get_top_products_and_customers',
-        {
-          p_company_id: companyId,
-          p_limit: 5,
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+        // 3. Low Stock Products
+        dashboardRpc(
+          'get_low_stock_products',
+          {
+            p_company_id: companyId,
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
 
-      // 4. Low Stock Products
-      dashboardRpc(
-        'get_low_stock_products',
-        {
-          p_company_id: companyId,
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+        // 4. Recent invoices feed
+        (() => {
+          let q = supabase
+            .from('invoices')
+            .select(
+              'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
+            )
+            .eq('company_id', companyId)
+            .is('deleted_at', null)
+            .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
+          if (branchParam !== undefined) {
+            q = q.eq('branch_id', branchParam);
+          }
+          return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
+        })(),
 
-      // 5. Expense Categories Summary
-      dashboardRpc(
-        'get_expense_categories_summary',
-        {
-          p_company_id: companyId,
-          ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
-          ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+        // 5. Recent expenses feed
+        (() => {
+          let q = supabase
+            .from('expenses')
+            .select(
+              'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories!fk_expenses_company_category(name)'
+            )
+            .eq('company_id', companyId)
+            .is('deleted_at', null);
+          if (branchParam !== undefined) {
+            q = q.eq('branch_id', branchParam);
+          }
+          return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
+        })(),
 
-      // 6. Trial Balance for Net Profit (bounded to current fiscal year start if no date selected)
-      dashboardRpc(
-        'report_trial_balance',
-        {
-          p_company_id: companyId,
-          p_from: effectiveDateFrom || currentYearStart,
-          p_to: effectiveDateTo,
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
+        // 6. Debt follow-up alerts (bounded by limit to avoid full party table scan)
+        dashboardRpc(
+          'get_debt_followup_dashboard',
+          {
+            p_company_id: companyId,
+            p_due_soon_days: 7,
+            p_critical_days: 30,
+            p_reminder_window_days: 3,
+            p_limit: 50,
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
+      ]);
 
-      // 7. Recent invoices (recent-activity feed) — direct table read, RLS-scoped
-      (() => {
-        let q = supabase
-          .from('invoices')
-          .select(
-            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
-          )
+    // Batch 2: Charts and visual aggregations
+    const [chartRes, topRes, topSellingRes, productCategoriesRes, categoryRes] =
+      await Promise.allSettled([
+        // 7. Sales Chart Data
+        dashboardRpc(
+          'get_sales_chart_data',
+          {
+            p_company_id: companyId,
+            ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+            ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
+
+        // 8. Top Products & Customers
+        dashboardRpc(
+          'get_top_products_and_customers',
+          {
+            p_company_id: companyId,
+            p_limit: 5,
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
+
+        // 9. Top-selling products
+        dashboardRpc(
+          'get_top_selling_products',
+          {
+            p_company_id: companyId,
+            p_days: 30,
+            p_limit: 20,
+          },
+          activeSignal
+        ),
+
+        // 10. Product categories
+        supabase
+          .from('product_categories')
+          .select('id, name')
           .eq('company_id', companyId)
           .is('deleted_at', null)
-          .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
-        if (branchParam !== undefined) {
-          q = q.eq('branch_id', branchParam);
+          .abortSignal(activeSignal),
+
+        // 11. Expense Categories Summary
+        dashboardRpc(
+          'get_expense_categories_summary',
+          {
+            p_company_id: companyId,
+            ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+            ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        ),
+      ]);
+
+    // Optional Trial Balance fallback: only called if report_profit_loss completely failed
+    let trialBalanceRows: unknown[] = [];
+    const plFailed =
+      plRes.status === 'rejected' || (plRes.status === 'fulfilled' && plRes.value.error != null);
+    if (plFailed) {
+      try {
+        const tbRes = await dashboardRpc(
+          'report_trial_balance',
+          {
+            p_company_id: companyId,
+            p_from: effectiveDateFrom ?? currentYearStart,
+            p_to: effectiveDateTo,
+            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+          },
+          activeSignal
+        );
+        if (tbRes.error == null && Array.isArray(tbRes.data)) {
+          trialBalanceRows = tbRes.data as unknown[];
         }
-        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
-      })(),
-
-      // 8. Recent expenses (recent-activity feed) — direct table read, RLS-scoped.
-      // ⚡ The embed MUST carry the FK hint: `expenses` has TWO relationships to
-      // `expense_categories` (the single-column `expenses_category_id_fkey` and the
-      // tenant-safe composite `fk_expenses_company_category`), so an unhinted
-      // `expense_categories(name)` embed fails with PostgREST PGRST201 (300).
-      (() => {
-        let q = supabase
-          .from('expenses')
-          .select(
-            'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories!fk_expenses_company_category(name)'
-          )
-          .eq('company_id', companyId)
-          .is('deleted_at', null);
-        if (branchParam !== undefined) {
-          q = q.eq('branch_id', branchParam);
-        }
-        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
-      })(),
-
-      // 9. Debt follow-up engine (overdue parties → dashboard alerts)
-      dashboardRpc(
-        'get_debt_followup_dashboard',
-        {
-          p_company_id: companyId,
-          p_due_soon_days: 7,
-          p_critical_days: 30,
-          p_reminder_window_days: 3,
-        },
-        activeSignal
-      ),
-
-      // 10. Server-authored P&L → net profit with an authoritative sign
-      //     convention (no fragile client-side account-code filtering).
-      //     Fallback to the legacy trial-balance math happens in the hook
-      //     when this RPC is unavailable/fails.
-      dashboardRpc(
-        'report_profit_loss',
-        {
-          p_company_id: companyId,
-          p_from: effectiveDateFrom || currentYearStart,
-          p_to: effectiveDateTo,
-          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-        },
-        activeSignal
-      ),
-
-      // 11. Top-selling products (feed for the top product-categories chart).
-      //     Aggregated by category_id client-side against product_categories.
-      dashboardRpc(
-        'get_top_selling_products',
-        {
-          p_company_id: companyId,
-          p_days: 30,
-          p_limit: 20,
-        },
-        activeSignal
-      ),
-
-      // 12. Product categories (names for the top-category aggregation)
-      supabase
-        .from('product_categories')
-        .select('id, name')
-        .eq('company_id', companyId)
-        .is('deleted_at', null)
-        .abortSignal(activeSignal),
-    ]);
+      } catch {
+        trialBalanceRows = [];
+      }
+    }
 
     // RPCs that return a single aggregated row arrive as a one-element array
     // (e.g. [{ total_sales: ... }]). Unwrap the first element so consumers can
@@ -427,7 +421,6 @@ export const dashboardApi = {
 
       const lowStockProducts = safeData(lowStockRes, [], 'get_low_stock_products');
       const categoryData = safeData(categoryRes, [], 'get_expense_categories_summary');
-      const trialBalanceRows = safeData(trialBalanceRes, [], 'report_trial_balance');
       const profitLossRows = safeData(plRes, [], 'report_profit_loss');
       const topSellingProducts = safeData<RawTopSellingProduct[]>(
         topSellingRes,
