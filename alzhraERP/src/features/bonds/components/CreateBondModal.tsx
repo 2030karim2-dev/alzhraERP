@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, FileText, Maximize2, Minimize2, Tag, DollarSign } from 'lucide-react';
 import type { BondFormData, BondType } from '../types';
-import { useBondForm } from '../hooks/useBondForm';
+import { useBondForm, type BondPrefill } from '../hooks/useBondForm';
 
 import Modal from '../../../ui/base/Modal';
 import { BondModalFooter } from './BondModalFooter';
@@ -20,6 +20,8 @@ interface CreateBondModalProps {
   onSubmit: (data: BondFormData) => void;
   isSubmitting: boolean;
   defaultAccountId?: string | null;
+  /** تعبئة مسبقة (منظومة الديون): طرف/مبلغ/عملة/فاتورة — كائن ثابت الهوية. */
+  prefill?: BondPrefill | null;
 }
 
 /* eslint-disable max-lines-per-function, complexity -- modal composition hub: binds useBondForm state to four presentational sections (per-section JSX lives in dedicated components); the remaining complexity is prop passthrough + conditional sections, not branching logic. */
@@ -30,10 +32,11 @@ const CreateBondModal: React.FC<CreateBondModalProps> = ({
   onSubmit,
   isSubmitting,
   defaultAccountId,
+  prefill,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(true);
 
-  const bond = useBondForm(isOpen, type, defaultAccountId, onSubmit);
+  const bond = useBondForm(isOpen, type, defaultAccountId, onSubmit, prefill);
   const {
     register,
     handleSubmit,

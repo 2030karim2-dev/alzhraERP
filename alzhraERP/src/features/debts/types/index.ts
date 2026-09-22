@@ -6,23 +6,28 @@ import type { Database } from '../../../core/database.types';
 
 // ── Table row types ───────────────────────────────────────────
 export type DebtFollowupConfig = Database['public']['Tables']['debt_followup_config']['Row'];
-export type DebtFollowupConfigUpdate = Database['public']['Tables']['debt_followup_config']['Update'];
+export type DebtFollowupConfigUpdate =
+  Database['public']['Tables']['debt_followup_config']['Update'];
 
 export type PaymentPromise = Database['public']['Tables']['debt_payment_promises']['Row'];
 export type PaymentPromiseInsert = Database['public']['Tables']['debt_payment_promises']['Insert'];
 export type PaymentPromiseUpdate = Database['public']['Tables']['debt_payment_promises']['Update'];
 
 export type DebtMessageTemplate = Database['public']['Tables']['debt_message_templates']['Row'];
-export type DebtMessageTemplateInsert = Database['public']['Tables']['debt_message_templates']['Insert'];
-export type DebtMessageTemplateUpdate = Database['public']['Tables']['debt_message_templates']['Update'];
+export type DebtMessageTemplateInsert =
+  Database['public']['Tables']['debt_message_templates']['Insert'];
+export type DebtMessageTemplateUpdate =
+  Database['public']['Tables']['debt_message_templates']['Update'];
 
 export type DebtMessageLog = Database['public']['Tables']['debt_message_log']['Row'];
 
 export type PartyOpeningBalance = Database['public']['Tables']['party_opening_balances']['Row'];
-export type PartyOpeningBalanceInsert = Database['public']['Tables']['party_opening_balances']['Insert'];
+export type PartyOpeningBalanceInsert =
+  Database['public']['Tables']['party_opening_balances']['Insert'];
 
 // ── RPC return shapes ─────────────────────────────────────────
-type DashboardGenerated = Database['public']['Functions']['get_debt_followup_dashboard']['Returns'][number];
+type DashboardGenerated =
+  Database['public']['Functions']['get_debt_followup_dashboard']['Returns'][number];
 
 /**
  * Follow-up dashboard row with HONEST nullability.
@@ -49,9 +54,12 @@ export type FollowUpDashboardRow = Omit<
 };
 
 export type TodayTask = Database['public']['Functions']['get_debt_today_tasks']['Returns'][number];
-export type PartyDebtOverview = Database['public']['Functions']['get_debt_party_overview']['Returns'][number];
-export type PartyBalanceByCurrency = Database['public']['Functions']['get_party_all_balances']['Returns'][number];
-export type ReminderRecord = Database['public']['Functions']['record_debt_reminder']['Returns'][number];
+export type PartyDebtOverview =
+  Database['public']['Functions']['get_debt_party_overview']['Returns'][number];
+export type PartyBalanceByCurrency =
+  Database['public']['Functions']['get_party_all_balances']['Returns'][number];
+export type ReminderRecord =
+  Database['public']['Functions']['record_debt_reminder']['Returns'][number];
 
 /** get_debt_analytics_summary returns Json — typed here for display. */
 export interface DebtAnalytics {
@@ -69,6 +77,8 @@ export interface DebtAnalytics {
   total_debtors: number;
   needs_reminder: number;
   by_currency: Array<{ currency: string; balance: number; count: number }> | null;
+  /** شرائح أعمار الديون (مبالغ محوَّلة للعملة الأساس + عدد العملاء). */
+  aging: Array<{ key: string; value: number | null; count: number | null }> | null;
 }
 
 /** Payment promise joined with the party display name. */
@@ -87,9 +97,4 @@ export type ReminderStatus = 'needs_reminder' | 'reminded';
 export type PromiseStatus = 'pending' | 'completed' | 'broken' | 'cancelled';
 
 /** Follow-up tab identifiers (mirror of the SQL classification + message state). */
-export type FollowUpTab =
-  | 'all'
-  | 'needs_reminder'
-  | 'reminded'
-  | 'overdue'
-  | 'today';
+export type FollowUpTab = 'all' | 'needs_reminder' | 'reminded' | 'overdue' | 'today';

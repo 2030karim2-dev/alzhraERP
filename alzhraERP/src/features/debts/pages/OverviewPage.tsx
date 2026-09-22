@@ -16,6 +16,7 @@ import { useDebtAnalytics, useDebtTodayTasks } from '../hooks/useDebtQueries';
 import { useCompany } from '../../settings/hooks';
 import { TASK_TYPE_META } from '../lib/constants';
 import AIDebtAdvisor from '../components/AIDebtAdvisor';
+import AgingBuckets from '../components/AgingBuckets';
 import type { DebtAnalytics, TodayTask } from '../types';
 
 /** Safe numeric coercion for values that arrive from a JSON payload. */
@@ -25,7 +26,7 @@ const asNumber = (value: number | undefined): number => {
 };
 
 const LoadingCard: React.FC = () => (
-  <div className="h-24 max-md:h-16 rounded-xl bg-[var(--app-surface)] border border-[var(--app-border)] animate-pulse" />
+  <div className="h-24 animate-pulse rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] max-md:h-16" />
 );
 
 interface StatRow {
@@ -104,14 +105,14 @@ const buildStatRows = (a: DebtAnalytics, baseCurrency: string): StatRow[] => [
   },
 ];
 
-const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean; baseCurrency: string }> = ({
-  analytics,
-  isLoading,
-  baseCurrency,
-}) => {
+const StatsGrid: React.FC<{
+  analytics: DebtAnalytics | null;
+  isLoading: boolean;
+  baseCurrency: string;
+}> = ({ analytics, isLoading, baseCurrency }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-md:gap-1.5 md:gap-4">
+      <div className="grid grid-cols-2 gap-3 max-md:gap-1.5 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <LoadingCard key={i} />
         ))}
@@ -120,8 +121,8 @@ const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean;
   }
   const rows = buildStatRows(analytics ?? ({} as DebtAnalytics), baseCurrency);
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-md:gap-1.5 md:gap-4">
-      {rows.map((s) => (
+    <div className="grid grid-cols-2 gap-3 max-md:gap-1.5 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
+      {rows.map(s => (
         <StatCard
           key={s.title}
           title={s.title}
@@ -137,42 +138,40 @@ const StatsGrid: React.FC<{ analytics: DebtAnalytics | null; isLoading: boolean;
 };
 
 const urgencyClass = (urgency: string): string =>
-  urgency === 'critical'
-    ? 'bg-rose-500'
-    : urgency === 'high'
-      ? 'bg-amber-500'
-      : 'bg-sky-500';
+  urgency === 'critical' ? 'bg-rose-500' : urgency === 'high' ? 'bg-amber-500' : 'bg-sky-500';
 
 const TaskRow: React.FC<{ task: TodayTask }> = ({ task }) => (
-  <li className="flex items-center justify-between gap-3 px-4 max-md:px-2.5 py-3 max-md:py-2 hover:bg-[var(--app-surface-hover)] transition-colors">
-    <div className="flex items-center gap-3 min-w-0">
-      <span className={`shrink-0 w-2 h-2 rounded-full ${urgencyClass(task.urgency)}`} />
+  <li className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-[var(--app-surface-hover)] max-md:px-2.5 max-md:py-2">
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={`h-2 w-2 shrink-0 rounded-full ${urgencyClass(task.urgency)}`} />
       <div className="min-w-0">
-        <p className="text-xs font-bold text-[var(--app-text)] truncate">{task.party_name}</p>
+        <p className="truncate text-xs font-bold text-[var(--app-text)]">{task.party_name}</p>
         <p className="text-[10px] text-[var(--app-text-secondary)]">
           {TASK_TYPE_META[task.task_type]?.label ?? task.task_type} · {task.reference_info}
         </p>
       </div>
     </div>
-    <span className="shrink-0 text-xs font-bold font-mono text-[var(--app-text)]">
+    <span className="shrink-0 font-mono text-xs font-bold text-[var(--app-text)]">
       {task.amount != null ? formatCurrency(Number(task.amount), task.currency_code) : '—'}
     </span>
   </li>
 );
 
 const TodayTasksCard: React.FC<{ tasks: TodayTask[] }> = ({ tasks }) => (
-  <div className="bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm overflow-hidden">
-    <div className="p-4 max-md:p-2.5 border-b border-[var(--app-border)] flex items-center justify-between">
-      <h3 className="font-bold text-sm text-[var(--app-text)] flex items-center gap-2">
-        <span className="p-1.5 bg-amber-500 text-white rounded-lg">
+  <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+    <div className="flex items-center justify-between border-b border-[var(--app-border)] p-4 max-md:p-2.5">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--app-text)]">
+        <span className="rounded-lg bg-amber-500 p-1.5 text-white">
           <CalendarClock size={14} />
         </span>
         مهام اليوم
       </h3>
-      <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">{tasks.length} مهمة</span>
+      <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
+        {tasks.length} مهمة
+      </span>
     </div>
     {tasks.length === 0 ? (
-      <div className="p-10 max-md:p-5 text-center text-sm text-[var(--app-text-secondary)]">
+      <div className="p-10 text-center text-sm text-[var(--app-text-secondary)] max-md:p-5">
         لا توجد مهام مستحقة اليوم 🎉
       </div>
     ) : (
@@ -191,18 +190,20 @@ const CurrencyBreakdown: React.FC<{ byCurrency: DebtAnalytics['by_currency'] }> 
   const list = byCurrency ?? [];
   if (list.length === 0) return null;
   return (
-    <div className="bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm p-4 max-md:p-2.5">
-      <h3 className="font-bold text-sm text-[var(--app-text)] mb-3 max-md:mb-2">التوزيع حسب العملة</h3>
+    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm max-md:p-2.5">
+      <h3 className="mb-3 text-sm font-bold text-[var(--app-text)] max-md:mb-2">
+        التوزيع حسب العملة
+      </h3>
       <div className="flex flex-wrap gap-3 max-md:gap-1.5">
-        {list.map((c) => (
+        {list.map(c => (
           <div
             key={c.currency}
-            className="px-4 max-md:px-2.5 py-3 max-md:py-2 rounded-xl bg-[var(--app-surface-hover)] border border-[var(--app-border)]"
+            className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-4 py-3 max-md:px-2.5 max-md:py-2"
           >
             <span className="block text-[10px] font-bold text-[var(--app-text-secondary)]">
               {c.currency}
             </span>
-            <span className="block text-lg max-md:text-base font-bold font-mono text-blue-600">
+            <span className="block font-mono text-lg font-bold text-blue-600 max-md:text-base">
               {formatCurrency(asNumber(c.balance), c.currency)}
             </span>
           </div>
@@ -224,6 +225,7 @@ const OverviewPage: React.FC = () => {
     <div className="space-y-5 max-md:space-y-3">
       <AIDebtAdvisor />
       <StatsGrid analytics={analytics ?? null} isLoading={isLoading} baseCurrency={baseCurrency} />
+      <AgingBuckets aging={a.aging} baseCurrency={baseCurrency} />
       <TodayTasksCard tasks={tasks ?? []} />
       <CurrencyBreakdown byCurrency={a.by_currency} />
     </div>
@@ -231,4 +233,3 @@ const OverviewPage: React.FC = () => {
 };
 
 export default OverviewPage;
-

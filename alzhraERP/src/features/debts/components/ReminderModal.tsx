@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   MessageSquare,
@@ -18,6 +18,7 @@ import { useDebtMutations } from '../hooks/useDebtMutations';
 import { debtsService, type PreparedReminder } from '../services/debtService';
 import { debtAiService, type ReminderTone } from '../services/debtAiService';
 import { buildWhatsAppLink, buildWhatsAppWebLink } from '../lib/whatsapp';
+import { createIdempotencyKey } from '../../../core/utils/idempotency';
 import type { FollowUpDashboardRow } from '../types';
 
 interface ReminderModalProps {
@@ -47,6 +48,9 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  // مفتاح عدم التكرار: ثابت لعملية الإرسال الواحدة (يمنع تسجيلها مرتين)،
+  // ويُجدَّد بعد كل نجاح ليسمح بإرسال تذكير جديد مقصود لاحقاً.
+  const idempotencyKeyRef = useRef(createIdempotencyKey('debt-reminder'));
 
   // Generate AI reminder when tone changes or modal opens in AI mode
   const handleGenerateAiMessage = async (tone: ReminderTone) => {
@@ -114,9 +118,11 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
         messageText: message,
         templateId: mode === 'template' ? selectedTemplateId || null : null,
         recipient: prepared.recipient || null,
+        idempotencyKey: idempotencyKeyRef.current,
       },
       {
         onSuccess: () => {
+          idempotencyKeyRef.current = createIdempotencyKey('debt-reminder');
           if (link) window.open(link, '_blank', 'noopener,noreferrer');
           setIsSent(true);
         },
@@ -135,9 +141,11 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
         messageText: message,
         templateId: mode === 'template' ? selectedTemplateId || null : null,
         recipient: prepared.recipient || null,
+        idempotencyKey: idempotencyKeyRef.current,
       },
       {
         onSuccess: () => {
+          idempotencyKeyRef.current = createIdempotencyKey('debt-reminder');
           if (link) window.open(link, '_blank', 'noopener,noreferrer');
           setIsSent(true);
         },

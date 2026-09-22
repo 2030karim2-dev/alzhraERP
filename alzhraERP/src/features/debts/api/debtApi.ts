@@ -298,6 +298,8 @@ export const debtMessageApi = {
     recipient?: string | null | undefined;
     relatedEntityType?: string | null | undefined;
     relatedEntityId?: string | null | undefined;
+    /** مفتاح عدم التكرار: يمنع تسجيل نفس التذكير مرتين (نقر مزدوج/إعادة محاولة). */
+    idempotencyKey?: string | null | undefined;
   }): Promise<ReminderRecord> => {
     const { data, error } = await supabase.rpc('record_debt_reminder', {
       p_company_id: params.companyId,
@@ -308,6 +310,7 @@ export const debtMessageApi = {
       ...(params.recipient ? { p_recipient: params.recipient } : {}),
       ...(params.relatedEntityType ? { p_related_entity_type: params.relatedEntityType } : {}),
       ...(params.relatedEntityId ? { p_related_entity_id: params.relatedEntityId } : {}),
+      ...(params.idempotencyKey != null ? { p_idempotency_key: params.idempotencyKey } : {}),
     });
     if (error) throw error;
     if (data.length === 0) throw new Error('تعذر تسجيل التذكير');

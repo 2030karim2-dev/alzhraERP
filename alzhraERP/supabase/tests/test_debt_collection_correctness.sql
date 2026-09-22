@@ -13,6 +13,7 @@
 --   T7  get_debt_followup_dashboard includes status 'confirmed'
 --   T8  get_party_statement starts from the opening balance (stable order)
 --   T9  'both' party receipt posts without exception
+--   T10 receipt payment auto-completes the party's pending promise (Phase 1 / A1)
 --
 -- HOW TO RUN:
 --   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 \
@@ -41,6 +42,8 @@ DECLARE
   v_cnt     bigint;
   v_txt     text;
   v_rows    json;
+  v_promise uuid;
+  v_branch  uuid;
 BEGIN
   SELECT id INTO v_uid FROM auth.users ORDER BY created_at ASC LIMIT 1;
   IF v_uid IS NULL THEN
@@ -53,8 +56,14 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub', v_uid::text, true);
   PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
 
-  INSERT INTO user_company_roles(user_id, company_id, role)
-  VALUES (v_uid, v_company, 'accountant');
+  -- فرع واحد مربوط بدور المستخدم: دوال الديون (اللوحة/التحليلات) تعزل
+  -- الفروع عبر get_auth_branches، وشركة بلا أي فرع تُعيد نتائج فارغة.
+  INSERT INTO public.branches (company_id, name, is_main)
+  VALUES (v_company, '__test_branch__', true)
+  RETURNING id INTO v_branch;
+
+  INSERT INTO user_company_roles(user_id, company_id, role, branch_id)
+  VALUES (v_uid, v_company, 'accountant', v_branch);
 
   INSERT INTO fiscal_years(company_id, name, start_date, end_date, is_closed)
   VALUES (v_company, 'FY2026', DATE '2026-01-01', DATE '2026-12-31', false);
@@ -269,6 +278,25 @@ BEGIN
     AND je.reference_type = 'receipt_bond' AND jel.deleted_at IS NULL
     AND jel.party_id = v_both;
   ASSERT v_cnt >= 1, 'T9 FAIL: both-party receipt did not post an AR line';
+
+  -- ═══ T10: receipt payment auto-completes the party's pending promise ═══
+  -- (Phase 1 / A1: trg_complete_promises_on_payment)
+  INSERT INTO public.debt_payment_promises (company_id, party_id, amount, currency_code, promise_date, status)
+  VALUES (v_company, v_customer, 100, 'SAR', CURRENT_DATE - 1, 'pending')
+  RETURNING id INTO v_promise;
+
+  INSERT INTO public.payments (company_id, party_id, type, amount, currency_code, payment_date, status, account_id)
+  VALUES (v_company, v_customer, 'receipt', 100, 'SAR', CURRENT_DATE, 'posted', v_cash);
+
+  SELECT pp.status INTO v_txt
+  FROM public.debt_payment_promises pp
+  WHERE pp.id = v_promise;
+  ASSERT v_txt = 'completed', 'T10 FAIL: promise status after receipt payment = ' || COALESCE(v_txt, 'NULL');
+
+  SELECT pp.reference_type INTO v_txt
+  FROM public.debt_payment_promises pp
+  WHERE pp.id = v_promise;
+  ASSERT v_txt = 'payment', 'T10 FAIL: promise reference_type = ' || COALESCE(v_txt, 'NULL');
 
 END;
 $$;

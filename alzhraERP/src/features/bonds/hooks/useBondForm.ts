@@ -1,4 +1,4 @@
-/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions, @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unnecessary-type-conversion */
+/* eslint-disable complexity, max-params, max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions, @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unnecessary-type-conversion */
 import { logger } from '../../../core/utils/logger';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,11 +24,25 @@ import { createIdempotencyKey } from '../../../core/utils/idempotency';
  * - الحساب التلقائي لسعر الصرف والمعادل
  * - التدقيق المالي الصارم
  */
+/**
+ * تعبئة مسبقة لنموذج السند — تُستخدم من منظومة الديون («تحصيل الآن»).
+ * يجب تمرير كائن ثابت الهوية (useMemo) وإلا أُعيدت التعبئة أثناء الكتابة.
+ */
+export interface BondPrefill {
+  partyId: string;
+  partyName?: string;
+  amount: number;
+  currencyCode?: string;
+  invoiceId?: string;
+  description?: string;
+}
+
 export function useBondForm(
   isOpen: boolean,
   type: BondType,
   defaultAccountId: string | null | undefined,
-  onSubmit: (data: BondFormData) => void
+  onSubmit: (data: BondFormData) => void,
+  prefill?: BondPrefill | null
 ) {
   const { data: allAccounts, isLoading: _isLoadingAccounts } = useAccounts();
   const { currencies, rates } = useCurrencies();
@@ -117,6 +131,31 @@ export function useBondForm(
       setCommissionInputStr('');
     }
   }, [isOpen, type, reset, defaultAccountId, allAccounts]);
+
+  // تعبئة مسبقة من منظومة الديون («تحصيل الآن»): الطرف والمبلغ والعملة.
+  // يُنفَّذ بعد إعادة الضبط أعلاه (ترتيب التأثيرات) وبكائن ثابت الهوية.
+  useEffect(() => {
+    if (!isOpen || !prefill) return;
+    const currency = prefill.currencyCode || 'SAR';
+    const partyLabel = prefill.partyName ? `: ${prefill.partyName}` : '';
+
+    setValue('counterparty_type', 'party');
+    setValue('counterparty_id', prefill.partyId);
+    setValue('currency_code', currency);
+    setValue('description', prefill.description || `تحصيل دفعة من العميل${partyLabel}`);
+    if (prefill.invoiceId) setValue('invoice_id', prefill.invoiceId);
+
+    setAmountInputStr(prefill.amount > 0 ? String(prefill.amount) : '');
+    if (currency === 'SAR') {
+      setValue('amount', prefill.amount);
+      setValue('foreign_amount', 0);
+    } else {
+      setValue('foreign_amount', prefill.amount);
+    }
+
+    setPartyQuery(prefill.partyName ?? '');
+    setShowPartyDropdown(false);
+  }, [isOpen, prefill, setValue]);
 
   // Currency switch and default rate loader
   useEffect(() => {

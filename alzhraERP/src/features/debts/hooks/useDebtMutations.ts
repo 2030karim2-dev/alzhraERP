@@ -32,7 +32,7 @@ export const useDebtMutations = () => {
   const saveFollowupConfig = useMutation({
     mutationFn: async (config: DebtFollowupConfigUpdate) => {
       await assertPermission('debts:manage', 'إعدادات متابعة الديون');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.upsertFollowupConfig(companyId, config);
     },
     onSuccess: () => {
@@ -48,7 +48,7 @@ export const useDebtMutations = () => {
   const createPromise = useMutation({
     mutationFn: async (payload: Omit<PaymentPromiseInsert, 'company_id'>) => {
       await assertPermission('debts:manage', 'إضافة وعد سداد');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.createPromise({ ...payload, company_id: companyId });
     },
     onSuccess: () => {
@@ -63,7 +63,7 @@ export const useDebtMutations = () => {
   const updatePromise = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: PaymentPromiseUpdate }) => {
       await assertPermission('debts:manage', 'تعديل وعد السداد');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.updatePromise(companyId, id, payload);
     },
     onSuccess: () => {
@@ -78,7 +78,7 @@ export const useDebtMutations = () => {
   const deletePromise = useMutation({
     mutationFn: async (id: string) => {
       await assertPermission('debts:manage', 'حذف وعد السداد');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.deletePromise(companyId, id);
     },
     onSuccess: () => {
@@ -93,7 +93,7 @@ export const useDebtMutations = () => {
   const completePromise = useMutation({
     mutationFn: async ({ promiseId, paymentId }: { promiseId: string; paymentId?: string }) => {
       await assertPermission('debts:manage', 'إتمام وعد السداد');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.completePromise(companyId, promiseId, paymentId);
     },
     onSuccess: () => {
@@ -108,7 +108,7 @@ export const useDebtMutations = () => {
   const breakOverduePromises = useMutation({
     mutationFn: async () => {
       await assertPermission('debts:manage', 'تحديث الوعود المتجاوزة');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtApi.breakOverduePromises(companyId);
     },
     onSuccess: ids => {
@@ -124,7 +124,7 @@ export const useDebtMutations = () => {
   const saveTemplate = useMutation({
     mutationFn: async (payload: Omit<DebtMessageTemplateInsert, 'company_id'>) => {
       await assertPermission('debts:manage', 'حفظ قالب رسالة');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtMessageApi.saveTemplate({ ...payload, company_id: companyId });
     },
     onSuccess: () => {
@@ -139,7 +139,7 @@ export const useDebtMutations = () => {
   const updateTemplate = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: DebtMessageTemplateUpdate }) => {
       await assertPermission('debts:manage', 'تعديل قالب رسالة');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtMessageApi.updateTemplate(companyId, id, payload);
     },
     onSuccess: () => {
@@ -154,7 +154,7 @@ export const useDebtMutations = () => {
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
       await assertPermission('debts:manage', 'حذف قالب رسالة');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtMessageApi.deleteTemplate(companyId, id);
     },
     onSuccess: () => {
@@ -173,15 +173,17 @@ export const useDebtMutations = () => {
       messageText: string;
       templateId?: string | null;
       recipient?: string | null;
+      idempotencyKey?: string | null;
     }) => {
       await assertPermission('debts:remind', 'إرسال تذكير ديون');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtMessageApi.recordReminder({
         companyId,
         partyId: params.partyId,
         messageText: params.messageText,
         templateId: params.templateId,
         recipient: params.recipient,
+        idempotencyKey: params.idempotencyKey,
         channel: 'whatsapp',
       });
     },
@@ -198,7 +200,7 @@ export const useDebtMutations = () => {
   const saveOpeningBalance = useMutation({
     mutationFn: async (payload: Omit<PartyOpeningBalanceInsert, 'company_id'>) => {
       await assertPermission('debts:manage', 'تسجيل رصيد افتتاحي');
-      if (!companyId) throw new Error('جلسة العمل غير مكتملة');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtMessageApi.upsertOpeningBalance({ ...payload, company_id: companyId });
     },
     onSuccess: () => {

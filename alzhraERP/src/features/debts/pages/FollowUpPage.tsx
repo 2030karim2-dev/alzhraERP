@@ -1,11 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { Search, X, RotateCcw } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { Search, X, RotateCcw, FileDown, Printer } from 'lucide-react';
 import { useDebtDashboard } from '../hooks/useDebtQueries';
 import { debtsService } from '../services/debtService';
 import { usePermission } from '../../../core/hooks/usePermission';
 import FollowUpTabs from '../components/FollowUpTabs';
 import FollowUpTable from '../components/FollowUpTable';
-import type { FollowUpTab } from '../types';
+import CreateBondModal from '../../bonds/components/CreateBondModal';
+import { useBondMutation } from '../../bonds/hooks';
+import { bucketForDays, getAgingMeta, isAgingKey } from '../lib/aging';
+import { buildCollectionSheetCsv, collectionSheetFileName } from '../lib/collectionSheet';
+import type { FollowUpDashboardRow, FollowUpTab } from '../types';
 
 const FollowUpPage: React.FC = () => {
   const { data: rows, isLoading } = useDebtDashboard();
@@ -15,11 +21,37 @@ const FollowUpPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'amount' | 'overdue' | 'name'>('amount');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // فلتر شريحة التقادم القادم من النظرة العامة (?aging=b61_90)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const agingParam = searchParams.get('aging');
+  const agingFilter = isAgingKey(agingParam) ? agingParam : null;
+
+  // تحصيل الآن: سند قبض مُعبّأ (يتطلب debts:manage + accounting:create)
+  const [collectRow, setCollectRow] = useState<FollowUpDashboardRow | null>(null);
+  const queryClient = useQueryClient();
+  const { mutate: createBond, isPending: isCreatingBond } = useBondMutation();
+
+  const collectPrefill = useMemo(
+    () =>
+      collectRow
+        ? {
+            partyId: collectRow.party_id,
+            partyName: collectRow.party_name,
+            amount: collectRow.outstanding_balance,
+            currencyCode: collectRow.currency_code,
+          }
+        : null,
+    [collectRow]
+  );
+
   // Reminders require debts:remind, payment promises require debts:manage.
   const { hasPermission: canManage, isLoading: manageLoading } = usePermission('debts:manage');
   const { hasPermission: canRemind, isLoading: remindLoading } = usePermission('debts:remind');
+  const { hasPermission: canCreateBond, isLoading: bondLoading } =
+    usePermission('accounting:create');
   const showManage = manageLoading || canManage;
   const showRemind = remindLoading || canRemind;
+  const showCollect = (bondLoading || canCreateBond) && showManage;
 
   // 1. Tab filtering
   const tabFiltered = useMemo(() => debtsService.filterByTab(rows ?? [], tab), [rows, tab]);
@@ -36,6 +68,11 @@ const FollowUpPage: React.FC = () => {
           (r.party_name || '').toLowerCase().includes(term) ||
           (r.party_phone || '').toLowerCase().includes(term)
       );
+    }
+
+    // Aging bucket filter (قادم من شرائح التقادم في النظرة العامة)
+    if (agingFilter !== null) {
+      result = result.filter(r => bucketForDays(r.days_overdue) === agingFilter);
     }
 
     // Currency filter
@@ -64,13 +101,14 @@ const FollowUpPage: React.FC = () => {
     });
 
     return result;
-  }, [tabFiltered, searchTerm, currencyFilter, sortBy, sortOrder]);
+  }, [tabFiltered, searchTerm, currencyFilter, sortBy, sortOrder, agingFilter]);
 
   const hasActiveFilters = Boolean(
     (searchTerm && searchTerm.trim() !== '') ||
     currencyFilter !== 'all' ||
     sortBy !== 'amount' ||
-    sortOrder !== 'desc'
+    sortOrder !== 'desc' ||
+    agingFilter !== null
   );
 
   const handleResetFilters = () => {
@@ -78,6 +116,19 @@ const FollowUpPage: React.FC = () => {
     setCurrencyFilter('all');
     setSortBy('amount');
     setSortOrder('desc');
+    setSearchParams({});
+  };
+
+  /** تصدير «ورقة تحصيل ميداني» (CSV بترميز UTF-8/BOM) من الصفوف المفلترة. */
+  const handleExportCsv = (): void => {
+    const csv = buildCollectionSheetCsv(finalRows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = collectionSheetFileName();
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const counts = useMemo(() => {
@@ -112,7 +163,7 @@ const FollowUpPage: React.FC = () => {
       </div>
 
       {/* Deep Filtering & Sorting Toolbar */}
-      <div className="flex flex-col gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2.5 shadow-xs md:flex-row md:items-center">
+      <div className="flex flex-col gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2.5 shadow-xs md:flex-row md:items-center print:hidden">
         {/* Search Input */}
         <div className="relative flex-1">
           <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-[var(--app-text-secondary)]">
@@ -182,9 +233,80 @@ const FollowUpPage: React.FC = () => {
             <span>مسح الفلاتر</span>
           </button>
         )}
+
+        {/* Aging bucket chip (قادم من شريحة التقادم) */}
+        {agingFilter && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchParams({});
+            }}
+            title="إزالة فلتر شريحة التقادم"
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/60 px-2.5 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-400"
+          >
+            <span>شريحة: {getAgingMeta(agingFilter).label}</span>
+            <X size={13} />
+          </button>
+        )}
+
+        {/* Field collection sheet (CSV) + print */}
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={finalRows.length === 0}
+          title="تصدير ورقة تحصيل ميداني (CSV يفتح في Excel)"
+          className="flex h-9 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/50 px-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-400"
+        >
+          <FileDown size={13} />
+          <span>ورقة تحصيل</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            window.print();
+          }}
+          disabled={finalRows.length === 0}
+          title="طباعة الجدول الحالي"
+          className="flex h-9 items-center gap-1.5 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-2.5 text-xs font-bold text-[var(--app-text-secondary)] transition-colors hover:bg-[var(--app-surface)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Printer size={13} />
+          <span>طباعة</span>
+        </button>
       </div>
 
-      <FollowUpTable rows={finalRows} canManage={showManage} canRemind={showRemind} />
+      <FollowUpTable
+        rows={finalRows}
+        canManage={showManage}
+        canRemind={showRemind}
+        {...(showCollect
+          ? {
+              onCollect: (row: FollowUpDashboardRow) => {
+                setCollectRow(row);
+              },
+            }
+          : {})}
+      />
+
+      {/* تحصيل الآن — سند قبض مُعبّأ (الإغلاق التلقائي للوعود يتم في الخادم) */}
+      {collectRow && (
+        <CreateBondModal
+          isOpen
+          type="receipt"
+          prefill={collectPrefill}
+          onClose={() => {
+            setCollectRow(null);
+          }}
+          isSubmitting={isCreatingBond}
+          onSubmit={data => {
+            createBond(data, {
+              onSuccess: () => {
+                setCollectRow(null);
+                void queryClient.invalidateQueries({ queryKey: ['debts'] });
+              },
+            });
+          }}
+        />
+      )}
     </div>
   );
 };
