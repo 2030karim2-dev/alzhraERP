@@ -331,6 +331,7 @@ const DashboardPage: React.FC = () => {
               <TopPerformers
                 products={topProducts as unknown as TopProduct[]}
                 customers={topCustomers as unknown as TopCustomer[]}
+                periodLabel={periodLabel}
               />
             </Suspense>
 

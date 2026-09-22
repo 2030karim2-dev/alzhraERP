@@ -115,10 +115,19 @@ interface RawTopProduct {
   sku?: string;
   name?: string;
   name_ar?: string;
+  part_number?: string | null;
+  brand?: string | null;
+  category_name?: string | null;
   total_revenue?: number;
   revenue?: number;
   total_quantity?: number;
   quantity?: number;
+  gross_profit?: number;
+  price?: number;
+  current_stock?: number;
+  min_stock_level?: number;
+  is_low_stock?: boolean;
+  is_out_of_stock?: boolean;
 }
 
 interface RawTopCustomer {
@@ -322,12 +331,14 @@ export const dashboardApi = {
           activeSignal
         ),
 
-        // 8. Top Products & Customers
+        // 8. Top Products & Customers (Respects the dashboard date filter & fetches 15 items)
         dashboardRpc(
           'get_top_products_and_customers',
           {
             p_company_id: companyId,
-            p_limit: 5,
+            p_limit: 15,
+            ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+            ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
             ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
           },
           activeSignal
@@ -455,8 +466,19 @@ export const dashboardApi = {
         ? topDataObj.top_products.map((p: RawTopProduct, i: number) => ({
             id: p?.id ?? p?.sku ?? `prod-${String(i)}`,
             name: p?.name ?? p?.name_ar ?? 'غير معروف',
+            part_number: p?.part_number ?? null,
+            brand: p?.brand ?? null,
+            sku: p?.sku ?? '',
+            category_name: p?.category_name ?? null,
             revenue: p?.total_revenue ?? p?.revenue ?? 0,
             quantity: p?.total_quantity ?? p?.quantity ?? 0,
+            gross_profit: p?.gross_profit ?? 0,
+            price: p?.price ?? 0,
+            current_stock: p?.current_stock ?? 0,
+            min_stock_level: p?.min_stock_level ?? 0,
+            is_low_stock: Boolean(p?.is_low_stock),
+            is_out_of_stock: Boolean(p?.is_out_of_stock),
+            value: p?.total_quantity ?? p?.quantity ?? 0,
           }))
         : [];
 
