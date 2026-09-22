@@ -29,7 +29,12 @@ export interface TopProduct {
   min_stock_level?: number;
   is_low_stock?: boolean;
   is_out_of_stock?: boolean;
+  cost?: number;
   gross_profit?: number;
+  margin_percentage?: number;
+  revenue_yer?: number;
+  cost_yer?: number;
+  gross_profit_yer?: number;
   price?: number;
 }
 
@@ -164,9 +169,15 @@ const ProductItem = React.memo(
             <>
               <span className="font-mono text-sm font-black text-purple-400 sm:text-base">
                 {formatCurrency(product.gross_profit ?? 0)}
+                {product.margin_percentage !== undefined && (
+                  <span className="mr-1.5 font-sans text-[10px] font-bold text-purple-300">
+                    ({product.margin_percentage}%)
+                  </span>
+                )}
               </span>
               <span className="mt-0.5 font-mono text-xs text-[var(--app-text-secondary)]">
-                إيراد: {formatCurrency(product.revenue)}
+                إيراد: {formatCurrency(product.revenue)} • تكلفة:{' '}
+                {formatCurrency(product.cost ?? 0)}
               </span>
             </>
           )}

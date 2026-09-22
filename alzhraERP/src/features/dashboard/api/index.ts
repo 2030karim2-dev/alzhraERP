@@ -123,6 +123,14 @@ interface RawTopProduct {
   total_quantity?: number;
   quantity?: number;
   gross_profit?: number;
+  cost?: number;
+  total_cost?: number;
+  margin_percentage?: number;
+  revenue_yer?: number;
+  total_revenue_yer?: number;
+  cost_yer?: number;
+  total_cost_yer?: number;
+  gross_profit_yer?: number;
   price?: number;
   current_stock?: number;
   min_stock_level?: number;
@@ -472,7 +480,12 @@ export const dashboardApi = {
             category_name: p?.category_name ?? null,
             revenue: p?.total_revenue ?? p?.revenue ?? 0,
             quantity: p?.total_quantity ?? p?.quantity ?? 0,
+            cost: p?.total_cost ?? p?.cost ?? 0,
             gross_profit: p?.gross_profit ?? 0,
+            margin_percentage: p?.margin_percentage ?? 0,
+            revenue_yer: p?.total_revenue_yer ?? p?.revenue_yer,
+            cost_yer: p?.total_cost_yer ?? p?.cost_yer,
+            gross_profit_yer: p?.gross_profit_yer,
             price: p?.price ?? 0,
             current_stock: p?.current_stock ?? 0,
             min_stock_level: p?.min_stock_level ?? 0,
