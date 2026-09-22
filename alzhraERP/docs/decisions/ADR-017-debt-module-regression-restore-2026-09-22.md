@@ -96,7 +96,50 @@ Frontend:
 - `PromisesPage` disables complete/delete/break actions while `isSaving`
   (double-click prevention on desktop and mobile actions).
 
-## Alternatives considered
+## Addendum (2026-09-22) — Live production audit (supersedes parts of "Context")
+
+A live audit of the production project (`zzthamxjxnxzzpswllid`) through the
+Supabase Management API **refuted the "regression" premise for the live
+database**:
+
+| Item                                          | Live state (audited)                                                                         |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `break_overdue_promises` / `complete_promise` | role gate + `INVALID_PAYMENT` present                                                        |
+| `record_debt_reminder`                        | `INVALID_TEMPLATE` present                                                                   |
+| `get_debt_analytics_summary`                  | already `(uuid, uuid)`, single overload, base-currency conversion                            |
+| `get_debt_today_tasks`                        | already `(uuid, uuid)`, correct statuses                                                     |
+| `get_debt_followup_dashboard`                 | single 6-param overload, `posted/confirmed/partially_paid`, party NULL-branch tolerance      |
+| `get_debt_party_overview`                     | converts to base currency AND enforces branch scope (better than the repository version)     |
+| unique constraints                            | `debt_followup_config_company_id_key` + `uq_party_opening_balance` exist; 0 duplicate groups |
+| Arabic literals in bodies                     | correct (verified by codepoint probe, not by eye)                                            |
+
+Conclusion: the regressions described in "Context" exist **only in the
+repository migration chain** — a fresh rebuild applies
+`patch_rpc_security_part2/3/4` _after_ the ADR-011 fix and reintroduces them.
+`20260922000001` is therefore the **fresh-rebuild remedy** and MUST NOT be
+applied to the live database: it would overwrite healthy live functions,
+including `get_debt_party_overview`.
+
+Genuine live gaps — fixed by
+`20260922000002_debt_analytics_live_alignment.sql` (surgical, single function):
+
+1. Engine windows were hardcoded `7/30/3` inside analytics, so the Settings
+   screen (`debt_followup_config`) did not affect the Overview KPIs; the patch
+   reads the saved config. **Verified end-to-end:** analytics
+   `needs_reminder` now equals the dashboard's count computed with the same
+   configured window.
+2. `total_debtors` / `needs_reminder` / `by_currency.count` counted
+   party×currency rows instead of distinct parties. **Verified on live data:**
+   KPI `total_debtors = 3` while the raw dashboard row count is `4`.
+3. Opening balances with `branch_id IS NULL` were excluded for branch-limited
+   users (0 such rows at audit time — future-proofing).
+
+Deliberately NOT deployed to live (measured, not assumed): 20260922000001's
+broader NULL-branch tolerance and its function rewrites. Live data shows just
+21 of 64,744 invoices with `branch_id IS NULL` (0.03%) and **0** NULL-branch
+parties, opening balances and promises, so the benefit is negligible next to
+the risk of replacing audited, working code. Those changes stay in
+`20260922000001` for fresh rebuilds only.
 
 - **Passing NULL from the frontend and letting SQL read the config** — rejected
   as the only mechanism because on a live DB without the new migration the

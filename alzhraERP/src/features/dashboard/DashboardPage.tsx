@@ -325,13 +325,14 @@ const DashboardPage: React.FC = () => {
 
             <Suspense
               fallback={
-                <div className="h-60 animate-pulse rounded-2xl bg-[var(--app-surface)] max-md:rounded-xl" />
+                <div className="col-span-1 h-72 animate-pulse rounded-2xl bg-[var(--app-surface)] max-md:rounded-xl md:col-span-2 xl:col-span-3 2xl:col-span-5" />
               }
             >
               <TopPerformers
                 products={topProducts as unknown as TopProduct[]}
                 customers={topCustomers as unknown as TopCustomer[]}
                 periodLabel={periodLabel}
+                className="col-span-1 md:col-span-2 xl:col-span-3 2xl:col-span-5"
               />
             </Suspense>
 
