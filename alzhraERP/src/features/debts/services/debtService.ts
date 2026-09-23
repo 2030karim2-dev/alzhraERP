@@ -23,8 +23,10 @@ import type {
   FollowUpTab,
   CollectionActivityRecord,
   CompleteDebtTaskResult,
+  DebtChannelConfig,
   DebtCollector,
   DebtFollowupAction,
+  DebtReminderQueueRow,
   DebtTaskQueueRow,
   PartyTimelineEntry,
 } from '../types';

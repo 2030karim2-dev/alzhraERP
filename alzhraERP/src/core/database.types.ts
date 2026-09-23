@@ -4761,6 +4761,10 @@ export type Database = {
           notify_on_purchase: boolean
           notify_on_sale: boolean
           notify_on_stock_transfer: boolean
+          sms_api_key: string | null
+          sms_api_url: string | null
+          sms_enabled: boolean
+          sms_sender_id: string | null
           telegram_bot_token: string
           telegram_chat_id: string
           telegram_enabled: boolean
@@ -4780,6 +4784,10 @@ export type Database = {
           notify_on_purchase?: boolean
           notify_on_sale?: boolean
           notify_on_stock_transfer?: boolean
+          sms_api_key?: string | null
+          sms_api_url?: string | null
+          sms_enabled?: boolean
+          sms_sender_id?: string | null
           telegram_bot_token?: string
           telegram_chat_id?: string
           telegram_enabled?: boolean
@@ -4799,6 +4807,10 @@ export type Database = {
           notify_on_purchase?: boolean
           notify_on_sale?: boolean
           notify_on_stock_transfer?: boolean
+          sms_api_key?: string | null
+          sms_api_url?: string | null
+          sms_enabled?: boolean
+          sms_sender_id?: string | null
           telegram_bot_token?: string
           telegram_chat_id?: string
           telegram_enabled?: boolean

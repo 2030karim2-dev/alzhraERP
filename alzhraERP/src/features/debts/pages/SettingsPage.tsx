@@ -1,6 +1,7 @@
 import React from 'react';
 import { SlidersHorizontal, MessageSquareText } from 'lucide-react';
 import FollowUpSettingsForm from '../components/FollowUpSettingsForm';
+import ChannelSettingsCard from '../components/ChannelSettingsCard';
 import SeedTemplatesCard from '../components/SeedTemplatesCard';
 import TemplateManager from '../components/TemplateManager';
 
@@ -36,6 +37,7 @@ const SettingsPage: React.FC = () => (
         </div>
       </header>
       <div className="p-4">
+        <ChannelSettingsCard />
         <SeedTemplatesCard />
         <TemplateManager />
       </div>

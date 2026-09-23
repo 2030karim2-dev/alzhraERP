@@ -6,6 +6,7 @@
  */
 import { supabase } from '../../../lib/supabaseClient';
 import { logger } from '../../../core/utils/logger';
+import type { Database } from '../../../core/database.types';
 import type {
   DebtFollowupConfig,
   DebtFollowupConfigUpdate,
@@ -26,8 +27,10 @@ import type {
   PartyOpeningBalanceInsert,
   CollectionActivityRecord,
   CompleteDebtTaskResult,
+  DebtChannelConfig,
   DebtCollector,
   DebtFollowupAction,
+  DebtReminderQueueRow,
   DebtTaskQueueRow,
   PartyTimelineEntry,
 } from '../types';
@@ -541,7 +544,17 @@ export const debtMessageApi = {
       .eq('company_id', companyId)
       .maybeSingle();
     if (error) throw error;
-    return { ...EMPTY_CHANNEL_CONFIG, ...(data ?? {}) };
+    if (!data) return EMPTY_CHANNEL_CONFIG;
+    return {
+      whatsapp_enabled: Boolean(data.whatsapp_enabled),
+      whatsapp_api_url: data.whatsapp_api_url ?? '',
+      whatsapp_api_key: data.whatsapp_api_key ?? '',
+      whatsapp_phone: data.whatsapp_phone ?? '',
+      sms_enabled: Boolean(data.sms_enabled),
+      sms_api_url: data.sms_api_url ?? '',
+      sms_api_key: data.sms_api_key ?? '',
+      sms_sender_id: data.sms_sender_id ?? '',
+    };
   },
 
   /** يحدّث إعدادات القنوات (تحديث أولاً ثم إدراج عند عدم وجود صف). */
@@ -549,16 +562,30 @@ export const debtMessageApi = {
     companyId: string,
     patch: Partial<DebtChannelConfig>
   ): Promise<void> => {
+    type MessagingConfigUpdate = Database['public']['Tables']['messaging_config']['Update'];
+    const updatePayload: MessagingConfigUpdate = {};
+    if (patch.whatsapp_enabled !== undefined)
+      updatePayload.whatsapp_enabled = patch.whatsapp_enabled;
+    if (patch.whatsapp_api_url !== undefined)
+      updatePayload.whatsapp_api_url = patch.whatsapp_api_url;
+    if (patch.whatsapp_api_key !== undefined)
+      updatePayload.whatsapp_api_key = patch.whatsapp_api_key;
+    if (patch.whatsapp_phone !== undefined) updatePayload.whatsapp_phone = patch.whatsapp_phone;
+    if (patch.sms_enabled !== undefined) updatePayload.sms_enabled = patch.sms_enabled;
+    if (patch.sms_api_url !== undefined) updatePayload.sms_api_url = patch.sms_api_url;
+    if (patch.sms_api_key !== undefined) updatePayload.sms_api_key = patch.sms_api_key;
+    if (patch.sms_sender_id !== undefined) updatePayload.sms_sender_id = patch.sms_sender_id;
+
     const { data: updated, error } = await supabase
       .from('messaging_config')
-      .update(patch)
+      .update(updatePayload)
       .eq('company_id', companyId)
       .select('id');
     if (error) throw error;
     if ((updated ?? []).length > 0) return;
     const { error: insertError } = await supabase
       .from('messaging_config')
-      .insert({ company_id: companyId, ...patch });
+      .insert({ company_id: companyId, ...updatePayload });
     if (insertError) throw insertError;
   },
 
