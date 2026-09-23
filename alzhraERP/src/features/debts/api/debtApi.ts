@@ -25,7 +25,10 @@ import type {
   PartyOpeningBalance,
   PartyOpeningBalanceInsert,
   CollectionActivityRecord,
+  CompleteDebtTaskResult,
+  DebtCollector,
   DebtFollowupAction,
+  DebtTaskQueueRow,
   PartyTimelineEntry,
 } from '../types';
 
@@ -396,6 +399,93 @@ export const debtMessageApi = {
       throw error;
     }
     return data ?? [];
+  },
+
+  // ── Work queue & collector assignment (S2) ──
+  /**
+   * طابور المهام الموحّد: كل الالتزامات المستحقة والقريبة (فواتير، وعود،
+   * إجراءات مجدولة، ديون حرجة، رسائل فاشلة) مع المسؤول ومرحلة التصعيد.
+   * collectorId = «عملائي» فقط.
+   */
+  getTaskQueue: async (
+    companyId: string,
+    options: {
+      branchId?: string | null;
+      collectorId?: string | null;
+      windowDays?: number;
+      limit?: number;
+    } = {}
+  ): Promise<DebtTaskQueueRow[]> => {
+    const { data, error } = await supabase.rpc('get_debt_task_queue', {
+      p_company_id: companyId,
+      p_limit: options.limit ?? 200,
+      p_window_days: options.windowDays ?? 7,
+      ...(options.branchId != null ? { p_branch_id: options.branchId } : {}),
+      ...(options.collectorId != null ? { p_collector_id: options.collectorId } : {}),
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        logger.warn('DebtAPI', 'get_debt_task_queue RPC not found on server', { companyId });
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
+  },
+
+  /** أعضاء المنشأة القابلون للإسناد (قائمة المحصّلين). */
+  getCollectors: async (companyId: string): Promise<DebtCollector[]> => {
+    const { data, error } = await supabase.rpc('get_debt_collectors', {
+      p_company_id: companyId,
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        logger.warn('DebtAPI', 'get_debt_collectors RPC not found on server', { companyId });
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
+  },
+
+  /** إتمام مهمة مجدولة (+ إجراء تالٍ اختياري) — idempotent على الخادم. */
+  completeTask: async (params: {
+    activityId: string;
+    outcome?: string | null;
+    notes?: string | null;
+    nextActionDate?: string | null;
+  }): Promise<CompleteDebtTaskResult> => {
+    const { data, error } = await supabase.rpc('complete_debt_task', {
+      p_activity_id: params.activityId,
+      ...(params.outcome != null ? { p_outcome: params.outcome } : {}),
+      ...(params.notes != null ? { p_notes: params.notes } : {}),
+      ...(params.nextActionDate != null ? { p_next_action_date: params.nextActionDate } : {}),
+    });
+    if (error) throw error;
+    if (data.length === 0) throw new Error('تعذر إتمام المهمة');
+    return data[0];
+  },
+
+  /**
+   * إسناد مجموعة عملاء لمحصّل (collectorId = null يعني إلغاء الإسناد).
+   * يعيد عدد الصفوف المتأثرة.
+   */
+  assignParties: async (params: {
+    companyId: string;
+    partyIds: string[];
+    collectorId: string | null;
+    priority?: string;
+    notes?: string | null;
+  }): Promise<number> => {
+    const { data, error } = await supabase.rpc('assign_debt_parties', {
+      p_company_id: params.companyId,
+      p_party_ids: params.partyIds,
+      ...(params.collectorId != null ? { p_collector_id: params.collectorId } : {}),
+      ...(params.priority != null ? { p_priority: params.priority } : {}),
+      ...(params.notes != null ? { p_notes: params.notes } : {}),
+    });
+    if (error) throw error;
+    return data ?? 0;
   },
 
   // ── Opening balances (legacy debts) ──

@@ -39,6 +39,7 @@ export const ROUTES = {
     // Debts & Collection module (each main service = its own route)
     DEBTS: '/debts',
     DEBTS_FOLLOWUP: '/debts/followup',
+    DEBTS_TASKS: '/debts/tasks',
     DEBTS_PROMISES: '/debts/promises',
     DEBTS_OUTBOX: '/debts/outbox',
     DEBTS_STATEMENTS: '/debts/statements',

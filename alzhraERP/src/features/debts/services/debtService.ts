@@ -22,6 +22,10 @@ import type {
   FollowUpDashboardRow,
   FollowUpTab,
   CollectionActivityRecord,
+  CompleteDebtTaskResult,
+  DebtCollector,
+  DebtFollowupAction,
+  DebtTaskQueueRow,
   PartyTimelineEntry,
 } from '../types';
 
@@ -90,6 +94,45 @@ export const debtsService = {
     nextActionDate?: string | null | undefined;
     priority?: string | undefined;
   }): Promise<CollectionActivityRecord> => debtMessageApi.logCollectionActivity(params),
+
+  /** S2: طابور المهام الموحّد (فواتير/وعود/إجراءات/حرج/فاشل) مع المسؤول. */
+  getTaskQueue: (
+    companyId: string,
+    options?: {
+      branchId?: string | null;
+      collectorId?: string | null;
+      windowDays?: number;
+      limit?: number;
+    }
+  ): Promise<DebtTaskQueueRow[]> => debtMessageApi.getTaskQueue(companyId, options),
+
+  /** S2: قائمة المحصّلين (أعضاء المنشأة). */
+  getCollectors: (companyId: string): Promise<DebtCollector[]> =>
+    debtMessageApi.getCollectors(companyId),
+
+  /** S2: إتمام مهمة مجدولة (+ إجراء تالٍ اختياري). */
+  completeTask: (params: {
+    activityId: string;
+    outcome?: string | null;
+    notes?: string | null;
+    nextActionDate?: string | null;
+  }): Promise<CompleteDebtTaskResult> => debtMessageApi.completeTask(params),
+
+  /** S2: إسناد/إلغاء إسناد مجموعة عملاء (null = إلغاء). */
+  assignParties: (params: {
+    companyId: string;
+    partyIds: string[];
+    collectorId: string | null;
+    priority?: string;
+    notes?: string | null;
+  }): Promise<number> => debtMessageApi.assignParties(params),
+
+  /** S1: الإجراءات المجدولة المعلّقة (customer_activities.pending) — قراءة فقط. */
+  getFollowupActions: (
+    companyId: string,
+    branchId?: string | null,
+    limit?: number
+  ): Promise<DebtFollowupAction[]> => debtMessageApi.getFollowupActions(companyId, branchId, limit),
 
   /** Phase 2A: الخط الزمني لآخر أنشطة الطرف. */
   getPartyTimeline: (

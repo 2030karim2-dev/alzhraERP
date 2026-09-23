@@ -17,6 +17,7 @@ import { useCompany } from '../../settings/hooks';
 import { TASK_TYPE_META } from '../lib/constants';
 import AIDebtAdvisor from '../components/AIDebtAdvisor';
 import AgingBuckets from '../components/AgingBuckets';
+import FollowupActionsCard from '../components/FollowupActionsCard';
 import type { DebtAnalytics, TodayTask } from '../types';
 
 /** Safe numeric coercion for values that arrive from a JSON payload. */
@@ -227,6 +228,8 @@ const OverviewPage: React.FC = () => {
       <StatsGrid analytics={analytics ?? null} isLoading={isLoading} baseCurrency={baseCurrency} />
       <AgingBuckets aging={a.aging} baseCurrency={baseCurrency} />
       <TodayTasksCard tasks={tasks ?? []} />
+      {/* S1: الإجراءات المجدولة (customer_activities.pending) — كانت بلا قارئ */}
+      <FollowupActionsCard />
       <CurrencyBreakdown byCurrency={a.by_currency} />
     </div>
   );

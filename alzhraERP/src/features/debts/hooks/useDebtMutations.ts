@@ -8,6 +8,7 @@ import { useFeedbackStore } from '../../feedback/store';
 import { assertPermission } from '../../../core/hooks/usePermission';
 import { debtApi, debtMessageApi } from '../api/debtApi';
 import { debtsService } from '../services/debtService';
+import { debtRpcErrorMessage } from '../lib/rpcErrors';
 import type {
   DebtFollowupConfigUpdate,
   PaymentPromiseInsert,
@@ -190,7 +191,7 @@ export const useDebtMutations = () => {
     },
     onSuccess: () => {
       invalidateDebtQueries();
-      showToast('تم تسجيل التذكير — اضغط واتساب لإرسال الرسالة', 'success');
+      showToast('تم تسجيل التذكير في سجل المتابعة', 'success');
     },
     onError: (err: Error) => {
       showToast(err.message, 'error', err);
@@ -224,6 +225,48 @@ export const useDebtMutations = () => {
     },
   });
 
+  // ── Work queue & assignment (S2) ─────────────────────────────
+  const completeTask = useMutation({
+    mutationFn: async (params: {
+      activityId: string;
+      outcome?: string | null;
+      notes?: string | null;
+      nextActionDate?: string | null;
+    }) => {
+      await assertPermission('debts:manage', 'إتمام مهام التحصيل');
+      return debtsService.completeTask(params);
+    },
+    onSuccess: data => {
+      invalidateDebtQueries();
+      showToast(
+        data.next_action_id ? 'تم إتمام المهمة وجدولة الإجراء التالي' : 'تم إتمام المهمة',
+        'success'
+      );
+    },
+    onError: (err: Error) => {
+      showToast(debtRpcErrorMessage(err.message), 'error', err);
+    },
+  });
+
+  const assignParties = useMutation({
+    mutationFn: async (params: {
+      partyIds: string[];
+      collectorId: string | null;
+      priority?: string;
+    }) => {
+      await assertPermission('debts:manage', 'إسناد محفظة التحصيل');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
+      return debtsService.assignParties({ companyId, ...params });
+    },
+    onSuccess: count => {
+      invalidateDebtQueries();
+      showToast(`تم تحديث إسناد ${String(count)} عميل`, 'success');
+    },
+    onError: (err: Error) => {
+      showToast(debtRpcErrorMessage(err.message), 'error', err);
+    },
+  });
+
   // ── Opening balances ────────────────────────────────────────
   const saveOpeningBalance = useMutation({
     mutationFn: async (payload: Omit<PartyOpeningBalanceInsert, 'company_id'>) => {
@@ -253,6 +296,8 @@ export const useDebtMutations = () => {
     recordReminder: recordReminder.mutate,
     saveOpeningBalance: saveOpeningBalance.mutate,
     logCollectionActivity: logCollectionActivity.mutate,
+    completeTask: completeTask.mutate,
+    assignParties: assignParties.mutate,
     isSaving:
       saveFollowupConfig.isPending ||
       createPromise.isPending ||
@@ -265,6 +310,8 @@ export const useDebtMutations = () => {
       deleteTemplate.isPending ||
       recordReminder.isPending ||
       saveOpeningBalance.isPending ||
-      logCollectionActivity.isPending,
+      logCollectionActivity.isPending ||
+      completeTask.isPending ||
+      assignParties.isPending,
   };
 };

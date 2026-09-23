@@ -19,6 +19,9 @@ import type {
   FollowUpDashboardRow,
   PartyDebtOverview,
   PartyOpeningBalance,
+  DebtCollector,
+  DebtFollowupAction,
+  DebtTaskQueueRow,
   PartyTimelineEntry,
   PaymentPromiseWithParty,
   TodayTask,
@@ -100,6 +103,59 @@ export const useDebtTodayTasks = (): UseQueryResult<TodayTask[]> => {
     fetcher: companyId => debtsService.getTodayTasks(companyId, branchId),
   });
 };
+
+/**
+ * S1: الإجراءات المجدولة المستحقة (customer_activities.pending).
+ * تُغلق فجوة «الكتابة بلا قارئ»: الإجراء التالي المكتوب من
+ * log_collection_activity لم تكن أي شاشة تعرضه، فتضيع مواعيد المتابعة.
+ */
+export const useDebtFollowupActions = (): UseQueryResult<DebtFollowupAction[]> => {
+  const { branchId } = useBranchFilter();
+  return useDebtQuery<DebtFollowupAction[]>({
+    scope: 'followup_actions',
+    extra: [branchId],
+    empty: [],
+    staleTime: 30 * 1000,
+    fetcher: companyId => debtsService.getFollowupActions(companyId, branchId),
+  });
+};
+
+/** فلاتر طابور المهام (المحصّل/النافذة/الحد). */
+export interface DebtTaskQueueFilters {
+  collectorId?: string | null;
+  windowDays?: number;
+  limit?: number;
+}
+
+/**
+ * S2: طابور المهام الموحّد — كل الالتزامات (فواتير/وعود/إجراءات/حرج/فاشل)
+ * مع المسؤول ومرحلة التصعيد. `collectorId` يحوّله إلى «عملائي».
+ */
+export const useDebtTaskQueue = (
+  filters: DebtTaskQueueFilters = {}
+): UseQueryResult<DebtTaskQueueRow[]> => {
+  const { branchId } = useBranchFilter();
+  const windowDays = filters.windowDays ?? 7;
+  const limit = filters.limit ?? 200;
+  const collectorId = filters.collectorId ?? null;
+  return useDebtQuery<DebtTaskQueueRow[]>({
+    scope: 'task_queue',
+    extra: [branchId, collectorId ?? '', windowDays, limit],
+    empty: [],
+    staleTime: 30 * 1000,
+    fetcher: companyId =>
+      debtsService.getTaskQueue(companyId, { branchId, collectorId, windowDays, limit }),
+  });
+};
+
+/** S2: قائمة المحصّلين (أعضاء المنشأة) لقوائم الإسناد. */
+export const useDebtCollectors = (): UseQueryResult<DebtCollector[]> =>
+  useDebtQuery<DebtCollector[]>({
+    scope: 'collectors',
+    empty: [],
+    staleTime: 5 * 60 * 1000,
+    fetcher: companyId => debtsService.getCollectors(companyId),
+  });
 
 export const useDebtPromises = (filters?: {
   partyId?: string;

@@ -1406,6 +1406,7 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          delivery_status: string
           error_info: string | null
           id: string
           message_text: string
@@ -1422,6 +1423,7 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          delivery_status?: string
           error_info?: string | null
           id?: string
           message_text: string
@@ -1438,6 +1440,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          delivery_status?: string
           error_info?: string | null
           id?: string
           message_text?: string
@@ -12426,9 +12429,57 @@ export type Database = {
           total_value: number
         }[]
       }
+      assign_debt_parties: {
+        Args: {
+          p_collector_id?: string | null
+          p_company_id: string
+          p_notes?: string | null
+          p_party_ids: string[]
+          p_priority?: string | null
+        }
+        Returns: number
+      }
+      complete_debt_task: {
+        Args: {
+          p_activity_id: string
+          p_next_action_date?: string | null
+          p_notes?: string | null
+          p_outcome?: string | null
+        }
+        Returns: {
+          activity_id: string
+          next_action_id: string | null
+        }[]
+      }
       get_debt_analytics_summary: {
         Args: { p_company_id: string }
         Returns: Json
+      }
+      get_debt_collectors: {
+        Args: { p_company_id: string }
+        Returns: {
+          collector_id: string
+          full_name: string
+          role: string
+        }[]
+      }
+      get_debt_followup_actions: {
+        Args: {
+          p_branch_id?: string | null
+          p_company_id: string
+          p_limit?: number
+        }
+        Returns: {
+          action_id: string
+          description: string | null
+          is_overdue: boolean
+          party_id: string
+          party_name: string
+          party_phone: string | null
+          priority: string | null
+          scheduled_at: string
+          subject: string
+        }[]
       }
       get_debt_followup_dashboard: {
         Args: {
@@ -12480,6 +12531,32 @@ export type Database = {
           pending_promise_amount: number
           pending_promise_count: number
           total_outstanding: number
+        }[]
+      }
+      get_debt_task_queue: {
+        Args: {
+          p_branch_id?: string | null
+          p_collector_id?: string | null
+          p_company_id: string
+          p_limit?: number
+          p_window_days?: number
+        }
+        Returns: {
+          amount: number | null
+          assigned_name: string | null
+          assigned_to: string | null
+          currency_code: string | null
+          due_at: string | null
+          escalation_stage: string
+          is_overdue: boolean
+          party_id: string
+          party_name: string
+          party_phone: string | null
+          priority: string | null
+          reference_info: string | null
+          task_id: string
+          task_type: string
+          urgency: string
         }[]
       }
       get_debt_today_tasks: {

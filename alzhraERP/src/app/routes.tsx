@@ -54,6 +54,7 @@ const CommissionReportsPage = lazy(
 const DebtsLayout = lazy(() => import('../features/debts/pages/DebtsLayout'));
 const DebtOverviewPage = lazy(() => import('../features/debts/pages/OverviewPage'));
 const DebtFollowUpPage = lazy(() => import('../features/debts/pages/FollowUpPage'));
+const DebtTasksPage = lazy(() => import('../features/debts/pages/TasksPage'));
 const DebtPromisesPage = lazy(() => import('../features/debts/pages/PromisesPage'));
 const DebtOutboxPage = lazy(() => import('../features/debts/pages/OutboxPage'));
 const DebtStatementsPage = lazy(() => import('../features/debts/pages/StatementsPage'));
@@ -421,6 +422,7 @@ export const AppRoutes: React.FC = () => {
         >
           <Route index element={<DebtOverviewPage />} />
           <Route path="followup" element={<DebtFollowUpPage />} />
+          <Route path="tasks" element={<DebtTasksPage />} />
           <Route path="promises" element={<DebtPromisesPage />} />
           <Route path="outbox" element={<DebtOutboxPage />} />
           <Route path="statements" element={<DebtStatementsPage />} />

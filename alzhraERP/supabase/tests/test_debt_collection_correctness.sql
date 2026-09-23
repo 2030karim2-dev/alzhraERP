@@ -44,6 +44,9 @@ DECLARE
   v_rows    json;
   v_promise uuid;
   v_branch  uuid;
+  v_activity uuid;
+  v_next    uuid;
+  v_next2   uuid;
 BEGIN
   SELECT id INTO v_uid FROM auth.users ORDER BY created_at ASC LIMIT 1;
   IF v_uid IS NULL THEN
@@ -297,6 +300,115 @@ BEGIN
   FROM public.debt_payment_promises pp
   WHERE pp.id = v_promise;
   ASSERT v_txt = 'payment', 'T10 FAIL: promise reference_type = ' || COALESCE(v_txt, 'NULL');
+
+  -- ==== T11: scheduled follow-up actions surface as due work ====
+  -- (S1: get_debt_followup_actions closes the write-without-reader gap
+  --  created by log_collection_activity.next_action_date.)
+  INSERT INTO public.customer_activities (
+    company_id, customer_id, activity_type, subject, description,
+    status, priority, scheduled_at
+  ) VALUES (
+    v_company, v_customer, 'task', 'متابعة وعد السداد', 'اتصال متابعة',
+    'pending', 'high', CURRENT_DATE - 1
+  );
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.get_debt_followup_actions(v_company) a
+  WHERE a.party_id = v_customer AND a.is_overdue;
+  ASSERT v_cnt >= 1, 'T11 FAIL: pending follow-up action is not surfaced as overdue';
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.get_debt_followup_actions(v_company) a
+  WHERE a.party_id = v_customer
+    AND a.party_name IS NOT NULL
+    AND a.subject IS NOT NULL
+    AND a.subject <> '';
+  ASSERT v_cnt >= 1, 'T11 FAIL: follow-up action party/subject projection is broken';
+
+  -- ==== T12: unified task queue surfaces a scheduled action with its owner ====
+  -- (S2: get_debt_task_queue + assign_debt_parties)
+  INSERT INTO public.customer_activities (
+    company_id, customer_id, activity_type, subject, description,
+    status, priority, scheduled_at, assigned_to
+  ) VALUES (
+    v_company, v_customer, 'task', 'T12 scheduled call', 'probe',
+    'pending', 'high', CURRENT_DATE, v_uid
+  );
+
+  PERFORM public.assign_debt_parties(v_company, ARRAY[v_customer], v_uid, 'high', 'T12 probe');
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.get_debt_task_queue(v_company) q
+  WHERE q.party_id = v_customer
+    AND q.task_type = 'follow_up'
+    AND q.assigned_to = v_uid
+    AND q.priority = 'high'
+    AND q.party_name IS NOT NULL;
+  ASSERT v_cnt >= 1, 'T12 FAIL: scheduled action not surfaced with its owner/priority';
+
+  -- The collector filter is the my-accounts view: it must keep the assignment.
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.get_debt_task_queue(v_company, NULL, v_uid) q
+  WHERE q.party_id = v_customer;
+  ASSERT v_cnt >= 1, 'T12 FAIL: collector filter dropped the assigned customer';
+
+  -- ==== T13: complete_debt_task is idempotent and schedules the next action ====
+  SELECT id INTO v_activity
+  FROM public.customer_activities
+  WHERE company_id = v_company AND customer_id = v_customer
+    AND status = 'pending' AND subject = 'T12 scheduled call'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT next_action_id INTO v_next
+  FROM public.complete_debt_task(v_activity, 'no_answer', 'T13 probe', CURRENT_DATE + 2);
+  ASSERT v_next IS NOT NULL, 'T13 FAIL: the next action was not scheduled';
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.customer_activities
+  WHERE company_id = v_company AND customer_id = v_customer
+    AND status = 'pending' AND subject LIKE 'follow-up:%';
+  ASSERT v_cnt = 1, 'T13 FAIL: expected exactly one follow-up task after completion';
+
+  -- A second completion must not create another next action (double-click safety).
+  SELECT next_action_id INTO v_next2
+  FROM public.complete_debt_task(v_activity, 'no_answer', 'T13 probe again', CURRENT_DATE + 5);
+  ASSERT v_next2 IS NULL, 'T13 FAIL: idempotent completion created a second next action';
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.customer_activities
+  WHERE company_id = v_company AND customer_id = v_customer
+    AND status = 'pending' AND subject LIKE 'follow-up:%';
+  ASSERT v_cnt = 1, 'T13 FAIL: duplicate follow-up task created';
+
+  -- ==== T14: assign_debt_parties validates tenant and collector membership ====
+  BEGIN
+    PERFORM public.assign_debt_parties(v_company, ARRAY[gen_random_uuid()], v_uid, 'high', NULL);
+    RAISE EXCEPTION 'T14 FAIL: assigning an unknown party did not raise';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_txt := SQLERRM;
+      IF v_txt LIKE '%did not raise%' THEN
+        RAISE;
+      END IF;
+      IF v_txt NOT LIKE '%INVALID_PARTY%' THEN
+        RAISE EXCEPTION 'T14 FAIL: unexpected error: %', v_txt;
+      END IF;
+  END;
+
+  BEGIN
+    PERFORM public.assign_debt_parties(v_company, ARRAY[v_customer], gen_random_uuid(), 'high', NULL);
+    RAISE EXCEPTION 'T14b FAIL: accepting a non-member collector did not raise';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_txt := SQLERRM;
+      IF v_txt LIKE '%did not raise%' THEN
+        RAISE;
+      END IF;
+      IF v_txt NOT LIKE '%INVALID_COLLECTOR%' THEN
+        RAISE EXCEPTION 'T14b FAIL: unexpected error: %', v_txt;
+      END IF;
+  END;
 
 END;
 $$;

@@ -142,7 +142,35 @@ const TABLE_PRESET_MAP = new Map<string, InvalidationPreset>([
   ['debt_message_templates', 'debts'],
   ['debt_message_log', 'debts'],
   ['party_opening_balances', 'debts'],
+  ['customer_activities', 'debts'],
 ]);
+
+/**
+ * تصنيف حدث الفاتورة إلى preset البيع/الشراء.
+ * typeof بدل String() على كائن (يمنع «[object Object]»)،
+ * وخارج المعالج لإبقاء تعقيده تحت الحد المسموح.
+ */
+const invoiceChangeKind = (payload: RealtimeChangePayload): 'purchase' | 'sale' | 'both' => {
+  const rawType = payload.new?.type ?? payload.old?.type;
+  const type = typeof rawType === 'string' ? rawType : '';
+  if (type === 'purchase' || type === 'purchase_return') return 'purchase';
+  if (type === 'sale' || type === 'sale_return') return 'sale';
+  return 'both';
+};
+
+/** يبطل الاستعلامات المناسبة لتغيير فاتورة (بيع/شراء/غير محدَّد). */
+const applyInvoiceInvalidation = (
+  queryClient: QueryClient,
+  payload: RealtimeChangePayload
+): void => {
+  const kind = invoiceChangeKind(payload);
+  if (kind !== 'both') {
+    invalidateByPreset(queryClient, kind);
+    return;
+  }
+  invalidateByPreset(queryClient, 'sale');
+  invalidateByPreset(queryClient, 'purchase');
+};
 
 const bindChannelListeners = (
   channel: RealtimeChannel,
@@ -160,15 +188,7 @@ const bindChannelListeners = (
     if (preset !== undefined) {
       logger.info('Realtime', `🔄 Sync: [${payload.table}] updated, refreshing...`);
       if (payload.table === 'invoices') {
-        const type = String(payload.new?.type ?? payload.old?.type ?? '');
-        if (type === 'purchase' || type === 'purchase_return') {
-          invalidateByPreset(queryClient, 'purchase');
-        } else if (type === 'sale' || type === 'sale_return') {
-          invalidateByPreset(queryClient, 'sale');
-        } else {
-          invalidateByPreset(queryClient, 'sale');
-          invalidateByPreset(queryClient, 'purchase');
-        }
+        applyInvoiceInvalidation(queryClient, payload);
       } else {
         invalidateByPreset(queryClient, preset);
       }

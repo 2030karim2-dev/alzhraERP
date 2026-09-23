@@ -57,9 +57,11 @@ export const invalidateFinancialQueries = async (
   }
 
   // 3. Debts tracking & Aging reports
+  //    ['debts'] is a PREFIX match: every module key is
+  //    ['debts', scope, companyId, ...extra] (see debts/hooks/useDebtQueries).
   if (options.debts ?? true) {
     invalidations.push(
-      queryClient.invalidateQueries({ queryKey: ['debts', companyId] }),
+      queryClient.invalidateQueries({ queryKey: ['debts'] }),
       queryClient.invalidateQueries({ queryKey: ['debt-stats', companyId] }),
       queryClient.invalidateQueries({ queryKey: ['debt-customers', companyId] }),
       queryClient.invalidateQueries({ queryKey: ['overdue_debts', companyId] })

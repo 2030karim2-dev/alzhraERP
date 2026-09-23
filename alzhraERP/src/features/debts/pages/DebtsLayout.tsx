@@ -1,6 +1,14 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Handshake, Send, FileSpreadsheet, Settings2 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  ListChecks,
+  Handshake,
+  Send,
+  FileSpreadsheet,
+  Settings2,
+} from 'lucide-react';
 import { cn } from '../../../core/utils';
 import { ROUTES } from '../../../core/routes/paths';
 import { usePermission } from '../../../core/hooks/usePermission';
@@ -19,6 +27,7 @@ interface ServiceTab {
 const SERVICE_TABS: ServiceTab[] = [
   { to: ROUTES.DASHBOARD.DEBTS, end: true, label: 'نظرة عامة', icon: LayoutDashboard },
   { to: ROUTES.DASHBOARD.DEBTS_FOLLOWUP, label: 'المتابعة', icon: Users },
+  { to: ROUTES.DASHBOARD.DEBTS_TASKS, label: 'المهام', icon: ListChecks },
   { to: ROUTES.DASHBOARD.DEBTS_PROMISES, label: 'الوعود', icon: Handshake },
   { to: ROUTES.DASHBOARD.DEBTS_OUTBOX, label: 'الرسائل', icon: Send },
   { to: ROUTES.DASHBOARD.DEBTS_STATEMENTS, label: 'كشوف الحساب', icon: FileSpreadsheet },

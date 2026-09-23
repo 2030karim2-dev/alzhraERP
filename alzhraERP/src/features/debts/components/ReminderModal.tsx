@@ -6,6 +6,7 @@ import {
   Copy,
   Check,
   Globe,
+  Send,
   Smartphone,
   RotateCcw,
 } from 'lucide-react';
@@ -48,6 +49,8 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  // S1 — تدفق الصدق: لا يُسجَّل التذكير إلا بعد تأكيد المستخدم أن الرسالة أُرسلت فعلاً.
+  const [pendingSend, setPendingSend] = useState<'app' | 'web' | null>(null);
   // مفتاح عدم التكرار: ثابت لعملية الإرسال الواحدة (يمنع تسجيلها مرتين)،
   // ويُجدَّد بعد كل نجاح ليسمح بإرسال تذكير جديد مقصود لاحقاً.
   const idempotencyKeyRef = useRef(createIdempotencyKey('debt-reminder'));
@@ -76,6 +79,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
     if (!isOpen) return;
     setIsSent(false);
     setIsCopied(false);
+    setPendingSend(null);
 
     if (mode === 'ai') {
       void handleGenerateAiMessage(selectedTone);
@@ -112,34 +116,23 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
     }, 2000);
   };
 
-  const handleSendApp = (): void => {
+  /**
+   * S1 — تدفق الصدق: يفتح واتساب أولاً ولا يُسجّل شيئاً.
+   * التسجيل يحدث فقط بعد تأكيد المستخدم أن الرسالة أُرسلت فعلاً، فلا يزعم
+   * السجل إرسالاً غير متحقَّق منه، ولا يختفي العميل زوراً من «بحاجة تذكير».
+   */
+  const openWhatsApp = (target: 'app' | 'web'): void => {
     if (message.trim() === '') return;
     const phone = prepared.recipient !== '' ? prepared.recipient : row.party_phone;
-    const link = phone !== null && phone !== '' ? buildWhatsAppLink(phone, message) : null;
-
-    recordReminder(
-      {
-        partyId: row.party_id,
-        messageText: message,
-        templateId: mode === 'template' && selectedTemplateId !== '' ? selectedTemplateId : null,
-        recipient: prepared.recipient !== '' ? prepared.recipient : null,
-        idempotencyKey: idempotencyKeyRef.current,
-      },
-      {
-        onSuccess: () => {
-          idempotencyKeyRef.current = createIdempotencyKey('debt-reminder');
-          if (link !== null) window.open(link, '_blank', 'noopener,noreferrer');
-          setIsSent(true);
-        },
-      }
-    );
+    if (phone === null || phone === '') return;
+    const link =
+      target === 'app' ? buildWhatsAppLink(phone, message) : buildWhatsAppWebLink(phone, message);
+    window.open(link, '_blank', 'noopener,noreferrer');
+    setPendingSend(target);
   };
 
-  const handleSendWeb = (): void => {
-    if (message.trim() === '') return;
-    const phone = prepared.recipient !== '' ? prepared.recipient : row.party_phone;
-    const link = phone !== null && phone !== '' ? buildWhatsAppWebLink(phone, message) : null;
-
+  /** تأكيد الإرسال الفعلي — الآن فقط يُسجَّل التذكير في سجل المتابعة. */
+  const confirmSent = (): void => {
     recordReminder(
       {
         partyId: row.party_id,
@@ -151,7 +144,7 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
       {
         onSuccess: () => {
           idempotencyKeyRef.current = createIdempotencyKey('debt-reminder');
-          if (link !== null) window.open(link, '_blank', 'noopener,noreferrer');
+          setPendingSend(null);
           setIsSent(true);
         },
       }
@@ -227,10 +220,23 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
           </button>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={confirmSent}
+              disabled={message.trim() === '' || isSaving}
+              title="تسجيل تواصل يدوي (اتصال/زيارة/بلا واتساب) — إرسال يدوي غير متحقَّق من التسليم"
+              className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-400"
+            >
+              <Check size={14} />
+              تسجيل تواصل يدوي
+            </button>
+
             {hasPhone && (
               <button
                 type="button"
-                onClick={handleSendWeb}
+                onClick={() => {
+                  openWhatsApp('web');
+                }}
                 disabled={message.trim() === '' || isSaving}
                 className="flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >
@@ -241,7 +247,9 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
 
             <button
               type="button"
-              onClick={handleSendApp}
+              onClick={() => {
+                openWhatsApp('app');
+              }}
               disabled={message.trim() === '' || isSaving}
               className="flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-green-600/20 transition-all hover:bg-green-700"
             >
@@ -366,11 +374,40 @@ export const ReminderModal: React.FC<ReminderModalProps> = ({ isOpen, onClose, r
         </div>
       )}
 
+      {/* S1 — تأكيد الإرسال الفعلي: لا تسجيل بلا إرسال */}
+      {pendingSend !== null && !isSent && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-3.5 text-xs font-extrabold text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300">
+          <span className="flex items-center gap-2">
+            <Send size={16} />
+            فُتح واتساب — هل أُرسلت الرسالة فعلاً؟
+          </span>
+          <span className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={confirmSent}
+              disabled={isSaving}
+              className="rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
+            >
+              نعم — تسجيل الإرسال
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPendingSend(null);
+              }}
+              className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            >
+              لم أُرسل — إلغاء
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Sent Success Message */}
       {isSent && (
         <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-extrabold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
           <Check size={16} />
-          تم فتح واتساب وتسجيل التذكير في سجل المتابعة بنجاح!
+          تم تسجيل التذكير في سجل المتابعة (إرسال يدوي — غير متحقَّق من التسليم).
         </div>
       )}
     </DebtsModalShell>

@@ -120,3 +120,25 @@ export interface PartyTimelineEntry {
 /** Result of log_collection_activity (completed action + optional next action). */
 export type CollectionActivityRecord =
   Database['public']['Functions']['log_collection_activity']['Returns'][number];
+
+/**
+ * إجراء متابعة مجدول معلّق — يتحلل من get_debt_followup_actions.
+ * (S1: يُغلق فجوة «الكتابة بلا قارئ» في log_collection_activity.)
+ */
+export type DebtFollowupAction =
+  Database['public']['Functions']['get_debt_followup_actions']['Returns'][number];
+
+/**
+ * صف واحد من طابور مهام التحصيل الموحّد (S2: get_debt_task_queue).
+ * nullability صادقة: المبالغ والعملات والمسؤول قد تكون NULL حسب نوع المهمة.
+ */
+export type DebtTaskQueueRow =
+  Database['public']['Functions']['get_debt_task_queue']['Returns'][number];
+
+/** عضو منشأة يمكن إسناد محفظة تحصيل له. */
+export type DebtCollector =
+  Database['public']['Functions']['get_debt_collectors']['Returns'][number];
+
+/** نتيجة إتمام مهمة (مع الإجراء التالي المجدول اختيارياً). */
+export type CompleteDebtTaskResult =
+  Database['public']['Functions']['complete_debt_task']['Returns'][number];
