@@ -23,10 +23,40 @@ const safeToBase = (expense: Expense): number => {
   }
 };
 
-export const useExpenseAnalytics = (expenses: Expense[] | undefined) => {
+export type ExpenseAnalyticsPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year';
+
+export const useExpenseAnalytics = (
+  expenses: Expense[] | undefined,
+  period: ExpenseAnalyticsPeriod = 'month'
+) => {
   return useMemo(() => {
     // استبعاد المصروفات الملغاة من جميع الإحصائيات
-    const allExpenses = (expenses || []).filter(e => e.status !== 'void');
+    const rawActive = (expenses || []).filter(e => e.status !== 'void');
+
+    // تحديد المدى الزمني للفترة المختارة باستخدام formatLocalDate لتفادي انزياح التوقيت
+    const todayStr = formatLocalDate();
+    const [ty, tm, td] = todayStr.split('-').map(Number);
+
+    let daysToInclude = 30;
+    if (period === 'today') daysToInclude = 1;
+    else if (period === 'week') daysToInclude = 7;
+    else if (period === 'month') daysToInclude = 30;
+    else if (period === 'quarter') daysToInclude = 90;
+    else if (period === 'year') daysToInclude = 365;
+
+    // حساب تاريخ البداية
+    const startDateObj = new Date(ty, tm - 1, td - (daysToInclude - 1));
+    const startStr = [
+      startDateObj.getFullYear(),
+      String(startDateObj.getMonth() + 1).padStart(2, '0'),
+      String(startDateObj.getDate()).padStart(2, '0'),
+    ].join('-');
+
+    // تصفية المصروفات وفق الفترة المحددة
+    const allExpenses = rawActive.filter(
+      e => e.expense_date >= startStr && e.expense_date <= todayStr
+    );
+
     const totalAmount = allExpenses.reduce((sum, e) => sum + safeToBase(e), 0);
     const count = allExpenses.length;
     const avgAmount = count > 0 ? totalAmount / count : 0;
@@ -36,29 +66,48 @@ export const useExpenseAnalytics = (expenses: Expense[] | undefined) => {
     >((acc, expense) => {
       const date = expense.expense_date;
       if (!acc[date]) acc[date] = { date, amount: 0, count: 0 };
-      // استخدام التحويل الصحيح للعملة
       acc[date].amount += safeToBase(expense);
       acc[date].count += 1;
       return acc;
     }, {});
 
-    // ملء فجوات الـ 30 يومًا الماضية
-    // استخدام formatLocalDate() لتفادي انزياح التوقيت UTC (قاعدة AGENTS.md)
+    // إنشاء نقاط الرسم البياني حسب الفترة
     const chartData = [];
-    const todayStr = formatLocalDate();
-    const [ty, tm, td] = todayStr.split('-').map(Number);
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(ty, tm - 1, td - i);
-      const dateStr = [
-        d.getFullYear(),
-        String(d.getMonth() + 1).padStart(2, '0'),
-        String(d.getDate()).padStart(2, '0'),
-      ].join('-');
-      chartData.push({
-        date: dateStr,
-        amount: byDate[dateStr]?.amount || 0,
-        count: byDate[dateStr]?.count || 0,
-      });
+    const chartSteps = period === 'today' ? 1 : daysToInclude > 90 ? 12 : daysToInclude;
+
+    if (daysToInclude > 90) {
+      // تجميع شهري عند اختيار السنة
+      for (let m = 11; m >= 0; m--) {
+        const d = new Date(ty, tm - 1 - m, 1);
+        const monthPrefix = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        let monthAmount = 0;
+        let monthCount = 0;
+        for (const [dt, val] of Object.entries(byDate)) {
+          if (dt.startsWith(monthPrefix)) {
+            monthAmount += val.amount;
+            monthCount += val.count;
+          }
+        }
+        chartData.push({
+          date: `${monthPrefix}-01`,
+          amount: monthAmount,
+          count: monthCount,
+        });
+      }
+    } else {
+      for (let i = chartSteps - 1; i >= 0; i--) {
+        const d = new Date(ty, tm - 1, td - i);
+        const dateStr = [
+          d.getFullYear(),
+          String(d.getMonth() + 1).padStart(2, '0'),
+          String(d.getDate()).padStart(2, '0'),
+        ].join('-');
+        chartData.push({
+          date: dateStr,
+          amount: byDate[dateStr]?.amount || 0,
+          count: byDate[dateStr]?.count || 0,
+        });
+      }
     }
 
     const byCategory = allExpenses.reduce<
@@ -96,5 +145,5 @@ export const useExpenseAnalytics = (expenses: Expense[] | undefined) => {
       categoryData,
       paymentData,
     };
-  }, [expenses]);
+  }, [expenses, period]);
 };

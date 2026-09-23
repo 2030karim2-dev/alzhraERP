@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, RotateCcw } from 'lucide-react';
+import { Calendar, RotateCcw, BookOpen } from 'lucide-react';
 import ExpenseStats from '../components/ExpenseStats';
 import ExpenseTable from '../components/ExpenseTable';
 import ExpenseBreakdownChart from '../components/ExpenseBreakdownChart';
@@ -24,13 +24,14 @@ interface ExpensesListViewProps {
   isLoading: boolean;
   stats: any;
   onDelete: (id: string) => void;
+  onOpenLedger?: (categoryIdOrAccountId?: string) => void;
 }
 
 const ExpensesListView: React.FC<ExpensesListViewProps> = ({
   expenses,
   isLoading,
-  stats,
   onDelete,
+  onOpenLedger,
 }) => {
   const [datePreset, setDatePreset] = useState<DatePreset>('all');
   const [dateFrom, setDateFrom] = useState<string | undefined>();
@@ -39,6 +40,10 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'voucher'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showVoided, setShowVoided] = useState(false);
+
+  // Count voided expenses
+  const voidedCount = useMemo(() => expenses.filter(e => e.status === 'void').length, [expenses]);
 
   // Extract unique categories from expenses for the filter dropdown
   const categories = useMemo(() => {
@@ -54,6 +59,11 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
   // Deep Filter & Sort
   const filteredExpenses = useMemo(() => {
     let result = [...expenses];
+
+    // Exclude voided expenses unless explicitly requested
+    if (!showVoided) {
+      result = result.filter(e => e.status !== 'void');
+    }
 
     // Currency filter
     if (currencyFilter !== 'all') {
@@ -95,7 +105,12 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
     });
 
     return result;
-  }, [expenses, currencyFilter, categoryFilter, dateFrom, dateTo, sortBy, sortOrder]);
+  }, [expenses, showVoided, currencyFilter, categoryFilter, dateFrom, dateTo, sortBy, sortOrder]);
+
+  // Compute live stats matching the active filtered subset
+  const liveStats = useMemo(() => {
+    return expensesService.calculateStats(filteredExpenses);
+  }, [filteredExpenses]);
 
   const hasActiveFilters = Boolean(
     currencyFilter !== 'all' ||
@@ -103,6 +118,7 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
     datePreset !== 'all' ||
     dateFrom ||
     dateTo ||
+    showVoided ||
     sortBy !== 'date' ||
     sortOrder !== 'desc'
   );
@@ -113,6 +129,7 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
     setDatePreset('all');
     setDateFrom(undefined);
     setDateTo(undefined);
+    setShowVoided(false);
     setSortBy('date');
     setSortOrder('desc');
   };
@@ -124,7 +141,8 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
 
   return (
     <div className="mx-auto max-w-none space-y-4">
-      <ExpenseStats customStats={stats} />
+      {/* Live Active KPI Stats */}
+      <ExpenseStats customStats={liveStats} />
 
       {/* High-Density Filtering & Sorting Toolbar */}
       <div className="flex flex-col gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2.5 shadow-xs">
@@ -216,6 +234,42 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
               <option value="voucher_asc">رقم السند (تصاعدي)</option>
             </select>
 
+            {/* Voided Expenses Toggle Button */}
+            {voidedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowVoided(prev => !prev);
+                }}
+                className={`flex h-8 items-center gap-1.5 rounded-lg border px-2 text-xs font-bold transition-all ${
+                  showVoided
+                    ? 'shadow-2xs border-amber-400 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                    : 'border-[var(--app-border)] bg-[var(--app-bg)] text-[var(--app-text-secondary)] hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text)]'
+                }`}
+                title="إظهار أو إخفاء السندات الملغاة"
+              >
+                <span>{showVoided ? 'إخفاء الملغي' : 'السندات الملغاة'}</span>
+                <span className="py-0.2 rounded-full bg-amber-100 px-1.5 text-[10px] font-black text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  {voidedCount}
+                </span>
+              </button>
+            )}
+
+            {/* Detailed Ledger Button */}
+            {onOpenLedger && (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenLedger();
+                }}
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/80 px-2.5 text-xs font-bold text-blue-700 transition-all hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                title="عرض كشف حساب تفصيلي للمصروفات والعهد"
+              >
+                <BookOpen size={13} />
+                <span>كشف تفصيلي للحسابات</span>
+              </button>
+            )}
+
             {/* Counter */}
             <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
               {filteredExpenses.length} مصروف
@@ -277,31 +331,67 @@ const ExpensesListView: React.FC<ExpensesListViewProps> = ({
           <ExpenseBreakdownChart data={breakdownData} />
         </Card>
         <Card className="p-6">
-          <h3 className="mb-6 text-sm font-bold text-gray-700 dark:text-slate-300">ملخص مالي</h3>
-          <div className="space-y-4">
-            {breakdownData.map(item => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between rounded-2xl bg-gray-50 p-3 dark:bg-slate-800/50"
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300">ملخص مالي</h3>
+            {onOpenLedger && (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenLedger();
+                }}
+                className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline dark:text-blue-400"
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span className="text-xs font-bold">{item.name}</span>
+                <span>كشف الحسابات التفصيلي</span>
+                <BookOpen size={11} />
+              </button>
+            )}
+          </div>
+          <div className="space-y-4">
+            {breakdownData.map(item => {
+              const matchedCat = categories.find(c => c.name === item.name);
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between rounded-2xl bg-gray-50 p-3 dark:bg-slate-800/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    ></div>
+                    <span className="text-xs font-bold">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span dir="ltr" className="font-mono text-xs font-bold">
+                      {formatCurrency(item.value)}
+                    </span>
+                    {onOpenLedger && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onOpenLedger(matchedCat?.id);
+                        }}
+                        className="shadow-2xs rounded-lg border border-[var(--app-border)] bg-white px-2 py-1 text-[10px] font-bold text-blue-600 hover:bg-blue-50 dark:bg-slate-700 dark:text-blue-300 dark:hover:bg-slate-600"
+                        title="عرض كشف حساب هذا البند"
+                      >
+                        كشف الحساب
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span dir="ltr" className="font-mono text-xs font-bold">
-                  {formatCurrency(item.value)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       </div>
 
       <div className="animate-in fade-in slide-in-from-bottom-2">
-        <ExpenseTable expenses={filteredExpenses} isLoading={isLoading} onDelete={onDelete} />
+        <ExpenseTable
+          expenses={filteredExpenses}
+          isLoading={isLoading}
+          onDelete={onDelete}
+          {...(onOpenLedger ? { onViewLedger: onOpenLedger } : {})}
+        />
       </div>
     </div>
   );

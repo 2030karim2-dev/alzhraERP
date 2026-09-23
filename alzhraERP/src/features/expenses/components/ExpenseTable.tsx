@@ -10,9 +10,15 @@ interface ExpenseTableProps {
   expenses: Expense[];
   isLoading: boolean;
   onDelete: (id: string) => void;
+  onViewLedger?: (categoryId?: string) => void;
 }
 
-const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDelete }) => {
+const ExpenseTable: React.FC<ExpenseTableProps> = ({
+  expenses,
+  isLoading,
+  onDelete,
+  onViewLedger,
+}) => {
   const handleExport = () => {
     const headers = ['Voucher', 'Description', 'Category', 'Date', 'Amount', 'Currency', 'Status'];
     const exportData = expenses.map(e => ({
@@ -94,43 +100,64 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, isLoading, onDele
     },
     {
       header: 'الحالة',
-      accessor: (row: Expense) => (
-        <span
-          className={`rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-tighter ${
-            row.status === 'paid'
-              ? 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-900/20 dark:text-emerald-400'
-              : row.status === 'posted'
-                ? 'border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'border-gray-200 bg-gray-50 text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500'
-          }`}
-        >
-          {row.status === 'paid' ? 'مدفوع' : row.status === 'posted' ? 'مرحل' : 'مسودة'}
-        </span>
-      ),
+      accessor: (row: Expense) => {
+        const isVoid = row.status === 'void';
+        const isPaid = row.status === 'paid';
+        const isPosted = row.status === 'posted';
+
+        return (
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter ${
+              isVoid
+                ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                : isPaid
+                  ? 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-900/20 dark:text-emerald-400'
+                  : isPosted
+                    ? 'border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/20 dark:text-blue-400'
+                    : 'border-gray-200 bg-gray-50 text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500'
+            }`}
+          >
+            {isVoid ? 'ملغي (عكسي)' : isPaid ? 'مدفوع' : isPosted ? 'مرحل' : 'مسودة'}
+          </span>
+        );
+      },
       width: '100px',
       className: 'text-center',
     },
     {
       header: 'إجراءات',
       accessor: (row: Expense) => (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              if (
-                window.confirm(
-                  'هل أنت متأكد من إلغاء هذا المصروف؟ سيتم إيقاف المصروف وإنشاء قيد عكسي لتسوية الحسابات تلقائياً.'
+        <div className="flex items-center justify-center gap-1.5">
+          {onViewLedger && row.category_id && (
+            <button
+              onClick={() => {
+                onViewLedger(row.category_id);
+              }}
+              className="p-1.5 text-gray-400 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
+              title="عرض كشف الحساب لهذا التصنيف"
+            >
+              <Receipt size={15} />
+            </button>
+          )}
+          {row.status !== 'void' && (
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'هل أنت متأكد من إلغاء هذا المصروف؟ سيتم إيقاف المصروف وإنشاء قيد عكسي لتسوية الحسابات تلقائياً.'
+                  )
                 )
-              )
-                onDelete(row.id);
-            }}
-            className="p-1.5 text-gray-300 transition-colors hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
-            title="إلغاء المصروف وعكس قيده"
-          >
-            <Trash2 size={16} />
-          </button>
+                  onDelete(row.id);
+              }}
+              className="p-1.5 text-gray-300 transition-colors hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
+              title="إلغاء المصروف وعكس قيده"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
         </div>
       ),
-      width: '80px',
+      width: '90px',
       className: 'text-center',
     },
   ];

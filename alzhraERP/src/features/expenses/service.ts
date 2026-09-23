@@ -150,11 +150,21 @@ export const expensesService = {
       .reduce((sum, e) => sum + safeToBase(e), 0);
     const categoriesCount = new Set(active.map(e => e.category_id)).size;
 
+    const totalExpensesYER = active
+      .filter(e => (e.currency_code || '').toUpperCase() === 'YER')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    const totalExpensesSAR = active
+      .filter(e => (e.currency_code || '').toUpperCase() === 'SAR')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
     return {
       totalExpenses,
       paidExpenses,
       pendingExpenses,
       categoriesCount,
+      totalExpensesYER,
+      totalExpensesSAR,
     };
   },
 

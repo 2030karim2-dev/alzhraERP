@@ -59,4 +59,6 @@ export interface ExpenseStats {
   paidExpenses: number;
   pendingExpenses: number;
   categoriesCount: number;
+  totalExpensesYER?: number;
+  totalExpensesSAR?: number;
 }

@@ -16,6 +16,9 @@ const ExpenseStats: React.FC<Props> = ({ customStats }) => {
       <StatCard
         title="إجمالي المصروفات"
         value={formatCurrency(customStats.totalExpenses)}
+        {...(customStats.totalExpensesYER && customStats.totalExpensesYER > 0
+          ? { subtext: `≈ ${customStats.totalExpensesYER.toLocaleString('en-US')} ر.ي` }
+          : {})}
         icon={Receipt}
         colorClass="text-rose-600 dark:text-rose-400"
         iconBgClass="bg-rose-500"

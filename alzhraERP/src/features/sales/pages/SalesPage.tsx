@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Plus, History, RefreshCw, BarChart3, FileText } from 'lucide-react';
+import {
+  ShoppingBag,
+  Plus,
+  History,
+  RefreshCw,
+  BarChart3,
+  FileText,
+  ClipboardList,
+} from 'lucide-react';
 import MicroHeader from '@/ui/base/MicroHeader';
 import CreateInvoiceView from '@/features/sales/components/create/CreateInvoiceView';
 import InvoiceListView from '@/features/sales/components/list/InvoiceListView';
@@ -7,6 +15,7 @@ import SalesReturnsView from '@/features/sales/components/Returns/SalesReturnsVi
 import SalesAnalyticsView from '@/features/sales/components/Analytics/SalesAnalyticsView';
 import QuotationsTab from '@/features/sales/components/quotations/QuotationsTab';
 import InvoiceDetailsModal from '@/features/sales/components/details/InvoiceDetailsModal';
+import { SalesRequisitionsView } from '@/features/sales/components/requisitions/SalesRequisitionsView';
 import { useCreateSalesReturn } from '@/features/sales/hooks/index';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { logger } from '@/core/utils/logger';
@@ -15,7 +24,7 @@ import { getDisplayItemName } from '@/core/utils';
 import { useAIPrefillStore } from '@/features/ai/store';
 import { useSalesStore } from '@/features/sales/store';
 
-type SalesViewTab = 'create' | 'list' | 'returns' | 'analytics' | 'quotations';
+type SalesViewTab = 'create' | 'list' | 'returns' | 'analytics' | 'quotations' | 'requisitions';
 
 const SalesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SalesViewTab>('list');
@@ -27,6 +36,7 @@ const SalesPage: React.FC = () => {
   const TABS = [
     { id: 'list' as const, label: t('sales_log'), icon: History },
     { id: 'create' as const, label: t('new_sale'), icon: Plus },
+    { id: 'requisitions' as const, label: 'المطلوبات', icon: ClipboardList },
     { id: 'returns' as const, label: t('returns'), icon: RefreshCw },
     { id: 'quotations' as const, label: t('quotations'), icon: FileText },
     { id: 'analytics' as const, label: t('analytics'), icon: BarChart3 },
@@ -134,6 +144,8 @@ const SalesPage: React.FC = () => {
             }}
           />
         );
+      case 'requisitions':
+        return <SalesRequisitionsView />;
       case 'analytics':
         return <SalesAnalyticsView />;
       default:
@@ -144,7 +156,13 @@ const SalesPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col bg-gray-50 dark:bg-slate-950">
       <MicroHeader
-        title={activeTab === 'create' ? 'فاتورة مبيعات جديدة' : t('sales_management')}
+        title={
+          activeTab === 'create'
+            ? 'فاتورة مبيعات جديدة'
+            : activeTab === 'requisitions'
+              ? 'المطلوبات وطلبات الشراء'
+              : t('sales_management')
+        }
         icon={ShoppingBag}
         iconColor="text-emerald-600"
         actions={
@@ -164,9 +182,13 @@ const SalesPage: React.FC = () => {
         {...(activeTab !== 'create'
           ? {
               tabs: TABS,
-              searchPlaceholder: t('search_in_sales_or_customers'),
-              searchValue: searchTerm,
-              onSearchChange: setSearchTerm,
+              ...(activeTab !== 'requisitions'
+                ? {
+                    searchPlaceholder: t('search_in_sales_or_customers'),
+                    searchValue: searchTerm,
+                    onSearchChange: setSearchTerm,
+                  }
+                : {}),
             }
           : {})}
         activeTab={activeTab}

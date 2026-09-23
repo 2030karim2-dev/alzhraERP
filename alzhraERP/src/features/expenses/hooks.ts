@@ -67,9 +67,24 @@ export const useExpensesData = (searchTerm = '') => {
 
   const filteredExpenses = useMemo(() => {
     if (!query.data) return [];
-    if (!searchTerm) return query.data;
-    const term = searchTerm.toLowerCase();
-    return query.data.filter(e => e.description.toLowerCase().includes(term));
+    if (!searchTerm.trim()) return query.data;
+    const term = searchTerm.toLowerCase().trim();
+    return query.data.filter(e => {
+      const desc = (e.description || '').toLowerCase();
+      const voucher = (e.voucher_number || '').toLowerCase();
+      const cat = (e.category_name || '').toLowerCase();
+      const amt = String(e.amount || '');
+      const cur = (e.currency_code || '').toLowerCase();
+      const method = (e.payment_method || '').toLowerCase();
+      return (
+        desc.includes(term) ||
+        voucher.includes(term) ||
+        cat.includes(term) ||
+        amt.includes(term) ||
+        cur.includes(term) ||
+        method.includes(term)
+      );
+    });
   }, [query.data, searchTerm]);
 
   const stats = useMemo(() => {
