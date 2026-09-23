@@ -9,7 +9,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useAuthStore } from '../../auth/store';
 import { debtsService } from '../services/debtService';
-import { debtApi, debtMessageApi } from '../api/debtApi';
+import { debtApi, debtMessageApi, EMPTY_CHANNEL_CONFIG } from '../api/debtApi';
 import { useBranchFilter } from '../../branches/hooks/useBranchFilter';
 import type {
   DebtAnalytics,
@@ -19,6 +19,7 @@ import type {
   FollowUpDashboardRow,
   PartyDebtOverview,
   PartyOpeningBalance,
+  DebtChannelConfig,
   DebtCollector,
   DebtFollowupAction,
   DebtTaskQueueRow,
@@ -147,6 +148,15 @@ export const useDebtTaskQueue = (
       debtsService.getTaskQueue(companyId, { branchId, collectorId, windowDays, limit }),
   });
 };
+
+/** S3: إعدادات قنوات الإرسال (واتساب + SMS). */
+export const useDebtChannelConfig = (): UseQueryResult<DebtChannelConfig> =>
+  useDebtQuery<DebtChannelConfig>({
+    scope: 'channel_config',
+    empty: EMPTY_CHANNEL_CONFIG,
+    staleTime: 5 * 60 * 1000,
+    fetcher: companyId => debtsService.getChannelConfig(companyId),
+  });
 
 /** S2: قائمة المحصّلين (أعضاء المنشأة) لقوائم الإسناد. */
 export const useDebtCollectors = (): UseQueryResult<DebtCollector[]> =>

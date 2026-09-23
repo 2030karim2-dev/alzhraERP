@@ -95,6 +95,21 @@ export const debtsService = {
     priority?: string | undefined;
   }): Promise<CollectionActivityRecord> => debtMessageApi.logCollectionActivity(params),
 
+  /** S3: طابور الإرسال للمراقبة في صفحة الرسائل. */
+  getReminderQueue: (
+    companyId: string,
+    status?: string,
+    limit?: number
+  ): Promise<DebtReminderQueueRow[]> => debtMessageApi.getReminderQueue(companyId, status, limit),
+
+  /** S3: إعدادات قنوات الإرسال. */
+  getChannelConfig: (companyId: string): Promise<DebtChannelConfig> =>
+    debtMessageApi.getChannelConfig(companyId),
+
+  /** S3: تحديث إعدادات قنوات الإرسال. */
+  updateChannelConfig: (companyId: string, patch: Partial<DebtChannelConfig>): Promise<void> =>
+    debtMessageApi.updateChannelConfig(companyId, patch),
+
   /** S3-prep: استيراد المكتبة القياسية للقوالب (idempotent على الخادم). */
   seedDefaultTemplates: (companyId: string): Promise<number> =>
     debtMessageApi.seedDefaultTemplates(companyId),

@@ -32,6 +32,18 @@ import type {
   PartyTimelineEntry,
 } from '../types';
 
+/** إعدادات قنوات الإرسال الفارغة (افتراضي قبل أي ضبط). */
+export const EMPTY_CHANNEL_CONFIG: DebtChannelConfig = {
+  whatsapp_enabled: false,
+  whatsapp_api_url: '',
+  whatsapp_api_key: '',
+  whatsapp_phone: '',
+  sms_enabled: false,
+  sms_api_url: '',
+  sms_api_key: '',
+  sms_sender_id: '',
+};
+
 /** Engine defaults — also the migration defaults; kept in sync. */
 export const DEBT_ENGINE_DEFAULTS = {
   dueSoonDays: 7,
@@ -496,6 +508,58 @@ export const debtMessageApi = {
     });
     if (error) throw error;
     return data ?? 0;
+  },
+
+  // ── Outbound queue & channel configuration (S3) ──
+  /** طابور الإرسال (S3) — للمراقبة في صفحة الرسائل. */
+  getReminderQueue: async (
+    companyId: string,
+    status?: string,
+    limit = 100
+  ): Promise<DebtReminderQueueRow[]> => {
+    const { data, error } = await supabase.rpc('get_debt_reminder_queue', {
+      p_company_id: companyId,
+      p_limit: limit,
+      ...(status != null && status !== '' ? { p_status: status } : {}),
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
+  },
+
+  /** إعدادات قنوات الإرسال (messaging_config) بصيغة مسطّحة. */
+  getChannelConfig: async (companyId: string): Promise<DebtChannelConfig> => {
+    const { data, error } = await supabase
+      .from('messaging_config')
+      .select(
+        'whatsapp_enabled, whatsapp_api_url, whatsapp_api_key, whatsapp_phone, sms_enabled, sms_api_url, sms_api_key, sms_sender_id'
+      )
+      .eq('company_id', companyId)
+      .maybeSingle();
+    if (error) throw error;
+    return { ...EMPTY_CHANNEL_CONFIG, ...(data ?? {}) };
+  },
+
+  /** يحدّث إعدادات القنوات (تحديث أولاً ثم إدراج عند عدم وجود صف). */
+  updateChannelConfig: async (
+    companyId: string,
+    patch: Partial<DebtChannelConfig>
+  ): Promise<void> => {
+    const { data: updated, error } = await supabase
+      .from('messaging_config')
+      .update(patch)
+      .eq('company_id', companyId)
+      .select('id');
+    if (error) throw error;
+    if ((updated ?? []).length > 0) return;
+    const { error: insertError } = await supabase
+      .from('messaging_config')
+      .insert({ company_id: companyId, ...patch });
+    if (insertError) throw insertError;
   },
 
   // ── Opening balances (legacy debts) ──

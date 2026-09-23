@@ -12433,6 +12433,28 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: number
       }
+      get_debt_reminder_queue: {
+        Args: {
+          p_company_id: string
+          p_limit?: number
+          p_status?: string | null
+        }
+        Returns: {
+          attempts: number
+          channel: string
+          created_at: string
+          error_info: string | null
+          id: string
+          message_text: string
+          party_id: string
+          party_name: string
+          provider_message_id: string | null
+          recipient: string | null
+          sent_at: string | null
+          status: string
+          step_key: string | null
+        }[]
+      }
       assign_debt_parties: {
         Args: {
           p_collector_id?: string | null

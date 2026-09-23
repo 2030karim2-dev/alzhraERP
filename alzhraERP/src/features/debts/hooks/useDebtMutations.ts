@@ -10,6 +10,7 @@ import { debtApi, debtMessageApi } from '../api/debtApi';
 import { debtsService } from '../services/debtService';
 import { debtRpcErrorMessage } from '../lib/rpcErrors';
 import type {
+  DebtChannelConfig,
   DebtFollowupConfigUpdate,
   PaymentPromiseInsert,
   PaymentPromiseUpdate,
@@ -288,6 +289,22 @@ export const useDebtMutations = () => {
     },
   });
 
+  // ── Channel configuration (S3) ──────────────────────────────
+  const saveChannelConfig = useMutation({
+    mutationFn: async (patch: Partial<DebtChannelConfig>) => {
+      await assertPermission('debts:manage', 'إعداد قنوات الإرسال');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
+      return debtsService.updateChannelConfig(companyId, patch);
+    },
+    onSuccess: () => {
+      invalidateDebtQueries();
+      showToast('تم حفظ إعدادات قنوات الإرسال', 'success');
+    },
+    onError: (err: Error) => {
+      showToast(debtRpcErrorMessage(err.message), 'error', err);
+    },
+  });
+
   // ── Opening balances ────────────────────────────────────────
   const saveOpeningBalance = useMutation({
     mutationFn: async (payload: Omit<PartyOpeningBalanceInsert, 'company_id'>) => {
@@ -320,6 +337,7 @@ export const useDebtMutations = () => {
     completeTask: completeTask.mutate,
     assignParties: assignParties.mutate,
     seedTemplates: seedTemplates.mutate,
+    saveChannelConfig: saveChannelConfig.mutate,
     isSaving:
       saveFollowupConfig.isPending ||
       createPromise.isPending ||
@@ -335,6 +353,7 @@ export const useDebtMutations = () => {
       logCollectionActivity.isPending ||
       completeTask.isPending ||
       assignParties.isPending ||
-      seedTemplates.isPending,
+      seedTemplates.isPending ||
+      saveChannelConfig.isPending,
   };
 };

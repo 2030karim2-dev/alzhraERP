@@ -135,6 +135,25 @@ export type DebtFollowupAction =
 export type DebtTaskQueueRow =
   Database['public']['Functions']['get_debt_task_queue']['Returns'][number];
 
+/** قنوات الإرسال المدعومة في التحصيل. */
+export type DebtChannel = 'whatsapp' | 'sms';
+
+/** إعدادات قنوات الإرسال (messaging_config) بصيغة مسطّحة للواجهة. */
+export interface DebtChannelConfig {
+  whatsapp_enabled: boolean;
+  whatsapp_api_url: string;
+  whatsapp_api_key: string;
+  whatsapp_phone: string;
+  sms_enabled: boolean;
+  sms_api_url: string;
+  sms_api_key: string;
+  sms_sender_id: string;
+}
+
+/** صف من طابور الإرسال (S3: get_debt_reminder_queue). */
+export type DebtReminderQueueRow =
+  Database['public']['Functions']['get_debt_reminder_queue']['Returns'][number];
+
 /** عضو منشأة يمكن إسناد محفظة تحصيل له. */
 export type DebtCollector =
   Database['public']['Functions']['get_debt_collectors']['Returns'][number];
