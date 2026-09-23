@@ -1,7 +1,7 @@
 {
-  "errors": 10128,
+  "errors": 9986,
   "warnings": 219,
-  "capturedAt": "2026-09-21",
+  "capturedAt": "2026-09-24",
   "method": "npx eslint . --report-unused-disable-directives --format json (full scan of repo)",
   "history": [
     { "date": "2026-09-18", "errors": 10482, "note": "initial ceiling measured" },
@@ -16,6 +16,11 @@
       "date": "2026-09-21",
       "errors": 10128,
       "note": "deep filtering and sorting across views, branch KPI RPCs, voucher prefetch optimizations"
+    },
+    {
+      "date": "2026-09-24",
+      "errors": 9986,
+      "note": "harden account statements and interactive detailed Excel grid (-142)"
     }
   ]
 }

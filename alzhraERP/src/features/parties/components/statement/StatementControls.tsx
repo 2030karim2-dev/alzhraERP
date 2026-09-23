@@ -49,6 +49,7 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
     debit: Number(r.debit) || 0,
     credit: Number(r.credit) || 0,
     balance: Number(r.balance) || 0,
+    payment_status: r.payment_status,
   }));
 
   const handleWhatsAppShare = async () => {
@@ -109,6 +110,7 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
         statementEntries,
         {
           currencyCode: filteredStatement[0]?.currency || 'SAR',
+          partyType: partyType === 'supplier' ? 'supplier' : 'customer',
           ...(selectedParty.phone ? { partyPhone: selectedParty.phone } : {}),
           dateFrom: startDate,
           dateTo: endDate,
@@ -129,6 +131,7 @@ export const StatementControls: React.FC<StatementControlsProps> = ({
         const { exportStatementToExcel } = await import('../../utils/statementExcelExporter');
         await exportStatementToExcel(companyObj, selectedParty.name, statementEntries, {
           currencyCode: filteredStatement[0]?.currency || 'SAR',
+          partyType: partyType === 'supplier' ? 'supplier' : 'customer',
           ...(selectedParty.phone ? { partyPhone: selectedParty.phone } : {}),
           dateFrom: startDate,
           dateTo: endDate,

@@ -3,7 +3,7 @@
  * تُصدَّر بـ BOM ليفتح Excel الملف بترميز UTF-8 صحيح (عربية سليمة).
  */
 import type { FollowUpDashboardRow } from '../types';
-import { classificationLabel, reminderStatusLabel } from './constants';
+import { classificationLabel, escalationLabel, reminderStatusLabel } from './constants';
 
 const CSV_HEADERS = [
   'العميل',
@@ -14,6 +14,7 @@ const CSV_HEADERS = [
   'أقدم استحقاق',
   'أيام التأخير',
   'التصنيف',
+  'مرحلة التصعيد',
   'حالة التذكير',
   'آخر تذكير',
   'وعود قائمة',
@@ -36,6 +37,7 @@ const buildRowCells = (row: FollowUpDashboardRow): Array<string | number> => [
   row.oldest_due_date ?? '',
   row.days_overdue,
   classificationLabel(row.classification),
+  escalationLabel(row.escalation_stage),
   reminderStatusLabel(row.reminder_status),
   row.last_reminded_at !== null ? row.last_reminded_at.slice(0, 10) : '',
   row.pending_promise_count,

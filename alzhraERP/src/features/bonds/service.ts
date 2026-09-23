@@ -125,4 +125,23 @@ export const bondsService = {
     if (error) throw error;
     return data;
   },
+
+  getBondById: async (bondId: string): Promise<Bond | null> => {
+    const { data, error } = await bondsApi.getBondById(bondId);
+    if (error || !data) return null;
+    return {
+      id: data.id,
+      payment_number: data.payment_number ?? '-',
+      date: data.payment_date,
+      description: data.notes ?? '',
+      amount: Number(data.amount) || 0,
+      currency_code: data.currency_code ?? 'SAR',
+      type: (data.type === 'disbursement' ? 'payment' : data.type) as BondType,
+      party_name: (data.party as { name?: string } | null)?.name ?? '',
+      account_name: (data.account as { name_ar?: string } | null)?.name_ar ?? '',
+      status: data.status as Bond['status'],
+      payment_method: data.payment_method,
+      exchange_rate: data.exchange_rate,
+    };
+  },
 };

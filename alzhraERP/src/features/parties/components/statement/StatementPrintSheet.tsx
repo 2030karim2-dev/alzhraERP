@@ -2,6 +2,7 @@ import React from 'react';
 import type { PartyType } from '../../types';
 import { useDocumentHeaderSettings } from '@/features/settings/settingsStore';
 import { UniversalDocumentHeader } from '@/ui/common/UniversalDocumentHeader';
+import { formatLocalDate } from '@/core/utils/dateUtils';
 
 interface CompanyInfo {
   nameAr: string;
@@ -16,15 +17,18 @@ interface CompanyInfo {
 interface StatementPrintSheetProps {
   company: CompanyInfo;
   partyType: PartyType;
-  partyName?: string;
+  partyName?: string | undefined;
+  printSubtitle?: string | undefined;
 }
 
 export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
   company,
   partyType,
   partyName,
+  printSubtitle,
 }) => {
   const headerConfig = useDocumentHeaderSettings();
+  const currentDate = formatLocalDate();
 
   return (
     <>
@@ -74,8 +78,8 @@ export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
                 tax_number: company.taxNumber || undefined,
                 slogan: company.specialization || undefined,
               }}
-              documentTitle="كشف حساب تفصيلي"
-              documentDate={new Date().toLocaleDateString('en-GB')}
+              documentTitle={printSubtitle || 'كشف حساب تفصيلي'}
+              documentDate={currentDate}
             />
           </div>
         ) : (
@@ -102,7 +106,7 @@ export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
                 </p>
               )}
               <h2 className="screen:max-md:text-base mt-2 inline-block rounded-lg bg-slate-100 px-4 py-1 text-xl font-bold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
-                كشف حساب
+                {printSubtitle || 'كشف حساب'}
               </h2>
             </div>
             <div className="flex-1 text-left" dir="ltr">
@@ -121,8 +125,7 @@ export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
             {partyName || '—'}
           </div>
           <div className="text-sm text-slate-800 dark:text-slate-200">
-            <strong>تاريخ الاستخراج:</strong>{' '}
-            <span dir="ltr">{new Date().toLocaleDateString('en-GB')}</span>
+            <strong>تاريخ الاستخراج:</strong> <span dir="ltr">{currentDate}</span>
           </div>
         </div>
       </div>

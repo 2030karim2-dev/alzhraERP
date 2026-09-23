@@ -2,6 +2,7 @@
  * Display constants for the debts module — labels, colors, tab definitions.
  * Pure UI mapping, no logic.
  */
+import type { EscalationStage } from '../types';
 
 export interface BadgeMeta {
   label: string;
@@ -118,3 +119,53 @@ export const reminderStatusLabel = (status: string): string => {
       return status;
   }
 };
+
+/** وصف مرحلة التصعيد — تسميات موجزة ودلالات لونية ثابتة. */
+export const ESCALATION_META: Record<EscalationStage, BadgeMeta> = {
+  monitor: {
+    label: 'مراقبة',
+    badgeClass: 'bg-slate-500/10 text-slate-500 border border-slate-500/20',
+  },
+  reminder: {
+    label: 'تذكير',
+    badgeClass: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+  },
+  call: {
+    label: 'اتصال',
+    badgeClass: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+  },
+  visit: {
+    label: 'زيارة',
+    badgeClass: 'bg-orange-500/10 text-orange-600 border border-orange-500/20',
+  },
+  legal: {
+    label: 'قانوني',
+    badgeClass: 'bg-rose-500/10 text-rose-600 border border-rose-500/20',
+  },
+};
+
+/**
+ * ختم (تسمية + فئة) لمرحلة التصعيد — فهرسة آمنة عبر switch (بلا كائن بمفتاح
+ * متغيّر، فيُمنع تنبيه security/detect-object-injection). مرحلة غير معروفة
+ * أو null تعود بلا فئة مع بقاء النص الخام (null → نص فارغ)، مكافئةً
+ * للسلوك السابق `?.` و `??`.
+ */
+export const escalationBadgeMeta = (stage: string | null): BadgeMeta => {
+  switch (stage) {
+    case 'monitor':
+      return ESCALATION_META.monitor;
+    case 'reminder':
+      return ESCALATION_META.reminder;
+    case 'call':
+      return ESCALATION_META.call;
+    case 'visit':
+      return ESCALATION_META.visit;
+    case 'legal':
+      return ESCALATION_META.legal;
+    default:
+      return { label: stage ?? '', badgeClass: '' };
+  }
+};
+
+/** تسمية مرحلة التصعيد (مختصر لـ escalationBadgeMeta().label). */
+export const escalationLabel = (stage: string): string => escalationBadgeMeta(stage).label;

@@ -8,6 +8,7 @@ import { PROMISE_STATUS_META } from '../lib/constants';
 import StatusBadge from '../components/StatusBadge';
 import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
 import PromiseFormModal from '../components/PromiseFormModal';
+import { RowActions, type RowAction } from '../components/RowActions';
 import type { PaymentPromiseWithParty, PromiseStatus } from '../types';
 
 const STATUS_FILTERS: Array<{ value: string; label: string }> = [
@@ -32,6 +33,59 @@ const PromisesPage: React.FC = () => {
 
   // The query already filters by status server-side; keep a null-safe alias.
   const filtered = promises ?? [];
+
+  /**
+   * إجراءات صف الوعد — مصدر واحد لجدول سطح المكتب وبطاقات الموبايل.
+   * الإجراءات المؤكَّدة (إتمام/حذف) تمر عبر ConfirmModal بدل window.confirm.
+   */
+  const promiseRowActions = (p: PaymentPromiseWithParty): RowAction[] => {
+    const actions: RowAction[] = [];
+    if (p.status === 'pending') {
+      actions.push({
+        key: 'complete',
+        icon: CheckCircle2,
+        label: 'إتمام الوعد (تم السداد)',
+        colorClasses: 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white',
+        disabled: isSaving,
+        confirm: {
+          title: 'إتمام الوعد',
+          message: 'سيتم إتمام الوعد بدون ربط سند قبض. هل المبلغ مسدَّد فعلياً؟',
+          confirmLabel: 'نعم، إتمام',
+          variant: 'warning',
+        },
+        onAction: () => {
+          completePromise({ promiseId: p.id });
+        },
+      });
+      actions.push({
+        key: 'edit',
+        icon: Pencil,
+        label: 'تعديل',
+        colorClasses: 'bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white',
+        onAction: () => {
+          setEditingPromise(p);
+          setIsModalOpen(true);
+        },
+      });
+    }
+    actions.push({
+      key: 'delete',
+      icon: Trash2,
+      label: 'حذف',
+      colorClasses: 'bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white',
+      disabled: isSaving,
+      confirm: {
+        title: 'حذف الوعد',
+        message: 'هل تريد حذف هذا الوعد نهائياً؟',
+        confirmLabel: 'حذف',
+        variant: 'danger',
+      },
+      onAction: () => {
+        deletePromise(p.id);
+      },
+    });
+    return actions;
+  };
 
   return (
     <div className="space-y-4 max-md:space-y-2.5">
@@ -117,7 +171,7 @@ const PromisesPage: React.FC = () => {
                         className="font-mono text-xs font-bold text-[var(--app-text)]"
                         dir="ltr"
                       >
-                        {formatCurrency(Number(p.amount), p.currency_code)}
+                        {formatCurrency(p.amount, p.currency_code)}
                       </span>
                     </td>
                     <td className="px-4 py-3 max-md:px-2 max-md:py-2">
@@ -137,48 +191,7 @@ const PromisesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                      {showManage && (
-                        <div className="flex items-center gap-1.5">
-                          {p.status === 'pending' && (
-                            <button
-                              onClick={() => {
-                                const confirmed = window.confirm(
-                                  'سيتم إتمام الوعد بدون ربط سند قبض. هل المبلغ مسدَّد فعلياً؟'
-                                );
-                                if (confirmed) completePromise({ promiseId: p.id });
-                              }}
-                              disabled={isSaving}
-                              title="إتمام الوعد (تم السداد)"
-                              className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 max-md:p-1.5"
-                            >
-                              <CheckCircle2 size={14} />
-                            </button>
-                          )}
-                          {p.status === 'pending' && (
-                            <button
-                              onClick={() => {
-                                setEditingPromise(p);
-                                setIsModalOpen(true);
-                              }}
-                              title="تعديل"
-                              className="rounded-xl bg-sky-500/10 p-2 text-sky-600 transition-all hover:bg-sky-500 hover:text-white max-md:p-1.5"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              if (window.confirm('هل تريد حذف هذا الوعد نهائياً؟'))
-                                deletePromise(p.id);
-                            }}
-                            disabled={isSaving}
-                            title="حذف"
-                            className="rounded-xl bg-rose-500/10 p-2 text-rose-600 transition-all hover:bg-rose-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 max-md:p-1.5"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      )}
+                      {showManage && <RowActions actions={promiseRowActions(p)} variant="table" />}
                     </td>
                   </tr>
                 );
@@ -202,51 +215,13 @@ const PromisesPage: React.FC = () => {
               badge={<StatusBadge {...meta} />}
               meta={
                 <span className="font-mono text-sm font-bold text-[var(--app-text)]" dir="ltr">
-                  {formatCurrency(Number(p.amount), p.currency_code)}
+                  {formatCurrency(p.amount, p.currency_code)}
                 </span>
               }
-              body={p.notes || undefined}
+              body={p.notes ?? undefined}
               actions={
                 showManage ? (
-                  <>
-                    {p.status === 'pending' && (
-                      <button
-                        onClick={() => {
-                          const confirmed = window.confirm(
-                            'سيتم إتمام الوعد بدون ربط سند قبض. هل المبلغ مسدَّد فعلياً؟'
-                          );
-                          if (confirmed) completePromise({ promiseId: p.id });
-                        }}
-                        disabled={isSaving}
-                        title="إتمام الوعد (تم السداد)"
-                        className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white active:scale-90 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <CheckCircle2 size={16} />
-                      </button>
-                    )}
-                    {p.status === 'pending' && (
-                      <button
-                        onClick={() => {
-                          setEditingPromise(p);
-                          setIsModalOpen(true);
-                        }}
-                        title="تعديل"
-                        className="rounded-xl bg-sky-500/10 p-2.5 text-sky-600 transition-all hover:bg-sky-500 hover:text-white active:scale-90"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        if (window.confirm('هل تريد حذف هذا الوعد نهائياً؟')) deletePromise(p.id);
-                      }}
-                      disabled={isSaving}
-                      title="حذف"
-                      className="rounded-xl bg-rose-500/10 p-2.5 text-rose-600 transition-all hover:bg-rose-500 hover:text-white active:scale-90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </>
+                  <RowActions actions={promiseRowActions(p)} variant="card" />
                 ) : undefined
               }
             />

@@ -50,6 +50,29 @@ export const bondsApi = {
     return await query;
   },
 
+  getBondById: async (bondId: string) => {
+    return await supabase
+      .from('payments')
+      .select(
+        `
+        id,
+        payment_number,
+        payment_date,
+        amount,
+        currency_code,
+        exchange_rate,
+        payment_method,
+        type,
+        notes,
+        status,
+        party:parties!fk_payments_company_party(name),
+        account:accounts!fk_payments_company_account(name_ar, code)
+      `
+      )
+      .eq('id', bondId)
+      .single();
+  },
+
   createPaymentRPC: async (
     companyId: string,
     userId: string,

@@ -1356,6 +1356,9 @@ export type Database = {
           id: string
           reminder_signature: string | null
           reminder_window_days: number
+          stage_call_days: number
+          stage_legal_days: number
+          stage_visit_days: number
           updated_at: string
           whatsapp_enabled: boolean
         }
@@ -1367,6 +1370,9 @@ export type Database = {
           id?: string
           reminder_signature?: string | null
           reminder_window_days?: number
+          stage_call_days?: number
+          stage_legal_days?: number
+          stage_visit_days?: number
           updated_at?: string
           whatsapp_enabled?: boolean
         }
@@ -1378,6 +1384,9 @@ export type Database = {
           id?: string
           reminder_signature?: string | null
           reminder_window_days?: number
+          stage_call_days?: number
+          stage_legal_days?: number
+          stage_visit_days?: number
           updated_at?: string
           whatsapp_enabled?: boolean
         }
@@ -12434,6 +12443,7 @@ export type Database = {
           credit_limit: number
           currency_code: string
           days_overdue: number
+          escalation_stage: string
           has_broken_promise: boolean
           invoice_count: number
           last_contact_date: string
@@ -12636,6 +12646,22 @@ export type Database = {
           last_activity_date: string
           party_id: string
           transaction_count: number
+        }[]
+      }
+      get_party_collection_timeline: {
+        Args: { p_company_id: string; p_limit?: number; p_party_id: string }
+        Returns: {
+          activity_type: string
+          completed_at: string
+          created_at: string
+          creator_name: string
+          description: string
+          id: string
+          outcome: string
+          priority: string
+          scheduled_at: string
+          status: string
+          subject: string
         }[]
       }
       get_party_balances_by_company: {
@@ -13247,6 +13273,19 @@ export type Database = {
       is_valid_branch: {
         Args: { p_branch_id: string; p_company_id: string }
         Returns: boolean
+      }
+      log_collection_activity: {
+        Args: {
+          p_activity_type: string
+          p_company_id: string
+          p_next_action_date?: string
+          p_notes?: string
+          p_outcome?: string
+          p_party_id: string
+          p_priority?: string
+          p_subject: string
+        }
+        Returns: { action_id: string; next_action_id: string }[]
       }
       log_cron_backup_event: { Args: never; Returns: undefined }
       normalize_arabic: { Args: { p_text: string }; Returns: string }

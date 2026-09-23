@@ -98,3 +98,25 @@ export type PromiseStatus = 'pending' | 'completed' | 'broken' | 'cancelled';
 
 /** Follow-up tab identifiers (mirror of the SQL classification + message state). */
 export type FollowUpTab = 'all' | 'needs_reminder' | 'reminded' | 'overdue' | 'today';
+
+/** خط تصعيد التحصيل (يُحسب في SQL حسب أيام التأخير وعتبات الشركة). */
+export type EscalationStage = 'monitor' | 'reminder' | 'call' | 'visit' | 'legal';
+
+/** Timeline entry returned by get_party_collection_timeline. */
+export interface PartyTimelineEntry {
+  id: string;
+  activity_type: string;
+  subject: string | null;
+  description: string | null;
+  outcome: string | null;
+  status: string;
+  priority: string;
+  scheduled_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  creator_name: string | null;
+}
+
+/** Result of log_collection_activity (completed action + optional next action). */
+export type CollectionActivityRecord =
+  Database['public']['Functions']['log_collection_activity']['Returns'][number];

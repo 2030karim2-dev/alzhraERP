@@ -27,20 +27,23 @@ export interface CompanyInfo {
 
 export interface StatementEntry {
   date: string;
-  operation_type?: string;
-  reference_no?: string;
+  operation_type?: string | undefined;
+  reference_no?: string | undefined;
   desc: string;
   debit: number;
   credit: number;
   balance: number;
+  payment_status?: string | undefined;
+  currency?: string | undefined;
 }
 
 export interface StatementExportOptions {
-  currencyCode?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  partyPhone?: string;
-  partyCategory?: string;
+  currencyCode?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  partyPhone?: string | undefined;
+  partyCategory?: string | undefined;
+  partyType?: 'customer' | 'supplier' | undefined;
 }
 
 export const generateStatementExcelWorkbook = async (
@@ -54,6 +57,7 @@ export const generateStatementExcelWorkbook = async (
   const rows: any[][] = [];
 
   const currency = options.currencyCode || 'SAR';
+  const isSupplier = options.partyType === 'supplier';
   const todayFormatted = formatLocalDate();
   const dateRangeText =
     options.dateFrom && options.dateTo
@@ -68,28 +72,34 @@ export const generateStatementExcelWorkbook = async (
   ]); // Row 2
   rows.push([]); // Row 3 (Spacer)
 
-  // 2. Client & Statement Metadata Card
+  // 2. Client & Statement Metadata Card (9 cols: 0..2, 3..5, 6..8)
   rows.push([
-    `العميل / الجهة: ${partyName}`,
+    `${isSupplier ? 'المورد / الجهة' : 'العميل / الجهة'}: ${partyName}`,
     '',
     '',
-    `العملة: ${currency}`,
+    `العملة الأساسية: ${currency}`,
+    '',
     '',
     `تاريخ التقرير: ${todayFormatted}`,
+    '',
+    '',
   ]); // Row 4
   rows.push([
     options.partyPhone
       ? `رقم الهاتف: ${options.partyPhone}`
-      : `التصنيف: ${options.partyCategory || 'عميل'}`,
+      : `التصنيف: ${options.partyCategory || (isSupplier ? 'مورد' : 'عميل')}`,
     '',
     '',
     dateRangeText,
     '',
+    '',
     `عدد الحركات: ${entries.length}`,
+    '',
+    '',
   ]); // Row 5
   rows.push([]); // Row 6 (Spacer)
 
-  // 3. Table Header
+  // 3. Table Header (9 columns)
   const tableHeaderIndex = rows.length; // Row 7
   const tableHeader = [
     'م',
@@ -97,6 +107,7 @@ export const generateStatementExcelWorkbook = async (
     'نوع الحركة / السند',
     'رقم المرجع',
     'البيان والتفاصيل',
+    'حالة السداد',
     'مدين (+)',
     'دائن (-)',
     `الرصيد (${currency})`,
@@ -114,12 +125,24 @@ export const generateStatementExcelWorkbook = async (
     totalDebit += debit;
     totalCredit += credit;
 
+    const statusAr =
+      entry.payment_status === 'paid'
+        ? 'خالص / مسدد'
+        : entry.payment_status === 'partially_paid'
+          ? 'مسدد جزئياً'
+          : entry.payment_status === 'unpaid'
+            ? 'غير مسدد'
+            : entry.payment_status === 'void'
+              ? 'ملغي'
+              : 'مسوى';
+
     rows.push([
       idx + 1,
       entry.date || '',
       entry.operation_type || 'قيد محاسبي',
       entry.reference_no || '—',
       entry.desc || '—',
+      statusAr,
       debit,
       credit,
       balance,
@@ -128,13 +151,22 @@ export const generateStatementExcelWorkbook = async (
 
   // 5. Total & Summary Footer
   const finalBalance = entries.length > 0 ? Number(entries[entries.length - 1].balance) || 0 : 0;
+  const summaryStatusText = isSupplier
+    ? finalBalance >= 0
+      ? 'مستحق للمورد (له)'
+      : 'دفعة مقدمة للمورد (عليه)'
+    : finalBalance >= 0
+      ? 'متبقي على العميل (مدين)'
+      : 'متبقي للعميل (دائن)';
+
   const summaryRowIndex = rows.length; // Summary Row
   rows.push([
     'الإجمالي العام',
     '',
     '',
     '',
-    `صافي الرصيد المستحق: ${finalBalance >= 0 ? 'متبقي على العميل (مدين)' : 'متبقي للعميل (دائن)'}`,
+    '',
+    `صافي الرصيد المستحق: ${summaryStatusText}`,
     totalDebit,
     totalCredit,
     finalBalance,
@@ -151,50 +183,51 @@ export const generateStatementExcelWorkbook = async (
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
-  // Column Widths
+  // Column Widths (9 columns total)
   ws['!cols'] = [
-    { wch: 6 }, // #
-    { wch: 14 }, // Date
-    { wch: 18 }, // Operation Type
-    { wch: 16 }, // Reference
-    { wch: 38 }, // Description
-    { wch: 18 }, // Debit
-    { wch: 18 }, // Credit
-    { wch: 20 }, // Balance
+    { wch: 6 }, // 0: #
+    { wch: 14 }, // 1: Date
+    { wch: 18 }, // 2: Operation Type
+    { wch: 16 }, // 3: Reference
+    { wch: 38 }, // 4: Description
+    { wch: 14 }, // 5: Payment Status
+    { wch: 18 }, // 6: Debit
+    { wch: 18 }, // 7: Credit
+    { wch: 20 }, // 8: Balance
   ];
 
-  // Header Merges
+  // Header Merges (9 columns: index 0 to 8)
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Company Name
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // Statement Title
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Company Info
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, // Company Name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }, // Statement Title
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }, // Company Info
     { s: { r: 4, c: 0 }, e: { r: 4, c: 2 } }, // Client Name
-    { s: { r: 4, c: 3 }, e: { r: 4, c: 4 } }, // Currency
-    { s: { r: 4, c: 5 }, e: { r: 4, c: 7 } }, // Print Date
+    { s: { r: 4, c: 3 }, e: { r: 4, c: 5 } }, // Currency
+    { s: { r: 4, c: 6 }, e: { r: 4, c: 8 } }, // Print Date
     { s: { r: 5, c: 0 }, e: { r: 5, c: 2 } }, // Client Phone
-    { s: { r: 5, c: 3 }, e: { r: 5, c: 4 } }, // Date Range
-    { s: { r: 5, c: 5 }, e: { r: 5, c: 7 } }, // Transaction Count
-    { s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 3 } }, // Summary Label
+    { s: { r: 5, c: 3 }, e: { r: 5, c: 5 } }, // Date Range
+    { s: { r: 5, c: 6 }, e: { r: 5, c: 8 } }, // Transaction Count
+    { s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 4 } }, // Summary Label
   ];
 
   if (company.bank_name || company.bank_account_iban) {
     ws['!merges'].push({
       s: { r: summaryRowIndex + 2, c: 0 },
-      e: { r: summaryRowIndex + 2, c: 7 },
+      e: { r: summaryRowIndex + 2, c: 8 },
     });
     ws['!merges'].push({
       s: { r: summaryRowIndex + 3, c: 0 },
-      e: { r: summaryRowIndex + 3, c: 7 },
+      e: { r: summaryRowIndex + 3, c: 8 },
     });
   } else {
     ws['!merges'].push({
       s: { r: summaryRowIndex + 2, c: 0 },
-      e: { r: summaryRowIndex + 2, c: 7 },
+      e: { r: summaryRowIndex + 2, c: 8 },
     });
   }
 
   // Cell Styles
-  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:H1');
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:I1');
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
@@ -265,13 +298,13 @@ export const generateStatementExcelWorkbook = async (
           // Description align right
           cell.s.alignment = { horizontal: 'right', vertical: 'center' };
         }
-        // Balance column highlight
-        if (C === 7) {
+        // Balance column highlight (Column index 8)
+        if (C === 8) {
           cell.s.font = { name: 'Calibri', sz: 10.5, bold: true, color: { rgb: '1E3A8A' } };
           cell.s.fill = { fgColor: { rgb: 'EFF6FF' } }; // Light blue
         }
         // Zebra striping
-        if (R % 2 === 0 && C !== 7) {
+        if (R % 2 === 0 && C !== 8) {
           cell.s.fill = { fgColor: { rgb: 'FAFAFA' } };
         }
       }
@@ -280,7 +313,7 @@ export const generateStatementExcelWorkbook = async (
       if (R === summaryRowIndex) {
         cell.s.fill = { fgColor: { rgb: 'E2E8F0' } };
         cell.s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: '0F172A' } };
-        if (C === 7) {
+        if (C === 8) {
           cell.s.fill = { fgColor: { rgb: 'DCFCE7' } }; // Light Green for final balance
           cell.s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: '166534' } };
         }

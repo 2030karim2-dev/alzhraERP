@@ -7,6 +7,7 @@ import { useAuthStore } from '../../auth/store';
 import { useFeedbackStore } from '../../feedback/store';
 import { assertPermission } from '../../../core/hooks/usePermission';
 import { debtApi, debtMessageApi } from '../api/debtApi';
+import { debtsService } from '../services/debtService';
 import type {
   DebtFollowupConfigUpdate,
   PaymentPromiseInsert,
@@ -196,6 +197,33 @@ export const useDebtMutations = () => {
     },
   });
 
+  // ── Collection activity log (Phase 2A) ──
+  const logCollectionActivity = useMutation({
+    mutationFn: async (params: {
+      partyId: string;
+      activityType: string;
+      subject: string;
+      outcome?: string | null;
+      notes?: string | null;
+      nextActionDate?: string | null;
+      priority?: string;
+    }) => {
+      await assertPermission('debts:manage', 'تسجيل نشاط تحصيل');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
+      return debtsService.logCollectionActivity({ companyId, ...params });
+    },
+    onSuccess: data => {
+      invalidateDebtQueries();
+      showToast(
+        data.next_action_id ? 'تم تسجيل النشاط وجدولة الإجراء التالي' : 'تم تسجيل النشاط',
+        'success'
+      );
+    },
+    onError: (err: Error) => {
+      showToast(err.message, 'error');
+    },
+  });
+
   // ── Opening balances ────────────────────────────────────────
   const saveOpeningBalance = useMutation({
     mutationFn: async (payload: Omit<PartyOpeningBalanceInsert, 'company_id'>) => {
@@ -224,6 +252,7 @@ export const useDebtMutations = () => {
     deleteTemplate: deleteTemplate.mutate,
     recordReminder: recordReminder.mutate,
     saveOpeningBalance: saveOpeningBalance.mutate,
+    logCollectionActivity: logCollectionActivity.mutate,
     isSaving:
       saveFollowupConfig.isPending ||
       createPromise.isPending ||
@@ -235,6 +264,7 @@ export const useDebtMutations = () => {
       updateTemplate.isPending ||
       deleteTemplate.isPending ||
       recordReminder.isPending ||
-      saveOpeningBalance.isPending,
+      saveOpeningBalance.isPending ||
+      logCollectionActivity.isPending,
   };
 };

@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuthStore } from '../auth/store';
 import { parseError } from '../../core/utils/errorUtils';
 import type { Party, PartyStats, PartyFormData, PartyType, PartyCategory } from './types';
+import { logger } from '../../core/utils/logger';
 
 export interface StatementMovement {
   id: string;
@@ -13,8 +14,70 @@ export interface StatementMovement {
   debit: number;
   credit: number;
   currency: string;
-  operation_type?: string;
-  balance?: number;
+  operation_type?: string | undefined;
+  balance?: number | undefined;
+  debit_base?: number | undefined;
+  credit_base?: number | undefined;
+  reference_id?: string | null | undefined;
+  reference_type?: string | null | undefined;
+  payment_status?:
+    ('paid' | 'partially_paid' | 'unpaid' | 'void' | 'settled' | 'draft' | 'posted') | undefined;
+  paid_amount?: number | undefined;
+  remaining_amount?: number | undefined;
+  items_count?: number | undefined;
+  is_bf?: number | undefined;
+  custom_color?: string | undefined;
+}
+
+export interface StatementTransactionItem {
+  id: string;
+  item_name: string;
+  sku?: string;
+  part_number?: string;
+  quantity: number;
+  unit_price: number;
+  discount_amount?: number;
+  tax_amount?: number;
+  total_amount: number;
+}
+
+export interface StatementTransactionDetails {
+  kind: 'invoice' | 'bond' | 'opening_balance' | 'journal';
+  invoice_id?: string;
+  invoice_number?: string;
+  issue_date?: string;
+  type?: string;
+  status?: string;
+  currency_code?: string;
+  subtotal?: number;
+  discount_amount?: number;
+  tax_amount?: number;
+  total_amount?: number;
+  paid_amount?: number;
+  remaining_amount?: number;
+  notes?: string;
+  items?: StatementTransactionItem[];
+  payment_id?: string;
+  payment_number?: string;
+  payment_date?: string;
+  payment_method?: string;
+  account_name?: string;
+  account_code?: string;
+  allocations?: Array<{
+    allocation_id: string;
+    allocated_amount: number;
+    invoice_number: string;
+    invoice_date: string;
+    invoice_total: number;
+  }>;
+  lines?: Array<{
+    account_code: string;
+    account_name: string;
+    debit: number;
+    credit: number;
+    currency_code: string;
+    description: string;
+  }>;
 }
 
 export const partiesService = {
@@ -41,11 +104,11 @@ export const partiesService = {
     }) as Party[];
   },
 
-  // ⚡ Server-side party statement via RPC — no frontend aggregation
+  // ⚡ Server-side party statement via hardened RPC with brought-forward and enriched fields
   getStatement: async (
     partyId: string,
     _type: PartyType,
-    options?: { startDate?: string; endDate?: string }
+    options?: { startDate?: string; endDate?: string; currencyCode?: string }
   ): Promise<StatementMovement[]> => {
     // 1. Get companyId from active unified session
     let companyId = useAuthStore.getState().user?.company_id;
@@ -69,6 +132,10 @@ export const partiesService = {
     const { data, error } = await supabase.rpc('get_party_statement', {
       p_company_id: companyId,
       p_party_id: partyId,
+      p_from_date: options?.startDate || null,
+      p_to_date: options?.endDate || null,
+      p_currency_code:
+        options?.currencyCode && options.currencyCode !== 'ALL' ? options.currencyCode : null,
     });
     if (error) throw error;
 
@@ -83,10 +150,19 @@ export const partiesService = {
       credit: number | string | null;
       currency: string;
       balance: number | string | null;
+      debit_base?: number | string | null;
+      credit_base?: number | string | null;
+      reference_id?: string | null;
+      reference_type?: string | null;
+      payment_status?: string | null;
+      paid_amount?: number | string | null;
+      remaining_amount?: number | string | null;
+      items_count?: number | string | null;
+      is_bf?: number | null;
     }
 
     const rows = (data as unknown as RawStatementRpcRow[]) || [];
-    let mapped = rows.map((m): StatementMovement => ({
+    return rows.map((m): StatementMovement => ({
       id: m.line_id,
       date: m.entry_date,
       ref: m.ref,
@@ -97,20 +173,47 @@ export const partiesService = {
       credit: Number(m.credit) || 0,
       currency: m.currency,
       balance: Number(m.balance) || 0,
+      debit_base: Number(m.debit_base) || 0,
+      credit_base: Number(m.credit_base) || 0,
+      reference_id: m.reference_id || null,
+      reference_type: m.reference_type || null,
+      payment_status: (m.payment_status as StatementMovement['payment_status']) ?? undefined,
+      paid_amount: Number(m.paid_amount) || 0,
+      remaining_amount: Number(m.remaining_amount) || 0,
+      items_count: Number(m.items_count) || 0,
+      is_bf: Number(m.is_bf) || 0,
     }));
+  },
 
-    if (options?.startDate || options?.endDate) {
-      mapped = mapped.filter(row => {
-        const rowDate = new Date(row.date);
-        const start = options.startDate ? new Date(options.startDate) : null;
-        const end = options.endDate ? new Date(options.endDate) : null;
-        if (start && rowDate < start) return false;
-        if (end && rowDate > end) return false;
-        return true;
-      });
+  getTransactionDetails: async (
+    referenceType: string,
+    referenceId: string
+  ): Promise<StatementTransactionDetails | null> => {
+    let companyId = useAuthStore.getState().user?.company_id;
+    if (!companyId) {
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (userId) {
+        const { data: roles } = await supabase
+          .from('user_company_roles')
+          .select('company_id')
+          .eq('user_id', userId)
+          .limit(1);
+        companyId = roles?.[0]?.company_id;
+      }
     }
+    if (!companyId) return null;
 
-    return mapped;
+    const { data, error } = await (supabase.rpc as any)('get_statement_transaction_details', {
+      p_company_id: companyId,
+      p_reference_type: referenceType,
+      p_reference_id: referenceId,
+    });
+    if (error) {
+      logger.error('partiesService', 'Failed to fetch transaction details', error);
+      return null;
+    }
+    return data as unknown as StatementTransactionDetails;
   },
 
   getCategoriesWithStats: async (companyId: string, type: PartyType): Promise<PartyCategory[]> => {

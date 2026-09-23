@@ -17,7 +17,13 @@ import {
   hasValidWhatsAppPhone,
   normalizePhoneForWhatsApp,
 } from '../lib/whatsapp';
-import type { DebtAnalytics, FollowUpDashboardRow, FollowUpTab } from '../types';
+import type {
+  DebtAnalytics,
+  FollowUpDashboardRow,
+  FollowUpTab,
+  CollectionActivityRecord,
+  PartyTimelineEntry,
+} from '../types';
 
 export interface PreparedReminder {
   message: string;
@@ -72,6 +78,25 @@ export const debtsService = {
 
   getPartyOverview: (companyId: string, partyId: string) =>
     debtApi.getPartyOverview(companyId, partyId),
+
+  /** Phase 2A: تسجيل نشاط تحصيل (+ إجراء تالٍ) — معاملة واحدة في الخادم. */
+  logCollectionActivity: (params: {
+    companyId: string;
+    partyId: string;
+    activityType: string;
+    subject: string;
+    outcome?: string | null | undefined;
+    notes?: string | null | undefined;
+    nextActionDate?: string | null | undefined;
+    priority?: string | undefined;
+  }): Promise<CollectionActivityRecord> => debtMessageApi.logCollectionActivity(params),
+
+  /** Phase 2A: الخط الزمني لآخر أنشطة الطرف. */
+  getPartyTimeline: (
+    companyId: string,
+    partyId: string,
+    limit?: number
+  ): Promise<PartyTimelineEntry[]> => debtMessageApi.getPartyTimeline(companyId, partyId, limit),
 
   /**
    * Pure presentation grouping of server-classified rows into follow-up tabs.

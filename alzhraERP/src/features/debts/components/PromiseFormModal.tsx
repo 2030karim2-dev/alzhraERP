@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Handshake } from 'lucide-react';
+import { Handshake } from 'lucide-react';
 import { useParties } from '../../parties/hooks';
 import { SmartPartySelect } from '../../parties/components/SmartPartySelect';
 import { useCurrencies } from '../../settings/hooks';
@@ -7,6 +7,7 @@ import { useDebtMutations } from '../hooks/useDebtMutations';
 import type { PaymentPromise } from '../types';
 import type { Party } from '../../parties/types';
 import { formatLocalDate } from '../../../core/utils/dateUtils';
+import { DebtsModalShell } from './DebtsModalShell';
 
 interface PromiseFormModalProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ const PartyField: React.FC<{
   <div>
     <FieldLabel htmlFor={id}>العميل * (بحث ذكي بالاسم أو الهاتف)</FieldLabel>
     {disabled ? (
-      <div className={inputClass}>{parties.find(p => p.id === value)?.name || 'العميل المحدد'}</div>
+      <div className={inputClass}>{parties.find(p => p.id === value)?.name ?? 'العميل المحدد'}</div>
     ) : (
       <SmartPartySelect
         partyType="customer"
@@ -213,75 +214,23 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
     onClose();
   };
 
-  const selectedPartyName = parties?.find(p => p.id === form.party_id)?.name ?? partyName ?? '';
+  const selectedPartyName = parties.find(p => p.id === form.party_id)?.name ?? partyName ?? '';
   const currencyOptions =
     (currencies.data as Array<{ code: string; name_ar: string }> | null) ?? null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[var(--app-surface)] shadow-2xl max-md:mx-2">
-        <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-slate-800 max-md:p-2.5">
-          <div className="flex items-center gap-2">
-            <div className="rounded-xl bg-amber-500 p-2 text-white shadow-lg shadow-amber-500/20">
-              <Handshake size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold">{promise ? 'تعديل الوعد' : 'وعد سداد جديد'}</h3>
-              {selectedPartyName ? (
-                <p className="text-[10px] text-gray-500">{selectedPartyName}</p>
-              ) : null}
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              onClose();
-            }}
-            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="space-y-4 p-4 max-md:space-y-2.5 max-md:p-2.5">
-          <PartyField
-            id="promise-party"
-            value={form.party_id}
-            disabled={!!partyId || !!promise}
-            parties={parties ?? []}
-            onChange={v => {
-              set('party_id', v);
-            }}
-          />
-          <MoneyFields
-            amountId="promise-amount"
-            currencyId="promise-currency"
-            amount={form.amount}
-            currencyCode={form.currency_code}
-            currencies={currencyOptions}
-            onAmountChange={v => {
-              set('amount', v);
-            }}
-            onCurrencyChange={v => {
-              set('currency_code', v);
-            }}
-          />
-          <DateField
-            id="promise-date"
-            value={form.promise_date}
-            onChange={v => {
-              set('promise_date', v);
-            }}
-          />
-          <NotesField
-            id="promise-notes"
-            value={form.notes}
-            onChange={v => {
-              set('notes', v);
-            }}
-          />
-        </div>
-
-        <div className="flex items-center justify-end gap-2 border-t border-gray-200 p-4 dark:border-slate-800 max-md:p-2.5">
+    <DebtsModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={<Handshake size={16} />}
+      iconClassName="bg-amber-500 shadow-amber-500/20"
+      title={promise ? 'تعديل الوعد' : 'وعد سداد جديد'}
+      description={selectedPartyName !== '' ? selectedPartyName : undefined}
+      size="md"
+      bodyClassName="p-4 max-md:space-y-2.5 max-md:p-2.5"
+      footerClassName="justify-end"
+      footer={
+        <>
           <button
             onClick={() => {
               onClose();
@@ -299,9 +248,46 @@ const PromiseFormModal: React.FC<PromiseFormModalProps> = ({
           >
             {promise ? 'حفظ التعديل' : 'تسجيل الوعد'}
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <PartyField
+        id="promise-party"
+        value={form.party_id}
+        disabled={(partyId ?? '') !== '' || (promise !== null && promise !== undefined)}
+        parties={parties}
+        onChange={v => {
+          set('party_id', v);
+        }}
+      />
+      <MoneyFields
+        amountId="promise-amount"
+        currencyId="promise-currency"
+        amount={form.amount}
+        currencyCode={form.currency_code}
+        currencies={currencyOptions}
+        onAmountChange={v => {
+          set('amount', v);
+        }}
+        onCurrencyChange={v => {
+          set('currency_code', v);
+        }}
+      />
+      <DateField
+        id="promise-date"
+        value={form.promise_date}
+        onChange={v => {
+          set('promise_date', v);
+        }}
+      />
+      <NotesField
+        id="promise-notes"
+        value={form.notes}
+        onChange={v => {
+          set('notes', v);
+        }}
+      />
+    </DebtsModalShell>
   );
 };
 

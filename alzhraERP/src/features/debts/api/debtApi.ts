@@ -24,6 +24,8 @@ import type {
   DebtMessageLogWithParty,
   PartyOpeningBalance,
   PartyOpeningBalanceInsert,
+  CollectionActivityRecord,
+  PartyTimelineEntry,
 } from '../types';
 
 /** Engine defaults — also the migration defaults; kept in sync. */
@@ -315,6 +317,56 @@ export const debtMessageApi = {
     if (error) throw error;
     if (data.length === 0) throw new Error('تعذر تسجيل التذكير');
     return data[0];
+  },
+
+  // ── Collection activity log (Phase 2A) ──
+  /** يسجّل نشاط تحصيل منجزاً (+ إجراء تالٍ مجدول اختياري) في معاملة SQL واحدة. */
+  logCollectionActivity: async (params: {
+    companyId: string;
+    partyId: string;
+    activityType: string;
+    subject: string;
+    outcome?: string | null | undefined;
+    notes?: string | null | undefined;
+    nextActionDate?: string | null | undefined;
+    priority?: string | undefined;
+  }): Promise<CollectionActivityRecord> => {
+    const { data, error } = await supabase.rpc('log_collection_activity', {
+      p_company_id: params.companyId,
+      p_party_id: params.partyId,
+      p_activity_type: params.activityType,
+      p_subject: params.subject,
+      ...(params.outcome != null ? { p_outcome: params.outcome } : {}),
+      ...(params.notes != null ? { p_notes: params.notes } : {}),
+      ...(params.nextActionDate != null ? { p_next_action_date: params.nextActionDate } : {}),
+      ...(params.priority != null ? { p_priority: params.priority } : {}),
+    });
+    if (error) throw error;
+    if (data.length === 0) throw new Error('تعذر تسجيل نشاط التحصيل');
+    return data[0];
+  },
+
+  /** الخط الزمني لآخر أنشطة الطرف — يتحلل بصمت على قاعدة بلا RPC جديد. */
+  getPartyTimeline: async (
+    companyId: string,
+    partyId: string,
+    limit = 20
+  ): Promise<PartyTimelineEntry[]> => {
+    const { data, error } = await supabase.rpc('get_party_collection_timeline', {
+      p_company_id: companyId,
+      p_party_id: partyId,
+      p_limit: limit,
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        logger.warn('DebtAPI', 'get_party_collection_timeline RPC not found on server', {
+          companyId,
+        });
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
   },
 
   // ── Opening balances (legacy debts) ──

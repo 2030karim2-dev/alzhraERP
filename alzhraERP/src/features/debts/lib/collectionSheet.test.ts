@@ -35,7 +35,7 @@ describe('buildCollectionSheetCsv', () => {
     const [header] = csv.slice(1).split('\r\n');
     expect(header).toContain('العميل');
     expect(header).toContain('أيام التأخير');
-    expect(header.split(',')).toHaveLength(12);
+    expect(header.split(',')).toHaveLength(13);
   });
 
   it('writes amounts with two decimals and maps Arabic labels', () => {
