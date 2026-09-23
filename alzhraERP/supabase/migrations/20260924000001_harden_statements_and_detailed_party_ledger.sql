@@ -513,15 +513,15 @@ BEGIN
       'items', COALESCE((
         SELECT jsonb_agg(jsonb_build_object(
           'id', ii.id,
-          'item_name', COALESCE(p.name_ar, ii.notes, 'صنف'),
+          'item_name', COALESCE(p.name_ar, ii.description, 'صنف'),
           'sku', p.sku,
           'part_number', p.part_number,
           'quantity', ii.quantity,
           'unit_price', ii.unit_price,
           'discount_amount', COALESCE(ii.discount_amount, 0),
           'tax_amount', COALESCE(ii.tax_amount, 0),
-          'total_amount', ii.total_amount
-        ) ORDER BY ii.created_at)
+          'total_amount', ii.total
+        ) ORDER BY ii.id)
         FROM public.invoice_items ii
         LEFT JOIN public.products p ON p.id = ii.product_id
         WHERE ii.invoice_id = i.id
