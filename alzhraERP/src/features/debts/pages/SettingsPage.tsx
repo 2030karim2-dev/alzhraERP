@@ -1,13 +1,14 @@
 import React from 'react';
 import { SlidersHorizontal, MessageSquareText } from 'lucide-react';
 import FollowUpSettingsForm from '../components/FollowUpSettingsForm';
+import SeedTemplatesCard from '../components/SeedTemplatesCard';
 import TemplateManager from '../components/TemplateManager';
 
 const SettingsPage: React.FC = () => (
   <div className="space-y-5">
-    <section className="bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
-      <header className="p-4 border-b border-[var(--app-border)] flex items-center gap-2">
-        <span className="p-1.5 bg-blue-500 text-white rounded-lg">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+      <header className="flex items-center gap-2 border-b border-[var(--app-border)] p-4">
+        <span className="rounded-lg bg-blue-500 p-1.5 text-white">
           <SlidersHorizontal size={14} />
         </span>
         <div>
@@ -22,9 +23,9 @@ const SettingsPage: React.FC = () => (
       </div>
     </section>
 
-    <section className="bg-[var(--app-surface)] rounded-2xl border border-[var(--app-border)] shadow-sm">
-      <header className="p-4 border-b border-[var(--app-border)] flex items-center gap-2">
-        <span className="p-1.5 bg-green-500 text-white rounded-lg">
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+      <header className="flex items-center gap-2 border-b border-[var(--app-border)] p-4">
+        <span className="rounded-lg bg-green-500 p-1.5 text-white">
           <MessageSquareText size={14} />
         </span>
         <div>
@@ -35,6 +36,7 @@ const SettingsPage: React.FC = () => (
         </div>
       </header>
       <div className="p-4">
+        <SeedTemplatesCard />
         <TemplateManager />
       </div>
     </section>

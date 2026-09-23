@@ -95,6 +95,10 @@ export const debtsService = {
     priority?: string | undefined;
   }): Promise<CollectionActivityRecord> => debtMessageApi.logCollectionActivity(params),
 
+  /** S3-prep: استيراد المكتبة القياسية للقوالب (idempotent على الخادم). */
+  seedDefaultTemplates: (companyId: string): Promise<number> =>
+    debtMessageApi.seedDefaultTemplates(companyId),
+
   /** S2: طابور المهام الموحّد (فواتير/وعود/إجراءات/حرج/فاشل) مع المسؤول. */
   getTaskQueue: (
     companyId: string,

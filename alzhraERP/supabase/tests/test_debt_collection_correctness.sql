@@ -381,6 +381,26 @@ BEGIN
     AND status = 'pending' AND subject LIKE 'follow-up:%';
   ASSERT v_cnt = 1, 'T13 FAIL: duplicate follow-up task created';
 
+  -- ==== T15: debt template library is complete and idempotent ====
+  -- (S3-prep: seed_default_debt_templates - 16 templates, placeholders whitelisted)
+  SELECT public.seed_default_debt_templates(v_company) INTO v_cnt;
+  ASSERT v_cnt = 16, 'T15 FAIL: first seed inserted ' || COALESCE(v_cnt::text, 'NULL') || ' templates (expected 16)';
+
+  SELECT public.seed_default_debt_templates(v_company) INTO v_cnt;
+  ASSERT v_cnt = 0, 'T15 FAIL: second seed inserted ' || COALESCE(v_cnt::text, 'NULL') || ' duplicates (idempotency broken)';
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.debt_message_templates t
+  WHERE t.company_id = v_company
+    AND regexp_replace(t.body, '\{\{(customer_name|amount|currency|due_date|days_overdue|invoice_number|company_name|signature)\}\}', '', 'g') ~ '\{\{[a-z_]+\}\}';
+  ASSERT v_cnt = 0, 'T15 FAIL: ' || COALESCE(v_cnt::text, 'NULL') || ' template(s) use unsupported placeholders';
+
+  SELECT COUNT(*) INTO v_cnt
+  FROM public.debt_message_templates t
+  WHERE t.company_id = v_company
+    AND position('{{amount}}' in t.body) = 0;
+  ASSERT v_cnt = 0, 'T15 FAIL: ' || COALESCE(v_cnt::text, 'NULL') || ' template(s) missing the amount placeholder';
+
   -- ==== T14: assign_debt_parties validates tenant and collector membership ====
   BEGIN
     PERFORM public.assign_debt_parties(v_company, ARRAY[gen_random_uuid()], v_uid, 'high', NULL);

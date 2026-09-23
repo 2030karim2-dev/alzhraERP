@@ -267,6 +267,27 @@ export const useDebtMutations = () => {
     },
   });
 
+  // ── Template library (S3-prep) ──────────────────────────────
+  const seedTemplates = useMutation({
+    mutationFn: async () => {
+      await assertPermission('debts:manage', 'استيراد مكتبة القوالب');
+      if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
+      return debtsService.seedDefaultTemplates(companyId);
+    },
+    onSuccess: count => {
+      invalidateDebtQueries();
+      showToast(
+        count > 0
+          ? `تم استيراد ${String(count)} قالباً قياسياً`
+          : 'المكتبة مستوردة مسبقاً — لم يُضف أي قالب',
+        'success'
+      );
+    },
+    onError: (err: Error) => {
+      showToast(debtRpcErrorMessage(err.message), 'error', err);
+    },
+  });
+
   // ── Opening balances ────────────────────────────────────────
   const saveOpeningBalance = useMutation({
     mutationFn: async (payload: Omit<PartyOpeningBalanceInsert, 'company_id'>) => {
@@ -298,6 +319,7 @@ export const useDebtMutations = () => {
     logCollectionActivity: logCollectionActivity.mutate,
     completeTask: completeTask.mutate,
     assignParties: assignParties.mutate,
+    seedTemplates: seedTemplates.mutate,
     isSaving:
       saveFollowupConfig.isPending ||
       createPromise.isPending ||
@@ -312,6 +334,7 @@ export const useDebtMutations = () => {
       saveOpeningBalance.isPending ||
       logCollectionActivity.isPending ||
       completeTask.isPending ||
-      assignParties.isPending,
+      assignParties.isPending ||
+      seedTemplates.isPending,
   };
 };

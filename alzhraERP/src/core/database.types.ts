@@ -12429,6 +12429,10 @@ export type Database = {
           total_value: number
         }[]
       }
+      seed_default_debt_templates: {
+        Args: { p_company_id: string }
+        Returns: number
+      }
       assign_debt_parties: {
         Args: {
           p_collector_id?: string | null

@@ -488,6 +488,16 @@ export const debtMessageApi = {
     return data ?? 0;
   },
 
+  // ── Template library (S3-prep) ──
+  /** يستورد المكتبة القياسية للقوالب — idempotent، ويعيد عدد القوالب المُدرَجة. */
+  seedDefaultTemplates: async (companyId: string): Promise<number> => {
+    const { data, error } = await supabase.rpc('seed_default_debt_templates', {
+      p_company_id: companyId,
+    });
+    if (error) throw error;
+    return data ?? 0;
+  },
+
   // ── Opening balances (legacy debts) ──
   getOpeningBalances: async (
     companyId: string,
