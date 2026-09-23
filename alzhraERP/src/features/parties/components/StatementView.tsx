@@ -25,7 +25,10 @@ import {
   Search,
   CheckSquare,
   Square,
+  Palette,
+  X,
 } from 'lucide-react';
+import { useAuthStore } from '../../../core/store/authStore';
 
 interface StatementViewProps {
   partyType: PartyType;
@@ -50,6 +53,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
   const [expandedRowIds, setExpandedRowIds] = useState<Set<string>>(new Set());
   const [rowColors, setRowColors] = useState<Map<string, string>>(new Map());
+  const [activeColorPickerRowId, setActiveColorPickerRowId] = useState<string | null>(null);
   const [isPrintingSelectedOnly, setIsPrintingSelectedOnly] = useState(false);
 
   // Modals for single document view/print
@@ -66,6 +70,53 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
 
   const { data: settingsCompany } = useCompany();
   const invoiceSettings = useInvoiceSettings();
+
+  const companyId = settingsCompany?.id || useAuthStore.getState().user?.company_id || 'default_co';
+  const storageKey = selectedPartyId
+    ? `erp_statement_row_colors_${companyId}_${selectedPartyId}`
+    : null;
+
+  // Load persisted row colors whenever selectedPartyId or companyId changes
+  React.useEffect(() => {
+    if (!storageKey) {
+      setRowColors(new Map());
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Record<string, string>;
+        setRowColors(new Map(Object.entries(parsed)));
+      } else {
+        setRowColors(new Map());
+      }
+    } catch (err) {
+      console.error('Failed to load statement row colors from storage:', err);
+      setRowColors(new Map());
+    }
+  }, [storageKey]);
+
+  // Click outside to close active row color picker
+  React.useEffect(() => {
+    if (!activeColorPickerRowId) return;
+    const handleClickOutside = () => setActiveColorPickerRowId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [activeColorPickerRowId]);
+
+  const saveRowColorsToStorage = (updatedMap: Map<string, string>) => {
+    if (!storageKey) return;
+    try {
+      if (updatedMap.size === 0) {
+        localStorage.removeItem(storageKey);
+      } else {
+        const obj = Object.fromEntries(updatedMap.entries());
+        localStorage.setItem(storageKey, JSON.stringify(obj));
+      }
+    } catch (err) {
+      console.error('Failed to save statement row colors to storage:', err);
+    }
+  };
 
   const selectedParty = parties?.find(p => p.id === selectedPartyId);
   const movements = useMemo(() => statement || [], [statement]);
@@ -136,16 +187,38 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
     });
   };
 
+  const handleApplyColorToSingleRow = (movement: StatementMovement, color: string | null) => {
+    setRowColors(prev => {
+      const next = new Map(prev);
+      const keys = [movement.id, movement.reference_id, movement.ref].filter(Boolean) as string[];
+      keys.forEach(k => {
+        if (color) {
+          next.set(k, color);
+        } else {
+          next.delete(k);
+        }
+      });
+      saveRowColorsToStorage(next);
+      return next;
+    });
+    setActiveColorPickerRowId(null);
+  };
+
   const handleApplyColorToSelected = (color: string | null) => {
     setRowColors(prev => {
       const next = new Map(prev);
       selectedRowIds.forEach(id => {
-        if (color) {
-          next.set(id, color);
-        } else {
-          next.delete(id);
-        }
+        const mov = filteredMovements.find(m => m.id === id);
+        const keys = [id, mov?.reference_id, mov?.ref].filter(Boolean) as string[];
+        keys.forEach(k => {
+          if (color) {
+            next.set(k, color);
+          } else {
+            next.delete(k);
+          }
+        });
       });
+      saveRowColorsToStorage(next);
       return next;
     });
   };
@@ -392,18 +465,21 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                       filteredMovements.map((row, idx) => {
                         const isExpanded = expandedRowIds.has(row.id);
                         const isSelected = selectedRowIds.has(row.id);
-                        const customColor = rowColors.get(row.id);
+                        const customColor =
+                          rowColors.get(row.id) ||
+                          (row.reference_id ? rowColors.get(row.reference_id) : undefined) ||
+                          (row.ref ? rowColors.get(row.ref) : undefined);
 
                         // Highlighting styling
                         const highlightClass =
                           customColor === 'emerald'
-                            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-r-4 border-r-emerald-500'
+                            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-r-4 border-r-emerald-500 row-colored-emerald'
                             : customColor === 'rose'
-                              ? 'bg-rose-50/70 dark:bg-rose-950/30 border-r-4 border-r-rose-500'
+                              ? 'bg-rose-50/70 dark:bg-rose-950/30 border-r-4 border-r-rose-500 row-colored-rose'
                               : customColor === 'amber'
-                                ? 'bg-amber-50/70 dark:bg-amber-950/30 border-r-4 border-r-amber-500'
+                                ? 'bg-amber-50/70 dark:bg-amber-950/30 border-r-4 border-r-amber-500 row-colored-amber'
                                 : customColor === 'blue'
-                                  ? 'bg-blue-50/70 dark:bg-blue-950/30 border-r-4 border-r-blue-500'
+                                  ? 'bg-blue-50/70 dark:bg-blue-950/30 border-r-4 border-r-blue-500 row-colored-blue'
                                   : isSelected
                                     ? 'bg-blue-50/40 dark:bg-blue-950/20'
                                     : idx % 2 === 0
@@ -560,6 +636,82 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                                 onClick={e => e.stopPropagation()}
                               >
                                 <div className="flex items-center justify-center gap-1">
+                                  {/* Quick Palette Button */}
+                                  <div className="relative">
+                                    <button
+                                      type="button"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        setActiveColorPickerRowId(
+                                          activeColorPickerRowId === row.id ? null : row.id
+                                        );
+                                      }}
+                                      title={
+                                        customColor
+                                          ? 'تغيير أو إزالة اللون الثابت لهذه المعاملة'
+                                          : 'تلوين وتمييز المعاملة بلون دائم'
+                                      }
+                                      className={cn(
+                                        'rounded p-1 transition-colors',
+                                        customColor === 'emerald'
+                                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
+                                          : customColor === 'rose'
+                                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'
+                                            : customColor === 'amber'
+                                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
+                                              : customColor === 'blue'
+                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
+                                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800'
+                                      )}
+                                    >
+                                      <Palette size={13} />
+                                    </button>
+
+                                    {activeColorPickerRowId === row.id && (
+                                      <div
+                                        className="absolute bottom-full left-0 z-50 mb-1 flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-2xl backdrop-blur"
+                                        onClick={e => e.stopPropagation()}
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleApplyColorToSingleRow(row, 'emerald')
+                                          }
+                                          className="h-4 w-4 rounded-full border border-white/40 bg-emerald-500 transition-transform hover:scale-125"
+                                          title="أخضر (خالص / مسدد)"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApplyColorToSingleRow(row, 'rose')}
+                                          className="h-4 w-4 rounded-full border border-white/40 bg-rose-500 transition-transform hover:scale-125"
+                                          title="أحمر (مستحق / غير مسدد)"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApplyColorToSingleRow(row, 'amber')}
+                                          className="h-4 w-4 rounded-full border border-white/40 bg-amber-500 transition-transform hover:scale-125"
+                                          title="كهرماني (جزئي)"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApplyColorToSingleRow(row, 'blue')}
+                                          className="h-4 w-4 rounded-full border border-white/40 bg-blue-500 transition-transform hover:scale-125"
+                                          title="أزرق (هام)"
+                                        />
+                                        {customColor && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleApplyColorToSingleRow(row, null)}
+                                            className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-rose-300 hover:bg-rose-900/60 hover:text-white"
+                                            title="إزالة اللون نهائياً"
+                                          >
+                                            مسح
+                                          </button>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+
                                   {row.reference_id && (
                                     <button
                                       type="button"

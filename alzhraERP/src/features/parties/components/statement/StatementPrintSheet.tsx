@@ -59,6 +59,11 @@ export const StatementPrintSheet: React.FC<StatementPrintSheetProps> = ({
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            /* Colored rows preserved during print */
+            tr.row-colored-emerald td { background-color: #d1fae5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr.row-colored-rose td { background-color: #ffe4e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr.row-colored-amber td { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr.row-colored-blue td { background-color: #e0f2fe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             /* Hide the toolbar of ExcelTable in print */
             .table-toolbar { display: none !important; }
         }
