@@ -26,9 +26,8 @@ import {
   CheckSquare,
   Square,
   Palette,
-  X,
 } from 'lucide-react';
-import { useAuthStore } from '../../../core/store/authStore';
+import { useAuthStore } from '../../auth/store';
 
 interface StatementViewProps {
   partyType: PartyType;

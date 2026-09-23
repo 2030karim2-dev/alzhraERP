@@ -25,6 +25,7 @@ import type {
   PartyOpeningBalance,
   PartyOpeningBalanceInsert,
   CollectionActivityRecord,
+  DebtFollowupAction,
   PartyTimelineEntry,
 } from '../types';
 
@@ -360,6 +361,34 @@ export const debtMessageApi = {
     if (error) {
       if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
         logger.warn('DebtAPI', 'get_party_collection_timeline RPC not found on server', {
+          companyId,
+        });
+        return [];
+      }
+      throw error;
+    }
+    return data ?? [];
+  },
+
+  // ── Scheduled follow-up actions (S1) ──
+  /**
+   * الإجراءات المجدولة المعلّقة (customer_activities.pending) — قراءة فقط.
+   * تُغلق فجوة «الكتابة بلا قارئ»: log_collection_activity يُنشئ إجراءً تالياً
+   * لم تكن أي شاشة تعرضه. تتحلل بصمت على قاعدة بلا الدالة الجديدة.
+   */
+  getFollowupActions: async (
+    companyId: string,
+    branchId?: string | null,
+    limit = 50
+  ): Promise<DebtFollowupAction[]> => {
+    const { data, error } = await supabase.rpc('get_debt_followup_actions', {
+      p_company_id: companyId,
+      p_limit: limit,
+      ...(branchId !== undefined ? { p_branch_id: branchId } : {}),
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? '')) {
+        logger.warn('DebtAPI', 'get_debt_followup_actions RPC not found on server', {
           companyId,
         });
         return [];
