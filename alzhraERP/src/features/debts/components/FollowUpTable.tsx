@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
-import {
-  MessageSquare,
-  Handshake,
-  Sparkles,
-  FileSpreadsheet,
-  Loader2,
-  Banknote,
-  History,
-} from 'lucide-react';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
 import { parseError } from '../../../core/utils/errorUtils';
 import { CLASSIFICATION_META, REMINDER_STATUS_META, escalationBadgeMeta } from '../lib/constants';
+import { buildDebtRowActions, type DebtRowActionHandlers } from '../lib/rowActions';
 import { useCompany } from '../../settings/hooks';
 import { useFeedbackStore } from '../../feedback/store';
 import { partiesService } from '../../parties/service';
 import { exportStatementToExcel } from '../../parties/utils/statementExcelExporter';
 import StatusBadge from './StatusBadge';
 import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
-import RowActions, { type RowAction } from './RowActions';
+import RowActions from './RowActions';
+import FollowUpExcelGrid from './FollowUpExcelGrid';
 import ReminderModal from './ReminderModal';
 import PromiseFormModal from './PromiseFormModal';
 import AIDebtRiskModal from './AIDebtRiskModal';
@@ -109,83 +102,30 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
     }
   };
 
-  const getRowActions = (row: FollowUpDashboardRow): RowAction[] => {
-    const isExportingThis = exportingPartyId === row.party_id;
-    const actions: RowAction[] = [
-      {
-        key: 'ai-risk',
-        icon: Sparkles,
-        label: 'التحليل الذكي للمخاطر (AI)',
-        colorClasses:
-          'bg-purple-500/10 text-purple-600 hover:bg-purple-600 hover:text-white dark:text-purple-400 shadow-sm',
-        onAction: () => {
-          setAiRiskRow(row);
-        },
-      },
-      {
-        key: 'excel-statement',
-        icon: isExportingThis ? Loader2 : FileSpreadsheet,
-        label: 'تحميل كشف حساب إكسل احترافي (.xlsx)',
-        disabled: isExportingThis,
-        colorClasses:
-          'bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white disabled:opacity-50 dark:text-blue-400 shadow-sm',
-        onAction: () => {
-          void handleExportExcel(row);
-        },
-      },
-    ];
-
-    if (canRemind) {
-      actions.push({
-        key: 'whatsapp-reminder',
-        icon: MessageSquare,
-        label: 'تذكير واتساب ذكي',
-        colorClasses:
-          'bg-green-500/10 text-green-600 hover:bg-green-600 hover:text-white dark:text-green-400 shadow-sm',
-        onAction: () => {
-          setReminderRow(row);
-        },
-      });
-    }
-
-    if (canManage && onCollect) {
-      actions.push({
-        key: 'collect-now',
-        icon: Banknote,
-        label: 'تحصيل الآن — سند قبض مُعبّأ لهذا العميل',
-        colorClasses:
-          'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:text-emerald-400 shadow-sm',
-        onAction: () => {
-          onCollect(row);
-        },
-      });
-    }
-
-    actions.push({
-      key: 'timeline',
-      icon: History,
-      label: 'خط تحصيل العميل — سجل الأنشطة',
-      colorClasses:
-        'bg-slate-500/10 text-slate-600 hover:bg-slate-500 hover:text-white dark:text-slate-400 shadow-sm',
-      onAction: () => {
-        setTimelineRow(row);
-      },
-    });
-
-    if (canManage) {
-      actions.push({
-        key: 'payment-promise',
-        icon: Handshake,
-        label: 'تسجيل وعد سداد',
-        colorClasses:
-          'bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white dark:text-amber-400 shadow-sm',
-        onAction: () => {
-          setPromiseRow(row);
-        },
-      });
-    }
-
-    return actions;
+  /**
+   * Row action handlers shared by the desktop Excel grid and the mobile cards.
+   * Single source of truth: permissions and labels live in lib/rowActions.ts.
+   */
+  const rowActionHandlers: DebtRowActionHandlers = {
+    canManage,
+    canRemind,
+    exportingPartyId,
+    onAiRisk: row => {
+      setAiRiskRow(row);
+    },
+    onExportStatement: row => {
+      void handleExportExcel(row);
+    },
+    onRemind: row => {
+      setReminderRow(row);
+    },
+    onCollect,
+    onTimeline: row => {
+      setTimelineRow(row);
+    },
+    onPromise: row => {
+      setPromiseRow(row);
+    },
   };
 
   if (rows.length === 0) {
@@ -198,104 +138,9 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
 
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm md:block print:block print:overflow-visible">
-        <table className="w-full text-right">
-          <thead>
-            <tr className="bg-[var(--app-surface-hover)]/50 border-b border-[var(--app-border)] text-[10px] font-bold text-[var(--app-text-secondary)]">
-              <th className="px-4 py-3 max-md:px-2 max-md:py-2">العميل</th>
-              <th className="px-4 py-3 max-md:px-2 max-md:py-2">التصنيف</th>
-              <th className="px-4 py-3 text-left max-md:px-2 max-md:py-2">الرصيد</th>
-              <th className="px-4 py-3 max-md:px-2 max-md:py-2">أقدم استحقاق</th>
-              <th className="px-4 py-3 max-md:px-2 max-md:py-2">أيام التأخير</th>
-              <th className="px-4 py-3 max-md:px-2 max-md:py-2">حالة التذكير</th>
-              <th className="px-4 py-3 text-center max-md:px-2 max-md:py-2">الإجراءات والتحصيل</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--app-border)]">
-            {rows.map(row => {
-              const classification =
-                CLASSIFICATION_META[row.classification] ?? CLASSIFICATION_META.current;
-              const reminder =
-                REMINDER_STATUS_META[row.reminder_status] ?? REMINDER_STATUS_META.needs_reminder;
+      {/* سطح المكتب: شبكة إكسل معيارية (ExcelTable) — أعمدة وتحديد ونسخ ومجاميع */}
+      <FollowUpExcelGrid rows={rows} handlers={rowActionHandlers} />
 
-              return (
-                <tr
-                  key={`${row.party_id}-${row.currency_code}`}
-                  className="transition-colors hover:bg-[var(--app-surface-hover)]"
-                >
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    <p className="whitespace-nowrap text-xs font-bold text-[var(--app-text)]">
-                      {row.party_name}
-                    </p>
-                    {row.party_phone !== null && row.party_phone !== '' && (
-                      <p
-                        className="font-mono text-[10px] text-[var(--app-text-secondary)]"
-                        dir="ltr"
-                      >
-                        {row.party_phone}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    <StatusBadge {...classification} />
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    <span className="font-mono text-xs font-bold text-[var(--app-text)]" dir="ltr">
-                      {formatCurrency(row.outstanding_balance, row.currency_code)}
-                    </span>
-                    {row.has_broken_promise && (
-                      <span className="mt-0.5 block text-[10px] font-bold text-rose-500">
-                        ⚠️ وعد مخلَف
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    {row.oldest_due_date !== null && row.oldest_due_date !== '' ? (
-                      <span
-                        className="font-mono text-xs text-[var(--app-text-secondary)]"
-                        dir="ltr"
-                      >
-                        {row.oldest_due_date}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[var(--app-text-secondary)]">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    {row.days_overdue > 0 ? (
-                      <span className="text-xs font-extrabold text-orange-600">
-                        {row.days_overdue} يوم
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[var(--app-text-secondary)]">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    <StatusBadge {...reminder} />
-                    <span
-                      title="مرحلة التصعيد المقترحة حسب أيام التأخير"
-                      className={`mt-1 block rounded-lg border px-1.5 py-0.5 text-[10px] font-bold ${
-                        escalationBadgeMeta(row.escalation_stage).badgeClass
-                      }`}
-                    >
-                      {escalationBadgeMeta(row.escalation_stage).label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 max-md:px-2 max-md:py-2">
-                    <RowActions
-                      actions={getRowActions(row)}
-                      variant="table"
-                      className="justify-center"
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Cards — بديل الجدول على الهاتف (مكوّن موحّد) */}
       <MobileCardList>
         {rows.map(row => {
           const classification =
@@ -351,7 +196,9 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
                   )}
                 </>
               }
-              actions={<RowActions actions={getRowActions(row)} variant="card" />}
+              actions={
+                <RowActions actions={buildDebtRowActions(row, rowActionHandlers)} variant="card" />
+              }
             />
           );
         })}

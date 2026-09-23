@@ -169,3 +169,36 @@ export const escalationBadgeMeta = (stage: string | null): BadgeMeta => {
 
 /** تسمية مرحلة التصعيد (مختصر لـ escalationBadgeMeta().label). */
 export const escalationLabel = (stage: string): string => escalationBadgeMeta(stage).label;
+
+/**
+ * ختم التصنيف عبر switch — بلا فهرسة كائن بمفتاح متغيّر (منع
+ * security/detect-object-injection في الملفات الجديدة)، مع افتراضي «حالي».
+ */
+export const classificationMeta = (classification: string): ClassificationMeta => {
+  switch (classification) {
+    case 'critical':
+      return CLASSIFICATION_META.critical;
+    case 'overdue':
+      return CLASSIFICATION_META.overdue;
+    case 'due_today':
+      return CLASSIFICATION_META.due_today;
+    case 'due_soon':
+      return CLASSIFICATION_META.due_soon;
+    case 'current':
+      return CLASSIFICATION_META.current;
+    default:
+      return CLASSIFICATION_META.current;
+  }
+};
+
+/** ختم حالة التذكير عبر switch — مع افتراضي «بحاجة تذكير». */
+export const reminderStatusMeta = (status: string): BadgeMeta => {
+  switch (status) {
+    case 'reminded':
+      return REMINDER_STATUS_META.reminded;
+    case 'needs_reminder':
+      return REMINDER_STATUS_META.needs_reminder;
+    default:
+      return REMINDER_STATUS_META.needs_reminder;
+  }
+};

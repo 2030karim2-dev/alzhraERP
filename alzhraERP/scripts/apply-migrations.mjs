@@ -17,9 +17,17 @@ import { join } from 'node:path';
 const PROJECT_REF = 'zzthamxjxnxzzpswllid';
 const QUERY_ENDPOINT = `https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`;
 
-const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+let ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 if (!ACCESS_TOKEN) {
-  console.error('❌ SUPABASE_ACCESS_TOKEN env var is required.');
+  try {
+    const tokenPath = join(process.env.USERPROFILE || '', '.supabase', 'access-token');
+    ACCESS_TOKEN = readFileSync(tokenPath, 'utf8').trim();
+  } catch {
+    // ignore
+  }
+}
+if (!ACCESS_TOKEN) {
+  console.error('❌ SUPABASE_ACCESS_TOKEN env var is required (or ~/.supabase/access-token).');
   process.exit(1);
 }
 

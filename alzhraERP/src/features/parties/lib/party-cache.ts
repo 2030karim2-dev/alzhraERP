@@ -50,15 +50,36 @@ export const partyCache = {
     try {
       const branchKey = branchId ?? 'all';
       const key = `${CACHE_KEY_PREFIX}${companyId}_${branchKey}_${type}`;
-      localStorage.setItem(
-        key,
-        JSON.stringify({
-          data,
-          timestamp: Date.now(),
-        })
-      );
+      try {
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            data,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (quotaError) {
+        // Storage quota exceeded: clear older party caches and retry once
+        partyCache.clearAll();
+        try {
+          localStorage.setItem(
+            key,
+            JSON.stringify({
+              data,
+              timestamp: Date.now(),
+            })
+          );
+        } catch {
+          // If payload is still too large for localStorage, degrade gracefully
+          logger.warn(
+            'party-cache',
+            'Party cache payload exceeded storage quota, skipped caching for',
+            key
+          );
+        }
+      }
     } catch (e) {
-      logger.error('party-cache', 'Failed to update party cache:', e);
+      logger.warn('party-cache', 'Failed to update party cache:', e);
     }
   },
 
