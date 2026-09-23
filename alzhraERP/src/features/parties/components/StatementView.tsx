@@ -336,11 +336,11 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
             {/* Interactive Statement Excel Data Grid */}
             <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-md">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-right">
+                <table className="w-full border-collapse border border-[var(--app-border)] text-right">
                   <thead>
-                    <tr className="border-b border-[var(--app-border)] bg-slate-100/80 text-[11px] font-bold text-slate-600 dark:bg-slate-800/80 dark:text-slate-300">
+                    <tr className="border-b border-[var(--app-border)] bg-slate-100/90 text-[11px] font-bold text-slate-700 dark:bg-slate-800/90 dark:text-slate-200">
                       {/* Checkbox All */}
-                      <th className="no-print w-10 p-3 text-center">
+                      <th className="no-print w-10 border-l border-[var(--app-border)] p-3 text-center">
                         <button
                           type="button"
                           onClick={handleToggleSelectAll}
@@ -355,15 +355,29 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                         </button>
                       </th>
                       {/* Expander Column */}
-                      <th className="no-print w-8 p-3 text-center" />
-                      <th className="w-28 p-3 text-center">التاريخ</th>
-                      <th className="w-28 p-3 text-center">المرجع</th>
-                      <th className="w-28 p-3 text-center">نوع العملية</th>
-                      <th className="p-3">البيان والتفاصيل</th>
-                      <th className="w-28 p-3 text-center">حالة السداد</th>
-                      <th className="w-28 p-3 text-center">مدين (+)</th>
-                      <th className="w-28 p-3 text-center">دائن (-)</th>
-                      <th className="w-36 p-3 text-center">الرصيد المتراكم</th>
+                      <th className="no-print w-8 border-l border-[var(--app-border)] p-3 text-center" />
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        التاريخ
+                      </th>
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        المرجع
+                      </th>
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        نوع العملية
+                      </th>
+                      <th className="border-l border-[var(--app-border)] p-3">البيان والتفاصيل</th>
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        حالة السداد
+                      </th>
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        مدين (+)
+                      </th>
+                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
+                        دائن (-)
+                      </th>
+                      <th className="w-36 border-l border-[var(--app-border)] p-3 text-center">
+                        الرصيد المتراكم
+                      </th>
                       <th className="no-print w-20 p-3 text-center">إجراءات</th>
                     </tr>
                   </thead>
@@ -433,7 +447,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                             >
                               {/* Selection Checkbox */}
                               <td
-                                className="no-print p-3 text-center"
+                                className="no-print border-l border-[var(--app-border)] p-3 text-center"
                                 onClick={e => e.stopPropagation()}
                               >
                                 <button
@@ -450,7 +464,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                               </td>
 
                               {/* Expander Chevron */}
-                              <td className="no-print p-3 text-center text-slate-400">
+                              <td className="no-print border-l border-[var(--app-border)] p-3 text-center text-slate-400">
                                 {row.reference_id ? (
                                   <button
                                     type="button"
@@ -473,7 +487,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
 
                               {/* Date */}
                               <td
-                                className="whitespace-nowrap p-3 text-center font-mono text-xs text-slate-600 dark:text-slate-300"
+                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono text-xs text-slate-600 dark:text-slate-300"
                                 dir="ltr"
                               >
                                 {row.date}
@@ -481,14 +495,14 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
 
                               {/* Reference No */}
                               <td
-                                className="whitespace-nowrap p-3 text-center font-mono font-bold text-blue-600"
+                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-blue-600"
                                 dir="ltr"
                               >
                                 {row.ref}
                               </td>
 
                               {/* Operation Type & Currency */}
-                              <td className="whitespace-nowrap p-3 text-center">
+                              <td className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center">
                                 <div className="flex flex-col items-center">
                                   <span className="font-bold text-slate-800 dark:text-slate-200">
                                     {row.operation_type}
@@ -500,18 +514,20 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                               </td>
 
                               {/* Description */}
-                              <td className="p-3 text-slate-600 dark:text-slate-300">
+                              <td className="border-l border-[var(--app-border)] p-3 text-slate-600 dark:text-slate-300">
                                 <span className="line-clamp-1" title={row.desc}>
                                   {row.desc}
                                 </span>
                               </td>
 
                               {/* Status Badge */}
-                              <td className="whitespace-nowrap p-3 text-center">{statusBadge}</td>
+                              <td className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center">
+                                {statusBadge}
+                              </td>
 
                               {/* Debit */}
                               <td
-                                className="whitespace-nowrap p-3 text-center font-mono font-bold text-emerald-600"
+                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-emerald-600"
                                 dir="ltr"
                               >
                                 {row.debit > 0 ? formatCurrency(row.debit, row.currency) : '-'}
@@ -519,7 +535,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
 
                               {/* Credit */}
                               <td
-                                className="whitespace-nowrap p-3 text-center font-mono font-bold text-rose-600"
+                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-rose-600"
                                 dir="ltr"
                               >
                                 {row.credit > 0 ? formatCurrency(row.credit, row.currency) : '-'}
@@ -528,7 +544,7 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
                               {/* Balance */}
                               <td
                                 className={cn(
-                                  'whitespace-nowrap p-3 text-center font-mono font-bold',
+                                  'whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold',
                                   (row.balance || 0) >= 0
                                     ? 'text-emerald-700 dark:text-emerald-400'
                                     : 'text-rose-700 dark:text-rose-400'

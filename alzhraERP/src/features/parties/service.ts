@@ -70,6 +70,9 @@ export interface StatementTransactionDetails {
     invoice_date: string;
     invoice_total: number;
   }>;
+  journal_id?: string;
+  entry_number?: string | number;
+  entry_date?: string;
   lines?: Array<{
     account_code: string;
     account_name: string;

@@ -135,42 +135,64 @@ export const StatementTransactionDetailRow: React.FC<Props> = ({
             لا توجد بنود مسجلة داخل الفاتورة.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-            <table className="w-full text-right text-xs">
+          <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+            <table className="w-full border-collapse border border-slate-300 text-right text-xs dark:border-slate-700">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-100/70 text-[10px] font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
-                  <th className="px-3 py-2">#</th>
-                  <th className="px-3 py-2">الصنف / الوصف</th>
-                  <th className="px-3 py-2 text-center">رقم القطعة / SKU</th>
-                  <th className="px-3 py-2 text-center">الكمية</th>
-                  <th className="px-3 py-2 text-center">سعر الوحدة</th>
-                  <th className="px-3 py-2 text-center">الخصم</th>
-                  <th className="px-3 py-2 text-center">الإجمالي</th>
+                <tr className="bg-slate-100/90 text-[10px] font-bold text-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    #
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 dark:border-slate-700">
+                    الصنف / الوصف
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    رقم القطعة / SKU
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    الكمية
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    سعر الوحدة
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    الخصم
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    الإجمالي
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody>
                 {items.map((it, idx) => (
                   <tr key={it.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                    <td className="px-3 py-1.5 font-mono text-[10px] text-slate-400">{idx + 1}</td>
-                    <td className="px-3 py-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono text-[10px] text-slate-400 dark:border-slate-700">
+                      {idx + 1}
+                    </td>
+                    <td className="border border-slate-300 px-3 py-1.5 font-semibold text-slate-800 dark:border-slate-700 dark:text-slate-200">
                       {it.item_name}
                     </td>
-                    <td className="px-3 py-1.5 text-center font-mono text-[11px] text-slate-500">
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono text-[11px] text-slate-500 dark:border-slate-700">
                       {it.part_number || it.sku || '—'}
                     </td>
-                    <td className="px-3 py-1.5 text-center font-mono font-bold text-blue-600">
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-blue-600 dark:border-slate-700">
                       {it.quantity}
                     </td>
-                    <td className="px-3 py-1.5 text-center font-mono" dir="ltr">
+                    <td
+                      className="border border-slate-300 px-3 py-1.5 text-center font-mono dark:border-slate-700"
+                      dir="ltr"
+                    >
                       {formatCurrency(it.unit_price, details.currency_code)}
                     </td>
-                    <td className="px-3 py-1.5 text-center font-mono text-slate-500" dir="ltr">
+                    <td
+                      className="border border-slate-300 px-3 py-1.5 text-center font-mono text-slate-500 dark:border-slate-700"
+                      dir="ltr"
+                    >
                       {it.discount_amount
                         ? formatCurrency(it.discount_amount, details.currency_code)
                         : '—'}
                     </td>
                     <td
-                      className="px-3 py-1.5 text-center font-mono font-bold text-slate-900 dark:text-white"
+                      className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-slate-900 dark:border-slate-700 dark:text-white"
                       dir="ltr"
                     >
                       {formatCurrency(it.total_amount, details.currency_code)}
@@ -234,24 +256,64 @@ export const StatementTransactionDetailRow: React.FC<Props> = ({
         </div>
 
         {allocations.length > 0 && (
-          <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+          <div className="space-y-2 pt-1">
+            <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
               الفواتير المسواة بهذا السند:
             </p>
-            <div className="flex flex-wrap gap-2">
-              {allocations.map(al => (
-                <div
-                  key={al.allocation_id}
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs dark:border-slate-800 dark:bg-slate-950"
-                >
-                  <FileText size={12} className="text-blue-500" />
-                  <span className="font-mono font-bold text-blue-600">{al.invoice_number}</span>
-                  <span className="text-slate-400">|</span>
-                  <span className="font-mono font-bold text-emerald-600" dir="ltr">
-                    {formatCurrency(al.allocated_amount, details.currency_code)}
-                  </span>
-                </div>
-              ))}
+            <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+              <table className="w-full border-collapse border border-slate-300 text-right text-xs dark:border-slate-700">
+                <thead>
+                  <tr className="bg-slate-100/90 text-[10px] font-bold text-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
+                    <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                      #
+                    </th>
+                    <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                      رقم الفاتورة
+                    </th>
+                    <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                      تاريخ الفاتورة
+                    </th>
+                    <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                      إجمالي الفاتورة
+                    </th>
+                    <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                      المبلغ المسوّى بالسند
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allocations.map((al, idx) => (
+                    <tr
+                      key={al.allocation_id || idx}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                    >
+                      <td className="border border-slate-300 px-3 py-1.5 text-center font-mono text-[10px] text-slate-400 dark:border-slate-700">
+                        {idx + 1}
+                      </td>
+                      <td className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-blue-600 dark:border-slate-700">
+                        {al.invoice_number}
+                      </td>
+                      <td className="border border-slate-300 px-3 py-1.5 text-center font-mono text-[11px] text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                        {al.invoice_date || '—'}
+                      </td>
+                      <td
+                        className="border border-slate-300 px-3 py-1.5 text-center font-mono font-semibold dark:border-slate-700"
+                        dir="ltr"
+                      >
+                        {al.invoice_total
+                          ? formatCurrency(al.invoice_total, details.currency_code)
+                          : '—'}
+                      </td>
+                      <td
+                        className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-emerald-600 dark:border-slate-700"
+                        dir="ltr"
+                      >
+                        {formatCurrency(al.allocated_amount, details.currency_code)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -259,7 +321,94 @@ export const StatementTransactionDetailRow: React.FC<Props> = ({
     );
   }
 
-  // 3. Opening Balance / General
+  // 3. Manual Journal Entries
+  if (details.kind === 'journal') {
+    const lines = details.lines || [];
+    return (
+      <div className="space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <FileText size={16} className="text-indigo-600" />
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+              بنود القيد المحاسبي (
+              {details.entry_number ? `JV-${details.entry_number}` : movement.ref})
+            </span>
+            <span className="text-[10px] text-slate-500">({lines.length} أسطر)</span>
+          </div>
+          {details.entry_date && (
+            <span className="text-xs text-slate-600 dark:text-slate-300">
+              التاريخ: <strong className="font-mono">{details.entry_date}</strong>
+            </span>
+          )}
+        </div>
+
+        {lines.length === 0 ? (
+          <p className="py-2 text-center text-xs italic text-slate-500">
+            لا توجد أسطر مفصلة لهذا القيد.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+            <table className="w-full border-collapse border border-slate-300 text-right text-xs dark:border-slate-700">
+              <thead>
+                <tr className="bg-slate-100/90 text-[10px] font-bold text-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    #
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    رقم الحساب
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 dark:border-slate-700">
+                    اسم الحساب
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 dark:border-slate-700">
+                    البيان
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    مدين (+)
+                  </th>
+                  <th className="border border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                    دائن (-)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {lines.map((l, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono text-[10px] text-slate-400 dark:border-slate-700">
+                      {idx + 1}
+                    </td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-blue-600 dark:border-slate-700">
+                      {l.account_code || '—'}
+                    </td>
+                    <td className="border border-slate-300 px-3 py-1.5 font-semibold text-slate-800 dark:border-slate-700 dark:text-slate-200">
+                      {l.account_name || '—'}
+                    </td>
+                    <td className="border border-slate-300 px-3 py-1.5 text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                      {l.description || '—'}
+                    </td>
+                    <td
+                      className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-emerald-600 dark:border-slate-700"
+                      dir="ltr"
+                    >
+                      {l.debit > 0 ? formatCurrency(l.debit, l.currency_code || 'SAR') : '—'}
+                    </td>
+                    <td
+                      className="border border-slate-300 px-3 py-1.5 text-center font-mono font-bold text-rose-600 dark:border-slate-700"
+                      dir="ltr"
+                    >
+                      {l.credit > 0 ? formatCurrency(l.credit, l.currency_code || 'SAR') : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 4. Opening Balance / General
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300">
       <p>
