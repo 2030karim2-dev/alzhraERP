@@ -180,27 +180,47 @@ async function cmdExport() {
 async function cmdImport() {
   const dir = a.dir || '.tenant-transfer';
   const target = a['target-ref'] || process.env.TARGET_PROJECT_REF;
+  const replace = a.replace === true || a.replace === 'true';
   if (!target) throw new Error('--target-ref <ref> is required');
   if (target === SOURCE_REF) throw new Error('target must differ from the source project');
 
   const manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
   const read = (name) => JSON.parse(gunzipSync(readFileSync(join(dir, `${name}.json.gz`))).toString('utf8'));
 
-  console.log(`importing "${manifest.company_name}" into ${target}`);
+  console.log(`importing "${manifest.company_name}" into ${target}${replace ? '  (REPLACE: existing tenant rows are deleted first)' : ''}`);
 
-  // auth users first: public rows reference auth.users(id)
+  // auth users first: public rows reference auth.users(id).
+  // They are inserted with ON CONFLICT DO NOTHING even in replace mode, so an
+  // existing working login in the target is never overwritten.
   for (const name of ['auth_users', 'auth_identities']) {
     if (!manifest.tables[name]) continue;
     const rows = read(name);
-    const table = name === 'auth_users' ? 'auth.users' : 'auth.identities';
+    if (!rows.length) continue;
+    const schema = name === 'auth_users' ? 'auth' : 'auth';
+    const rel = name === 'auth_users' ? 'users' : 'identities';
     const cols = await sql(target, `SELECT a.attname FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid
         JOIN pg_namespace n ON n.oid=c.relnamespace
-       WHERE n.nspname='auth' AND c.relname='${name.replace('auth_', '')}'
+       WHERE n.nspname='${schema}' AND c.relname='${rel}'
          AND a.attnum>0 AND NOT a.attisdropped AND a.attgenerated='' ORDER BY a.attnum`);
-    const colNames = cols.map((c) => c.attname);
-    const insertable = rows.map((r) => Object.fromEntries(colNames.filter((c) => c in r).map((c) => [c, r[c]])));
-    await insertRows(target, table, colNames.filter((c) => c in (rows[0] || {})), insertable);
-    console.log(`  ${table.padEnd(24)} ${insertable.length} rows`);
+    const colNames = cols.map((c) => c.attname).filter((c) => c in rows[0]);
+    const insertable = rows.map((r) => Object.fromEntries(colNames.map((c) => [c, r[c]])));
+    await insertRows(target, `${schema}.${rel}`, colNames, insertable);
+    console.log(`  ${(schema + '.' + rel).padEnd(24)} ${insertable.length} rows`);
+  }
+
+  if (replace) {
+    // Delete this tenant's rows everywhere, with FK checks and triggers off, so
+    // the target becomes an exact mirror of the source rather than a union of
+    // the two. Everything deleted is re-inserted from the fresh export.
+    const tables = Object.keys(manifest.tables).filter((t) => t !== 'auth_users' && t !== 'auth_identities');
+    const deletions = tables
+      // `companies` is the tenant root: it carries `id`, not `company_id`.
+      .map((t) => (t === 'companies'
+        ? `DELETE FROM public.companies WHERE id = '${manifest.company}';`
+        : `DELETE FROM public.${t} WHERE company_id = '${manifest.company}';`))
+      .join('\n');
+    await sql(target, `SET session_replication_role = replica;\n${deletions}\nSET session_replication_role = DEFAULT;`);
+    console.log(`  cleared existing tenant rows in ${tables.length} tables`);
   }
 
   for (const [t, expected] of Object.entries(manifest.tables)) {
@@ -210,7 +230,7 @@ async function cmdImport() {
       console.log(`  public.${t.padEnd(30)} 0 rows (skipped)`);
       continue;
     }
-    const cols = await insertableColumns(target, t);
+    const cols = await insertableColumns(target, t).then((cs) => cs.filter((c) => c in rows[0]));
     await insertRows(target, `public.${t}`, cols, rows);
     console.log(`  public.${t.padEnd(30)} ${rows.length} rows`);
   }
