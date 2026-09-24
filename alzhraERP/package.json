@@ -24,6 +24,7 @@
     "check:classes": "node scripts/check-contradicting-classes.mjs",
     "check:fonts": "node scripts/check-tiny-fonts.mjs",
     "check:layers": "node scripts/check-layer-boundaries.mjs",
+    "check:db:health": "node scripts/check-database-health.mjs",
     "check:lint-total": "node scripts/check-lint-total.mjs",
     "type-check": "tsc --noEmit",
     "type-check:strict": "tsc --noEmit --strict",

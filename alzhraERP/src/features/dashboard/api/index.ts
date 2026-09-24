@@ -240,89 +240,91 @@ export const dashboardApi = {
     const activeSignal: AbortSignal =
       signal && 'addEventListener' in signal ? signal : new AbortController().signal;
 
-    // Execute in two staggered batches to protect against concurrent statement timeouts:
-    // Batch 1: Core KPIs and real-time activity feeds
-    const [summaryRes, plRes, lowStockRes, recentInvoicesRes, recentExpensesRes, debtFollowupRes] =
-      await Promise.allSettled([
-        // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
-        dashboardRpc(
-          'get_dashboard_summary',
-          {
-            p_company_id: companyId,
-            ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
-            ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
-            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-          },
-          activeSignal
-        ),
+    // Execute in staggered batches to protect against concurrent pool exhaustion:
+    // Batch 1a: Core KPIs and financial totals
+    const [summaryRes, plRes, debtFollowupRes] = await Promise.allSettled([
+      // 1. Dashboard Summary (Sales, Purchases, Expenses, Bonds, Debts)
+      dashboardRpc(
+        'get_dashboard_summary',
+        {
+          p_company_id: companyId,
+          ...(effectiveDateFrom ? { p_date_from: effectiveDateFrom } : {}),
+          ...(effectiveDateTo ? { p_date_to: effectiveDateTo } : {}),
+          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+        },
+        activeSignal
+      ),
 
-        // 2. Authoritative Net Profit
-        dashboardRpc(
-          'report_profit_loss',
-          {
-            p_company_id: companyId,
-            p_from: effectiveDateFrom || currentYearStart,
-            p_to: effectiveDateTo,
-            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-          },
-          activeSignal
-        ),
+      // 2. Authoritative Net Profit
+      dashboardRpc(
+        'report_profit_loss',
+        {
+          p_company_id: companyId,
+          p_from: effectiveDateFrom || currentYearStart,
+          p_to: effectiveDateTo,
+          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+        },
+        activeSignal
+      ),
 
-        // 3. Low Stock Products
-        dashboardRpc(
-          'get_low_stock_products',
-          {
-            p_company_id: companyId,
-            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-          },
-          activeSignal
-        ),
+      // 3. Debt follow-up alerts (bounded by limit to avoid full party table scan)
+      dashboardRpc(
+        'get_debt_followup_dashboard',
+        {
+          p_company_id: companyId,
+          p_due_soon_days: 7,
+          p_critical_days: 30,
+          p_reminder_window_days: 3,
+          p_limit: 50,
+          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+        },
+        activeSignal
+      ),
+    ]);
 
-        // 4. Recent invoices feed
-        (() => {
-          let q = supabase
-            .from('invoices')
-            .select(
-              'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
-            )
-            .eq('company_id', companyId)
-            .is('deleted_at', null)
-            .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
-          if (branchParam !== undefined) {
-            q = q.eq('branch_id', branchParam);
-          }
-          return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
-        })(),
+    // Batch 1b: Low stock & recent activity feeds
+    const [lowStockRes, recentInvoicesRes, recentExpensesRes] = await Promise.allSettled([
+      // 4. Low Stock Products
+      dashboardRpc(
+        'get_low_stock_products',
+        {
+          p_company_id: companyId,
+          ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
+        },
+        activeSignal
+      ),
 
-        // 5. Recent expenses feed
-        (() => {
-          let q = supabase
-            .from('expenses')
-            .select(
-              'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories!fk_expenses_company_category(name)'
-            )
-            .eq('company_id', companyId)
-            .is('deleted_at', null);
-          if (branchParam !== undefined) {
-            q = q.eq('branch_id', branchParam);
-          }
-          return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
-        })(),
+      // 5. Recent invoices feed
+      (() => {
+        let q = supabase
+          .from('invoices')
+          .select(
+            'id, invoice_number, type, issue_date, created_at, total_amount, currency_code, party_id, parties(name)'
+          )
+          .eq('company_id', companyId)
+          .is('deleted_at', null)
+          .in('type', ['sale', 'purchase', 'sale_return', 'purchase_return']);
+        if (branchParam !== undefined) {
+          q = q.eq('branch_id', branchParam);
+        }
+        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
+      })(),
 
-        // 6. Debt follow-up alerts (bounded by limit to avoid full party table scan)
-        dashboardRpc(
-          'get_debt_followup_dashboard',
-          {
-            p_company_id: companyId,
-            p_due_soon_days: 7,
-            p_critical_days: 30,
-            p_reminder_window_days: 3,
-            p_limit: 50,
-            ...(branchParam !== undefined ? { p_branch_id: branchParam } : {}),
-          },
-          activeSignal
-        ),
-      ]);
+      // 6. Recent expenses feed
+      (() => {
+        let q = supabase
+          .from('expenses')
+          .select(
+            'id, voucher_number, expense_date, created_at, description, amount, currency_code, expense_categories!fk_expenses_company_category(name)'
+          )
+          .eq('company_id', companyId)
+          .is('deleted_at', null);
+        if (branchParam !== undefined) {
+          q = q.eq('branch_id', branchParam);
+        }
+        return q.order('created_at', { ascending: false }).limit(10).abortSignal(activeSignal);
+      })(),
+    ]);
 
     // Batch 2: Charts and visual aggregations
     const [chartRes, topRes, topSellingRes, productCategoriesRes, categoryRes] =
