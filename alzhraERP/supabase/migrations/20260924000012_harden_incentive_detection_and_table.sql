@@ -1,4 +1,4 @@
--- Migration: 20260924000008_harden_incentive_detection_and_table.sql
+-- Migration: 20260924000012_harden_incentive_detection_and_table.sql
 -- Description: Restricts incentive_detect_pending_invoices_system to only scan companies
 --              that have at least one active incentive plan. This prevents runaway generation
 --              of tens of thousands of phantom rows for retail invoices across companies
