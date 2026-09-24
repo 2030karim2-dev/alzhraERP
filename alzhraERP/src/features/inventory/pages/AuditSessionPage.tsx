@@ -425,31 +425,32 @@ const AuditSessionPage: React.FC = () => {
       showToast('تمت إضافة المنتج الجديد بنجاح', 'success');
 
       if (created) {
-        const rawCreated = created as Record<string, any>;
+        const rawCreated = created as Record<string, unknown>;
         const productToAdd = {
-          id: rawCreated.id,
-          name: rawCreated.name_ar || rawCreated.name || '',
-          name_ar: rawCreated.name_ar || rawCreated.name || '',
-          sku: rawCreated.sku || '',
-          part_number: rawCreated.part_number || '',
-          brand: rawCreated.brand || '',
-          category: rawCreated.category || '',
-          unit: rawCreated.unit || 'piece',
-          cost_price: rawCreated.cost_price || 0,
-          selling_price: rawCreated.sale_price ?? rawCreated.selling_price ?? 0,
-          purchase_price: rawCreated.cost_price || 0,
+          id: String(rawCreated.id || ''),
+          name: String(rawCreated.name_ar || rawCreated.name || ''),
+          name_ar: String(rawCreated.name_ar || rawCreated.name || ''),
+          sku: String(rawCreated.sku || ''),
+          part_number: String(rawCreated.part_number || ''),
+          brand: String(rawCreated.brand || ''),
+          category: String(rawCreated.category || ''),
+          unit: String(rawCreated.unit || 'piece'),
+          cost_price: Number(rawCreated.cost_price || 0),
+          selling_price: Number(rawCreated.sale_price ?? rawCreated.selling_price ?? 0),
+          purchase_price: Number(rawCreated.cost_price || 0),
           stock_quantity: 0,
-          min_stock_level: rawCreated.min_stock_level || 0,
-          is_core: rawCreated.is_core || false,
-          created_at: rawCreated.created_at || new Date().toISOString(),
-          updated_at: rawCreated.updated_at || new Date().toISOString(),
-          company_id: rawCreated.company_id || user?.company_id || '',
+          min_stock_level: Number(rawCreated.min_stock_level || 0),
+          is_core: Boolean(rawCreated.is_core),
+          created_at: String(rawCreated.created_at || new Date().toISOString()),
+          updated_at: String(rawCreated.updated_at || new Date().toISOString()),
+          company_id: String(rawCreated.company_id || user?.company_id || ''),
         } as unknown as Product;
-        handleAddItem(productToAdd);
+        await handleAddItem(productToAdd);
         setFilter('');
       }
-    } catch (err: any) {
-      showToast(err?.message || 'فشل في إضافة المنتج', 'error');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'فشل في إضافة المنتج';
+      showToast(msg, 'error');
     }
   };
 
@@ -497,8 +498,12 @@ const AuditSessionPage: React.FC = () => {
         isSavingProgress={isSavingProgress}
         isFinalizing={isFinalizing}
         isPopulatingWarehouse={isPopulatingWarehouse}
-        onOpenAddProduct={() => setShowAddProduct(true)}
-        onOpenBulkConfirm={() => setShowBulkConfirm(true)}
+        onOpenAddProduct={() => {
+          setShowAddProduct(true);
+        }}
+        onOpenBulkConfirm={() => {
+          setShowBulkConfirm(true);
+        }}
         onSave={handleSave}
         onFinalize={handleFinalize}
       />
@@ -513,15 +518,28 @@ const AuditSessionPage: React.FC = () => {
           isLoadingSearch={isLoadingSearch}
           isAddingItem={isAddingItem}
           searchResults={searchResults as unknown as SearchResultProduct[] | undefined}
-          onAddItem={handleAddItem}
-          onOpenScanner={() => setIsScannerOpen(true)}
-          onOpenAddProduct={() => setShowAddProduct(true)}
+          onAddItem={product => {
+            void handleAddItem(product);
+          }}
+          onOpenScanner={() => {
+            setIsScannerOpen(true);
+          }}
+          onOpenAddProduct={() => {
+            setShowAddProduct(true);
+          }}
         />
       )}
 
       <div
         className="custom-scrollbar flex-1 overflow-y-auto p-4 pb-16"
-        onClick={() => setShowResults(false)}
+        onClick={() => {
+          setShowResults(false);
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Escape') setShowResults(false);
+        }}
+        role="button"
+        tabIndex={0}
       >
         <div className="mx-auto max-w-[1600px] space-y-4">
           <AuditStats stats={stats} session={session ?? {}} />
@@ -557,23 +575,37 @@ const AuditSessionPage: React.FC = () => {
       <AuditSessionModals
         isScannerOpen={isScannerOpen}
         onScan={handleScan}
-        onCloseScanner={() => setIsScannerOpen(false)}
+        onCloseScanner={() => {
+          setIsScannerOpen(false);
+        }}
         itemToDelete={itemToDelete}
-        onCloseDeleteModal={() => setItemToDelete(null)}
+        onCloseDeleteModal={() => {
+          setItemToDelete(null);
+        }}
         onConfirmDelete={confirmRemoveItem}
         isRemovingItem={isRemovingItem}
         showBulkConfirm={showBulkConfirm}
-        onCloseBulkConfirm={() => setShowBulkConfirm(false)}
-        onConfirmBulkAdd={handleBulkAddWarehouseProducts}
+        onCloseBulkConfirm={() => {
+          setShowBulkConfirm(false);
+        }}
+        onConfirmBulkAdd={() => {
+          void handleBulkAddWarehouseProducts();
+        }}
         isPopulatingWarehouse={isPopulatingWarehouse}
         showFinalizeConfirm={showFinalizeConfirm}
-        onCloseFinalizeConfirm={() => setShowFinalizeConfirm(false)}
+        onCloseFinalizeConfirm={() => {
+          setShowFinalizeConfirm(false);
+        }}
         onConfirmFinalize={executeFinalize}
         isFinalizing={isFinalizing}
         pendingCount={stats.pending}
         showAddProduct={showAddProduct}
-        onCloseAddProduct={() => setShowAddProduct(false)}
-        onCreateProduct={handleCreateNewProduct}
+        onCloseAddProduct={() => {
+          setShowAddProduct(false);
+        }}
+        onCreateProduct={formData => {
+          void handleCreateNewProduct(formData);
+        }}
         isSavingProduct={isSavingProduct}
         newProductInitialData={newProductInitialData}
       />

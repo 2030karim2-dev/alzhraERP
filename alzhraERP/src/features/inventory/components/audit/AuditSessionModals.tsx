@@ -28,7 +28,7 @@ interface AuditSessionModalsProps {
 
   showAddProduct: boolean;
   onCloseAddProduct: () => void;
-  onCreateProduct: (formData: ProductFormData) => Promise<void>;
+  onCreateProduct: (formData: ProductFormData) => void;
   isSavingProduct: boolean;
   newProductInitialData: Product | null;
 }
@@ -65,7 +65,7 @@ export const AuditSessionModals: React.FC<AuditSessionModalsProps> = ({
       {isScannerOpen && <ScannerOverlay onScan={onScan} onClose={onCloseScanner} />}
 
       <ConfirmModal
-        isOpen={!!itemToDelete}
+        isOpen={Boolean(itemToDelete)}
         onClose={onCloseDeleteModal}
         onConfirm={onConfirmDelete}
         title="إزالة الصنف من الجرد"

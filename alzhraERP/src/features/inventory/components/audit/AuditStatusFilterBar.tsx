@@ -25,7 +25,9 @@ export const AuditStatusFilterBar: React.FC<AuditStatusFilterBarProps> = ({
       </span>
       <button
         type="button"
-        onClick={() => onSelectStatusFilter('all')}
+        onClick={() => {
+          onSelectStatusFilter('all');
+        }}
         className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
           statusFilter === 'all'
             ? 'bg-slate-800 text-white shadow dark:bg-slate-700'
@@ -36,7 +38,9 @@ export const AuditStatusFilterBar: React.FC<AuditStatusFilterBarProps> = ({
       </button>
       <button
         type="button"
-        onClick={() => onSelectStatusFilter('discrepancy')}
+        onClick={() => {
+          onSelectStatusFilter('discrepancy');
+        }}
         className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
           statusFilter === 'discrepancy'
             ? 'bg-rose-600 text-white shadow'
@@ -47,7 +51,9 @@ export const AuditStatusFilterBar: React.FC<AuditStatusFilterBarProps> = ({
       </button>
       <button
         type="button"
-        onClick={() => onSelectStatusFilter('matched')}
+        onClick={() => {
+          onSelectStatusFilter('matched');
+        }}
         className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
           statusFilter === 'matched'
             ? 'bg-emerald-600 text-white shadow'
@@ -58,7 +64,9 @@ export const AuditStatusFilterBar: React.FC<AuditStatusFilterBarProps> = ({
       </button>
       <button
         type="button"
-        onClick={() => onSelectStatusFilter('uncounted')}
+        onClick={() => {
+          onSelectStatusFilter('uncounted');
+        }}
         className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
           statusFilter === 'uncounted'
             ? 'bg-amber-600 text-white shadow'
