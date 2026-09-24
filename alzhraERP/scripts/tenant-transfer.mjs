@@ -42,8 +42,17 @@ import { join } from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
 const SOURCE_REF = process.env.SOURCE_PROJECT_REF || 'zzthamxjxnxzzpswllid';
-const token = (process.env.SUPABASE_ACCESS_TOKEN ||
+const TARGET_REF = process.env.TARGET_PROJECT_REF || 'orxlyiokccaodypindye';
+
+/**
+ * Each project is addressed with its own access token: a Personal Access Token
+ * is scoped to the projects it can see, and using the source's token against the
+ * target fails with "Missing required permission(s): database_read".
+ */
+const SOURCE_TOKEN = (process.env.SOURCE_ACCESS_TOKEN || process.env.SUPABASE_ACCESS_TOKEN ||
   readFileSync(join(process.env.USERPROFILE || '', '.supabase', 'access-token'), 'utf8')).trim();
+const TARGET_TOKEN = (process.env.TARGET_ACCESS_TOKEN || SOURCE_TOKEN).trim();
+const tokenForRef = (ref) => (ref === SOURCE_REF ? SOURCE_TOKEN : TARGET_TOKEN);
 
 /** Tables that are pure telemetry for the source platform; not worth moving. */
 const DEFAULT_SKIP = new Set(['csp_reports', 'api_rate_limits', 'ai_part_lookup_cache', 'part_catalog_cache']);
@@ -58,6 +67,7 @@ function args(argv) {
 }
 
 async function sql(ref, query, { attempts = 5 } = {}) {
+  const token = tokenForRef(ref);
   let lastErr;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
@@ -231,16 +241,22 @@ async function cmdImport() {
       continue;
     }
     const cols = await insertableColumns(target, t).then((cs) => cs.filter((c) => c in rows[0]));
-    await insertRows(target, `public.${t}`, cols, rows);
+    await insertRows(target, `public.${t}`, cols, rows, { replace });
     console.log(`  public.${t.padEnd(30)} ${rows.length} rows`);
   }
   console.log('\nDONE. Run `verify` to compare row counts against the source manifest.');
 }
 
-async function insertRows(ref, qualifiedTable, columns, rows) {
+async function insertRows(ref, qualifiedTable, columns, rows, { replace = false } = {}) {
   // Chunked so a single request stays well inside the API limit.
   const CHUNK = 400;
   const colList = columns.join(', ');
+  // In replace mode the tenant was cleared first, so a plain INSERT is correct —
+  // and it is also required: `ON CONFLICT DO NOTHING` is rejected on tables that
+  // carry a DEFERRABLE unique constraint ("ON CONFLICT does not support
+  // deferrable unique constraints/exclusion constraints as arbiters"), which
+  // `invoices` and others do.
+  const conflict = replace ? '' : 'ON CONFLICT DO NOTHING';
   for (let i = 0; i < rows.length; i += CHUNK) {
     const slice = rows.slice(i, i + CHUNK);
     const payload = JSON.stringify(slice).replace(/'/g, "''");
@@ -249,7 +265,7 @@ async function insertRows(ref, qualifiedTable, columns, rows) {
       `SET session_replication_role = replica;
        INSERT INTO ${qualifiedTable} (${colList})
        SELECT ${colList} FROM jsonb_populate_recordset(NULL::${qualifiedTable}, '${payload}'::jsonb)
-       ON CONFLICT DO NOTHING;
+       ${conflict};
        SET session_replication_role = DEFAULT;`
     );
   }
