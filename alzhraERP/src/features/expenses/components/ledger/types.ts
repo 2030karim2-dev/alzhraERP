@@ -1,6 +1,6 @@
 import type { DatePreset } from '@/core/types/invoiceSearch';
 
-export type AccountFilterType = 'all' | 'expense' | 'employee' | 'cash';
+export type AccountFilterType = 'all' | 'expense' | 'employee' | 'rent' | 'cash';
 
 export interface LedgerMetrics {
   totalDebit: number;

@@ -31,21 +31,26 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
     name.includes('راتب') ||
     name.includes('عهدة') ||
     name.includes('سلفة');
+  const isRentAccount = code.startsWith('240') || name.includes('إيجار') || name.includes('ايجار');
   const isCashbox = code.startsWith('101') || code.startsWith('102') || name.includes('صندوق');
 
-  const debitLabel = isEmployeeOrCustody
-    ? 'إجمالي ما عليه (صرف / سلف)'
-    : isCashbox
-      ? 'إجمالي الوارد (إيداع)'
-      : 'إجمالي ما عليه (صرف)';
+  const debitLabel = isRentAccount
+    ? 'إجمالي ما عليه (سحبيات / دفعات)'
+    : isEmployeeOrCustody
+      ? 'إجمالي ما عليه (صرف / سلف)'
+      : isCashbox
+        ? 'إجمالي الوارد (إيداع)'
+        : 'إجمالي ما عليه (صرف)';
 
   const debitBadge = isCashbox ? 'وارد (+)' : 'عليه (+)';
 
-  const creditLabel = isEmployeeOrCustody
-    ? 'إجمالي ما له (راتب / تسويات)'
-    : isCashbox
-      ? 'إجمالي المنصرف (دفع)'
-      : 'إجمالي ما له (سداد)';
+  const creditLabel = isRentAccount
+    ? 'إجمالي ما له (استحقاق الإيجار)'
+    : isEmployeeOrCustody
+      ? 'إجمالي ما له (راتب / تسويات)'
+      : isCashbox
+        ? 'إجمالي المنصرف (دفع)'
+        : 'إجمالي ما له (سداد)';
 
   const creditBadge = isCashbox ? 'منصرف (-)' : 'له (-)';
 
@@ -59,16 +64,22 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
   let badgeColorClass = '';
 
   if (isZero) {
-    balanceStatusText = isEmployeeOrCustody ? 'خالص الذمة' : 'رصيد متزن';
+    balanceStatusText = isEmployeeOrCustody
+      ? 'خالص الذمة'
+      : isRentAccount
+        ? 'تمت تسوية الإيجار بالكامل'
+        : 'رصيد متزن';
     balanceBadgeText = 'متزن (خالص)';
     badgeColorClass = 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300';
   } else if (!isCredit) {
     // Net Debit -> عليه
     balanceStatusText = isEmployeeOrCustody
       ? 'متبقي في ذمته لم يُسدد (سحب زيادة)'
-      : isCashbox
-        ? 'رصيد متوفر بالصندوق'
-        : 'رصيد منصرف مستحق';
+      : isRentAccount
+        ? 'متبقي عليه (سحبيات تجاوزت الإيجار)'
+        : isCashbox
+          ? 'رصيد متوفر بالصندوق'
+          : 'رصيد منصرف مستحق';
     balanceBadgeText = isCashbox ? 'رصيد الصندوق' : 'متبقي عليه';
     badgeColorClass =
       'border border-rose-300 bg-rose-100 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-300';
@@ -76,9 +87,11 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
     // Net Credit -> له
     balanceStatusText = isEmployeeOrCustody
       ? 'مستحق للموظف بذمة المنشأة'
-      : isCashbox
-        ? 'عجز بالسحب'
-        : 'رصيد دائن مستحق له';
+      : isRentAccount
+        ? 'مستحق لصاحب الإيجار في ذمة المنشأة'
+        : isCashbox
+          ? 'عجز بالسحب'
+          : 'رصيد دائن مستحق له';
     balanceBadgeText = isCashbox ? 'عجز' : 'مستحق له';
     badgeColorClass =
       'border border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';

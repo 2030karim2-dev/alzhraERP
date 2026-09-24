@@ -125,6 +125,18 @@ export const ExpenseLedgerToolbar: React.FC<ExpenseLedgerToolbarProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setAccountFilterType('rent')}
+            className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold transition-all ${
+              accountFilterType === 'rent'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-[var(--app-text-secondary)] hover:text-[var(--app-text)]'
+            }`}
+          >
+            <FileText size={12} />
+            <span>مستحقات الإيجار (240xxx)</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setAccountFilterType('cash')}
             className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold transition-all ${
               accountFilterType === 'cash'

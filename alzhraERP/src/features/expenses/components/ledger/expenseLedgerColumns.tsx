@@ -12,19 +12,24 @@ export function getExpenseLedgerColumns(selectedAccount?: Account | null) {
     name.includes('راتب') ||
     name.includes('عهدة') ||
     name.includes('سلفة');
+  const isRentAccount = code.startsWith('240') || name.includes('إيجار') || name.includes('ايجار');
   const isCashbox = code.startsWith('101') || code.startsWith('102') || name.includes('صندوق');
 
-  const debitTitle = isEmployeeOrCustody
-    ? 'عليه (+) صرف سلفة / نقدية / عهدة'
-    : isCashbox
-      ? 'وارد للصندوق (إيداع +)'
-      : 'عليه (+) صرف / استحقاق';
+  const debitTitle = isRentAccount
+    ? 'عليه (+) سحبيات مبيعات / دفعات'
+    : isEmployeeOrCustody
+      ? 'عليه (+) صرف سلفة / نقدية / عهدة'
+      : isCashbox
+        ? 'وارد للصندوق (إيداع +)'
+        : 'عليه (+) صرف / استحقاق';
 
-  const creditTitle = isEmployeeOrCustody
-    ? 'له (-) استحقاق راتب / تسديد عهدة'
-    : isCashbox
-      ? 'منصرف من الصندوق (دفع -)'
-      : 'له (-) سداد / تسوية';
+  const creditTitle = isRentAccount
+    ? 'له (-) استحقاق الإيجار الشهري'
+    : isEmployeeOrCustody
+      ? 'له (-) استحقاق راتب / تسديد عهدة'
+      : isCashbox
+        ? 'منصرف من الصندوق (دفع -)'
+        : 'له (-) سداد / تسوية';
 
   return [
     {

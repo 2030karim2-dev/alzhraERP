@@ -85,6 +85,11 @@ export const ExpenseLedgerView: React.FC<Props> = ({ initialAccountId, onBackToL
     if (accountFilterType === 'employee') {
       return accounts.filter(a => a.code.startsWith('140') || a.name.includes('راتب'));
     }
+    if (accountFilterType === 'rent') {
+      return accounts.filter(
+        a => a.code.startsWith('240') || a.name.includes('إيجار') || a.name.includes('ايجار')
+      );
+    }
     if (accountFilterType === 'cash') {
       return accounts.filter(
         a => a.code.startsWith('101') || a.code.startsWith('102') || a.name.includes('صندوق')
