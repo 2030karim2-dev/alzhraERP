@@ -50,24 +50,42 @@ export const ExpenseLedgerView: React.FC<Props> = ({ initialAccountId, onBackToL
     'all' | 'expense' | 'employee' | 'cash'
   >('all');
 
-  // Sync initial account ID if prop changes
+  // Sync and resolve initial account ID if prop changes or on initial load
   React.useEffect(() => {
-    if (initialAccountId) {
-      setSelectedAccountId(initialAccountId);
+    if (initialAccountId && accounts.length > 0) {
+      // 1. Direct match with account ID
+      const directAcc = accounts.find(a => a.id === initialAccountId);
+      if (directAcc) {
+        setSelectedAccountId(directAcc.id);
+        return;
+      }
+      // 2. Match via expense category
+      const matchedCat = categories.find((c: any) => c.id === initialAccountId);
+      if (matchedCat && matchedCat.account_id) {
+        const catAcc = accounts.find(a => a.id === matchedCat.account_id);
+        if (catAcc) {
+          setSelectedAccountId(catAcc.id);
+          return;
+        }
+      }
     }
-  }, [initialAccountId]);
 
-  // If no account is selected, attempt to auto-select the first operational expense account
-  React.useEffect(() => {
-    if (!selectedAccountId && accounts.length > 0 && !initialAccountId) {
-      const defaultExp = accounts.find(
-        a => a.code === '5600' || a.code === '5300' || a.code.startsWith('5')
-      );
+    // If no valid account is selected, auto-select the best operational expense account
+    if (
+      accounts.length > 0 &&
+      (!selectedAccountId || !accounts.some(a => a.id === selectedAccountId))
+    ) {
+      const defaultExp =
+        accounts.find(a => a.code === '5600') ||
+        accounts.find(a => a.code === '5300') ||
+        accounts.find(a => a.code === '5400') ||
+        accounts.find(a => a.code.startsWith('5')) ||
+        accounts[0];
       if (defaultExp) {
         setSelectedAccountId(defaultExp.id);
       }
     }
-  }, [accounts, selectedAccountId, initialAccountId]);
+  }, [initialAccountId, accounts, categories, selectedAccountId]);
 
   const { data: ledger = [], isLoading: isLoadingLedger } = useLedger(
     selectedAccountId || null,
