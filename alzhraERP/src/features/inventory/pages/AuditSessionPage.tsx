@@ -1,17 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ClipboardCheck,
-  Save,
-  CheckCircle,
-  Loader2,
-  PackageSearch,
-  Filter,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Plus,
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import {
   useAuditSession,
   useInventoryMutations,
@@ -21,9 +10,6 @@ import { useSearchProducts, useProductMutations } from '../hooks/useProducts';
 import { inventoryService } from '../service';
 import { useInventorySession } from '../hooks/useInventorySession';
 import { useAuthStore } from '../../auth/store';
-import MicroHeader from '../../../ui/base/MicroHeader';
-import Button from '../../../ui/base/Button';
-import AddProductModal from '../components/AddProductModal';
 import AuditStats from '../components/audit/AuditStats';
 import AuditItemsTable, {
   type AuditItemTarget,
@@ -31,10 +17,11 @@ import AuditItemsTable, {
 } from '../components/audit/AuditItemsTable';
 import { AuditCategoryFilterBar } from '../components/audit/AuditCategoryFilterBar';
 import { AuditSessionSearchDropdown } from '../components/audit/AuditSessionSearchDropdown';
+import { AuditSessionHeader } from '../components/audit/AuditSessionHeader';
+import { AuditStatusFilterBar } from '../components/audit/AuditStatusFilterBar';
+import { AuditSessionModals } from '../components/audit/AuditSessionModals';
 import { useForm } from 'react-hook-form';
 import { useDebounce } from 'use-debounce';
-import ScannerOverlay from '../../../ui/base/ScannerOverlay';
-import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import { useFeedbackStore } from '../../feedback/store';
 import { calculateAuditStats } from '../utils/auditStats';
 import type { Product, ProductFormData } from '../types';
@@ -501,89 +488,23 @@ const AuditSessionPage: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col bg-gray-50 dark:bg-slate-950">
-      <MicroHeader
+      <AuditSessionHeader
         title={(session?.title as string) || 'جلسة جرد'}
-        icon={ClipboardCheck}
-        actions={
-          <div className="flex items-center gap-1 sm:gap-2">
-            {isRestoring && (
-              <span className="ml-2 hidden animate-pulse self-center text-[10px] text-blue-500 md:inline">
-                استعادة...
-              </span>
-            )}
-            {saveStatus === 'saving' && (
-              <span className="ml-2 hidden self-center text-[10px] text-amber-500 md:inline">
-                حفظ...
-              </span>
-            )}
-
-            {session?.status !== 'completed' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowAddProduct(true);
-                }}
-                leftIcon={<Plus size={14} className="text-emerald-600" />}
-                title="إضافة منتج جديد دون مغادرة الجلسة"
-                className="border-emerald-300 bg-emerald-50 px-2.5 font-bold text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 sm:px-3"
-              >
-                <span>منتج جديد</span>
-              </Button>
-            )}
-
-            {session?.status !== 'completed' && canManageAudit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowBulkConfirm(true);
-                }}
-                isLoading={isPopulatingWarehouse}
-                leftIcon={
-                  isPopulatingWarehouse ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <PackageSearch size={12} />
-                  )
-                }
-                title="جرد كامل للمستودع"
-                className="px-2 sm:px-3"
-              >
-                <span className="hidden sm:inline">جرد كامل</span>
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSave}
-              isLoading={isSavingProgress}
-              leftIcon={<Save size={12} />}
-              title="حفظ مسودة"
-              className="px-2 sm:px-3"
-            >
-              <span className="hidden sm:inline">حفظ</span>
-            </Button>
-            <Button
-              variant="success"
-              size="sm"
-              onClick={handleFinalize}
-              isLoading={isFinalizing}
-              disabled={session?.status === 'completed' || !canManageAudit}
-              leftIcon={<CheckCircle size={12} />}
-              className="border-none bg-emerald-600 px-2 hover:bg-emerald-700 sm:px-3"
-              title={canManageAudit ? 'إنهاء وترحيل' : 'يتطلب صلاحية مدير/مالك'}
-            >
-              <span className="hidden sm:inline">
-                {session?.status === 'completed' ? 'تم الإغلاق' : 'إنهاء وترحيل'}
-              </span>
-            </Button>
-          </div>
-        }
+        isCompleted={isCompleted}
+        isRestoring={isRestoring}
+        saveStatus={saveStatus}
+        canManageAudit={canManageAudit}
+        isSavingProgress={isSavingProgress}
+        isFinalizing={isFinalizing}
+        isPopulatingWarehouse={isPopulatingWarehouse}
+        onOpenAddProduct={() => setShowAddProduct(true)}
+        onOpenBulkConfirm={() => setShowBulkConfirm(true)}
+        onSave={handleSave}
+        onFinalize={handleFinalize}
       />
 
       {/* Search and Scan Bar */}
-      {session?.status !== 'completed' && (
+      {!isCompleted && (
         <AuditSessionSearchDropdown
           filter={filter}
           setFilter={setFilter}
@@ -593,20 +514,14 @@ const AuditSessionPage: React.FC = () => {
           isAddingItem={isAddingItem}
           searchResults={searchResults as unknown as SearchResultProduct[] | undefined}
           onAddItem={handleAddItem}
-          onOpenScanner={() => {
-            setIsScannerOpen(true);
-          }}
-          onOpenAddProduct={() => {
-            setShowAddProduct(true);
-          }}
+          onOpenScanner={() => setIsScannerOpen(true)}
+          onOpenAddProduct={() => setShowAddProduct(true)}
         />
       )}
 
       <div
         className="custom-scrollbar flex-1 overflow-y-auto p-4 pb-16"
-        onClick={() => {
-          setShowResults(false);
-        }}
+        onClick={() => setShowResults(false)}
       >
         <div className="mx-auto max-w-[1600px] space-y-4">
           <AuditStats stats={stats} session={session ?? {}} />
@@ -619,60 +534,11 @@ const AuditSessionPage: React.FC = () => {
               onSelectCategory={setSelectedCategory}
             />
 
-            {/* Quick Status Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-100 bg-[var(--app-surface)] p-1.5 shadow-sm dark:border-slate-800">
-              <span className="flex items-center gap-1 px-2 text-[10px] font-black uppercase text-gray-400">
-                <Filter size={12} /> الحالة:
-              </span>
-              <button
-                onClick={() => {
-                  setStatusFilter('all');
-                }}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
-                  statusFilter === 'all'
-                    ? 'bg-slate-800 text-white shadow dark:bg-slate-700'
-                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                الكل ({stats.total})
-              </button>
-              <button
-                onClick={() => {
-                  setStatusFilter('discrepancy');
-                }}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
-                  statusFilter === 'discrepancy'
-                    ? 'bg-rose-600 text-white shadow'
-                    : 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20'
-                }`}
-              >
-                <AlertTriangle size={10} /> بها فروقات ({stats.discrepancies})
-              </button>
-              <button
-                onClick={() => {
-                  setStatusFilter('matched');
-                }}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
-                  statusFilter === 'matched'
-                    ? 'bg-emerald-600 text-white shadow'
-                    : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                }`}
-              >
-                <CheckCircle2 size={10} /> مطابقة ({stats.matched ?? 0})
-              </button>
-              <button
-                onClick={() => {
-                  setStatusFilter('uncounted');
-                }}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-black transition-all ${
-                  statusFilter === 'uncounted'
-                    ? 'bg-amber-600 text-white shadow'
-                    : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
-                }`}
-              >
-                <Clock size={10} /> لم تُجرد ({stats.pending})
-              </button>
-            </div>
+            <AuditStatusFilterBar
+              statusFilter={statusFilter}
+              onSelectStatusFilter={setStatusFilter}
+              stats={stats}
+            />
           </div>
 
           <AuditItemsTable
@@ -688,67 +554,28 @@ const AuditSessionPage: React.FC = () => {
         </div>
       </div>
 
-      {isScannerOpen && (
-        <ScannerOverlay
-          onScan={handleScan}
-          onClose={() => {
-            setIsScannerOpen(false);
-          }}
-        />
-      )}
-
-      <ConfirmModal
-        isOpen={!!itemToDelete}
-        onClose={() => {
-          setItemToDelete(null);
-        }}
-        onConfirm={confirmRemoveItem}
-        title="إزالة الصنف من الجرد"
-        message={
-          itemToDelete?.name
-            ? `هل أنت متأكد من رغبتك في إزالة "${itemToDelete.name}" من جلسة الجرد الميدانية الحالية؟`
-            : 'هل أنت متأكد من رغبتك في إزالة هذا الصنف من جلسة الجرد الميدانية الحالية؟'
-        }
-        variant="danger"
-        confirmLabel="نعم، إزالة الصنف"
-        isLoading={isRemovingItem}
-      />
-
-      <ConfirmModal
-        isOpen={showBulkConfirm}
-        onClose={() => {
-          setShowBulkConfirm(false);
-        }}
-        onConfirm={handleBulkAddWarehouseProducts}
-        title="جرد كامل المستودع"
-        message="سيتم إضافة جميع منتجات هذا المستودع إلى جلسة الجرد الحالية تلقائياً وبشكل فوري. هل تريد المتابعة؟"
-        variant="warning"
-        confirmLabel="نعم، أضف كل المنتجات"
-        isLoading={isPopulatingWarehouse}
-      />
-
-      <ConfirmModal
-        isOpen={showFinalizeConfirm}
-        onClose={() => {
-          setShowFinalizeConfirm(false);
-        }}
-        onConfirm={executeFinalize}
-        title="إنهاء واعتماد الجرد"
-        message={`تنبيه: يوجد ${stats.pending} صنف لم يتم جرده بعد. عند الاعتماد سيتم ترحيل الفروقات المخزنية نهائياً وإغلاق الجلسة. هل تريد المتابعة؟`}
-        variant="warning"
-        confirmLabel="نعم، اعتماد وإنهاء الجرد"
-        isLoading={isFinalizing}
-      />
-
-      <AddProductModal
-        isOpen={showAddProduct}
-        onClose={() => {
-          setShowAddProduct(false);
-        }}
-        onSubmit={handleCreateNewProduct}
-        isSubmitting={isSavingProduct}
-        initialData={newProductInitialData}
-        zIndex="z-[10000]"
+      <AuditSessionModals
+        isScannerOpen={isScannerOpen}
+        onScan={handleScan}
+        onCloseScanner={() => setIsScannerOpen(false)}
+        itemToDelete={itemToDelete}
+        onCloseDeleteModal={() => setItemToDelete(null)}
+        onConfirmDelete={confirmRemoveItem}
+        isRemovingItem={isRemovingItem}
+        showBulkConfirm={showBulkConfirm}
+        onCloseBulkConfirm={() => setShowBulkConfirm(false)}
+        onConfirmBulkAdd={handleBulkAddWarehouseProducts}
+        isPopulatingWarehouse={isPopulatingWarehouse}
+        showFinalizeConfirm={showFinalizeConfirm}
+        onCloseFinalizeConfirm={() => setShowFinalizeConfirm(false)}
+        onConfirmFinalize={executeFinalize}
+        isFinalizing={isFinalizing}
+        pendingCount={stats.pending}
+        showAddProduct={showAddProduct}
+        onCloseAddProduct={() => setShowAddProduct(false)}
+        onCreateProduct={handleCreateNewProduct}
+        isSavingProduct={isSavingProduct}
+        newProductInitialData={newProductInitialData}
       />
     </div>
   );
