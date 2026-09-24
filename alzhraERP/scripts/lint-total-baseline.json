@@ -1,6 +1,6 @@
 {
-  "errors": 9986,
-  "warnings": 219,
+  "errors": 9982,
+  "warnings": 223,
   "capturedAt": "2026-09-24",
   "method": "npx eslint . --report-unused-disable-directives --format json (full scan of repo)",
   "history": [
@@ -21,6 +21,11 @@
       "date": "2026-09-24",
       "errors": 9986,
       "note": "harden account statements and interactive detailed Excel grid (-142)"
+    },
+    {
+      "date": "2026-09-24",
+      "errors": 9982,
+      "note": "lock in multi-channel debt dispatch and expenses ledger ratchet (-4)"
     }
   ]
 }
