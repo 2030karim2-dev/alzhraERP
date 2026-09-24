@@ -132,3 +132,29 @@ WHERE n.nspname = 'public'
                     'debt_message_templates', 'debt_payment_promises',
                     'party_opening_balances', 'customer_activities')
 ORDER BY c.relname;
+
+-- 13) H-1 channel-key privacy: generated flags present + column privileges
+--     (secrets must be readable by NO client role; flags by authenticated)
+SELECT column_name, is_generated, generation_expression
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'messaging_config'
+  AND column_name IN ('has_whatsapp_key', 'has_sms_key', 'has_telegram_token')
+ORDER BY column_name;
+
+SELECT grantee, column_name, privilege_type
+FROM information_schema.column_privileges
+WHERE table_schema = 'public'
+  AND table_name = 'messaging_config'
+  AND column_name IN ('whatsapp_api_key', 'sms_api_key', 'telegram_bot_token',
+                      'has_whatsapp_key', 'whatsapp_api_url')
+ORDER BY column_name, grantee;
+
+-- 14) G1 pre-flight for get_company_settings: dump the LIVE body BEFORE any
+--     rewrite (it currently returns row_to_json(messaging_config), i.e. the
+--     raw provider keys). Diff it against 20260916000015 first.
+SELECT pg_get_functiondef(p.oid) AS function_body
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname = 'get_company_settings';

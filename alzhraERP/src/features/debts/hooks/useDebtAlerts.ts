@@ -5,6 +5,7 @@
  * دين lint القائم في notifications/service.ts (8 مقابل سقف 4).
  */
 import { useEffect } from 'react';
+import { ROUTES } from '../../../core/routes/paths';
 import { useAuthStore } from '../../auth/store';
 import { useNotificationStore } from '../../notifications/store';
 import { useDebtDashboard } from './useDebtQueries';
@@ -28,8 +29,8 @@ export const useDebtAlerts = (): void => {
         title: 'ديون حرجة تحتاج تدخلاً فورياً',
         message: `${String(criticalCount)} عميل تجاوز تأخيرهم الحد الحرج المحدد. يرجى بدء التحصيل اليوم.`,
         type: 'warning',
-        link: '/debts/followup',
-        actions: [{ label: 'بدء التحصيل', link: '/debts/followup', isPrimary: true }],
+        link: ROUTES.DASHBOARD.DEBTS_FOLLOWUP,
+        actions: [{ label: 'بدء التحصيل', link: ROUTES.DASHBOARD.DEBTS_FOLLOWUP, isPrimary: true }],
       });
     }
 
@@ -43,8 +44,10 @@ export const useDebtAlerts = (): void => {
         title: 'وعود سداد مخلَفة',
         message: `${String(brokenCount)} عميل لديهم وعود سداد مخلَفة تحتاج متابعة وإعادة جدولة.`,
         type: 'warning',
-        link: '/debts/promises',
-        actions: [{ label: 'متابعة الوعود', link: '/debts/promises', isPrimary: true }],
+        link: ROUTES.DASHBOARD.DEBTS_PROMISES,
+        actions: [
+          { label: 'متابعة الوعود', link: ROUTES.DASHBOARD.DEBTS_PROMISES, isPrimary: true },
+        ],
       });
     }
   }, [rows, user?.company_id, addNotification]);

@@ -3,6 +3,7 @@
  * تُصدَّر بـ BOM ليفتح Excel الملف بترميز UTF-8 صحيح (عربية سليمة).
  */
 import type { FollowUpDashboardRow } from '../types';
+import { formatLocalDate } from '../../../core/utils/dateUtils';
 import { classificationLabel, escalationLabel, reminderStatusLabel } from './constants';
 
 const CSV_HEADERS = [
@@ -50,7 +51,7 @@ export const buildCollectionSheetCsv = (rows: FollowUpDashboardRow[]): string =>
   return `\uFEFF${[CSV_HEADERS.join(','), ...lines].join('\r\n')}`;
 };
 
-/** اسم ملف الورقة بصيغة آمنة (بلا رموز ممنوعة في أنظمة الملفات). */
-export const collectionSheetFileName = (
-  date: string = new Date().toISOString().slice(0, 10)
-): string => `collection-sheet-${date}.csv`;
+/** اسم ملف الورقة بصيغة آمنة (بلا رموز ممنوعة في أنظمة الملفات).
+ *  التاريخ محلي عبر formatLocalDate — لا انزياح UTC ليلاً (G10/AGENTS 2). */
+export const collectionSheetFileName = (date: string = formatLocalDate()): string =>
+  `collection-sheet-${date}.csv`;

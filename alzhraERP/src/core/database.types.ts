@@ -4772,6 +4772,9 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          has_sms_key: boolean
+          has_telegram_token: boolean
+          has_whatsapp_key: boolean
           id: string
           notify_on_expense: boolean
           notify_on_low_stock: boolean

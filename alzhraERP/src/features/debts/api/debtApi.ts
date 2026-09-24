@@ -48,6 +48,12 @@ export const EMPTY_CHANNEL_CONFIG: DebtChannelConfig = {
   has_sms_key: false,
 };
 
+/**
+ * H-1 (هجرة 20260924000001): أعمدة المفاتيح ممنوعة القراءة على العملاء،
+ * فلا يُطلب أصلاً — يُقرأ العلم المحسوب في الخادم (`has_*`) فقط.
+ * أي محاولة لاختيار المفتاح تفشل بـ permission denied على مستوى العمود.
+ */
+
 /** Engine defaults — also the migration defaults; kept in sync. */
 export const DEBT_ENGINE_DEFAULTS = {
   dueSoonDays: 7,
@@ -537,26 +543,26 @@ export const debtMessageApi = {
 
   /** إعدادات قنوات الإرسال (messaging_config) بصيغة مسطّحة. */
   getChannelConfig: async (companyId: string): Promise<DebtChannelConfig> => {
+    // H-1: لا تُختار أعمدة المفاتيح إطلاقاً (ممنوعة على العمود في الخادم)
+    // — تُقرأ أعلام الوجود المحسوبة `has_*` فقط.
     const { data, error } = await supabase
       .from('messaging_config')
       .select(
-        'whatsapp_enabled, whatsapp_api_url, whatsapp_api_key, whatsapp_phone, sms_enabled, sms_api_url, sms_api_key, sms_sender_id'
+        'whatsapp_enabled, whatsapp_api_url, whatsapp_phone, sms_enabled, sms_api_url, sms_sender_id, has_whatsapp_key, has_sms_key'
       )
       .eq('company_id', companyId)
       .maybeSingle();
     if (error) throw error;
     if (!data) return EMPTY_CHANNEL_CONFIG;
-    // المفاتيح تُقرأ من الخادم للتعرّف على وجودها فقط ثم تُسقَط فوراً:
-    // لا تصل إلى الـ DOM ولا إلى حالة الواجهة (write-only secrets).
     return {
-      whatsapp_enabled: Boolean(data.whatsapp_enabled),
+      whatsapp_enabled: data.whatsapp_enabled ?? false,
       whatsapp_api_url: data.whatsapp_api_url ?? '',
       whatsapp_phone: data.whatsapp_phone ?? '',
-      has_whatsapp_key: Boolean(data.whatsapp_api_key),
-      sms_enabled: Boolean(data.sms_enabled),
+      has_whatsapp_key: data.has_whatsapp_key ?? false,
+      sms_enabled: data.sms_enabled ?? false,
       sms_api_url: data.sms_api_url ?? '',
       sms_sender_id: data.sms_sender_id ?? '',
-      has_sms_key: Boolean(data.sms_api_key),
+      has_sms_key: data.has_sms_key ?? false,
     };
   },
 

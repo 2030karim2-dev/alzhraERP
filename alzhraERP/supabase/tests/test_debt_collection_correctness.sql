@@ -18,6 +18,8 @@
 --   T16 reminder queue is write-locked for clients (20260923000005)
 --   T17 no dispatch without a ready provider; skipping never writes a failure log
 --   T18 automation gates: auto_send_enabled = false enqueues nothing
+--   T19 generated secret flags (has_*) mirror the stored provider keys
+--   T20 secrets are column-revoked from clients; flags stay readable
 --
 -- HOW TO RUN:
 --   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 \
@@ -511,6 +513,48 @@ BEGIN
   EXCEPTION
     WHEN check_violation THEN NULL;
   END;
+
+  -- ==== T19: generated secret flags mirror the stored keys ====
+  -- T17 left a messaging_config row with whatsapp_api_key = 't17-key'.
+  SELECT has_whatsapp_key::text INTO v_txt
+  FROM public.messaging_config WHERE company_id = v_company;
+  ASSERT v_txt = 'true',
+    'T19 FAIL: has_whatsapp_key = [' || COALESCE(v_txt, 'NULL') || '] after T17 stored a key';
+
+  UPDATE public.messaging_config SET whatsapp_api_key = '' WHERE company_id = v_company;
+  SELECT has_whatsapp_key::text INTO v_txt
+  FROM public.messaging_config WHERE company_id = v_company;
+  ASSERT v_txt = 'false',
+    'T19 FAIL: has_whatsapp_key = [' || COALESCE(v_txt, 'NULL') || '] after clearing the key';
+
+  UPDATE public.messaging_config SET sms_api_key = 't19-sms-key' WHERE company_id = v_company;
+  SELECT has_sms_key::text INTO v_txt
+  FROM public.messaging_config WHERE company_id = v_company;
+  ASSERT v_txt = 'true',
+    'T19 FAIL: has_sms_key = [' || COALESCE(v_txt, 'NULL') || '] after storing an SMS key';
+
+  -- ==== T20: secrets are column-revoked from clients; flags stay readable ====
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'whatsapp_api_key', 'SELECT'), false) = false,
+    'T20 FAIL: authenticated can still SELECT whatsapp_api_key';
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'sms_api_key', 'SELECT'), false) = false,
+    'T20 FAIL: authenticated can still SELECT sms_api_key';
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'telegram_bot_token', 'SELECT'), false) = false,
+    'T20 FAIL: authenticated can still SELECT telegram_bot_token';
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'has_whatsapp_key', 'SELECT'), false) = true,
+    'T20 FAIL: authenticated cannot SELECT the has_whatsapp_key flag';
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'whatsapp_api_url', 'SELECT'), false) = true,
+    'T20 FAIL: authenticated lost SELECT on the non-secret whatsapp_api_url';
+  ASSERT COALESCE(has_column_privilege('authenticated', 'public.messaging_config',
+      'company_id', 'SELECT'), false) = true,
+    'T20 FAIL: authenticated lost SELECT on company_id';
+  ASSERT COALESCE(has_column_privilege('anon', 'public.messaging_config',
+      'company_id', 'SELECT'), false) = false,
+    'T20 FAIL: anon can still SELECT messaging_config';
 
 END;
 $$;

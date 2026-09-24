@@ -19,9 +19,11 @@ import type { FollowUpDashboardRow } from '../types';
 
 interface FollowUpTableProps {
   rows: FollowUpDashboardRow[];
-  /** Whether the user may create payment promises (debts:manage). */
+  /** Whether the user may create payment promises (debts:manage).
+   *  Secure default: false — the parent must pass the checked value. */
   canManage?: boolean;
-  /** Whether the user may send WhatsApp reminders (debts:remind). */
+  /** Whether the user may send WhatsApp reminders (debts:remind).
+   *  Secure default: false — the parent must pass the checked value. */
   canRemind?: boolean;
   /** Opens the prefilled receipt-bond flow for the row (تحصيل الآن). */
   onCollect?: (row: FollowUpDashboardRow) => void;
@@ -39,8 +41,8 @@ interface CompanyDocExtras {
 
 const FollowUpTable: React.FC<FollowUpTableProps> = ({
   rows,
-  canManage = true,
-  canRemind = true,
+  canManage = false,
+  canRemind = false,
   onCollect,
 }) => {
   const { data: company } = useCompany();

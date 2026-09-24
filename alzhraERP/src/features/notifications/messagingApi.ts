@@ -60,24 +60,24 @@ export const MASKED_SECRET = '••••••••••';
 
 export const SECRET_FIELDS = ['whatsapp_api_key', 'telegram_bot_token'] as const;
 
-type MessagingConfigRow = MessagingConfig & Record<string, unknown>;
+/** أعمدة مولَّدة (GENERATED) — لا تُقبل في أي INSERT/UPDATE فتُسحب من الحمولة. */
+const GENERATED_FIELDS = ['has_whatsapp_key', 'has_sms_key', 'has_telegram_token'] as const;
 
-const redactSecrets = (row: MessagingConfig): MessagingConfig => {
-  const redacted = { ...row } as MessagingConfigRow;
-  for (const field of SECRET_FIELDS) {
-    redacted[field] = redacted[field] ? MASKED_SECRET : '';
-  }
-  return redacted;
-};
+type MessagingConfigRow = MessagingConfig & Record<string, unknown>;
 
 export const messagingApi = {
   /**
-   * Get messaging config for a company
+   * إعدادات القنوات — H-1 (هجرة 20260924000001): أعمدة المفاتيح
+   * (`whatsapp_api_key`/`telegram_bot_token`/`sms_api_key`) ممنوعة القراءة
+   * على `authenticated` على مستوى العمود، فلا تُطلب أصلاً. يُبني القناع من
+   * علم الوجود المحسوب في الخادم (`has_*`) — المفتاح الخام لا يصل إلى المتصفح.
    */
   getConfig: async (companyId: string): Promise<MessagingConfig | null> => {
     const { data, error } = await supabase
       .from('messaging_config')
-      .select('*')
+      .select(
+        'id, company_id, telegram_enabled, telegram_chat_id, whatsapp_enabled, whatsapp_api_url, whatsapp_phone, notify_on_sale, notify_on_purchase, notify_on_expense, notify_on_stock_transfer, notify_on_low_stock, notify_on_payment_bond, has_whatsapp_key, has_telegram_token'
+      )
       .eq('company_id', companyId)
       .maybeSingle();
 
@@ -85,8 +85,11 @@ export const messagingApi = {
       logger.error('messagingApi', '[MessagingAPI] Error fetching config:', error);
     }
     if (!data) return null;
-    // 🔒 Redact secrets so raw keys never enter app state / logs.
-    return redactSecrets(data as unknown as MessagingConfig);
+    const masked: MessagingConfigRow = { ...(data as unknown as MessagingConfig) };
+    // 🔒 القناع مبني على علم الوجود — لا مفتاح خام يُنقل عبر الشبكة.
+    masked.whatsapp_api_key = data.has_whatsapp_key ? MASKED_SECRET : '';
+    masked.telegram_bot_token = data.has_telegram_token ? MASKED_SECRET : '';
+    return masked;
   },
 
   /**
@@ -101,6 +104,10 @@ export const messagingApi = {
       if (payload[field] === MASKED_SECRET) {
         delete payload[field];
       }
+    }
+    // أعمدة has_* مولَّدة في القاعدة — حمولة الكتابة لا تعرفها أصلاً.
+    for (const field of GENERATED_FIELDS) {
+      delete payload[field];
     }
 
     const { error } = await supabase

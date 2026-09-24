@@ -1,5 +1,6 @@
 /**
  * Pure template renderer for debt reminder messages.
+ * The SQL mirror is public.render_debt_template() - keep both in sync.
  * Supported placeholders: {{customer_name}} {{amount}} {{currency}} {{due_date}}
  * {{days_overdue}} {{invoice_number}} {{company_name}} {{signature}}
  */

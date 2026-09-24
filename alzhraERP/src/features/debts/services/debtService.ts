@@ -75,9 +75,14 @@ export const debtsService = {
     return debtApi.getDashboard(companyId, branchId, engine);
   },
 
-  getAnalytics: async (companyId: string, branchId?: string | null): Promise<DebtAnalytics> => {
+  getAnalytics: async (
+    companyId: string,
+    branchId?: string | null
+  ): Promise<DebtAnalytics | null> => {
     const raw = await debtApi.getAnalytics(companyId, branchId);
-    return (raw ?? {}) as unknown as DebtAnalytics;
+    // M-9: null يعني «الخادم لم يرجع تحليلات» (RPC مفقود) — تفرّقه الواجهة
+    // عن الصفر الحقيقي بدل عرض أصفار كأنها حقيقة.
+    return raw === null ? null : (raw as unknown as DebtAnalytics);
   },
 
   getTodayTasks: (companyId: string, branchId?: string | null) =>

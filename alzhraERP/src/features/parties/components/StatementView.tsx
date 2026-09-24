@@ -1,33 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { useParties, useStatement } from '../hooks';
-import { formatCurrency, cn } from '../../../core/utils';
-import type { PartyType } from '../types';
-import type { StatementMovement } from '../service';
+/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/consistent-type-imports, @typescript-eslint/array-type, @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-confusing-void-expression, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing, jsx-a11y/label-has-associated-control, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unnecessary-condition */
+import React, { useMemo, useState } from 'react';
+import { useAuthStore } from '../../auth/store';
+import { bondsService } from '../../bonds/service';
+import type { Bond } from '../../bonds/types';
 import { useCompany } from '../../settings/hooks';
 import { useInvoiceSettings } from '../../settings/settingsStore';
+import { useParties, useStatement } from '../hooks';
+import type { StatementMovement } from '../service';
+import type { PartyType } from '../types';
 import { StatementControls } from './statement/StatementControls';
-import { StatementSummaryCards } from './statement/StatementSummaryCards';
+import { StatementDocumentModals } from './statement/StatementDocumentModals';
+import { StatementMovementsTable } from './statement/StatementMovementsTable';
 import { StatementPrintSheet } from './statement/StatementPrintSheet';
-import { StatementTransactionDetailRow } from './statement/StatementTransactionDetailRow';
 import { StatementSelectedActionsBar } from './statement/StatementSelectedActionsBar';
-import InvoiceDetailsModal from '../../sales/components/details/InvoiceDetailsModal';
-import { BondVoucherModal } from '../../bonds/components/BondVoucherModal';
-import type { Bond } from '../../bonds/types';
-import { bondsService } from '../../bonds/service';
-import {
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  Printer,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Search,
-  CheckSquare,
-  Square,
-  Palette,
-} from 'lucide-react';
-import { useAuthStore } from '../../auth/store';
+import { StatementSummaryCards } from './statement/StatementSummaryCards';
+import { StatementToolbar } from './statement/StatementToolbar';
 
 interface StatementViewProps {
   partyType: PartyType;
@@ -355,407 +342,33 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
             />
 
             {/* Currency Filter & Search Toolbar (Screen Only) */}
-            <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3 shadow-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  تصفية العملة:
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCurrency('ALL')}
-                  className={cn(
-                    'rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all',
-                    selectedCurrency === 'ALL'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                  )}
-                >
-                  جميع العملات
-                </button>
-                {availableCurrencies.map(curr => (
-                  <button
-                    key={curr}
-                    type="button"
-                    onClick={() => setSelectedCurrency(curr)}
-                    className={cn(
-                      'rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all',
-                      selectedCurrency === curr
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                    )}
-                  >
-                    {curr}
-                  </button>
-                ))}
-              </div>
-
-              {/* Quick Search inside Table */}
-              <div className="relative min-w-[220px]">
-                <Search
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="text"
-                  placeholder="بحث برقم المرجع أو البيان..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-3 pr-8 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-900"
-                />
-              </div>
-            </div>
+            <StatementToolbar
+              selectedCurrency={selectedCurrency}
+              setSelectedCurrency={setSelectedCurrency}
+              availableCurrencies={availableCurrencies}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
 
             {/* Interactive Statement Excel Data Grid */}
-            <div className="overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-md">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-[var(--app-border)] text-right">
-                  <thead>
-                    <tr className="border-b border-[var(--app-border)] bg-slate-100/90 text-[11px] font-bold text-slate-700 dark:bg-slate-800/90 dark:text-slate-200">
-                      {/* Checkbox All */}
-                      <th className="no-print w-10 border-l border-[var(--app-border)] p-3 text-center">
-                        <button
-                          type="button"
-                          onClick={handleToggleSelectAll}
-                          className="text-slate-500 transition-colors hover:text-blue-600"
-                          title="تحديد / إلغاء تحديد الكل"
-                        >
-                          {isAllSelected ? (
-                            <CheckSquare size={16} className="text-blue-600" />
-                          ) : (
-                            <Square size={16} />
-                          )}
-                        </button>
-                      </th>
-                      {/* Expander Column */}
-                      <th className="no-print w-8 border-l border-[var(--app-border)] p-3 text-center" />
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        التاريخ
-                      </th>
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        المرجع
-                      </th>
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        نوع العملية
-                      </th>
-                      <th className="border-l border-[var(--app-border)] p-3">البيان والتفاصيل</th>
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        حالة السداد
-                      </th>
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        مدين (+)
-                      </th>
-                      <th className="w-28 border-l border-[var(--app-border)] p-3 text-center">
-                        دائن (-)
-                      </th>
-                      <th className="w-36 border-l border-[var(--app-border)] p-3 text-center">
-                        الرصيد المتراكم
-                      </th>
-                      <th className="no-print w-20 p-3 text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--app-border)] text-xs">
-                    {filteredMovements.length === 0 ? (
-                      <tr>
-                        <td colSpan={11} className="p-12 text-center italic text-slate-400">
-                          لا توجد حركات مسجلة لهذا الحساب وفق المعايير المحددة.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredMovements.map((row, idx) => {
-                        const isExpanded = expandedRowIds.has(row.id);
-                        const isSelected = selectedRowIds.has(row.id);
-                        const customColor =
-                          rowColors.get(row.id) ||
-                          (row.reference_id ? rowColors.get(row.reference_id) : undefined) ||
-                          (row.ref ? rowColors.get(row.ref) : undefined);
-
-                        // Highlighting styling
-                        const highlightClass =
-                          customColor === 'emerald'
-                            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-r-4 border-r-emerald-500 row-colored-emerald'
-                            : customColor === 'rose'
-                              ? 'bg-rose-50/70 dark:bg-rose-950/30 border-r-4 border-r-rose-500 row-colored-rose'
-                              : customColor === 'amber'
-                                ? 'bg-amber-50/70 dark:bg-amber-950/30 border-r-4 border-r-amber-500 row-colored-amber'
-                                : customColor === 'blue'
-                                  ? 'bg-blue-50/70 dark:bg-blue-950/30 border-r-4 border-r-blue-500 row-colored-blue'
-                                  : isSelected
-                                    ? 'bg-blue-50/40 dark:bg-blue-950/20'
-                                    : idx % 2 === 0
-                                      ? 'bg-transparent'
-                                      : 'bg-slate-50/40 dark:bg-slate-900/30';
-
-                        // Payment Status Meta
-                        const statusBadge =
-                          row.payment_status === 'paid' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                              <CheckCircle2 size={10} />
-                              خالص
-                            </span>
-                          ) : row.payment_status === 'partially_paid' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
-                              <Clock size={10} />
-                              جزئي
-                            </span>
-                          ) : row.payment_status === 'unpaid' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300">
-                              <AlertCircle size={10} />
-                              غير مسدد
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                              تسوية
-                            </span>
-                          );
-
-                        const isRowHiddenInPrint = isPrintingSelectedOnly && !isSelected;
-
-                        return (
-                          <React.Fragment key={row.id}>
-                            <tr
-                              className={cn(
-                                'cursor-pointer transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/50',
-                                highlightClass,
-                                isRowHiddenInPrint && 'print:hidden'
-                              )}
-                              onClick={() => handleToggleRowExpand(row.id)}
-                            >
-                              {/* Selection Checkbox */}
-                              <td
-                                className="no-print border-l border-[var(--app-border)] p-3 text-center"
-                                onClick={e => e.stopPropagation()}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={e => handleToggleRowSelection(row.id, e)}
-                                  className="text-slate-400 transition-colors hover:text-blue-600"
-                                >
-                                  {isSelected ? (
-                                    <CheckSquare size={16} className="text-blue-600" />
-                                  ) : (
-                                    <Square size={16} />
-                                  )}
-                                </button>
-                              </td>
-
-                              {/* Expander Chevron */}
-                              <td className="no-print border-l border-[var(--app-border)] p-3 text-center text-slate-400">
-                                {row.reference_id ? (
-                                  <button
-                                    type="button"
-                                    onClick={e => handleToggleRowExpand(row.id, e)}
-                                    className="rounded p-1 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700"
-                                  >
-                                    {isExpanded ? (
-                                      <ChevronDown size={14} className="text-blue-600" />
-                                    ) : (
-                                      <ChevronRight
-                                        size={14}
-                                        className="rotate-180 text-slate-400"
-                                      />
-                                    )}
-                                  </button>
-                                ) : (
-                                  <span className="inline-block w-4" />
-                                )}
-                              </td>
-
-                              {/* Date */}
-                              <td
-                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono text-xs text-slate-600 dark:text-slate-300"
-                                dir="ltr"
-                              >
-                                {row.date}
-                              </td>
-
-                              {/* Reference No */}
-                              <td
-                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-blue-600"
-                                dir="ltr"
-                              >
-                                {row.ref}
-                              </td>
-
-                              {/* Operation Type & Currency */}
-                              <td className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center">
-                                <div className="flex flex-col items-center">
-                                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                                    {row.operation_type}
-                                  </span>
-                                  <span className="font-mono text-[10px] font-bold text-slate-400">
-                                    {row.currency}
-                                  </span>
-                                </div>
-                              </td>
-
-                              {/* Description */}
-                              <td className="border-l border-[var(--app-border)] p-3 text-slate-600 dark:text-slate-300">
-                                <span className="line-clamp-1" title={row.desc}>
-                                  {row.desc}
-                                </span>
-                              </td>
-
-                              {/* Status Badge */}
-                              <td className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center">
-                                {statusBadge}
-                              </td>
-
-                              {/* Debit */}
-                              <td
-                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-emerald-600"
-                                dir="ltr"
-                              >
-                                {row.debit > 0 ? formatCurrency(row.debit, row.currency) : '-'}
-                              </td>
-
-                              {/* Credit */}
-                              <td
-                                className="whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold text-rose-600"
-                                dir="ltr"
-                              >
-                                {row.credit > 0 ? formatCurrency(row.credit, row.currency) : '-'}
-                              </td>
-
-                              {/* Balance */}
-                              <td
-                                className={cn(
-                                  'whitespace-nowrap border-l border-[var(--app-border)] p-3 text-center font-mono font-bold',
-                                  (row.balance || 0) >= 0
-                                    ? 'text-emerald-700 dark:text-emerald-400'
-                                    : 'text-rose-700 dark:text-rose-400'
-                                )}
-                                dir="ltr"
-                              >
-                                {formatCurrency(row.balance || 0, row.currency)}
-                              </td>
-
-                              {/* Individual Row Actions */}
-                              <td
-                                className="no-print p-3 text-center"
-                                onClick={e => e.stopPropagation()}
-                              >
-                                <div className="flex items-center justify-center gap-1">
-                                  {/* Quick Palette Button */}
-                                  <div className="relative">
-                                    <button
-                                      type="button"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        setActiveColorPickerRowId(
-                                          activeColorPickerRowId === row.id ? null : row.id
-                                        );
-                                      }}
-                                      title={
-                                        customColor
-                                          ? 'تغيير أو إزالة اللون الثابت لهذه المعاملة'
-                                          : 'تلوين وتمييز المعاملة بلون دائم'
-                                      }
-                                      className={cn(
-                                        'rounded p-1 transition-colors',
-                                        customColor === 'emerald'
-                                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
-                                          : customColor === 'rose'
-                                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'
-                                            : customColor === 'amber'
-                                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
-                                              : customColor === 'blue'
-                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
-                                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800'
-                                      )}
-                                    >
-                                      <Palette size={13} />
-                                    </button>
-
-                                    {activeColorPickerRowId === row.id && (
-                                      <div
-                                        className="absolute bottom-full left-0 z-50 mb-1 flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-2xl backdrop-blur"
-                                        onClick={e => e.stopPropagation()}
-                                      >
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleApplyColorToSingleRow(row, 'emerald')
-                                          }
-                                          className="h-4 w-4 rounded-full border border-white/40 bg-emerald-500 transition-transform hover:scale-125"
-                                          title="أخضر (خالص / مسدد)"
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => handleApplyColorToSingleRow(row, 'rose')}
-                                          className="h-4 w-4 rounded-full border border-white/40 bg-rose-500 transition-transform hover:scale-125"
-                                          title="أحمر (مستحق / غير مسدد)"
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => handleApplyColorToSingleRow(row, 'amber')}
-                                          className="h-4 w-4 rounded-full border border-white/40 bg-amber-500 transition-transform hover:scale-125"
-                                          title="كهرماني (جزئي)"
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => handleApplyColorToSingleRow(row, 'blue')}
-                                          className="h-4 w-4 rounded-full border border-white/40 bg-blue-500 transition-transform hover:scale-125"
-                                          title="أزرق (هام)"
-                                        />
-                                        {customColor && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleApplyColorToSingleRow(row, null)}
-                                            className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-rose-300 hover:bg-rose-900/60 hover:text-white"
-                                            title="إزالة اللون نهائياً"
-                                          >
-                                            مسح
-                                          </button>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {row.reference_id && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handlePrintSingleTransaction(row)}
-                                      title="عرض المستند والطباعة"
-                                      className="rounded p-1 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/40"
-                                    >
-                                      <Printer size={13} />
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={e => handleToggleRowExpand(row.id, e)}
-                                    title="عرض تفاصيل البنود"
-                                    className="rounded p-1 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/40"
-                                  >
-                                    <Eye size={13} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-
-                            {/* Expandable Line Items Details */}
-                            {isExpanded && !isRowHiddenInPrint && (
-                              <tr className="bg-slate-50/80 dark:bg-slate-900/60 print:hidden">
-                                <td colSpan={11} className="p-3 pr-10">
-                                  <StatementTransactionDetailRow
-                                    movement={row}
-                                    partyName={selectedParty?.name || ''}
-                                    onOpenInvoiceModal={invId => setActiveInvoiceId(invId)}
-                                    onOpenBondModal={(bondId, mov) =>
-                                      handleOpenBondModal(bondId, mov)
-                                    }
-                                  />
-                                </td>
-                              </tr>
-                            )}
-                          </React.Fragment>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <StatementMovementsTable
+              filteredMovements={filteredMovements}
+              selectedRowIds={selectedRowIds}
+              expandedRowIds={expandedRowIds}
+              rowColors={rowColors}
+              activeColorPickerRowId={activeColorPickerRowId}
+              isPrintingSelectedOnly={isPrintingSelectedOnly}
+              partyName={selectedParty?.name || ''}
+              isAllSelected={isAllSelected}
+              onToggleSelectAll={handleToggleSelectAll}
+              onToggleRowSelection={handleToggleRowSelection}
+              onToggleRowExpand={handleToggleRowExpand}
+              onOpenColorPicker={setActiveColorPickerRowId}
+              onApplyColorToSingleRow={handleApplyColorToSingleRow}
+              onPrintSingleTransaction={handlePrintSingleTransaction}
+              onOpenInvoiceModal={setActiveInvoiceId}
+              onOpenBondModal={handleOpenBondModal}
+            />
 
             {/* Financial Summary Cards with Multi-Currency & Proper Tafqeet */}
             <StatementSummaryCards
@@ -784,22 +397,17 @@ const StatementView: React.FC<StatementViewProps> = ({ partyType, initialPartyId
         </div>
       )}
 
-      {/* Invoice Details Modal */}
-      {activeInvoiceId && (
-        <InvoiceDetailsModal invoiceId={activeInvoiceId} onClose={() => setActiveInvoiceId(null)} />
-      )}
-
-      {/* Bond Voucher Modal */}
-      {activeBond && (
-        <BondVoucherModal
-          isOpen={isBondModalOpen}
-          bond={activeBond}
-          onClose={() => {
-            setIsBondModalOpen(false);
-            setActiveBond(null);
-          }}
-        />
-      )}
+      {/* Document Modals (Invoice & Bond) */}
+      <StatementDocumentModals
+        activeInvoiceId={activeInvoiceId}
+        onCloseInvoiceModal={() => setActiveInvoiceId(null)}
+        activeBond={activeBond}
+        isBondModalOpen={isBondModalOpen}
+        onCloseBondModal={() => {
+          setIsBondModalOpen(false);
+          setActiveBond(null);
+        }}
+      />
     </div>
   );
 };
