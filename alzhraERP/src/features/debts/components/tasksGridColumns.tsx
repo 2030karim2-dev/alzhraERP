@@ -1,5 +1,11 @@
 /**
- * أعمدة شبكة طابور المهام — بناة صغيرة (حد المشروع: 50 سطراً للدالة).
+ * بناة الأعمدة (حد المشروع: 50 سطراً للدالة).
+ *
+ * ملاحظة تجميع الأعمدة: `due_at` يبنيها الخادم من (`due_date`::timestamptz)
+ * أو من `scheduled_at`، ويحسب `is_overdue` على نفس أساس اليوم
+ * (`CURRENT_DATE`)، ولذلك يُعرض التاريخ بأول 10 أحرف ليبقى اللون واليوم
+ * متسقين مع منطق الخادم — لا يُستدعى `Date` هنا (سياسة التواريخ المحلية G10
+ * تخص تواريخ المعاملات المُنشأة في المتصفح).
  */
 import { CheckCircle2 } from 'lucide-react';
 import type { Column } from '../../../ui/common/ExcelTable';
@@ -83,17 +89,6 @@ const referenceColumn = (): Column<DebtTaskQueueRow> => ({
   ),
 });
 
-export const buildTaskColumns = (options: TaskColumnOptions): Array<Column<DebtTaskQueueRow>> => [
-  partyColumn(),
-  typeColumn(),
-  priorityColumn(),
-  stageColumn(),
-  referenceColumn(),
-  dueColumn(),
-  amountColumn(),
-  ownerColumn(),
-  actionsColumn(options),
-];
 const dueColumn = (): Column<DebtTaskQueueRow> => ({
   header: 'الاستحقاق',
   accessorKey: 'due_at',
@@ -166,3 +161,16 @@ const actionsColumn = (options: TaskColumnOptions): Column<DebtTaskQueueRow> => 
     );
   },
 });
+
+/** ترتيب الأعمدة القياسي لشبكة الطابور (يُستدعى وقت العرض بعد تعريف البناة). */
+export const buildTaskColumns = (options: TaskColumnOptions): Array<Column<DebtTaskQueueRow>> => [
+  partyColumn(),
+  typeColumn(),
+  priorityColumn(),
+  stageColumn(),
+  referenceColumn(),
+  dueColumn(),
+  amountColumn(),
+  ownerColumn(),
+  actionsColumn(options),
+];

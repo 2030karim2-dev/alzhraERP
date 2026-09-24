@@ -7,6 +7,7 @@ import { useDebtMutations } from '../hooks/useDebtMutations';
 import { PROMISE_STATUS_META } from '../lib/constants';
 import StatusBadge from '../components/StatusBadge';
 import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
+import { ConfirmModal } from '../../../ui/base/ConfirmModal';
 import PromiseFormModal from '../components/PromiseFormModal';
 import { RowActions, type RowAction } from '../components/RowActions';
 import type { PaymentPromiseWithParty, PromiseStatus } from '../types';
@@ -22,6 +23,7 @@ const STATUS_FILTERS: Array<{ value: string; label: string }> = [
 const PromisesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmBreak, setConfirmBreak] = useState(false);
   const [editingPromise, setEditingPromise] = useState<PaymentPromiseWithParty | null>(null);
   const { data: promises, isLoading } = useDebtPromises(
     statusFilter ? { status: statusFilter } : undefined
@@ -113,12 +115,12 @@ const PromisesPage: React.FC = () => {
             <>
               <button
                 onClick={() => {
-                  breakOverduePromises();
+                  setConfirmBreak(true);
                 }}
                 disabled={isSaving}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-600 transition-all hover:bg-rose-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 max-md:px-2 max-md:py-1.5"
               >
-                <RefreshCcw size={13} /> كشف الوعود المتجاوزة
+                <RefreshCcw size={13} /> وسم الوعود المتجاوزة كمخلَفة
               </button>
               <button
                 onClick={() => {
@@ -228,6 +230,22 @@ const PromisesPage: React.FC = () => {
           );
         })}
       </MobileCardList>
+
+      {/* إجراء جماعي مؤكَّد: وسم كل الوعود المتجاوزة كمخلَفة (بدل التنفيذ الفوري) */}
+      <ConfirmModal
+        isOpen={confirmBreak}
+        onClose={() => {
+          setConfirmBreak(false);
+        }}
+        onConfirm={() => {
+          setConfirmBreak(false);
+          breakOverduePromises();
+        }}
+        title="كشف الوعود المتجاوزة"
+        message="سيتم وسم كل الوعود القائمة التي تجاوز تاريخ استحقاقها كـ«وعود مخلَفة»، ويظهر أثرها في لوحة المتابعة وطابور المهام. الاستمرار؟"
+        confirmLabel="نعم، وسم المتجاوزة"
+        variant="warning"
+      />
 
       <PromiseFormModal
         isOpen={isModalOpen}

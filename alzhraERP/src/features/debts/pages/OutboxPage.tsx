@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MessageSquareWarning, Copy, Send } from 'lucide-react';
-import { useDebtMessageLog } from '../hooks/useDebtQueries';
+import { useDebtMessageLog, useDebtFailedMessagesCount } from '../hooks/useDebtQueries';
 import { MESSAGE_STATUS_META } from '../lib/constants';
 import { buildWhatsAppLink } from '../lib/whatsapp';
 import StatusBadge from '../components/StatusBadge';
@@ -26,6 +26,8 @@ const copyMessageText = (text: string): void => {
 const OutboxPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const { data: messages, isLoading } = useDebtMessageLog(statusFilter || undefined);
+  // العدّ من الخادم (HEAD count) — لا يُشتق من الصفحة المحمّلة (حد 200) ولا من الفلتر الحالي.
+  const { data: failedCount = 0 } = useDebtFailedMessagesCount();
 
   // The query already filters by status server-side; keep a null-safe alias.
   const filtered = messages ?? [];
@@ -50,8 +52,11 @@ const OutboxPage: React.FC = () => {
             </button>
           ))}
         </div>
-        <span className="text-[10px] font-bold text-[var(--app-text-secondary)]">
-          {(messages ?? []).filter(m => m.status === 'failed').length} فاشلة
+        <span
+          className="text-[10px] font-bold text-[var(--app-text-secondary)]"
+          title="إجمالي الرسائل الفاشلة في سجل المنشأة (لا يتأثر بفلتر الحالة المعروض)"
+        >
+          {failedCount} فاشلة
         </span>
       </div>
 

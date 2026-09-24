@@ -316,6 +316,21 @@ export const debtMessageApi = {
     return data;
   },
 
+  /**
+   * عدّ رسائل حالة واحدة على مستوى المنشأة — HEAD count بلا جلب صفوف.
+   * يُستخدم لشارة «فاشلة» في الصادر حتى لا يتأثر العدّ بحد 200 صفاً
+   * ولا بفلتر الحالة المعروض (رقم واحد صادق دائماً).
+   */
+  countByStatus: async (companyId: string, status: string): Promise<number> => {
+    const { count, error } = await supabase
+      .from('debt_message_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .eq('status', status);
+    if (error) throw error;
+    return count ?? 0;
+  },
+
   // ── Reminder recording (single transaction in SQL) ──
   recordReminder: async (params: {
     companyId: string;

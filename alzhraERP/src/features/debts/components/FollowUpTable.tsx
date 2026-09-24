@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '../../../core/utils/currencyUtils';
-import { parseError } from '../../../core/utils/errorUtils';
 import { CLASSIFICATION_META, REMINDER_STATUS_META, escalationBadgeMeta } from '../lib/constants';
 import { buildDebtRowActions, type DebtRowActionHandlers } from '../lib/rowActions';
-import { useCompany } from '../../settings/hooks';
-import { useFeedbackStore } from '../../feedback/store';
-import { partiesService } from '../../parties/service';
-import { exportStatementToExcel } from '../../parties/utils/statementExcelExporter';
+import { useDebtStatementExport } from '../hooks/useDebtStatementExport';
 import StatusBadge from './StatusBadge';
 import MobileCardList, { MobileCardRow } from '../../../ui/base/MobileCardList';
 import RowActions from './RowActions';
@@ -30,14 +26,9 @@ interface FollowUpTableProps {
 }
 
 /**
- * أعمدة كشف الحساب الاختيارية (سجل تجاري/بنك/آيبان) غير المولَّدة في types
- * القاعدة — يُقرأ وصول اختياري صريح بدل `(company as any)`.
+ * أعمدة كشف الحساب الاختيارية انتقلت إلى hooks/useDebtStatementExport —
+ * هذا المكوّن للعرض فقط ويستهلك الـ Hook عبر طبقة الخدمة.
  */
-interface CompanyDocExtras {
-  commercial_reg?: string;
-  bank_name?: string;
-  bank_account_iban?: string;
-}
 
 const FollowUpTable: React.FC<FollowUpTableProps> = ({
   rows,
@@ -45,64 +36,14 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
   canRemind = false,
   onCollect,
 }) => {
-  const { data: company } = useCompany();
-  const { showToast } = useFeedbackStore();
+  // M-4: التصدير عبر hook (Component → Hook → Service) — الـ Hook يملك رسائل
+  // النجاح/الخطأ وحالة التصدير، فالمكوّن لا يكرّر التنبيهات.
+  const { exportStatement, exportingPartyId } = useDebtStatementExport();
 
   const [reminderRow, setReminderRow] = useState<FollowUpDashboardRow | null>(null);
   const [promiseRow, setPromiseRow] = useState<FollowUpDashboardRow | null>(null);
   const [aiRiskRow, setAiRiskRow] = useState<FollowUpDashboardRow | null>(null);
   const [timelineRow, setTimelineRow] = useState<FollowUpDashboardRow | null>(null);
-  const [exportingPartyId, setExportingPartyId] = useState<string | null>(null);
-
-  // eslint-disable-next-line complexity -- تنويعات التصدير (تواريخ/أعمدة/تنسيق) متفرعة بطبعها وليست منطقاً حسابياً
-  const handleExportExcel = async (row: FollowUpDashboardRow): Promise<void> => {
-    const companyExtras = company as unknown as CompanyDocExtras | null;
-    try {
-      setExportingPartyId(row.party_id);
-      showToast('جاري إنشاء وتنسيق كشف الحساب الاحترافي (Excel)...', 'info');
-
-      const statementEntries = await partiesService.getStatement(row.party_id, 'customer', {
-        currencyCode: row.currency_code,
-      });
-
-      const nameAr = company?.name_ar ?? '';
-      const companyInfo = {
-        name_ar: nameAr !== '' ? nameAr : 'منظومة الزهراء المحاسبية',
-        address: company?.address ?? '',
-        phone: company?.phone ?? '',
-        tax_number: company?.tax_number ?? '',
-        commercial_reg: companyExtras?.commercial_reg ?? '',
-        bank_name: companyExtras?.bank_name ?? '',
-        bank_account_iban: companyExtras?.bank_account_iban ?? '',
-      };
-
-      const formattedEntries = statementEntries.map(e => ({
-        date: e.date,
-        operation_type: e.operation_type ?? '',
-        reference_no: e.ref,
-        desc: e.desc,
-        debit: e.debit,
-        credit: e.credit,
-        balance: e.balance ?? 0,
-        payment_status: e.payment_status,
-      }));
-
-      await exportStatementToExcel(companyInfo, row.party_name, formattedEntries, {
-        currencyCode: row.currency_code,
-        partyType: 'customer',
-        ...(row.party_phone !== null && row.party_phone !== ''
-          ? { partyPhone: row.party_phone }
-          : {}),
-        partyCategory: row.category,
-      });
-
-      showToast('تم تحميل كشف الحساب بصيغة Excel بنجاح', 'success');
-    } catch (err) {
-      showToast(parseError(err).message, 'error');
-    } finally {
-      setExportingPartyId(null);
-    }
-  };
 
   /**
    * Row action handlers shared by the desktop Excel grid and the mobile cards.
@@ -116,7 +57,7 @@ const FollowUpTable: React.FC<FollowUpTableProps> = ({
       setAiRiskRow(row);
     },
     onExportStatement: row => {
-      void handleExportExcel(row);
+      void exportStatement(row);
     },
     onRemind: row => {
       setReminderRow(row);

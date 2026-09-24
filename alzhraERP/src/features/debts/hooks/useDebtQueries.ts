@@ -197,6 +197,17 @@ export const useDebtMessageLog = (status?: string): UseQueryResult<DebtMessageLo
     fetcher: companyId => debtMessageApi.getMessageLog(companyId, status),
   });
 
+/**
+ * عدد الرسائل الفاشلة على مستوى المنشأة (HEAD count) — رقم صادق لا يتأثر
+ * بحد 200 صفاً في قائمة الصادر ولا بفلتر الحالة المعروض.
+ */
+export const useDebtFailedMessagesCount = (): UseQueryResult<number> =>
+  useDebtQuery<number>({
+    scope: 'message_log_failed_count',
+    empty: 0,
+    fetcher: companyId => debtMessageApi.countByStatus(companyId, 'failed'),
+  });
+
 export const useDebtPartyOverview = (
   partyId: string | null
 ): UseQueryResult<PartyDebtOverview | null> =>
