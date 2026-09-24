@@ -42,7 +42,6 @@ import { join } from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
 const SOURCE_REF = process.env.SOURCE_PROJECT_REF || 'zzthamxjxnxzzpswllid';
-const TARGET_REF = process.env.TARGET_PROJECT_REF || 'orxlyiokccaodypindye';
 
 /**
  * Each project is addressed with its own access token: a Personal Access Token
@@ -60,8 +59,18 @@ const DEFAULT_SKIP = new Set(['csp_reports', 'api_rate_limits', 'ai_part_lookup_
 function args(argv) {
   const out = { _: [] };
   for (let i = 0; i < argv.length; i += 1) {
-    if (argv[i].startsWith('--')) out[argv[i].slice(2)] = argv[i + 1]?.startsWith('--') ? true : argv[++i];
-    else out._.push(argv[i]);
+    if (!argv[i].startsWith('--')) {
+      out._.push(argv[i]);
+      continue;
+    }
+    const key = argv[i].slice(2);
+    const next = argv[i + 1];
+    // A bare flag (no value, or followed by another flag) is boolean true.
+    if (next === undefined || next.startsWith('--')) out[key] = true;
+    else {
+      out[key] = next;
+      i += 1;
+    }
   }
   return out;
 }
@@ -192,6 +201,12 @@ async function cmdImport() {
   const target = a['target-ref'] || process.env.TARGET_PROJECT_REF;
   const replace = a.replace === true || a.replace === 'true';
   if (!target) throw new Error('--target-ref <ref> is required');
+  // Fail closed: replace mode deletes the tenant's rows in the target before
+  // re-inserting them, so it must name that target on the command line. A
+  // TARGET_PROJECT_REF inherited from an earlier session is not good enough.
+  if (replace && !a['target-ref']) {
+    throw new Error('--replace requires an explicit --target-ref flag (env var alone is not accepted)');
+  }
   if (target === SOURCE_REF) throw new Error('target must differ from the source project');
 
   const manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
@@ -280,10 +295,15 @@ async function cmdVerify() {
   let bad = 0;
   for (const [t, expected] of Object.entries(manifest.tables)) {
     if (t === 'auth_users' || t === 'auth_identities') continue;
-    const [{ n }] = await sql(target, `SELECT count(*)::int AS n FROM public.${t} WHERE company_id = '${manifest.company}'`);
-    const okMark = n === expected ? 'ok ' : 'MISMATCH';
-    if (n !== expected) bad += 1;
-    if (n !== expected) console.log(`  ${okMark} public.${t.padEnd(30)} source ${expected}  target ${n}`);
+    // `companies` is the tenant root and carries `id`, not `company_id`.
+    const where = t === 'companies'
+      ? `id = '${manifest.company}'`
+      : `company_id = '${manifest.company}'`;
+    const [{ n }] = await sql(target, `SELECT count(*)::int AS n FROM public.${t} WHERE ${where}`);
+    if (n !== expected) {
+      bad += 1;
+      console.log(`  MISMATCH public.${t.padEnd(30)} source ${expected}  target ${n}`);
+    }
   }
   console.log(bad === 0 ? '\nVERIFY: all table counts match the source.' : `\nVERIFY: ${bad} table(s) differ.`);
   process.exit(bad === 0 ? 0 : 1);
