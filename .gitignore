@@ -94,8 +94,8 @@ test-results/
 # one-off DB maintenance workspaces & data dumps
 # (may contain real tenant data: audit logs, index surgery scripts, baselines)
 سوبابيس/
-.tenant-xfer/
-.tenant-xfer-*/
+.tenant-transfer*/
+.tenant-xfer*/
 *.ndjson
 *.gz
 
