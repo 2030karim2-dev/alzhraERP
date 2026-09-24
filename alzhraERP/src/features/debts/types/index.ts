@@ -138,17 +138,30 @@ export type DebtTaskQueueRow =
 /** قنوات الإرسال المدعومة في التحصيل. */
 export type DebtChannel = 'whatsapp' | 'sms';
 
-/** إعدادات قنوات الإرسال (messaging_config) بصيغة مسطّحة للواجهة. */
+/**
+ * إعدادات قنوات الإرسال (messaging_config) بصيغة مسطّحة للواجهة.
+ * المفاتيح **لا تُقرأ أبداً** من قاعدة البيانات؛ يُرجع الخادم علم «مضبوط» فقط
+ * (`has_*_key`) لمنع تسريب المفاتيح إلى الـ DOM أو حالة الواجهة.
+ */
 export interface DebtChannelConfig {
   whatsapp_enabled: boolean;
   whatsapp_api_url: string;
-  whatsapp_api_key: string;
   whatsapp_phone: string;
+  has_whatsapp_key: boolean;
   sms_enabled: boolean;
   sms_api_url: string;
-  sms_api_key: string;
   sms_sender_id: string;
+  has_sms_key: boolean;
 }
+
+/**
+ * حمولة تحديث القنوات: المفاتيح write-only اختيارية، وحقل مفتاح فارغ أو غائب
+ * يعني «أبقِ المفتاح المحفوظ كما هو» ولا يمسحه.
+ */
+export type DebtChannelConfigPatch = Omit<DebtChannelConfig, 'has_whatsapp_key' | 'has_sms_key'> & {
+  whatsapp_api_key?: string;
+  sms_api_key?: string;
+};
 
 /** صف من طابور الإرسال (S3: get_debt_reminder_queue). */
 export type DebtReminderQueueRow =

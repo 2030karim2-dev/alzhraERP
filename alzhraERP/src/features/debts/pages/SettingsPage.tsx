@@ -1,6 +1,7 @@
 import React from 'react';
-import { SlidersHorizontal, MessageSquareText } from 'lucide-react';
+import { SlidersHorizontal, MessageSquareText, Bot } from 'lucide-react';
 import FollowUpSettingsForm from '../components/FollowUpSettingsForm';
+import AutoSendSettingsCard from '../components/AutoSendSettingsCard';
 import ChannelSettingsCard from '../components/ChannelSettingsCard';
 import SeedTemplatesCard from '../components/SeedTemplatesCard';
 import TemplateManager from '../components/TemplateManager';
@@ -21,6 +22,23 @@ const SettingsPage: React.FC = () => (
       </header>
       <div className="p-4">
         <FollowUpSettingsForm />
+      </div>
+    </section>
+
+    <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+      <header className="flex items-center gap-2 border-b border-[var(--app-border)] p-4">
+        <span className="rounded-lg bg-indigo-500 p-1.5 text-white">
+          <Bot size={14} />
+        </span>
+        <div>
+          <h3 className="text-sm font-bold text-[var(--app-text)]">الإرسال الآلي</h3>
+          <p className="text-[10px] text-[var(--app-text-secondary)]">
+            تشغيل التذكيرات المجدولة، نافذة الهدوء، السقف اليومي، ومفتاح الدولة
+          </p>
+        </div>
+      </header>
+      <div className="p-4">
+        <AutoSendSettingsCard />
       </div>
     </section>
 

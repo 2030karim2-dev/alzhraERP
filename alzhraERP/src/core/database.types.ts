@@ -1349,11 +1349,17 @@ export type Database = {
       }
       debt_followup_config: {
         Row: {
+          auto_send_enabled: boolean
           company_id: string
           created_at: string
           critical_days: number
+          daily_cap_per_party: number
+          default_country_code: string
           due_soon_days: number
           id: string
+          preferred_channel: string
+          quiet_end_hour: number
+          quiet_start_hour: number
           reminder_signature: string | null
           reminder_window_days: number
           stage_call_days: number
@@ -1363,11 +1369,17 @@ export type Database = {
           whatsapp_enabled: boolean
         }
         Insert: {
+          auto_send_enabled?: boolean
           company_id: string
           created_at?: string
           critical_days?: number
+          daily_cap_per_party?: number
+          default_country_code?: string
           due_soon_days?: number
           id?: string
+          preferred_channel?: string
+          quiet_end_hour?: number
+          quiet_start_hour?: number
           reminder_signature?: string | null
           reminder_window_days?: number
           stage_call_days?: number
@@ -1377,11 +1389,17 @@ export type Database = {
           whatsapp_enabled?: boolean
         }
         Update: {
+          auto_send_enabled?: boolean
           company_id?: string
           created_at?: string
           critical_days?: number
+          daily_cap_per_party?: number
+          default_country_code?: string
           due_soon_days?: number
           id?: string
+          preferred_channel?: string
+          quiet_end_hour?: number
+          quiet_start_hour?: number
           reminder_signature?: string | null
           reminder_window_days?: number
           stage_call_days?: number

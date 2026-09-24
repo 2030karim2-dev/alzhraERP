@@ -143,6 +143,9 @@ const TABLE_PRESET_MAP = new Map<string, InvalidationPreset>([
   ['debt_message_log', 'debts'],
   ['party_opening_balances', 'debts'],
   ['customer_activities', 'debts'],
+  ['debt_reminder_queue', 'debts'],
+  ['debt_cadence_steps', 'debts'],
+  ['debt_opt_outs', 'debts'],
 ]);
 
 /**

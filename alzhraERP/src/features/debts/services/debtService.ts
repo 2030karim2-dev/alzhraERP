@@ -24,6 +24,7 @@ import type {
   CollectionActivityRecord,
   CompleteDebtTaskResult,
   DebtChannelConfig,
+  DebtChannelConfigPatch,
   DebtCollector,
   DebtFollowupAction,
   DebtReminderQueueRow,
@@ -109,7 +110,7 @@ export const debtsService = {
     debtMessageApi.getChannelConfig(companyId),
 
   /** S3: تحديث إعدادات قنوات الإرسال. */
-  updateChannelConfig: (companyId: string, patch: Partial<DebtChannelConfig>): Promise<void> =>
+  updateChannelConfig: (companyId: string, patch: DebtChannelConfigPatch): Promise<void> =>
     debtMessageApi.updateChannelConfig(companyId, patch),
 
   /** S3-prep: استيراد المكتبة القياسية للقوالب (idempotent على الخادم). */

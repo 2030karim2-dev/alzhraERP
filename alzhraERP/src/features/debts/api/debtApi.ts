@@ -28,6 +28,7 @@ import type {
   CollectionActivityRecord,
   CompleteDebtTaskResult,
   DebtChannelConfig,
+  DebtChannelConfigPatch,
   DebtCollector,
   DebtFollowupAction,
   DebtReminderQueueRow,
@@ -35,16 +36,16 @@ import type {
   PartyTimelineEntry,
 } from '../types';
 
-/** إعدادات قنوات الإرسال الفارغة (افتراضي قبل أي ضبط). */
+/** إعدادات قنوات الإرسال الفارغة (افتراضي قبل أي ضبط) — بلا أي مفاتيح. */
 export const EMPTY_CHANNEL_CONFIG: DebtChannelConfig = {
   whatsapp_enabled: false,
   whatsapp_api_url: '',
-  whatsapp_api_key: '',
   whatsapp_phone: '',
+  has_whatsapp_key: false,
   sms_enabled: false,
   sms_api_url: '',
-  sms_api_key: '',
   sms_sender_id: '',
+  has_sms_key: false,
 };
 
 /** Engine defaults — also the migration defaults; kept in sync. */
@@ -545,35 +546,35 @@ export const debtMessageApi = {
       .maybeSingle();
     if (error) throw error;
     if (!data) return EMPTY_CHANNEL_CONFIG;
+    // المفاتيح تُقرأ من الخادم للتعرّف على وجودها فقط ثم تُسقَط فوراً:
+    // لا تصل إلى الـ DOM ولا إلى حالة الواجهة (write-only secrets).
     return {
       whatsapp_enabled: Boolean(data.whatsapp_enabled),
       whatsapp_api_url: data.whatsapp_api_url ?? '',
-      whatsapp_api_key: data.whatsapp_api_key ?? '',
       whatsapp_phone: data.whatsapp_phone ?? '',
+      has_whatsapp_key: Boolean(data.whatsapp_api_key),
       sms_enabled: Boolean(data.sms_enabled),
       sms_api_url: data.sms_api_url ?? '',
-      sms_api_key: data.sms_api_key ?? '',
       sms_sender_id: data.sms_sender_id ?? '',
+      has_sms_key: Boolean(data.sms_api_key),
     };
   },
 
   /** يحدّث إعدادات القنوات (تحديث أولاً ثم إدراج عند عدم وجود صف). */
-  updateChannelConfig: async (
-    companyId: string,
-    patch: Partial<DebtChannelConfig>
-  ): Promise<void> => {
+  updateChannelConfig: async (companyId: string, patch: DebtChannelConfigPatch): Promise<void> => {
     type MessagingConfigUpdate = Database['public']['Tables']['messaging_config']['Update'];
     const updatePayload: MessagingConfigUpdate = {};
     if (patch.whatsapp_enabled !== undefined)
       updatePayload.whatsapp_enabled = patch.whatsapp_enabled;
     if (patch.whatsapp_api_url !== undefined)
       updatePayload.whatsapp_api_url = patch.whatsapp_api_url;
-    if (patch.whatsapp_api_key !== undefined)
-      updatePayload.whatsapp_api_key = patch.whatsapp_api_key;
+    // سرّ write-only: القيمة الفارغة أو الغائبة لا تمسح المفتاح المحفوظ
+    if (patch.whatsapp_api_key) updatePayload.whatsapp_api_key = patch.whatsapp_api_key;
     if (patch.whatsapp_phone !== undefined) updatePayload.whatsapp_phone = patch.whatsapp_phone;
     if (patch.sms_enabled !== undefined) updatePayload.sms_enabled = patch.sms_enabled;
     if (patch.sms_api_url !== undefined) updatePayload.sms_api_url = patch.sms_api_url;
-    if (patch.sms_api_key !== undefined) updatePayload.sms_api_key = patch.sms_api_key;
+    // سرّ write-only: القيمة الفارغة أو الغائبة لا تمسح المفتاح المحفوظ
+    if (patch.sms_api_key) updatePayload.sms_api_key = patch.sms_api_key;
     if (patch.sms_sender_id !== undefined) updatePayload.sms_sender_id = patch.sms_sender_id;
 
     const { data: updated, error } = await supabase

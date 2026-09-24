@@ -10,7 +10,7 @@ import { debtApi, debtMessageApi } from '../api/debtApi';
 import { debtsService } from '../services/debtService';
 import { debtRpcErrorMessage } from '../lib/rpcErrors';
 import type {
-  DebtChannelConfig,
+  DebtChannelConfigPatch,
   DebtFollowupConfigUpdate,
   PaymentPromiseInsert,
   PaymentPromiseUpdate,
@@ -291,7 +291,7 @@ export const useDebtMutations = () => {
 
   // ── Channel configuration (S3) ──────────────────────────────
   const saveChannelConfig = useMutation({
-    mutationFn: async (patch: Partial<DebtChannelConfig>) => {
+    mutationFn: async (patch: DebtChannelConfigPatch) => {
       await assertPermission('debts:manage', 'إعداد قنوات الإرسال');
       if (companyId === undefined) throw new Error('جلسة العمل غير مكتملة');
       return debtsService.updateChannelConfig(companyId, patch);

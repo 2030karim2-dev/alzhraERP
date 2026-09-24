@@ -200,21 +200,45 @@ Deno.serve(async (req: Request) => {
     const rows = (data ?? []) as QueueRow[];
     let sent = 0;
     let failed = 0;
+    let skipped = 0;
 
     for (const row of rows) {
       const recipient = digits(row.recipient) || digits(row.party_phone);
+
+      // Unusable recipient: cancel the row WITHOUT a failure log - a bad phone
+      // is not a provider failure and must not pollute the KPIs.
+      if (recipient.length < 9) {
+        await admin.rpc('release_debt_reminder', {
+          p_queue_id: row.queue_id,
+          p_reason: 'invalid recipient phone',
+          p_cancel: true,
+        });
+        skipped += 1;
+        continue;
+      }
+
+      // Channel not configured (yet): keep the row queued so it flows as soon as
+      // the owner saves the provider settings - never record a failure.
+      if (!row.provider_url || !row.provider_key) {
+        await admin.rpc('release_debt_reminder', {
+          p_queue_id: row.queue_id,
+          p_reason: `${row.provider_kind} provider not configured`,
+          p_cancel: false,
+        });
+        skipped += 1;
+        continue;
+      }
+
       const result: SendResult =
-        recipient.length < 9
-          ? { ok: false, error: 'invalid recipient phone' }
-          : row.provider_kind === 'sms'
-            ? await sendSms(
-                row.provider_url,
-                row.provider_key,
-                row.provider_sender,
-                recipient,
-                row.message_text
-              )
-            : await sendWhatsApp(row.provider_url, row.provider_key, recipient, row.message_text);
+        row.provider_kind === 'sms'
+          ? await sendSms(
+              row.provider_url,
+              row.provider_key,
+              row.provider_sender,
+              recipient,
+              row.message_text
+            )
+          : await sendWhatsApp(row.provider_url, row.provider_key, recipient, row.message_text);
 
       await admin.rpc('log_debt_reminder_result', {
         p_queue_id: row.queue_id,
@@ -228,7 +252,7 @@ Deno.serve(async (req: Request) => {
       else failed += 1;
     }
 
-    return json({ processed: rows.length, sent, failed });
+    return json({ processed: rows.length, sent, failed, skipped });
   } catch (err) {
     return json({ error: String(err) }, 500);
   }

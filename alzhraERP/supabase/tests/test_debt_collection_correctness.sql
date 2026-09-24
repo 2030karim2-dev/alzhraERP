@@ -15,6 +15,10 @@
 --   T9  'both' party receipt posts without exception
 --   T10 receipt payment auto-completes the party's pending promise (Phase 1 / A1)
 --
+--   T16 reminder queue is write-locked for clients (20260923000005)
+--   T17 no dispatch without a ready provider; skipping never writes a failure log
+--   T18 automation gates: auto_send_enabled = false enqueues nothing
+--
 -- HOW TO RUN:
 --   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 \
 --        -f supabase/tests/test_debt_collection_correctness.sql
@@ -428,6 +432,84 @@ BEGIN
       IF v_txt NOT LIKE '%INVALID_COLLECTOR%' THEN
         RAISE EXCEPTION 'T14b FAIL: unexpected error: %', v_txt;
       END IF;
+  END;
+
+  -- ==== T16: the reminder queue is write-locked for clients ====
+  -- (hardening 20260923000005: writes only through the SECURITY DEFINER RPCs)
+  SELECT string_agg(g.privilege_type, ',' ORDER BY g.privilege_type) INTO v_txt
+  FROM information_schema.role_table_grants g
+  WHERE g.table_name = 'debt_reminder_queue' AND g.grantee = 'authenticated';
+  ASSERT v_txt = 'SELECT',
+    'T16 FAIL: authenticated holds queue privileges [' || COALESCE(v_txt, 'NONE') || ']';
+
+  -- ==== T17: no dispatch without a ready provider; skipping is not a failure ====
+  DELETE FROM public.messaging_config WHERE company_id = v_company;
+
+  PERFORM public.enqueue_debt_reminder(
+    v_company, v_customer, 'whatsapp', 'T17 probe', '967777000017', NULL, NULL, 't17-1'
+  );
+
+  SELECT count(*) INTO v_cnt FROM public.claim_debt_reminders(5, v_company);
+  ASSERT v_cnt = 0,
+    'T17 FAIL: claimed ' || v_cnt || ' reminder(s) although no provider is configured';
+
+  SELECT status INTO v_txt FROM public.debt_reminder_queue WHERE idempotency_key = 't17-1';
+  ASSERT v_txt = 'queued',
+    'T17 FAIL: unconfigured reminder left in status [' || COALESCE(v_txt, 'NULL') || ']';
+
+  UPDATE public.messaging_config
+     SET whatsapp_enabled = true,
+         whatsapp_api_url = 'https://example.test/messages',
+         whatsapp_api_key = 't17-key'
+   WHERE company_id = v_company;
+  IF NOT FOUND THEN
+    INSERT INTO public.messaging_config (company_id, whatsapp_enabled, whatsapp_api_url, whatsapp_api_key)
+    VALUES (v_company, true, 'https://example.test/messages', 't17-key');
+  END IF;
+
+  SELECT count(*) INTO v_cnt FROM public.claim_debt_reminders(5, v_company);
+  ASSERT v_cnt >= 1, 'T17 FAIL: a ready provider did not release the queued reminder';
+
+  SELECT attempts INTO v_cnt FROM public.debt_reminder_queue WHERE idempotency_key = 't17-1';
+  ASSERT v_cnt = 1,
+    'T17 FAIL: attempts = ' || COALESCE(v_cnt::text, 'NULL') || ' (expected exactly 1)';
+
+  -- Skipping an unusable recipient must cancel the row and write NO failure log.
+  SELECT id INTO v_next FROM public.debt_reminder_queue WHERE idempotency_key = 't17-1';
+  PERFORM public.release_debt_reminder(v_next, 'T17 unusable recipient', true);
+
+  SELECT status INTO v_txt FROM public.debt_reminder_queue WHERE id = v_next;
+  ASSERT v_txt = 'cancelled',
+    'T17 FAIL: released row status = [' || COALESCE(v_txt, 'NULL') || ']';
+
+  SELECT count(*) INTO v_cnt FROM public.debt_message_log WHERE company_id = v_company;
+  ASSERT v_cnt = 0, 'T17 FAIL: skipping wrote ' || v_cnt || ' message-log row(s)';
+
+  -- ==== T18: automation gates ====
+  UPDATE public.debt_followup_config SET auto_send_enabled = false WHERE company_id = v_company;
+  IF NOT FOUND THEN
+    INSERT INTO public.debt_followup_config (company_id, auto_send_enabled, default_country_code)
+    VALUES (v_company, false, '967');
+  END IF;
+
+  SELECT public.cron_enqueue_debt_reminders() INTO v_cnt;
+
+  SELECT count(*) INTO v_cnt
+  FROM public.debt_reminder_queue q
+  WHERE q.company_id = v_company AND q.idempotency_key LIKE 'cadence:%';
+  ASSERT v_cnt = 0,
+    'T18 FAIL: ' || v_cnt || ' cadence reminder(s) enqueued while auto_send_enabled = false';
+
+  SELECT default_country_code INTO v_txt
+  FROM public.debt_followup_config WHERE company_id = v_company;
+  ASSERT v_txt = '967',
+    'T18 FAIL: default_country_code = [' || COALESCE(v_txt, 'NULL') || ']';
+
+  BEGIN
+    UPDATE public.debt_followup_config SET default_country_code = 'abcd' WHERE company_id = v_company;
+    RAISE EXCEPTION 'T18b FAIL: an invalid default_country_code was accepted';
+  EXCEPTION
+    WHEN check_violation THEN NULL;
   END;
 
 END;

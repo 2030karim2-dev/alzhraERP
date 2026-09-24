@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, Smartphone } from 'lucide-react';
+import { MessageSquare, Smartphone, ShieldCheck } from 'lucide-react';
 import { useDebtChannelConfig } from '../hooks/useDebtQueries';
 import { useDebtMutations } from '../hooks/useDebtMutations';
 import { EMPTY_CHANNEL_CONFIG } from '../api/debtApi';
-import type { DebtChannelConfig } from '../types';
+import type { DebtChannelConfig, DebtChannelConfigPatch } from '../types';
 
 const INPUT_CLASS =
   'w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-hover)] px-2.5 py-2 text-xs font-bold text-[var(--app-text)] focus:outline-none focus:ring-2 focus:ring-blue-500/40';
@@ -14,21 +14,37 @@ interface FieldProps {
   value: string;
   placeholder: string;
   onChange: (value: string) => void;
+  /** شارة «مضبوط ✓» لحقول الأسرار write-only. */
+  isConfigured?: boolean;
 }
 
-const Field: React.FC<FieldProps> = ({ id, label, value, placeholder, onChange }) => (
+const Field: React.FC<FieldProps> = ({
+  id,
+  label,
+  value,
+  placeholder,
+  onChange,
+  isConfigured = false,
+}) => (
   <div className="space-y-1">
     <label
       htmlFor={id}
-      className="block text-[10px] font-extrabold uppercase tracking-wider text-gray-400"
+      className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-gray-400"
     >
       {label}
+      {isConfigured && (
+        <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600">
+          <ShieldCheck size={10} />
+          مضبوط ✓
+        </span>
+      )}
     </label>
     <input
       id={id}
       value={value}
       placeholder={placeholder}
       dir="ltr"
+      autoComplete="off"
       onChange={e => {
         onChange(e.target.value);
       }}
@@ -73,10 +89,19 @@ const ChannelBlock: React.FC<ChannelBlockProps> = ({
 
 interface ChannelFieldsProps {
   form: DebtChannelConfig;
+  keys: ChannelKeys;
   patch: (part: Partial<DebtChannelConfig>) => void;
+  patchKey: (channel: DebtChannel, value: string) => void;
 }
 
-const WhatsAppFields: React.FC<ChannelFieldsProps> = ({ form, patch }) => (
+export interface ChannelKeys {
+  whatsapp: string;
+  sms: string;
+}
+
+type DebtChannel = 'whatsapp' | 'sms';
+
+const WhatsAppFields: React.FC<ChannelFieldsProps> = ({ form, keys, patch, patchKey }) => (
   <ChannelBlock
     title="قناة واتساب (Cloud API أو CallMeBot)"
     icon={<MessageSquare size={14} className="text-emerald-600" />}
@@ -96,11 +121,12 @@ const WhatsAppFields: React.FC<ChannelFieldsProps> = ({ form, patch }) => (
     />
     <Field
       id="wa-key"
-      label="مفتاح الـ API (اتركه فارغاً للإبقاء)"
-      value={form.whatsapp_api_key}
-      placeholder="••••••••"
+      label="مفتاح الـ API (اكتبه مرة واحدة — لا يُقرأ بعدها)"
+      value={keys.whatsapp}
+      placeholder={form.has_whatsapp_key ? 'مضبوط — اكتب مفتاحاً جديداً للتغيير' : '••••••••'}
+      isConfigured={form.has_whatsapp_key}
       onChange={value => {
-        patch({ whatsapp_api_key: value });
+        patchKey('whatsapp', value);
       }}
     />
     <Field
@@ -115,7 +141,7 @@ const WhatsAppFields: React.FC<ChannelFieldsProps> = ({ form, patch }) => (
   </ChannelBlock>
 );
 
-const SmsFields: React.FC<ChannelFieldsProps> = ({ form, patch }) => (
+const SmsFields: React.FC<ChannelFieldsProps> = ({ form, keys, patch, patchKey }) => (
   <ChannelBlock
     title="قناة SMS (بوابة محلية)"
     icon={<Smartphone size={14} className="text-sky-600" />}
@@ -135,11 +161,12 @@ const SmsFields: React.FC<ChannelFieldsProps> = ({ form, patch }) => (
     />
     <Field
       id="sms-key"
-      label="مفتاح البوابة (اتركه فارغاً للإبقاء)"
-      value={form.sms_api_key}
-      placeholder="••••••••"
+      label="مفتاح البوابة (اكتبه مرة واحدة — لا يُقرأ بعدها)"
+      value={keys.sms}
+      placeholder={form.has_sms_key ? 'مضبوط — اكتب مفتاحاً جديداً للتغيير' : '••••••••'}
+      isConfigured={form.has_sms_key}
       onChange={value => {
-        patch({ sms_api_key: value });
+        patchKey('sms', value);
       }}
     />
     <Field
@@ -173,12 +200,14 @@ const SaveRow: React.FC<{ isSaving: boolean; onSave: () => void }> = ({ isSaving
 
 /**
  * S3: تفعيل وضبط قنوات الإرسال (واتساب + SMS) على نفس صف messaging_config الذي
- * تستخدمه بقية الوحدات. المفاتيح تُكتب فقط: الحقل الفارغ يبقي القيمة المحفوظة.
+ * تستخدمه بقية الوحدات. المفاتيح أسرار write-only: لا تُقرأ من الخادم، والحقل
+ * الفارغ يعني «أبقِ المفتاح المحفوظ» ولا يمسحه أبداً.
  */
 const ChannelSettingsCard: React.FC = () => {
   const { data: config } = useDebtChannelConfig();
   const { saveChannelConfig, isSaving } = useDebtMutations();
   const [form, setForm] = useState<DebtChannelConfig>(EMPTY_CHANNEL_CONFIG);
+  const [keys, setKeys] = useState<ChannelKeys>({ whatsapp: '', sms: '' });
 
   useEffect(() => {
     if (config) setForm(config);
@@ -188,14 +217,34 @@ const ChannelSettingsCard: React.FC = () => {
     setForm(prev => ({ ...prev, ...part }));
   };
 
+  const patchKey = (channel: DebtChannel, value: string): void => {
+    setKeys(prev => ({ ...prev, [channel]: value }));
+  };
+
+  /** المفاتيح تُرسل فقط إذا كُتبت فعلاً — لا نرسل فراغاً ولا قيمة مقنّعة. */
+  const buildPatch = (): DebtChannelConfigPatch => ({
+    whatsapp_enabled: form.whatsapp_enabled,
+    whatsapp_api_url: form.whatsapp_api_url,
+    whatsapp_phone: form.whatsapp_phone,
+    sms_enabled: form.sms_enabled,
+    sms_api_url: form.sms_api_url,
+    sms_sender_id: form.sms_sender_id,
+    ...(keys.whatsapp.trim() !== '' ? { whatsapp_api_key: keys.whatsapp.trim() } : {}),
+    ...(keys.sms.trim() !== '' ? { sms_api_key: keys.sms.trim() } : {}),
+  });
+
   return (
     <div className="space-y-3">
-      <WhatsAppFields form={form} patch={patch} />
-      <SmsFields form={form} patch={patch} />
+      <WhatsAppFields form={form} keys={keys} patch={patch} patchKey={patchKey} />
+      <SmsFields form={form} keys={keys} patch={patch} patchKey={patchKey} />
       <SaveRow
         isSaving={isSaving}
         onSave={() => {
-          saveChannelConfig(form);
+          saveChannelConfig(buildPatch(), {
+            onSuccess: () => {
+              setKeys({ whatsapp: '', sms: '' });
+            },
+          });
         }}
       />
     </div>
