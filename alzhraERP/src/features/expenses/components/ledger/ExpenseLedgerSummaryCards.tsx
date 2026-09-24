@@ -1,5 +1,6 @@
 /* eslint-disable max-lines-per-function, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing */
 import React from 'react';
+import { isDebitNormalAccount } from '../../../accounting/utils/ledgerBalance';
 import { formatCurrency } from '@/core/utils';
 import type { LedgerMetrics } from './types';
 
@@ -8,6 +9,7 @@ interface ExpenseLedgerSummaryCardsProps {
     | {
         name: string;
         code: string;
+        type?: string | undefined;
         currency_code?: string | null | undefined;
       }
     | null
@@ -23,6 +25,7 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
 
   const code = selectedAccount.code || '';
   const name = selectedAccount.name || '';
+  const isDebitNormal = isDebitNormalAccount(selectedAccount.type);
   const isEmployeeOrCustody =
     code.startsWith('140') ||
     name.includes('راتب') ||
@@ -31,7 +34,7 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
   const isCashbox = code.startsWith('101') || code.startsWith('102') || name.includes('صندوق');
 
   const debitLabel = isEmployeeOrCustody
-    ? 'إجمالي ما عليه (صرف عهدة)'
+    ? 'إجمالي ما عليه (صرف / سلف)'
     : isCashbox
       ? 'إجمالي الوارد (إيداع)'
       : 'إجمالي ما عليه (صرف)';
@@ -39,7 +42,7 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
   const debitBadge = isCashbox ? 'وارد (+)' : 'عليه (+)';
 
   const creditLabel = isEmployeeOrCustody
-    ? 'إجمالي ما له (سداد فواتير)'
+    ? 'إجمالي ما له (راتب / تسويات)'
     : isCashbox
       ? 'إجمالي المنصرف (دفع)'
       : 'إجمالي ما له (سداد)';
@@ -47,7 +50,9 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
   const creditBadge = isCashbox ? 'منصرف (-)' : 'له (-)';
 
   const isZero = Math.abs(ledgerMetrics.closingBalance) < 0.001;
-  const isOwed = ledgerMetrics.closingBalance > 0; // عليه
+  const isCredit = isDebitNormal
+    ? ledgerMetrics.closingBalance < 0
+    : ledgerMetrics.closingBalance > 0;
 
   let balanceStatusText = '';
   let balanceBadgeText = '';
@@ -57,9 +62,10 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
     balanceStatusText = isEmployeeOrCustody ? 'خالص الذمة' : 'رصيد متزن';
     balanceBadgeText = 'متزن (خالص)';
     badgeColorClass = 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300';
-  } else if (isOwed) {
+  } else if (!isCredit) {
+    // Net Debit -> عليه
     balanceStatusText = isEmployeeOrCustody
-      ? 'متبقي في ذمته لم يُسدد'
+      ? 'متبقي في ذمته لم يُسدد (سحب زيادة)'
       : isCashbox
         ? 'رصيد متوفر بالصندوق'
         : 'رصيد منصرف مستحق';
@@ -67,6 +73,7 @@ export const ExpenseLedgerSummaryCards: React.FC<ExpenseLedgerSummaryCardsProps>
     badgeColorClass =
       'border border-rose-300 bg-rose-100 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-300';
   } else {
+    // Net Credit -> له
     balanceStatusText = isEmployeeOrCustody
       ? 'مستحق للموظف بذمة المنشأة'
       : isCashbox

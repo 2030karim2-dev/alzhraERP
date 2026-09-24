@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight, FileText, Printer, Receipt, Sparkles, UserCheck, Wallet } from 'lucide-react';
 import type { Account } from '../../../accounting/types';
+import { isDebitNormalAccount } from '../../../accounting/utils/ledgerBalance';
 import type { DatePreset } from '@/core/types/invoiceSearch';
 import { getDateRangeForPreset } from '@/core/utils/dateUtils';
 import { formatCurrency } from '@/core/utils';
@@ -180,13 +181,28 @@ export const ExpenseLedgerToolbar: React.FC<ExpenseLedgerToolbarProps> = ({
         <div className="flex items-center justify-end gap-2 lg:col-span-3">
           {selectedAccount && ledgerLength > 0 && (
             <>
-              <ShareButton
-                size="sm"
-                showLabel
-                eventType="ledger"
-                title={`كشف حساب ${selectedAccount.name}`}
-                message={`📒 كشف حساب مالي - ${selectedAccount.name} (${selectedAccount.code})\n━━━━━━━━━━━━━━\n📕 إجمالي ما عليه (صرف): ${formatCurrency(ledgerMetrics.totalDebit)}\n📗 إجمالي ما له (سداد): ${formatCurrency(ledgerMetrics.totalCredit)}\n💰 صافي الرصيد: ${Math.abs(ledgerMetrics.closingBalance) < 0.001 ? 'متزن (خالص)' : ledgerMetrics.closingBalance > 0 ? `عليه: ${formatCurrency(ledgerMetrics.closingBalance)}` : `له: ${formatCurrency(Math.abs(ledgerMetrics.closingBalance))}`}\n📅 الفترة: من ${dateFrom || 'البداية'} إلى ${dateTo || 'الآن'}`}
-              />
+              {(() => {
+                const isDebitNormal = isDebitNormalAccount(selectedAccount.type);
+                const isCredit = isDebitNormal
+                  ? ledgerMetrics.closingBalance < 0
+                  : ledgerMetrics.closingBalance > 0;
+                const isZero = Math.abs(ledgerMetrics.closingBalance) < 0.001;
+                const balText = isZero
+                  ? 'متزن (خالص)'
+                  : isCredit
+                    ? `له: ${formatCurrency(Math.abs(ledgerMetrics.closingBalance))}`
+                    : `عليه: ${formatCurrency(Math.abs(ledgerMetrics.closingBalance))}`;
+
+                return (
+                  <ShareButton
+                    size="sm"
+                    showLabel
+                    eventType="ledger"
+                    title={`كشف حساب ${selectedAccount.name}`}
+                    message={`📒 كشف حساب مالي - ${selectedAccount.name} (${selectedAccount.code})\n━━━━━━━━━━━━━━\n📕 إجمالي ما عليه: ${formatCurrency(ledgerMetrics.totalDebit)}\n📗 إجمالي ما له: ${formatCurrency(ledgerMetrics.totalCredit)}\n💰 صافي الرصيد: ${balText}\n📅 الفترة: من ${dateFrom || 'البداية'} إلى ${dateTo || 'الآن'}`}
+                  />
+                );
+              })()}
               <Button
                 onClick={onPrint}
                 variant="outline"

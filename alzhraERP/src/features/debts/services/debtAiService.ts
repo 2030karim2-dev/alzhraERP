@@ -27,11 +27,40 @@ const SYSTEM_DEBT_ROLE =
   'أخرج دائماً JSON صالح فقط.';
 
 /**
+ * عتبة اقتراح خطة التقسيط في التحليل الذكي — **عرضية فقط** (نص اقتراح في
+ * بطاقة المخاطر، لا أثر محاسبي إطلاقاً).
+ *
+ * القيم تقريبية لعتبة 5,000 ر.س المرجعية المعتمدة، محسوبة بـ:
+ * - تثبيت الدولار/الريال عند 3.75 (SAR peg) مقابل USD/OMR/CNY.
+ * - معامل المشروع 410× بين SAR و YER (نفس معيار المصروفات في AGENTS.md).
+ * أي عملة غير مدرجة تأخذ قيمة 5,000 بوحدتها (سلوك ما قبل الإصلاح).
+ */
+/** Map (لا كائن بمفتاح متغيّر) — يمنع تنبيه security/detect-object-injection. */
+const INSTALLMENT_THRESHOLDS = new Map<string, number>([
+  ['SAR', 5000],
+  ['YER', 2_050_000], // 5,000 SAR × 410
+  ['USD', 1350], // ≈ 5,000 SAR
+  ['OMR', 500], // ≈ 5,150 SAR (1 OMR ≈ 10.3 SAR)
+  ['CNY', 9500], // ≈ 5,000 SAR
+]);
+
+/** عتبة التقسيط لعملة محددة (5,000 افتراضياً لعملة غير مدرجة). */
+export const installmentThresholdFor = (currency: string): number =>
+  INSTALLMENT_THRESHOLDS.get(currency) ?? 5000;
+
+/** هل يُستحق اقتراح التقسيط لهذه العملة والمبلغ؟ (مقارنة صارمة > العتبة). */
+export const shouldSuggestInstallment = (amount: number, currency: string): boolean =>
+  amount > installmentThresholdFor(currency);
+
+/**
  * Clean & parse JSON from AI model response
  */
 function parseAiJson<T>(content: string): T | null {
   try {
-    const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+    const cleaned = content
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
+      .trim();
     return JSON.parse(cleaned) as T;
   } catch {
     const start = content.indexOf('{');
@@ -61,9 +90,12 @@ export const debtAiService = {
 
     const toneInstructions: Record<ReminderTone, string> = {
       friendly: 'نبرة ودية ومرحبة، تذكير لطيف بالفاتورة، شكر العميل على تعامله، الحفاظ على المودة.',
-      formal: 'نبرة رسمية ومهنية راقية، توضيح رقم الحساب والمبلغ المستحق وتاريخ الاستحقاق والرجاء بسداد المبلغ.',
-      urgent: 'نبرة حازمة وعاجلة، التركيز على تجاوز موعد الاستحقاق أو إخلاف الوعد وأهمية السداد لتفادي تعليق الحساب.',
-      legal: 'نبرة إشعار نهائي رسمي وقانوني، تنبيه نهائي قبل اتخاذ الإجراءات الإدارية والقانونية وإيقاف التسهيلات الائتمانية.',
+      formal:
+        'نبرة رسمية ومهنية راقية، توضيح رقم الحساب والمبلغ المستحق وتاريخ الاستحقاق والرجاء بسداد المبلغ.',
+      urgent:
+        'نبرة حازمة وعاجلة، التركيز على تجاوز موعد الاستحقاق أو إخلاف الوعد وأهمية السداد لتفادي تعليق الحساب.',
+      legal:
+        'نبرة إشعار نهائي رسمي وقانوني، تنبيه نهائي قبل اتخاذ الإجراءات الإدارية والقانونية وإيقاف التسهيلات الائتمانية.',
     };
 
     const prompt = `
@@ -102,7 +134,11 @@ ${toneInstructions[tone]}
         return parsed;
       }
     } catch (err) {
-      logger.warn('debtAiService', 'AI smart reminder generation failed, using template fallback', err);
+      logger.warn(
+        'debtAiService',
+        'AI smart reminder generation failed, using template fallback',
+        err
+      );
     }
 
     // Fallback template
@@ -116,7 +152,10 @@ ${toneInstructions[tone]}
   /**
    * Deep AI Risk & Recovery Analysis for a Debtor
    */
-  analyzeDebtRisk: async (row: FollowUpDashboardRow, companyName?: string): Promise<DebtRiskAnalysis> => {
+  analyzeDebtRisk: async (
+    row: FollowUpDashboardRow,
+    companyName?: string
+  ): Promise<DebtRiskAnalysis> => {
     const prompt = `
 قم بتحليل مخاطر الائتمان وتقييم سلوك السداد للعميل التالي وتقديم استراتيجية تحصيل ذكية:
 
@@ -170,10 +209,12 @@ ${toneInstructions[tone]}
     const riskScore = isCritical ? 85 : isHigh ? 65 : isMedium ? 40 : 15;
     const recoveryProbability = 100 - riskScore + 10;
 
-    const paymentPlanSuggestion =
-      row.outstanding_balance > 5000
-        ? `تقسيط المبلغ (${row.outstanding_balance} ${row.currency_code}) على دفعتين متساويتين.`
-        : undefined;
+    const paymentPlanSuggestion = shouldSuggestInstallment(
+      row.outstanding_balance,
+      row.currency_code
+    )
+      ? `تقسيط المبلغ (${row.outstanding_balance} ${row.currency_code}) على دفعتين متساويتين.`
+      : undefined;
 
     return {
       riskLevel,
@@ -210,7 +251,16 @@ ${toneInstructions[tone]}
     dateRangeText?: string;
     bankInfo?: string;
   }): string => {
-    const { partyName, totalDebit, totalCredit, finalBalance, currency, companyName, dateRangeText, bankInfo } = params;
+    const {
+      partyName,
+      totalDebit,
+      totalCredit,
+      finalBalance,
+      currency,
+      companyName,
+      dateRangeText,
+      bankInfo,
+    } = params;
 
     const balanceText =
       finalBalance >= 0

@@ -221,16 +221,39 @@ const OverviewPage: React.FC = () => {
   const baseCurrency = company?.base_currency || 'SAR';
 
   const a = (analytics ?? {}) as DebtAnalytics;
+  // M-9: null يعني أن RPC التحليلات غير متاح على هذا الخادم — لا نعرض أصفاراً
+  // فيبطاقات KPI كأنها حقيقة، بل تنبيهاً صريحاً بأن المؤشرات غير متاحة.
+  const analyticsUnavailable = analytics === null;
 
   return (
     <div className="space-y-5 max-md:space-y-3">
       <AIDebtAdvisor />
-      <StatsGrid analytics={analytics ?? null} isLoading={isLoading} baseCurrency={baseCurrency} />
-      <AgingBuckets aging={a.aging} baseCurrency={baseCurrency} />
+      {analyticsUnavailable ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 p-4 text-amber-800 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300 max-md:p-3">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-bold">مؤشرات الديون غير متاحة حالياً</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed">
+              تعذّر جلب تحليلات الديون من الخادم (قد يكون دالة التحليلات غير مثبّتة على هذا
+              الإصدار). المهام والإجراءات أدناه تعمل بشكل طبيعي، لكن الإجماليات وشرائح التقادم لن
+              تُعرض حتى عودة الخدمة.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <StatsGrid
+            analytics={analytics ?? null}
+            isLoading={isLoading}
+            baseCurrency={baseCurrency}
+          />
+          <AgingBuckets aging={a.aging} baseCurrency={baseCurrency} />
+        </>
+      )}
       <TodayTasksCard tasks={tasks ?? []} />
       {/* S1: الإجراءات المجدولة (customer_activities.pending) — كانت بلا قارئ */}
       <FollowupActionsCard />
-      <CurrencyBreakdown byCurrency={a.by_currency} />
+      {!analyticsUnavailable && <CurrencyBreakdown byCurrency={a.by_currency} />}
     </div>
   );
 };

@@ -1,10 +1,12 @@
 /* eslint-disable max-lines-per-function, @typescript-eslint/explicit-function-return-type, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing */
 import type { Account, LedgerEntry } from '../../../accounting/types';
+import { isDebitNormalAccount } from '../../../accounting/utils/ledgerBalance';
 import { formatCurrency, formatNumberDisplay } from '@/core/utils';
 
 export function getExpenseLedgerColumns(selectedAccount?: Account | null) {
   const code = selectedAccount?.code || '';
   const name = selectedAccount?.name || '';
+  const isDebitNormal = isDebitNormalAccount(selectedAccount?.type);
   const isEmployeeOrCustody =
     code.startsWith('140') ||
     name.includes('راتب') ||
@@ -13,13 +15,13 @@ export function getExpenseLedgerColumns(selectedAccount?: Account | null) {
   const isCashbox = code.startsWith('101') || code.startsWith('102') || name.includes('صندوق');
 
   const debitTitle = isEmployeeOrCustody
-    ? 'عليه (+) صرف عهدة / سلفة'
+    ? 'عليه (+) صرف سلفة / نقدية / عهدة'
     : isCashbox
       ? 'وارد للصندوق (إيداع +)'
       : 'عليه (+) صرف / استحقاق';
 
   const creditTitle = isEmployeeOrCustody
-    ? 'له (-) تسديد عهدة / فواتير'
+    ? 'له (-) استحقاق راتب / تسديد عهدة'
     : isCashbox
       ? 'منصرف من الصندوق (دفع -)'
       : 'له (-) سداد / تسوية';
@@ -169,7 +171,7 @@ export function getExpenseLedgerColumns(selectedAccount?: Account | null) {
     {
       header: 'الرصيد التراكمي (له / عليه)',
       accessor: (row: LedgerEntry) => {
-        const isCredit = row.balance < 0;
+        const isCredit = isDebitNormal ? row.balance < 0 : row.balance > 0;
         const isZero = Math.abs(row.balance) < 0.001;
         const isForeign = Boolean(
           row.foreign_balance !== undefined && row.currency_code && row.currency_code !== 'SAR'
@@ -224,7 +226,7 @@ export function getExpenseLedgerColumns(selectedAccount?: Account | null) {
       footer: (data: LedgerEntry[]) => {
         const lastRow = data.length > 0 ? data[data.length - 1] : null;
         const finalBal = lastRow ? lastRow.balance : 0;
-        const isCredit = finalBal < 0;
+        const isCredit = isDebitNormal ? finalBal < 0 : finalBal > 0;
         const isZero = Math.abs(finalBal) < 0.001;
 
         return (

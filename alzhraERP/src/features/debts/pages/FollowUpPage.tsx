@@ -142,6 +142,17 @@ const FollowUpPage: React.FC = () => {
     };
   }, [rows]);
 
+  // L-1: خيارات العملة تُشتق من البيانات الفعلية — أي عملة جديدة تظهر
+  // تلقائياً بدل قائمة مثبتة يدوياً كانت تُخفي عملات غير مدرجة.
+  const currencyOptions = useMemo(() => {
+    const codes = new Set<string>();
+    (rows ?? []).forEach(r => {
+      if (r.currency_code !== '') codes.add(r.currency_code);
+    });
+    if (currencyFilter !== 'all') codes.add(currencyFilter);
+    return Array.from(codes).sort();
+  }, [rows, currencyFilter]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-20 max-md:p-8">
@@ -196,11 +207,11 @@ const FollowUpPage: React.FC = () => {
           className="focus:outline-hidden h-9 rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-2.5 text-xs font-bold text-[var(--app-text)] focus:border-blue-500"
         >
           <option value="all">كل العملات</option>
-          <option value="SAR">ريال سعودي (SAR)</option>
-          <option value="YER">ريال يمني (YER)</option>
-          <option value="USD">دولار أمريكي (USD)</option>
-          <option value="OMR">ريال عماني (OMR)</option>
-          <option value="CNY">يوان صيني (CNY)</option>
+          {currencyOptions.map(code => (
+            <option key={code} value={code}>
+              {code}
+            </option>
+          ))}
         </select>
 
         {/* Sort Selector */}

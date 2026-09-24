@@ -5,6 +5,7 @@ import { exportToCSV } from '@/lib/exportUtils';
 import EmptyState from '@/ui/base/EmptyState';
 import ExcelTable from '@/ui/common/ExcelTable';
 import { useAccounts, useLedger } from '../../accounting/hooks';
+import { isDebitNormalAccount } from '../../accounting/utils/ledgerBalance';
 import { useExpenseCategories } from '../hooks';
 import { ExpenseLedgerPrintHeader } from './ledger/ExpenseLedgerPrintHeader';
 import { ExpenseLedgerSummaryCards } from './ledger/ExpenseLedgerSummaryCards';
@@ -120,15 +121,21 @@ export const ExpenseLedgerView: React.FC<Props> = ({ initialAccountId, onBackToL
       'له (سداد -)',
       'الرصيد التراكمي (له / عليه)',
     ];
-    const exportData = ledger.map(r => ({
-      date: r.date,
-      entry_no: r.entry_number > 0 ? `#${r.entry_number}` : '-',
-      desc: r.description,
-      party: r.party_name || '-',
-      debit: r.debit_amount,
-      credit: r.credit_amount,
-      balance: `${r.balance < 0 ? 'له' : r.balance > 0 ? 'عليه' : 'متزن'}: ${Math.abs(r.balance)}`,
-    }));
+    const isDebitNormal = isDebitNormalAccount(selectedAccount.type);
+    const exportData = ledger.map(r => {
+      const isCredit = isDebitNormal ? r.balance < 0 : r.balance > 0;
+      const isZero = Math.abs(r.balance) < 0.001;
+      const statusText = isZero ? 'متزن' : isCredit ? 'له' : 'عليه';
+      return {
+        date: r.date,
+        entry_no: r.entry_number > 0 ? `#${r.entry_number}` : '-',
+        desc: r.description,
+        party: r.party_name || '-',
+        debit: r.debit_amount,
+        credit: r.credit_amount,
+        balance: `${statusText}: ${Math.abs(r.balance)}`,
+      };
+    });
     exportToCSV(exportData, `كشف_حساب_${selectedAccount.code}_${selectedAccount.name}`, headers);
   };
 
