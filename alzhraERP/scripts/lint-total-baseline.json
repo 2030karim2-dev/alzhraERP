@@ -1,6 +1,6 @@
 {
-  "errors": 9792,
-  "warnings": 223,
+  "errors": 9781,
+  "warnings": 221,
   "capturedAt": "2026-09-24",
   "method": "npx eslint . --report-unused-disable-directives --format json (full scan of repo)",
   "history": [
@@ -41,6 +41,11 @@
       "date": "2026-09-24",
       "errors": 9792,
       "note": "stagger dashboard API batches and harden RPC execution (-6)"
+    },
+    {
+      "date": "2026-09-24",
+      "errors": 9781,
+      "note": "modularize AuditSessionPage into subcomponents and harden incentive detection (-11)"
     }
   ]
 }
