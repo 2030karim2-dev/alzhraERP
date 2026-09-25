@@ -30,7 +30,7 @@ export const transferService = {
                 *,
                 from_warehouse:warehouses!from_warehouse_id(name_ar),
                 to_warehouse:warehouses!to_warehouse_id(name_ar),
-                items:stock_transfer_items(*, product:products!product_id(name_ar, sku))
+                items:stock_transfer_items!stock_transfer_items_transfer_id_fkey(*, product:products!product_id(name_ar, sku))
             `
       )
       .eq('company_id', companyId)

@@ -81,7 +81,7 @@ function args(argv) {
   return out;
 }
 
-async function sql(ref, query, { attempts = 5 } = {}) {
+async function sql(ref, query, { attempts = 8 } = {}) {
   const token = tokenForRef(ref);
   let lastErr;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -90,14 +90,16 @@ async function sql(ref, query, { attempts = 5 } = {}) {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
-        signal: AbortSignal.timeout(280000),
+        signal: AbortSignal.timeout(240000),
       });
       const text = await res.text();
       if (!res.ok) throw new Error(text.slice(0, 300));
       return JSON.parse(text);
     } catch (e) {
       lastErr = e;
-      await new Promise((r) => setTimeout(r, 4000 * attempt));
+      // The link to the Management API is intermittently slow or dropped; back
+      // off progressively and keep trying rather than losing the run.
+      await new Promise((r) => setTimeout(r, Math.min(3000 * attempt, 15000)));
     }
   }
   throw lastErr;
@@ -132,40 +134,85 @@ async function insertableColumns(ref, schema, rel) {
 }
 
 /**
- * Splits a JSON array *text* into chunk texts by counting braces and honouring
- * string literals and escapes. Never parses numbers, so values keep their exact
- * literal form.
+ * Loads every insertable column of every relation in one round trip. Doing this
+ * per table cost ~160 extra API calls and pushed a full import past the client
+ * timeout.
  */
-function splitJsonArrayText(raw, maxChars = 400000) {
-  if (raw.length <= maxChars) return [raw];
-  const chunks = [];
+async function loadColumnMap(ref) {
+  const rows = await sql(
+    ref,
+    `SELECT n.nspname AS schema, c.relname AS rel, a.attname AS col
+       FROM pg_attribute a
+       JOIN pg_class c ON c.oid = a.attrelid
+       JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname IN ('public','auth') AND c.relkind = 'r'
+        AND a.attnum > 0 AND NOT a.attisdropped AND a.attgenerated = ''
+      ORDER BY n.nspname, c.relname, a.attnum`
+  );
+  const map = new Map();
+  for (const r of rows) {
+    const key = `${r.schema}.${r.rel}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(r.col);
+  }
+  return map;
+}
+
+/**
+ * Splits a JSON *array* text into smaller array texts, one group of elements at
+ * a time. Works purely by scanning braces and string literals — numbers are
+ * never parsed, so their exact literal form survives the trip.
+ *
+ * (An earlier version mistakenly treated the whole array as a single element,
+ * so it returned the input unchanged and every large table was sent as one
+ * oversized request.)
+ */
+function splitJsonArrayText(raw, maxChars = 200000) {
+  const text = raw.trim();
+  if (text.length <= maxChars || text === '[]') return [text];
+
+  const elements = [];
   let depth = 0;
-  let start = -1;
   let inString = false;
   let escaped = false;
-  for (let i = 0; i < raw.length; i += 1) {
-    const ch = raw[i];
+  let start = -1;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
     if (inString) {
       if (escaped) escaped = false;
       else if (ch === '\\') escaped = true;
       else if (ch === '"') inString = false;
       continue;
     }
-    if (ch === '"') inString = true;
-    else if (ch === '{' || ch === '[') {
-      if (depth === 0) start = i;
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '{' || ch === '[') {
       depth += 1;
-    } else if (ch === '}' || ch === ']') {
+      if (depth === 2 && start === -1) start = i; // element begins inside the array
+      continue;
+    }
+    if (ch === '}' || ch === ']') {
       depth -= 1;
-      if (depth === 0 && start !== -1) {
-        const piece = raw.slice(start, i + 1);
-        if (chunks.length === 0) chunks.push(piece);
-        else if (chunks[chunks.length - 1].length + piece.length + 1 > maxChars) chunks.push(piece);
-        else chunks[chunks.length - 1] = `${chunks[chunks.length - 1].slice(0, -1)},${piece.slice(1)}`;
+      if (depth === 1 && start !== -1) {
+        elements.push(text.slice(start, i + 1));
         start = -1;
       }
     }
   }
+  if (elements.length === 0) return [text];
+
+  const chunks = [];
+  let current = '';
+  for (const el of elements) {
+    if (current && current.length + el.length + 1 > maxChars) {
+      chunks.push(`[${current}]`);
+      current = '';
+    }
+    current = current ? `${current},${el}` : el;
+  }
+  if (current) chunks.push(`[${current}]`);
   return chunks;
 }
 
@@ -242,6 +289,9 @@ async function cmdImport() {
 
   console.log(`importing tenant ${manifest.company} into ${target}${replace ? '  (REPLACE: existing tenant rows are deleted first)' : ''}`);
 
+  // One round trip for every relation's column list.
+  const columnMap = await loadColumnMap(target);
+
   /**
    * Replays raw JSON text. `ON CONFLICT DO NOTHING` is omitted for public tables
    * in replace mode: it is unnecessary there and is rejected outright on tables
@@ -249,21 +299,52 @@ async function cmdImport() {
    * deferrable unique constraints/exclusion constraints as arbiters"), which
    * `invoices` and others do. auth.* always keeps it, because those rows may
    * legitimately already exist in the target.
+   *
+   * Chunks are deliberately small (~60 kB of JSON): the Management API rejects
+   * larger bodies with "request entity too large", which is not a SQL error and
+   * would otherwise abort a whole table. A rejected chunk is split and retried
+   * rather than failing the run.
    */
-  const replay = async (schema, rel, raw, { alwaysConflictSafe = false } = {}) => {
-    const cols = await insertableColumns(target, schema, rel);
+  const insertChunk = async (schema, rel, colList, chunk, conflict) => {
+    const statement = (body) =>
+      `SET session_replication_role = replica;
+       INSERT INTO ${schema}.${rel} (${colList})
+       SELECT ${colList}
+         FROM jsonb_populate_recordset(NULL::${schema}.${rel}, '${body.replace(/'/g, "''")}'::jsonb)
+       ${conflict};
+       SET session_replication_role = DEFAULT;`;
+    try {
+      await sql(target, statement(chunk));
+    } catch (e) {
+      const msg = String(e?.message ?? '');
+      // Not a SQL error: the Management API refuses oversized bodies. Halve and
+      // retry rather than failing the table.
+      if (/entity too large|payload too large|413/i.test(msg) && chunk.length > 3000) {
+        const halves = splitJsonArrayText(chunk, Math.floor(chunk.length / 2));
+        if (halves.length > 1) {
+          for (const half of halves) await insertChunk(schema, rel, colList, half, conflict);
+          return;
+        }
+      }
+      throw e;
+    }
+  };
+
+  const replay = async (schema, rel, raw, { alwaysConflictSafe = false, preSql = null } = {}) => {
+    const cols = columnMap.get(`${schema}.${rel}`);
+    if (!cols) throw new Error(`no columns found for ${schema}.${rel} in ${target}`);
     const colList = cols.join(', ');
     const conflict = alwaysConflictSafe || !replace ? 'ON CONFLICT DO NOTHING' : '';
+
+    // The clear runs as its own statement, never inside the first insert: if the
+    // insert body were rejected the delete would roll back with it, and in
+    // replace mode (plain INSERT, no ON CONFLICT) the retry would then collide
+    // with the rows it was supposed to replace.
+    if (preSql) {
+      await sql(target, `SET session_replication_role = replica;\n${preSql}\nSET session_replication_role = DEFAULT;`);
+    }
     for (const chunk of splitJsonArrayText(raw)) {
-      await sql(
-        target,
-        `SET session_replication_role = replica;
-         INSERT INTO ${schema}.${rel} (${colList})
-         SELECT ${colList}
-           FROM jsonb_populate_recordset(NULL::${schema}.${rel}, '${chunk.replace(/'/g, "''")}'::jsonb)
-         ${conflict};
-         SET session_replication_role = DEFAULT;`
-      );
+      await insertChunk(schema, rel, colList, chunk, conflict);
     }
   };
 
@@ -277,21 +358,24 @@ async function cmdImport() {
     console.log(`  auth.${rel.padEnd(22)} ${manifest.tables[name]} rows`);
   }
 
-  if (replace) {
-    const tables = Object.keys(manifest.tables).filter((t) => t !== 'auth_users' && t !== 'auth_identities');
-    // `companies` is the tenant root: it carries `id`, not `company_id`.
-    const deletions = tables
-      .map((t) => (t === 'companies'
-        ? `DELETE FROM public.companies WHERE id = '${manifest.company}';`
-        : `DELETE FROM public.${t} WHERE company_id = '${manifest.company}';`))
-      .join('\n');
-    await sql(target, `SET session_replication_role = replica;\n${deletions}\nSET session_replication_role = DEFAULT;`);
-    console.log(`  cleared existing tenant rows in ${tables.length} tables`);
-  }
+  // Each table is cleared immediately before its own insert, so a failure can
+  // only ever leave that single table without data — never the whole project.
+  // `companies` is the tenant root and carries `id`, not `company_id`.
+  const deleteFor = (t) =>
+    t === 'companies'
+      ? `DELETE FROM public.companies WHERE id = '${manifest.company}';`
+      : `DELETE FROM public.${t} WHERE company_id = '${manifest.company}';`;
 
   for (const [t, n] of Object.entries(manifest.tables)) {
-    if (t === 'auth_users' || t === 'auth_identities' || n === 0) continue;
-    await replay('public', t, rawOf(t));
+    if (t === 'auth_users' || t === 'auth_identities') continue;
+    if (n === 0) {
+      // The source has no rows for this tenant: make the target match rather
+      // than leaving stale rows behind.
+      if (replace) await sql(target, `SET session_replication_role = replica;\n${deleteFor(t)}\nSET session_replication_role = DEFAULT;`);
+      console.log(`  public.${t.padEnd(28)} 0 rows (cleared)`);
+      continue;
+    }
+    await replay('public', t, rawOf(t), { preSql: replace ? deleteFor(t) : null });
     console.log(`  public.${t.padEnd(28)} ${n} rows`);
   }
   console.log('\nDONE. Run `verify` to compare row counts against the source manifest.');

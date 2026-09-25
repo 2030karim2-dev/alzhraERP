@@ -109,8 +109,8 @@ export const entitySearchService = {
           id,
           status,
           created_at,
-          from_warehouse:from_warehouse_id (name_ar),
-          to_warehouse:to_warehouse_id (name_ar)
+          from_warehouse:warehouses!from_warehouse_id (name_ar),
+          to_warehouse:warehouses!to_warehouse_id (name_ar)
         `
         )
         .eq('company_id', companyId)
