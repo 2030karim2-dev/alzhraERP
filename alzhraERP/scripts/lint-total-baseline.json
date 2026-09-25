@@ -1,6 +1,6 @@
 {
-  "errors": 9771,
-  "warnings": 219,
+  "errors": 9760,
+  "warnings": 213,
   "capturedAt": "2026-09-25",
   "method": "npx eslint . --report-unused-disable-directives --format json (full scan of repo)",
   "history": [
@@ -51,6 +51,11 @@
       "date": "2026-09-25",
       "errors": 9771,
       "note": "disambiguate prc_supplier_products composite tenant FK and modularize quotations (-10)"
+    },
+    {
+      "date": "2026-09-25",
+      "errors": 9760,
+      "note": "modularize ExcelCartTable into subcomponents and clean table row cells (-11)"
     }
   ]
 }
