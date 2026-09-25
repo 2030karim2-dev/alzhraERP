@@ -189,7 +189,7 @@ export const supplierPortalService = {
           min_stock_level,
           unit,
           image_url,
-          prc_supplier_products (
+          prc_supplier_products:prc_supplier_products!prc_supplier_products_company_product_fk (
             supplier_sku,
             lead_time_days,
             preferred_supplier,
